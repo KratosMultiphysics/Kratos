@@ -4,14 +4,14 @@
 namespace Kratos {
 
     DEMContinuumConstitutiveLaw::DEMContinuumConstitutiveLaw() {
-        //std::cout << " DEMContinuumConstitutiveLaw constructor.." << std::endl;
+        //KRATOS_INFO("DEM") << " DEMContinuumConstitutiveLaw constructor.." << std::endl;
 
     } // Class DEMContinuumConstitutiveLaw
 
     DEMContinuumConstitutiveLaw::DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw &rReferenceContinuumConstitutiveLaw) {
-        //std::cout << " DEMContinuumConstitutiveLaw copy constructor.." << std::endl;
+        //KRATOS_INFO("DEM") << " DEMContinuumConstitutiveLaw copy constructor.." << std::endl;
     }
-    
+
     std::string DEMContinuumConstitutiveLaw::GetTypeOfLaw() {
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::GetTypeOfLaw) should not be called.","")
         std::string type_of_law = "";
@@ -21,8 +21,8 @@ namespace Kratos {
     void DEMContinuumConstitutiveLaw::Initialize() {
     }
 
-    void DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning DEMContinuumConstitutiveLaw to Properties " << pProp->Id() << std::endl;
+    void DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+        if(verbose) KRATOS_INFO("DEM") << "Assigning DEMContinuumConstitutiveLaw to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
@@ -31,7 +31,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    DEMContinuumConstitutiveLaw::~DEMContinuumConstitutiveLaw() { //std::cout << "Law destructor..." ;
+    DEMContinuumConstitutiveLaw::~DEMContinuumConstitutiveLaw() { //KRATOS_INFO("DEM") << "Law destructor..." ;
     }
 
     void DEMContinuumConstitutiveLaw::CalculateViscoDamping(double LocalRelVel[3],
@@ -42,7 +42,7 @@ namespace Kratos {
                                                             bool& sliding,
                                                             int failure_id) {
 
-        KRATOS_TRY  
+        KRATOS_TRY
 
          if ((indentation > 0) || (failure_id == 0)) {
              ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
@@ -54,7 +54,7 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
-    
+
     void DEMContinuumConstitutiveLaw::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                                        SphericContinuumParticle* neighbor,
                                                                        double equiv_young,
@@ -67,9 +67,9 @@ namespace Kratos {
                                                                        double indentation) {
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::ComputeParticleRotationalMoments) should not be called.","")
     }
-    
-    void DEMContinuumConstitutiveLaw::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area, Matrix* mSymmStressTensor, 
-                                                             SphericContinuumParticle* element1, SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) {    
+
+    void DEMContinuumConstitutiveLaw::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area, Matrix* mSymmStressTensor,
+                                                             SphericContinuumParticle* element1, SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) {
     }
 
 
@@ -103,8 +103,8 @@ namespace Kratos {
 
         //mDensity = element1_props[PARTICLE_DENSITY];
         //other_density = element2_props[PARTICLE_DENSITY];
-        //double m1 = 4/3 * KRATOS_M_PI * my_radius * my_radius * my_radius * mDensity;
-        //double m2 = 4/3 * KRATOS_M_PI * other_radius * other_radius * other_radius * other_density;
+        //double m1 = 4/3 * Globals::Pi * my_radius * my_radius * my_radius * mDensity;
+        //double m2 = 4/3 * Globals::Pi * other_radius * other_radius * other_radius * other_density;
 
         const double mRealMass = element1->GetMass();  // { mRealMass = real_mass;  GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = real_mass;}
         const double &other_real_mass = element2->GetMass();
@@ -124,7 +124,6 @@ namespace Kratos {
 
         double rescaled_damping = viscous_damping_coeff/(2*equiv_mass);
         //double a = 1.4142-equiv_gamma*equiv_gamma;
-        //KRATOS_WATCH(a)
 
         //double sqr_period = kn_el / equiv_mass - rescaled_damping*rescaled_damping;
         double sqr_period = sqrt(2.0) * kn_el / equiv_mass - rescaled_damping*rescaled_damping;   //esta es la correcta en continuu suponiendo un maximo de Kt= Kn
@@ -133,9 +132,9 @@ namespace Kratos {
     }
 
     bool DEMContinuumConstitutiveLaw::CheckRequirementsOfStressTensor() {
-    
+
         return false;
-    
+
     }
 
 } //kratos

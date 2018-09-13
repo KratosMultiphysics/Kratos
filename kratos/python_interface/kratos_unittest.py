@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division
 from unittest import *
+from contextlib import contextmanager
 
 import getopt
 import sys
@@ -22,61 +23,59 @@ class TestLoader(TestLoader):
 
 class TestCase(TestCase):
 
-    def failUnlessEqualWithTolerance(self, first, second, tolerance):
+    def failUnlessEqualWithTolerance(self, first, second, tolerance, msg=None):
         ''' fails if first and second have a difference greater than
         tolerance '''
 
-        if first < second + tolerance and first > second - tolerance:
-            return True
-        return False
+        if first < (second - tolerance) or first > (second + tolerance):
+            raise self.failureException(msg or '%r != %r within %r places' % (first, second, tolerance))
 
     assertEqualTolerance = failUnlessEqualWithTolerance
 
+@contextmanager
+def SupressConsoleOutput():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:  
+            yield
+        finally:
+            sys.stdout = old_stdout
 
-def CaptureStdout(bufferFile=None):
-    ''' Captures stdout and redirects it to bufferFile. If no bufferFile
-    is provided stdout is redirected to os.devnull by default '''
+@contextmanager
+def SupressConsoleError():
+    with open(os.devnull, "w") as devnull:
+        old_stderr = sys.stderr
+        sys.stderr = devnull
+        try:  
+            yield
+        finally:
+            sys.stderr = old_stderr
 
-    sys.stdout.flush()
-    newstdout = os.dup(1)
-
-    if bufferFile is None:
-        devnull = os.open(os.devnull, os.O_WRONLY)
-        os.dup2(devnull, 1)
-        os.close(devnull)
-    else:
-        os.dup2(bufferFile, 1)
-
-    sys.stdout = os.fdopen(newstdout, 'w')
-
-
-def CaptureStderr(bufferFile=None):
-    ''' Captures stderr and redirects it to bufferFile. If no bufferFile
-    is provided stderr is redirected to os.devnull by default '''
-
-    sys.stderr.flush()
-    newstderr = os.dup(2)
-
-    if bufferFile is None:
-        devnull = os.open(os.devnull, os.O_WRONLY)
-        os.dup2(devnull, 2)
-        os.close(devnull)
-    else:
-        os.dup2(bufferFile, 2)
-
-    sys.stderr = os.fdopen(newstderr, 'w')
-
+@contextmanager
+def SupressAllConsole():
+    with open(os.devnull, "w") as devnull:
+        old_stderr = sys.stderr
+        old_stdout = sys.stdout
+        sys.stderr = devnull
+        sys.stdout = devnull
+        try:  
+            yield
+        finally:
+            sys.stderr = old_stderr
+            sys.stdout = old_stdout
 
 def Usage():
     ''' Prints the usage of the script '''
 
     lines = [
         'Usage:',
-        '\t python kratos_run_tests [-l level] [-v vervosity]',
+        '\t python kratos_run_tests [-l level] [-v verbosity]',
         'Options',
         '\t -h, --help: Shows this command',
         '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
-        '\t -v, --verbose: Vervosty level: 0, 1 (Default), 2'
+        '\t              For MPI tests, use the equivalent distributed test suites: \'(mpi_all)\', \'(mpi_nightly)\' \'(mpi_small)\'',
+        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2'
     ]
 
     for l in lines:
@@ -85,7 +84,7 @@ def Usage():
 
 def runTests(tests):
     verbose_values = [0, 1, 2]
-    level_values = ['all', 'small', 'nightly', 'validation']
+    level_values = ['all', 'small', 'nightly', 'validation', 'mpi_all', 'mpi_small', 'mpi_nightly', 'mpi_validation']
 
     verbosity = 1
     level = 'all'
@@ -130,11 +129,17 @@ def runTests(tests):
             '[Warning]: "{}" test suite is empty'.format(level),
             file=sys.stderr)
     else:
-        TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level])
+        result = not TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level]).wasSuccessful()
+        sys.exit(result)
+
 
 KratosSuites = {
     'small': TestSuite(),
     'nightly': TestSuite(),
     'all': TestSuite(),
-    'validation': TestSuite()
+    'validation': TestSuite(),
+    'mpi_small': TestSuite(),
+    'mpi_nightly': TestSuite(),
+    'mpi_all': TestSuite(),
+    'mpi_validation': TestSuite(),
 }

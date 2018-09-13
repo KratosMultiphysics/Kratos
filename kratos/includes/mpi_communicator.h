@@ -1,23 +1,16 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//                    
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
@@ -206,11 +199,11 @@ public:
 
     /// Destructor.
 
-    virtual ~MPICommunicator()
+    ~MPICommunicator() override
     {
     }
 
-    virtual Communicator::Pointer Create()
+    Communicator::Pointer Create() override
     {
         KRATOS_TRY
 
@@ -232,14 +225,14 @@ public:
         return *this;
     }
 
-    int MyPID()
+    int MyPID() const override
     {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         return rank;
     }
 
-    int TotalProcesses()
+    int TotalProcesses() const override
     {
         int nproc;
         MPI_Comm_size(MPI_COMM_WORLD, &nproc);
@@ -256,75 +249,75 @@ public:
     ///@name Operations
     ///@{
 
-    void Barrier()
+    void Barrier() const override
     {
         MPI_Barrier(MPI_COMM_WORLD);
     }
 
-    virtual bool SumAll(int& rValue)
+    bool SumAll(int& rValue) const override
     {
         int local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool SumAll(double& rValue)
+    bool SumAll(double& rValue) const override
     {
         double local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool SumAll(array_1d<double, 3>& rValue)
+    bool SumAll(array_1d<double, 3>& rValue) const override
     {
         array_1d<double, 3> local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool MinAll(int& rValue)
+    bool MinAll(int& rValue) const override
     {
         int local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool MinAll(double& rValue)
+    bool MinAll(double& rValue) const override
     {
         double local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool MaxAll(int& rValue)
+    bool MaxAll(int& rValue) const override
     {
         int local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool MaxAll(double& rValue)
+    bool MaxAll(double& rValue) const override
     {
         double local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool ScanSum(const double& send_partial, double& receive_accumulated)
+    bool ScanSum(const double& send_partial, double& receive_accumulated) const override
     {
         double copy_of_send_partial = send_partial;
         MPI_Scan(&copy_of_send_partial, &receive_accumulated, 1, MPI_DOUBLE, MPI_SUM , MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool ScanSum(const int& send_partial, int& receive_accumulated)
+    bool ScanSum(const int& send_partial, int& receive_accumulated) const override
     {
         int copy_of_send_partial = send_partial;
         MPI_Scan(&copy_of_send_partial, &receive_accumulated, 1, MPI_INT, MPI_SUM , MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool SynchronizeElementalIds()
+    bool SynchronizeElementalIds() override
     {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -384,7 +377,7 @@ public:
         return true;
     }
 
-    virtual bool SynchronizeNodalSolutionStepsData()
+    bool SynchronizeNodalSolutionStepsData() override
     {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -468,7 +461,7 @@ public:
         return true;
     }
 
-    virtual bool SynchronizeDofs()
+    bool SynchronizeDofs() override
     {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -535,105 +528,105 @@ public:
         return true;
     }
 
-    virtual bool SynchronizeVariable(Variable<int> const& ThisVariable)
+    bool SynchronizeVariable(Variable<int> const& ThisVariable) override
     {
         SynchronizeVariable<int,int>(ThisVariable);
         return true;
     }
 
-    virtual bool SynchronizeVariable(Variable<double> const& ThisVariable)
+    bool SynchronizeVariable(Variable<double> const& ThisVariable) override
     {
         SynchronizeVariable<double,double>(ThisVariable);
         return true;
     }
 
-    virtual bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& ThisVariable)
+    bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& ThisVariable) override
     {
         SynchronizeVariable<array_1d<double, 3 >,double >(ThisVariable);
         return true;
     }
 
-    virtual bool SynchronizeVariable(Variable<Vector> const& ThisVariable)
+    bool SynchronizeVariable(Variable<Vector> const& ThisVariable) override
     {
         SynchronizeVariable<Vector,double>(ThisVariable);
         return true;
     }
 
-    virtual bool SynchronizeVariable(Variable<Matrix> const& ThisVariable)
+    bool SynchronizeVariable(Variable<Matrix> const& ThisVariable) override
     {
         SynchronizeVariable<Matrix,double>(ThisVariable);
         return true;
     }
 
     // This function is for test and will be changed. Pooyan.
-    virtual bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable)
+    bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable) override
     {
         SynchronizeMinThisVariable<double,double>(ThisVariable);
         return true;
 
     }
 
-    virtual bool AssembleCurrentData(Variable<int> const& ThisVariable)
+    bool AssembleCurrentData(Variable<int> const& ThisVariable) override
     {
         AssembleThisVariable<int,int>(ThisVariable);
         return true;
     }
 
-    virtual bool AssembleCurrentData(Variable<double> const& ThisVariable)
+    bool AssembleCurrentData(Variable<double> const& ThisVariable) override
     {
         AssembleThisVariable<double,double>(ThisVariable);
         return true;
     }
 
-    virtual bool AssembleCurrentData(Variable<array_1d<double, 3 > > const& ThisVariable)
+    bool AssembleCurrentData(Variable<array_1d<double, 3 > > const& ThisVariable) override
     {
         AssembleThisVariable<array_1d<double,3>,double>(ThisVariable);
         return true;
     }
 
-    virtual bool AssembleCurrentData(Variable<Vector> const& ThisVariable)
+    bool AssembleCurrentData(Variable<Vector> const& ThisVariable) override
     {
         AssembleThisVariable<Vector,double>(ThisVariable);
         return true;
     }
 
-    virtual bool AssembleCurrentData(Variable<Matrix> const& ThisVariable)
+    bool AssembleCurrentData(Variable<Matrix> const& ThisVariable) override
     {
         AssembleThisVariable<Matrix,double>(ThisVariable);
         return true;
     }
 
-    virtual bool AssembleNonHistoricalData(Variable<int> const& ThisVariable)
+    bool AssembleNonHistoricalData(Variable<int> const& ThisVariable) override
     {
         AssembleThisNonHistoricalVariable<int,int>(ThisVariable);
         return true;
     }
 
-    virtual bool AssembleNonHistoricalData(Variable<double> const& ThisVariable)
+    bool AssembleNonHistoricalData(Variable<double> const& ThisVariable) override
     {
         AssembleThisNonHistoricalVariable<double,double>(ThisVariable);
         return true;
     }
 
-    virtual bool AssembleNonHistoricalData(Variable<array_1d<double, 3 > > const& ThisVariable)
+    bool AssembleNonHistoricalData(Variable<array_1d<double, 3 > > const& ThisVariable) override
     {
         AssembleThisNonHistoricalVariable<array_1d<double,3>,double>(ThisVariable);
         return true;
     }
 
-    virtual bool AssembleNonHistoricalData(Variable<vector<array_1d<double,3> > > const& ThisVariable)
+    bool AssembleNonHistoricalData(Variable<vector<array_1d<double,3> > > const& ThisVariable) override
     {
         AssembleThisNonHistoricalVariable<vector<array_1d<double,3> >,double>(ThisVariable);
         return true;
     }
 
-    virtual bool AssembleNonHistoricalData(Variable<Vector> const& ThisVariable)
+    bool AssembleNonHistoricalData(Variable<Vector> const& ThisVariable) override
     {
         AssembleThisNonHistoricalVariable<Vector,double>(ThisVariable);
         return true;
     }
 
-    virtual bool AssembleNonHistoricalData(Variable<Matrix> const& ThisVariable)
+    bool AssembleNonHistoricalData(Variable<Matrix> const& ThisVariable) override
     {
         AssembleThisNonHistoricalVariable<Matrix,double>(ThisVariable);
         return true;
@@ -641,43 +634,43 @@ public:
 
     /////////////////////////////////////////////////////////////////////////////
 
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<int> const& ThisVariable)
+    bool SynchronizeElementalNonHistoricalVariable(Variable<int> const& ThisVariable) override
     {
         SynchronizeElementalNonHistoricalVariable<int,int>(ThisVariable);
         return true;
     }
 
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<double> const& ThisVariable)
+    bool SynchronizeElementalNonHistoricalVariable(Variable<double> const& ThisVariable) override
     {
         SynchronizeElementalNonHistoricalVariable<double,double>(ThisVariable);
         return true;
     }
 
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<array_1d<double, 3 > > const& ThisVariable)
+    bool SynchronizeElementalNonHistoricalVariable(Variable<array_1d<double, 3 > > const& ThisVariable) override
     {
         SynchronizeElementalNonHistoricalVariable<array_1d<double,3>,double>(ThisVariable);
         return true;
     }
 
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<vector<array_1d<double,3> > > const& ThisVariable)
+    bool SynchronizeElementalNonHistoricalVariable(Variable<vector<array_1d<double,3> > > const& ThisVariable) override
     {
         SynchronizeHeterogeneousElementalNonHistoricalVariable<array_1d<double,3>,double>(ThisVariable);
         return true;
     }
 
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<vector<int> > const& ThisVariable)
+    bool SynchronizeElementalNonHistoricalVariable(Variable<vector<int> > const& ThisVariable) override
     {
         SynchronizeHeterogeneousElementalNonHistoricalVariable<int,int>(ThisVariable);
         return true;
     }
 
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<Vector> const& ThisVariable)
+    bool SynchronizeElementalNonHistoricalVariable(Variable<Vector> const& ThisVariable) override
     {
         SynchronizeHeterogeneousElementalNonHistoricalVariable<double,double>(ThisVariable);
         return true;
     }
 
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<Matrix> const& ThisVariable)
+    bool SynchronizeElementalNonHistoricalVariable(Variable<Matrix> const& ThisVariable) override
     {
         SynchronizeElementalNonHistoricalVariable<Matrix,double>(ThisVariable);
         return true;
@@ -687,10 +680,10 @@ public:
 
     /**
      * Transfer objects from a given process to a destination process
-     * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
-     * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+     * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
+     * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
      **/
-    virtual bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects)
+    bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects) override
     {
         Kratos::Serializer particleSerializer;
         AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects,particleSerializer);
@@ -699,10 +692,10 @@ public:
 
     /**
     * Transfer objects from a given process to a destination process
-    * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
-    * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+    * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
+    * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
     **/
-    virtual bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects)
+    bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects) override
     {
         Kratos::Serializer particleSerializer;
         AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects,particleSerializer);
@@ -711,10 +704,10 @@ public:
 
     /**
     * Transfer objects from a given process to a destination process
-    * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
-    * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+    * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
+    * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
     **/
-    virtual bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects)
+    bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects) override
     {
         Kratos::Serializer particleSerializer;
         AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects,particleSerializer);
@@ -723,10 +716,10 @@ public:
 
     /**
      * Transfer objects from a given process to a destination process
-     * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
-     * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+     * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
+     * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
      **/
-    virtual bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects,Kratos::Serializer& particleSerializer)
+    bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects,Kratos::Serializer& particleSerializer) override
     {
         AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
@@ -734,10 +727,10 @@ public:
 
     /**
     * Transfer objects from a given process to a destination process
-    * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
-    * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+    * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
+    * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
     **/
-    virtual bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer)
+    bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer) override
     {
         AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
@@ -745,10 +738,10 @@ public:
 
     /**
     * Transfer objects from a given process to a destination process
-    * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
-    * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+    * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
+    * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
     **/
-    virtual bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer)
+    bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer) override
     {
         AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects,particleSerializer);
         return true;
@@ -772,21 +765,21 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "MPICommunicator";
     }
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
 
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         for (IndexType i = 0; i < mLocalMeshes.size(); i++)
         {
@@ -1543,7 +1536,7 @@ private:
         return true;
     }
 
-    bool SynchronizeElementalFlags()
+    bool SynchronizeElementalFlags() override
     {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);

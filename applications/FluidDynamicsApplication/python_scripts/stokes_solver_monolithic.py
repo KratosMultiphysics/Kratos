@@ -84,12 +84,11 @@ class StokesSolver:
 
 
     def AddDofs(self):
-        for node in self.main_model_part.Nodes:
-            # adding dofs
-            node.AddDof(kratoscore.VELOCITY_X, kratoscore.REACTION_X)
-            node.AddDof(kratoscore.VELOCITY_Y, kratoscore.REACTION_Y)
-            node.AddDof(kratoscore.VELOCITY_Z, kratoscore.REACTION_Z)
-            node.AddDof(kratoscore.PRESSURE, kratoscore.REACTION_WATER_PRESSURE)
+        kratoscore.VariableUtils().AddDof(kratoscore.VELOCITY_X, kratoscore.REACTION_X,self.main_model_part)
+        kratoscore.VariableUtils().AddDof(kratoscore.VELOCITY_Y, kratoscore.REACTION_Y,self.main_model_part)
+        kratoscore.VariableUtils().AddDof(kratoscore.VELOCITY_Z, kratoscore.REACTION_Z,self.main_model_part)
+        kratoscore.VariableUtils().AddDof(kratoscore.PRESSURE, kratoscore.REACTION_WATER_PRESSURE,self.main_model_part)
+
 
     def ImportModelPart(self):
         
@@ -150,8 +149,8 @@ class StokesSolver:
                                                                     self.settings["pressure_tolerance"].GetDouble(),
                                                                     self.settings["absolute_pressure_tolerance"].GetDouble()
                                                                     )
-            
         
+        (convergence_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
         
         builder_and_solver = kratoscore.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         

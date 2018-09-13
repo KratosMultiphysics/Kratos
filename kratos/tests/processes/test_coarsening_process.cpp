@@ -33,12 +33,12 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(Structured2DMeshCoarseningProcess, KratosCoreFastSuite)
 		{
 
-			Point<3>::Pointer p_point1(new Point<3>(0.00, 0.00, 0.00));
-			Point<3>::Pointer p_point2(new Point<3>(0.00, 10.00, 0.00));
-			Point<3>::Pointer p_point3(new Point<3>(10.00, 10.00, 0.00));
-			Point<3>::Pointer p_point4(new Point<3>(10.00, 0.00, 0.00));
+			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
+			Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
+			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
+			Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
 
-			Quadrilateral2D4<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
 			ModelPart model_part("Test");
 
@@ -92,12 +92,12 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(PerturbedStructured2DMeshCoarseningProcess, KratosCoreFastSuite)
 		{
 
-			Point<3>::Pointer p_point1(new Point<3>(0.00, 0.00, 0.00));
-			Point<3>::Pointer p_point2(new Point<3>(0.00, 10.00, 0.00));
-			Point<3>::Pointer p_point3(new Point<3>(10.00, 10.00, 0.00));
-			Point<3>::Pointer p_point4(new Point<3>(10.00, 0.00, 0.00));
+			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
+			Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
+			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
+			Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
 
-			Quadrilateral2D4<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
 			ModelPart model_part("Test");
 
@@ -111,7 +111,7 @@ namespace Kratos {
 
 			StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
 			for (std::size_t i = 0; i < model_part.NumberOfNodes(); i++)
-				model_part.GetNode(i + 1).Coordinate(i % 3 + 1) += .1 / number_of_divisions;
+				model_part.GetNode(i + 1).Coordinates()[i % 3] += .1 / number_of_divisions;
 
 			double original_mesh_area = 0.00;
 			for (auto i_element = model_part.ElementsBegin(); i_element != model_part.ElementsEnd(); i_element++)
@@ -155,12 +155,12 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(RedistributedStructured2DMeshCoarseningProcess, KratosCoreFastSuite)
 		{
 
-			Point<3>::Pointer p_point1(new Point<3>(0.00, 0.00, 0.00));
-			Point<3>::Pointer p_point2(new Point<3>(0.00, 10.00, 0.00));
-			Point<3>::Pointer p_point3(new Point<3>(10.00, 10.00, 0.00));
-			Point<3>::Pointer p_point4(new Point<3>(10.00, 0.00, 0.00));
+			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
+			Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
+			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
+			Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
 
-			Quadrilateral2D4<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
 			ModelPart model_part("Test");
 
@@ -174,7 +174,7 @@ namespace Kratos {
 
 			StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
 			for (std::size_t i = 0; i < model_part.NumberOfNodes(); i++)
-				model_part.GetNode(i + 1).Coordinate(i % 2 + 1) += 4. / number_of_divisions;
+				model_part.GetNode(i + 1).Coordinates()[i % 2] += 4. / number_of_divisions;
 
 			double original_mesh_area = 0.00;
 			for (auto i_element = model_part.ElementsBegin(); i_element != model_part.ElementsEnd(); i_element++)
@@ -223,16 +223,16 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(Structured3DMeshCoarseningProcess, KratosCoreFastSuite)
 		{
 
-			Point<3>::Pointer p_point1(new Point<3>(0.00, 0.00, 0.00));
-			Point<3>::Pointer p_point2(new Point<3>(10.00, 0.00, 0.00));
-			Point<3>::Pointer p_point3(new Point<3>(10.00, 10.00, 0.00));
-			Point<3>::Pointer p_point4(new Point<3>(0.00, 10.00, 0.00));
-			Point<3>::Pointer p_point5(new Point<3>(0.00, 0.00, 10.00));
-			Point<3>::Pointer p_point6(new Point<3>(10.00, 0.00, 10.00));
-			Point<3>::Pointer p_point7(new Point<3>(10.00, 10.00, 10.00));
-			Point<3>::Pointer p_point8(new Point<3>(0.00, 10.00, 10.00));
+			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
+			Node<3>::Pointer p_point2(new Node<3>(2, 10.00, 0.00, 0.00));
+			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
+			Node<3>::Pointer p_point4(new Node<3>(4, 0.00, 10.00, 0.00));
+			Node<3>::Pointer p_point5(new Node<3>(5, 0.00, 0.00, 10.00));
+			Node<3>::Pointer p_point6(new Node<3>(6, 10.00, 0.00, 10.00));
+			Node<3>::Pointer p_point7(new Node<3>(7, 10.00, 10.00, 10.00));
+			Node<3>::Pointer p_point8(new Node<3>(8, 0.00, 10.00, 10.00));
 
-			Hexahedra3D8<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+			Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
 			ModelPart model_part("Test");
 

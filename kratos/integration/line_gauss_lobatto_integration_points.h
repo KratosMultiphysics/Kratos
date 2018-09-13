@@ -1,8 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author :    JMCarbonell $
-//   Date:                $Date:     December 2015 $
-//   Revision:            $Revision:           0.0 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Josep Maria Carbonell
 //
 //
 
@@ -31,7 +36,7 @@ public:
 
     typedef IntegrationPoint<1> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 1> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -58,7 +63,7 @@ private:
 
     static IntegrationPointsArrayType msIntegrationPoints;
 
-}; 
+};
 
 
 class KRATOS_API(KRATOS_CORE) LineGaussLobattoIntegrationPoints2
@@ -71,7 +76,7 @@ public:
 
     typedef IntegrationPoint<1> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 2> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 2> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -99,7 +104,7 @@ private:
 
     static IntegrationPointsArrayType msIntegrationPoints;
 
-}; 
+};
 
 
 class KRATOS_API(KRATOS_CORE) LineGaussLobattoIntegrationPoints3
@@ -112,7 +117,7 @@ public:
 
     typedef IntegrationPoint<1> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 3> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 3> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -155,7 +160,7 @@ public:
 
     typedef IntegrationPoint<1> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 4> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -199,7 +204,7 @@ public:
 
     typedef IntegrationPoint<1> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 5> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 5> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -244,7 +249,7 @@ public:
 
     typedef IntegrationPoint<1> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 6> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 6> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -294,6 +299,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED  defined 
+#endif // KRATOS_LINE_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED  defined
 
 

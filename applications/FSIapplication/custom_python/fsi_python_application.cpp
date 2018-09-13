@@ -1,8 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2008-03-25 07:48:22 $
-//   Revision:            $Revision: 1.5 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi, Ruben Zorrilla
 //
 //
 
@@ -10,8 +15,7 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
-
+#include <pybind11/pybind11.h>
 
 // Project includes
 #include "includes/define.h"
@@ -27,39 +31,22 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-
-
-BOOST_PYTHON_MODULE(KratosFSIApplication)
+PYBIND11_MODULE(KratosFSIApplication,m)
 {
 
     class_<KratosFSIApplication,
            KratosFSIApplication::Pointer,
-           bases<KratosApplication>, boost::noncopyable >("KratosFSIApplication")
+           KratosApplication>(m,"KratosFSIApplication")
+           .def(init<>());
            ;
 
-    AddCustomUtilitiesToPython();
-    AddMappersToPython();
-    AddConvergenceAcceleratorsToPython();
-
-    //registering variables in python
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONVERGENCE_ACCELERATOR_ITERATION);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MAPPER_SCALAR_PROJECTION_RHS);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(FICTITIOUS_FLUID_DENSITY);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SCALAR_PROJECTED);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(FSI_INTERFACE_RESIDUAL_NORM);
-//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(PRESSURE_OLD_IT);
-//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_INTERFACE);
-//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
-
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MAPPER_VECTOR_PROJECTION_RHS);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(VAUX_EQ_TRACTION);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(VECTOR_PROJECTED);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(RELAXED_DISP);
+    AddCustomUtilitiesToPython(m);
+    AddMappersToPython(m);
+    AddConvergenceAcceleratorsToPython(m);
 
 }
-
 
 }  // namespace Python.
 

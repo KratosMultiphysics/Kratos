@@ -1,47 +1,14 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:34 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                    
 //
 
 
@@ -80,7 +47,7 @@ public:
      */
     static inline void CalculateGeometryData(
         Element::GeometryType& geom,
-        boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX,
+        BoundedMatrix<double,4,3>& DN_DX,
         array_1d<double,4>& N,
         double& Volume)
     {
@@ -153,7 +120,7 @@ public:
      */
     static inline void CalculateGeometryData(
         Element::GeometryType& geom,
-        boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
+        BoundedMatrix<double,3,2>& DN_DX,
         array_1d<double,3>& N,
         double& Area)
     {
@@ -237,7 +204,7 @@ public:
 
     static inline void CalculateGeometryData(
         Element::GeometryType& geom,
-        boost::numeric::ublas::bounded_matrix<double,2,1>& DN_DX,
+        BoundedMatrix<double,2,1>& DN_DX,
         array_1d<double,2>& N,
         double& Area)
     {
@@ -269,7 +236,7 @@ public:
     static void CalculateTetrahedraDistances(Element::GeometryType& ThisGeometry, array_1d<double, TSize>& Distances)
     {
         // Calculating the intersection points
-        array_1d<Point<3>, 4> intersection_points;
+        array_1d<Point, 4> intersection_points;
         int number_of_intersection_points = CalculateTetrahedraIntersectionPoints(ThisGeometry, Distances, intersection_points);
 
 //        for(int i = 0 ; i < number_of_intersection_points ; i++)
@@ -371,7 +338,7 @@ public:
     static void CalculateTriangleDistances(Element::GeometryType& ThisGeometry, array_1d<double, TSize>& Distances)
     {
         // Calculating the intersection points
-        array_1d<Point<3>, 4> intersection_points;
+        array_1d<Point, 4> intersection_points;
         int number_of_intersection_points = CalculateTetrahedraIntersectionPoints(ThisGeometry, Distances, intersection_points);
 
 //        for(int i = 0 ; i < number_of_intersection_points ; i++)
@@ -446,7 +413,7 @@ public:
      * @return Number of intersection points.
      */
     template<std::size_t TSize1, std::size_t TSize2>
-    static int CalculateTetrahedraIntersectionPoints(Element::GeometryType& ThisGeometry, array_1d<double, TSize1>& Distances, array_1d<Point<3>, TSize2>& IntersectionPoints)
+    static int CalculateTetrahedraIntersectionPoints(Element::GeometryType& ThisGeometry, array_1d<double, TSize1>& Distances, array_1d<Point, TSize2>& IntersectionPoints)
     {
         const double epsilon = 1e-15; //1.00e-9;
 
@@ -492,9 +459,9 @@ public:
      * @param ToPoint The point which distance is required
      * @return The distance between the point and the line
      */
-    static double PointDistanceToLineSegment3D(Point<3> const& LinePoint1,
-                                 Point<3> const& LinePoint2,
-                                  Point<3> const& ToPoint)
+    static double PointDistanceToLineSegment3D(Point const& LinePoint1,
+                                 Point const& LinePoint2,
+                                  Point const& ToPoint)
     {
         const double epsilon = 1e-15; //1.00e-9;
 
@@ -549,10 +516,10 @@ public:
      * @param ToPoint The point which distance is required
      * @return The distance between the point and the triangle
      */
-    static double PointDistanceToTriangle3D(Point<3> const& TrianglePoint1,
-                                 Point<3> const& TrianglePoint2,
-                                 Point<3> const& TrianglePoint3,
-                                 Point<3> const& ToPoint)
+    static double PointDistanceToTriangle3D(Point const& TrianglePoint1,
+                                 Point const& TrianglePoint2,
+                                 Point const& TrianglePoint3,
+                                 Point const& ToPoint)
     {
 		// The implementation is done using following reference:
 		// http://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
@@ -798,8 +765,52 @@ public:
         return std::sqrt(square_distance);
     }
 
+    /**
+     * @brief Calculate the gradients of shape functions.
+     * @param rDN_De local gradient of shape functions.
+     * @param rInvJ inverse of the element Jacobian.
+     * @param rDN_DX gradient of shape functions.
+     */
+    static void ShapeFunctionsGradients(Matrix const& rDN_De, Matrix const& rInvJ, Matrix& rDN_DX)
+    {
+        if (rDN_DX.size1() != rDN_De.size1() || rDN_DX.size2() != rInvJ.size2())
+            rDN_DX.resize(rDN_De.size1(), rInvJ.size2(), false);
+        noalias(rDN_DX) = prod(rDN_De, rInvJ);
+    }
 
+    /**
+     * @brief Calculate the deformation gradient.
+     * 
+     * See, e.g., P. Wriggers, Nonlinear Finite Element Methods, Springer, 2008.
+     * @param rJ element Jacobian.
+     * @param rInvJ0 inverse of the element Jacobian of the initial configuration.
+     * @param rF deformation gradient.
+     */
+    static void DeformationGradient(Matrix const& rJ, Matrix const& rInvJ0, Matrix& rF)
+    {
+        if (rF.size1() != rJ.size1() || rF.size2() != rInvJ0.size2())
+            rF.resize(rJ.size1(), rInvJ0.size2(), false);
+        noalias(rF) = prod(rJ, rInvJ0);
+    }
 
+    /**
+     * @brief Calculate the Jacobian on the initial configuration.
+     * 
+     * @param rGeom element geometry.
+     * @param rCoords local coordinates of the current integration point.
+     * @param rJ0 Jacobian on the initial configuration.
+     */
+    static void JacobianOnInitialConfiguration(Element::GeometryType const& rGeom,
+                                               Element::GeometryType::CoordinatesArrayType const& rCoords,
+                                               Matrix& rJ0)
+    {
+        Matrix delta_position(rGeom.PointsNumber(), rGeom.WorkingSpaceDimension());
+        for (std::size_t i = 0; i < rGeom.PointsNumber(); ++i)
+            for (std::size_t j = 0; j < rGeom.WorkingSpaceDimension(); ++j)
+                delta_position(i, j) = rGeom[i].Coordinates()[j] -
+                                       rGeom[i].GetInitialPosition().Coordinates()[j];
+        rGeom.Jacobian(rJ0, rCoords, delta_position);
+    }
 };
 
 }  // namespace Kratos.

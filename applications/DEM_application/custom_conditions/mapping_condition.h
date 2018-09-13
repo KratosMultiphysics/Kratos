@@ -12,7 +12,6 @@
 
 
 // External includes
-//#include "boost/smart_ptr.hpp"
 
 
 // Project includes
@@ -26,19 +25,19 @@
 namespace Kratos
 {
 class SphericParticle;
-class MAPcond : public Condition
+class KRATOS_API(DEM_APPLICATION) MAPcond : public Condition
 {
 public:
 
     // Counted pointer of MAPcond
     KRATOS_CLASS_POINTER_DEFINITION( MAPcond );
-	
-	
-	typedef WeakPointerVector<Element> ParticleWeakVectorType; 
+
+
+	typedef WeakPointerVector<Element> ParticleWeakVectorType;
 	typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 	typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-	
-	typedef WeakPointerVector<Condition> ConditionWeakVectorType; 
+
+	typedef WeakPointerVector<Condition> ConditionWeakVectorType;
 	typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
 
 
@@ -57,24 +56,16 @@ public:
 
     // Name Operations
 
-    virtual Condition::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties ) const;
+    virtual Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
 
-
-    virtual void Initialize();
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info );		
-    virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info);
-    virtual void FinalizeSolutionStep(ProcessInfo& r_process_info);
-    
-    virtual void AddExplicitContribution(const VectorType& rRHS,
-                                 const Variable<VectorType>& rRHSVariable,
-                                 Variable<array_1d<double,3> >& rDestinationVariable,
-                                 const ProcessInfo& r_process_info);
+    virtual void Initialize() override;
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
+    virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
+    virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
+    virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& r_process_info) override;
 
     std::vector<SphericParticle*> mNeighbourSphericParticles;
-    
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -86,9 +77,9 @@ public:
 
 
 protected:
-  
-  
-  
+
+
+
 
 
 private:
@@ -99,7 +90,7 @@ private:
 
     // privat name Operations
 
-	
+
 
     ///@}
     ///@name Serialization
@@ -107,12 +98,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
     }
 
-    virtual void load( Serializer& rSerializer )
+    virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
     }
@@ -122,5 +113,5 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_MAPPING_CONDITION_H_INCLUDED  defined 
- 
+#endif // KRATOS_MAPPING_CONDITION_H_INCLUDED  defined
+

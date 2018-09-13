@@ -8,13 +8,12 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
 //
 
 
 #if !defined(KRATOS_NODE_H_INCLUDED )
 #define  KRATOS_NODE_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -67,11 +66,11 @@ class Element;
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// This class defines the node 
+/** The node class from Kratos is defined in this class
 */
 template<std::size_t TDimension, class TDofType = Dof<double> >
-class Node : public Point<TDimension>,  public IndexedObject, public Flags
+class Node : public Point,  public IndexedObject, public Flags
 {
     class GetDofKey : public std::unary_function<TDofType, VariableData::KeyType>
     {
@@ -91,9 +90,9 @@ public:
 
     typedef Node<TDimension, TDofType> NodeType;
 
-    typedef Point<TDimension> BaseType;
+    typedef Point BaseType;
 
-    typedef Point<TDimension> PointType;
+    typedef Point PointType;
 
     typedef TDofType DofType;
 
@@ -101,24 +100,11 @@ public:
 
     typedef typename std::size_t SizeType;
 
-    //typedef Neighbours<NodeType, Element> NeighboursType;
-
-    /** Element array type for neighbor elements. */
-    //typedef typename NeighboursType::NeighbourElementsArrayType NeighbourElementsArrayType;
-
-    /** Element array type for neighbor elements. */
-    //typedef typename NeighboursType::NeighbourNodesArrayType NeighbourNodesArrayType;
-
     typedef PointerVectorSet<TDofType, GetDofKey> DofsContainerType;
 
-    //typedef Buffer<std::vector<FixDataValueContainer> > SolutionStepsNodalDataContainerType;
-
-//        typedef Buffer<std::vector<VariablesListDataValueContainer> > SolutionStepsNodalDataContainerType;
     typedef VariablesListDataValueContainer SolutionStepsNodalDataContainerType;
 
     typedef VariablesListDataValueContainer::BlockType BlockType;
-
-    //typedef VectorMap<IndexType, NeighboursType > SolutionStepsNeighboursContainerType;
 
     typedef Variable<double> DoubleVariableType;
 
@@ -136,7 +122,7 @@ public:
         , mSolutionStepsNodalData()
         , mInitialPosition()
 #ifdef _OPENMP
-        , mnode_lock()
+        , mNodeLock()
 #endif
     {
 
@@ -144,7 +130,7 @@ public:
 // 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
-        omp_init_lock(&mnode_lock);
+        omp_init_lock(&mNodeLock);
 #endif
 
 
@@ -160,10 +146,10 @@ public:
         , mSolutionStepsNodalData()
         , mInitialPosition()
 #ifdef _OPENMP
-        , mnode_lock()
+        , mNodeLock()
 #endif
     {
-        KRATOS_THROW_ERROR(std::logic_error, "calling the default constructor for the node ... illegal operation!!","");
+        KRATOS_ERROR <<  "Calling the default constructor for the node ... illegal operation!!" << std::endl;
         CreateSolutionStepData();
 
     }
@@ -178,11 +164,11 @@ public:
         , mSolutionStepsNodalData()
         , mInitialPosition(NewX)
 #ifdef _OPENMP
-        , mnode_lock()
+        , mNodeLock()
 #endif
     {
 #ifdef _OPENMP
-        omp_init_lock(&mnode_lock);
+        omp_init_lock(&mNodeLock);
 #endif
         CreateSolutionStepData();
 
@@ -198,11 +184,11 @@ public:
         , mSolutionStepsNodalData()
         , mInitialPosition(NewX, NewY)
 #ifdef _OPENMP
-        , mnode_lock()
+        , mNodeLock()
 #endif
     {
 #ifdef _OPENMP
-        omp_init_lock(&mnode_lock);
+        omp_init_lock(&mNodeLock);
 #endif
         CreateSolutionStepData();
 
@@ -218,14 +204,14 @@ public:
         , mSolutionStepsNodalData()
         , mInitialPosition(NewX, NewY, NewZ)
 #ifdef _OPENMP
-        , mnode_lock()
+        , mNodeLock()
 #endif
     {
         CreateSolutionStepData();
 // 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
-        omp_init_lock(&mnode_lock);
+        omp_init_lock(&mNodeLock);
 #endif
 
 
@@ -241,7 +227,7 @@ public:
         , mSolutionStepsNodalData()
         , mInitialPosition(rThisPoint)
 #ifdef _OPENMP
-        , mnode_lock()
+        , mNodeLock()
 #endif
     {
 
@@ -249,7 +235,7 @@ public:
 // 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
-        omp_init_lock(&mnode_lock);
+        omp_init_lock(&mNodeLock);
 #endif
 
 
@@ -261,10 +247,6 @@ public:
     /** Copy constructor from a node with different dimension.*/
     template<SizeType TOtherDimension>
     Node(Node<TOtherDimension> const& rOtherNode) = delete;
-
-    /** Copy constructor from a point with different dimension.*/
-    template<SizeType TOtherDimension>
-    Node(IndexType NewId, Point<TOtherDimension> const& rThisPoint) = delete;
 
 
     /**
@@ -280,7 +262,7 @@ public:
         , mSolutionStepsNodalData()
         , mInitialPosition(rOtherCoordinates)
 #ifdef _OPENMP
-        , mnode_lock()
+        , mNodeLock()
 #endif
     {
 
@@ -288,7 +270,7 @@ public:
 // 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
-        omp_init_lock(&mnode_lock);
+        omp_init_lock(&mNodeLock);
 #endif
 
     }
@@ -306,14 +288,14 @@ public:
         , mSolutionStepsNodalData()
         , mInitialPosition()
 #ifdef _OPENMP
-        , mnode_lock()
+        , mNodeLock()
 #endif
     {
         CreateSolutionStepData();
 // 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
-        omp_init_lock(&mnode_lock);
+        omp_init_lock(&mNodeLock);
 #endif
 
 
@@ -329,54 +311,56 @@ public:
         , mSolutionStepsNodalData(pVariablesList,ThisData,NewQueueSize)
         , mInitialPosition(NewX, NewY, NewZ)
 #ifdef _OPENMP
-        , mnode_lock()
+        , mNodeLock()
 #endif
     {
 // 	mDofs.SetMaxBufferSize(0);
 #ifdef _OPENMP
-        omp_init_lock(&mnode_lock);
+        omp_init_lock(&mNodeLock);
 #endif
     }
 
     typename Node<TDimension>::Pointer Clone()
     {
-        Node<3>::Pointer pnew_node = boost::make_shared<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
-        pnew_node->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
+        Node<3>::Pointer p_new_node = Kratos::make_shared<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+        p_new_node->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
 
         Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
-        for (typename DofsContainerType::const_iterator i_dof = my_dofs.begin(); i_dof != my_dofs.end(); i_dof++)
-            pnew_node->pAddDof(*i_dof);
+        for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
+        {
+            p_new_node->pAddDof(*it_dof);
+        }
 
-        pnew_node->mData = this->mData;
-        pnew_node->mInitialPosition = this->mInitialPosition;
+        p_new_node->mData = this->mData;
+        p_new_node->mInitialPosition = this->mInitialPosition;
 
-        pnew_node->Set(Flags(*this));
-        //KRATOS_THROW_ERROR(std::logic_error,"must implement correctly the copy of the flags","");
-        return pnew_node;
+        p_new_node->Set(Flags(*this));
+        //KRATOS_ERROR << "Must implement correctly the copy of the flags" << std::endl;
+        return p_new_node;
     }
 
     /// Destructor.
-    virtual ~Node()
+    ~Node() override
     {
 #ifdef _OPENMP
-        omp_destroy_lock(&mnode_lock);
+        omp_destroy_lock(&mNodeLock);
 #endif
     }
 
-    void SetId(IndexType NewId)
+    void SetId(IndexType NewId) override
     {
         IndexedObject::SetId(NewId);
         Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
-        for(Node<3>::DofsContainerType::iterator iii = my_dofs.begin();    iii != my_dofs.end(); iii++)
+        for(Node<3>::DofsContainerType::iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
         {
-            iii->SetId(NewId);
+            it_dof->SetId(NewId);
         }
     }
 
 #ifdef _OPENMP
     omp_lock_t& GetLock()
     {
-        return mnode_lock;
+        return mNodeLock;
     }
 #endif
 
@@ -384,7 +368,7 @@ public:
     {
         //does nothing if openMP is not present
 #ifdef _OPENMP
-        omp_set_lock(&mnode_lock);
+        omp_set_lock(&mNodeLock);
 #endif
     }
 
@@ -392,7 +376,7 @@ public:
     {
         //does nothing if openMP is not present
 #ifdef _OPENMP
-        omp_unset_lock(&mnode_lock);
+        omp_unset_lock(&mNodeLock);
 #endif
     }
 
@@ -403,10 +387,14 @@ public:
     Node& operator=(const Node& rOther)
     {
         BaseType::operator=(rOther);
+        Flags::operator =(rOther);
+        IndexedObject::operator=(rOther);
 
         // Deep copying the dofs
-        for(typename DofsContainerType::const_iterator i_dof = rOther.mDofs.begin() ; i_dof != rOther.mDofs.end() ; i_dof++)
-            pAddDof(*i_dof);
+        for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
+        {
+            pAddDof(*it_dof);
+        }
 
         mData = rOther.mData;
         mSolutionStepsNodalData = rOther.mSolutionStepsNodalData;
@@ -422,8 +410,10 @@ public:
         BaseType::operator=(rOther);
         Flags::operator =(rOther);
         IndexedObject::operator=(rOther);
-        for(typename DofsContainerType::const_iterator i_dof = rOther.mDofs.begin() ; i_dof != rOther.mDofs.end() ; i_dof++)
-            pAddDof(*i_dof);
+        for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
+        {
+            pAddDof(*it_dof);
+        }
 
         mData = rOther.mData;
         mSolutionStepsNodalData = rOther.mSolutionStepsNodalData;
@@ -478,104 +468,24 @@ public:
         return BaseType::operator[](ThisIndex);
     }
 
-
-
     ///@}
     ///@name Nodal Data
     ///@{
 
-//       void CreateSolutionStepData(IndexType SolutionStepIndex = IndexType())
-// 	{
-// 	  if(mSolutionStepsNodalData->find(SolutionStepIndex) == mSolutionStepsNodalData->end())
-// 	    mSolutionStepsNodalData->insert(SolutionStepIndex, DataValueContainer());
-
-// 	}
-
-//       void CloneSolutionStepNodalData(IndexType SolutionStepIndex, IndexType SourceSolutionStepIndex)
-// 	{
-// 	  SolutionStepsNodalDataContainerType::iterator i;
-// 	  if(mSolutionStepsNodalData->find(SolutionStepIndex) == mSolutionStepsNodalData->end())
-// 	    {
-// 	      if((i = mSolutionStepsNodalData->find(SourceSolutionStepIndex)) == mSolutionStepsNodalData->end())
-// 		mSolutionStepsNodalData->insert(SolutionStepIndex, DataValueContainer());
-// 	      else
-// 		mSolutionStepsNodalData->insert(SolutionStepIndex, *i);
-// 	    }
-// 	}
-
-//       void CloneSolutionStepNodalData(IndexType SolutionStepIndex, DataValueContainer const &  SourceSolutionStepData)
-// 	{
-// 	  if(mSolutionStepsNodalData->find(SolutionStepIndex) == mSolutionStepsNodalData->end())
-// 		mSolutionStepsNodalData->insert(SolutionStepIndex, SourceSolutionStepData);
-// 	}
-
     void CreateSolutionStepData()
     {
         mSolutionStepsNodalData.PushFront();
-// 	  VariablesListDataValueContainer temp(&Globals::DefaultVariablesList);
-// 	  if(!mSolutionStepsNodalData.empty())
-// 	      mSolutionStepsNodalData.push_front(temp);
-// 	  else
-// 	      mSolutionStepsNodalData.resize(1,temp);
-// 	  mSolutionStepsNodalData->push_front(DataValueContainer());
-
     }
 
     void CloneSolutionStepData()
     {
         mSolutionStepsNodalData.CloneFront();
-// 	  if(!mSolutionStepsNodalData.empty())
-// 	      mSolutionStepsNodalData.push_front(mSolutionStepsNodalData[SourceSolutionStepIndex]);
     }
 
     void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex)
     {
         mSolutionStepsNodalData.AssignData(mSolutionStepsNodalData.Data(SourceSolutionStepIndex), DestinationSourceSolutionStepIndex);
     }
-
-//       void CloneSolutionStepNodalData(VariablesListDataValueContainer const &  SourceSolutionStepData)
-// 	{
-// 	  if(!mSolutionStepsNodalData.empty())
-//   	      mSolutionStepsNodalData.push_front(SourceSolutionStepData);
-// 	}
-
-//       void OverwriteSolutionStepNodalData(IndexType SolutionStepIndex, IndexType SourceSolutionStepIndex, IndexType OldSolutionStepIndex)
-// 	{
-// 	  SolutionStepsNodalDataContainerType::iterator i;
-// 	  SolutionStepsNodalDataContainerType::iterator i_old;
-// 	  if(mSolutionStepsNodalData.find(SolutionStepIndex) == mSolutionStepsNodalData.end())
-// 	    {
-// 	      if((i_old = mSolutionStepsNodalData.find(OldSolutionStepIndex)) == mSolutionStepsNodalData.end())
-// 		{
-// 		  if((i = mSolutionStepsNodalData.find(SourceSolutionStepIndex)) == mSolutionStepsNodalData.end())
-// 		    mSolutionStepsNodalData.insert(SolutionStepIndex, DataValueContainer());
-// 		  else
-// 		    mSolutionStepsNodalData.insert(SolutionStepIndex, *i);
-// 		}
-// 	      else
-// 		{
-// 		  i_old.base()->first = SolutionStepIndex;
-// 		  i_old.base()->second = *i;
-// 		}
-// 	    }
-// 	}
-
-//       void OverwriteSolutionStepNodalData(IndexType SolutionStepIndex, DataValueContainer const &  SourceSolutionStepData)
-// 	{
-// 	  if(mSolutionStepsNodalData.find(SolutionStepIndex) == mSolutionStepsNodalData.end())
-// 	      if((i_old = mSolutionStepsNodalData.find(OldSolutionStepIndex)) == mSolutionStepsNodalData.end())
-// 		mSolutionStepsNodalData.insert(SolutionStepIndex, SourceSolutionStepData);
-// 	      else
-// 		{
-// 		  i_old.base()->first = SolutionStepIndex;
-// 		  i_old.base()->second = SourceSolutionStepData;
-// 		}
-// 	}
-
-//       void RemoveSolutionStepNodalData(IndexType SolutionStepIndex)
-// 	{
-// 	    mSolutionStepsNodalData.erase(SolutionStepIndex);
-// 	}
 
     void ClearSolutionStepsData()
     {
@@ -587,44 +497,22 @@ public:
         mSolutionStepsNodalData.SetVariablesList(pVariablesList);
     }
 
-
-//       DataValueContainer::Pointer pSolutionStepNodalData(IndexType SolutionStepIndex)
-// 	{
-// 	  SolutionStepsNodalDataContainerType::iterator i;
-// 	  if((i = mSolutionStepsNodalData.find(SolutionStepIndex)) == mSolutionStepsNodalData.end())
-// 	    KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", *this);
-
-// 	  return (i.base()->second);
-// 	}
-
-//       template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable)
-// 	{
-// 	  if(mSolutionStepsNodalData.empty())
-// 	     CreateSolutionStepData(0);
-
-// 	  return mSolutionStepsNodalData.back().GetValue(rThisVariable);
-// 	}
-
-//       template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
-// 	{
-// 	  SolutionStepsNodalDataContainerType::iterator i;
-// 	  if((i = mSolutionStepsNodalData.find(SolutionStepIndex)) == mSolutionStepsNodalData.end())
-// 	    KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", *this);
-
-// 	  return i->GetValue(rThisVariable);
-// 	}
-
-//       VariablesListDataValueContainer& SolutionStepNodalData()
-// 	{
-// 	  return mSolutionStepsNodalData;
-// 	}
-
     VariablesListDataValueContainer& SolutionStepData()
     {
         return mSolutionStepsNodalData;
     }
 
+    const VariablesListDataValueContainer& SolutionStepData() const
+    {
+        return mSolutionStepsNodalData;
+    }
+
     DataValueContainer& Data()
+    {
+        return mData;
+    }
+
+    const DataValueContainer& Data() const
     {
         return mData;
     }
@@ -734,78 +622,6 @@ public:
         return mData.Has(rThisVariable);
     }
 
-//       template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
-// 	{
-// 	  if(!mData.Has(rThisVariable))
-// 	    {
-// 	      SolutionStepsNodalDataContainerType::iterator i;
-// 	      if((i = mSolutionStepsNodalData.find(SolutionStepIndex)) != mSolutionStepsNodalData.end())
-// 		return i->GetValue(rThisVariable);
-// 	    }
-
-// 	  return mData.GetValue(rThisVariable);
-// 	}
-
-    ///@}
-    ///@name Neighbours
-    ///@{
-
-    /*      void CreateSolutionStepNeighbours(IndexType SolutionStepIndex)
-    	{
-    	  if(mSolutionStepsNeighbours.find(SolutionStepIndex) == mSolutionStepsNeighbours.end())
-    	    mSolutionStepsNeighbours.insert(SolutionStepIndex, typename NeighboursType::Pointer(new NeighboursType()));
-    	}
-
-          void CreateSolutionStepNeighbours(IndexType SolutionStepIndex, IndexType SourceSolutionStepIndex)
-    	{
-    	  typename SolutionStepsNeighboursContainerType::iterator i;
-    	  if(mSolutionStepsNeighbours.find(SolutionStepIndex) == mSolutionStepsNeighbours.end())
-    	    {
-    	      if((i = mSolutionStepsNeighbours.find(SourceSolutionStepIndex)) == mSolutionStepsNeighbours.end())
-    		mSolutionStepsNeighbours.insert(SolutionStepIndex, typename NeighboursType::Pointer(new NeighboursType));
-    	      else
-    		mSolutionStepsNeighbours.insert(SolutionStepIndex, *i);
-    	    }
-    	}
-
-          void CreateSolutionStepNeighbours(IndexType SolutionStepIndex, NeighboursType const &  SourceSolutionStepData)
-    	{
-    	  if(mSolutionStepsNeighbours.find(SolutionStepIndex) == mSolutionStepsNeighbours.end())
-    		mSolutionStepsNeighbours.insert(SolutionStepIndex, SourceSolutionStepData);
-    	}
-
-          void RemoveSolutionStepNeighbours(IndexType SolutionStepIndex)
-    	{
-    	    mSolutionStepsNeighbours.erase(SolutionStepIndex);
-    	}
-
-          void ClearSolutionStepsNeighbours()
-    	{
-    	    mSolutionStepsNeighbours.clear();
-    	}
-
-
-          typename NeighboursType::Pointer pSolutionStepNeighbours(IndexType SolutionStepIndex)
-    	{
-    	  typename SolutionStepsNeighboursContainerType::iterator i;
-    	  if((i = mSolutionStepsNeighbours.find(SolutionStepIndex)) == mSolutionStepsNeighbours.end())
-    	    KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", *this);
-
-    	  return *(i.base());
-    	}
-
-          NeighboursType& SolutionStepNeighbours(IndexType SolutionStepIndex)
-    	{
-    	  return *pSolutionStepNeighbours(SolutionStepIndex);
-    	}
-
-          NeighbourElementsArrayType& NeighbourElements(IndexType SolutionStepIndex)
-    	{return SolutionStepNeighbours(SolutionStepIndex).NeighbourElements();}
-
-          NeighbourNodesArrayType& NeighbourNodes(IndexType SolutionStepIndex)
-    	{return SolutionStepNeighbours(SolutionStepIndex).NeighbourNodes();}
-      */
-
     ///@}
     ///@name Operations
     ///@{
@@ -813,16 +629,18 @@ public:
     template<class TVariableType>
     inline void Fix(const TVariableType& rDofVariable)
     {
-        typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
-        if(i_dof != mDofs.end())
+        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
+        if(it_dof != mDofs.end())
         {
-            i_dof->FixDof();
+            it_dof->FixDof();
         }
         else
         {
 #ifdef KRATOS_DEBUG
             if(OpenMPUtils::IsInParallel() != 0)
-                KRATOS_ERROR << "attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+            {
+                KRATOS_ERROR << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+            }
 #endif
             pAddDof(rDofVariable)->FixDof();
         }
@@ -831,22 +649,24 @@ public:
     template<class TVariableType>
     inline void Free(const TVariableType& rDofVariable)
     {
-        typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
-        if(i_dof != mDofs.end())
+        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
+        if(it_dof != mDofs.end())
         {
-            i_dof->FreeDof();
+            it_dof->FreeDof();
         }
         else
         {
 #ifdef KRATOS_DEBUG
             if(OpenMPUtils::IsInParallel() != 0)
-                KRATOS_ERROR << "attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+            {
+                KRATOS_ERROR << "Attempting to Fix the variable: " << rDofVariable << " within a parallel region. This is not permitted. Create the Dof first by pAddDof" << std::endl;
+            }
 #endif
             pAddDof(rDofVariable)->FreeDof();
         }
     }
 
-    IndexType GetBufferSize()
+    IndexType GetBufferSize() const
     {
         return mSolutionStepsNodalData.QueueSize();
     }
@@ -914,12 +734,10 @@ public:
         return mSolutionStepsNodalData.pGetVariablesList();
     }
 
-
-    /// TODO: remove this function when removing data_file_io object.
-//        IndexType& DepricatedIdAccess()
-//        {
-//            return BaseType::DepricatedIdAccess();
-//        }
+    const VariablesList * pGetVariablesList() const
+    {
+        return mSolutionStepsNodalData.pGetVariablesList();
+    }
 
     ///@}
     ///@name Dofs
@@ -927,34 +745,38 @@ public:
 
     //advanced functions by Riccardo
     template<class TVariableType>
-    inline unsigned int GetDofPosition(TVariableType const& rDofVariable)
+    inline unsigned int GetDofPosition(TVariableType const& rDofVariable) const
     {
-        typename DofsContainerType::iterator it=mDofs.find(rDofVariable.Key());
+        typename DofsContainerType::const_iterator it=mDofs.find(rDofVariable.Key());
         return it - mDofs.begin();
     }
 
     template<class TVariableType>
     inline DofType& GetDof(TVariableType const& rDofVariable, int pos)
     {
-        typename DofsContainerType::iterator it_begin=mDofs.begin();
-        typename DofsContainerType::iterator it_end=mDofs.end();
+        typename DofsContainerType::iterator it_begin = mDofs.begin();
+        typename DofsContainerType::iterator it_end = mDofs.end();
         typename DofsContainerType::iterator it;
         //if the guess is exact return the guess
         if(pos < it_end-it_begin)
         {
             it = it_begin + pos;
             if( (it)->GetVariable() == rDofVariable)
+            {
                 return *it;
+            }
         }
 
-        //otherwise do a find
+        // Otherwise do a find
         it = mDofs.find(rDofVariable.Key());
         if ( it!= mDofs.end() )
+        {
             return *it;
+        }
 
         std::stringstream buffer;
         buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
-        KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
+        KRATOS_ERROR <<  buffer.str() << std::endl;
     }
 
     /** returns the Dof asociated with variable  */
@@ -963,11 +785,13 @@ public:
     {
         typename DofsContainerType::iterator it=mDofs.find(rDofVariable.Key());
         if ( it!= mDofs.end() )
+        {
             return *it;
+        }
 
         std::stringstream buffer;
         buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
-        KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
+        KRATOS_ERROR <<  buffer.str() << std::endl;
 
     }
 
@@ -983,11 +807,13 @@ public:
     {
         typename DofsContainerType::iterator it=mDofs.find(rDofVariable.Key());
         if ( it!= mDofs.end() )
+        {
             return *(it.base());
+        }
 
         std::stringstream buffer;
         buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
-        KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
+        KRATOS_ERROR <<  buffer.str() << std::endl;
 
     }
 
@@ -995,13 +821,22 @@ public:
     template<class TVariableType>
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable)
     {
-        KRATOS_TRY_LEVEL_3
+        KRATOS_TRY
+        
+#ifdef KRATOS_DEBUG
+        if(rDofVariable.Key() == 0) 
+        {
+            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
+        }
+#endif
 
-        typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
-        if(i_dof != mDofs.end())
-            return *(i_dof.base());
+        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
+        if(it_dof != mDofs.end())
+        {
+            return *(it_dof.base());
+        }
 
-        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
+        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -1009,49 +844,65 @@ public:
 
         return p_new_dof;
 
-        KRATOS_CATCH_LEVEL_3(*this);
-
+        KRATOS_CATCH(*this);
     }
 
     /** adds a Dof to the node and return new added dof or existed one. */
     inline typename DofType::Pointer pAddDof(DofType const& SourceDof)
     {
-        KRATOS_TRY_LEVEL_3
+        KRATOS_TRY
+        
+        typename DofsContainerType::iterator it_dof = mDofs.find(SourceDof.GetVariable());
+        if(it_dof != mDofs.end())
+        {
+            if(it_dof->GetReaction() != SourceDof.GetReaction())
+            {
+                *it_dof = SourceDof;
+                it_dof->SetId(Id());
+                it_dof->SetSolutionStepsData(&mSolutionStepsNodalData);
+            }
+            return *(it_dof.base());
+        }
 
-        typename DofsContainerType::iterator i_dof = mDofs.find(SourceDof.GetVariable());
-        if(i_dof != mDofs.end())
-            return *(i_dof.base());
-
-        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(SourceDof);
+        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(SourceDof);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
         p_new_dof->SetId(Id());
 
         p_new_dof->SetSolutionStepsData(&mSolutionStepsNodalData);
 
-//         if(!mDofs.IsSorted())
         mDofs.Sort();
 
         return p_new_dof;
 
-        KRATOS_CATCH_LEVEL_3(*this);
-
+        KRATOS_CATCH(*this);
     }
 
     /** adds a Dof to the node and return new added dof or existed one. */
     template<class TVariableType, class TReactionType>
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
-        KRATOS_TRY_LEVEL_3
-
-        typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
-        if(i_dof != mDofs.end())
+        KRATOS_TRY
+        
+#ifdef KRATOS_DEBUG
+        if(rDofVariable.Key() == 0) 
         {
-            i_dof->SetReaction(rDofReaction);
-            return *(i_dof.base());
+            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
+        }
+        if(rDofReaction.Key() == 0) 
+        {
+            KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
+        }
+#endif
+
+        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
+        if(it_dof != mDofs.end())
+        {
+            it_dof->SetReaction(rDofReaction);
+            return *(it_dof.base());
         }
 
-        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
+        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -1059,7 +910,7 @@ public:
 
         return p_new_dof;
 
-        KRATOS_CATCH_LEVEL_3(*this);
+        KRATOS_CATCH(*this);
 
     }
 
@@ -1067,13 +918,22 @@ public:
     template<class TVariableType>
     inline DofType& AddDof(TVariableType const& rDofVariable)
     {
-        KRATOS_TRY_LEVEL_3
+        KRATOS_TRY
+        
+#ifdef KRATOS_DEBUG
+        if(rDofVariable.Key() == 0)
+        {
+            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
+        }
+#endif
 
-        typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
-        if(i_dof != mDofs.end())
-            return *i_dof;
-
-        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
+        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
+        if(it_dof != mDofs.end())
+        {
+            return *it_dof;
+        }
+            
+        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -1081,7 +941,7 @@ public:
 
         return *p_new_dof;
 
-        KRATOS_CATCH_LEVEL_3(*this);
+        KRATOS_CATCH(*this);
 
     }
 
@@ -1089,13 +949,27 @@ public:
     template<class TVariableType, class TReactionType>
     inline DofType& AddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
-        KRATOS_TRY_LEVEL_3
+        KRATOS_TRY
+        
+#ifdef KRATOS_DEBUG
+        if(rDofVariable.Key() == 0) 
+        {
+            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
+        }
+        if(rDofReaction.Key() == 0) 
+        {
+            KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
+        }
+#endif
 
-        typename DofsContainerType::iterator i_dof = mDofs.find(rDofVariable);
-        if(i_dof != mDofs.end())
-            return *i_dof;
+        typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
+        if(it_dof != mDofs.end())
+        {
+            it_dof->SetReaction(rDofReaction);
+            return *it_dof;
+        }
 
-        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
+        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -1103,7 +977,7 @@ public:
 
         return *p_new_dof;
 
-        KRATOS_CATCH_LEVEL_3(*this);
+        KRATOS_CATCH(*this);
 
     }
 
@@ -1129,7 +1003,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Node #" << Id();
@@ -1137,13 +1011,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
         if(!mDofs.empty())
@@ -1216,13 +1090,11 @@ private:
 
     SolutionStepsNodalDataContainerType mSolutionStepsNodalData;
 
-    //SolutionStepsNeighboursContainerType mSolutionStepsNeighbours;
-
     ///Initial Position of the node
     PointType mInitialPosition;
 
 #ifdef _OPENMP
-    omp_lock_t mnode_lock;
+    omp_lock_t mNodeLock;
 #endif
 
     ///@}
@@ -1241,36 +1113,30 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
-// 	  int size = rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin();
-// 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point<TDimension> );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("Data", mData);
-        const SolutionStepsNodalDataContainerType* p_solution_steps_nodal_data = &mSolutionStepsNodalData;
+        const SolutionStepsNodalDataContainerType* pSolutionStepsNodalData = &mSolutionStepsNodalData;
         // I'm saving it as pointer so the dofs pointers will point to it as stored pointer. Pooyan.
-        rSerializer.save("Solution Steps Nodal Data", p_solution_steps_nodal_data);
+        rSerializer.save("Solution Steps Nodal Data", pSolutionStepsNodalData);
         rSerializer.save("Initial Position", mInitialPosition);
         rSerializer.save("Data", mDofs);
 
-// 	  KRATOS_WATCH((rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin())-size);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
-// 	  int size = rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin();
-// 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point<TDimension> );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("Data", mData);
-        SolutionStepsNodalDataContainerType* p_solution_steps_nodal_data = &mSolutionStepsNodalData;
-        rSerializer.load("Solution Steps Nodal Data", p_solution_steps_nodal_data);
+        SolutionStepsNodalDataContainerType* pSolutionStepsNodalData = &mSolutionStepsNodalData;
+        rSerializer.load("Solution Steps Nodal Data", pSolutionStepsNodalData);
         rSerializer.load("Initial Position", mInitialPosition);
         rSerializer.load("Data", mDofs);
-// 	  KRATOS_WATCH(size- (rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin()));
     }
 
     ///@}

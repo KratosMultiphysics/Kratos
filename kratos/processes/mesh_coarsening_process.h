@@ -40,7 +40,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class MeshCoarseningProcess : public MeshNodeCollapsingProcess
+  class KRATOS_API(KRATOS_CORE) MeshCoarseningProcess : public MeshNodeCollapsingProcess
     {
     public:
       ///@name Type Definitions
@@ -69,7 +69,7 @@ namespace Kratos
 	  MeshCoarseningProcess(ModelPart& rModelPart);
 
       /// Destructor.
-      virtual ~MeshCoarseningProcess();
+      ~MeshCoarseningProcess() override;
 
 
       ///@}
@@ -102,13 +102,13 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override;
+      std::string Info() const override;
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override;
+      void PrintInfo(std::ostream& rOStream) const override;
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override;
+      void PrintData(std::ostream& rOStream) const override;
 
 
       ///@}

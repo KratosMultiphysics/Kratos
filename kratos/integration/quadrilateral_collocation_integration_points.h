@@ -1,8 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:       VMataix $
-//   Date:                $Date:     August 2016 $
-//   Revision:            $Revision:         1.0 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 //
 
@@ -31,7 +36,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 4> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -73,7 +78,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 9> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 9> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -120,7 +125,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 16> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 16> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -174,12 +179,12 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 25> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 25> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
-    static SizeType IntegrationPointsNumber()    
-    {  
+    static SizeType IntegrationPointsNumber()
+    {
         return 25;
     }
 
@@ -236,11 +241,11 @@ public:
 
 	typedef IntegrationPoint<2> IntegrationPointType;
 
-	typedef boost::array<IntegrationPointType, 36> IntegrationPointsArrayType;
+	typedef std::array<IntegrationPointType, 36> IntegrationPointsArrayType;
 
 	typedef IntegrationPointType::PointType PointType;
 
-	static SizeType IntegrationPointsNumber() 
+	static SizeType IntegrationPointsNumber()
         {
             return 36;
         }
@@ -315,6 +320,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_COLLOCATION_INTEGRATION_POINTS_H_INCLUDED  defined 
+#endif // KRATOS_QUADRILATERAL_COLLOCATION_INTEGRATION_POINTS_H_INCLUDED  defined
 
 

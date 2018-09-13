@@ -37,7 +37,7 @@ namespace Kratos
 ///@{
 
 
-class ContactDomainLM2DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) ContactDomainLM2DCondition
     : public ContactDomainCondition
 {
 public:
@@ -58,8 +58,8 @@ public:
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
     typedef Element::ElementType ElementType;
-	
-    ///Tensor order 1 definition   
+
+    ///Tensor order 1 definition
     typedef ContactDomainUtilities::PointType             PointType;
     ///SurfaceVector
     typedef ContactDomainUtilities::SurfaceVector      SurfaceVector;
@@ -110,13 +110,16 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    //************* GETTING METHODS
-
-
-    //************* COMPUTING  METHODS
-
+    /**
+     * clones the selected condition variables, creating a new one
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 
     //************************************************************************************
@@ -144,13 +147,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    //      String Info() const override;
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+    //      void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    //      void PrintData(std::ostream& rOStream) const override;
     ///@}
     ///@name Friends
     ///@{
@@ -169,73 +172,73 @@ protected:
     /**
      * Calculation of the Contact Master Nodes and Mechanical variables
      */
-    void SetMasterGeometry();
+    void SetMasterGeometry() override;
 
 
     /**
      * Calculate Tau stabilization or Penalty factor
      */
-    virtual void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo);
-	
+    void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo) override;
+
 
     /**
      * Calculation of the Contact Previous Gap
      */
-    void CalculatePreviousGap();
+    void CalculatePreviousGap() override;
 
 
     /**
      * Calculation of the Contact Multipliers or Penalty Factors
      */
-    virtual void CalculateExplicitFactors(GeneralVariables& rVariables,
-					  ProcessInfo& rCurrentProcessInfo);
+    void CalculateExplicitFactors(ConditionVariables& rVariables,
+					  ProcessInfo& rCurrentProcessInfo) override;
     /**
      * Tangent Matrix construction methods:
      */
-    void CalculateDomainShapeN(GeneralVariables& rVariables);
+    void CalculateDomainShapeN(ConditionVariables& rVariables) override;
 
 
     /**
      * Calculate Integration Weight:
      */
-    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
+    double& CalculateIntegrationWeight(double& rIntegrationWeight) override;
 
     /**
      * Calculation of the Material Stiffness Matrix by components
      */
-    virtual void CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,
-				       unsigned int& ndi,unsigned int& ndj,
-				       unsigned int& idir,unsigned int& jdir);
+    void CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,
+					    unsigned int& ndi,unsigned int& ndj,
+					    unsigned int& idir,unsigned int& jdir) override;
 
 
     /**
      * Normal Force construction by components
      */
-    virtual void CalculateNormalForce       (double &F,GeneralVariables& rVariables,
-					     unsigned int& ndi,unsigned int& idir);
+    void CalculateNormalForce       (double &F,ConditionVariables& rVariables,
+					     unsigned int& ndi,unsigned int& idir) override;
 
     /**
      * Tangent Stick Force construction by components
      */
-    virtual void CalculateTangentStickForce (double &F,GeneralVariables& rVariables,
-					     unsigned int& ndi,unsigned int& idir);
+    void CalculateTangentStickForce (double &F,ConditionVariables& rVariables,
+					     unsigned int& ndi,unsigned int& idir) override;
     /**
      * Tangent Slip Force construction by components
      */
-    virtual void CalculateTangentSlipForce  (double &F,GeneralVariables& rVariables,
-					     unsigned int& ndi,unsigned int& idir);
+    void CalculateTangentSlipForce  (double &F,ConditionVariables& rVariables,
+					     unsigned int& ndi,unsigned int& idir) override;
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-    inline bool CheckFictiousContacts(GeneralVariables& rVariables);
+    inline bool CheckFictiousContacts(ConditionVariables& rVariables);
 
-    PointType& CalculateCurrentTangent(PointType &rTangent);
+    PointType& CalculateCurrentTangent(PointType &rTangent) override;
 
-    void FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& AuxVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr);
+    void FSigmaP(ConditionVariables& rVariables, std::vector<Vector > &SigmaP, PointType& AuxVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr);
 
-    void FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, PointType& AuxVector,unsigned int &ndi,unsigned int &ndj);
+    void FSigmaPnd(ConditionVariables& rVariables, std::vector<Vector > &SigmaP, PointType& AuxVector,unsigned int &ndi,unsigned int &ndj);
 
 
 
@@ -247,9 +250,9 @@ protected:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Protected Inquiry
@@ -311,4 +314,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_CONTACT_DOMAIN_LM_2D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_CONTACT_DOMAIN_LM_2D_CONDITION_H_INCLUDED  defined

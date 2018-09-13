@@ -1,0 +1,19 @@
+{
+    "properties": [{
+            "model_part_name": "3D_Shell_diagonal.Parts_solid",
+            "properties_id": 0,
+            "Material": {
+                    "name": "Shell_Material",
+                    "constitutive_law": {
+                            "name": "LinearElasticPlaneStress2DLaw"
+                    },
+                    "Variables": {
+                            "DENSITY": 7.85000E+03,
+                            "YOUNG_MODULUS": 2.06900E+11,
+                            "POISSON_RATIO": 2.90000E-01,
+                            "THICKNESS": 1.00000E+00
+                    },
+                    "Tables": {}
+            }
+    }]
+}

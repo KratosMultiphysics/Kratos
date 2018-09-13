@@ -2,20 +2,19 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosTrilinosApplication ****")
 
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/ )
 
 #dependecies on other application -- TRILINOS specific
-include_directories( ${CMAKE_SOURCE_DIR}/applications/incompressible_fluid_application )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/ALEapplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/AdjointFluidApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
 
 #find trilinos solver package -- this is our own find package!!
 find_package(TRILINOS REQUIRED)
-include_directories(${TRILINOS_INCLUDE_DIR})
+include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
 link_directories(${TRILINOS_LIBRARIES})
 
 if(TRILINOS_USE_AMGCL MATCHES ON)
@@ -51,8 +50,8 @@ endif(TRILINOS_USE_AMGCL MATCHES ON)
 
 ## generate variables with the sources
 set( KRATOS_TRILINOS_APPLICATION_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/trilinos_python_application.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/trilinos_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_space_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_convergence_criterias_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_schemes_to_python.cpp
@@ -63,11 +62,7 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_communicator_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_zoltan_processes_to_python.cpp
-    ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/laplacian_meshmoving_element.cpp
-    ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/structural_meshmoving_element.cpp
-    ${CMAKE_SOURCE_DIR}/applications/ALEapplication/ale_application_variables.cpp
-    ${CMAKE_SOURCE_DIR}/applications/AdjointFluidApplication/custom_elements/vms_adjoint_element.cpp
-    ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp
+    ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp  #TODO: this should REALLY NOT BE HERE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi_normal_calculation_utilities.cpp;
 )
 
@@ -75,16 +70,19 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 # target_link_libraries(testmap ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${BLAS_LIBRARIES})
 
 # ###############################################################
-add_library(KratosTrilinosApplication SHARED ${KRATOS_TRILINOS_APPLICATION_SOURCES})
+pybind11_add_module(KratosTrilinosApplication MODULE THIN_LTO ${KRATOS_TRILINOS_APPLICATION_SOURCES})
+
+
+
 
 if (HAVE_PASTIX)
-        target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES} )
+        target_link_libraries(KratosTrilinosApplication PRIVATE KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES} )
         install(FILES ${PASTIX_LIBRARIES} DESTINATION libs )
 
         message("linking PASTIX in the AMGCL lib")
-#         target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES})
+#         target_link_libraries(KratosTrilinosApplication PRIVATE KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES})
 else()
-        target_link_libraries(KratosTrilinosApplication KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
+        target_link_libraries(KratosTrilinosApplication PRIVATE KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
 endif()
 
 set_target_properties(KratosTrilinosApplication PROPERTIES PREFIX "")
@@ -98,6 +96,10 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosTrilinosApplication)
+endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosTrilinosApplication DESTINATION libs )
 

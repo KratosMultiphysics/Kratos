@@ -3,10 +3,11 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//    Co-authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED )
@@ -22,33 +23,93 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
-#include "includes/variables.h"
+#include "structural_mechanics_application_variables.h"
 
 /* ELEMENTS */
+
+/* Adding truss element */
+#include "custom_elements/truss_element_3D2N.hpp"
+#include "custom_elements/truss_element_linear_3D2N.hpp"
+#include "custom_elements/cable_element_3D2N.hpp"
+
 /* Adding beam element */
-#include "custom_elements/small_displacement_beam_element_3D2N.hpp"
+#include "custom_elements/cr_beam_element_3D2N.hpp"
+#include "custom_elements/cr_beam_element_linear_3D2N.hpp"
+#include "custom_elements/cr_beam_element_2D2N.hpp"
+#include "custom_elements/cr_beam_element_linear_2D2N.hpp"
+
+/* Adding the adjoint elements */
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_shell_element.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
-#include "custom_elements/membrane_element.hpp"
+#include "custom_elements/prestress_membrane_element.hpp"
 #include "custom_elements/shell_thick_element_3D4N.hpp"
+#include "custom_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_thin_element_3D3N.hpp"
-
-/* Adding the nodal concentrated element */
+#include "custom_elements/shell_thick_element_3D3N.hpp"
 #include "custom_elements/nodal_concentrated_element.hpp"
 
+/* Adding the spring damper element */
+#include "custom_elements/spring_damper_element_3D2N.hpp"
+
 /* Adding the SPRISM element */
-#include "custom_elements/SprismElement3D6N.hpp"
+#include "custom_elements/solid_shell_element_sprism_3D6N.h"
+
+/* Adding solid elements */
+#include "custom_elements/small_displacement.h"
+#include "custom_elements/axisym_small_displacement.h"
+#include "custom_elements/total_lagrangian.h"
+#include "custom_elements/axisym_total_lagrangian.h"
+#include "custom_elements/updated_lagrangian.h"
+#include "custom_elements/axisym_updated_lagrangian.h"
+#include "custom_elements/small_displacement_bbar.h"
 
 /* CONDITIONS */
-// Beam moment condition
-#include "custom_conditions/point_moment_3D_condition.hpp"
-// Torque condition
-#include "custom_conditions/point_torque_3D_condition.hpp"
+#include "custom_conditions/base_load_condition.h"
+#include "custom_conditions/point_load_condition.h"
+#include "custom_conditions/point_contact_condition.h"
+#include "custom_conditions/axisym_point_load_condition.h"
+#include "custom_conditions/line_load_condition_2d.h"
+#include "custom_conditions/axisym_line_load_condition_2d.h"
+#include "custom_conditions/surface_load_condition_3d.h"
+#include "custom_conditions/point_moment_condition_3d.h"
 
-/* UTILITIES */
-// Cross sections
-#include "custom_utilities/shell_cross_section.hpp"
+/* Adding the adjoint conditions */
+#include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
+
+/* CONSTITUTIVE LAWS */
+#include "custom_constitutive/truss_plasticity_constitutive_law.h"
+#include "custom_constitutive/truss_constitutive_law.h"
+#include "custom_constitutive/beam_constitutive_law.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/axisym_elastic_isotropic.h"
+#include "custom_constitutive/linear_plane_strain.h"
+#include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/elastic_isotropic_plane_stress_uncoupled_shear.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
+#include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
+#include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
+#include "custom_constitutive/linear_j2_plasticity_3d.h"
+#include "custom_constitutive/linear_isotropic_damage_3D_law.h"
+
+// Advanced Constitutive laws
+#include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
+#include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
+#include "custom_constitutive/generic_small_strain_isotropic_damage_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_factory_3d.h"
+#include "custom_constitutive/viscous_generalized_kelvin_3d.h"
+#include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
+#include "custom_constitutive/viscous_generalized_maxwell_3d.h"
+
 
 namespace Kratos
 {
@@ -77,7 +138,7 @@ namespace Kratos
  * This application features Elements, Conditions, Constitutive laws and Utilities
  * for structural analysis problems
  */
-class KratosStructuralMechanicsApplication : public KratosApplication
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) KratosStructuralMechanicsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions
@@ -95,7 +156,7 @@ public:
     KratosStructuralMechanicsApplication();
 
     /// Destructor.
-    virtual ~KratosStructuralMechanicsApplication() {}
+    ~KratosStructuralMechanicsApplication() override {}
 
 
     ///@}
@@ -107,9 +168,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
-
-
+    void Register() override;
 
     ///@}
     ///@name Access
@@ -126,20 +185,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosStructuralMechanicsApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in my application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -152,7 +211,6 @@ public:
         rOStream << "Conditions:" << std::endl;
         KratosComponents<Condition>().PrintData(rOStream);
     }
-
 
     ///@}
     ///@name Friends
@@ -202,9 +260,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
-
-    //       static const ApplicationCondition  msApplicationCondition;
+//     static const ApplicationCondition  msApplicationCondition;
 
     ///@}
     ///@name Member Variables
@@ -212,31 +268,213 @@ private:
 
 
     /* ELEMENTS */
-    // Adding the beam element 
-    const SmallDisplacementBeamElement3D2N   mSmallDisplacementBeamElement3D2N;
 
-    // Adding the shells elements 
-    const IsotropicShellElement  mIsotropicShellElement3D3N;
-    const ShellThickElement3D4N  mShellThickElement3D4N;
-    const ShellThickElement3D4N  mShellThickCorotationalElement3D4N;
-    const ShellThinElement3D3N   mShellThinElement3D3N;
-    const ShellThinElement3D3N   mShellThinCorotationalElement3D3N;
+    // Adding the truss element
+    const TrussElement3D2N mTrussElement3D2N;
+    const TrussElementLinear3D2N mTrussLinearElement3D2N;
+    const CableElement3D2N mCableElement3D2N;
 
-    // Adding the membrane element 
-    const MembraneElement mMembraneElement3D3N;
-    
-    // Adding the SPRISM element 
-    const SprismElement3D6N mSprismElement3D6N;
-    
-    // Adding the nodal concentrated element 
+    // Adding the beam element
+    const CrBeamElement3D2N mCrBeamElement3D2N;
+    const CrBeamElementLinear3D2N mCrLinearBeamElement3D2N;
+    const CrBeamElement2D2N mCrBeamElement2D2N;
+    const CrBeamElementLinear2D2N mCrLinearBeamElement2D2N;
+
+
+    // Adding the shells elements
+    const IsotropicShellElement mIsotropicShellElement3D3N;
+    const ShellThickElement3D4N mShellThickElement3D4N;
+    const ShellThickElement3D4N mShellThickCorotationalElement3D4N;
+    const ShellThinElement3D4N   mShellThinCorotationalElement3D4N;
+    const ShellThinElement3D3N mShellThinElement3D3N;
+    const ShellThinElement3D3N mShellThinCorotationalElement3D3N;
+    const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
+
+    // Adding the membrane element
+    const PrestressMembraneElement mPreStressMembraneElement3D3N;
+    const PrestressMembraneElement mPreStressMembraneElement3D4N;
+
+    // Adding the SPRISM element
+    const SolidShellElementSprism3D6N mSolidShellElementSprism3D6N;
+
+    // Adding the nodal concentrated element
     const NodalConcentratedElement mNodalConcentratedElement2D1N;
+    const NodalConcentratedElement mNodalConcentratedDampedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;
+    const NodalConcentratedElement mNodalConcentratedDampedElement3D1N;
+
+    // Linear kinematic elements
+    const SmallDisplacement mSmallDisplacement2D3N;
+    const SmallDisplacement mSmallDisplacement2D4N;
+    const SmallDisplacement mSmallDisplacement2D6N;
+    const SmallDisplacement mSmallDisplacement2D8N;
+    const SmallDisplacement mSmallDisplacement2D9N;
+    const SmallDisplacement mSmallDisplacement3D4N;
+    const SmallDisplacement mSmallDisplacement3D6N;
+    const SmallDisplacement mSmallDisplacement3D8N;
+    const SmallDisplacement mSmallDisplacement3D10N;
+    const SmallDisplacement mSmallDisplacement3D15N;
+    const SmallDisplacement mSmallDisplacement3D20N;
+    const SmallDisplacement mSmallDisplacement3D27N;
+
+    const SmallDisplacementBbar mSmallDisplacementBbar2D4N;
+    const SmallDisplacementBbar mSmallDisplacementBbar3D8N;
+
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D3N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D4N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D6N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D8N;
+    const AxisymSmallDisplacement mAxisymSmallDisplacement2D9N;
+
+    // Total lagrangian
+    const TotalLagrangian mTotalLagrangian2D3N;
+    const TotalLagrangian mTotalLagrangian2D4N;
+    const TotalLagrangian mTotalLagrangian2D6N;
+    const TotalLagrangian mTotalLagrangian2D8N;
+    const TotalLagrangian mTotalLagrangian2D9N;
+    const TotalLagrangian mTotalLagrangian3D4N;
+    const TotalLagrangian mTotalLagrangian3D6N;
+    const TotalLagrangian mTotalLagrangian3D8N;
+    const TotalLagrangian mTotalLagrangian3D10N;
+    const TotalLagrangian mTotalLagrangian3D15N;
+    const TotalLagrangian mTotalLagrangian3D20N;
+    const TotalLagrangian mTotalLagrangian3D27N;
+
+    const AxisymTotalLagrangian mAxisymTotalLagrangian2D3N;
+    const AxisymTotalLagrangian mAxisymTotalLagrangian2D4N;
+    const AxisymTotalLagrangian mAxisymTotalLagrangian2D6N;
+    const AxisymTotalLagrangian mAxisymTotalLagrangian2D8N;
+    const AxisymTotalLagrangian mAxisymTotalLagrangian2D9N;
+
+    // Updated lagrangian
+    const UpdatedLagrangian mUpdatedLagrangian2D3N;
+    const UpdatedLagrangian mUpdatedLagrangian2D4N;
+    const UpdatedLagrangian mUpdatedLagrangian2D6N;
+    const UpdatedLagrangian mUpdatedLagrangian2D8N;
+    const UpdatedLagrangian mUpdatedLagrangian2D9N;
+    const UpdatedLagrangian mUpdatedLagrangian3D4N;
+    const UpdatedLagrangian mUpdatedLagrangian3D6N;
+    const UpdatedLagrangian mUpdatedLagrangian3D8N;
+    const UpdatedLagrangian mUpdatedLagrangian3D10N;
+    const UpdatedLagrangian mUpdatedLagrangian3D15N;
+    const UpdatedLagrangian mUpdatedLagrangian3D20N;
+    const UpdatedLagrangian mUpdatedLagrangian3D27N;
+
+    const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D3N;
+    const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D4N;
+    const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D6N;
+    const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D8N;
+    const AxisymUpdatedLagrangian mAxisymUpdatedLagrangian2D9N;
+
+    // Adding the spring damper element
+    const SpringDamperElement3D2N mSpringDamperElement3D2N;
+
+    // Adding adjoint elements
+    const AdjointFiniteDifferencingBaseElement mAdjointFiniteDifferencingBaseElement;
+    const AdjointFiniteDifferencingShellElement mAdjointFiniteDifferencingShellElement;
+    const AdjointFiniteDifferenceCrBeamElement mAdjointFiniteDifferenceCrBeamElement;
+    const AdjointFiniteDifferenceTrussElement mAdjointFiniteDifferenceTrussElement;
+    const AdjointFiniteDifferenceTrussElementLinear mAdjointFiniteDifferenceTrussLinearElement;
 
     /* CONDITIONS*/
-    // Beam moment condition
-    const PointMoment3DCondition   mPointMomentCondition3D1N;
-    // Torque condition
-    const PointTorque3DCondition   mPointTorqueCondition3D1N;
+    // Point load
+    const PointLoadCondition mPointLoadCondition2D1N;
+    const PointLoadCondition mPointLoadCondition3D1N;
+    const PointContactCondition mPointContactCondition2D1N;
+    const PointContactCondition mPointContactCondition3D1N;
+
+    const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
+
+    // Line load
+    const LineLoadCondition2D mLineLoadCondition2D2N;
+    const LineLoadCondition2D mLineLoadCondition2D3N;
+
+    const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D2N;
+    const AxisymLineLoadCondition2D mAxisymLineLoadCondition2D3N;
+
+    // Surface load
+    const SurfaceLoadCondition3D mSurfaceLoadCondition3D3N;
+    const SurfaceLoadCondition3D mSurfaceLoadCondition3D4N;
+    const SurfaceLoadCondition3D mSurfaceLoadCondition3D6N;
+    const SurfaceLoadCondition3D mSurfaceLoadCondition3D8N;
+    const SurfaceLoadCondition3D mSurfaceLoadCondition3D9N;
+
+    // Point moment
+    const PointMomentCondition3D mPointMomentCondition3D1N;
+
+    // Adjoint Conditions
+    const AdjointSemiAnalyticPointLoadCondition mAdjointSemiAnalyticPointLoadCondition2D1N;
+    const AdjointSemiAnalyticPointLoadCondition mAdjointSemiAnalyticPointLoadCondition3D1N;
+
+    /* CONSTITUTIVE LAWS */
+    // Linear elastics laws
+    const TrussConstitutiveLaw mTrussConstitutiveLaw;
+    const TrussPlasticityConstitutiveLaw mTrussPlasticityConstitutiveLaw;
+    const BeamConstitutiveLaw mBeamConstitutiveLaw;
+    const ElasticIsotropic3D mElasticIsotropic3D;
+    const AxisymElasticIsotropic mAxisymElasticIsotropic;
+    const LinearPlaneStrain  mLinearPlaneStrain;
+    const LinearPlaneStress  mLinearPlaneStress;
+    const ElasticIsotropicPlaneStressUncoupledShear  mElasticIsotropicPlaneStressUncoupledShear;
+    const HyperElasticIsotropicKirchhoff3D  mHyperElasticIsotropicKirchhoff3D;
+    const HyperElasticIsotropicKirchhoffPlaneStress2D  mHyperElasticIsotropicKirchhoffPlaneStress2D;
+    const HyperElasticIsotropicKirchhoffPlaneStrain2D  mHyperElasticIsotropicKirchhoffPlaneStrain2D;
+    const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
+    const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
+    const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
+
+    const LinearJ2Plasticity3D mLinearJ2Plasticity3D;
+    const LinearJ2PlasticityPlaneStrain2D mLinearJ2PlasticityPlaneStrain2D;
+    const LinearIsotropicDamage3D mLinearIsotropicDamage3D;
+
+    // Damage and plasticity laws
+    const SmallStrainIsotropicPlasticityFactory3D mSmallStrainIsotropicPlasticityFactory3D;
+    const SmallStrainIsotropicDamageFactory3D mSmallStrainIsotropicDamageFactory3D;
+    const ViscousGeneralizedKelvin3D mViscousGeneralizedKelvin3D;
+    const ViscousGeneralizedMaxwell3D mViscousGeneralizedMaxwell3D;
+    const GenericSmallStrainViscoplasticity3D mGenericSmallStrainViscoplasticity3D;
+
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DVonMisesVonMises;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DVonMisesModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DVonMisesDruckerPrager;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DVonMisesTresca;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DModifiedMohrCoulombVonMises;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DModifiedMohrCoulombModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DModifiedMohrCoulombDruckerPrager;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DModifiedMohrCoulombTresca;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DTrescaVonMises;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DTrescaModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DTrescaDruckerPrager;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DTrescaTresca;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DDruckerPragerVonMises;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DDruckerPragerModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DDruckerPragerDruckerPrager;
+    const GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainIsotropicPlasticity3DDruckerPragerTresca;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DVonMisesVonMises;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DVonMisesModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DVonMisesDruckerPrager;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DVonMisesTresca;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DModifiedMohrCoulombVonMises;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DModifiedMohrCoulombModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DModifiedMohrCoulombDruckerPrager;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DModifiedMohrCoulombTresca;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DTrescaVonMises;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DTrescaModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DTrescaDruckerPrager;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DTrescaTresca;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DDruckerPragerVonMises;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DDruckerPragerModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DDruckerPragerDruckerPrager;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DDruckerPragerTresca;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DRankineVonMises;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DRankineModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DRankineDruckerPrager;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DRankineTresca;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DSimoJuVonMises;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DSimoJuModifiedMohrCoulomb;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DSimoJuDruckerPrager;
+    const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DSimoJuTresca;
+
 
     ///@}
     ///@name Private Operators
@@ -288,6 +526,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED  defined
 
 

@@ -9,7 +9,6 @@
 #define  KRATOS_VOLUME_AVERAGING_TOOL
 
 // /* External includes */
-// #include "boost/smart_ptr.hpp"
 
 // System includes
 #include <string>

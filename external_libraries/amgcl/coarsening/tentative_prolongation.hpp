@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,10 +34,7 @@ THE SOFTWARE.
 #include <vector>
 #include <algorithm>
 
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/iterator/counting_iterator.hpp>
-#include <boost/range/algorithm.hpp>
+#include <memory>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/detail/qr.hpp>
@@ -76,6 +73,7 @@ struct nullspace_params {
 
     nullspace_params() : cols(0) {}
 
+#ifndef AMGCL_NO_BOOST
     nullspace_params(const boost::property_tree::ptree &p)
         : cols(p.get("cols", nullspace_params().cols))
     {
@@ -104,10 +102,11 @@ struct nullspace_params {
                     );
         }
 
-        AMGCL_PARAMS_CHECK(p, (cols)(rows)(B));
+        check_params(p, {"cols", "rows", "B"});
     }
 
     void get(boost::property_tree::ptree&, const std::string&) const {}
+#endif
 };
 
 /// Tentative prolongation operator
@@ -118,7 +117,7 @@ struct nullspace_params {
  * \see \cite Vanek2001
  */
 template <class Matrix>
-boost::shared_ptr<Matrix> tentative_prolongation(
+std::shared_ptr<Matrix> tentative_prolongation(
         size_t n,
         size_t naggr,
         const std::vector<ptrdiff_t> aggr,
@@ -128,35 +127,28 @@ boost::shared_ptr<Matrix> tentative_prolongation(
 {
     typedef typename backend::value_type<Matrix>::type value_type;
 
-    boost::shared_ptr<Matrix> P = boost::make_shared<Matrix>();
+    auto P = std::make_shared<Matrix>();
 
-    TIC("tentative");
+    AMGCL_TIC("tentative");
     if (nullspace.cols > 0) {
         // Sort fine points by aggregate number.
         // Put points not belonging to any aggregate to the end of the list.
-        std::vector<ptrdiff_t> order(
-                boost::counting_iterator<ptrdiff_t>(0),
-                boost::counting_iterator<ptrdiff_t>(n)
-                );
-        boost::stable_sort(order, detail::skip_negative(aggr, block_size));
+        std::vector<ptrdiff_t> order(0);
+        for(size_t i = 0; i < n; ++i) order[i] = i;
+        std::stable_sort(order.begin(), order.end(), detail::skip_negative(aggr, block_size));
 
         // Precompute the shape of the prolongation operator.
         // Each row contains exactly nullspace.cols non-zero entries.
         // Rows that do not belong to any aggregate are empty.
-        P->nrows = n;
-        P->ncols = nullspace.cols * naggr / block_size;
-        P->ptr.reserve(n + 1);
+        P->set_size(n, nullspace.cols * naggr / block_size);
+        P->ptr[0] = 0;
 
-        P->ptr.push_back(0);
-        for(size_t i = 0; i < n; ++i) {
-            if (aggr[i] < 0)
-                P->ptr.push_back(P->ptr.back());
-            else
-                P->ptr.push_back(P->ptr.back() + nullspace.cols);
-        }
+#pragma omp parallel for
+        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i)
+            P->ptr[i+1] = aggr[i] < 0 ? 0 : nullspace.cols;
 
-        P->col.resize(P->ptr.back());
-        P->val.resize(P->ptr.back());
+        P->scan_row_sizes();
+        P->set_nonzeros();
 
         // Compute the tentative prolongation operator and null-space vectors
         // for the coarser level.
@@ -165,7 +157,7 @@ boost::shared_ptr<Matrix> tentative_prolongation(
 
         size_t offset = 0;
 
-        amgcl::detail::QR<double, amgcl::detail::col_major> qr;
+        amgcl::detail::QR<double> qr;
         std::vector<double> Bpart;
         for(ptrdiff_t i = 0, nb = naggr / block_size; i < nb; ++i) {
             size_t d = 0;
@@ -178,8 +170,7 @@ boost::shared_ptr<Matrix> tentative_prolongation(
                     Bpart[jj + d * k] = nullspace.B[ib + k];
             }
 
-            qr.compute(d, nullspace.cols, &Bpart[0]);
-            qr.compute_q();
+            qr.factorize(d, nullspace.cols, &Bpart[0], amgcl::detail::col_major);
 
             for(int ii = 0; ii < nullspace.cols; ++ii)
                 for(int jj = 0; jj < nullspace.cols; ++jj)
@@ -200,19 +191,23 @@ boost::shared_ptr<Matrix> tentative_prolongation(
 
         std::swap(nullspace.B, Bnew);
     } else {
-        P->nrows = n;
-        P->ncols = naggr;
-        P->ptr.reserve(n + 1);
-        P->col.reserve(n);
+        P->set_size(n, naggr);
+        P->ptr[0] = 0;
+#pragma omp parallel for
+        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i)
+            P->ptr[i+1] = (aggr[i] >= 0);
 
-        P->ptr.push_back(0);
-        for(size_t i = 0; i < n; ++i) {
-            if (aggr[i] >= 0) P->col.push_back(aggr[i]);
-            P->ptr.push_back( static_cast<ptrdiff_t>(P->col.size()) );
+        P->set_nonzeros(P->scan_row_sizes());
+
+#pragma omp parallel for
+        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
+            if (aggr[i] >= 0) {
+                P->col[P->ptr[i]] = aggr[i];
+                P->val[P->ptr[i]] = math::identity<value_type>();
+            }
         }
-        P->val.resize(n, math::identity<value_type>());
     }
-    TOC("tentative");
+    AMGCL_TOC("tentative");
 
     return P;
 }

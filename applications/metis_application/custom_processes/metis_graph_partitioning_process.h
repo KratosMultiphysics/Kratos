@@ -76,7 +76,7 @@ class MetisGraphPartitioningProcess
 public:
     ///@name Type Definitions
     ///@{
-      
+
     #ifdef KRATOS_USE_METIS_5
       typedef idx_t idxtype;
     #endif
@@ -135,7 +135,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
         KRATOS_TRY;
 
@@ -200,19 +200,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "MetisGraphPartitioningProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MetisGraphPartitioningProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -266,7 +266,7 @@ protected:
         if(number_of_element_nodes == 3) { // triangles
             etype = 1;
         }
-        else if(number_of_element_nodes == 4) {// tetrahedra or quadilateral        
+        else if(number_of_element_nodes == 4) {// tetrahedra or quadilateral
             if(mDimension == 2){ // quadilateral
                 etype = 4;
             }
@@ -279,7 +279,7 @@ protected:
         }
         else {
             KRATOS_THROW_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
-        } 
+        }
         #else
         if(number_of_element_nodes != 3 && number_of_element_nodes != 4  && number_of_element_nodes != 8) {
             KRATOS_THROW_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
@@ -410,6 +410,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_METIS_GRAPH_PARTITIONING_PROCESS_INCLUDED defined 
+#endif // KRATOS_METIS_GRAPH_PARTITIONING_PROCESS_INCLUDED defined
 
 

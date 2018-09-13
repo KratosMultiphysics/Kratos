@@ -24,7 +24,9 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
                  deformed_mesh,
                  write_conditions)
 
-    
+        self.outerlistfilename = os.path.join("..", self.listfilename)
+
+
     def initialize_swimming_DEM_results(self, DEM_model_part, clusters_model_part, rigid_faces_model_part, mixed_model_part):
 
         if self.multi_file == MultiFileFlag.SingleFile:
@@ -54,10 +56,10 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
 
             else:
                 self.write_step_to_list(0)
-                
-    
+
+
     def write_step_to_list(self, step_label):
-        
+
         if self.post_mode   == GiDPostMode.GiD_PostBinary:
             ext = ".post.bin"
         elif self.post_mode == GiDPostMode.GiD_PostAscii:
@@ -68,8 +70,23 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
         with open(self.listfilename, "a") as listfile:
             listfile.write("Multiple\n")
             listfile.write(self.filename+"_"+"%.12g"%step_label+ext+"\n")
-            
-            
+
+    def write_step_to_outer_list(self, step_label):
+
+        if self.post_mode   == GiDPostMode.GiD_PostBinary:
+            ext = ".post.bin"
+        elif self.post_mode == GiDPostMode.GiD_PostAscii:
+            ext = ".post.res"
+        elif self.post_mode == GiDPostMode.GiD_PostAsciiZipped:
+            ext = ".post.res"
+
+        with open(self.outerlistfilename, "a") as listfile:
+            listfile.write("Multiple\n")
+            folder_name = self.filename + "_Post_Files"
+            full_string_to_write = os.path.join(folder_name,self.filename+"_"+"%.12g"%step_label+ext)
+            listfile.write(full_string_to_write+"\n")
+
+
     def write_swimming_DEM_results(self, label,
                                   fluid_model_part,
                                   DEM_model_part,
@@ -97,7 +114,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
             self.io.WriteMesh(rigid_faces_model_part.GetMesh())
             self.io.FinalizeMesh()
             self.io.InitializeResults(label, mixed_model_part.GetMesh())
-            
+
         for var in fluid_nodal_variables:
             kratos_variable = globals()[var]
             self._write_nodal_results(label, fluid_model_part, kratos_variable)
@@ -105,15 +122,15 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
         for var in DEM_nodal_variables:
             kratos_variable = globals()[var]
             self._write_nodal_results(label, DEM_model_part, kratos_variable)
-            
+
         for var in cluster_variables:
             kratos_variable = globals()[var]
             self._write_nodal_results(label, clusters_model_part, kratos_variable)
-            
+
         for var in rigid_faces_variables:
             kratos_variable = globals()[var]
             self._write_nodal_results(label, rigid_faces_model_part, kratos_variable)
-            
+
         for var in mixed_nodal_variables:
             kratos_variable = globals()[var]
             self._write_nodal_results(label, mixed_model_part, kratos_variable)
@@ -127,4 +144,6 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
 
             with open(self.listfilename, "a") as listfile:
                 self.write_step_to_list(label)
+
+            self.write_step_to_outer_list(label)
 

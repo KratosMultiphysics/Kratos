@@ -593,13 +593,9 @@ public:
 
         if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
         {
-            //TSparseSpace::Clear(mA);
-            //TSparseSpace::Clear(mDx);
-            //TSparseSpace::Clear(mb);
-
-            TSparseSpace::ClearData(mA);
-            TSparseSpace::ClearData(mDx);
-            TSparseSpace::ClearData(mb);
+            TSparseSpace::Clear(mA);
+            TSparseSpace::Clear(mDx);
+            TSparseSpace::Clear(mb);
         }
 
         return 0.00;
@@ -848,7 +844,7 @@ private:
 
 
         //setting up the Vectors involved to the correct size
-        pBuilderAndSolver->ResizeAndInitializeVectors(mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
+        pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA,mpDx,mpb,BaseType::GetModelPart());
 
         TSystemMatrixType& mA = *mpA;
         TSystemVectorType& mDx = *mpDx;

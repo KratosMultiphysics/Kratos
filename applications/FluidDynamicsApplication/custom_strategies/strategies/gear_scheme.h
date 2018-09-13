@@ -1,46 +1,14 @@
-/*
-==============================================================================
-KratosFluidDynamicsApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela
+//
 
 #if !defined(KRATOS_GEAR_SCHEME_H_INCLUDED )
 #define  KRATOS_GEAR_SCHEME_H_INCLUDED
@@ -50,7 +18,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 #include <string>
 #include <iostream>
-#include <vector>
 
 // External includes
 
@@ -124,7 +91,8 @@ public:
     /// Default constructor.
     GearScheme()
         :
-        Scheme<TSparseSpace, TDenseSpace>()
+        Scheme<TSparseSpace, TDenseSpace>(),
+        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {}
 
     /// Constructor to use the formulation combined with a turbulence model.
@@ -137,11 +105,23 @@ public:
     GearScheme(Process::Pointer pTurbulenceModel)
         :
         Scheme<TSparseSpace, TDenseSpace>(),
-        mpTurbulenceModel(pTurbulenceModel)
+        mpTurbulenceModel(pTurbulenceModel),
+        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {}
 
+    /// Constructor for periodic boundary conditions.
+    /**
+     * @param rPeriodicVar the variable used to store periodic pair indices.
+     */
+    GearScheme(const Kratos::Variable<int>& rPeriodicVar)
+        :
+        Scheme<TSparseSpace, TDenseSpace>(),
+        mrPeriodicIdVar(rPeriodicVar)
+    {}
+
+
     /// Destructor.
-    virtual ~GearScheme()
+    ~GearScheme() override
     {}
 
     ///@}
@@ -158,7 +138,7 @@ public:
      * @param rModelPart The fluid's ModelPart
      * @return 0 if no errors were found
      */
-    virtual int Check(ModelPart& rModelPart)
+    int Check(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -201,10 +181,10 @@ public:
     }
 
     /// Set the time iteration coefficients
-    virtual void InitializeSolutionStep(ModelPart& rModelPart,
+    void InitializeSolutionStep(ModelPart& rModelPart,
                                         TSystemMatrixType& A,
                                         TSystemVectorType& Dx,
-                                        TSystemVectorType& b)
+                                        TSystemVectorType& b) override
     {
         this->SetTimeCoefficients(rModelPart.GetProcessInfo());
 
@@ -242,10 +222,10 @@ public:
         }
     }
 
-    virtual void InitializeNonLinIteration(ModelPart& rModelPart,
+    void InitializeNonLinIteration(ModelPart& rModelPart,
                                            TSystemMatrixType& A,
                                            TSystemVectorType& Dx,
-                                           TSystemVectorType& b)
+                                           TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -254,10 +234,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void FinalizeNonLinIteration(ModelPart &rModelPart,
+    void FinalizeNonLinIteration(ModelPart &rModelPart,
                                          TSystemMatrixType &A,
                                          TSystemVectorType &Dx,
-                                         TSystemVectorType &b)
+                                         TSystemVectorType &b) override
     {
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -271,11 +251,11 @@ public:
     }
 
     /// Start the iteration by providing a first approximation to the solution.
-    virtual void Predict(ModelPart& rModelPart,
+    void Predict(ModelPart& rModelPart,
                          DofsArrayType& rDofSet,
                          TSystemMatrixType& A,
                          TSystemVectorType& Dx,
-                         TSystemVectorType& b)
+                         TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -324,15 +304,15 @@ public:
      * @param Dx Newton-Raphson iteration solution
      * @param b Newton-Raphson right hand side (unused)
      */
-    virtual void Update(ModelPart& rModelPart,
+    void Update(ModelPart& rModelPart,
                         DofsArrayType& rDofSet,
                         TSystemMatrixType& A,
                         TSystemVectorType& Dx,
-                        TSystemVectorType& b)
+                        TSystemVectorType& b) override
     {
         KRATOS_TRY
 
-        this->UpdateDofs(rDofSet,Dx);
+        mpDofUpdater->UpdateDofs(rDofSet,Dx);
 
         const Vector& BDFCoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
 
@@ -341,11 +321,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void CalculateSystemContributions(Element::Pointer rCurrentElement,
+    void CalculateSystemContributions(Element::Pointer rCurrentElement,
             LocalSystemMatrixType& LHS_Contribution,
             LocalSystemVectorType& RHS_Contribution,
             Element::EquationIdVectorType& rEquationId,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -374,7 +354,7 @@ public:
     void Calculate_RHS_Contribution(Element::Pointer rCurrentElement,
                                     LocalSystemVectorType& RHS_Contribution,
                                     Element::EquationIdVectorType& rEquationId,
-                                    ProcessInfo& rCurrentProcessInfo)
+                                    ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -398,11 +378,11 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
+    void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
             LocalSystemMatrixType& LHS_Contribution,
             LocalSystemVectorType& RHS_Contribution,
             Element::EquationIdVectorType& rEquationId,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -428,10 +408,10 @@ public:
     }
 
 
-    virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
+    void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
             LocalSystemVectorType& RHS_Contribution,
             Element::EquationIdVectorType& rEquationId,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -453,6 +433,12 @@ public:
         this->AddDynamicRHSContribution<Kratos::Condition>(rCurrentCondition,RHS_Contribution,Mass,rCurrentProcessInfo);
 
         KRATOS_CATCH("")
+    }
+
+    /// Free memory allocated by this object.
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
     }
 
     ///@}
@@ -759,6 +745,11 @@ protected:
         rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
         rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
 
+        // Correction for periodic conditions
+        if (mrPeriodicIdVar.Key() != 0) {
+            this->PeriodicConditionProjectionCorrection(rModelPart);
+        }
+
         for (typename ModelPart::NodesContainerType::iterator iNode = rModelPart.NodesBegin(); iNode != rModelPart.NodesEnd(); iNode++)
         {
             if (iNode->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
@@ -772,6 +763,88 @@ protected:
 
         if (rModelPart.GetCommunicator().MyPID() == 0)
             std::cout << "Performed OSS Projection" << std::endl;
+    }
+
+    /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
+     * both sides of the boundary. This is done using the conditions and the non-historical nodal data containers as follows:\n
+     * 1- The partition that owns the PeriodicCondition adds the values on both nodes to their non-historical containers.\n
+     * 2- The non-historical containers are added across processes, communicating the right value from the condition owner to all partitions.\n
+     * 3- The value on all periodic nodes is replaced by the one received in step 2.
+     */
+    void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
+    {
+        const int num_nodes = rModelPart.NumberOfNodes();
+        const int num_conditions = rModelPart.NumberOfConditions();
+
+        #pragma omp parallel for
+        for (int i = 0; i < num_nodes; i++) {
+            auto it_node = rModelPart.NodesBegin() + i;
+
+            it_node->SetValue(NODAL_AREA,0.0);
+            it_node->SetValue(ADVPROJ,ZeroVector(3));
+            it_node->SetValue(DIVPROJ,0.0);
+        }
+
+        #pragma omp parallel for
+        for (int i = 0; i < num_conditions; i++) {
+            auto it_cond = rModelPart.ConditionsBegin() + i;
+
+            if(it_cond->Is(PERIODIC)) {
+                this->AssemblePeriodicContributionToProjections(it_cond->GetGeometry());
+            }
+        }
+
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(ADVPROJ);
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
+
+        #pragma omp parallel for
+        for (int i = 0; i < num_nodes; i++) {
+            auto it_node = rModelPart.NodesBegin() + i;
+            this->CorrectContributionsOnPeriodicNode(*it_node);
+        }
+    }
+
+    void AssemblePeriodicContributionToProjections(Geometry< Node<3> >& rGeometry)
+    {
+        unsigned int nodes_in_cond = rGeometry.PointsNumber();
+
+        double nodal_area = 0.0;
+        array_1d<double,3> momentum_projection(3,0.0);
+        double mass_projection = 0.0;
+        for ( unsigned int i = 0; i < nodes_in_cond; i++ )
+        {
+            auto& r_node = rGeometry[i];
+            nodal_area += r_node.FastGetSolutionStepValue(NODAL_AREA);
+            noalias(momentum_projection) += r_node.FastGetSolutionStepValue(ADVPROJ);
+            mass_projection += r_node.FastGetSolutionStepValue(DIVPROJ);
+        }
+
+        for ( unsigned int i = 0; i < nodes_in_cond; i++ )
+        {
+            auto& r_node = rGeometry[i];
+            /* Note that this loop is expected to be threadsafe in normal conditions,
+             * since each node should belong to a single periodic link. However, I am
+             * setting the locks for openmp in case that we try more complicated things
+             * in the future (like having different periodic conditions for different
+             * coordinate directions).
+             */
+            r_node.SetLock();
+            r_node.GetValue(NODAL_AREA) = nodal_area;
+            noalias(r_node.GetValue(ADVPROJ)) = momentum_projection;
+            r_node.GetValue(DIVPROJ) = mass_projection;
+            r_node.UnSetLock();
+        }
+    }
+
+    void CorrectContributionsOnPeriodicNode(Node<3>& rNode)
+    {
+        if (rNode.GetValue(NODAL_AREA) != 0.0) // Only periodic nodes will have a non-historical NODAL_AREA set.
+        {
+            rNode.FastGetSolutionStepValue(NODAL_AREA) = rNode.GetValue(NODAL_AREA);
+            noalias(rNode.FastGetSolutionStepValue(ADVPROJ)) = rNode.GetValue(ADVPROJ);
+            rNode.FastGetSolutionStepValue(DIVPROJ) = rNode.GetValue(DIVPROJ);
+        }
     }
 
 
@@ -802,7 +875,11 @@ private:
     ///@{
 
     /// Poiner to a turbulence model
-    Process::Pointer mpTurbulenceModel;
+    Process::Pointer mpTurbulenceModel = nullptr;
+
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+
+    const Kratos::Variable<int>& mrPeriodicIdVar;
 
 //        ///@}
 //        ///@name Serialization

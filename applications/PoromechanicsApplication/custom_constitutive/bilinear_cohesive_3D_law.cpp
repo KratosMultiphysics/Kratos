@@ -81,7 +81,6 @@ ConstitutiveLaw::Pointer BilinearCohesive3DLaw::Clone() const
 void BilinearCohesive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
 {
     mStateVariable = rMaterialProperties[DAMAGE_THRESHOLD];
-    mStateVariableEquilibrium = mStateVariable;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -114,10 +113,7 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
                 Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 
                 if(EquivalentStrain >= mStateVariable) //Loading
-                {
-                    mStateVariable = EquivalentStrain;
-                    if(mStateVariable > 1.0) mStateVariable = 1.0;
-                    
+                {                    
                     this->ComputeConstitutiveMatrixLoading(rConstitutiveMatrix,rStrainVector,YieldStress,DamageThreshold,CriticalDisplacement);
                 }
                 else //Unloading
@@ -132,10 +128,7 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
                 Vector& rStressVector = rValues.GetStressVector();
                                         
                 if(EquivalentStrain >= mStateVariable) //Loading
-                {
-                    mStateVariable = EquivalentStrain;
-                    if(mStateVariable > 1.0) mStateVariable = 1.0;
-                    
+                {                    
                     this->ComputeConstitutiveMatrixLoading(rConstitutiveMatrix,rStrainVector,YieldStress,DamageThreshold,CriticalDisplacement);
                 }
                 else //Unloading
@@ -150,11 +143,6 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
             // COMPUTE_STRESS
             Vector& rStressVector = rValues.GetStressVector();
             
-            if(EquivalentStrain >= mStateVariable)
-            {
-                mStateVariable = EquivalentStrain;
-                if(mStateVariable > 1.0) mStateVariable = 1.0;
-            }
             this->ComputeStressVector(rStressVector,rStrainVector,YieldStress,DamageThreshold,CriticalDisplacement);
         }
     }
@@ -173,10 +161,7 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
                 Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 
                 if(EquivalentStrain >= mStateVariable) //Loading
-                {
-                    mStateVariable = EquivalentStrain;
-                    if(mStateVariable > 1.0) mStateVariable = 1.0;
-                    
+                {                    
                     this->ComputeConstitutiveMatrixContactLoading(rConstitutiveMatrix,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
                 }
                 else //Unloading
@@ -191,10 +176,7 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
                 Vector& rStressVector = rValues.GetStressVector();
                                         
                 if(EquivalentStrain >= mStateVariable) //Loading
-                {
-                    mStateVariable = EquivalentStrain;
-                    if(mStateVariable > 1.0) mStateVariable = 1.0;
-                    
+                {                    
                     this->ComputeConstitutiveMatrixContactLoading(rConstitutiveMatrix,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
                 }
                 else //Unloading
@@ -209,11 +191,6 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
             // COMPUTE_STRESS
             Vector& rStressVector = rValues.GetStressVector();
             
-            if(EquivalentStrain >= mStateVariable)
-            {
-                mStateVariable = EquivalentStrain;
-                if(mStateVariable > 1.0) mStateVariable = 1.0;
-            }
             this->ComputeStressVectorContact(rStressVector,rStrainVector,YoungModulus,FrictionCoefficient,YieldStress,DamageThreshold,CriticalDisplacement);
         }        
     }
@@ -249,12 +226,6 @@ void BilinearCohesive3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
             mStateVariable = EquivalentStrain;
             if(mStateVariable > 1.0) mStateVariable = 1.0;
         }
-        
-        mStateVariableEquilibrium = mStateVariable;
-    }
-    else // No convergence is achieved. Restore state variable to equilibrium
-    {
-        mStateVariable = mStateVariableEquilibrium;
     }
 }
 
@@ -278,7 +249,6 @@ void BilinearCohesive3DLaw::SetValue( const Variable<double>& rThisVariable, con
     if (rThisVariable == STATE_VARIABLE)
     {
         mStateVariable = rValue;
-        mStateVariableEquilibrium = rValue;
     }
 }
 

@@ -38,7 +38,7 @@ namespace Kratos
 ///@{
 
 
-class AxisymContactDomainLM2DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) AxisymContactDomainLM2DCondition
     : public ContactDomainLM2DCondition
 {
 public:
@@ -59,7 +59,7 @@ public:
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
     typedef Element::ElementType ElementType;
-	
+
 
     ///Tensor order 1 definition
     typedef ContactDomainUtilities::PointType               PointType;
@@ -112,13 +112,16 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-    //************* GETTING METHODS
-
-
-    //************* COMPUTING  METHODS
-
+    /**
+     * clones the selected condition variables, creating a new one
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
 
     //************************************************************************************
@@ -146,13 +149,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    //      String Info() const override;
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+    //      void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    //      void PrintData(std::ostream& rOStream) const override;
     ///@}
     ///@name Friends
     ///@{
@@ -171,15 +174,15 @@ protected:
     /**
      * Initialize Variables
      */
-    void InitializeGeneralVariables (GeneralVariables& rVariables, 
-				     const ProcessInfo& rCurrentProcessInfo);
+    void InitializeConditionVariables (ConditionVariables& rVariables,
+				     const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate Condition Kinematics
      */
-    void CalculateKinematics(GeneralVariables& rVariables, 
-			     ProcessInfo& rCurrentProcessInfo, 
-			     const unsigned int& rPointNumber);
+    void CalculateKinematics(ConditionVariables& rVariables,
+			     ProcessInfo& rCurrentProcessInfo,
+			     const unsigned int& rPointNumber) override;
 
     /**
      * Calculate Radius:
@@ -187,20 +190,20 @@ protected:
     void CalculateRadius(double & rCurrentRadius,
 			 double & rReferenceRadius,
 			 const Vector& rN);
-	
+
     /**
      * Calculate LHS
      */
     void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-			    GeneralVariables& rVariables, 
-			    double& rIntegrationWeight);
+			    ConditionVariables& rVariables,
+			    double& rIntegrationWeight) override;
 
     /**
      * Calculate RHS
      */
     void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-			    GeneralVariables& rVariables, 
-			    double& rIntegrationWeight);
+			    ConditionVariables& rVariables,
+			    double& rIntegrationWeight) override;
 
 
     ///@}
@@ -214,9 +217,9 @@ protected:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Protected Inquiry
@@ -278,4 +281,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_CONTACT_DOMAIN_LM_2D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_CONTACT_DOMAIN_LM_2D_CONDITION_H_INCLUDED  defined

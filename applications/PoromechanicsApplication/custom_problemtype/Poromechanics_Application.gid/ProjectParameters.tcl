@@ -2,48 +2,58 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 
     ## Source auxiliar procedures
     source [file join $problemtypedir ProjectParametersAuxProcs.tcl]
-        
+
     ## Start ProjectParameters.json file
     set filename [file join $dir ProjectParameters.json]
     set FileVar [open $filename w]
-    
+
     puts $FileVar "\{"
-        
+
     ## problem_data
     puts $FileVar "    \"problem_data\": \{"
     puts $FileVar "        \"problem_name\":         \"$basename\","
-    puts $FileVar "        \"model_part_name\":      \"PorousDomain\","
-    puts $FileVar "        \"domain_size\":          [GiD_AccessValue get gendata Domain_Size],"
     puts $FileVar "        \"start_time\":           [GiD_AccessValue get gendata Start_Time],"
     puts $FileVar "        \"end_time\":             [GiD_AccessValue get gendata End_Time],"
-    puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
+    puts $FileVar "        \"echo_level\":           [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"parallel_type\":        \"[GiD_AccessValue get gendata Parallel_Configuration]\","
-    puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads],"
-    if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
-        puts $FileVar "        \"fracture_propagation\": false"
-    } else {
-        puts $FileVar "        \"fracture_propagation\": [GiD_AccessValue get gendata Fracture_Propagation]"
-    }
+    puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads]"
     puts $FileVar "    \},"
-    
+
     ## solver_settings
     puts $FileVar "    \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         puts $FileVar "        \"solver_type\":                        \"poromechanics_MPI_U_Pw_solver\","
     } else {
-        puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
+        if { [GiD_AccessValue get gendata Fracture_Propagation] eq false } {
+            puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
+        } else {
+            puts $FileVar "        \"solver_type\":                        \"poromechanics_fracture_U_Pw_solver\","
+        }
     }
+    puts $FileVar "        \"model_part_name\":                    \"PorousDomain\","
+    puts $FileVar "        \"domain_size\":                        [GiD_AccessValue get gendata Domain_Size],"
+    puts $FileVar "        \"start_time\":                         [GiD_AccessValue get gendata Start_Time],"
+    puts $FileVar "        \"time_step\":                          [GiD_AccessValue get gendata Delta_Time],"
     puts $FileVar "        \"model_import_settings\":              \{"
     puts $FileVar "            \"input_type\":       \"mdpa\","
-    puts $FileVar "            \"input_filename\":   \"$basename\","
-    puts $FileVar "            \"input_file_label\": 0"
+    puts $FileVar "            \"input_filename\":   \"$basename\""
     puts $FileVar "        \},"
     puts $FileVar "        \"buffer_size\":                        2,"
     puts $FileVar "        \"echo_level\":                         [GiD_AccessValue get gendata Echo_Level],"
-    puts $FileVar "        \"reform_dofs_at_each_step\":           false,"
     puts $FileVar "        \"clear_storage\":                      false,"
     puts $FileVar "        \"compute_reactions\":                  [GiD_AccessValue get gendata Write_Reactions],"
-    puts $FileVar "        \"move_mesh_flag\":                     true,"
+    puts $FileVar "        \"move_mesh_flag\":                     [GiD_AccessValue get gendata Move_Mesh],"
+    set IsPeriodic [GiD_AccessValue get gendata Periodic_Interface_Conditions]
+    if {$IsPeriodic eq true} {
+        puts $FileVar "        \"periodic_interface_conditions\":      true,"
+        puts $FileVar "        \"reform_dofs_at_each_step\":           true,"
+        puts $FileVar "        \"nodal_smoothing\":                    true,"
+    } else {
+        puts $FileVar "        \"periodic_interface_conditions\":      false,"
+        puts $FileVar "        \"reform_dofs_at_each_step\":           [GiD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
+        puts $FileVar "        \"nodal_smoothing\":                    [GiD_AccessValue get gendata Nodal_Smoothing],"
+    }
+    puts $FileVar "        \"block_builder\":                      [GiD_AccessValue get gendata Block_Builder],"
     puts $FileVar "        \"solution_type\":                      \"[GiD_AccessValue get gendata Solution_Type]\","
     puts $FileVar "        \"scheme_type\":                        \"[GiD_AccessValue get gendata Scheme_Type]\","
     puts $FileVar "        \"newmark_beta\":                       [GiD_AccessValue get gendata Newmark_Beta],"
@@ -61,7 +71,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"desired_iterations\":                 [GiD_AccessValue get gendata Desired_Iterations],"
     puts $FileVar "        \"max_radius_factor\":                  [GiD_AccessValue get gendata Max_Radius_Factor],"
     puts $FileVar "        \"min_radius_factor\":                  [GiD_AccessValue get gendata Min_Radius_Factor],"
-    puts $FileVar "        \"block_builder\":                      [GiD_AccessValue get gendata Block_Builder],"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         puts $FileVar "        \"nonlocal_damage\":                    false,"
     } else {
@@ -127,12 +136,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         append PutStrings \]
     }
     puts $FileVar "        \"problem_domain_sub_model_part_list\": $PutStrings,"
-    ## body_domain_sub_model_part_list
-    set PutStrings \[
-    AppendGroupNames PutStrings Body_Part
-    set PutStrings [string trimright $PutStrings ,]
-    append PutStrings \]
-    puts $FileVar "        \"body_domain_sub_model_part_list\":    $PutStrings,"
     ## processes_sub_model_part_list
     set PutStrings \[
     # Solid_Displacement
@@ -153,72 +156,92 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Interface_Normal_Fluid_Flux
     # Body_Acceleration
     AppendGroupNames PutStrings Body_Acceleration
+    # Periodic_Bars
+    if {$IsPeriodic eq true} {
+        set Groups [GiD_Info conditions Interface_Part groups]
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            if {[lindex [lindex $Groups $i] 20] eq true} {
+                append PutStrings \" Periodic_Bars_[lindex [lindex $Groups $i] 1] \" ,
+            }
+        }
+    }
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
     puts $FileVar "        \"processes_sub_model_part_list\":      $PutStrings,"
-    ## loads_sub_model_part_list
+    ## body_domain_sub_model_part_list
     set PutStrings \[
-    set iGroup 0
-    # Force
-    AppendGroupNamesWithNum PutStrings iGroup Force
-    # Face_Load
-    AppendGroupNamesWithNum PutStrings iGroup Face_Load
-    # Normal_Load
-    AppendGroupNamesWithNum PutStrings iGroup Normal_Load
-    # Normal_Fluid_Flux
-    AppendGroupNamesWithNum PutStrings iGroup Normal_Fluid_Flux
-    # Interface_Face_Load
-    AppendGroupNamesWithNum PutStrings iGroup Interface_Face_Load
-    # Interface_Normal_Fluid_Flux
-    AppendGroupNamesWithNum PutStrings iGroup Interface_Normal_Fluid_Flux
-    # Body_Acceleration
-    AppendGroupNamesWithNum PutStrings iGroup Body_Acceleration
-    if {$iGroup > 0} {
-        set PutStrings [string trimright $PutStrings ,]
-    }
+    AppendGroupNames PutStrings Body_Part
+    set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
-    puts $FileVar "        \"loads_sub_model_part_list\":          $PutStrings,"
-    ## loads_variable_list
-    set PutStrings \[
-    # Force
-    AppendGroupVariables PutStrings Force FORCE
-    # Face_Load
-    AppendGroupVariables PutStrings Face_Load FACE_LOAD
-    # Normal_Load
-    AppendGroupVariables PutStrings Normal_Load NORMAL_CONTACT_STRESS
-    # Normal_Fluid_Flux
-    AppendGroupVariables PutStrings Normal_Fluid_Flux NORMAL_FLUID_FLUX
-    # Interface_Face_Load
-    AppendGroupVariables PutStrings Interface_Face_Load FACE_LOAD
-    # Interface_Normal_Fluid_Flux
-    AppendGroupVariables PutStrings Interface_Normal_Fluid_Flux NORMAL_FLUID_FLUX
-    # Body_Acceleration
-    AppendGroupVariables PutStrings Body_Acceleration VOLUME_ACCELERATION
-    if {$iGroup > 0} {
-        set PutStrings [string trimright $PutStrings ,]
+    if {[GiD_AccessValue get gendata Strategy_Type] eq "arc_length"} {
+        puts $FileVar "        \"body_domain_sub_model_part_list\":    $PutStrings,"
+        ## loads_sub_model_part_list
+        set PutStrings \[
+        set iGroup 0
+        # Force
+        AppendGroupNamesWithNum PutStrings iGroup Force
+        # Face_Load
+        AppendGroupNamesWithNum PutStrings iGroup Face_Load
+        # Normal_Load
+        AppendGroupNamesWithNum PutStrings iGroup Normal_Load
+        # Normal_Fluid_Flux
+        AppendGroupNamesWithNum PutStrings iGroup Normal_Fluid_Flux
+        # Interface_Face_Load
+        AppendGroupNamesWithNum PutStrings iGroup Interface_Face_Load
+        # Interface_Normal_Fluid_Flux
+        AppendGroupNamesWithNum PutStrings iGroup Interface_Normal_Fluid_Flux
+        # Body_Acceleration
+        AppendGroupNamesWithNum PutStrings iGroup Body_Acceleration
+        if {$iGroup > 0} {
+            set PutStrings [string trimright $PutStrings ,]
+        }
+        append PutStrings \]
+        puts $FileVar "        \"loads_sub_model_part_list\":          $PutStrings,"
+        ## loads_variable_list
+        set PutStrings \[
+        # Force
+        AppendGroupVariables PutStrings Force FORCE
+        # Face_Load
+        AppendGroupVariables PutStrings Face_Load FACE_LOAD
+        # Normal_Load
+        AppendGroupVariables PutStrings Normal_Load NORMAL_CONTACT_STRESS
+        # Normal_Fluid_Flux
+        AppendGroupVariables PutStrings Normal_Fluid_Flux NORMAL_FLUID_FLUX
+        # Interface_Face_Load
+        AppendGroupVariables PutStrings Interface_Face_Load FACE_LOAD
+        # Interface_Normal_Fluid_Flux
+        AppendGroupVariables PutStrings Interface_Normal_Fluid_Flux NORMAL_FLUID_FLUX
+        # Body_Acceleration
+        AppendGroupVariables PutStrings Body_Acceleration VOLUME_ACCELERATION
+        if {$iGroup > 0} {
+            set PutStrings [string trimright $PutStrings ,]
+        }
+        append PutStrings \]
+        puts $FileVar "        \"loads_variable_list\":                $PutStrings"
+        puts $FileVar "    \},"
+    } else {
+        puts $FileVar "        \"body_domain_sub_model_part_list\":    $PutStrings"
+        puts $FileVar "    \},"
     }
-    append PutStrings \]
-    puts $FileVar "        \"loads_variable_list\":                $PutStrings"
-    puts $FileVar "    \},"
 
     ## output_configuration
     puts $FileVar "    \"output_configuration\": \{"
     puts $FileVar "        \"result_file_configuration\": \{"
     puts $FileVar "            \"gidpost_flags\":       \{"
-    puts $FileVar "                \"GiDPostMode\":           \"[GiD_AccessValue get gendata GiD_post_mode]\","
     puts $FileVar "                \"WriteDeformedMeshFlag\": \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $FileVar "                \"WriteConditionsFlag\":   \"[GiD_AccessValue get gendata Write_conditions]\","
-    if {[GiD_AccessValue get gendata Fracture_Propagation] eq true} {
+    if { ([GiD_AccessValue get gendata Fracture_Propagation] eq true) || ($IsPeriodic eq true) } {
+        puts $FileVar "                \"GiDPostMode\":           \"GiD_PostAscii\","
         puts $FileVar "                \"MultiFileFlag\":         \"MultipleFiles\""
         puts $FileVar "            \},"
         puts $FileVar "            \"file_label\":          \"time\","
-        puts $FileVar "            \"output_control_type\": \"time\","
     } else {
+        puts $FileVar "                \"GiDPostMode\":           \"[GiD_AccessValue get gendata GiD_post_mode]\","
         puts $FileVar "                \"MultiFileFlag\":         \"[GiD_AccessValue get gendata Multi_file_flag]\""
         puts $FileVar "            \},"
         puts $FileVar "            \"file_label\":          \"[GiD_AccessValue get gendata File_label]\","
-        puts $FileVar "            \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
     }
+    puts $FileVar "            \"output_control_type\": \"[GiD_AccessValue get gendata Output_control_type]\","
     puts $FileVar "            \"output_frequency\":    [GiD_AccessValue get gendata Output_frequency],"
     puts $FileVar "            \"body_output\":         [GiD_AccessValue get gendata Body_output],"
     puts $FileVar "            \"node_output\":         [GiD_AccessValue get gendata Node_output],"
@@ -242,6 +265,13 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         incr iGroup
         append PutStrings \" PARTITION_INDEX \" ,
+    }
+    # Nodal smoothed variables
+    if {[GiD_AccessValue get gendata Nodal_Smoothing] eq true} {
+        AppendOutputVariables PutStrings iGroup Write_Effective_Stress NODAL_CAUCHY_STRESS_TENSOR
+        AppendOutputVariables PutStrings iGroup Write_Damage NODAL_DAMAGE_VARIABLE
+        AppendOutputVariables PutStrings iGroup Write_Joint_Width NODAL_JOINT_WIDTH
+        AppendOutputVariables PutStrings iGroup Write_Damage NODAL_JOINT_DAMAGE
     }
     if {$iGroup > 0} {
         set PutStrings [string trimright $PutStrings ,]
@@ -271,15 +301,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \},"
     puts $FileVar "        \"point_data_configuration\":  \[\]"
     puts $FileVar "    \},"
-    
-    ## restart_options
-    puts $FileVar "    \"restart_options\": \{"
-    puts $FileVar "        \"SaveRestart\":      false,"
-    puts $FileVar "        \"RestartFrequency\": 0,"
-    puts $FileVar "        \"LoadRestart\":      false,"
-    puts $FileVar "        \"Restart_Step\":     0"
-    puts $FileVar "    \},"
-    
+
     ## constraints_process_list
     set Groups [GiD_Info conditions Solid_Displacement groups]
     set NumGroups [llength $Groups]
@@ -316,6 +338,14 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     incr NumGroups [llength $Groups]
     set Groups [GiD_Info conditions Body_Acceleration groups]
     incr NumGroups [llength $Groups]
+    if {$IsPeriodic eq true} {
+        set Groups [GiD_Info conditions Interface_Part groups]
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            if {[lindex [lindex $Groups $i] 20] eq true} {
+                incr NumGroups
+            }
+        }
+    }
     if {$NumGroups > 0} {
         set iGroup 0
         puts $FileVar "    \"loads_process_list\": \[\{"
@@ -340,11 +370,16 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         # Body_Acceleration
         set Groups [GiD_Info conditions Body_Acceleration groups]
         WriteLoadVectorProcess FileVar iGroup $Groups VOLUME_ACCELERATION $TableDict $NumGroups
+        # Periodic_Bars
+        if {$IsPeriodic eq true} {
+            set Groups [GiD_Info conditions Interface_Part groups]
+            WritePeriodicInterfaceProcess FileVar iGroup $Groups $NumGroups
+        }
     } else {
         puts $FileVar "    \"loads_process_list\":       \[\]"
     }
 
     puts $FileVar "\}"
-    
+
     close $FileVar
 }

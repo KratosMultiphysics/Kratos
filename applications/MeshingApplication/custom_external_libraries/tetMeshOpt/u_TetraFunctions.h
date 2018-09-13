@@ -8,11 +8,11 @@ public :
 	int numVertices ; 
 	int numElements ; 
     TVolumeMesh();	
-	~TVolumeMesh();
+	~TVolumeMesh() override;
 	void getSurfaceTriangles();
-	void updateRefs();
+	void updateRefs() override;
 	void validate(bool showMessages);	
-	void updateIndexes(int flag = 1);	
+	void updateIndexes(int flag = 1) override;	
 	void removeFreeVertexes();
 	TTetra* isPointInside( float4 pos );
 };

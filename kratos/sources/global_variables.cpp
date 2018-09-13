@@ -33,7 +33,6 @@ namespace Kratos
 {
 namespace Globals
 {
-VariablesList DefaultVariablesList;
 // 	Node<3> DefaultNode3;
 }
 }

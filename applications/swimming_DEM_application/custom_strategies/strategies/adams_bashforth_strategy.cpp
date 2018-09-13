@@ -1,6 +1,4 @@
-//
 // Author: Guillermo Casas, gcasas@cimne.upc.edu
-//
 
 #include "adams_bashforth_strategy.h"
 

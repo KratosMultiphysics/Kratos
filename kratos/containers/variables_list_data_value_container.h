@@ -1,47 +1,15 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: nelson $
-//   Date:                $Date: 2008-12-09 15:23:36 $
-//   Revision:            $Revision: 1.10 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//                    
 //
 
 
@@ -120,7 +88,7 @@ public:
     /// Default constructor.
     VariablesListDataValueContainer(SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
-          mpData(0), mpVariablesList(&Globals::DefaultVariablesList)
+          mpData(0), mpVariablesList(&GetDefaultVariablesList())
     {
         // Allcating memory
         Allocate();
@@ -357,32 +325,28 @@ public:
     template<class TDataType>
     TDataType& GetValue(const Variable<TDataType>& rThisVariable)
     {
-        if(!mpVariablesList->Has(rThisVariable))
-            KRATOS_THROW_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
+        KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return *(TDataType*)Position(rThisVariable);
     }
 
     template<class TDataType>
     TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
     {
-        if(!mpVariablesList->Has(rThisVariable))
-            KRATOS_THROW_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
+        KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return *(TDataType*)Position(rThisVariable, QueueIndex);
     }
 
     template<class TDataType>
     const TDataType& GetValue(const Variable<TDataType>& rThisVariable) const
     {
-        if(!mpVariablesList->Has(rThisVariable))
-            KRATOS_THROW_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
+        KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return *(const TDataType*)Position(rThisVariable);
     }
 
     template<class TDataType>
     const TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
     {
-        if(!mpVariablesList->Has(rThisVariable))
-            KRATOS_THROW_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
+        KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;    
         return *(const TDataType*)Position(rThisVariable, QueueIndex);
     }
 
@@ -431,13 +395,16 @@ public:
 
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition)
-    {
+    {   
+        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;	
+        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return *(TDataType*)(Position(QueueIndex) + ThisPosition);
     }
 
     template<class TDataType>
     TDataType& FastGetCurrentValue(const Variable<TDataType>& rThisVariable, SizeType ThisPosition)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return *(TDataType*)(mpCurrentPosition + ThisPosition);
     }
 
@@ -614,7 +581,8 @@ public:
 
     VariablesList& GetDefaultVariablesList()
     {
-        return Globals::DefaultVariablesList;
+        static VariablesList DefaultVariablesList;
+        return DefaultVariablesList;
     }
 
     void Resize(SizeType NewSize)
@@ -734,6 +702,11 @@ public:
 
     BlockType* Data(VariableData const & rThisVariable)
     {
+        #ifdef KRATOS_DEBUG
+        if ( !mpVariablesList->Has(rThisVariable) ) {            
+            KRATOS_ERROR << "Variable " << rThisVariable.Name() << " is not added to this variables list. Stopping" << std::endl;
+        }
+        #endif      
         return Position(rThisVariable);
     }
 
@@ -989,11 +962,14 @@ private:
 
     inline BlockType* Position(VariableData const & rThisVariable) const
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return mpCurrentPosition + mpVariablesList->Index(rThisVariable);
     }
 
     inline BlockType* Position(VariableData const & rThisVariable, SizeType ThisIndex) const
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
+        KRATOS_DEBUG_ERROR_IF((ThisIndex + 1) > mQueueSize) << "Trying to access data from step " << ThisIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return Position(ThisIndex) + mpVariablesList->Index(rThisVariable);
     }
 

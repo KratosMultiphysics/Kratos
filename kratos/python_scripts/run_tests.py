@@ -6,10 +6,11 @@ import re
 import getopt
 import sys
 import subprocess
-import signal
+import threading
 
+from KratosMultiphysics import Tester
 from KratosMultiphysics import KratosLoader
-from KratosMultiphysics.KratosUnittest import CaptureStdout
+from KratosMultiphysics.KratosUnittest import SupressConsoleOutput, SupressConsoleError, SupressAllConsole
 
 
 def Usage():
@@ -21,8 +22,10 @@ def Usage():
         'Options',
         '\t -h, --help: Shows this command',
         '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
+        '\t              For MPI tests, use the equivalent distributed test suites: \'(mpi_all)\', \'(mpi_nightly)\' \'(mpi_small)\'',
         '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
-        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2'
+        '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
+        '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used'
     ]
 
     for l in lines:
@@ -67,108 +70,161 @@ def handler(signum, frame):
     raise Exception("End of time")
 
 
-def RunTestSuit(application, applicationPath, path, level, verbose, command):
-    ''' Calls the script that will run the tests.
+class Commander(object):
+    def __init__(self):
+        self.process = None
+        self.exitCode = 0
 
-    Input
-    -----
-    application: string
-        Name of the application that will be tested.
+    def RunTestSuitInTime(self, application, applicationPath, path, level, verbose, command, timeout):
+        if(timeout > -1):
+            t = threading.Thread(
+                target=self.RunTestSuit,
+                args=(application, applicationPath, path, level, verbose, command)
+            )
 
-    path: string
-        Absoulte path with the location of the application.
+            t.start()
+            t.join(timeout)
 
-    level: string
-        minimum level of the test that will be run if possible.
-
-    verbose: int
-        detail of the ouptut. The grater the verbosity level, the greate the
-        detail will be.
-
-    command: string
-        command to be used to call the tests. Ex: Python, Python3, Runkratos
-
-    '''
-
-    appNormalizedPath = applicationPath.lower().replace('_', '')
-
-    possiblePaths = [
-        {'Found': p, 'FoundNormalized': p.split('/')[-1].lower().replace('_', ''), 'Expected': applicationPath, 'ExpectedNormalized': appNormalizedPath} for p in os.listdir(path) if p.split('/')[-1].lower().replace('_', '') == appNormalizedPath
-    ]
-
-    if len(possiblePaths) < 1:
-        if verbose > 0:
-            print(
-                '[Warning]: No directory found for {}'.format(
-                    application),
-                file=sys.stderr)
-            sys.stderr.flush()
-    elif len(possiblePaths) > 1:
-        if verbose > 0:
-            print('Unable to determine correct path for {}'.format(application), file=sys.stderr)
-            print(
-                'Please try to follow the standard naming convention \'FooApplication\' Snake-Capital string  without symbols.',
-                file=sys.stderr)
-        if verbose > 1:
-            print('Several possible options were found:', file=sys.stderr)
-            for p in possiblePaths:
-                print('\t', p, file=sys.stderr)
-    else:
-        script = path+'/'+possiblePaths[0]['Found']+'/tests/'+'test_'+application+'.py'
-        print(script)
-
-        if possiblePaths[0]['Found'] != possiblePaths[0]['Expected']:
-            print(
-                '[Warning]: Application has been found in "{}" directory but it was expected in "{}". Please check the naming convention.'.format(
-                    possiblePaths[0]['Found'],
-                    possiblePaths[0]['Expected']),
-                file=sys.stderr)
-
-        if os.path.isfile(script):
-            subprocess.call([
-                command,
-                script,
-                '-l'+level,
-                '-v'+str(verbose)
-            ])
+            if t.isAlive():
+                self.process.terminate()
+                t.join()
+                print('\nABORT: Tests for {} took to long. Process Killed.'.format(application), file=sys.stderr)
+            else:
+                print('\nTests for {} finished in time ({}s).'.format(application, timeout))
         else:
+            self.RunTestSuit(application, applicationPath, path, level, verbose, command)
+
+    def RunTestSuit(self, application, applicationPath, path, level, verbose, command):
+        ''' Calls the script that will run the tests.
+
+        Input
+        -----
+        application: string
+            Name of the application that will be tested.
+
+        path: string
+            Absoulte path with the location of the application.
+
+        level: string
+            minimum level of the test that will be run if possible.
+
+        verbose: int
+            detail of the ouptut. The grater the verbosity level, the greate the
+            detail will be.
+
+        command: string
+            command to be used to call the tests. Ex: Python, Python3, Runkratos
+
+        '''
+
+        self.exitCode = 0
+        appNormalizedPath = applicationPath.lower().replace('_', '')
+
+        possiblePaths = [
+            {'Found': p, 'FoundNormalized': p.split('/')[-1].lower().replace('_', ''), 'Expected': applicationPath, 'ExpectedNormalized': appNormalizedPath} for p in os.listdir(path) if p.split('/')[-1].lower().replace('_', '') == appNormalizedPath
+        ]
+
+        if len(possiblePaths) < 1:
             if verbose > 0:
                 print(
-                    '[Warning]: No test script found for {}'.format(
+                    '[Warning]: No directory found for {}'.format(
                         application),
                     file=sys.stderr)
                 sys.stderr.flush()
-            if verbose > 1:
+        elif len(possiblePaths) > 1:
+            if verbose > 0:
+                print('Unable to determine correct path for {}'.format(application), file=sys.stderr)
                 print(
-                    '  expected file: "{}"'.format(
-                        script),
+                    'Please try to follow the standard naming convention \'FooApplication\' Snake-Capital string  without symbols.',
                     file=sys.stderr)
-                sys.stderr.flush()
+            if verbose > 1:
+                print('Several possible options were found:', file=sys.stderr)
+                for p in possiblePaths:
+                    print('\t', p, file=sys.stderr)
+        else:
+            script = path+'/'+possiblePaths[0]['Found']+'/tests/'+'test_'+application+'.py'
+            print(script, file=sys.stderr)
+
+            if possiblePaths[0]['Found'] != possiblePaths[0]['Expected']:
+                print(
+                    '[Warning]: Application has been found in "{}" directory but it was expected in "{}". Please check the naming convention.'.format(
+                        possiblePaths[0]['Found'],
+                        possiblePaths[0]['Expected']),
+                    file=sys.stderr)
+
+            if os.path.isfile(script):
+                self.process = subprocess.Popen([
+                    command,
+                    script,
+                    '-l'+level,
+                    '-v'+str(verbose)
+                ], stdout=subprocess.PIPE)
+
+                # Used instead of wait to "soft-block" the process and prevent deadlocks
+                # and capture the first exit code different from OK
+                process_stdout, process_stderr = self.process.communicate()
+                if process_stdout:
+                    print(process_stdout.decode('ascii'), file=sys.stdout)
+                if process_stderr:
+                    print(process_stderr.decode('ascii'), file=sys.stderr)
+
+                # Running out of time in the tests will send the error code -15. We may want to skip
+                # that one in a future. Right now will throw everything different from 0.
+                self.exitCode = int(self.process.returncode != 0)
+            else:
+                if verbose > 0:
+                    print(
+                        '[Warning]: No test script found for {}'.format(
+                            application),
+                        file=sys.stderr)
+                    sys.stderr.flush()
+                if verbose > 1:
+                    print(
+                        '  expected file: "{}"'.format(
+                            script),
+                        file=sys.stderr)
+                    sys.stderr.flush()
+
+    def RunCppTests(self):
+        ''' Calls the cpp tests directly
+        '''
+
+        self.exitCode = 0
+
+        try:
+            Tester.SetVerbosity(Tester.Verbosity.PROGRESS)
+            self.exitCode = Tester.RunAllTestCases()
+        except Exception as e:
+            print('[Warning]:', e, file=sys.stderr)
+            self.exitCode = 1
 
 
 def main():
 
-    # We need to fetch the command who called us to avoid problems with
-    # python versions such as running python3 while default is python2
-    command = sys.executable
+    # Define the command
+    cmd = os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'runkratos'
 
     verbose_values = [0, 1, 2]
-    level_values = ['all', 'nightly', 'small', 'validation']
+    level_values = ['all', 'nightly', 'small', 'validation', 'mpi_all', 'mpi_small', 'mpi_nightly', 'mpi_validation']
 
     # Set default values
     applications = GetAvailableApplication()
     verbosity = 1
     level = 'all'
 
+    # Keep the worst exit code
+    exit_code = 0
+
     # Parse Commandline
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            'ha:v:l:', [
+            'ha:v:l:c:', [
                 'help',
                 'applications=',
                 'verbose=',
-                'level='
+                'level=',
+                'command='
             ])
     except getopt.GetoptError as err:
         print(str(err))
@@ -203,7 +259,7 @@ def main():
 
             for a in parsedApps:
                 if a not in applications + ['KratosCore']:
-                    print('Warning: Application {} does not exists'.format(a))
+                    print('Warning: Application {} does not exist'.format(a))
                     sys.exit()
 
             applications = parsedApps
@@ -211,62 +267,69 @@ def main():
             if 'KratosCore' in applications:
                 applications.remove('KratosCore')
 
+        elif o in ('-c', '--command'):
+            try:
+                cmd = str(a)
+            except:
+                print('Error: Cannot parse command name {0}.'.format(a))
+                Usage()
+                sys.exit()
+
         else:
             assert False, 'unhandled option'
 
-    # Capture stdout from KratosUnittest
-    CaptureStdout()
-
-    # Set a Timer
-    signal.signal(signal.SIGALRM, handler)
-
-    timedLevels = ['small', 'nightly']
-
+    # Set timeout of the different levels
+    signalTime = int(-1)
     if level == 'small':
         signalTime = int(60)
     elif level == 'nightly':
         signalTime = int(900)
 
-    # Define the command
-    cmd = os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'runkratos'
+    # Create the commands
+    commander = Commander()
 
     # KratosCore must always be runned
     print('Running tests for KratosCore', file=sys.stderr)
-    sys.stderr.flush()
 
-    if level in timedLevels:
-        signal.alarm(signalTime)
-    try:
-        RunTestSuit(
+    with SupressConsoleOutput():
+        commander.RunTestSuitInTime(
             'KratosCore',
             'kratos',
             os.path.dirname(GetModulePath('KratosMultiphysics')),
             level,
             verbosity,
-            cmd
+            cmd,
+            signalTime
         )
-    except Exception as exc:
-        print('\nABORT: Tests for KratosCore took to long. Process Killed.', file=sys.stderr)
+
+    exit_code = max(exit_code, commander.exitCode)
 
     # Run the tests for the rest of the Applications
     for application in applications:
         print('Running tests for {}'.format(application), file=sys.stderr)
         sys.stderr.flush()
 
-        if level in timedLevels:
-            signal.alarm(signalTime)
-
-        try:
-            RunTestSuit(
+        with SupressConsoleOutput():
+            commander.RunTestSuitInTime(
                 application,
                 application,
                 KratosLoader.kratos_applications+'/',
                 level,
                 verbosity,
-                cmd
+                cmd,
+                signalTime
             )
-        except Exception as exc:
-            print('\nABORT: Tests for {} took to long. Process Killed.'.format(application), file=sys.stderr)
+
+        exit_code = max(exit_code, commander.exitCode)
+
+    # Run the cpp tests (does the same as run_cpp_tests.py)
+    print('Running cpp tests', file=sys.stderr)
+    with SupressConsoleOutput():
+        commander.RunCppTests()
+
+    exit_code = max(exit_code, commander.exitCode)
+
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,103 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "rectangle_2D3N_test",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "time_step"       : 0.1
+    },
+    "_output_configuration"             : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "time",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["MESH_DISPLACEMENT", "MESH_VELOCITY"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : "False",
+        "RestartFrequency" : 0,
+        "LoadRestart"      : "False",
+        "Restart_Step"     : 0
+    },
+    "solver_settings" : {
+        "solver_type" : "mesh_solver_laplacian",
+        "model_import_settings" : {
+            "input_type"     : "mdpa",
+            "input_filename" : "test_mdpa_files/rectangle_2D3N_test"
+        }
+    },
+    "initial_conditions_process_list"  : [],
+    "boundary_conditions_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "FixedBoundary",
+	        "variable_name"   : "MESH_DISPLACEMENT",
+            "value"           : [0.0, 0.0, 0.0]
+        }
+    },{
+        "python_module" : "impose_ale_rectangle_test_motion_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "ImposeALERectangleTestMotionProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "MovingBoundary"
+        }
+    }],
+    "_json_output_process" : [
+        {
+            "python_module"   : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "JsonOutputProcess",
+            "Parameters"            : {
+                "output_variables" : ["MESH_DISPLACEMENT_X",
+                                      "MESH_DISPLACEMENT_Y",
+                                      "MESH_DISPLACEMENT_Z",
+                                      "MESH_VELOCITY_X",
+                                      "MESH_VELOCITY_Y",
+                                      "MESH_VELOCITY_Z"],
+                "output_file_name" : "test_laplacian_mesh_motion_2d/rectangle_2D3N_test_results.json",
+                "model_part_name"  : "Probe_1",
+                "time_frequency"   : 0.1
+            }
+        }
+        ],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables" : ["MESH_DISPLACEMENT_X",
+                                     "MESH_DISPLACEMENT_Y",
+                                     "MESH_DISPLACEMENT_Z",
+                                     "MESH_VELOCITY_X",
+                                     "MESH_VELOCITY_Y",
+                                     "MESH_VELOCITY_Z"],
+                "input_file_name"  : "test_laplacian_mesh_motion_2d/rectangle_2D3N_test_results.json",
+                "model_part_name"  : "Probe_1",
+                "time_frequency"   : 0.1
+            }
+        }
+    ]
+}

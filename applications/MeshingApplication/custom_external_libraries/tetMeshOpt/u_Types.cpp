@@ -10,10 +10,10 @@ bool sortByQuality(TObject* i, TObject* j)
 	return ((TValuedObject*)(i))->calidad< ((TValuedObject*)(j))->calidad ;
 }
 /// Class TValuedObject
-TValuedObject::TValuedObject(void) 
+TValuedObject::TValuedObject() 
 { blockID = false; };
-TValuedObject::~TValuedObject(void)
-{  };
+TValuedObject::~TValuedObject()
+= default;;
 
 void TValuedObject::setID(int nid) 
 { 
@@ -39,14 +39,14 @@ TVertex::TVertex(float x,float y, float z)
 	fPos.x= x; fPos.y = y; fPos.z = z; 
 	neighTr = new  TList<TObject*>();
 	elementsList = new TList<TObject*>();	
-	neighV = NULL;
+	neighV = nullptr;
 }
 
 TVertex::TVertex(float4 v)
 { 
 	fPos.x= v.x; fPos.y = v.y; fPos.z = v.z; 
 	neighTr = new  TList<TObject*>();
-	neighV = NULL;	
+	neighV = nullptr;	
 	elementsList = new TList<TObject*>();			 
 }
 
@@ -71,11 +71,11 @@ TList<TVertex*>* TVertex::getVertexNeighboursByTriangle(TList<TVertex*>* toL , i
 {
 	TList<TVertex*>* storeList ;
 
-	if (toL != NULL)
+	if (toL != nullptr)
 		storeList = toL;   
 	else
 	{
-		if (neighV == NULL) 
+		if (neighV == nullptr) 
 			neighV = new TList<TVertex*>();
 		neighV->Clear();
 		storeList = neighV;
@@ -83,11 +83,11 @@ TList<TVertex*>* TVertex::getVertexNeighboursByTriangle(TList<TVertex*>* toL , i
 		for (int i=0;i< neighTr->Count() ; i++)
 		{
 			TTriangle *t = (TTriangle*)( neighTr->elementAt(i));
-			for (int j= 0; j<3 ;j++)
+			for (auto & vertexe : t->vertexes)
 			{
-				if (t->vertexes[j] == this) continue;
-				if (storeList->indexOf( t->vertexes[j])<0)
-					storeList->Add(t->vertexes[j]);
+				if (vertexe == this) continue;
+				if (storeList->indexOf( vertexe)<0)
+					storeList->Add(vertexe);
 			}
 		}
 
@@ -101,9 +101,9 @@ TList<TVertex*> *TVertex::getVertexNeighboursByElem(TList<TVertex*> *toL ,int de
 	TList<TVertex*> *storeList ;
 
 
-	if (toL == NULL)
+	if (toL == nullptr)
 	{
-		if (neighV == NULL)  neighV = new TList<TVertex*>();
+		if (neighV == nullptr)  neighV = new TList<TVertex*>();
 		storeList = neighV;
 	}
 	else
@@ -115,7 +115,7 @@ TList<TVertex*> *TVertex::getVertexNeighboursByElem(TList<TVertex*> *toL ,int de
 	for (j = 0 ; j<elementsList->Count() ; j++)
 	{
 		TTetra *t  = (TTetra*)(elementsList->elementAt(j));
-		if (t == NULL ) continue;
+		if (t == nullptr ) continue;
 		if (t->isdestroyed) continue;
 		for (k = 0 ; k<4 ; k++)
 		{
@@ -149,15 +149,15 @@ void TTriangle::calcEdges()
 bool TTriangle::verticesEncomun(TTriangle* otherT,TVertex* &v1,TVertex* &v2)
 {
 	int i,j;
-	v1=NULL;
-	v2=NULL;
+	v1=nullptr;
+	v2=nullptr;
 
 	for (i=0;i<2;i++) for (j=0;j<2;j++) 
 	{
 
 		if ( vertexes[i] == otherT->vertexes[i])
 		{
-			if (v1==NULL) 
+			if (v1==nullptr) 
 				v1 = vertexes[i] ;
 			else
 				if (v1!=vertexes[i] ) 
@@ -165,12 +165,12 @@ bool TTriangle::verticesEncomun(TTriangle* otherT,TVertex* &v1,TVertex* &v2)
 		}
 	}
 
-	return ((v1!=NULL) && (v2!=NULL));
+	return ((v1!=nullptr) && (v2!=nullptr));
 }
 
 //Class TElement
 TElement::TElement() {}
-TElement::~TElement() {}
+TElement::~TElement() = default;
 TElement::TElement(TVertex v0,TVertex v1,TVertex v2,TVertex v3){};
 BoundBox TElement::CalcBound() 
 { 
@@ -181,7 +181,7 @@ BoundBox TElement::CalcBound()
 // Class TTetra
 void TTetra::update()
 {
-	if (this == NULL ) return;	
+	if (this == nullptr ) return;	
 	CalcAng(vertexes[0]->fPos, vertexes[1]->fPos, vertexes[2]->fPos , vertexes[3]->fPos,&fMinDiedralAngle,&fFaceAngle,&fVolume, &fMaxDiedralAngle);	
 	//fVolume =tetraVolume( ;			
 }
@@ -251,8 +251,8 @@ void TTetra::Create(TObject* owner, TVertex* v0,TVertex* v1,TVertex* v2,TVertex*
 	//this->rColor = Float4(1.0f);
 	this->isdestroyed = false; 
 	this->initialized = false;
-	this->NeighBourByFace = NULL;
-	this->Neighbours = NULL;
+	this->NeighBourByFace = nullptr;
+	this->Neighbours = nullptr;
 	vertexes[0] = v0;
 	vertexes[1] = v1;
 	vertexes[2] = v2;
@@ -310,7 +310,7 @@ TTetra* TTetra::getTetraNeighbour(int faceI, TVertex* v0,TVertex* v1,TVertex* v2
 		if (t2->hasFace(v0,v1,v2))  { return t2; }				   
 	}
 	*/
-	return NULL;
+	return nullptr;
 }
 
 
@@ -326,10 +326,10 @@ TList<TObject*>* TTetra::getSurfaceTriangle(bool bmpMode , TList<TObject*>* res,
 
 	TList<TObject*>*  result;				
 
-	if (res !=NULL)
+	if (res !=nullptr)
 		result =res;
 	else
-		result = NULL ;
+		result = nullptr ;
 
 	for ( i=0;i<4;i++)
 	{
@@ -352,9 +352,9 @@ TList<TObject*>* TTetra::getSurfaceTriangle(bool bmpMode , TList<TObject*>* res,
 					v0 = vertexes[1];   v1 = vertexes[3];     v2 = vertexes[2];
 				}
 
-				if (getTetraNeighbour(i,v0,v1,v2,result)== NULL)
+				if (getTetraNeighbour(i,v0,v1,v2,result)== nullptr)
 				{
-					if (result==NULL)
+					if (result==nullptr)
 						result = new TList<TObject*>();
 					result->Add( v0);
 					result->Add( v1);
@@ -378,7 +378,7 @@ TVertex* TTetra::oppositeVertex(TVertex *v0,TVertex *v1,TVertex *v2)
 	else if ((vertexes[1]!=v0) && (vertexes[1]!=v1) && (vertexes[1]!=v2))  return vertexes[1];
 	else if ((vertexes[2]!=v0) && (vertexes[2]!=v1) && (vertexes[2]!=v2))  return  vertexes[2];
 	else if ((vertexes[3]!=v0) && (vertexes[3]!=v1) && (vertexes[3]!=v2))  return  vertexes[3];
-	else return NULL;
+	else return nullptr;
 }
 bool TTetra::hasEdge(TVertex *v0,TVertex *v1)
 {   
@@ -403,7 +403,7 @@ bool TTetra::hasFace(TTetra* t1 )
 
 int TTetra::hasVertex(TTetra t1 ){ return 0;} 
 bool TTetra::hasVertex(TVertex v0 ) { return 0;}
-TTetra* TTetra::getTetraNeighbour(int faceI ,TVertex v0,TVertex v1,TVertex v2, TList<TObject> *tl) { return NULL;}
+TTetra* TTetra::getTetraNeighbour(int faceI ,TVertex v0,TVertex v1,TVertex v2, TList<TObject> *tl) { return nullptr;}
 
 
 void TTetra::replaceTriangle(TTriangle oldTr,TTriangle newTr ) {}
@@ -424,7 +424,7 @@ TList<TObject*>* TTetra::getNeighboursByFace(int depth ,TList<TObject*>* nFL, bo
 	}
 	else
 	{
-		if (this->NeighBourByFace == NULL) NeighBourByFace = new TList<TObject*>();
+		if (this->NeighBourByFace == nullptr) NeighBourByFace = new TList<TObject*>();
 		result = NeighBourByFace;
 	}
 	result->Clear();
@@ -436,7 +436,7 @@ TList<TObject*>* TTetra::getNeighboursByFace(int depth ,TList<TObject*>* nFL, bo
 		for (j = 0 ; j< vertexes[i]->elementsList->Count() ; j++)
 		{
 			t2 =  (TTetra*)(vertexes[i]->elementsList->elementAt(j));
-			if (t2 == NULL) continue;
+			if (t2 == nullptr) continue;
 			if  (t2== this) continue;
 			if  (t2->isdestroyed) continue;
 
@@ -450,23 +450,23 @@ TList<TObject*>* TTetra::getNeighboursByFace(int depth ,TList<TObject*>* nFL, bo
 	return result;
 }
 
-TList<TObject>* TTetra::getNeighbours(int depth) {return NULL;}
+TList<TObject>* TTetra::getNeighbours(int depth) {return nullptr;}
 
 void TTetra::removeVertexRef()
 {
 	clearVertexRef();
-	for (int i=0 ; i<4 ; i++)
-		if (vertexes[i]->elementsList != NULL )
-			vertexes[i]->elementsList->Pack();
+	for (auto & vertexe : vertexes)
+		if (vertexe->elementsList != nullptr )
+			vertexe->elementsList->Pack();
 }
 void TTetra::updateVertexRef()
 {
-	for (int i = 0 ; i<4 ; i++)
+	for (auto & vertexe : vertexes)
 	{				   
-		if (vertexes[i]->elementsList == NULL)     
-			vertexes[i]->elementsList = new TList<TObject*>();
-		if ( vertexes[i]->elementsList->indexOf(this)<0 )
-			vertexes[i]->elementsList->Add(this);
+		if (vertexe->elementsList == nullptr)     
+			vertexe->elementsList = new TList<TObject*>();
+		if ( vertexe->elementsList->indexOf(this)<0 )
+			vertexe->elementsList->Add(this);
 
 	}
 }
@@ -475,7 +475,7 @@ TTetra* TTetra::getNeighByFace(TVertex*v0, TVertex*v1,TVertex*v2)
 {
 	int k;
 	TTetra *t2;
-	if (this->NeighBourByFace != NULL)
+	if (this->NeighBourByFace != nullptr)
 	{
 		// Costo 3
 		for (k=0;k<NeighBourByFace->Count();k++)
@@ -495,20 +495,20 @@ TTetra* TTetra::getNeighByFace(TVertex*v0, TVertex*v1,TVertex*v2)
 				if (t2->hasFace(v0,v1,v2)) return t2;
 			}			
 	}
-	return NULL;
+	return nullptr;
 }
 
 void TTetra::clearVertexRef()
 {
-	for (int i=0; i<4 ; i++) 
+	for (auto & vertexe : vertexes) 
 	{
-		if (vertexes[i]->elementsList != NULL)
+		if (vertexe->elementsList != nullptr)
 		{					 
-			TList<TObject*>* _lv = vertexes[i]->elementsList;
+			TList<TObject*>* _lv = vertexe->elementsList;
 			for (int j = 0 ; j<_lv->Count()  ; j++)
 			{
 				if (_lv->elementAt(j) == this)
-					_lv->setElementAt(j,NULL);
+					_lv->setElementAt(j,nullptr);
 			}
 		}
 	}
@@ -534,7 +534,7 @@ TElementsPool::~TElementsPool()
 TTetra* TElementsPool::getTetraInstance()
 {
 	if (availableElements->Count() == 0)
-		return new TTetra(NULL);
+		return new TTetra(nullptr);
 	else
 	{
 		TTetra *t = availableElements->structure.back();
@@ -546,7 +546,7 @@ TTetra* TElementsPool::getTetraInstance()
 TTetra* TElementsPool::getTetraInstance(TVertex *v0,TVertex *v1,TVertex *v2,TVertex *v3)
 {
 	if (availableElements->Count() == 0)
-		return new TTetra(NULL,v0,v1,v2,v3);
+		return new TTetra(nullptr,v0,v1,v2,v3);
 	else
 	{
 		TTetra *t = availableElements->structure.back();

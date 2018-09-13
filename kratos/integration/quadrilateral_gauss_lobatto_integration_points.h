@@ -1,8 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.7 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Josep Maria Carbonell
 //
 //
 
@@ -32,7 +37,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 2> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 2> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -59,7 +64,7 @@ protected:
 private:
 
     static IntegrationPointsArrayType msIntegrationPoints;
-    
+
 }; // Class QuadrilateralGaussLobattoIntegrationPoints1
 
 class KRATOS_API(KRATOS_CORE) QuadrilateralGaussLobattoIntegrationPoints2
@@ -72,7 +77,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 4> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -108,6 +113,6 @@ private:
 
 }
 
-#endif // KRATOS_QUADRILATERAL_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED defined 
+#endif // KRATOS_QUADRILATERAL_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED defined
 
 

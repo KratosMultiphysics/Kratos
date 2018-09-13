@@ -1,33 +1,18 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-
-
 
 #if !defined(KRATOS_DOF_H_INCLUDED )
 #define  KRATOS_DOF_H_INCLUDED
-
-
-
 
 // System includes
 #include <string>
@@ -35,12 +20,8 @@
 #include <sstream>
 #include <cstddef>
 
-
-
 // External includes
 #include <boost/variant.hpp>
-
-
 
 // Project includes
 #include "includes/define.h"
@@ -50,15 +31,16 @@
 #include "utilities/indexed_object.h"
 #include "containers/array_1d.h"
 
-
-
 namespace Kratos
 {
 
 
 #define KRATOS_DOF_TRAITS \
         KRATOS_MAKE_DOF_TRAIT(0) Variable<TDataType> KRATOS_END_DOF_TRAIT(0); \
-        KRATOS_MAKE_DOF_TRAIT(1) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 3> > > KRATOS_END_DOF_TRAIT(1);
+        KRATOS_MAKE_DOF_TRAIT(1) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 3> > > KRATOS_END_DOF_TRAIT(1); \
+        KRATOS_MAKE_DOF_TRAIT(2) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 4> > > KRATOS_END_DOF_TRAIT(2); \
+        KRATOS_MAKE_DOF_TRAIT(3) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 6> > > KRATOS_END_DOF_TRAIT(3); \
+        KRATOS_MAKE_DOF_TRAIT(4) VariableComponent<VectorComponentAdaptor<array_1d<TDataType, 9> > > KRATOS_END_DOF_TRAIT(4);
 
 
 
@@ -66,8 +48,6 @@ template<class TDataType, class TVariableType = Variable<TDataType> >
 struct DofTrait
 {
     static const int Id;
-
-
 };
 
 
@@ -89,7 +69,6 @@ KRATOS_DOF_TRAITS
 #undef KRATOS_END_DOF_TRAIT
 
 
-
 ///@name Kratos Globals
 ///@{
 
@@ -109,8 +88,11 @@ KRATOS_DOF_TRAITS
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Dof represents a degree of freedom (DoF).
+/** It is a lightweight object which holds its variable, like TEMPERATURE, its
+state of freedom, and a reference to its value in the data structure.
+This class enables the system to work with different set of dofs and also
+represents the Dirichlet condition assigned to each dof.
 */
 template<class TDataType>
 class Dof : public IndexedObject
@@ -124,7 +106,6 @@ public:
 
     typedef std::size_t IndexType;
 
-
     typedef std::size_t EquationIdType;
 
     typedef VariablesListDataValueContainer SolutionStepsDataContainerType;
@@ -137,8 +118,42 @@ public:
     informations to construct a degree of freedom. Also default
     values are used to make it easier to define for simple cases.
 
+    @param NodeId Index of the node which this degree of
+    freedom belongs to it. It can be get by Node::Index() method.
 
-    @param ThisNodeIndex Index of the node which this degree of
+    @param rThisVariable Variable which this degree of freedom
+    holds. This variable considered as unknown of problem to solved
+    and fixing by Fix() method also applied to it. It must be a
+    TDataType variable or component not a vector. For example
+    DISPLACEMENT_X in structural element.
+
+    @see Node
+    @see Variable
+    @see VariableComponent
+    */
+    template<class TVariableType>
+    Dof(IndexType NodeId, SolutionStepsDataContainerType* pThisSolutionStepsData,
+        const TVariableType& rThisVariable)
+        : IndexedObject(NodeId),
+          mIsFixed(false),
+          mEquationId(IndexType()),
+          mpSolutionStepsData(pThisSolutionStepsData),
+          mpVariable(&rThisVariable),
+          mpReaction(&msNone),
+          mVariableType(DofTrait<TDataType, TVariableType>::Id),
+          mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id)
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisVariable))
+            << "The Dof-Variable " << rThisVariable.Name() << " is not "
+            << "in the list of variables" << std::endl;
+    }
+
+    /** Constructor. This constructor takes the same input
+    as the previous one, but add the reaction on the DoF
+    declaration
+
+
+    @param NodeId Index of the node which this degree of
     freedom belongs to it. It can be get by Node::Index() method.
 
 
@@ -159,20 +174,6 @@ public:
     @see Variable
     @see VariableComponent
     */
-    template<class TVariableType>
-    Dof(IndexType NodeId, SolutionStepsDataContainerType* pThisSolutionStepsData,
-        const TVariableType& rThisVariable)
-        : IndexedObject(NodeId),
-          mIsFixed(false),
-          mEquationId(IndexType()),
-          mpSolutionStepsData(pThisSolutionStepsData),
-          mpVariable(&rThisVariable),
-          mpReaction(&msNone),
-          mVariableType(DofTrait<TDataType, TVariableType>::Id),
-          mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id)
-    {
-    }
-
     template<class TVariableType, class TReactionType>
     Dof(IndexType NodeId, SolutionStepsDataContainerType* pThisSolutionStepsData,
         const TVariableType& rThisVariable,
@@ -186,6 +187,13 @@ public:
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, TReactionType>::Id)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisVariable))
+            << "The Dof-Variable " << rThisVariable.Name() << " is not "
+            << "in the list of variables" << std::endl;
+
+        KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisReaction))
+            << "The Reaction-Variable " << rThisReaction.Name() << " is not "
+            << "in the list of variables" << std::endl;
     }
 
     //This default constructor is needed for pointer vector set
@@ -244,7 +252,7 @@ public:
 
 
     /// Destructor.
-    virtual ~Dof() {}
+    ~Dof() override {}
 
 
     ///@}
@@ -450,6 +458,11 @@ public:
         mpSolutionStepsData = pNewSolutionStepsData;
     }
 
+    bool HasReaction()
+    {
+        return (*mpReaction != msNone);
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -471,7 +484,7 @@ public:
 
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
 
@@ -488,14 +501,14 @@ public:
 
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
     }
 
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         rOStream << "    Variable               : " << GetVariable().Name() << std::endl;
         rOStream << "    Reaction               : " << GetReaction().Name() << std::endl;
@@ -583,7 +596,6 @@ private:
      */
     const VariableData* mpReaction;
 
-
     int mVariableType;
 
     int mReactionType;
@@ -605,7 +617,7 @@ private:
         {
             KRATOS_DOF_TRAITS
         }
-        KRATOS_THROW_ERROR(std::invalid_argument, "Not supported type for Dof" , "");
+        KRATOS_ERROR << "Not supported type for Dof" << std::endl;
     }
 
     TDataType const& GetReference(VariableData const& ThisVariable, VariablesListDataValueContainer const& rData, IndexType SolutionStepIndex, int ThisId) const
@@ -614,9 +626,8 @@ private:
         {
             KRATOS_DOF_TRAITS
         }
-        KRATOS_THROW_ERROR(std::invalid_argument, "Not supported type for Dof" , "");
+        KRATOS_ERROR << "Not supported type for Dof" << std::endl;
     }
-
 
     ///@}
     ///@name Serialization
@@ -624,7 +635,7 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.save("Is Fixed", mIsFixed);
@@ -636,7 +647,7 @@ private:
         rSerializer.save("Reaction Type", mReactionType);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         std::string name;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
@@ -780,7 +791,7 @@ inline bool operator == ( Dof<TDataType> const& First,
 #undef KRATOS_END_DOF_TRAIT
 
 
-#endif // KRATOS_DOF_H_INCLUDED  defined 
+#endif // KRATOS_DOF_H_INCLUDED  defined
 
 
 

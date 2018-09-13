@@ -72,10 +72,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <boost/lexical_cast.hpp>
 #include <utility>
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif // !M_PI
-
 namespace Kratos
 {
 
@@ -214,7 +210,7 @@ namespace Kratos
 				////Calculate phi & number of division
 				//double m = 15.0; // m = max of tag
 				////std::cout << "m: " << m << std::endl;
-				//double phi = M_PI / m;
+				//double phi = Globals::Pi / m;
 				////std::cout << "phi: " << phi << " rad" << std::endl;
 				//
 				////std::cout << "norm_real_eps: " << norm_real_eps << std::endl;
@@ -565,7 +561,7 @@ namespace Kratos
 				//Calculate phi & number of division
 				double m = (sqrtl(mStrainMap.size()) - 1) / 2; // m = max of tag
 															   //std::cout << "m: " << m << std::endl;
-				double phi = M_PI / m;
+				double phi = Globals::Pi / m;
 				//std::cout << "phi: " << phi << " rad" << std::endl;
 
 				//1. Calculate the normalized Strain
@@ -664,7 +660,7 @@ namespace Kratos
 					}
 					else
 					{
-						// local_x and y defines where to estimate the value on the interpolated line, 
+						// local_x and y defines where to estimate the value on the interpolated line,
 						// it is 0 at the first point and 1 and the second point
 						double local_x = (real_tag[0] - min_tag[0]); // / (max_tag[0] - min_tag[0]);
 						double local_y = (real_tag[1] - min_tag[1]); // / (max_tag[1] - min_tag[1]);
@@ -769,7 +765,7 @@ namespace Kratos
 					max_tag[0] = ceil(real_tag[0]);
 					max_tag[1] = ceil(real_tag[1]);
 
-					// local_x and y defines where to estimate the value on the interpolated line, 
+					// local_x and y defines where to estimate the value on the interpolated line,
 					// it is 0 at the first point and 1 and the second point
 					double local_x = (real_tag[0] - min_tag[0]); // / (max_tag[0] - min_tag[0]);
 					double local_y = (real_tag[1] - min_tag[1]); // / (max_tag[1] - min_tag[1]);
@@ -899,7 +895,7 @@ namespace Kratos
 					max_tag[0] = ceil(real_tag[0]);
 					max_tag[1] = ceil(real_tag[1]);
 
-					// local_x and y defines where to estimate the value on the interpolated line, 
+					// local_x and y defines where to estimate the value on the interpolated line,
 					// it is 0 at the first point and 1 and the second point
 					double local_x = (real_tag[0] - min_tag[0]); // / (max_tag[0] - min_tag[0]);
 					double local_y = (real_tag[1] - min_tag[1]); // / (max_tag[1] - min_tag[1]);
@@ -1002,7 +998,7 @@ namespace Kratos
 					max_tag[0] = ceil(real_tag[0]);
 					max_tag[1] = ceil(real_tag[1]);
 
-					// local_x and y defines where to estimate the value on the interpolated line, 
+					// local_x and y defines where to estimate the value on the interpolated line,
 					// it is 0 at the first point and 1 and the second point
 					double local_x = (real_tag[0] - min_tag[0]); // / (max_tag[0] - min_tag[0]);
 					double local_y = (real_tag[1] - min_tag[1]); // / (max_tag[1] - min_tag[1]);
@@ -1104,7 +1100,7 @@ namespace Kratos
 				//Calculate phi & number of division
 				double m = (sqrtl(mStrainMap.size()) - 1) / 5;
 				//std::cout << "m: " << m << std::endl;
-				double phi = M_PI / m;
+				double phi = Globals::Pi / m;
 
 				//1. Calculate the normalized Strain
 				double norm_real_eps = norm_2(InStrain);
@@ -1247,8 +1243,8 @@ namespace Kratos
 		//Calculate phi & number of division
 		double m = (sqrtl(mStrainMap.size()) - 1) / 2; // m = max of tag
 													   //std::cout << "PredictStress2D -> m: " << m << std::endl;
-		double phi = M_PI / m;
-		//std::cout << "PredictStress2D -> M_PI: " << M_PI << std::endl;
+		double phi = Globals::Pi / m;
+		//std::cout << "PredictStress2D -> Globals::Pi: " << Globals::Pi << std::endl;
 		//std::cout << "PredictStress2D -> phi: " << phi << std::endl;
 
 		//1. Calculate the normalized Strain
@@ -1362,7 +1358,7 @@ namespace Kratos
 		}
 		else
 		{
-			// local_x and y defines where to estimate the value on the interpolated line, 
+			// local_x and y defines where to estimate the value on the interpolated line,
 			// it is 0 at the first point and 1 and the second point
 			double local_x = (real_tag[0] - min_tag[0]); // / (max_tag[0] - min_tag[0]);
 			double local_y = (real_tag[1] - min_tag[1]); // / (max_tag[1] - min_tag[1]);
@@ -1593,16 +1589,16 @@ namespace Kratos
 			stress_vector[2] = InterpStressVectorXY[n_damage - 1] + (InterpStressVectorXY[n_damage - 1] - InterpStressVectorXY[n_damage - 2])*(x - x0) / diff;
 
 			// //std::cout << "Is_Elastic = false -> OUT OF BOUND\n";
-			// double x = norm_real_eps; 
+			// double x = norm_real_eps;
 			// Vector x_eps(3, 0.0);
 			// this->ReconstructStrain(x_eps, x, Theta);
-			// double x0 = InterpRadiusVector[n_damage - 1]; 
+			// double x0 = InterpRadiusVector[n_damage - 1];
 			// Vector x0_eps(3, 0.0);
 			// this->ReconstructStrain(x0_eps, x0, Theta);
-			// double x_1 = InterpRadiusVector[n_damage - 2]; 
+			// double x_1 = InterpRadiusVector[n_damage - 2];
 			// Vector x_1_eps(3, 0.0);
 			// this->ReconstructStrain(x_1_eps, x_1, Theta);
-			// 
+			//
 			// //sigma
 			// stress_vector[0] = (x0_eps[0] - x_1_eps[0]) ? InterpStressVectorXX[n_damage - 1] + (InterpStressVectorXX[n_damage - 1] - InterpStressVectorXX[n_damage - 2])*(x_eps[0] - x0_eps[0]) / (x0_eps[0] - x_1_eps[0]) : InterpStressVectorXX[n_damage - 1] + (InterpStressVectorXX[n_damage - 1] - InterpStressVectorXX[n_damage - 2])*(x_eps[0] - x0_eps[0]);
 			// stress_vector[1] = (x0_eps[1] - x_1_eps[1]) ? InterpStressVectorYY[n_damage - 1] + (InterpStressVectorYY[n_damage - 1] - InterpStressVectorYY[n_damage - 2])*(x_eps[1] - x0_eps[1]) / (x0_eps[1] - x_1_eps[1]) : InterpStressVectorYY[n_damage - 1] + (InterpStressVectorYY[n_damage - 1] - InterpStressVectorYY[n_damage - 2])*(x_eps[1] - x0_eps[1]);
@@ -1637,22 +1633,22 @@ namespace Kratos
 						break;
 
 						// //std::cout << "Is_Elastic = false -> INSIDE OF BOUND\n";
-						// double x = norm_real_eps; 
+						// double x = norm_real_eps;
 						// Vector x_eps(3, 0.0);
 						// //std::cout << "norm_real_eps: " << norm_real_eps << std::endl;
 						// this->ReconstructStrain(x_eps, x, Theta);
 						// //std::cout << "x_eps: " << x_eps << std::endl;
-						// double x0 = InterpRadiusVector[jj - 1]; 
+						// double x0 = InterpRadiusVector[jj - 1];
 						// Vector x0_eps(3, 0.0);
 						// this->ReconstructStrain(x0_eps, x0, Theta);
 						// //std::cout << "damages[jj - 1]: " << damages[jj - 1] << std::endl;
 						// //std::cout << "x0_eps: " << x0_eps << std::endl;
-						// double x1 = InterpRadiusVector[jj]; 
+						// double x1 = InterpRadiusVector[jj];
 						// Vector x1_eps(3, 0.0);
 						// this->ReconstructStrain(x1_eps, x1, Theta);
 						// //std::cout << "damages[jj]: " << damages[jj] << std::endl;
 						// //std::cout << "x1_eps: " << x1_eps << std::endl;
-						// 
+						//
 						// stress_vector[0] = (x1_eps[0] - x0_eps[0]) > 1.0e-12 ? InterpStressVectorXX[jj - 1] + (InterpStressVectorXX[jj] - InterpStressVectorXX[jj - 1])*(trial_macro_scale_strain_vector[0] - x0_eps[0]) / (x1_eps[0] - x0_eps[0]) : InterpStressVectorXX[jj - 1] + (InterpStressVectorXX[jj] - InterpStressVectorXX[jj - 1])*(x_eps[0] - x0_eps[0]);
 						// stress_vector[1] = (x1_eps[1] - x0_eps[1]) > 1.0e-12 ? InterpStressVectorYY[jj - 1] + (InterpStressVectorYY[jj] - InterpStressVectorYY[jj - 1])*(trial_macro_scale_strain_vector[1] - x0_eps[1]) / (x1_eps[1] - x0_eps[1]) : InterpStressVectorYY[jj - 1] + (InterpStressVectorYY[jj] - InterpStressVectorYY[jj - 1])*(x_eps[1] - x0_eps[1]);
 						// stress_vector[2] = (x1_eps[2] - x0_eps[2]) > 1.0e-12 ? InterpStressVectorXY[jj - 1] + (InterpStressVectorXY[jj] - InterpStressVectorXY[jj - 1])*(trial_macro_scale_strain_vector[2] - x0_eps[2]) / (x1_eps[2] - x0_eps[2]) : InterpStressVectorXY[jj - 1] + (InterpStressVectorXY[jj] - InterpStressVectorXY[jj - 1])*(x_eps[2] - x0_eps[2]);
@@ -1832,7 +1828,7 @@ namespace Kratos
 		//std::cout << "lch_macro: " << lch_macro << std::endl;
 		//xx
 		Gf = mGf_bar * mult;
-		//mAlpha = lch_ref / lch_macro - 1.0; 
+		//mAlpha = lch_ref / lch_macro - 1.0;
 		mAlpha = (Gf - mG0) / (mGf_bar - mG0) - 1.0;
 		//std::cout << "mAlphaxx: " << mAlphaxx << std::endl;
 		if (mAlpha <= -1.0)
@@ -1886,7 +1882,7 @@ namespace Kratos
 		//Calculate phi & number of division
 		double m = (sqrtl(mStrainMap.size()) - 1) / 5; // m = max of tag
 													   //std::cout << "m: " << m << std::endl;
-		double phi = M_PI / m;
+		double phi = Globals::Pi / m;
 		//std::cout << "phi: " << phi << " rad" << std::endl;
 
 		//1. Calculate the normalized Strain
@@ -1917,7 +1913,7 @@ namespace Kratos
 		max_tag[1] = ceil(real_tag[1]);
 		//std::cout << "max_tag: " << max_tag << std::endl;
 
-		// local_x and y defines where to estimate the value on the interpolated line, 
+		// local_x and y defines where to estimate the value on the interpolated line,
 		// it is 0 at the first point and 1 and the second point
 		double local_x = (real_tag[0] - min_tag[0]) / (max_tag[0] - min_tag[0]);
 		double local_y = (real_tag[1] - min_tag[1]) / (max_tag[1] - min_tag[1]);
@@ -2285,10 +2281,10 @@ namespace Kratos
 			{
 				theta_1 = acos(NormalizedStrainVector[0] / denom_theta_1);
 			}
-			if (theta_1 > M_PI)
-				theta_1 = theta_1 - 2.0 * M_PI;
-			if (theta_1 < -M_PI)
-				theta_1 = theta_1 + 2.0 * M_PI;
+			if (theta_1 > Globals::Pi)
+				theta_1 = theta_1 - 2.0 * Globals::Pi;
+			if (theta_1 < -Globals::Pi)
+				theta_1 = theta_1 + 2.0 * Globals::Pi;
 
 			//Calculate Theta2
 			double theta_2;
@@ -2304,10 +2300,10 @@ namespace Kratos
 				if (NormalizedStrainVector[2] < 0.0)
 				{
 					//std::cout << "PredictStress2D -> NormalizedStrainVector[2] < 0.0" << std::endl;
-					//std::cout << "PredictStress2D -> 2.0 * M_PI" << 2.0 * M_PI << std::endl;
+					//std::cout << "PredictStress2D -> 2.0 * Globals::Pi" << 2.0 * Globals::Pi << std::endl;
 					//std::cout << "PredictStress2D -> NormalizedStrainVector[1] / denom_theta_2" << NormalizedStrainVector[1] / denom_theta_2 << std::endl;
 					//std::cout << "PredictStress2D -> acos(NormalizedStrainVector[1] / denom_theta_2)" << acos(NormalizedStrainVector[1] / denom_theta_2) << std::endl;
-					theta_2 = 2.0 * M_PI - acos(NormalizedStrainVector[1] / denom_theta_2);
+					theta_2 = 2.0 * Globals::Pi - acos(NormalizedStrainVector[1] / denom_theta_2);
 				}
 				else
 				{
@@ -2315,10 +2311,10 @@ namespace Kratos
 					theta_2 = acos(NormalizedStrainVector[1] / denom_theta_2);
 				}
 			}
-			if (theta_2 > M_PI)
-				theta_2 = theta_2 - 2.0 * M_PI;
-			if (theta_2 < -M_PI)
-				theta_2 = theta_2 + 2.0 * M_PI;
+			if (theta_2 > Globals::Pi)
+				theta_2 = theta_2 - 2.0 * Globals::Pi;
+			if (theta_2 < -Globals::Pi)
+				theta_2 = theta_2 + 2.0 * Globals::Pi;
 
 			//Assemble Theta
 			Theta[0] = theta_1;
@@ -2328,31 +2324,31 @@ namespace Kratos
 		{
 			//Calculate Theta1
 			double theta_1 = acos(NormalizedStrainVector[0] / sqrt(pow(NormalizedStrainVector[5], 2) + pow(NormalizedStrainVector[4], 2) + pow(NormalizedStrainVector[3], 2) + pow(NormalizedStrainVector[2], 2) + pow(NormalizedStrainVector[1], 2) + pow(NormalizedStrainVector[0], 2)));
-			if (theta_1 > M_PI)
-				theta_1 = theta_1 - 2 * M_PI;
-			if (theta_1 < -M_PI)
-				theta_1 = theta_1 + 2 * M_PI;
+			if (theta_1 > Globals::Pi)
+				theta_1 = theta_1 - 2 * Globals::Pi;
+			if (theta_1 < -Globals::Pi)
+				theta_1 = theta_1 + 2 * Globals::Pi;
 
 			//Calculate Theta2
 			double theta_2 = acos(NormalizedStrainVector[1] / sqrt(pow(NormalizedStrainVector[5], 2) + pow(NormalizedStrainVector[4], 2) + pow(NormalizedStrainVector[3], 2) + pow(NormalizedStrainVector[2], 2) + pow(NormalizedStrainVector[1], 2)));
-			if (theta_2 > M_PI)
-				theta_2 = theta_2 - 2 * M_PI;
-			if (theta_2 < -M_PI)
-				theta_2 = theta_2 + 2 * M_PI;
+			if (theta_2 > Globals::Pi)
+				theta_2 = theta_2 - 2 * Globals::Pi;
+			if (theta_2 < -Globals::Pi)
+				theta_2 = theta_2 + 2 * Globals::Pi;
 
 			//Calculate Theta3
 			double theta_3 = acos(NormalizedStrainVector[2] / sqrt(pow(NormalizedStrainVector[5], 2) + pow(NormalizedStrainVector[4], 2) + pow(NormalizedStrainVector[3], 2) + pow(NormalizedStrainVector[2], 2)));
-			if (theta_3 > M_PI)
-				theta_3 = theta_3 - 2 * M_PI;
-			if (theta_3 < -M_PI)
-				theta_3 = theta_3 + 2 * M_PI;
+			if (theta_3 > Globals::Pi)
+				theta_3 = theta_3 - 2 * Globals::Pi;
+			if (theta_3 < -Globals::Pi)
+				theta_3 = theta_3 + 2 * Globals::Pi;
 
 			//Calculate Theta4
 			double theta_4 = acos(NormalizedStrainVector[2] / sqrt(pow(NormalizedStrainVector[5], 2) + pow(NormalizedStrainVector[4], 2) + pow(NormalizedStrainVector[3], 2)));
-			if (theta_4 > M_PI)
-				theta_4 = theta_4 - 2 * M_PI;
-			if (theta_4 < -M_PI)
-				theta_4 = theta_4 + 2 * M_PI;
+			if (theta_4 > Globals::Pi)
+				theta_4 = theta_4 - 2 * Globals::Pi;
+			if (theta_4 < -Globals::Pi)
+				theta_4 = theta_4 + 2 * Globals::Pi;
 
 			//Calculate Theta5
 			double theta_5;
@@ -2365,17 +2361,17 @@ namespace Kratos
 			{
 				if (NormalizedStrainVector[5] < 0.0)
 				{
-					theta_5 = 2 * M_PI - acos(NormalizedStrainVector[4] / denom);
+					theta_5 = 2 * Globals::Pi - acos(NormalizedStrainVector[4] / denom);
 				}
 				else
 				{
 					theta_5 = acos(NormalizedStrainVector[4] / denom);
 				}
 			}
-			if (theta_5 > M_PI)
-				theta_5 = theta_5 - 2 * M_PI;
-			if (theta_5 < -M_PI)
-				theta_5 = theta_5 + 2 * M_PI;
+			if (theta_5 > Globals::Pi)
+				theta_5 = theta_5 - 2 * Globals::Pi;
+			if (theta_5 < -Globals::Pi)
+				theta_5 = theta_5 + 2 * Globals::Pi;
 
 			//Assemble Theta
 			Theta[0] = theta_1;

@@ -1,47 +1,14 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: janosch $
-//   Date:                $Date: 2008-10-23 11:35:13 $
-//   Revision:            $Revision: 1.6 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pooyan Dadvand
+//                    
 //
 
 #include "utilities/kratos_log.h"
@@ -80,11 +47,13 @@ namespace Kratos
         return (*mpInstance);
     }
     
+    // Default constructor
     KratosLogUtils::KratosLogUtils()
     {
         mFilterString = new std::vector<std::string>(0);
     }
     
+    // Destructor
     KratosLogUtils::~KratosLogUtils()
     {
         delete mFilterString;
@@ -108,10 +77,9 @@ namespace Kratos
         
     /**
     * Returns the current time in the specified format
-    * @param format:        valid format for time. Please check: "http://www.cplusplus.com/reference/ctime/strftime/"
-    *                       for more details.
+    * @param Format Valid format for time. Please check: "http://www.cplusplus.com/reference/ctime/strftime/" for more details.
     */
-    const std::string KratosLogUtils::CurrentDateTime(const char * format) 
+    const std::string KratosLogUtils::CurrentDateTime(const char * Format) 
     {
         time_t     now = time(0);
         struct tm  tstruct;
@@ -119,39 +87,44 @@ namespace Kratos
         char       buf[80];
         tstruct = *localtime(&now);
         
-        strftime(buf, sizeof(buf), format, &tstruct);
+        strftime(buf, sizeof(buf), Format, &tstruct);
 
         return buf;
     }
     
-    void KratosLogUtils::AddCustomFilter(const std::string filter)
+    /**
+     * This add a new custom filter 
+     * @todo const std::string& ?
+     * @param Filter String to be filtered
+     */
+    void KratosLogUtils::AddCustomFilter(const std::string Filter)
     {
-        std::string s(filter);
+        std::string s(Filter);
         s.append("::");
         mFilterString->push_back(s);
     }
     
 
     /**
-     * Kenrel function for filters
-     * @param input:        input string
-     * @param filter:       string to be filtered
+     * Kernel function for filters
+     * @param Input Input string
+     * @param Filter String to be filtered
      */
-    void filterKernel(std::string& input, const std::string& filter)
+    void filterKernel(std::string& Input, const std::string& Filter)
     {
-        while(input.find(filter) != std::string::npos)
+        while(Input.find(Filter) != std::string::npos)
         {
-            input = input.substr(0,input.find(filter)).append(input.substr(input.find(filter)+filter.size()));
+            Input = Input.substr(0,Input.find(Filter)).append(Input.substr(Input.find(Filter)+Filter.size()));
         }
     }
     
     /**
      * Filter kratos generic namespaces (Kratos:: boost:: ...)
-     * @param inputString:  string containintg the namespace chain for a function call 
+     * @param InputString string containintg the namespace chain for a function call 
      */   
-    const char * KratosLogUtils::Filter(const char * inputString)
+    const char * KratosLogUtils::Filter(const char * InputString)
     {
-        std::string s(inputString);
+        std::string s(InputString);
       
         // Apply default filters
         filterKernel(s,"Kratos::");

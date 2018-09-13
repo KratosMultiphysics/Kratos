@@ -1,0 +1,19 @@
+{
+    "properties": [{
+            "model_part_name": "Parts_plate",
+            "properties_id": 4,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "LinearElasticPlaneStress2DLaw"
+                    },
+                    "Variables": {
+                            "DENSITY": 7.85000E+03,
+                            "YOUNG_MODULUS": 1.00000E+07,
+                            "POISSON_RATIO": 2.90000E-01,
+                            "THICKNESS": 1.00000E-01
+                    },
+                    "Tables": {}
+            }
+    }]
+}

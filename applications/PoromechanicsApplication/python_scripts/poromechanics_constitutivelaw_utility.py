@@ -7,6 +7,9 @@ from KratosMultiphysics.PoromechanicsApplication import *
 def SetConstitutiveLaw(model_part):
     
     for prop in model_part.Properties:
-        ConstitutiveLawName=prop.GetValue(CONSTITUTIVE_LAW_NAME)
-        mat = globals().get(ConstitutiveLawName)()
-        prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
+        if prop.Has(CONSTITUTIVE_LAW_NAME):
+            ConstitutiveLawName=prop.GetValue(CONSTITUTIVE_LAW_NAME)
+            mat = globals().get(ConstitutiveLawName)()
+            prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())
+        else:
+            print("Property",prop.Id,"has no CONSTITUTIVE_LAW_NAME")

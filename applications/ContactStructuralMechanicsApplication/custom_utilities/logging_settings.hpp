@@ -1,10 +1,13 @@
-/*
- * logging_colors.hpp
- *
- *  Created on: Aug 4, 2016
- *      Author: mohamedkhalil
- */
-
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:             BSD License
+//                                       license: StructuralMechanicsApplication/license.txt
+//
+//  Main authors:    Mohamed Khalil
+// 
 #ifndef LOGGING_SETTINGS_HPP_
 #define LOGGING_SETTINGS_HPP_
 
@@ -109,8 +112,7 @@ enum LoggingLevel { none, info_warnings, system_matrices, debug };
  */
 #define TENSOR_LOG_SETTINGS \
     std::cout << CYAN;\
-    std::cout.precision(1);\
-    std::scientific;\
+    std::cout.precision(2);\
 
 /*
  * DEFINE FUNCTIONALITIES
@@ -121,29 +123,29 @@ enum LoggingLevel { none, info_warnings, system_matrices, debug };
     for ( unsigned int i = 0; i < matrix.size1( ); ++i )\
     {\
         for ( unsigned int j = 0; j < matrix.size2( ); ++j )\
-            std::cout << matrix(i,j) << "\t";\
+            std::cout << std::scientific << matrix(i,j) << "\t";\
         std::cout << std::endl;\
     }\
     RESET_LOG_SETTINGS
     
 #define LOG_VECTOR_PRETTY( vector )\
     TENSOR_LOG_SETTINGS \
-    std::cout << #vector << " : " << vector;\
+    std::cout << #vector << " : " << std::scientific << vector;\
     RESET_LOG_SETTINGS
 
 #define LOG_VECTOR3( array )\
     TENSOR_LOG_SETTINGS \
-    std::cout << #array << " : " << array[0] << ", " << array[1] << ", " << array[2];\
+    std::cout << #array << " : " << std::scientific << array[0] << ", " << std::scientific << array[1] << ", " << std::scientific << array[2];\
     RESET_LOG_SETTINGS
     
 #define LOG_VECTOR2( array )\
     TENSOR_LOG_SETTINGS \
-    std::cout << #array << " : " << array[0] << ", " << array[1];\
+    std::cout << #array << " : " << std::scientific << array[0] << ", " << std::scientific << array[1];\
     RESET_LOG_SETTINGS
 
 #define LOG_SCALAR( scalar )\
     TENSOR_LOG_SETTINGS \
-    std::cout << #scalar << " : " << scalar;\
+    std::cout << #scalar << " : " << std::scientific << scalar;\
     RESET_LOG_SETTINGS
 
 

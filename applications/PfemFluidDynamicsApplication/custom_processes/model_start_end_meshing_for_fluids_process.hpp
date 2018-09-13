@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosPfemBaseApplication $
-//   Created by:          $Author:      JMCarbonell $
-//   Last modified by:    $Co-Author:               $
-//   Date:                $Date:      February 2016 $
-//   Revision:            $Revision:            0.0 $
+//   Project Name:        KratosPfemFluidApplication $
+//   Created by:          $Author:      JMCarbonell  $
+//   Last modified by:    $Co-Author:                $
+//   Date:                $Date:      February 2016  $
+//   Revision:            $Revision:            0.0  $
 //
 //
 
@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_processes/model_start_end_meshing_process.hpp"
+#include "custom_processes/settle_model_structure_process.hpp"
 
 ///VARIABLES used:
 //Data:     
@@ -62,7 +62,7 @@ namespace Kratos
   /** Detail class definition.
    */
   class ModelStartEndMeshingForFluidsProcess
-    : public ModelStartEndMeshingProcess
+    : public SettleModelStructureProcess
   {
   public:
     ///@name Type Definitions
@@ -79,7 +79,7 @@ namespace Kratos
     ModelStartEndMeshingForFluidsProcess(ModelPart& rMainModelPart,
 					 Flags Options,
 					 int EchoLevel = 0)
-      :ModelStartEndMeshingProcess(rMainModelPart,Options,EchoLevel)
+      :SettleModelStructureProcess(rMainModelPart,Options,EchoLevel)
     { 
     }
 
@@ -98,7 +98,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
 
     };
@@ -124,13 +124,13 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "ModelStartEndMeshingForFluidsProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "ModelStartEndMeshingForFluidsProcess";
     }
@@ -150,15 +150,15 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    virtual void BuildTotalModelPart(ModelPart& rModelPart, int EchoLevel)
+    void BuildTotalModelPart(ModelPart& rModelPart, int EchoLevel) override
     {
 
       KRATOS_TRY
 
       //Mesh Id=0
       
-      if( EchoLevel > 1 )
-	std::cout<<"   [ START MODEL PART ["<<rModelPart.Name()<<"] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
+       if( EchoLevel > 1 )
+	 std::cout<<"   [ START MODEL PART ["<<rModelPart.Name()<<"] [Elems=:"<<rModelPart.NumberOfElements()<<"|Nodes="<<rModelPart.NumberOfNodes()<<"|Conds="<<rModelPart.NumberOfConditions()<<"] ] "<<std::endl;      
       
       rModelPart.Nodes().clear();
       rModelPart.Elements().clear();
@@ -175,7 +175,7 @@ namespace Kratos
 	{
 	  // if( (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
 	  if(  (i_mp->Is(SOLID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(FLUID) && i_mp->IsNot(ACTIVE)) || (i_mp->Is(BOUNDARY) && i_mp->Is(RIGID)) ){ //only the solid domains (no computing) and the rigid body domains (rigid)
-
+ 
 
 	    if( EchoLevel > 1 )
 	      std::cout<<"    [ SUBMODEL PART ["<<i_mp->Name()<<"] [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ] "<<std::endl;
@@ -259,7 +259,7 @@ namespace Kratos
 		    i_node->Reset(TO_REFINE);  //reset if was labeled to refine (to not duplicate boundary conditions)
 		    i_node->Reset(BLOCKED); 
 
-		    if( mOptions.Is(ModelerUtilities::KEEP_ISOLATED_NODES) && i_node->IsNot(TO_ERASE) ){
+		    if( mOptions.Is(MesherUtilities::KEEP_ISOLATED_NODES) && i_node->IsNot(TO_ERASE) ){
 		      i_node->FastGetSolutionStepValue(PRESSURE) = 0;
 		      (i_mp->Nodes()).push_back(*(i_node.base()));
 		      (rModelPart.Nodes()).push_back(*(i_node.base()));	
@@ -381,7 +381,7 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    virtual void BuildComputingDomain (ModelPart& rModelPart, int EchoLevel)
+   void BuildComputingDomain (ModelPart& rModelPart, int EchoLevel) override
     {
       KRATOS_TRY
 	

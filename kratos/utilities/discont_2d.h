@@ -1,50 +1,14 @@
-/*
-==============================================================================
-KratosIncompressibleFluidApplication
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
- */
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: pablo $
-//   Date:                $Date: 2009-01-13 16:40:58 $
-//   Revision:            $Revision: 1.24 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Pablo Becker
+//                    
 //
 
 
@@ -66,23 +30,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 //#include "utilities/split_tetrahedra.h"
 
-
-
-
-
-
-
-
-
-
-
-
-
 namespace Kratos
 {
 
-/** This utility can be used to calculate the enriched shape function for tetrahedra element.
- *  The metodology consists in partitioning the tetrahedra in a set of sub-tetrahedra and
+/** @brief This utility can be used to calculate the enriched shape function for tetrahedra element.
+ *  @details The metodology consists in partitioning the tetrahedra in a set of sub-tetrahedra and
  *  cacluate the enrichment information using these partitions.
  */
 class DiscontinuousShapeFunctionsUtilities_2D
@@ -90,13 +42,11 @@ class DiscontinuousShapeFunctionsUtilities_2D
 public:
 
     /**
-     * 
-     * 
-     * The method to calculate the ernriched shape functions for given triangle
-     * Basically, two shape functions are provided, 
-     * 1)one is the enrichment to capturate discontinuities in the gradients of the pressure 
+     * @brief The method to calculate the enriched shape functions for given triangle
+     * @details Basically, two shape functions are provided, 
+     * -# One is the enrichment to capturate discontinuities in the gradients of the pressure 
      *       ("Improving Eulerian two-phase flow finite element approximation with discontinuous gradient (i.e pressure) shape functions" Coppola-Owen and Codina) 
-     * 2) the second one is to capturate discontinuities in the varialbe(ie. pressure). it is a shape function that is zero on the nodes and has a constant discontinuity along the found interfase)
+     * -# The second one is to capturate discontinuities in the varialbe(ie. pressure). it is a shape function that is zero on the nodes and has a constant discontinuity along the found interfase)
      * 
      * @param rPoints A 3x3 matrix where row i has the coordinates of node i.
      * @param DN_DX The gradient of the shape functions Ni respect to the reference coordinates
@@ -120,8 +70,8 @@ public:
      * @param face_gauss_N_enrich is the value of the enrichment shape functions in the integration point
      * 		  actually it's value is always the same so no need to use it: the shape functions were defined to make it 1 in the first shape function,
      * 		  And 1 and -1 the second shape function (it's discontinous, so it has these two values in the interfase)
-     * 		  WARNING: therefore the discontinuity in the shape function is equal to 2.
-     * @param type_of_cut: the partition that is 'alone': the one that is on one side of the shape function
+     * 		  @warning Therefore the discontinuity in the shape function is equal to 2.
+     * @param type_of_cut The partition that is 'alone': the one that is on one side of the shape function
      * 		  the other two are the ones in the other side, meaning they have the same derivatives and , for example, densities.
      * 
      * @return number of partitions created which can be from 1 to 3.
@@ -131,15 +81,15 @@ public:
     //with some added vectors, to be used when we need information about the interfase between the 2 elements
     //template<class TMatrixType, class TVectorType, class TGradientType>
     /*
-    static int CalculateTriangleDiscontinuousShapeFunctions(boost::numeric::ublas::bounded_matrix<double,(TDim+1), TDim >& rPoints, boost::numeric::ublas::bounded_matrix<double, (TDim+1), TDim >& DN_DX,
-            array_1d<double,(TDim+1)>& rDistances, array_1d<double,(3*(TDim-1))>& rVolumes, boost::numeric::ublas::bounded_matrix<double, 3*(TDim-1), (TDim+1) >& rGPShapeFunctionValues,
-            array_1d<double,(3*(TDim-1))>& rPartitionsSign, std::vector<TMatrixType>& rGradientsValue, boost::numeric::ublas::bounded_matrix<double,3*(TDim-1), (TDim+1)>& NEnriched, //and information about the interfase:
+    static int CalculateTriangleDiscontinuousShapeFunctions(BoundedMatrix<double,(TDim+1), TDim >& rPoints, BoundedMatrix<double, (TDim+1), TDim >& DN_DX,
+            array_1d<double,(TDim+1)>& rDistances, array_1d<double,(3*(TDim-1))>& rVolumes, BoundedMatrix<double, 3*(TDim-1), (TDim+1) >& rGPShapeFunctionValues,
+            array_1d<double,(3*(TDim-1))>& rPartitionsSign, std::vector<TMatrixType>& rGradientsValue, BoundedMatrix<double,3*(TDim-1), (TDim+1)>& NEnriched, //and information about the interfase:
             array_1d<double,(3)>& face_gauss_N, array_1d<double,(3)>& face_gauss_Nenriched, double& face_Area, array_1d<double,(3)>& face_n ,unsigned int& type_of_cut)    
             *
 /*
-    static int CalculateTriangleDiscontinuousShapeFunctions(boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX,
-            array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, boost::numeric::ublas::bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
-            array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, boost::numeric::ublas::bounded_matrix<double,3*(2-1), (2+1)>& NEnriched, //and information about the interfase:
+    static int CalculateTriangleDiscontinuousShapeFunctions(BoundedMatrix<double,(2+1), 2 >& rPoints, BoundedMatrix<double, (2+1), 2 >& DN_DX,
+            array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, BoundedMatrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
+            array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, BoundedMatrix<double,3*(2-1), (2+1)>& NEnriched, //and information about the interfase:
             array_1d<double,(3)>& face_gauss_N, array_1d<double,(3)>& face_gauss_Nenriched, double& face_Area, array_1d<double,(3)>& face_n ,unsigned int& type_of_cut)   
  
    */ 
@@ -156,9 +106,9 @@ public:
 		//unsigned int i_aux,j_aux,k_aux; //
 		type_of_cut = 0;   // 0 means no cuts, 1 means element is cut through edges ij,ik;    2 ij,jk ;    3 ik , kj ;   INTERFASES ON nodes are not contemplated   
 		const double one_third=1.0/3.0;
-		boost::numeric::ublas::bounded_matrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
-		boost::numeric::ublas::bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
-		boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
+		BoundedMatrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
+		BoundedMatrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
+		BoundedMatrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
 		
 		
 		double Area;//area of the complete element
@@ -166,7 +116,7 @@ public:
 		Area = CalculateVolume2D( rPoints );
 		array_1d<bool,3> cut_edges;
 		array_1d<double,3> aux_nodes_relative_locations;
-		boost::numeric::ublas::bounded_matrix<int,3,2> aux_nodes_father_nodes;
+		BoundedMatrix<int,3,2> aux_nodes_father_nodes;
 
         //to begin with we must check whether our element is cut or not by the interfase.
         if( (rDistances(0)*rDistances(1))>0.0 && (rDistances(0)*rDistances(2))>0.0 ) //it means that this element IS NOT cut by the interfase. we must return data of a normal, non-enriched element
@@ -280,7 +230,7 @@ public:
 		 {	 
 			 unsigned int j_aux = i + 2;
 			 if (j_aux>2) j_aux -= 3; 
-			 boost::numeric::ublas::bounded_matrix<int,3,2> partition_father_nodes;
+			 BoundedMatrix<int,3,2> partition_father_nodes;
 			 array_1d<double,3> N;
 			 if (i<4)
 			 {
@@ -370,8 +320,8 @@ public:
 		unsigned int i_aux,j_aux,k_aux; //
 		type_of_cut = 0;   // 0 means no cuts, 1 means element is cut through edges ij,ik;    2 ij,jk ;    3 ik , kj ;   INTERFASES ON nodes are not contemplated   
 		const double one_third=1.0/3.0;
-		bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
-		boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
+		BoundedMatrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
+		BoundedMatrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
 		double Area;//area of the complete element
 		rGPShapeFunctionValues(0,0)=one_third; rGPShapeFunctionValues(0,1)=one_third; rGPShapeFunctionValues(0,2)=one_third; //default, when no interfase has been found
 		Area = CalculateVolume2D( rPoints );
@@ -719,8 +669,8 @@ public:
     private:
     
 		static inline void CalculateGeometryData(
-			const bounded_matrix<double, 3, 3 > & coordinates,
-			boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,
+			const BoundedMatrix<double, 3, 3 > & coordinates,
+			BoundedMatrix<double,3,2>& DN_DX,
 			double& Area)
 		{
 			double x10 = coordinates(1,0) - coordinates(0,0);
@@ -751,7 +701,7 @@ public:
 		
 		//template<class TMatrixType, class TVectorType, class TGradientType>
 		static inline double CalculateVolume2D(
-			const bounded_matrix<double, 3, 3 > & coordinates)
+			const BoundedMatrix<double, 3, 3 > & coordinates)
 		{
 			double x10 = coordinates(1,0) - coordinates(0,0);
 			double y10 = coordinates(1,1) - coordinates(0,1);
@@ -762,7 +712,7 @@ public:
 			return 0.5*detJ;
 		}
 		
-		static inline bool CalculatePosition(const bounded_matrix<double, 3, 3 > & coordinates,
+		static inline bool CalculatePosition(const BoundedMatrix<double, 3, 3 > & coordinates,
                 const double xc, const double yc, const double zc,
                 array_1d<double, 3 > & N
                 )

@@ -1,37 +1,25 @@
-// Kratos Multi-Physics
-// 
-// Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-// 
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-// 	
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//                    
+//
 
 
 #if !defined(KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED )
 #define  KRATOS_LEVELSET_CONVECTION_ELEMENT_SIMPLEX_INCLUDED
 
-
 // System includes
-
 
 // External includes
 #include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -39,9 +27,8 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
-
 #include "includes/cfd_variables.h"
-
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -92,7 +79,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~LevelSetConvectionElementSimplex() {};
+    ~LevelSetConvectionElementSimplex() override {};
 
 
     ///@}
@@ -104,7 +91,7 @@ public:
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return Element::Pointer(new LevelSetConvectionElementSimplex(NewId, GetGeometry().Create(ThisNodes), pProperties));
@@ -112,7 +99,7 @@ public:
     }
 
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -139,7 +126,7 @@ public:
 
 
         //getting data for the given geometry
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim > DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
         double Volume;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
@@ -177,12 +164,12 @@ public:
 //         for(unsigned int i=0; i<TNumNodes; i++) if(phi[i] < 0.0) nneg++;
 //         if(nneg > 0) beta = 1.0; //beta = 0.1;
 
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
-        bounded_matrix<double,TNumNodes, TDim> tmp;
+        BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
+        BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
+        BoundedMatrix<double,TNumNodes, TDim> tmp;
 
             
-        boost::numeric::ublas::bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
         for(unsigned int igauss=0; igauss<TDim+1; igauss++)
         {
@@ -198,7 +185,7 @@ public:
             const double norm_vel = norm_2(vel_gauss);
             array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);
 
-            const double tau_denom = std::max(dyn_st_beta *dt_inv + 2.0 * norm_vel / h + beta*div_v,  1e-2);
+            const double tau_denom = std::max(dyn_st_beta *dt_inv + 2.0 * norm_vel / h + std::abs(/*beta**/div_v),  1e-2); //the term std::abs(div_v) is added following Pablo Becker's suggestion
             const double tau = 1.0 / (tau_denom);
 
             //terms multiplying dphi/dt (aux1)
@@ -217,7 +204,7 @@ public:
                 const double res = -time_derivative -inner_prod(vel_gauss, grad_phi_halfstep);
                 
                 const double disc_capturing_coeff = 0.5*C*h*fabs(res/norm_grad);
-                bounded_matrix<double,TDim,TDim> D = disc_capturing_coeff*( IdentityMatrix(TDim,TDim));
+                BoundedMatrix<double,TDim,TDim> D = disc_capturing_coeff*( IdentityMatrix(TDim));
                 const double norm_vel_squared = norm_vel*norm_vel;
                 D += (std::max( disc_capturing_coeff - tau*norm_vel_squared , 0.0) - disc_capturing_coeff)/(norm_vel_squared) * outer_prod(vel_gauss,vel_gauss);
 
@@ -247,7 +234,7 @@ public:
     
     
     
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_THROW_ERROR(std::runtime_error, "CalculateRightHandSide not implemented","");
     }
@@ -256,7 +243,7 @@ public:
     
     
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -278,7 +265,7 @@ public:
     
     
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -313,14 +300,14 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "LevelSetConvectionElementSimplex #";
     }
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
@@ -356,7 +343,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim>& DN_DX, const double Volume)
+    double ComputeH(BoundedMatrix<double,TNumNodes, TDim>& DN_DX, const double Volume)
     {
         double h=0.0;
                  for(unsigned int i=0; i<TNumNodes; i++)
@@ -373,7 +360,7 @@ protected:
     }
     
     //gauss points for the 3D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,4, 4>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,4, 4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
         Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;	
@@ -382,7 +369,7 @@ protected:
     }
 
     //gauss points for the 2D case
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
     {
         const double one_sixt = 1.0/6.0;
         const double two_third = 2.0/3.0;
@@ -429,12 +416,12 @@ private:
     //         {
     //         }
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

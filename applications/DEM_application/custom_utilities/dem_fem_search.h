@@ -64,7 +64,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class DEM_FEM_Search : public SpatialSearch
+class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
 {
     public:
       ///@name Type Definitions
@@ -140,7 +140,7 @@ class DEM_FEM_Search : public SpatialSearch
       RadiusArrayType Radius_out;
 
       int num_of_threads = OpenMPUtils::GetNumThreads();
-      vector<unsigned int> total_dem_partition_index; vector<unsigned int> total_fem_partition_index;
+      DenseVector<unsigned int> total_dem_partition_index; vector<unsigned int> total_fem_partition_index;
 
       OpenMPUtils::CreatePartition(num_of_threads, elements_sear.size(), total_dem_partition_index);
       OpenMPUtils::CreatePartition(num_of_threads, conditions_bins.size(), total_fem_partition_index);
@@ -188,7 +188,7 @@ class DEM_FEM_Search : public SpatialSearch
             const array_1d<double, 3 >& aux_coor = pGeometry[0].Coordinates();
 
             SphericParticle* p_particle = dynamic_cast<SphericParticle*>((*it).get());
-            radius = p_particle->GetSearchRadiusWithFem();
+            radius = p_particle->GetSearchRadius();
 
             Vector_Ref_Radius[k]    = (Vector_Ref_Radius[k]  < radius) ? radius : Vector_Ref_Radius[k] ;
 
@@ -297,7 +297,7 @@ class DEM_FEM_Search : public SpatialSearch
       mBins = new GeometricalBinsType(BinsConditionPointerToGeometricalObjecPointerTemporalVector.begin(), BinsConditionPointerToGeometricalObjecPointerTemporalVector.end());
 
       //7. PERFORM THE SEARCH ON THE SPHERES
-      #pragma omp parallel 
+      #pragma omp parallel
       {
         GeometricalObjectType::ContainerType  localResults(MaxNumberOfElements);
         DistanceType                          localResultsDistances(MaxNumberOfElements);
@@ -314,7 +314,7 @@ class DEM_FEM_Search : public SpatialSearch
             array_1d<double, 3 > & aux_coor = go_it->GetGeometry()[0].Coordinates();
 
             SphericParticle* p_particle = dynamic_cast<SphericParticle*>((*it).get());
-            double Rad = p_particle->GetSearchRadiusWithFem();
+            double Rad = p_particle->GetSearchRadius();
 
             for(unsigned int i = 0; i < 3; i++ ) {
               search_particle &= !(aux_coor[i]  < (mGlobal_BB_LowPoint[i] - Rad) ) || (aux_coor[i]  > (mGlobal_BB_HighPoint[i] + Rad) ); //amplify the BBX with the radius for every particle
@@ -330,7 +330,7 @@ class DEM_FEM_Search : public SpatialSearch
               rResults[p].reserve(NumberOfResults);
 
               for(GeometricalObjectType::ContainerType::iterator c_it = localResults.begin(); c_it != localResults.begin() + NumberOfResults; c_it++) {
-                  Condition::Pointer condition = boost::dynamic_pointer_cast<Condition>(*c_it);
+                  Condition::Pointer condition = Kratos::dynamic_pointer_cast<Condition>(*c_it);
                   rResults[p].push_back(condition);
               }
 
@@ -355,7 +355,7 @@ class DEM_FEM_Search : public SpatialSearch
   }
 
   /// Turn back information as a string.
-  virtual std::string Info() const
+  virtual std::string Info() const override
   {
       std::stringstream buffer;
       buffer << "DEM_FEM_Search" ;
@@ -364,10 +364,10 @@ class DEM_FEM_Search : public SpatialSearch
   }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "DEM_FEM_Search";}
+      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "DEM_FEM_Search";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
+      virtual void PrintData(std::ostream& rOStream) const override {}
 
 
       ///@}

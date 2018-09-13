@@ -1,11 +1,15 @@
-/*
- * File:   AdvancedNMPointsMapper.hpp
- * Author: jcotela
- * Co-author: vmataix, rzorrilla
- *
- * Created on 19 January 2010, 10:20
- * Last update on 28 August 2016, 10:28
- */
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela, Vicente Mataix and Ruben Zorrilla
+//
+//
 
 #if !defined(KRATOS_ADVANCED_NM_POINTS_MAPPER_H_INCLUDED )
 #define  KRATOS_ADVANCED_NM_POINTS_MAPPER_H_INCLUDED
@@ -20,8 +24,10 @@
 #include "fsi_application.h"
 #include "includes/model_part.h"
 #include "containers/array_1d.h"
-#include "spatial_containers/spatial_containers.h" // kd-tree
-#include "utilities/math_utils.h"                  // Cross Product
+#include "spatial_containers/spatial_containers.h"      // kd-tree
+#include "utilities/math_utils.h"                       // Cross Product
+#include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -42,14 +48,16 @@ namespace Kratos
 
 /** @brief Custom Gauss Point container to be used by the mapper
  */
-class GaussPointItem: public Point<3>
+class GaussPointItem: public Point
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    /// Auxiliar matrix 3x3 employed for the 3D cases
-    typedef boost::numeric::ublas::bounded_matrix<double,3,3> MatrixVar;
+
+    // Geometry types
+    typedef Node < 3 >                                               NodeType;
+    typedef Geometry<NodeType>                                   GeometryType;
 
     /// Counted pointer of GaussPointItem
     KRATOS_CLASS_POINTER_DEFINITION( GaussPointItem );
@@ -60,19 +68,17 @@ public:
 
     /// Default constructors
     GaussPointItem():
-        Point<3>(),
+        Point(),
         mArea(0),
         mProjStatus(0)
     {
         mNormal = ZeroVector(3);
     }
 
-    GaussPointItem(
-            array_1d<double, 3> Coords,
-            double Area,
-            array_1d<double, 3> Normal
-            ):
-        Point<3>(Coords),
+    GaussPointItem(array_1d<double, 3> Coords,
+                   double Area,
+                   array_1d<double, 3> Normal):
+        Point(Coords),
         mArea(Area),
         mNormal(Normal),
         mProjStatus(0)
@@ -80,7 +86,7 @@ public:
 
     ///Copy constructor  (not really required)
     GaussPointItem(const GaussPointItem& rhs):
-        Point<3>(rhs),
+        Point(rhs),
         mArea(rhs.mArea),
         mNormal(rhs.mNormal),
         mProjStatus(rhs.mProjStatus),
@@ -92,7 +98,7 @@ public:
     }
 
     /// Destructor.
-    // ~GaussPointItem();
+    virtual ~GaussPointItem(){};
 
     ///@}
     ///@name Operators
@@ -101,7 +107,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * Returns the area of the condtition
      * @return The area of the condition
@@ -124,7 +130,6 @@ public:
      * It returns the distance along normal from Gauss point to a condition
      * @return
      */
-
     void GetDist(double& Dist)
     {
         Dist = mDist;
@@ -134,30 +139,20 @@ public:
      * It returns the projection status
      * @return Proj: The projection status
      */
-
     void GetProjStatus(int& Proj)
     {
         Proj = mProjStatus;
     }
 
     /**
-     * Test function
-     */
-
-    boost::weak_ptr<Condition> GetOriginCond()
-    {
-        return mpOriginCond;
-    }
-
-    /**
      * It sets a projection for a condition
+     * @param Cond: Origin projection condition
+     * @param Coords: Origin projected point coordinates
+     * @param Dist: Distance value
      */
-
-    void SetProjection(
-            Condition::WeakPointer Cond,
-            array_1d<double,2> Coords,
-            double Dist
-            )
+    void SetProjection(Condition::WeakPointer Cond,
+                       array_1d<double,2> Coords,
+                       double Dist)
     {
         mpOriginCond = Cond;
         mOriginCoords = Coords;
@@ -167,15 +162,14 @@ public:
 
     /**
      * It sets a projection for a node
+     * @param pNode: Selected destination node
+     * @param Dist: Distance value
      */
-
-    void SetProjection(
-            Node<3>::WeakPointer pNode,
-            const double SqDist
-            )
+    void SetProjection(Node<3>::WeakPointer pNode,
+                       const double Dist)
     {
         mpOriginNode = pNode;
-        mDist = SqDist;
+        mDist = Dist;
         mProjStatus = 2;
         mOriginCoords[0] = 0.0;
         mOriginCoords[1] = 0.0;
@@ -183,57 +177,41 @@ public:
 
     /**
      * It projects in 2D/3D for a line/triangle a returns the local coordinates and distance
+     * @param pOriginCond: Pointer to the Gauss point origin condition
+     * @return ProjectedLocalCoords: Projection local coordinates
+     * @return dist: The distance between the point and the plane
      */
+    void Project(Condition::Pointer pOriginCond,
+                 array_1d<double,2> & ProjectedLocalCoords,
+                 double & Dist);
 
-    void Project(
-            Condition::Pointer pOriginCond,
-            array_1d<double,2> & Coords,
-            double & Dist,
-            const int dimension
-            );
-            
     /**
-     * Project a point over a plane
+     * Projects a point over a line
      * @param PointInPlane: A point in the plane
      * @param PointToBeProjected: The point to be projected
-     * @param Normal: The normal of the plane
      * @return PointProjected: The point pojected over the plane
      * @return dist: The distance between the point and the plane
      */
-
-    void ProjectPointToPlane(
-            const Point<3> & PointInPlane,
-            const Point<3> & PointToBeProjected,
-            Point<3> & PointProjected,
-            double & dist,
-            const array_1d<double,3> & Normal
-            );
+    void ProjectPointToLine(const Point & PointInPlane,
+                            const Point & PointToBeProjected,
+                            Point & PointProjected,
+                            double & dist);
 
     /**
      * It gets the projected value for scalar variables
      * @param rOriginVar: The variable (scalar) in the original condition
      * @return Value: The projected value (scalar)
-     * @param dimension: 2D/3D case
      */
-
-    void GetProjectedValue(
-            const Variable<double> & rOriginVar,
-            double& Value,
-            const int dimension
-            );
+    void GetProjectedValue(const Variable<double> & rOriginVar,
+                           double& Value);
 
     /**
      * It gets the projected value for vector variables
      * @param rOriginVar: The variable (vector) in the original condition
      * @return Value: The projected value (vector)
-     * @param dimension: 2D/3D case
      */
-
-    void GetProjectedValue(
-            const Variable< array_1d<double,3> > & rOriginVar,
-            array_1d<double,3>& Value,
-            const int dimension
-            );
+    void GetProjectedValue(const Variable< array_1d<double,3> > & rOriginVar,
+                           array_1d<double,3>& Value);
 
 protected:
 
@@ -316,6 +294,7 @@ class AdvancedNMPointsMapper
 {
     ///@name Type Definitions
     ///@{
+
     // Type definitions for the tree
     typedef GaussPointItem                              PointType;
     typedef GaussPointItem::Pointer                     PointTypePointer;
@@ -323,6 +302,10 @@ class AdvancedNMPointsMapper
     typedef std::vector<PointType::Pointer>::iterator   GaussPointIterator;
     typedef std::vector<double>                         DistanceVector;
     typedef std::vector<double>::iterator               DistanceIterator;
+
+    // Geometry types
+    typedef Node < 3 >                                          NodeType;
+    typedef Geometry<NodeType>                              GeometryType;
 
     // KDtree definitions
     typedef Bucket< 3ul, PointType, GaussPointVector, PointTypePointer, GaussPointIterator, DistanceIterator > BucketType;
@@ -346,13 +329,11 @@ public:
      * @param rOriginModelPart: The original model part
      * @return rDestinationModelPart: The destination model part
      */
-    AdvancedNMPointsMapper(
-            const ModelPart & rOriginModelPart,
-            ModelPart & rDestinationModelPart
-            );
+    AdvancedNMPointsMapper(ModelPart & rOriginModelPart,
+                           ModelPart & rDestinationModelPart);
 
     /// Destructor.
-    //~AdvancedNMPointsMapper();
+    virtual ~AdvancedNMPointsMapper(){};
 
     ///@}
     ///@name Operators
@@ -365,78 +346,63 @@ public:
     /**
      * It maps a scalar variable to a normal vector from a model part to other
      * @param rOriginVar: The original value (scalar) of the variable
-     * @return rDestVar: The variable (normal vector) in the destiny modelpart
-     * @return MaxIter: Maximum number of iteration allowed
-     * @return TolIter: Tolerance accepted in the iteration
-     * @return sign_pos: Positive or negative projection
+     * @param rDestVar: The variable (normal vector) in the destiny modelpart
+     * @param MaxIter: Maximum number of iteration allowed
+     * @param TolIter: Tolerance accepted in the iteration
+     * @param sign_pos: Positive or negative projection
      */
-
-    void ScalarToNormalVectorMap(
-            const Variable<double> & rOriginVar,
-            Variable<array_1d<double,3> >& rDestVar,
-            const int MaxIter,
-            const double TolIter,
-            const bool sign_pos
-            );
+    void ScalarToNormalVectorMap(const Variable<double> & rOriginVar,
+                                 const Variable<array_1d<double,3> >& rDestVar,
+                                 const int MaxIter,
+                                 const double TolIter,
+                                 const bool sign_pos);
 
     /**
      * It maps a normal vector variable to a scalar from a model part to other
      * @param rOriginVar: The original value (normal vector) of the variable
-     * @return rDestVar: The variable (scalar) in the destiny modelpart
-     * @return MaxIter: Maximum number of iteration allowed
-     * @return TolIter: Tolerance accepted in the iteration
-     * @return sign_pos: Positive or negative projection
+     * @param rDestVar: The variable (scalar) in the destiny modelpart
+     * @param MaxIter: Maximum number of iteration allowed
+     * @param TolIter: Tolerance accepted in the iteration
+     * @param sign_pos: Positive or negative projection
      */
-
-    void NormalVectorToScalarMap(
-            const Variable<array_1d<double,3> >& rOriginVar,
-            Variable<double> & rDestVar,
-            const int MaxIter,
-            const double TolIter,
-            const bool sign_pos
-            );
+    void NormalVectorToScalarMap(const Variable<array_1d<double,3> >& rOriginVar,
+                                 const Variable<double> & rDestVar,
+                                 const int MaxIter,
+                                 const double TolIter,
+                                 const bool sign_pos);
 
     /**
      * It maps a variable (scalar) from a model part to other
      * @param rOriginVar: The original value of the variable
-     * @return rDestVar: The variable in the destiny modelpart
-     * @return MaxIter: Maximum number of iteration allowed
-     * @return TolIter: Tolerance accepted in the iteration
-     * @return sign_pos: Positive or negative projection
+     * @param rDestVar: The variable in the destiny modelpart
+     * @param MaxIter: Maximum number of iteration allowed
+     * @param TolIter: Tolerance accepted in the iteration
+     * @param sign_pos: Positive or negative projection
      */
-
-    void ScalarMap(
-            const Variable<double> & rOriginVar,
-            Variable<double> & rDestVar,
-            const int MaxIter,
-            const double TolIter,
-            const bool sign_pos
-            );
+    void ScalarMap(const Variable<double> & rOriginVar,
+                   const Variable<double> & rDestVar,
+                   const int MaxIter,
+                   const double TolIter,
+                   const bool sign_pos);
 
     /**
      * It maps a variable (vector) from a model part to other
      * @param rOriginVar: The original value of the variable
-     * @return rDestVar: The variable in the destiny modelpart
-     * @return MaxIter: Maximum number of iteration allowed
-     * @return TolIter: Tolerance accepted in the iteration
-     * @return sign_pos: Positive or negative projection
+     * @param rDestVar: The variable in the destiny modelpart
+     * @param MaxIter: Maximum number of iteration allowed
+     * @param TolIter: Tolerance accepted in the iteration
+     * @param sign_pos: Positive or negative projection
      */
-
-    void VectorMap(
-            const Variable< array_1d<double,3> > & rOriginVar,
-            Variable< array_1d<double,3> > & rDestVar,
-            const int MaxIter,
-            const double TolIter,
-            const bool sign_pos,
-            const bool distributed
-            );
+    void VectorMap(const Variable< array_1d<double,3> > & rOriginVar,
+                   const Variable< array_1d<double,3> > & rDestVar,
+                   const int MaxIter,
+                   const double TolIter,
+                   const bool sign_pos);
 
     /**
      * It searches neighbours nodes in a specific radius
      * @param SearchRadiusFactor: The radius of search
-     * @return A value of a close Gauss point, or alternative
      */
-
     void FindNeighbours(double SearchRadiusFactor);
 
     ///@}
@@ -492,7 +458,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    const ModelPart& mrOriginModelPart; // The original model part
+    ModelPart& mrOriginModelPart;       // The original model part
     ModelPart& mrDestinationModelPart;  // The destination model part
     unsigned int mBucketSize;           // Bucket size for kd-tree
     GaussPointVector mGaussPointList;   // The list of Gauss points
@@ -510,99 +476,63 @@ private:
      * It calculates the normal and area of a condition
      * @param pCond: The pointer to the condition
      * @return Normal: The normal of the condition
-     * @return Area: The area of the condition
-     * @param dimension: 2D/3D case
      */
-
-    void CalcNormalAndArea(
-            const Condition::Pointer pCond,
-            array_1d<double,3>& Normal,
-            double& Area,
-            const int dimension
-            );
+    void ComputeConditionNormal(const Condition::Pointer pCond,
+                                array_1d<double,3>& Normal);
 
     /**
-     * It calculates the the center and raidus of a line
+     * It calculates the the center and radius of the condition
      * @param pCond: The pointer to the condition
      * @return Center: Center point (3D)
-     * @return Radius: The radius of the line (half lenght)
+     * @return Radius: Geometry radius
      */
-
-    void LineCenterAndRadius(
-            const Condition::Pointer pCond,
-            Point<3>& Center,
-            double& Radius
-            );
+    void ComputeGeometryCenterAndRadius(const Condition::Pointer pCond,
+                                        Point& Center,
+                                        double& Radius);
 
     /**
-     * It calculates the the center and radius of a triangle
-     * @param pCond: The pointer to the condition
-     * @return Center: Center point (3D)
-     * @return Radius: The radius of the line (half lenght)
-     */
-
-    void TriangleCenterAndRadius(
-            const Condition::Pointer pCond,
-            Point<3>& Center,
-            double& Radius
-            );
-
-    /**
-     * Desired outcome: It sets the projectioon of a Gauss node to a condition
+     * Desired outcome: It sets the projection of a Gauss node to a condition
      * @param GaussPoint: The origin Gauss Point
-     * @return pCandidateCond: The candidate condition
-     * @param Dist: The distance between the node and the Gauss Point
-     * @param dimension: 2D/3D case
+     * @param pCandidateCond: The candidate condition
      */
-
-    void SetProjectionToCond(
-            GaussPointItem& GaussPoint,
-            Condition::Pointer pCandidateCond,
-            const int dimension
-            );
+    void SetProjectionToCond(GaussPointItem& GaussPoint,
+                             Condition::Pointer pCandidateCond);
 
     /**
      * Alternative when no condition is available: It sets the projection of a Gauss point to a node
      * @param GaussPoint: The origin Gauss Point
-     * @return pCandidateNode: The candidate node
+     * @param pCandidateNode: The candidate node
      * @param Dist: The distance between the node and the Gauss Point
      */
-
-    void SetProjectionToNode(
-            GaussPointItem& GaussPoint,
-            Node<3>::Pointer pCandidateNode,
-            const double& Dist
-            );
+    void SetProjectionToNode(GaussPointItem& GaussPoint,
+                             Node<3>::Pointer pCandidateNode,
+                             const double& Dist);
 
     /**
-     *  Test function, stores the distance between a Gauss Point and its projection
+     * Test function, stores the distance between a Gauss Point and its projection
      */
-
     void DistanceCheck();
 
     /**
-     *  Auxiliar function to compute the nodal length/area of each node in both origin and destiny model parts.
+     * Auxiliar function to compute the nodal length/area of each node in both origin and destiny model parts.
      */
-
     void ComputeNodalLengthArea();
-    
+
     /**
-     *  Auxiliar function to compute the equivalent nodal tractions to point loads minimizing the L2 norm of the error.
+     * Auxiliar function to compute the equivalent nodal tractions to point loads minimizing the L2 norm of the error.
+     * @param rOriginVar: Origin variable to be converted to tractions
+     * @param MaxIter: Maximum iterations
+     * @param TolIter: Absolute tolerance
      */
-    
-    void ComputeEquivalentTractions(
-            const Variable<array_1d<double,3> >& rOriginVar,
-            const int MaxIter,
-            const double TolIter
-            );
-    
+    void ComputeEquivalentTractions(const Variable<array_1d<double,3> >& rOriginVar,
+                                    const int MaxIter,
+                                    const double TolIter);
+
     /**
-     *  Auxiliar function to compute the equivalent nodal tractions to point loads minimizing the L2 norm of the error.
+     * Auxiliar function to recover punctual loads from equivalent tractions.
+     * @param rOriginVar: Destination variable to store the recovered nodal values
      */
-    
-    void ComputeNodalLoadsFromTractions(
-            const Variable<array_1d<double,3> >& rDestVar
-            );
+    void ComputeNodalLoadsFromTractions(const Variable<array_1d<double,3> >& rDestVar);
 
     ///@}
     ///@name Private  Access

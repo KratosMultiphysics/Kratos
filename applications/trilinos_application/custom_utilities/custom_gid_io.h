@@ -90,8 +90,8 @@ public:
         :BaseType( gp_title, geometryFamily, gid_element_type, number_of_integration_points,
                    index_container) {}
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int parameter_index )
+    void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
+                               double SolutionTag, unsigned int parameter_index ) override
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -116,7 +116,11 @@ public:
                 for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                         it != mMeshElements.end(); it++ )
                 {
-                    if( ! it->GetValue( IS_INACTIVE ) )
+                    bool element_is_active = true;
+                    if ((it)->IsDefined(ACTIVE))
+                        element_is_active = (it)->Is(ACTIVE);
+
+                    if (element_is_active)
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
@@ -133,7 +137,11 @@ public:
                 for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
                         it != mMeshConditions.end(); it++ )
                 {
-                    if( ! it->GetValue( IS_INACTIVE ) )
+                    bool element_is_active = true;
+                    if ((it)->IsDefined(ACTIVE))
+                        element_is_active = (it)->Is(ACTIVE);
+
+                    if (element_is_active)
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
@@ -149,13 +157,13 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int value_index )
+    void PrintResults( GiD_FILE ResultFile, Variable<int> rVariable, ModelPart& r_model_part,
+                       double SolutionTag, unsigned int value_index ) override
     {
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part, double
-                               SolutionTag, unsigned int parameter_index )
+    void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part, double
+                       SolutionTag, unsigned int parameter_index ) override
     {
         if( mMeshConditions.size() != 0 )
         {
@@ -169,7 +177,11 @@ public:
             for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
                     it != mMeshConditions.end(); it++ )
             {
-                if( ! it->GetValue( IS_INACTIVE ) )
+                bool element_is_active = true;
+                if ((it)->IsDefined(ACTIVE))
+                    element_is_active = (it)->Is(ACTIVE);
+
+                if (element_is_active)
                 {
                     it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                      r_model_part.GetProcessInfo() );
@@ -185,8 +197,8 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& r_model_part,
-                               double SolutionTag, unsigned int parameter_index )
+    void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& r_model_part,
+                       double SolutionTag, unsigned int parameter_index ) override
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -212,7 +224,11 @@ public:
                 for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                         it != mMeshElements.end(); ++it )
                 {
-                    if( ! it->GetValue( IS_INACTIVE ) )
+                    bool element_is_active = true;
+                    if ((it)->IsDefined(ACTIVE))
+                        element_is_active = (it)->Is(ACTIVE);
+
+                    if (element_is_active)
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
@@ -247,7 +263,11 @@ public:
                 for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
                         it != mMeshConditions.end(); it++ )
                 {
-                    if( ! it->GetValue( IS_INACTIVE ) )
+                    bool element_is_active = true;
+                    if ((it)->IsDefined(ACTIVE))
+                        element_is_active = (it)->Is(ACTIVE);
+
+                    if (element_is_active)
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
@@ -295,8 +315,12 @@ public:
                 for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                         it != mMeshElements.end(); ++it )
                 {
-                    if( ! it->GetValue( IS_INACTIVE ) )
-                    {
+                    bool element_is_active = true;
+                    if ((it)->IsDefined(ACTIVE))
+                        element_is_active = (it)->Is(ACTIVE);
+
+                    if (element_is_active)
+              {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
@@ -327,7 +351,11 @@ public:
                 for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
                         it != mMeshConditions.end(); it++ )
                 {
-                    if( ! it->GetValue( IS_INACTIVE ) )
+                    bool element_is_active = true;
+                    if ((it)->IsDefined(ACTIVE))
+                        element_is_active = (it)->Is(ACTIVE);
+
+                    if (element_is_active)
                     {
                         it->GetValueOnIntegrationPoints( rVariable, ValuesOnIntPoint,
                                                          r_model_part.GetProcessInfo() );

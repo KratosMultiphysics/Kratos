@@ -1,54 +1,42 @@
 # import Kratos
-from KratosMultiphysics import *
-from KratosMultiphysics.PfemBaseApplication import *
-from KratosMultiphysics.ContactMechanicsApplication import *
+import KratosMultiphysics
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
-from generalTests import KratosContactMechanicsGeneralTests
+# Import the tests o test_classes to create the suits:
 
+# SMALL TESTS
+import SmallTests
+# NIGTHLY TESTS
+import NightTests
+# VALIDATION TESTS
+import ValidationTests
 
-def AssambleTestSuites():
-    ''' Populates the test suites to run.
+def AssembleTestSuites():
 
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
-
-    Return
-    ------
-
-    suites: A dictionary of suites
-        The set of suites with its test_cases added.
-    '''
-
+    # Suites to run
     suites = KratosUnittest.KratosSuites
 
-    # Create a test suit with the selected tests (Small tests):
-    # smallSuite will contain the following tests:
-    # - testSmallExample
-    smallSuite = suites['small']
-    smallSuite.addTest(KratosContactMechanicsGeneralTests('testSmallExample'))
+    # SMALL TESTS
+    small_suite = SmallTests.SetTestSuite(suites)
 
-    # Create a test suit with the selected tests
-    # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
-    nightSuite = suites['nightly']
-    nightSuite.addTests(KratosContactMechanicsGeneralTests)
+    # NIGTHLY TESTS
+    night_suite = NightTests.SetTestSuite(suites)
 
-    # Create a test suit that contains all the tests from every testCase
-    # in the list:
-    allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosContactMechanicsGeneralTests
-        ])
-    )
+    # inlude small suite in night suite
+    night_suite.addTests(small_suite)
+
+    # VALIDATION TESTS
+    validation_suite = ValidationTests.SetTestSuite(suites)
+
+    # ALL TESTS
+    all_suite = suites['all']
+
+    all_suite.addTests(night_suite)
+    all_suite.addTests(validation_suite)
 
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())

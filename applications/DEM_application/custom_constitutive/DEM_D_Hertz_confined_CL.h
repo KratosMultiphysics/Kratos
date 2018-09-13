@@ -11,7 +11,7 @@ namespace Kratos {
     
     class SphericParticle;
 
-    class DEM_D_Hertz_confined : public DEM_D_Hertz_viscous_Coulomb { 
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Hertz_confined : public DEM_D_Hertz_viscous_Coulomb { 
     
     public:
         KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Hertz_confined);
@@ -22,11 +22,13 @@ namespace Kratos {
 
         //void Initialize(const ProcessInfo& r_process_info);
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
         
-        double CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation, double LocalCoordSystem[3][3]);
+        using DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce;
+        
+        double CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation, double LocalCoordSystem[3][3]) override;
             
-        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const;  
+        DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;  
 
     }; //class DEM_D_Hertz_confined
 

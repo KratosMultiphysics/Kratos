@@ -44,22 +44,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last modified by:    $Author:  $
+//   Last modified by:    $Author:  G. Casas$
 //   Date:                $Date: $
 //   Revision:            $Revision: 1.3 $
 //
 //
+#if defined(KRATOS_PYTHON)
 
 // System includes
+#include <pybind11/pybind11.h>
 
-#if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "swimming_DEM_application.h"
+#include "swimming_dem_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
@@ -70,25 +70,22 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-BOOST_PYTHON_MODULE(KratosSwimmingDEMApplication)
+PYBIND11_MODULE(KratosSwimmingDEMApplication, m)
 {
+    class_<KratosSwimmingDEMApplication, KratosSwimmingDEMApplication::Pointer, KratosApplication>(m, "KratosSwimmingDEMApplication")
+        .def(init<>())
+        ;
 
-    class_<KratosSwimmingDEMApplication,
-           KratosSwimmingDEMApplication::Pointer,
-           bases<KratosApplication>, boost::noncopyable >("KratosSwimmingDEMApplication")
-           ;
-
-    AddCustomStrategiesToPython();
-    AddCustomUtilitiesToPython();
+    AddCustomStrategiesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
     //registering variables in python
-   
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
-    
-}
 
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AVERAGED_FLUID_VELOCITY)
+
+}
 
 }  // namespace Python.
 

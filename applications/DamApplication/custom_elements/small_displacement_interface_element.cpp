@@ -1,9 +1,16 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:              L Gracia $
-//   Date:                $Date:              March 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//                   Lorenzo Gracia
+//
+
 
 // Application includes
 #include "custom_elements/small_displacement_interface_element.hpp" 
@@ -171,12 +178,12 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix( Mat
     //Defining necessary variables
     double IntegrationCoefficient;
     const double Density = Prop[DENSITY];
-    boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nut = ZeroMatrix(TDim, TNumNodes*TDim);
+    BoundedMatrix<double,TDim, TNumNodes*TDim> Nut = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TNumNodes*TDim> DisplacementVector;
-    ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+    PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
+    BoundedMatrix<double,TDim, TDim> RotationMatrix;
     this->CalculateRotationMatrix(RotationMatrix,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+    BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> LocalRelDispVector;
     array_1d<double,TDim> RelDispVector;
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
@@ -245,10 +252,10 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Pr
     const GeometryType& Geom = this->GetGeometry();
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     array_1d<double,TNumNodes*TDim> DisplacementVector;
-    ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+    PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
+    BoundedMatrix<double,TDim, TDim> RotationMatrix;
     this->CalculateRotationMatrix(RotationMatrix,Geom);
-    boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+    BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> RelDispVector;
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
     double JointWidth;
@@ -285,7 +292,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Pr
         
         JointWidthContainer[GPoint] = mInitialGap[GPoint] + StrainVector[TDim-1];
         
-        this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint); //TODO PORQUE ES TDim -1
+        this->CheckAndCalculateJointWidth(JointWidth, ConstitutiveParameters, StrainVector[TDim-1], MinimumJointWidth, GPoint);
         
         noalias(Np) = row(NContainer,GPoint);
         
@@ -627,7 +634,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SmallDisplacementInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
                                                                                     std::vector<array_1d<double,3>>& rValues,const ProcessInfo& rCurrentProcessInfo)
 {
-    if(rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR ) // TODO: FLAGS ESPECIALES???
+    if(rVariable == LOCAL_STRESS_VECTOR || rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR )
     {
         //Variables computed on Lobatto points
         const GeometryType& Geom = this->GetGeometry();
@@ -675,10 +682,10 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
         const GeometryType& Geom = this->GetGeometry();
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         array_1d<double,TNumNodes*TDim> DisplacementVector;
-        ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
         array_1d<double,TDim> RelDispVector;
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
         double JointWidth;
@@ -720,7 +727,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
             
             noalias(LocalStressVector) = StressVectorDynamic;
             
-            ElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalStressVector);
+            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalStressVector);
         }
     }
     else if(rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR)
@@ -729,10 +736,10 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
         const GeometryType& Geom = this->GetGeometry();
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         array_1d<double,TNumNodes*TDim> DisplacementVector;
-        ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TDim> RotationMatrix;
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
+        BoundedMatrix<double,TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix,Geom);
-        boost::numeric::ublas::bounded_matrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
+        BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
         array_1d<double,TDim> LocalRelDispVector;
         array_1d<double,TDim> RelDispVector;
                 
@@ -745,7 +752,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
             
             noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
                         
-            ElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalRelDispVector);
+            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalRelDispVector);
         }
     }
         
@@ -961,7 +968,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType
         this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim-1], MinimumJointWidth, GPoint);
         
         //Compute BodyAcceleration
-        ElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+        PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
                
         //Compute constitutive tensor and stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
@@ -1024,7 +1031,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorType
 
         
         //Compute BodyAcceleration
-        ElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+        PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
 
         //Compute constitutive tensor and stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
@@ -1050,8 +1057,8 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::InitializeElementVariabl
     //Properties variables    
     rVariables.Density = Prop[DENSITY];
 
-    ElementUtilities::GetDisplacementsVector(rVariables.DisplacementVector,Geom);
-    ElementUtilities::GetVolumeAccelerationVector(rVariables.VolumeAcceleration,Geom);
+    PoroElementUtilities::GetNodalVariableVector(rVariables.DisplacementVector,Geom,DISPLACEMENT);
+    PoroElementUtilities::GetNodalVariableVector(rVariables.VolumeAcceleration,Geom,VOLUME_ACCELERATION);
     
     //General Variables
     this->CalculateRotationMatrix(rVariables.RotationMatrix,Geom);
@@ -1082,7 +1089,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::InitializeElementVariabl
 //----------------------------------------------------------------------------------------
 
 template<>
-void SmallDisplacementInterfaceElement<2,4>::CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,2,2>& rRotationMatrix, const GeometryType& Geom)
+void SmallDisplacementInterfaceElement<2,4>::CalculateRotationMatrix(BoundedMatrix<double,2,2>& rRotationMatrix, const GeometryType& Geom)
 {
     KRATOS_TRY
     
@@ -1102,9 +1109,36 @@ void SmallDisplacementInterfaceElement<2,4>::CalculateRotationMatrix(boost::nume
     //Rotation Matrix
     rRotationMatrix(0,0) = Vx[0];
     rRotationMatrix(0,1) = Vx[1];
+        
+    // We need to determine the unitary vector in local y direction pointing towards the TOP face of the joint
     
-    rRotationMatrix(1,0) = -Vx[1];
-    rRotationMatrix(1,1) = Vx[0];
+    // Unitary vector in local x direction (3D)
+    array_1d<double, 3> Vx3D;
+    Vx3D[0] = Vx[0];
+    Vx3D[1] = Vx[1];
+    Vx3D[2] = 0.0;
+    
+    // Unitary vector in local y direction (first option)
+    array_1d<double, 3> Vy3D;
+    Vy3D[0] = -Vx[1];
+    Vy3D[1] = Vx[0];
+    Vy3D[2] = 0.0;
+    
+    // Vector in global z direction (first option)
+    array_1d<double, 3> Vz;
+    MathUtils<double>::CrossProduct(Vz, Vx3D, Vy3D);
+    
+    // Vz must have the same sign as vector (0,0,1)
+    if(Vz[2] > 0.0)
+    {
+        rRotationMatrix(1,0) = -Vx[1];
+        rRotationMatrix(1,1) = Vx[0];
+    }
+    else
+    {
+        rRotationMatrix(1,0) = Vx[1];
+        rRotationMatrix(1,1) = -Vx[0];
+    }
     
     KRATOS_CATCH( "" )
 }
@@ -1112,7 +1146,7 @@ void SmallDisplacementInterfaceElement<2,4>::CalculateRotationMatrix(boost::nume
 //----------------------------------------------------------------------------------------
 
 template<>
-void SmallDisplacementInterfaceElement<3,6>::CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
+void SmallDisplacementInterfaceElement<3,6>::CalculateRotationMatrix(BoundedMatrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
 {
     KRATOS_TRY
     
@@ -1164,7 +1198,7 @@ void SmallDisplacementInterfaceElement<3,6>::CalculateRotationMatrix(boost::nume
 //----------------------------------------------------------------------------------------
 
 template<>
-void SmallDisplacementInterfaceElement<3,8>::CalculateRotationMatrix(boost::numeric::ublas::bounded_matrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
+void SmallDisplacementInterfaceElement<3,8>::CalculateRotationMatrix(BoundedMatrix<double,3,3>& rRotationMatrix, const GeometryType& Geom)
 {
     KRATOS_TRY
     
@@ -1301,7 +1335,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
     noalias(rVariables.DimMatrix) = prod(trans(rVariables.RotationMatrix),
-                                        boost::numeric::ublas::bounded_matrix<double,TDim,TDim>(prod(rVariables.ConstitutiveMatrix,
+                                        BoundedMatrix<double,TDim,TDim>(prod(rVariables.ConstitutiveMatrix,
                                         rVariables.RotationMatrix)));
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),rVariables.DimMatrix); 
     noalias(rVariables.UMatrix) = prod(rVariables.UDimMatrix,rVariables.Nu)*rVariables.IntegrationCoefficient;

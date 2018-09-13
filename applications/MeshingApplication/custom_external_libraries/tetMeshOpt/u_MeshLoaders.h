@@ -41,10 +41,10 @@ private :
 	char* fLastLoaded;
 public :
 	TSurLoader(){ return; }
-	~TSurLoader(){return; }
-	virtual bool save(const char* filename, TMesh* aMesh , int flags = 0);
+	~TSurLoader() override{return; }
+	bool save(const char* filename, TMesh* aMesh , int flags = 0) override;
 
-	virtual TMesh* load(const char* aMeshName)
+	TMesh* load(const char* aMeshName) override
 	{ 
 		std :: cout << "Sur format Loader not implemented "<< "\n";
 		return nil; 
@@ -57,19 +57,19 @@ private :
 	char* fLastLoaded;
 public :
 	TVMWLoader(){ return; }
-	~TVMWLoader(){return; }
+	~TVMWLoader() override{return; }
 
-	virtual bool save(const char* aMeshName, TMesh* aMesh , int flags = 0);
+	bool save(const char* aMeshName, TMesh* aMesh , int flags = 0) override;
 
-	virtual TMesh* load(const char* aMeshName);
+	TMesh* load(const char* aMeshName) override;
 
 };
 
 class TElementTetraLoader : public TMeshLoader
 {
 public :
-	virtual TMesh* load(const char* aMeshName){ return NULL;};
-	virtual bool save(const char* aMeshName, TMesh* aMesh , int flags = 0);
+	TMesh* load(const char* aMeshName) override{ return nullptr;};
+	bool save(const char* aMeshName, TMesh* aMesh , int flags = 0) override;
 
 };
 
@@ -79,11 +79,11 @@ private :
 	char* fLastLoaded;
 public :
 	TGIDLoad(){ return; }
-	~TGIDLoad(){return; }
+	~TGIDLoad() override{return; }
 
-	virtual bool save(const char* aMeshName, TMesh* aMesh , int flags = 0);
+	bool save(const char* aMeshName, TMesh* aMesh , int flags = 0) override;
 	
 
-	virtual TMesh* load(const char* aMeshName);
+	TMesh* load(const char* aMeshName) override;
 
 };

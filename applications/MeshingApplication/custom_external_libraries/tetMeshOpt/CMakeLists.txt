@@ -18,8 +18,15 @@ set( MESH_OPT
 	${CMAKE_CURRENT_SOURCE_DIR}/u_tools.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/u_Types.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/u_MeshSmooth.cpp	
-	${CMAKE_CURRENT_SOURCE_DIR}/u_TetGenInterface.cpp
+	
      )
+
+if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+    set( KRATOS_MESHING_APPLICATION_SOURCES    
+        ${KRATOS_MESHING_APPLICATION_SOURCES}
+	${CMAKE_CURRENT_SOURCE_DIR}/u_TetGenInterface.cpp
+	)
+endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
 
 ###############################################################
 ##removing optimizations

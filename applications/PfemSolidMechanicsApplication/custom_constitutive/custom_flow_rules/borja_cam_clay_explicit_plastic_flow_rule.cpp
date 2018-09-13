@@ -91,6 +91,7 @@ namespace Kratos
 
       rKirchhoffStressVector += MeanStress*IdentityVector;
 
+      
    }
 
    // ************ EVALUATE ONLY THE VOLUMETRIC PART OF THE HYPERELASTIC MODEL ****
@@ -201,34 +202,33 @@ namespace Kratos
 
 
 
-      StressVector = rElasticStrainVector;
+      Vector StrainVector = rElasticStrainVector; 
       for (unsigned int i = 0; i < 3; ++i)
-         StressVector(i) -= VolumetricStrain / 3.0;
+         StrainVector(i) -= VolumetricStrain / 3.0;
 
-
-      StressVector = StressVector * 2.0*ReferencePressure * exp(-VolumetricStrain/SwellingSlope) * AlphaShear;
+      double Modulus = 2.0 * ReferencePressure * exp( - VolumetricStrain/SwellingSlope) * ( AlphaShear / SwellingSlope);
 
       for (unsigned int i = 3; i < 6 ; ++i)
-         StressVector(i) /= 2.0;
+         StrainVector(i) /= 2.0;
 
 
       // PARTE ASQUEROSA
       for (unsigned int i = 0; i<3; ++i) {
          for (unsigned int j = 0; j<3; ++j) {
-            rElasticMatrix(i,j) -= (1.0/SwellingSlope)* (StressVector(i) ); //-MeanStress);
-            rElasticMatrix(i,j) -= (1.0/SwellingSlope)* (StressVector(j) ); //-MeanStress);
+            rElasticMatrix(i,j) -= Modulus * (StrainVector(i) ); //-MeanStress);
+            rElasticMatrix(i,j) -= Modulus * (StrainVector(j) ); //-MeanStress);
          }
       }
 
       for (unsigned int i = 0; i<3; ++i) {
          for (unsigned int j = 3; j < 6; ++j) {
-            rElasticMatrix(i,j) -= 1.0*(1.0/SwellingSlope)*(StressVector(j));///2.0;
+            rElasticMatrix(i,j) -= Modulus*(StrainVector(j));///2.0;
          }
       }
 
       for (unsigned int i = 3; i<6; ++i) {
          for (unsigned int j = 0; j<3; ++j) {
-            rElasticMatrix(i,j) -= 1.0*(1.0/SwellingSlope)*(StressVector(i));///2.0;
+            rElasticMatrix(i,j) -= Modulus*(StrainVector(i));///2.0;
          }
       }
 
@@ -340,12 +340,12 @@ namespace Kratos
    
    void BorjaCamClayExplicitFlowRule::save( Serializer& rSerializer) const 
    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FlowRule )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonAssociativeExplicitPlasticFlowRule )
    }
 
    void BorjaCamClayExplicitFlowRule::load( Serializer& rSerializer)
    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FlowRule )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonAssociativeExplicitPlasticFlowRule )
 
    }
 

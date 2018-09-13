@@ -1,92 +1,74 @@
 # ==============================================================================
-'''
- KratosShapeOptimizationApplication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Daniel Baumgaertner
-                     daniel.baumgaertner@tum.de
-                     Chair of Structural Analysis
-                     Technische Universitaet Muenchen
-                     Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-'''
-#==============================================================================
+#  KratosShapeOptimizationApplication
 #
-#   Project Name:        KratosShape                            $
-#   Created by:          $Author:    daniel.baumgaertner@tum.de $
-#                        $Author:           armin.geiser@tum.de $
-#   Date:                $Date:                   December 2016 $
-#   Revision:            $Revision:                         0.0 $
+#  License:         BSD License
+#                   license: ShapeOptimizationApplication/license.txt
+#
+#  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
+#                   Geiser Armin, https://github.com/armingeiser
 #
 # ==============================================================================
 
-# ------------------------------------------------------------------------------
-# Imports
-# ------------------------------------------------------------------------------
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
+import structural_response_function_factory
 
 # ==============================================================================
-def CreateSolver(model_part, opt_settings):
+def CreateListOfResponseFunctions( optimization_settings, optimization_model_part ):
+    list_of_response_functions = {}
+    response_creator = ResponseFunctionCreator( optimization_settings, optimization_model_part )
+    response_creator.AddSpecifiedKratosResponseFunctionsToList( list_of_response_functions )
+    return list_of_response_functions
 
-    # Dictionary to store solvers of all response functions defined in the optimization settings
-    solver = {}
+# ==============================================================================
+class ResponseFunctionCreator:
+    # --------------------------------------------------------------------------
+    def __init__( self, optimization_settings, optimization_model_part ):
+        self.optimization_settings = optimization_settings
+        self.optimization_model_part = optimization_model_part
 
-    # Collect all responses
-    specified_responses = {}
-    for response_id in opt_settings.objectives:
-        specified_responses[response_id] = opt_settings.objectives[response_id]
+     # --------------------------------------------------------------------------
+    def AddSpecifiedKratosResponseFunctionsToList( self, list_of_response_functions ):
+        self.list_of_response_functions = list_of_response_functions
+        self.__AddObjectivesToListOfResponseFunctions()
+        self.__AddConstraintsToListOfResponseFunctions()
 
-    if not specified_responses:
-        raise ValueError("No objective function specified!")
+    # --------------------------------------------------------------------------
+    def __AddObjectivesToListOfResponseFunctions( self ):
+        for objective_number in range(self.optimization_settings["objectives"].size()):
+            objective = self.optimization_settings["objectives"][objective_number]
+            objective_id = objective["identifier"].GetString()
+            if objective["use_kratos"].GetBool():
+                self.__CheckIfGivenResponseFunctionIsAlreadyDefined( objective_id )
+                self.__CreateAndAddGivenResponse( objective_id, objective["kratos_response_settings"] )
 
-    for response_id in opt_settings.constraints:
-        specified_responses[response_id] = opt_settings.constraints[response_id]
+        if not self.list_of_response_functions:
+            raise ValueError("No objective function specified!")
 
-    # Creat response function solver according to specified settings and add relevant variables
-    in_active_responses = True
-    if "strain_energy" in specified_responses.keys():
-        in_active_responses = False
-        model_part.AddNodalSolutionStepVariable(STRAIN_ENERGY_SHAPE_GRADIENT)
-        solver["strain_energy"] = StrainEnergyResponseFunction(model_part, specified_responses["strain_energy"])
-    if "mass" in specified_responses.keys():
-        in_active_responses = False
-        model_part.AddNodalSolutionStepVariable(MASS_SHAPE_GRADIENT)
-        solver["mass"] = MassResponseFunction(model_part, specified_responses["mass"])        
-    if in_active_responses:
-        raise ValueError("Specified response function not implemented. Implemented response functions are: \"strain_energy\", \"mass\"")
+    # --------------------------------------------------------------------------
+    def __AddConstraintsToListOfResponseFunctions( self ):
+        for constraint_number in range(self.optimization_settings["constraints"].size()):
+            constraint = self.optimization_settings["constraints"][constraint_number]
+            constraint_id = constraint["identifier"].GetString()
+            if constraint["use_kratos"].GetBool():
+                self.__CheckIfGivenResponseFunctionIsAlreadyDefined( constraint_id )
+                self.__CreateAndAddGivenResponse( constraint_id, constraint["kratos_response_settings"] )
 
-    return solver
+    # --------------------------------------------------------------------------
+    def __CheckIfGivenResponseFunctionIsAlreadyDefined( self, response_id ):
+        if response_id in self.list_of_response_functions.keys():
+            raise NameError("There are multiple response functions with the following identifier: " + response_id)
+
+    # --------------------------------------------------------------------------
+    def __CreateAndAddGivenResponse( self, response_id, response_settings ):
+        response_type = response_settings["response_type"].GetString()
+        if response_type in ["strain_energy", "mass", "eigenfrequency"]:
+            self.list_of_response_functions[response_id] = structural_response_function_factory.CreateResponseFunction(response_id, response_settings, self.optimization_model_part)
+        else:
+            raise NameError("The following response function is not available for optimization: " + response_id)
 
 # ==============================================================================

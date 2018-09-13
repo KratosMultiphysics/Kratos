@@ -91,10 +91,10 @@ public:
     ///@{
 
     /// Default constructor.
-    BinBasedMeshTransfer() {} //
+    BinBasedMeshTransfer() = default; //
 
     /// Destructor.
-    virtual ~BinBasedMeshTransfer() {}
+    virtual ~BinBasedMeshTransfer() = default;
 
 
     ///@}
@@ -171,7 +171,7 @@ public:
         {
             ModelPart::NodesContainerType::iterator iparticle = rMoving_ModelPart.NodesBegin() + i;
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
-            typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+            auto result_begin = results.begin();
             Element::Pointer pelement;
 
             bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
@@ -249,7 +249,7 @@ public:
             ModelPart::NodesContainerType::iterator iparticle = rMoving_ModelPart.NodesBegin() + i;
 
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
-            typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+            auto result_begin = results.begin();
 
             Element::Pointer pelement;
 
@@ -324,10 +324,6 @@ public:
         }
 
         //defintions for spatial search
-//         typedef typename BinBasedNodesInElementLocator<TDim>::PointType PointType;
-//         typedef typename PointType::Pointer PointTypePointer;
-        typedef typename BinBasedNodesInElementLocator<TDim>::PointIterator PointIterator;
-//         typedef typename BinBasedNodesInElementLocator<TDim>::DistanceIterator DistanceIterator;
         typedef typename BinBasedNodesInElementLocator<TDim>::PointVector PointVector;
         typedef typename BinBasedNodesInElementLocator<TDim>::DistanceVector DistanceVector;
         const unsigned int max_results = 5000;
@@ -341,7 +337,7 @@ public:
             unsigned int nfound = node_locator.FindNodesInElement(*(elem_it.base()), positions, Nmat, max_results, work_results.begin(), work_distances.begin(), work_point);
             for(unsigned int k=0; k<nfound; k++)
             {
-                PointIterator it = work_results.begin() + positions[k];
+                auto it = work_results.begin() + positions[k];
 
 
                 array_1d<double,TDim+1> N = row(Nmat,k);

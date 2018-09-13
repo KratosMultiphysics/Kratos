@@ -28,8 +28,6 @@
 
 #define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
-//#include "boost/smart_ptr.hpp"
-
 /* Project includes */
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
@@ -51,7 +49,7 @@
 
 namespace Kratos {
 
-    class AdamsBashforthStrategy: public ExplicitSolverStrategy {
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) AdamsBashforthStrategy: public ExplicitSolverStrategy {
     public:
 
         typedef ExplicitSolverStrategy BaseType;
@@ -85,7 +83,6 @@ namespace Kratos {
                 const int delta_option,
                 ParticleCreatorDestructor::Pointer p_creator_destructor,
                 DEM_FEM_Search::Pointer p_dem_fem_search,
-                DEMIntegrationScheme::Pointer pScheme,
                 SpatialSearch::Pointer pSpSearch,
                 const bool do_search_balls = true):
                 ExplicitSolverStrategy(settings,
@@ -95,7 +92,6 @@ namespace Kratos {
                                        delta_option,
                                        p_creator_destructor,
                                        p_dem_fem_search,
-                                       pScheme,
                                        pSpSearch,
                                        do_search_balls)
         {
@@ -108,7 +104,7 @@ namespace Kratos {
             Timer::PrintTimingInformation();
         }
 
-        double Solve();
+        double Solve() override;
 
     protected:
 

@@ -1,7 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 ## generate variables with the sources
-set( GIDPOST_SOURCES     
+set( GIDPOST_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/source/gidpost.c
  	${CMAKE_CURRENT_SOURCE_DIR}/source/gidpostInt.c
  	${CMAKE_CURRENT_SOURCE_DIR}/source/gidpostHash.c
@@ -11,6 +11,8 @@ set( GIDPOST_SOURCES
      )
 ##gidpostfor.c gidpostforAPI.c
 
+add_definitions(-DNDEBUG)
+message("WARNING: YOUR GIDPOST IS BEING COMPILED  WITHOUT DEBUG (ALL ASSERTS WILL BE AVOIDED)")
 add_definitions( -DUSE_CONST )
 add_definitions( -w )
 
@@ -28,7 +30,7 @@ if (HDF5)
   target_link_libraries(gidpost ${HDF5_LIBRARIES})
 endif (HDF5)
 
-target_link_libraries(gidpost zlib)
+target_link_libraries(gidpost ${ZLIB_LIBRARIES})
 
 find_package( Threads )
 if ( Threads_FOUND )
@@ -38,4 +40,3 @@ endif (Threads_FOUND)
 if (UNIX)
   target_link_libraries(gidpost m)
 endif (UNIX)
-

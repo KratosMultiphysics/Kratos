@@ -1,0 +1,9 @@
+{
+	"mapper_settings": [
+    {
+		"mapper_type": "nearest_neighbor",
+		"interface_submodel_part_origin": "SurfaceLoad3D_mapping_surface_tri",
+		"interface_submodel_part_destination": "SurfaceLoad3D_mapping_surface_quad"
+	}
+ ]
+}

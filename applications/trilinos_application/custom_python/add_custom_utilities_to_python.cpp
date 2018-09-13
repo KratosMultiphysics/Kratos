@@ -1,54 +1,16 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: janosch $
-//   Date:                $Date: 2008-04-28 16:19:49 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//
-
 
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 #include "Epetra_MpiComm.h"
 #include "Epetra_FECrsMatrix.h"
 #include "Epetra_FEVector.h"
@@ -60,8 +22,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Application includes
 #include "trilinos_space.h"
-#include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/trilinos_pointer_wrapper.h"
+#include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
@@ -70,22 +33,58 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/trilinos_fractional_step_settings_periodic.h"
 #include "custom_utilities/gather_modelpart_utility.h"
 #include "custom_utilities/mpi_normal_calculation_utilities.h"
+#include "custom_utilities/trilinos_partitioned_fsi_utilities.h"
+#include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
+
+// External includes
+#include "../FSIapplication/custom_utilities/convergence_accelerator.hpp"
+#include "../FSIapplication/custom_utilities/aitken_convergence_accelerator.hpp"
 
 namespace Kratos
 {
 namespace Python
 {
-using namespace boost::python;
+using namespace pybind11;
 
-void  AddCustomUtilitiesToPython()
+typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
+
+template <unsigned int TDim>
+void AuxiliarUpdateInterfaceValues(
+    TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, TDim> &dummy,
+    ModelPart &rModelPart,
+    const Variable<array_1d<double, 3>> &rSolutionVariable,
+    AuxiliaryVectorWrapper &rCorrectedGuess)
 {
-    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
-    typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
+    dummy.UpdateInterfaceValues(rModelPart, rSolutionVariable, rCorrectedGuess.GetReference());
+}
 
-    class_<TrilinosDeactivationUtility, boost::noncopyable >
-    ("TrilinosDeactivationUtility",
-     init<>() )
+template <unsigned int TDim>
+void AuxiliarComputeInterfaceResidualVector(
+    TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, TDim> &dummy,
+    ModelPart &rInterfaceModelPart,
+    const Variable<array_1d<double, 3>> &rOriginalVariable,
+    const Variable<array_1d<double, 3>> &rModifiedVariable,
+    AuxiliaryVectorWrapper &rInterfaceResidual)
+{
+    dummy.ComputeInterfaceResidualVector(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, rInterfaceResidual.GetReference());
+}
+
+void AuxiliarUpdateSolution(
+    ConvergenceAccelerator<TrilinosSparseSpaceType> &dummy,
+    AuxiliaryVectorWrapper &rResidualVector,
+    AuxiliaryVectorWrapper &rIterationGuess)
+{
+    dummy.UpdateSolution(rResidualVector.GetReference(), rIterationGuess.GetReference());
+}
+
+void  AddCustomUtilitiesToPython(pybind11::module& m)
+{
+
+    class_<TrilinosDeactivationUtility >
+    (m,"TrilinosDeactivationUtility")
+    .def(init<>() )
     .def("Deactivate", &TrilinosDeactivationUtility::Deactivate )
     .def("Reactivate", &TrilinosDeactivationUtility::Reactivate )
     .def("ReactivateStressFree", &TrilinosDeactivationUtility::ReactivateStressFree )
@@ -93,25 +92,23 @@ void  AddCustomUtilitiesToPython()
     .def("Initialize", &TrilinosDeactivationUtility::Initialize )
     ;
 
-    class_<ParallelFillCommunicator, boost::noncopyable >
-    ("ParallelFillCommunicator",
-     init<ModelPart& >() )
+    class_<ParallelFillCommunicator >
+    (m,"ParallelFillCommunicator")
+    .def(init<ModelPart& >() )
     .def("Execute", &ParallelFillCommunicator::Execute )
     .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
     ;
 
-    class_<TrilinosCuttingApplication, boost::noncopyable >
-    ("TrilinosCuttingApplication",
-     init< Epetra_MpiComm& >() )
+    class_<TrilinosCuttingApplication>(m,"TrilinosCuttingApplication").def(init< Epetra_MpiComm& >() )
     .def("FindSmallestEdge", &TrilinosCuttingApplication::FindSmallestEdge )
     .def("GenerateCut", &TrilinosCuttingApplication::GenerateCut )
     .def("AddSkinConditions", &TrilinosCuttingApplication::AddSkinConditions )
+    .def("AddVariablesToCutModelPart", &TrilinosCuttingApplication::AddVariablesToCutModelPart )
     .def("UpdateCutData", &TrilinosCuttingApplication::UpdateCutData )
     ;
 
-    class_<TrilinosCuttingIsosurfaceApplication,boost::noncopyable >
-    ("TrilinosCuttingIsosurfaceApplication",
-     init< Epetra_MpiComm& >() )
+    class_<TrilinosCuttingIsosurfaceApplication >
+    (m,"TrilinosCuttingIsosurfaceApplication").def(init< Epetra_MpiComm& >() )
     .def("GenerateScalarVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut<double>)
     //.def("GenerateVectorialComponentVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
     //.def("GenerateVectorialVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut< array_1d < double, 3 > >)
@@ -120,9 +117,7 @@ void  AddCustomUtilitiesToPython()
     .def("DeleteCutData", &TrilinosCuttingIsosurfaceApplication::DeleteCutData)
     ;
 
-    class_<TrilinosRefineMesh, boost::noncopyable >
-    ("TrilinosRefineMesh",
-     init<ModelPart& , Epetra_MpiComm& >() )
+    class_<TrilinosRefineMesh>(m,"TrilinosRefineMesh").def(init<ModelPart& , Epetra_MpiComm& >() )
     .def("Local_Refine_Mesh", &TrilinosRefineMesh::Local_Refine_Mesh )
     .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
     ;
@@ -134,29 +129,28 @@ void  AddCustomUtilitiesToPython()
     PassTurbModelType SetTurbModel_Pass = &SolverSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType>::SetTurbulenceModel;
 
 
-    class_ < BaseSettingsType, boost::noncopyable >
-    ( "BaseSettingsType",no_init )
+    class_ < BaseSettingsType >(m,"BaseSettingsType" )
     .def("SetTurbulenceModel",SetTurbModel_Build)
     .def("SetTurbulenceModel",SetTurbModel_Pass)
     ;
 
     typedef TrilinosFractionalStepSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType> TrilinosFSSettingsType;
 
-    enum_<BaseSettingsType::StrategyLabel>("TrilinosStrategyLabel")
+    enum_<BaseSettingsType::StrategyLabel>(m,"TrilinosStrategyLabel")
     .value("Velocity",BaseSettingsType::Velocity)
     .value("Pressure",BaseSettingsType::Pressure)
     //.value("EddyViscosity",TrilinosFractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)
     ;
 
-    enum_<BaseSettingsType::TurbulenceModelLabel>("TrilinosTurbulenceModelLabel")
+    enum_<BaseSettingsType::TurbulenceModelLabel>(m,"TrilinosTurbulenceModelLabel")
     .value("SpalartAllmaras",BaseSettingsType::SpalartAllmaras)
     ;
-    
+
     typedef void (TrilinosFSSettingsType::*SetStrategyByParamsType)(TrilinosFSSettingsType::StrategyLabel const&,TrilinosLinearSolverType::Pointer,const double,const unsigned int);
     SetStrategyByParamsType ThisSetStrategyOverload = &TrilinosFSSettingsType::SetStrategy;
 
-    class_< TrilinosFSSettingsType,bases<BaseSettingsType>, boost::noncopyable>
-            ("TrilinosFractionalStepSettings",init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
+    class_< TrilinosFSSettingsType,BaseSettingsType>(m,"TrilinosFractionalStepSettings")
+    .def(init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
     .def("SetStrategy",ThisSetStrategyOverload)
     .def("GetStrategy",&TrilinosFSSettingsType::pGetStrategy)
     .def("SetEchoLevel",&TrilinosFSSettingsType::SetEchoLevel)
@@ -168,17 +162,16 @@ void  AddCustomUtilitiesToPython()
     typedef void (TrilinosFSSettingsPeriodicType::*SetStrategyByParamsPeriodicType)(BaseSettingsType::StrategyLabel const&,TrilinosLinearSolverType::Pointer,const double,const unsigned int);
     SetStrategyByParamsPeriodicType ThatSetStrategyOverload = &TrilinosFSSettingsPeriodicType::SetStrategy;
 
-    class_< TrilinosFSSettingsPeriodicType,bases<BaseSettingsType>, boost::noncopyable>
-            ("TrilinosFractionalStepSettingsPeriodic",init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
+    class_< TrilinosFSSettingsPeriodicType,BaseSettingsType>
+            (m,"TrilinosFractionalStepSettingsPeriodic").def(init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
     .def("SetStrategy",ThatSetStrategyOverload)
     .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
     .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
     ;
-    
-    
-    class_<GatherModelPartUtility, boost::noncopyable >
-    ("GatherModelPartUtility",
-     init<int, ModelPart&, int , ModelPart&>() )
+
+
+    class_<GatherModelPartUtility>(m,"GatherModelPartUtility")
+        .def(init<int, ModelPart&, int , ModelPart&>() )
       .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<double> )
       .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster<array_1d<double,3> > )
       .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<double> )
@@ -186,15 +179,76 @@ void  AddCustomUtilitiesToPython()
    ;
 
 
-    class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer, boost::noncopyable > ("MPINormalCalculationUtils",init<>())
+    class_<MPINormalCalculationUtils, MPINormalCalculationUtils::Pointer>(m,"MPINormalCalculationUtils").def(init<>())
             .def("Check",&MPINormalCalculationUtils::Check)
             .def("OrientFaces",&MPINormalCalculationUtils::OrientFaces)
             .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
             ;
 
+    typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, 2> BasePartitionedFSIUtilities2DType;
+    typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, 3> BasePartitionedFSIUtilities3DType;
+
+    class_<BasePartitionedFSIUtilities2DType, BasePartitionedFSIUtilities2DType::Pointer>(m, "PartitionedFSIUtilities2D");
+    class_<BasePartitionedFSIUtilities3DType, BasePartitionedFSIUtilities3DType::Pointer>(m, "PartitionedFSIUtilities3D");
+
+    typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType,2> TrilinosPartitionedFSIUtilities2DType;
+    typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType,3> TrilinosPartitionedFSIUtilities3DType;
+
+    class_<TrilinosPartitionedFSIUtilities2DType, TrilinosPartitionedFSIUtilities2DType::Pointer, BasePartitionedFSIUtilities2DType>(m, "TrilinosPartitionedFSIUtilities2D")
+        .def(init<const Epetra_MpiComm &>())
+        .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceArea)
+        .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceResidualSize)
+        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilities2DType& self, ModelPart& rModelPart){ 
+            return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
+        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<2>)
+        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<2>)
+        .def("ComputeFluidInterfaceMeshVelocityResidualNorm", &TrilinosPartitionedFSIUtilities2DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
+        .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilities2DType::ComputeAndPrintFluidInterfaceNorms)
+        .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilities2DType::ComputeAndPrintStructureInterfaceNorms)
+        .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesFluid)
+        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesStructure);
+
+    class_<TrilinosPartitionedFSIUtilities3DType, TrilinosPartitionedFSIUtilities3DType::Pointer, BasePartitionedFSIUtilities3DType>(m, "TrilinosPartitionedFSIUtilities3D")
+        .def(init<const Epetra_MpiComm &>())
+        .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceArea)
+        .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceResidualSize)
+        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilities3DType& self, ModelPart& rModelPart){ 
+            return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
+        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<3>)
+        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<3>)
+        .def("ComputeFluidInterfaceMeshVelocityResidualNorm", &TrilinosPartitionedFSIUtilities3DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
+        .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilities3DType::ComputeAndPrintFluidInterfaceNorms)
+        .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilities3DType::ComputeAndPrintStructureInterfaceNorms)
+        .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesFluid)
+        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesStructure);
+
+    // Convergence accelerators (from FSIApplication)
+    typedef ConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosConvergenceAccelerator;
+    typedef AitkenConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosAitkenAccelerator;
+    typedef TrilinosMVQNRecursiveJacobianConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosMVQNRecursiveAccelerator;
+
+    // Convergence accelerator base class
+    class_< TrilinosConvergenceAccelerator> (m,"TrilinosConvergenceAccelerator").def(init < >())
+        .def("Initialize", &TrilinosConvergenceAccelerator::Initialize)
+        .def("InitializeSolutionStep", &TrilinosConvergenceAccelerator::InitializeSolutionStep)
+        .def("InitializeNonLinearIteration", &TrilinosConvergenceAccelerator::InitializeNonLinearIteration)
+        .def("UpdateSolution", AuxiliarUpdateSolution)
+        .def("FinalizeNonLinearIteration", &TrilinosConvergenceAccelerator::FinalizeNonLinearIteration)
+        .def("FinalizeSolutionStep", &TrilinosConvergenceAccelerator::FinalizeSolutionStep)
+        .def("SetEchoLevel", &TrilinosConvergenceAccelerator::SetEchoLevel)
+        ;
+
+    class_<TrilinosAitkenAccelerator, TrilinosConvergenceAccelerator>(m,"TrilinosAitkenConvergenceAccelerator")
+        .def(init<double>())
+        .def(init< Parameters& >())
+        ;
+
+    class_< TrilinosMVQNRecursiveAccelerator, TrilinosConvergenceAccelerator>(m,"TrilinosMVQNRecursiveJacobianConvergenceAccelerator")
+        .def(init< ModelPart&, const Epetra_MpiComm&, Parameters& >())
+        .def(init< ModelPart&, const Epetra_MpiComm&, double, unsigned int >())
+        ;
 
 }
 }  // namespace Python.
 
 } // Namespace Kratos
-

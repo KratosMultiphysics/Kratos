@@ -1,9 +1,8 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+ #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
-from KratosMultiphysics.PFEMApplication import PfemUtils
-from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
 # Check that KratosMultiphysics was imported in the main script
 # CheckForPreviousImport()
@@ -79,7 +78,7 @@ class ULF_FSISolver:
         self.conv_criteria = DisplacementCriteria(1e-6, 1e-9)
 
         self.pressure_calculate_process = PressureCalculateProcess(fluid_model_part, domain_size);
-        self.ulf_apply_bc_process = UlfApplyBCProcess(fluid_model_part);
+        self.mark_free_surface_process = MarkFreeSurfaceProcess(fluid_model_part);
         self.ulf_time_step_dec_process = UlfTimeStepDecProcess(fluid_model_part);
         self.mark_fluid_process = MarkFluidProcess(fluid_model_part);
         self.mark_close_nodes_process = MarkCloseNodesProcess(fluid_model_part);
@@ -95,8 +94,6 @@ class ULF_FSISolver:
 
         # temporary ... i need it to calculate the nodal area
         self.UlfUtils = UlfUtils()
-        self.PfemUtils = PfemUtils()
-
         # self.save_structural_elements
         self.alpha_shape = 1.5;
         self.h_multiplier = 0.1
@@ -129,7 +126,9 @@ class ULF_FSISolver:
         (self.fluid_neigh_finder).Execute();
         Hfinder = FindNodalHProcess(fluid_model_part);
         Hfinder.Execute();
-
+        self.ResetNodalHAtLonelyNodes()
+        #assigning average nodal h to lonely nodes
+        self.AssignHtoLonelyStructureNodes()
     #
     # delta time estimation based on the non-negativity of the jacobian
     def EstimateDeltaTime(self, max_dt, domain_size):
@@ -158,7 +157,7 @@ class ULF_FSISolver:
 
         # marking the fluid
         (self.fluid_neigh_finder).Execute();
-        (self.ulf_apply_bc_process).Execute();
+        (self.mark_free_surface_process).Execute();
         (self.mark_fluid_process).Execute();
 
         # remeshing before the first solution
@@ -259,15 +258,15 @@ class ULF_FSISolver:
 #
     def Remesh(self):
 
-        # self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.15)
-        self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.05)
+	self.UlfUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.08)
+        self.UlfUtils.MarkExcessivelyCloseNodes(self.fluid_model_part.Nodes, 0.00005)	
 
         # erase all conditions and elements prior to remeshing
         ((self.combined_model_part).Elements).clear();
         ((self.combined_model_part).Conditions).clear();
         ((self.combined_model_part).Nodes).clear();
         ((self.fluid_model_part).Elements).clear();
-        ((self.fluid_model_part).Conditions).clear();
+        #((self.fluid_model_part).Conditions).clear();
 
         # self.UlfUtils.DeleteFreeSurfaceNodesBladder(self.fluid_model_part)
         # marking nodes outside of the bounding box
@@ -288,7 +287,7 @@ class ULF_FSISolver:
         (self.condition_neigh_finder).Execute();
 
         # print "marking fluid" and applying fluid boundary conditions
-        (self.ulf_apply_bc_process).Execute();
+        (self.mark_free_surface_process).Execute();
         (self.mark_fluid_process).Execute();
         # merging the structural elements back (they are saved in the Initialize)
         (self.merge_model_parts_process).MergeParts(self.fluid_model_part, self.structure_model_part, self.combined_model_part);
@@ -304,3 +303,25 @@ class ULF_FSISolver:
 
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
+        
+  ######################################################################
+    #this function is included since at the findNodalHProcess of Kratos core assigns max value (1.7*e^309) to all nodes
+    #and then computes the correct value only for the nodes of elements. Thus lonely nodes remain with this enormous values
+    def ResetNodalHAtLonelyNodes(self):
+       for node in self.fluid_model_part.Nodes:
+          if (node.GetSolutionStepValue(NODAL_H)>100000000.0):
+            node.SetSolutionStepValue(NODAL_H,0,0.0)
+    ######################################################################
+    def AssignHtoLonelyStructureNodes(self):
+        nnodes=0
+        nodal_h=0.0
+        av_nodal_h=0.0
+        for node in self.fluid_model_part.Nodes:
+            if (node.GetSolutionStepValue(NODAL_H)!=0.0):
+               nnodes=nnodes+1;	    
+               nodal_h=nodal_h+node.GetSolutionStepValue(NODAL_H);
+
+        av_nodal_h=nodal_h/nnodes
+        for node in self.fluid_model_part.Nodes:
+           if (node.GetSolutionStepValue(IS_STRUCTURE)==1.0 and node.GetSolutionStepValue(IS_FLUID)==0.0):
+              node.SetSolutionStepValue(NODAL_H, av_nodal_h)

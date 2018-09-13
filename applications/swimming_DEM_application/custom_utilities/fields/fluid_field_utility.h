@@ -26,29 +26,31 @@ FluidFieldUtility(SpaceTimeSet::Pointer p_sts, VelocityField::Pointer p_vector_f
 
 virtual ~FluidFieldUtility(){}
 
-void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed);
+void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_to_be_imposed) override;
 
-virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const VariableData& container_variable)
+void ImposeFieldOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& variable_to_be_imposed) override;
+
+virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& container_variable)
 {
-    boost::shared_ptr<VelocityField> p_vel_field = boost::static_pointer_cast<VelocityField>(mpVectorField);
+    Kratos::shared_ptr<VelocityField> p_vel_field = Kratos::static_pointer_cast<VelocityField>(mpVectorField);
     p_vel_field->ImposeVelocityOnNodes(r_model_part, container_variable);
 }
 
 
-virtual std::string Info() const
+virtual std::string Info() const override
 {
     return "";
 }
 
 /// Print information about this object.
 
-virtual void PrintInfo(std::ostream& rOStream) const
+virtual void PrintInfo(std::ostream& rOStream) const override
 {
 }
 
 /// Print object's data.
 
-virtual void PrintData(std::ostream& rOStream) const
+virtual void PrintData(std::ostream& rOStream) const override
 {
 }
 

@@ -67,7 +67,7 @@ class SphericElementGlobalPhysicsCalculator
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
                       SphericParticle& r_spheric_particle = dynamic_cast<Kratos::SphericParticle&> (*it);
                       const double particle_radius = r_spheric_particle.GetRadius();
-                      added_volume += 4.0 / 3.0 * KRATOS_M_PI * particle_radius * particle_radius * particle_radius;
+                      added_volume += 4.0 / 3.0 * Globals::Pi * particle_radius * particle_radius * particle_radius;
                   }
             }
         }
@@ -208,7 +208,7 @@ class SphericElementGlobalPhysicsCalculator
             return d50;
           }
           else {
-            return 0.00;          
+            return 0.00;
           }
       }
 
@@ -280,7 +280,7 @@ class SphericElementGlobalPhysicsCalculator
               const array_1d<double, 3>& gravity                    = r_model_part.GetProcessInfo()[GRAVITY];
               const array_1d<double, 3> center_of_mass              = CalculateCenterOfMass(r_model_part);
               const array_1d<double, 3> center_of_mass_to_reference = reference_point - center_of_mass;
-              gravitational_energy = total_mass * (center_of_mass_to_reference[0] * gravity[0] + center_of_mass_to_reference[1] * gravity[1] + center_of_mass_to_reference[2] * gravity[2]);       
+              gravitational_energy = total_mass * (center_of_mass_to_reference[0] * gravity[0] + center_of_mass_to_reference[1] * gravity[1] + center_of_mass_to_reference[2] * gravity[2]);
           }
           return gravitational_energy;
       }
@@ -300,9 +300,9 @@ class SphericElementGlobalPhysicsCalculator
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
                       double particle_translational_kinematic_energy = 0.0;
-                  
+
                       (it)->Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY, particle_translational_kinematic_energy, r_model_part.GetProcessInfo());
-                 
+
                       kinematic_energy += particle_translational_kinematic_energy;
                   }
               }
@@ -311,10 +311,10 @@ class SphericElementGlobalPhysicsCalculator
 
           return kinematic_energy;
       }
-      
+
       //***************************************************************************************************************
       //***************************************************************************************************************
-      
+
       double CalculateRotationalKinematicEnergy(ModelPart& r_model_part)
       {
           OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
@@ -327,9 +327,9 @@ class SphericElementGlobalPhysicsCalculator
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
                       double particle_rotational_kinematic_energy = 0.0;
-                  
+
                       (it)->Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY, particle_rotational_kinematic_energy, r_model_part.GetProcessInfo());
-                 
+
                       rotational_kinematic_energy += particle_rotational_kinematic_energy;
                   }
               }
@@ -338,85 +338,85 @@ class SphericElementGlobalPhysicsCalculator
 
           return rotational_kinematic_energy;
       }
-      
+
       //***************************************************************************************************************
       //***************************************************************************************************************
-      
+
       double CalculateElasticEnergy(ModelPart& r_model_part)
       {
           OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double elastic_energy = 0.0;
-          
+
           #pragma omp parallel for reduction(+ : elastic_energy)
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
                       double particle_elastic_energy = 0.0;
-                  
+
                       (it)->Calculate(PARTICLE_ELASTIC_ENERGY, particle_elastic_energy, r_model_part.GetProcessInfo());
-                  
+
                       elastic_energy += particle_elastic_energy;
                   }
               }
 
           }
-            
+
           return elastic_energy;
       }
-      
+
       //***************************************************************************************************************
       //***************************************************************************************************************
-      
+
       double CalculateInelasticFrictionalEnergy(ModelPart& r_model_part)
       {
           OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double frictional_energy = 0.0;
-          
+
           #pragma omp parallel for reduction(+ : frictional_energy)
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
                       double particle_frictional_energy = 0.0;
-                  
+
                       (it)->Calculate(PARTICLE_INELASTIC_FRICTIONAL_ENERGY, particle_frictional_energy, r_model_part.GetProcessInfo());
-                  
+
                       frictional_energy += particle_frictional_energy;
-                  }  
+                  }
               }
 
           }
-            
+
           return frictional_energy;
       }
-      
+
       double CalculateInelasticViscodampingEnergy(ModelPart& r_model_part)
       {
           OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
           double viscodamping_energy = 0.0;
-          
+
           #pragma omp parallel for reduction(+ : viscodamping_energy)
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
 
               for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
                   if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
                       double particle_viscodamping_energy = 0.0;
-                  
+
                       (it)->Calculate(PARTICLE_INELASTIC_VISCODAMPING_ENERGY, particle_viscodamping_energy, r_model_part.GetProcessInfo());
-                  
+
                       viscodamping_energy += particle_viscodamping_energy;
                   }
               }
 
           }
-            
+
           return viscodamping_energy;
       }
-      
+
       //***************************************************************************************************************
       //***************************************************************************************************************
 
@@ -475,9 +475,12 @@ class SphericElementGlobalPhysicsCalculator
                       (it)->Calculate(MOMENTUM, particle_momentum, r_model_part.GetProcessInfo());
                       (it)->Calculate(ANGULAR_MOMENTUM, particle_local_angular_momentum, r_model_part.GetProcessInfo());
 
-                      am_x += particle_local_angular_momentum[0] + (Kratos::MathUtils<double>::CrossProduct(center_of_mass_to_particle, particle_momentum))[0];
-                      am_y += particle_local_angular_momentum[1] + (Kratos::MathUtils<double>::CrossProduct(center_of_mass_to_particle, particle_momentum))[1];
-                      am_z += particle_local_angular_momentum[2] + (Kratos::MathUtils<double>::CrossProduct(center_of_mass_to_particle, particle_momentum))[2];
+                      array_1d<double, 3> aux;
+                      Kratos::MathUtils<double>::CrossProduct(aux, particle_momentum, center_of_mass_to_particle);
+
+                      am_x += particle_local_angular_momentum[0] + aux[0];
+                      am_y += particle_local_angular_momentum[1] + aux[1];
+                      am_z += particle_local_angular_momentum[2] + aux[2];
                   }
               }
           }
@@ -492,7 +495,35 @@ class SphericElementGlobalPhysicsCalculator
 
       //***************************************************************************************************************
       //***************************************************************************************************************
+      // Check by how much Newton's Third Law is violated
+      array_1d<double, 3> CalculateSumOfInternalForces(ModelPart& r_model_part)
+      {
+            OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(),r_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+            double sum_of_contact_forces_x = 0.0;
+            double sum_of_contact_forces_y = 0.0;
+            double sum_of_contact_forces_z = 0.0;
 
+            #pragma omp parallel for reduction(+ : sum_of_contact_forces_x, sum_of_contact_forces_y, sum_of_contact_forces_z)
+            for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+
+                for (ElementsArrayType::iterator it = GetElementPartitionBegin(r_model_part, k); it != GetElementPartitionEnd(r_model_part, k); ++it){
+                    if ((it)->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)){
+                        const array_1d<double, 3>& contact_force = (it)->GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCES);
+                        sum_of_contact_forces_x += contact_force[0];
+                        sum_of_contact_forces_y += contact_force[1];
+                        sum_of_contact_forces_z += contact_force[2];
+                    }
+                }
+            }
+
+            array_1d<double, 3> sum_of_contact_forces;
+            sum_of_contact_forces[0] = sum_of_contact_forces_x;
+            sum_of_contact_forces[1] = sum_of_contact_forces_y;
+            sum_of_contact_forces[2] = sum_of_contact_forces_z;
+            return sum_of_contact_forces;
+      }
+      //***************************************************************************************************************
+      //***************************************************************************************************************
         ///@}
         ///@name Access
         ///@{
@@ -535,7 +566,7 @@ class SphericElementGlobalPhysicsCalculator
         ///@name Friends
         ///@{
 
-        vector<unsigned int>& GetElementPartition()
+        DenseVector<unsigned int>& GetElementPartition()
         {
           return (mElementsPartition);
         }
@@ -577,7 +608,7 @@ class SphericElementGlobalPhysicsCalculator
         ///@}
         ///@name Protected  Access
         ///@{
-        vector<unsigned int> mElementsPartition;
+        DenseVector<unsigned int> mElementsPartition;
 
         ///@}
         ///@name Protected Inquiry

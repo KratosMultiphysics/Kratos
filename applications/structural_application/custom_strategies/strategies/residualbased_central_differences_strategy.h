@@ -805,7 +805,7 @@ public:
             {
                 Element::GeometryType& geom = it->GetGeometry(); // Nodos del elemento
                 (it)->Initialize();
-                (it)->GetValue(IS_INACTIVE) = false;
+                (it)->Set(ACTIVE, true);
                 (it)->CalculateMassMatrix(MassMatrix, CurrentProcessInfo);
                 const unsigned int& dim   = geom.WorkingSpaceDimension();
                 index = 0;

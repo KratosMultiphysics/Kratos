@@ -1,11 +1,13 @@
-/* *********************************************************
-*
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2007-03-06 10:30:32 $
-*   Revision:            $Revision: 1.2 $
-*
-* ***********************************************************/
-
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+//
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Riccardo Rossi
+//
 
 #if !defined(KRATOS_RESIDUALBASED_EULERIAN_CONVECTION_DIFFUSION_STRATEGY )
 #define  KRATOS_RESIDUALBASED_EULERIAN_CONVECTION_DIFFUSION_STRATEGY
@@ -15,8 +17,6 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
@@ -147,7 +147,7 @@ public:
         //ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         //(mpConvectionModelPart->GetProcessInfo()).GetValue(CONVECTION_DIFFUSION_SETTINGS) = my_settings;
 		Check();
-        
+
 
         //initializing fractional velocity solution step
         typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
@@ -169,11 +169,11 @@ public:
         //const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
         //BuilderSolverTypePointer componentwise_build = BuilderSolverTypePointer(new	ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver,Variable<double> > (pNewLinearSolver,rUnknownVar) );
         //mstep1 = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver > 				(*mpConvectionModelPart,pscheme,pNewLinearSolver,componentwise_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
-        
+
         BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(pNewLinearSolver) );
         mstep1 = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(*mpConvectionModelPart,pscheme,pNewLinearSolver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
 
-        
+
         mstep1->SetEchoLevel(2);
 
         KRATOS_CATCH("")
@@ -190,7 +190,7 @@ public:
 
     //*********************************************************************************
     //**********************************************************************
-    double Solve()
+    double Solve() override
     {
       KRATOS_TRY
 
@@ -199,142 +199,141 @@ public:
       //ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
       //double Dt = rCurrentProcessInfo[DELTA_TIME];
       //int stationary= rCurrentProcessInfo[STATIONARY];
-            
-	  //SOLVING THE PROBLEM	  
+
+	  //SOLVING THE PROBLEM
 	  double Dp_norm = mstep1->Solve();
-	
+
       return Dp_norm;
       KRATOS_CATCH("")
 	}
-    
-    
 
-    virtual void SetEchoLevel(int Level)
+
+
+    void SetEchoLevel(int Level) override
     {
         mstep1->SetEchoLevel(Level);
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         mstep1->Clear();
     }
 
-    virtual int Check()
+    int Check() override
     {
         KRATOS_TRY
         ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
         if (rCurrentProcessInfo.Has(CONVECTION_DIFFUSION_SETTINGS)==false)
-			KRATOS_THROW_ERROR(std::logic_error, "no CONVECTION_DIFFUSION_SETTINGS in model_part", "");
+            KRATOS_ERROR << "no CONVECTION_DIFFUSION_SETTINGS in model_part" << std::endl;
         //std::cout << "ConvDiff::Check(). If crashes, check CONVECTION_DIFFUSION_SETTINGS is defined" << std::endl;
-        
+
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-		
+
 		//DENSITY VARIABLE
-		if(my_settings->IsDefinedDensityVariable()==true) 
+		if(my_settings->IsDefinedDensityVariable()==true)
 		{
 			if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetDensityVariable()) == false)
-				KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Density Variable defined but not contained in the model part", "");
+                KRATOS_ERROR << "ConvDiffSettings: Density Variable defined but not contained in the model part" << std::endl;
 		}
 		else
 			std::cout << "No density variable assigned for ConvDiff. Assuming density=1" << std::endl;
 
 		//DIFFUSION VARIABLE
-		if(my_settings->IsDefinedDiffusionVariable()==true) 
+		if(my_settings->IsDefinedDiffusionVariable()==true)
 		{
 			if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetDiffusionVariable()) == false)
-				KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Diffusion Variable defined but not contained in the model part", "");
+                KRATOS_ERROR << "ConvDiffSettings: Diffusion Variable defined but not contained in the model part" << std::endl;
 		}
 		else
 			std::cout << "No diffusion variable assigned for ConvDiff. Assuming diffusivity=0" << std::endl;
 
 		//UNKNOWN VARIABLE
-		if(my_settings->IsDefinedUnknownVariable()==true) 
+		if(my_settings->IsDefinedUnknownVariable()==true)
 		{
 			if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetUnknownVariable()) == false)
-				KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Unknown Variable defined but not contained in the model part", "");
+				KRATOS_ERROR << "ConvDiffSettings: Unknown Variable defined but not contained in the model part" << std::endl;
 		}
 		else
-			KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Unknown Variable not defined!", "");
-		
+			KRATOS_ERROR << "ConvDiffSettings: Unknown Variable not defined!" << std::endl;
+
 		//VOLUME SOURCE VARIABLE
-		//if(my_settings->IsDefinedVolumeSourceVariable()==true) 
-		//{
-		//	if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetVolumeSourceVariable()) == false)
-		//		KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: VolumeSource Variable defined but not contained in the model part", "");
-		//}
-		//else
-		//	std::cout << "No VolumeSource variable assigned for ConvDiff. Assuming VolumeSource=0" << std::endl;
-		if(my_settings->IsDefinedVolumeSourceVariable()==true) 
-			KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: VolumeSource not yet implemented", "");
-		
+		if(my_settings->IsDefinedVolumeSourceVariable()==true)
+		{
+			if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetVolumeSourceVariable()) == false)
+				KRATOS_ERROR << "ConvDiffSettings: VolumeSource Variable defined but not contained in the model part" << std::endl;
+		}
+		else
+			std::cout << "No VolumeSource variable assigned for ConvDiff. Assuming VolumeSource=0" << std::endl;
+
+
 		//SURFACE SOURCE VARIABLE
-		//if(my_settings->IsDefinedSurfaceSourceVariable()==true) 
+		//if(my_settings->IsDefinedSurfaceSourceVariable()==true)
 		//{
 		//	if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetSurfaceSourceVariable()) == false)
-		//		KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: SurfaceSource Variable defined but not contained in the model part", "");
+		//		KRATOS_ERROR << "ConvDiffSettings: SurfaceSource Variable defined but not contained in the model part" << std::endl;
 		//}
 		//else
 		//	std::cout << "No SurfaceSource variable assigned for ConvDiff. Assuming SurfaceSource=0" << std::endl;
-		if(my_settings->IsDefinedSurfaceSourceVariable()==true) 
-			KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: SurfaceSource not yet implemented", "");
+        if(my_settings->IsDefinedSurfaceSourceVariable()==true)
+			KRATOS_ERROR << "ConvDiffSettings: SurfaceSource not yet implemented" << std::endl;
 
 		//PROJECTION VARIABLE
-		//if(my_settings->IsDefinedProjectionVariable()==true) 
+		//if(my_settings->IsDefinedProjectionVariable()==true)
 		//{
 		//	if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetProjectionVariable()) == false)
 		//		KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Projection Variable defined but not contained in the model part", "");
 		//}
 		//else
 		//	std::cout << "No Projection variable assigned for ConvDiff. Assuming Projection=0" << std::endl;
-		if(my_settings->IsDefinedProjectionVariable()==true) 
-			KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: ProjectionVariable not useed. Remove it", "");
+		if(my_settings->IsDefinedProjectionVariable()==true)
+			KRATOS_ERROR << "ConvDiffSettings: ProjectionVariable not useed. Remove it" << std::endl;
 
 		//CONVECTION VELOCITY VARIABLE
 		//CURRENTLY WE ARE USING (VELOCITY -MESH_VELOCITY) TO CONVECT, so the ConvectionVariable must not be used:
-		//if(my_settings->IsDefinedConvectionVariable()==true) 
+		//if(my_settings->IsDefinedConvectionVariable()==true)
 		//{
 		//	if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetConvectionVariable()) == false)
 		//		KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Convection Variable defined but not contained in the model part", "");
 		//}
 		//else
 		//	std::cout << "No Projection variable assigned for ConvDiff. Assuming Convection=0" << std::endl;
-		if(my_settings->IsDefinedConvectionVariable()==true) 
-			KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: ConvectionVariable not used. Use VelocityVariable instead", "");
+		if(my_settings->IsDefinedConvectionVariable()==true)
+			KRATOS_ERROR << "ConvDiffSettings: ConvectionVariable not used. Use VelocityVariable instead" << std::endl;
 
 		//MESH VELOCITY VARIABLE
-		if(my_settings->IsDefinedMeshVelocityVariable()==true) 
+		if(my_settings->IsDefinedMeshVelocityVariable()==true)
 		{
 			if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetMeshVelocityVariable()) == false)
-				KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: MeshVelocity Variable defined but not contained in the model part", "");
+				KRATOS_ERROR << "ConvDiffSettings: MeshVelocity Variable defined but not contained in the model part" << std::endl;
 		}
 		else
 			std::cout << "No MeshVelocity variable assigned for ConvDiff. Assuming MeshVelocity=0" << std::endl;
-		
-		//VELOCITY VARIABLE	
-		if(my_settings->IsDefinedVelocityVariable()==true) 
+
+		//VELOCITY VARIABLE
+		if(my_settings->IsDefinedVelocityVariable()==true)
 		{
 			if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetVelocityVariable()) == false)
-				KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: Velocity Variable defined but not contained in the model part", "");
+				KRATOS_ERROR << "ConvDiffSettings: Velocity Variable defined but not contained in the model part" << std::endl;
 		}
 		else
 			std::cout << "No Velocity variable assigned for ConvDiff. Assuming Velocity=0" << std::endl;
-		
+
 		//TRANSFER COEFFICIENT VARIABLE
-		//if(my_settings->IsDefinedTransferCoefficientVariable()==true) 
+		//if(my_settings->IsDefinedTransferCoefficientVariable()==true)
 		//{
 		//	if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetTransferCoefficientVariable()) == false)
 		//		KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: TransferCoefficient Variable defined but not contained in the model part", "");
 		//}
 		//else
 		//	std::cout << "No TransferCoefficient variable assigned for ConvDiff. Assuming TransferCoefficient=0" << std::endl;
-		if(my_settings->IsDefinedTransferCoefficientVariable()==true) 
-			KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: TransferCoefficient not yet implemented", "");
-		
-		//SPECIFIC HEAT VARIABLE	
-		if(my_settings->IsDefinedSpecificHeatVariable()==true) 
+		if(my_settings->IsDefinedTransferCoefficientVariable()==true)
+			KRATOS_ERROR << "ConvDiffSettings: TransferCoefficient not yet implemented" << std::endl;
+
+		//SPECIFIC HEAT VARIABLE
+		if(my_settings->IsDefinedSpecificHeatVariable()==true)
 		{
 			if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(my_settings->GetSpecificHeatVariable()) == false)
-				KRATOS_THROW_ERROR(std::logic_error, "ConvDiffSettings: SpecificHeat Variable defined but not contained in the model part", "");
+				KRATOS_ERROR << "ConvDiffSettings: SpecificHeat Variable defined but not contained in the model part" << std::endl;
 		}
 		else
 			std::cout << "No SpecificHeat variable assigned for ConvDiff. Assuming SpecificHeat=1" << std::endl;
@@ -393,7 +392,7 @@ protected:
 
   virtual void GenerateMeshPart(int dimension)
   {
-    mpConvectionModelPart = ModelPart::Pointer( new ModelPart("ConvectionPart",1) );
+    mpConvectionModelPart = Kratos::make_unique<ModelPart>("ConvectionPart",1);
 
 	mpConvectionModelPart->SetProcessInfo(  BaseType::GetModelPart().pGetProcessInfo() );
     mpConvectionModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize());
@@ -411,7 +410,7 @@ protected:
          {
             Element::GeometryType& rGeom = it->GetGeometry();
             const unsigned int& NumNodes = rGeom.size();
-            
+
             if (NumNodes == 3)
             {
               pElem = Element::Pointer(new EulerianConvectionDiffusionElement<2,3>(
@@ -432,11 +431,11 @@ protected:
     }
     else
     {
-        for(ModelPart::ElementsContainerType::iterator it= BaseType::GetModelPart().ElementsBegin(); it != BaseType::GetModelPart().ElementsEnd(); ++it) 
+        for(ModelPart::ElementsContainerType::iterator it= BaseType::GetModelPart().ElementsBegin(); it != BaseType::GetModelPart().ElementsEnd(); ++it)
         {
             Element::GeometryType& rGeom = it->GetGeometry();
             const unsigned int& NumNodes = rGeom.size();
-            
+
             if (NumNodes == 4)
             {
               pElem = Element::Pointer(new EulerianConvectionDiffusionElement<3,4>(
@@ -452,7 +451,7 @@ protected:
                       (*it).pGetGeometry(),
                       (*it).pGetProperties() ) );
               MeshElems.push_back(pElem);
-            }        
+            }
          }
     }
   }
@@ -483,7 +482,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    ModelPart::Pointer mpConvectionModelPart;
+    Kratos::unique_ptr<ModelPart> mpConvectionModelPart;
     typename BaseType::Pointer mstep1;
     double mOldDt;
     int mdimension;
@@ -530,4 +529,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_EULERIAN_CONVECTION_DIFFUSION_STRATEGY  defined */
-

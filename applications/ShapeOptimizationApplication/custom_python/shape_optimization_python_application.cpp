@@ -1,45 +1,10 @@
 // ==============================================================================
-/*
- KratosShapeOptimizationApplication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Daniel Baumgaertner
-                     daniel.baumgaertner@tum.de
-                     Chair of Structural Analysis
-                     Technische Universitaet Muenchen
-                     Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-//==============================================================================
+//  KratosShapeOptimizationApplication
 //
-//   Project Name:        KratosShape                            $
-//   Created by:          $Author:    daniel.baumgaertner@tum.de $
-//   Date:                $Date:                   December 2016 $
-//   Revision:            $Revision:                         0.0 $
+//  License:         BSD License
+//                   license: ShapeOptimizationApplication/license.txt
+//
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //
 // ==============================================================================
 
@@ -48,20 +13,19 @@
 // ------------------------------------------------------------------------------
 // System includes
 // ------------------------------------------------------------------------------
+#include <pybind11/pybind11.h>
 
 // ------------------------------------------------------------------------------
 // External includes
 // ------------------------------------------------------------------------------
-#include <boost/python.hpp>
 
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "shape_optimization_application.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "shape_optimization_application.h"
- 
+
 // ==============================================================================
 
 namespace Kratos
@@ -70,66 +34,69 @@ namespace Kratos
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace pybind11;
 
 
-  
-  BOOST_PYTHON_MODULE(KratosShapeOptimizationApplication)
+
+  PYBIND11_MODULE(KratosShapeOptimizationApplication, m)
   {
 
-	  class_<KratosShapeOptimizationApplication, 
-			  KratosShapeOptimizationApplication::Pointer, 
-			  bases<KratosApplication>, boost::noncopyable >("KratosShapeOptimizationApplication")
+	  class_<KratosShapeOptimizationApplication,
+			  KratosShapeOptimizationApplication::Pointer,
+			  KratosApplication >(m, "KratosShapeOptimizationApplication")
+        .def(init<>())
 			;
 
-	AddCustomUtilitiesToPython();
+	AddCustomUtilitiesToPython(m);
+
 
 	//registering variables in python
 
 	// Geometry variables
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(NORMALIZED_SURFACE_NORMAL);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NORMALIZED_SURFACE_NORMAL);
 
     // Optimization variables
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(OBJECTIVE_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(OBJECTIVE_SURFACE_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MAPPED_OBJECTIVE_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(CONSTRAINT_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(CONSTRAINT_SURFACE_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MAPPED_CONSTRAINT_SENSITIVITY);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(SEARCH_DIRECTION);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(DESIGN_UPDATE);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(DESIGN_CHANGE_ABSOLUTE);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE_ABSOLUTE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DF1DX);
 
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DF1DX_MAPPED);
 
-    // To allow for deactivating (setting zero) variables
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SHAPE_UPDATES_DEACTIVATED);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SENSITIVITIES_DEACTIVATED);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC1DX);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC2DX);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC3DX);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC4DX);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC5DX);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC6DX);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC7DX);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC8DX);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC9DX);
 
-    // For boundary treatment
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_ON_BOUNDARY);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_PLANE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC1DX_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC2DX_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC3DX_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC4DX_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC5DX_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC6DX_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC7DX_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC8DX_MAPPED);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DC9DX_MAPPED);
+
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, SEARCH_DIRECTION);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CONTROL_POINT_UPDATE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CONTROL_POINT_CHANGE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, SHAPE_UPDATE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, SHAPE_CHANGE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MESH_CHANGE);
 
     // For edge damping
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DAMPING_FACTOR);
 
-    // For Structure Sensitivity Analysis
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MASS_SHAPE_GRADIENT);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(ACTIVE_NODE_INDEX);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(DKDXU);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(DKDXU_X);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(DKDXU_Y);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(DKDXU_Z);
-
-    // To create and process mapping matrix
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MAPPING_MATRIX_ID);
+    // For mapping
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAPPING_ID);
   }
-  
-  
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -34,7 +34,6 @@
 #include "gidpost/source/gidpost.h"
 // Project includes
 #include "includes/define.h"
-#include "includes/gid_io.h"
 #include "geometries/geometry_data.h"
 #include "includes/deprecated_variables.h"
 
@@ -183,22 +182,19 @@ public:
                                 || mGeometryType == GeometryData::Kratos_Line3D3 )
                         {
                             nodes_id[0] = (it)->GetGeometry() [0].Id();
-                            nodes_id[1] = (it)->GetGeometry() [2].Id();
-                            nodes_id[2] = (it)->GetGeometry() [1].Id();
+                            nodes_id[1] = (it)->GetGeometry() [1].Id();
+                            nodes_id[2] = (it)->GetGeometry() [2].Id();
                         }
                         nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
-                        if ( it->Has ( IS_INACTIVE ) )
-                        {
-                            if ( ! it->GetValue ( IS_INACTIVE )  && (it)->GetProperties().Id()==current_layer )
-                            {
-                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
-                            }
-                        }
-                        else
-                        {
+
+                        bool element_is_active = true;
+                        if ((it)->IsDefined(ACTIVE))
+                            element_is_active = (it)->Is(ACTIVE);
+
+                        if (element_is_active)
                             if ((it)->GetProperties().Id()==current_layer)
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
-                        }
+
                     }
                     delete [] nodes_id;
                     GiD_fEndElements(MeshFile);
@@ -292,19 +288,14 @@ public:
                             nodes_id[19] = (it)->GetGeometry() [15].Id();
                         }
                         nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
-                        
-                        if ( it->Has ( IS_INACTIVE ) )
-                        {
-                            if ( ! it->GetValue ( IS_INACTIVE ) && (it)->GetProperties().Id()==current_layer )
-                            {
-                                GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
-                            }
-                        }
-                        else
-                        {
+
+                        bool element_is_active = true;
+                        if ((it)->IsDefined(ACTIVE))
+                            element_is_active = (it)->Is(ACTIVE);
+
+                        if (element_is_active)
                             if ((it)->GetProperties().Id()==current_layer)
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
-                        }
                     }
                     delete [] nodes_id;
                     GiD_fEndElements(MeshFile);

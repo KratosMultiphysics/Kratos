@@ -55,8 +55,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_law_adapter.h"
 
 #define CHECK_STRAIN_CALCULATION \
-	if(rValues.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRAIN)) { \
-		std::cout << "ERROR: Constitutive Law Adapters work only with strains. The option COMPUTE_STRAIN is not supported" << std::endl; \
+	if(rValues.GetOptions().Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) { \
+		std::cout << "ERROR: Constitutive Law Adapters work only with strains. The option USE_ELEMENT_PROVIDED_STRAIN is not supported" << std::endl; \
 		return; \
 	}
 

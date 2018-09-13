@@ -1,11 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: pooyan $
-//   Date:                $Date: 2006-11-27 16:07:33 $
-//   Revision:            $Revision: 1.1.1.1 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                    
 //
-
 
 #if !defined(KRATOS_PARALLEL_DISTANCE_CALCULATOR_H_INCLUDED )
 #define  KRATOS_PARALLEL_DISTANCE_CALCULATOR_H_INCLUDED
@@ -190,7 +194,7 @@ public:
         }
 
         array_1d<double,TDim+1> N;
-        boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim> DN_DX;
+        BoundedMatrix <double, TDim+1,TDim> DN_DX;
 
         // Extend the distances layer by layer up to a maximum level of layers
         for(unsigned int level=0; level<max_levels; level++)
@@ -436,7 +440,7 @@ protected:
     }
 
     //*******************************************************************
-    void ComputeExactDistances(const boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim>& DN_DX,
+    void ComputeExactDistances(const BoundedMatrix <double, TDim+1,TDim>& DN_DX,
                                const double& Area,
                                Geometry<Node<3> >& geom,
                                const array_1d<double,TDim+1>& distances,
@@ -495,7 +499,7 @@ protected:
     void AddDistanceToNodesNew(const Variable<double>& rDistanceVar,
                             const Variable<double>& rAreaVar,
                             Geometry<Node<3> >& geom,
-                            const boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim>& DN_DX,
+                            const BoundedMatrix <double, TDim+1,TDim>& DN_DX,
                             const double& Volume
                            )
     {
@@ -559,7 +563,7 @@ protected:
     void AddDistanceToNodes(const Variable<double>& rDistanceVar,
                             const Variable<double>& rAreaVar,
                             Geometry<Node<3> >& geom,
-                            const boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim>& DN_DX,
+                            const BoundedMatrix <double, TDim+1,TDim>& DN_DX,
                             const double& Volume
                            )
     {
@@ -925,7 +929,7 @@ private:
 
       array_1d<double,TDim+1> visited;
         array_1d<double,TDim+1> N;
-        boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim> DN_DX;
+        BoundedMatrix <double, TDim+1,TDim> DN_DX;
         const int elem_size = rModelPart.Elements().size();
 		const int node_size = rModelPart.Nodes().size();
 

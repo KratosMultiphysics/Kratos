@@ -12,16 +12,15 @@
 
 // Project includes
 #include "../DEM_application/custom_strategies/schemes/symplectic_euler_scheme.h"
-
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-
+#include "../DEM_application/custom_utilities/GeometryFunctions.h"
+#include "utilities/quaternion.h"
 
 namespace Kratos {
 
-    class HybridBashforthScheme : public SymplecticEulerScheme
-    {
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) HybridBashforthScheme : public SymplecticEulerScheme {
     public:
 
         typedef ModelPart::NodesContainerType NodesArrayType;
@@ -30,28 +29,38 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(HybridBashforthScheme);
 
         /// Default constructor.
-        HybridBashforthScheme() {}
+        HybridBashforthScheme() {
+            mOldVelocity[0] = 0.0;
+            mOldVelocity[1] = 0.0;
+            mOldVelocity[2] = 0.0;
+        }
 
         /// Destructor.
         virtual ~HybridBashforthScheme() {}
 
-        /*void AddSpheresVariables(ModelPart & r_model_part, bool TRotationOption);
+        DEMIntegrationScheme* CloneRaw() const override {
+            DEMIntegrationScheme* cloned_scheme(new HybridBashforthScheme(*this));
+            return cloned_scheme;
+        }
 
-        void AddClustersVariables(ModelPart & r_model_part, bool TRotationOption);*/
+        DEMIntegrationScheme::Pointer CloneShared() const override {
+            DEMIntegrationScheme::Pointer cloned_scheme(new HybridBashforthScheme(*this));
+            return cloned_scheme;
+        }
 
-        void UpdateTranslationalVariables(
-            int StepFlag,
-            Node < 3 > & i,
-            array_1d<double, 3 >& coor,
-            array_1d<double, 3 >& displ,
-            array_1d<double, 3 >& delta_displ,
-            array_1d<double, 3 >& vel,
-            const array_1d<double, 3 >& initial_coor,
-            const array_1d<double, 3 >& force,
-            const double force_reduction_factor,
-            const double mass,
-            const double delta_t,
-            const bool Fix_vel[3]) override;
+    void UpdateTranslationalVariables(
+        int StepFlag,
+        Node < 3 > & i,
+        array_1d<double, 3 >& coor,
+        array_1d<double, 3 >& displ,
+        array_1d<double, 3 >& delta_displ,
+        array_1d<double, 3 >& vel,
+        const array_1d<double, 3 >& initial_coor,
+        const array_1d<double, 3 >& force,
+        const double force_reduction_factor,
+        const double mass,
+        const double delta_t,
+        const bool Fix_vel[3]) override;
 
         /// Turn back information as a string.
 
@@ -64,7 +73,7 @@ namespace Kratos {
         /// Print information about this object.
 
         virtual void PrintInfo(std::ostream& rOStream) const override {
-            rOStream << "HybridBashforthScheme";
+            rOStream << "SymplecticEulerScheme";
         }
 
         /// Print object's data.
@@ -78,8 +87,7 @@ namespace Kratos {
 
     private:
 
-
-        /// Assignment operator.
+    /// Assignment operator.
 
         HybridBashforthScheme& operator=(HybridBashforthScheme const& rOther) {
             return *this;
@@ -91,11 +99,11 @@ namespace Kratos {
             *this = rOther;
         }
 
+        array_1d<double, 3 > mOldVelocity;
 
         ///@}
 
     }; // Class HybridBashforthScheme
-
 
     inline std::istream& operator>>(std::istream& rIStream,
             HybridBashforthScheme& rThis) {

@@ -260,20 +260,20 @@ creator_destructor = ParticleCreatorDestructor()
 dem_fem_search = DEM_FEM_Search()
 
 #Getting chosen scheme:
-if DEM_parameters.IntegrationScheme == 'Forward_Euler':
+if DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler':
     scheme = ForwardEulerScheme()
-elif DEM_parameters.IntegrationScheme == 'Symplectic_Euler':
+elif DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Symplectic_Euler':
     if pp.CFD_DEM.basset_force_type > 0:
         scheme = SymplecticEulerOldVelocityScheme()
     else:
         scheme = SymplecticEulerScheme()
-elif DEM_parameters.IntegrationScheme == 'Taylor_Scheme':
+elif DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme':
     scheme = TaylorScheme()
-elif DEM_parameters.IntegrationScheme == 'Newmark_Beta_Method':
+elif DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method':
     scheme = NewmarkBetaScheme(0.5, 0.25)
-elif DEM_parameters.IntegrationScheme == 'Verlet_Velocity':
+elif DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Verlet_Velocity':
     scheme = VerletVelocityScheme()
-elif DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
+elif DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Hybrid_Bashforth':
     scheme = HybridBashforthScheme()
 else:
     KRATOSprint('Error: selected scheme not defined. Please select a different scheme')
@@ -282,11 +282,11 @@ if DEM_parameters.ElementType == "SwimmingNanoParticle":
     scheme = TerminalVelocityScheme()
 
 # Creating a solver object and set the search strategy
-solver = SolverStrategy.SwimmingStrategy(all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+solver = SolverStrategy.SwimmingStrategy(all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
 # Add variables
 
-procedures.AddAllVariablesInAllModelParts(solver, scheme, spheres_model_part, cluster_model_part, DEM_inlet_model_part, rigid_face_model_part, DEM_parameters)
+procedures.AddAllVariablesInAllModelParts(solver, scheme, all_model_parts, DEM_parameters)
 vars_man.AddNodalVariables(spheres_model_part, pp.dem_vars)
 vars_man.AddNodalVariables(rigid_face_model_part, pp.rigid_faces_vars)
 vars_man.AddNodalVariables(DEM_inlet_model_part, pp.inlet_vars)
@@ -532,7 +532,7 @@ DEM_parameters.n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume)) # o
 # creating a physical calculations module to analyse the DEM model_part
 dem_physics_calculator = SphericElementGlobalPhysicsCalculator(spheres_model_part)
 
-if DEM_parameters.coupling_level_type:
+if DEM_parameters["coupling_level_type"].GetInt():
 
     if DEM_parameters.meso_scale_length <= 0.0 and spheres_model_part.NumberOfElements(0) > 0:
         biggest_size = 2 * dem_physics_calculator.CalculateMaxNodalVariable(spheres_model_part, RADIUS)
@@ -627,7 +627,7 @@ if DEM_parameters.flow_in_porous_medium_option:
 
     fluid_frac_util.AddFluidFractionField()
 
-if DEM_parameters.flow_in_porous_DEM_medium_option:
+if DEM_parameters["flow_in_porous_DEM_medium_option"].GetBool():
     swim_proc.FixModelPart(spheres_model_part)
 
 # choosing the directory in which we want to work (print to)
@@ -657,10 +657,10 @@ embedded_counter             = swim_proc.Counter(1,
                                                  DEM_parameters.embedded_option)  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
 DEM_to_fluid_counter         = swim_proc.Counter(1,
                                                  1,
-                                                 DEM_parameters.coupling_level_type > 1)
+                                                 DEM_parameters["coupling_level_type"].GetInt() > 1)
 derivative_recovery_counter    = swim_proc.Counter(1,
                                                  4,
-                                                 DEM_parameters.coupling_level_type or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
+                                                 DEM_parameters["coupling_level_type"].GetInt() or pp.CFD_DEM.print_PRESSURE_GRADIENT_option)
 stationarity_counter         = swim_proc.Counter(DEM_parameters.time_steps_per_stationarity_step,
                                                  1,
                                                  DEM_parameters.stationary_problem_option)
@@ -790,7 +790,7 @@ while (time <= final_time):
     print('ELAPSED TIME = ', timer.time() - init_time)
     sys.stdout.flush()
 
-    if DEM_parameters.coupling_scheme_type  == "UpdatedDEM":
+    if DEM_parameters["coupling_scheme_type"].GetString()  == "UpdatedDEM":
         time_final_DEM_substepping = time + Dt
 
     else:
@@ -848,9 +848,9 @@ while (time <= final_time):
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-    if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedDEM":
+    if output_time <= out and DEM_parameters["coupling_scheme_type"].GetString() == "UpdatedDEM":
 
-        if DEM_parameters.coupling_level_type > 0:
+        if DEM_parameters["coupling_level_type"].GetInt() > 0:
             projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
 
         post_utils.Writeresults(time)
@@ -864,9 +864,9 @@ while (time <= final_time):
 
 #G
     error_mat_deriv = 0.
-    max_error_mat_deriv = - float('inf')
+    max_mat_deriv_error = - float('inf')
     error_laplacian = 0.
-    max_error_laplacian = - float('inf')
+    max_laplacian_error = - float('inf')
 
     total_volume = 0.
     mat_deriv_average = Vector(3)
@@ -908,10 +908,10 @@ while (time <= final_time):
             #total_volume += nodal_volume
             current_error = swim_proc.NormOfDifference(calc_mat_deriv, mat_deriv)
             error_mat_deriv += current_error
-            max_error_mat_deriv = max(max_error_mat_deriv, current_error)
+            max_mat_deriv_error = max(max_mat_deriv_error, current_error)
             current_error = swim_proc.NormOfDifference(calc_laplacian, laplacian)
             error_laplacian += current_error
-            max_error_laplacian = max(max_error_laplacian, current_error)
+            max_laplacian_error = max(max_laplacian_error, current_error)
             diff_mat_deriv = [calc_mat_deriv[i] - mat_deriv[i] for i in range(len(calc_mat_deriv))]
             diff_laplacian = [calc_laplacian[i] - laplacian[i] for i in range(len(calc_laplacian))]
             #mat_deriv_averager.swim_proc.Norm(diff_mat_deriv)
@@ -947,9 +947,9 @@ while (time <= final_time):
 
         if norm_mat_deriv_average > 0. and norm_laplacian_average > 0:
             current_mat_deriv_errors[0] = error_mat_deriv / norm_mat_deriv_average
-            current_mat_deriv_errors[1] = max_error_mat_deriv / norm_mat_deriv_average * len(fluid_model_part.Nodes)
+            current_mat_deriv_errors[1] = max_mat_deriv_error / norm_mat_deriv_average * len(fluid_model_part.Nodes)
             current_laplacian_errors[0] = error_laplacian / norm_laplacian_average
-            current_laplacian_errors[1] = max_error_laplacian / norm_laplacian_average * len(fluid_model_part.Nodes)
+            current_laplacian_errors[1] = max_laplacian_error / norm_laplacian_average * len(fluid_model_part.Nodes)
             mat_deriv_errors.append(current_mat_deriv_errors)
             laplacian_errors.append(current_laplacian_errors)
             #print('mat_deriv: min, max, avg, ', mat_deriv_averager.GetCurrentData())
@@ -976,15 +976,15 @@ while (time <= final_time):
         # NANO END
         # applying fluid-to-DEM coupling if required
 
-        if time >= DEM_parameters.interaction_start_time and DEM_parameters.coupling_level_type and (DEM_parameters.project_at_every_substep_option or first_dem_iter):
+        if time >= DEM_parameters.interaction_start_time and DEM_parameters["coupling_level_type"].GetInt() and (DEM_parameters.project_at_every_substep_option or first_dem_iter):
 
-            if DEM_parameters.coupling_scheme_type == "UpdatedDEM":
+            if DEM_parameters["coupling_scheme_type"].GetString() == "UpdatedDEM":
                 projection_module.ProjectFromNewestFluid()
 
             else:
                 projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
 
-                if DEM_parameters.IntegrationScheme == 'Hybrid_Bashforth':
+                if DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Hybrid_Bashforth':
                     solver.Solve() # only advance in space
                     projection_module.InterpolateVelocity()
 
@@ -1000,7 +1000,7 @@ while (time <= final_time):
         rigid_face_model_part.ProcessInfo[TIME] = time_dem
         cluster_model_part.ProcessInfo[TIME]    = time_dem
 
-        if not DEM_parameters.flow_in_porous_DEM_medium_option: # in porous flow particles remain static
+        if not DEM_parameters["flow_in_porous_DEM_medium_option"].GetBool(): # in porous flow particles remain static
             #solver.Solve()
             pass
 
@@ -1051,9 +1051,9 @@ while (time <= final_time):
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-    if output_time <= out and DEM_parameters.coupling_scheme_type == "UpdatedFluid":
+    if output_time <= out and DEM_parameters["coupling_scheme_type"].GetString() == "UpdatedFluid":
 
-        if DEM_parameters.coupling_level_type:
+        if DEM_parameters["coupling_level_type"].GetInt():
             projection_module.ComputePostProcessResults(spheres_model_part.ProcessInfo)
 
         post_utils.Writeresults(time)

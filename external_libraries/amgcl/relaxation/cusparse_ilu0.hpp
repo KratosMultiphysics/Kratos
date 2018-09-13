@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,8 @@ THE SOFTWARE.
  * \brief  Implementation of ILU0 smoother for CUDA backend.
  */
 
-#include <boost/typeof/typeof.hpp>
+#include <type_traits>
+
 #include <thrust/device_vector.h>
 #include <cusparse_v2.h>
 
@@ -53,25 +54,27 @@ struct ilu0< backend::cuda<real> > {
 
         params() : damping(1) {}
 
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, damping)
         {
-            AMGCL_PARAMS_CHECK(p, (damping));
+            check_params(p, {"damping"});
         }
 
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, damping);
         }
-    };
+#endif
+    } prm;
 
     /// \copydoc amgcl::relaxation::damped_jacobi::damped_jacobi
     template <class Matrix>
     ilu0( const Matrix &A, const params &, const typename Backend::params &bprm)
-        : handle(bprm.cusparse_handle),
+        : prm(prm), handle(bprm.cusparse_handle),
           n(backend::rows(A)), nnz(backend::nonzeros(A)),
-          ptr(A.ptr_data(), A.ptr_data() + n+1),
-          col(A.col_data(), A.col_data() + nnz),
-          val(A.val_data(), A.val_data() + nnz),
+          ptr(A.ptr, A.ptr + n+1),
+          col(A.col, A.col + nnz),
+          val(A.val, A.val + nnz),
           y(n)
     {
         // Create matrix descriptors.
@@ -224,8 +227,7 @@ struct ilu0< backend::cuda<real> > {
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_pre
     template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
     void apply_pre(
-            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp,
-            const params &prm
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
             ) const
     {
         backend::residual(rhs, A, x, tmp);
@@ -236,8 +238,7 @@ struct ilu0< backend::cuda<real> > {
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
     template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
     void apply_post(
-            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp,
-            const params &prm
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
             ) const
     {
         backend::residual(rhs, A, x, tmp);
@@ -246,10 +247,20 @@ struct ilu0< backend::cuda<real> > {
     }
 
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x, const params &prm) const
+    void apply(const Matrix &A, const VectorRHS &rhs, VectorX &x) const
     {
         backend::copy(rhs, x);
         solve(x);
+    }
+
+    size_t bytes() const {
+        // This is incomplete, as cusparse structs are opaque.
+        return
+            backend::bytes(ptr) +
+            backend::bytes(col) +
+            backend::bytes(val) +
+            backend::bytes(y) +
+            backend::bytes(buf);
     }
 
     private:
@@ -262,9 +273,9 @@ struct ilu0< backend::cuda<real> > {
         cusparseHandle_t handle;
         int n, nnz;
 
-        boost::shared_ptr<boost::remove_pointer<cusparseMatDescr_t>::type> descr_M, descr_L, descr_U;
-        boost::shared_ptr<boost::remove_pointer<csrilu02Info_t>::type> info_M;
-        boost::shared_ptr<boost::remove_pointer<csrsv2Info_t>::type>  info_L, info_U;
+        std::shared_ptr<std::remove_pointer<cusparseMatDescr_t>::type> descr_M, descr_L, descr_U;
+        std::shared_ptr<std::remove_pointer<csrilu02Info_t>::type> info_M;
+        std::shared_ptr<std::remove_pointer<csrsv2Info_t>::type>  info_L, info_U;
 
         thrust::device_vector<int> ptr, col;
         thrust::device_vector<value_type> val;

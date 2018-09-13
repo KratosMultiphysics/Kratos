@@ -59,7 +59,7 @@ t0 = clock()
 # including kratos path
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
-from KratosMultiphysics.MKLSolversApplication import *
+# from KratosMultiphysics.MKLSolversApplication import *
 
 import sys
 kratos_benchmarking_path = '../../../../benchmarking'  # kratos_root/benchmarking

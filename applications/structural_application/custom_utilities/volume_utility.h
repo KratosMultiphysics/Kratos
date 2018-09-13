@@ -173,7 +173,7 @@ public:
         // CENTER
 // 		  Element::GeometryType& geom = iel->GetGeometry();  // takes the element geometry
 // 		  unsigned int number_of_nodes = geom.PointsNumber(); // gets the total number of nodes of a element
-// 		  std::vector< Point<3, double > > Puntos; /// vector of points for the element
+// 		  std::vector<Point > Puntos; /// vector of points for the element
 // 		  Puntos.resize( number_of_nodes);
 
         for( ModelPart::ElementsContainerType::iterator iel = model_part.ElementsBegin();  // loop over elements
@@ -184,7 +184,7 @@ public:
             //unsigned int number_of_total_element_in_the_model_part = model_part.ElementsEnd() - model_part.ElementsBegin(); // number of elements
             Element::GeometryType& geom = iel->GetGeometry();  // takes the element geometry
             unsigned int number_of_nodes = geom.PointsNumber(); // gets the total number of nodes of a element
-            std::vector< Point<3, double > > Puntos; /// vector of points for the element
+            std::vector<Point > Puntos; /// vector of points for the element
             Puntos.resize( number_of_nodes);
 
             for (unsigned int point = 0; point < number_of_nodes; point ++ )
@@ -225,7 +225,7 @@ public:
             //unsigned int number_of_total_element_in_the_model_part = model_part.ElementEnd() - model_part.ElementsBegin(); // number of elements
             Element::GeometryType& geom = iel->GetGeometry();  // takes the element geometry
             unsigned int number_of_nodes = geom.PointsNumber(); // gets the total number of nodes of a element
-            std::vector< Point<3, double > > Puntos; /// vector of points for the element
+            std::vector<Point > Puntos; /// vector of points for the element
             Puntos.resize( number_of_nodes);
 
             for (unsigned int point = 0; point < number_of_nodes; point ++ )
@@ -294,7 +294,7 @@ public:
             //unsigned int number_of_total_element_in_the_model_part = model_part.ElementsEnd() - model_part.ElementsBegin(); // number of elements
             Element::GeometryType& geom = iel->GetGeometry();  // takes the element geometry
             unsigned int number_of_nodes = geom.PointsNumber(); // gets the total number of nodes of a element
-            std::vector< Point<3, double > > Puntos; /// vector of points for the element
+            std::vector<Point > Puntos; /// vector of points for the element
             Puntos.resize( number_of_nodes);
             //KRATOS_WATCH(number_of_nodes);
 

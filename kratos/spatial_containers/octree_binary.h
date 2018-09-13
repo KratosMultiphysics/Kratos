@@ -1,10 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: abel $
-//   Date:                $Date: 2013-05-27 17:13:27 $
-//   Revision:            $Revision: 1.29 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Abel
 //
+
 
 
 #if !defined(KRATOS_OCTREE_H_INCLUDED )
@@ -26,10 +31,11 @@
 #ifdef KRATOS_INDEPENDENT
 #else
 #include "includes/define.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
 #endif
 
 #include "octree_binary_cell.h"
-
 
 #define KRATOS_WATCH_3(name) std::cout << #name << " : " << name[0] << ", " << name[1] << ", " << name[2] << std::endl;
 
@@ -1240,8 +1246,8 @@ namespace Kratos {
 
        inline bool  IsIntersected(typename cell_type::pointer_type rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
     {
-        Point<3,double> low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
-        Point<3,double> high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
+        Point low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
+        Point high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
 
 
         return HasIntersection(rObject->GetGeometry(), low_point, high_point);
@@ -1251,12 +1257,12 @@ namespace Kratos {
 
 
     /// detect if  triangle and box are intersected
-    virtual bool HasIntersection(Element::GeometryType& geom_1, const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint )
+      virtual bool HasIntersection(Geometry<Node<3> >& geom_1, const Point& rLowPoint, const Point& rHighPoint )
     {
 //        const BaseType& geom_1 = rGeometry;
 
-        Point<3, double> boxcenter;
-        Point<3, double> boxhalfsize;
+        Point boxcenter;
+        Point boxhalfsize;
 
         boxcenter[0]   = 0.50 * ( rLowPoint[0] + rHighPoint[0] );
         boxcenter[1]   = 0.50 * ( rLowPoint[1] + rHighPoint[1] );
@@ -1269,7 +1275,7 @@ namespace Kratos {
 
         std::size_t size = geom_1.size();
 
-        std::vector<Point<3, double> > triverts;
+        std::vector<Point> triverts;
 
         triverts.resize( size );
 
@@ -1281,7 +1287,7 @@ namespace Kratos {
 
 
         // Having 4 Intersection nodes, one can build 4 triangles. The 4 possible combinations are defined by indices in a matrix.
-        bounded_matrix<unsigned int,4,3> IndexNodesTriangles;
+        BoundedMatrix<unsigned int,4,3> IndexNodesTriangles;
 
         IndexNodesTriangles(0,0) = 0;
         IndexNodesTriangles(0,1) = 1;
@@ -1321,7 +1327,7 @@ namespace Kratos {
             return false;
     }
 
-        inline bool TriBoxOverlap( Point<3, double>& boxcenter, Point<3, double>& boxhalfsize, std::vector< Point<3, double> >& triverts )
+        inline bool TriBoxOverlap( Point& boxcenter, Point& boxhalfsize, std::vector< Point >& triverts )
     {
 
         /*    use separating axis theorem to test overlap between triangle and box */
@@ -1481,7 +1487,7 @@ namespace Kratos {
                                        double& min, double& max, double& rad,
                                        array_1d<double, 3 >& v0,
                                        array_1d<double, 3 >& v2,
-                                       Point<3, double>& boxhalfsize
+                                       Point& boxhalfsize
                                      )
     {
         p0 = a * v0[1] - b * v0[2];
@@ -1510,7 +1516,7 @@ namespace Kratos {
                                       double& min, double& max, double& rad,
                                       array_1d<double, 3 >& v0,
                                       array_1d<double, 3 >& v1,
-                                      Point<3, double>& boxhalfsize
+                                      Point& boxhalfsize
                                     )
     {
         p0 = a * v0[1] - b * v0[2];
@@ -1540,7 +1546,7 @@ namespace Kratos {
                                        double& min, double& max, double& rad,
                                        array_1d<double, 3 >& v0,
                                        array_1d<double, 3 >& v2,
-                                       Point<3, double>& boxhalfsize
+                                       Point& boxhalfsize
                                      )
     {
 
@@ -1570,7 +1576,7 @@ namespace Kratos {
                                       double& min, double& max, double& rad,
                                       array_1d<double, 3 >& v0,
                                       array_1d<double, 3 >& v1,
-                                      Point<3, double>& boxhalfsize
+                                      Point& boxhalfsize
                                     )
 
     {
@@ -1602,7 +1608,7 @@ namespace Kratos {
                                        double& min, double& max, double& rad,
                                        array_1d<double, 3 >& v1,
                                        array_1d<double, 3 >& v2,
-                                       Point<3, double>& boxhalfsize
+                                       Point boxhalfsize
                                      )
     {
         p1 = a * v1[0] - b * v1[1];
@@ -1631,7 +1637,7 @@ namespace Kratos {
                                       double& min, double& max, double& rad,
                                       array_1d<double, 3 >& v0,
                                       array_1d<double, 3 >& v1,
-                                      Point<3, double>& boxhalfsize
+                                      Point& boxhalfsize
                                     )
     {
         p0 = a * v0[0] - b * v0[1];

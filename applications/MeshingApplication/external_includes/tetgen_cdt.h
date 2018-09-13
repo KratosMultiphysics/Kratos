@@ -80,7 +80,7 @@ namespace Kratos
 		{} 
 
 		/// Destructor.
-		virtual ~TetGenCDT() {}
+		virtual ~TetGenCDT() = default;
 
 
 		///@}
@@ -306,7 +306,7 @@ namespace Kratos
 				f->numberofpolygons = 1;
 				f->polygonlist = new tetgenio::polygon[f->numberofpolygons];
 				f->numberofholes = 0;
-				f->holelist = NULL;
+				f->holelist = nullptr;
 
 				Geometry<Node<3> >& geom = (it)->GetGeometry();
 
@@ -546,7 +546,7 @@ namespace Kratos
 					}
 
 					//do interpolation
-					BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
+					auto result_begin = results.begin();
 					Element::Pointer pelement;
 
 					bool is_found = element_finder.FindPointOnMesh(pnode->Coordinates(), N, pelement, result_begin, max_results);

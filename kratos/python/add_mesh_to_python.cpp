@@ -1,50 +1,36 @@
-// Kratos Multi-Physics
+//    |  /           |             
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
 
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "includes/mesh.h"
 #include "includes/properties.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "python/add_mesh_to_python.h"
-#include "python/pointer_vector_set_python_interface.h"
-//#include "python/variable_indexing_python.h"
-//#include "python/solution_step_variable_indexing_python.h"
+#include "python/containers_interface.h"
 
 namespace Kratos
 {
 namespace Python
 {
-using namespace boost::python;
+using namespace pybind11;
 
 template< class TContainerType, class TVariableType >
 bool HasHelperFunction(TContainerType& el, const TVariableType& rVar)
@@ -69,6 +55,22 @@ typedef MeshType::NodeType NodeType;
 typedef MeshType::NodesContainerType NodesContainerType;
 typedef Geometry<Node<3> >::PointsArrayType NodesArrayType;
 typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
+typedef Point::CoordinatesArrayType CoordinatesArrayType;
+
+array_1d<double,3> GetNormalFromCondition(
+    Condition& dummy, 
+    CoordinatesArrayType& LocalCoords
+    )
+{
+    return( dummy.GetGeometry().UnitNormal(LocalCoords) );
+}
+
+array_1d<double,3> FastGetNormalFromCondition(Condition& dummy)
+{
+    CoordinatesArrayType LocalCoords;
+    LocalCoords.clear();
+    return( dummy.GetGeometry().UnitNormal(LocalCoords) );
+}
 
 double GetAreaFromCondition( Condition& dummy )
 {
@@ -103,9 +105,9 @@ NodeType::Pointer GetNodeFromElement( Element& dummy, unsigned int index )
     return( dummy.GetGeometry().pGetPoint(index) );
 }
 
-boost::python::list GetNodesFromElement( Element& dummy )
+list GetNodesFromElement( Element& dummy )
 {
-    boost::python::list nodes_list;
+    pybind11::list nodes_list;
     for( unsigned int i=0; i<dummy.GetGeometry().size(); i++ )
     {
         nodes_list.append( dummy.GetGeometry().pGetPoint(i) );
@@ -118,9 +120,18 @@ NodeType::Pointer GetNodeFromCondition( Condition& dummy, unsigned int index )
     return( dummy.GetGeometry().pGetPoint(index) );
 }
 
-boost::python::list GetNodesFromCondition( Condition& dummy )
+void ConditionCalculateLocalSystemStandard( Condition& dummy, 
+                                                Matrix& rLeftHandSideMatrix,
+                                                Vector& rRightHandSideVector,
+                                                ProcessInfo& rCurrentProcessInfo)
 {
-    boost::python::list nodes_list;
+    dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+}
+
+
+list GetNodesFromCondition( Condition& dummy )
+{
+    pybind11::list nodes_list;
     for( unsigned int i=0; i<dummy.GetGeometry().size(); i++ )
     {
         nodes_list.append( dummy.GetGeometry().pGetPoint(i) );
@@ -128,47 +139,103 @@ boost::python::list GetNodesFromCondition( Condition& dummy )
     return( nodes_list );
 }
 
-boost::python::list GetIntegrationPointsFromElement( Element& dummy )
+list GetIntegrationPointsFromElement( Element& dummy )
 {
-    boost::python::list integration_points_list;
+    pybind11::list integration_points_list;
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     for( unsigned int i=0; i< integration_points.size(); i++ )
     {
-        boost::python::list item;
-        Point<3> pnt;
-        dummy.GetGeometry().GlobalCoordinates(pnt, integration_points[i]);
+        pybind11::list item;
+        Point point;
+        dummy.GetGeometry().GlobalCoordinates(point, integration_points[i]);
         for( unsigned int j=0; j<3; j++ )
-            item.append( pnt[j] );
+            item.append( point[j] );
         integration_points_list.append( item );
     }
     return( integration_points_list );
 }
 
-boost::python::list CalculateOnIntegrationPointsVector( ModelPart& rModelPart,
-        Element& dummy, const Variable<Vector>& rVariable )
+pybind11::list CalculateOnIntegrationPointsDouble(
+        Element& dummy, const Variable<double>& rVariable, ProcessInfo& rProcessInfo )
+{
+    std::vector<double> Output;
+    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
+    pybind11::list result;
+    for( unsigned int j=0; j<Output.size(); j++ )
+    {
+        result.append( Output[j] );
+    }
+    return result;
+}
+
+pybind11::list CalculateOnIntegrationPointsArray1d(
+        Element& dummy, const Variable<array_1d<double, 3>>& rVariable, ProcessInfo& rProcessInfo )
+{
+    std::vector<array_1d<double, 3>> Output;
+    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
+    pybind11::list result;
+    for( unsigned int j=0; j<Output.size(); j++ )
+    {
+        result.append( Output[j] );
+    }
+    return result;
+}
+
+pybind11::list CalculateOnIntegrationPointsVector(
+        Element& dummy, const Variable<Vector>& rVariable, ProcessInfo& rProcessInfo )
 {
     std::vector<Vector> Output;
-    dummy.CalculateOnIntegrationPoints( rVariable, Output,
-                                        rModelPart.GetProcessInfo() );
-    boost::python::list result;
+    dummy.CalculateOnIntegrationPoints( rVariable, Output, rProcessInfo);
+    pybind11::list result;
+    for( unsigned int j=0; j<Output.size(); j++ )
+    {
+        result.append( Output[j] );
+    }
+    return result;
+}
+
+pybind11::list CalculateOnIntegrationPointsMatrix(
+        Element& dummy, const Variable<Matrix>& rVariable, ProcessInfo& rProcessInfo )
+{
+    std::vector<Matrix> Output;
+    dummy.CalculateOnIntegrationPoints( rVariable, Output,rProcessInfo );
+    pybind11::list result;
     for( unsigned int j=0; j<Output.size(); j++ )
         result.append( Output[j] );
     return result;
 }
 
 template< class TObject >
-boost::python::list GetValuesOnIntegrationPointsDouble( TObject& dummy,
+pybind11::list GetValuesOnIntegrationPointsBool( TObject& dummy,
+        const Variable<bool>& rVariable, const ProcessInfo& rCurrentProcessInfo )
+{
+    pybind11::list values_list;
+    IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
+                dummy.GetIntegrationMethod() );
+    std::vector<bool> values( integration_points.size() );
+    dummy.CalculateOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+    for( unsigned int i=0; i<values.size(); i++ )
+    {
+        pybind11::list integration_point_value;
+        integration_point_value.append( bool(values[i]) );
+        values_list.append( integration_point_value );
+    }
+    return( values_list );
+}
+
+template< class TObject >
+pybind11::list GetValuesOnIntegrationPointsDouble( TObject& dummy,
         const Variable<double>& rVariable, const ProcessInfo& rCurrentProcessInfo )
 {
-    boost::python::list values_list;
+    pybind11::list values_list;
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector<double> values( integration_points.size() );
     dummy.CalculateOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
     for( unsigned int i=0; i<values.size(); i++ )
     {
-        boost::python::list integration_point_value;
+        pybind11::list integration_point_value;
         integration_point_value.append( values[i] );
         values_list.append( integration_point_value );
     }
@@ -176,37 +243,30 @@ boost::python::list GetValuesOnIntegrationPointsDouble( TObject& dummy,
 }
 
 template< class TObject >
-void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>& rVariable, boost::python::list values_list,  const ProcessInfo& rCurrentProcessInfo )
+void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>& rVariable, std::vector<double> values,  const ProcessInfo& rCurrentProcessInfo )
 {
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
-    std::vector<double> values( integration_points.size() );
-    for( unsigned int i=0; i<integration_points.size(); i++ )
-    {
-        boost::python::extract<double> x( values_list[i] );
-        if( x.check() )
-        {
-            values[i] = x();
-        }
-        else
-            break;
-    }
+
+    if(values.size() != integration_points.size())
+        KRATOS_ERROR << "size of values is : " << values.size() << " while the integration points size is " << integration_points.size() << std::endl;
+    
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
 
 template< class TObject >
-boost::python::list GetValuesOnIntegrationPointsArray1d( TObject& dummy,
+pybind11::list GetValuesOnIntegrationPointsArray1d( TObject& dummy,
         const Variable<array_1d<double,3> >& rVariable, const ProcessInfo& rCurrentProcessInfo )
 {
-    boost::python::list values_list;
+    pybind11::list values_list;
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector<array_1d<double,3> > values( integration_points.size() );
     dummy.CalculateOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
     for( unsigned int i=0; i<values.size(); i++ )
     {
-        boost::python::list integration_point_value;
+        pybind11::list integration_point_value;
         for( int j=0; j<3; j++ )
             integration_point_value.append( values[i][j] );
         values_list.append( integration_point_value );
@@ -215,36 +275,33 @@ boost::python::list GetValuesOnIntegrationPointsArray1d( TObject& dummy,
 }
 
 template< class TObject >
-void SetValuesOnIntegrationPointsArray1d( TObject& dummy, const Variable< array_1d<double,3> >& rVariable, boost::python::list values_list,  const ProcessInfo& rCurrentProcessInfo )
+void SetValuesOnIntegrationPointsArray1d( TObject& dummy, const Variable< array_1d<double,3> >& rVariable, pybind11::list values_list,  const ProcessInfo& rCurrentProcessInfo )
 {
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector< array_1d<double,3> > values( integration_points.size() );
     for( unsigned int i=0; i<integration_points.size(); i++ )
     {
-        boost::python::extract< array_1d<double,3> > x( values_list[i] );
-        if( x.check() )
-        {
-            values[i] = x();
-        }
+        if(isinstance<array_1d<double,3> >(values_list[i]))
+            values[i] = (values_list[i]).cast<array_1d<double,3> >();
         else
-            break;
+            KRATOS_ERROR << "expecting a list of array_1d<double,3> ";
     }
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
 template< class TObject >
-boost::python::list GetValuesOnIntegrationPointsVector( TObject& dummy,
+pybind11::list GetValuesOnIntegrationPointsVector( TObject& dummy,
         const Variable<Vector>& rVariable, const ProcessInfo& rCurrentProcessInfo )
 {
-    boost::python::list values_list;
+    pybind11::list values_list;
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector<Vector> values( integration_points.size() );
     dummy.CalculateOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
     for( unsigned int i=0; i<values.size(); i++ )
     {
-        boost::python::list integration_point_value;
+        pybind11::list integration_point_value;
         for( unsigned int j=0; j<values[i].size(); j++ )
             integration_point_value.append( values[i][j] );
         values_list.append( integration_point_value );
@@ -254,42 +311,34 @@ boost::python::list GetValuesOnIntegrationPointsVector( TObject& dummy,
 
 template< class TObject >
 void SetValuesOnIntegrationPointsVector( TObject& dummy,
-        const Variable<Vector>& rVariable, boost::python::list values_list, unsigned int len_values_list_item, const ProcessInfo& rCurrentProcessInfo )
+        const Variable<Vector>& rVariable, pybind11::list values_list, unsigned int len_values_list_item, const ProcessInfo& rCurrentProcessInfo )
 {
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector<Vector> values( integration_points.size() );
     for( unsigned int i=0; i<integration_points.size(); i++ )
     {
-        Vector value_item = ZeroVector(len_values_list_item);
-        for( unsigned int j=0; j<len_values_list_item; j++ )
-        {
-            boost::python::extract<double> x( values_list[i][j] );
-            if( x.check() )
-            {
-                value_item[j] = x();
-            }
-            else
-                break;
-        }
-        values[i] = value_item;
+        if(isinstance<Vector>(values_list[i]))
+            values[i] = (values_list[i]).cast<Vector>();
+        else
+            KRATOS_ERROR << "expecting a list of vectors";
     }
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
 
 template< class TObject >
-boost::python::list GetValuesOnIntegrationPointsMatrix( TObject& dummy,
+pybind11::list GetValuesOnIntegrationPointsMatrix( TObject& dummy,
         const Variable<Matrix>& rVariable, const ProcessInfo& rCurrentProcessInfo )
 {
-    boost::python::list values_list;
+    pybind11::list values_list;
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector<Matrix> values( integration_points.size() );
     dummy.CalculateOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
     for( unsigned int i=0; i<values.size(); i++ )
     {
-        boost::python::list integration_point_value;
+        pybind11::list integration_point_value;
         for( unsigned int j=0; j<values[i].size1(); j++ )
             for( unsigned int k=0; k<values[i].size2(); k++ )
                 integration_point_value.append( values[i](j,k) );
@@ -306,17 +355,18 @@ TDataType ElementCalculateInterface(Element& dummy, Variable<TDataType>& rVariab
     return aux;
 }
 
-void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable<ConstitutiveLaw::Pointer>& rVariable, boost::python::list values_list, const ProcessInfo& rCurrentProcessInfo )
+void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable<ConstitutiveLaw::Pointer>& rVariable, pybind11::list values_list, const ProcessInfo& rCurrentProcessInfo )
 {
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
     std::vector<ConstitutiveLaw::Pointer> values( integration_points.size() );
     for( unsigned int i=0; i<integration_points.size(); i++ )
     {
-        ConstitutiveLaw::Pointer value_item;
-        boost::python::extract<ConstitutiveLaw::Pointer> x( values_list[i] );
-        values[i] = x();
-    }
+        if(isinstance<ConstitutiveLaw::Pointer>(values_list[i]))
+            values[i] = (values_list[i]).cast<ConstitutiveLaw::Pointer>();
+        else
+            KRATOS_ERROR << "expecting a list of ConstitutiveLaw::Pointer";
+     }
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
@@ -326,6 +376,15 @@ void ElementCalculateLocalSystem1(Element& dummy,
         ProcessInfo& rCurrentProcessInfo)
 {
     dummy.CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+}
+
+template<class TDataType>
+void ElementCalculateSensitivityMatrix(Element& dummy,
+        const Variable<TDataType>& rDesignVariable,
+        Matrix& rOutput,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    dummy.CalculateSensitivityMatrix(rDesignVariable,rOutput,rCurrentProcessInfo);
 }
 
 void ElementGetFirstDerivativesVector1(Element& dummy,
@@ -355,18 +414,18 @@ void ElementGetSecondDerivativesVector2(Element& dummy,
 }
 
 
-void  AddMeshToPython()
+void  AddMeshToPython(pybind11::module& m)
 {
 //             typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 //             typedef MeshType::NodeType NodeType;
 
     //     class_<Dof, Dof::Pointer>("Dof", init<int, const Dof::VariableType&,  optional<const Dof::VariableType&, const Dof::VariableType&, const Dof::VariableType&> >())
-    //.def("GetVariable", &Dof::GetVariable, return_internal_reference<>())
-    //.def("GetReaction", &Dof::GetReaction, return_internal_reference<>())
-    //.def("GetTimeDerivative", &Dof::GetTimeDerivative, return_internal_reference<>())
-    //.def("GetSecondTimeDerivative", &Dof::GetSecondTimeDerivative, return_internal_reference<>())
+    //.def("GetVariable", &Dof::GetVariable, return_value_policy::reference_internal)
+    //.def("GetReaction", &Dof::GetReaction, return_value_policy::reference_internal)
+    //.def("GetTimeDerivative", &Dof::GetTimeDerivative, return_value_policy::reference_internal)
+    //.def("GetSecondTimeDerivative", &Dof::GetSecondTimeDerivative, return_value_policy::reference_internal)
     //.def("NodeIndex", &Dof::NodeIndex)
-    //.add_property("EquationId", &Dof::EquationId, &Dof::SetEquationId)
+    //.def_property("EquationId", &Dof::EquationId, &Dof::SetEquationId)
     //.def("Fix", &Dof::FixDof)
     //.def("Free", &Dof::FreeDof)
     //.def("IsFixed", &Dof::IsFixed)
@@ -375,17 +434,40 @@ void  AddMeshToPython()
     //.def(self_ns::str(self))
     //      ;
 
-    class_<GeometricalObject, GeometricalObject::Pointer, bases<GeometricalObject::BaseType, Flags > >("GeometricalObject", init<int>())
+    class_<GeometricalObject, GeometricalObject::Pointer, GeometricalObject::BaseType/*, Flags*/  >(m,"GeometricalObject")
+    .def(init<Kratos::GeometricalObject::IndexType>())
     ;
 
-    class_<Element, Element::Pointer, bases<Element::BaseType, Flags > >("Element", init<int>())
-    //.def(init<int, const Point<3>& >())
-    .add_property("Properties", GetPropertiesFromElement, SetPropertiesFromElement)
+    class_<Element, Element::Pointer, Element::BaseType, Flags  >(m,"Element")
+    .def(init<Kratos::Element::IndexType>())
+    .def_property("Properties", GetPropertiesFromElement, SetPropertiesFromElement)
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
+    .def("SetValue", [](Element& self, const Variable< array_1d<double,3>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,3>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
+
+    .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
+    .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
+    .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 4>  > >)
+    .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
+    .def("SetValue", [](Element& self, const Variable< array_1d<double,4>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,4>(value));  }  )  //to allow passing a Vector instead of an array_1d
+    .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
+
+    .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
+    .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
+    .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 6>  > >)
+    .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
+    .def("SetValue", [](Element& self, const Variable< array_1d<double,6>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,6>(value));  }  )  //to allow passing a Vector instead of an array_1d
+    .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
+
+    .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
+    .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
+    .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 9>  > >)
+    .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
+    .def("SetValue", [](Element& self, const Variable< array_1d<double,9>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,9>(value));  }  )  //to allow passing a Vector instead of an array_1d
+    .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< Vector > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< Vector > >)
@@ -393,11 +475,11 @@ void  AddMeshToPython()
     .def("SetValue", SetValueHelperFunction< Element, Variable< Vector > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< Vector > >)
 
-    .def("__setitem__", SetValueHelperFunction< Element, Variable< vector<int> > >)
-    .def("__getitem__", GetValueHelperFunction< Element, Variable< vector<int> > >)
-    .def("Has", HasHelperFunction< Element, Variable< vector<int> > >)
-    .def("SetValue", SetValueHelperFunction< Element, Variable< vector<int> > >)
-    .def("GetValue", GetValueHelperFunction< Element, Variable< vector<int> > >)
+    .def("__setitem__", SetValueHelperFunction< Element, Variable< DenseVector<int> > >)
+    .def("__getitem__", GetValueHelperFunction< Element, Variable< DenseVector<int> > >)
+    .def("Has", HasHelperFunction< Element, Variable< DenseVector<int> > >)
+    .def("SetValue", SetValueHelperFunction< Element, Variable< DenseVector<int> > >)
+    .def("GetValue", GetValueHelperFunction< Element, Variable< DenseVector<int> > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< Matrix > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< Matrix > >)
@@ -423,12 +505,15 @@ void  AddMeshToPython()
     .def("SetValue", SetValueHelperFunction< Element, Variable< bool > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< bool > >)
 
-
     .def("GetArea", GetAreaFromElement )
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsDouble)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsArray1d)
     .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsVector)
+    .def("CalculateOnIntegrationPoints", CalculateOnIntegrationPointsMatrix)
+    .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsBool<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsDouble<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsArray1d<Element>)
     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsVector<Element>)
@@ -445,44 +530,70 @@ void  AddMeshToPython()
     .def("CalculateMassMatrix", &Element::CalculateMassMatrix)
     .def("CalculateDampingMatrix", &Element::CalculateDampingMatrix)
     .def("CalculateLocalSystem", &ElementCalculateLocalSystem1)
+    .def("CalculateFirstDerivativesLHS", &Element::CalculateFirstDerivativesLHS)
+    .def("CalculateSecondDerivativesLHS", &Element::CalculateSecondDerivativesLHS)
     .def("CalculateLocalVelocityContribution", &Element::CalculateLocalVelocityContribution)
     .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector1)
     .def("GetFirstDerivativesVector", &ElementGetFirstDerivativesVector2)
     .def("GetSecondDerivativesVector", &ElementGetSecondDerivativesVector1)
     .def("GetSecondDerivativesVector", &ElementGetSecondDerivativesVector2)
+    .def("CalculateSensitivityMatrix", &ElementCalculateSensitivityMatrix<double>)
+    .def("CalculateSensitivityMatrix", &ElementCalculateSensitivityMatrix<array_1d<double,3> >)
     //.def("__setitem__", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
     //.def("__getitem__", GetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
     //.def("SetValue", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
     //.def("GetValue", GetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
 
-    /*                  .def(VariableIndexingPython<Element, Variable<int> >())
-                        .def(VariableIndexingPython<Element, Variable<double> >())
-                        .def(VariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
-                        .def(VariableIndexingPython<Element, Variable< Vector > >())
-                        .def(VariableIndexingPython<Element, Variable< Matrix > >())
-                        .def(VariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
-                        .def(SolutionStepVariableIndexingPython<Element, Variable<int> >())
-                        .def(SolutionStepVariableIndexingPython<Element, Variable<double> >())
-                        .def(SolutionStepVariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
-                        .def(SolutionStepVariableIndexingPython<Element, Variable<vector<double> > >())
-                        .def(SolutionStepVariableIndexingPython<Element, Variable<matrix<double> > >())
-                        .def(SolutionStepVariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >()) */
+//     .def(VariableIndexingPython<Element, Variable<int> >())
+//     .def(VariableIndexingPython<Element, Variable<double> >())
+//     .def(VariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
+//     .def(VariableIndexingPython<Element, Variable< Vector > >())
+//     .def(VariableIndexingPython<Element, Variable< Matrix > >())
+//     .def(VariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
+//     .def(SolutionStepVariableIndexingPython<Element, Variable<int> >())
+//     .def(SolutionStepVariableIndexingPython<Element, Variable<double> >())
+//     .def(SolutionStepVariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
+//     .def(SolutionStepVariableIndexingPython<Element, Variable<vector<double> > >())
+//     .def(SolutionStepVariableIndexingPython<Element, Variable<DenseMatrix<double> > >())
+//     .def(SolutionStepVariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
     .def("Initialize", &Element::Initialize)
     //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
-    .def(self_ns::str(self))
+    .def("__repr__", &Element::Info) //self_ns::str(self))
     ;
 
-    PointerVectorSetPythonInterface<MeshType::ElementsContainerType>::CreateInterface("ElementsArray")
+    PointerVectorSetPythonInterface<MeshType::ElementsContainerType>().CreateInterface(m,"ElementsArray")
     ;
 
-    class_<Condition, Condition::Pointer, bases<Condition::BaseType, Flags > >("Condition", init<int>())
-    //.def(init<int, const Point<3>& >())
-    .add_property("Properties", GetPropertiesFromCondition, SetPropertiesFromCondition)
+    class_<Condition, Condition::Pointer, Condition::BaseType, Flags  >(m,"Condition")
+    .def(init<Kratos::Condition::IndexType>())
+    .def_property("Properties", GetPropertiesFromCondition, SetPropertiesFromCondition)
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
+    .def("SetValue", [](Condition& self, const Variable< array_1d<double,3>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,3>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
+
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
+    .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
+    .def("SetValue", [](Condition& self, const Variable< array_1d<double,4>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,4>(value));  }  )  //to allow passing a Vector instead of an array_1d
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
+
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
+    .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
+    .def("SetValue", [](Condition& self, const Variable< array_1d<double,6>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,6>(value));  }  )  //to allow passing a Vector instead of an array_1d
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
+
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
+    .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
+    .def("SetValue", [](Condition& self, const Variable< array_1d<double,9>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,9>(value));  }  )  //to allow passing a Vector instead of an array_1d
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< Vector > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< Vector > >)
@@ -490,11 +601,11 @@ void  AddMeshToPython()
     .def("SetValue", SetValueHelperFunction< Condition, Variable< Vector > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< Vector > >)
 
-    .def("__setitem__", SetValueHelperFunction< Condition, Variable< vector<int> > >)
-    .def("__getitem__", GetValueHelperFunction< Condition, Variable< vector<int> > >)
-    .def("Has", HasHelperFunction< Condition, Variable< vector<int> > >)
-    .def("SetValue", SetValueHelperFunction< Condition, Variable< vector<int> > >)
-    .def("GetValue", GetValueHelperFunction< Condition, Variable< vector<int> > >)
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< DenseVector<int> > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< DenseVector<int> > >)
+    .def("Has", HasHelperFunction< Condition, Variable< DenseVector<int> > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< DenseVector<int> > >)
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< DenseVector<int> > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< Matrix > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< Matrix > >)
@@ -531,46 +642,47 @@ void  AddMeshToPython()
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
-	.def("GetArea",GetAreaFromCondition)
+    .def("GetNormal",GetNormalFromCondition)
+    .def("GetNormal",FastGetNormalFromCondition)
+    .def("GetArea",GetAreaFromCondition)
+
+//     .def(VariableIndexingPython<Condition, Variable<int> >())
+//     .def(VariableIndexingPython<Condition, Variable<double> >())
+//     .def(VariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
+//     .def(VariableIndexingPython<Condition, Variable< Vector > >())
+//     .def(VariableIndexingPython<Condition, Variable< Matrix > >())
+//     .def(VariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
+//     .def(SolutionStepVariableIndexingPython<Condition, Variable<int> >())
+//     .def(SolutionStepVariableIndexingPython<Condition, Variable<double> >())
+//     .def(SolutionStepVariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
+//     .def(SolutionStepVariableIndexingPython<Condition, Variable<vector<double> > >())
+//     .def(SolutionStepVariableIndexingPython<Condition, Variable<DenseMatrix<double> > >())
+//     .def(SolutionStepVariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
 
 
-
-//				.def(VariableIndexingPython<Condition, Variable<int> >())
-//				.def(VariableIndexingPython<Condition, Variable<double> >())
-//				.def(VariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
-//				.def(VariableIndexingPython<Condition, Variable< Vector > >())
-//				.def(VariableIndexingPython<Condition, Variable< Matrix > >())
-//				.def(VariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
-    /*				.def(SolutionStepVariableIndexingPython<Condition, Variable<int> >())
-    				.def(SolutionStepVariableIndexingPython<Condition, Variable<double> >())
-    				.def(SolutionStepVariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
-    				.def(SolutionStepVariableIndexingPython<Condition, Variable<vector<double> > >())
-    				.def(SolutionStepVariableIndexingPython<Condition, Variable<matrix<double> > >())
-    				.def(SolutionStepVariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
-    */
     .def("Initialize", &Condition::Initialize)
-    //.def("CalculateLocalSystem", &Condition::CalculateLocalSystem)
+    .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
     .def("Info", &Condition::Info)
-    .def(self_ns::str(self))
+    .def("__repr__", &Condition::Info ) // self_ns::str(self))
     ;
 
-    PointerVectorSetPythonInterface<MeshType::ConditionsContainerType>::CreateInterface("ConditionsArray")
+    PointerVectorSetPythonInterface<MeshType::ConditionsContainerType>().CreateInterface(m,"ConditionsArray")
     ;
 
-    class_<MeshType, MeshType::Pointer, bases<DataValueContainer, Flags>, boost::noncopyable >("Mesh")
-    .add_property("Nodes", &MeshType::pNodes,&MeshType::SetNodes)
-    .def("NodesArray", &MeshType::NodesArray, return_internal_reference<>())
-    .add_property("Elements", &MeshType::pElements,&MeshType::SetElements)
-    .def("ElementsArray", &MeshType::ElementsArray, return_internal_reference<>())
-    .add_property("Conditions", &MeshType::pConditions,&MeshType::SetConditions)
-    .def("ConditionsArray", &MeshType::ConditionsArray, return_internal_reference<>())
-    .add_property("Properties", &MeshType::pProperties,&MeshType::SetProperties)
-    .def("PropertiesArray", &MeshType::PropertiesArray, return_internal_reference<>())
-	.def("HasNode", &MeshType::HasNode)
-	.def("HasProperties", &MeshType::HasProperties)
-	.def("HasElement", &MeshType::HasElement)
-	.def("HasCondition", &MeshType::HasCondition)
-    .def(self_ns::str(self))
+    class_<MeshType, MeshType::Pointer, DataValueContainer, Flags >(m,"Mesh")
+    .def_property("Nodes", &MeshType::pNodes,&MeshType::SetNodes)
+    .def("NodesArray", &MeshType::NodesArray, return_value_policy::reference_internal)
+    .def_property("Elements", &MeshType::pElements,&MeshType::SetElements)
+    .def("ElementsArray", &MeshType::ElementsArray, return_value_policy::reference_internal)
+    .def_property("Conditions", &MeshType::pConditions,&MeshType::SetConditions)
+    .def("ConditionsArray", &MeshType::ConditionsArray, return_value_policy::reference_internal)
+    .def_property("Properties", &MeshType::pProperties,&MeshType::SetProperties)
+    .def("PropertiesArray", &MeshType::PropertiesArray, return_value_policy::reference_internal)
+    .def("HasNode", &MeshType::HasNode)
+    .def("HasProperties", &MeshType::HasProperties)
+    .def("HasElement", &MeshType::HasElement)
+    .def("HasCondition", &MeshType::HasCondition)
+    .def("__repr__", &MeshType::Info)
     ;
 }
 }  // namespace Python.

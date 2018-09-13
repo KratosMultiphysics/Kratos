@@ -14,8 +14,8 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_Dempack_dev::SetConstitutiveLawInProperties(Properties::Pointer pProp) const {
-        std::cout << "Assigning DEM_Dempack_dev to Properties " << pProp->Id() << std::endl;
+    void DEM_Dempack_dev::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_Dempack_dev to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
@@ -24,7 +24,7 @@ namespace Kratos {
 
         double rmin = radius;
         if (other_radius < radius) rmin = other_radius;
-        calculation_area = KRATOS_M_PI * rmin*rmin;
+        calculation_area = Globals::Pi * rmin*rmin;
     }
     double DEM_Dempack_dev::CalculateContactArea(double radius, double other_radius, Vector& v) {
         double a = 0.0;
@@ -54,13 +54,13 @@ namespace Kratos {
                                                 double calculation_area,
                                                 SphericContinuumParticle* element1,
                                                 SphericContinuumParticle* element2) {
-        
-        KRATOS_TRY 
+
+        KRATOS_TRY
 
 //        double rmin = element1->GetRadius();    // test rebalance solo resistencia
 //        const double other_radius = element2->GetRadius();
 //        if (other_radius < rmin) rmin = other_radius;
-//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+//        double effective_calculation_area = Globals::Pi * rmin*rmin;
 
         double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
         kn_el = equiv_young * calculation_area / initial_dist;
@@ -70,7 +70,7 @@ namespace Kratos {
 //        outputfile << kn_el << " " << kt_el << "\n";
 //        outputfile.close();
 
-        KRATOS_CATCH("")  
+        KRATOS_CATCH("")
     }
 
 
@@ -107,7 +107,7 @@ namespace Kratos {
 //        double rmin = element1->GetRadius();
 //        const double other_radius = element2->GetRadius();
 //        if (other_radius < rmin) rmin = other_radius;
-//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+//        double effective_calculation_area = Globals::Pi * rmin*rmin;
           double effective_calculation_area = calculation_area;
 
         if (&element1_props == &element2_props) {
@@ -259,7 +259,7 @@ namespace Kratos {
             int i_neighbour_count,
             bool& sliding,
             int search_control,
-            vector<int>& search_control_vector,
+            DenseVector<int>& search_control_vector,
             const ProcessInfo& r_process_info) {
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
@@ -267,7 +267,7 @@ namespace Kratos {
 //        double rmin = element1->GetRadius();
 //        const double other_radius = element2->GetRadius();
 //        if (other_radius < rmin) rmin = other_radius;
-//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+//        double effective_calculation_area = Globals::Pi * rmin*rmin;
         double effective_calculation_area = calculation_area;
 
         Properties& element1_props = element1->GetProperties();
@@ -393,7 +393,7 @@ namespace Kratos {
             int i_neighbour_count,
             bool& sliding,
             int search_control,
-            vector<int>& search_control_vector,
+            DenseVector<int>& search_control_vector,
             const ProcessInfo& r_process_info) {
 
         KRATOS_TRY
@@ -408,7 +408,7 @@ namespace Kratos {
 //        double rmin = element1->GetRadius();  // test de rebalance de areas solo en resistencia
 //        const double other_radius = element2->GetRadius();
 //        if (other_radius < rmin) rmin = other_radius;
-//        double effective_calculation_area = KRATOS_M_PI * rmin*rmin;
+//        double effective_calculation_area = Globals::Pi * rmin*rmin;
         double effective_calculation_area = calculation_area;
 
 
@@ -451,7 +451,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    
+
     void DEM_Dempack_dev::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                     SphericContinuumParticle* neighbor,
                                                     double equiv_young,
@@ -476,8 +476,8 @@ namespace Kratos {
         GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalDeltaAngularVelocity, LocalDeltaAngularVelocity);
         //GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mContactMoment, LocalRotationalMoment);
 
-        const double equivalent_radius = sqrt(calculation_area / KRATOS_M_PI);
-        const double Inertia_I = 0.25 * KRATOS_M_PI * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
+        const double equivalent_radius = sqrt(calculation_area / Globals::Pi);
+        const double Inertia_I = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J = 2.0 * Inertia_I; // This is the polar inertia
         const double debugging_rotational_factor = 5.0; //1.0; // Hardcoded only for testing purposes. Obviously, this parameter should be always 1.0
 

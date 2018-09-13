@@ -1,0 +1,9 @@
+{
+	"mapper_settings": [
+    {
+		"mapper_type": "nearest_neighbor",
+		"interface_submodel_part_origin": "Parts_domain_tri",
+		"interface_submodel_part_destination": "Parts_domain_quad"
+	}
+ ]
+}

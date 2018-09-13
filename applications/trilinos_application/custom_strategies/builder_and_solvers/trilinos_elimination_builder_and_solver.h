@@ -1,48 +1,14 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
-/* *********************************************************
-*
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2009-01-13 15:39:56 $
-*   Revision:            $Revision: 1.5 $
-*
-* ***********************************************************/
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
+//
+//  License:             BSD License
+//                                       Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//
 
 
 #if !defined(KRATOS_TRILINOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER )
@@ -53,7 +19,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <set>
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 #include "boost/timer.hpp"
 
 
@@ -809,6 +774,23 @@ public:
 // 			  for(ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin() ; i_dof != i_node->GetDofs().end() ; i_dof++)
 // 			    i_dof->FixDof();
 
+    // If reactions are to be calculated, we check if all the dofs have reactions defined
+    // This is tobe done only in debug mode
+
+    #ifdef KRATOS_DEBUG
+
+    if(BaseType::GetCalculateReactionsFlag())
+    {
+        for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+        {
+                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+                    << "Node : "<<dof_iterator->Id()<< std::endl
+                    << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
+        }
+    }
+    #endif
+
+
         BaseType::mDofSetIsInitialized = true;
 
         KRATOS_CATCH("")
@@ -1100,12 +1082,11 @@ public:
     //**************************************************************************
     //**************************************************************************
     void ResizeAndInitializeVectors(
-        TSystemMatrixPointerType& pA,
-        TSystemVectorPointerType& pDx,
-        TSystemVectorPointerType& pb,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
+      typename TSchemeType::Pointer pScheme,
+      TSystemMatrixPointerType& pA,
+      TSystemVectorPointerType& pDx,
+      TSystemVectorPointerType& pb,
+      ModelPart& rModelPart
     ) override
     {
         KRATOS_TRY
@@ -1129,97 +1110,88 @@ public:
                 temp[i] = mFirstMyId+i;
             Epetra_Map my_map(-1, number_of_local_dofs, temp, 0, mrComm);
 
+            auto& rElements = rModelPart.Elements();
+            auto& rConditions = rModelPart.Conditions();
 
             //create and fill the graph of the matrix --> the temp array is reused here with a different meaning
             Epetra_FECrsGraph Agraph(Copy, my_map, mguess_row_size);
-            //int ierr;
+
             Element::EquationIdVectorType EquationId;
+            ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+            
             // assemble all elements
-            for (typename ElementsArrayType::ptr_iterator it=rElements.ptr_begin(); it!=rElements.ptr_end(); it++)
+            for (typename ElementsArrayType::ptr_iterator it=rElements.ptr_begin(); it!=rElements.ptr_end(); ++it)
             {
-                //TODO! this should go through the scheme!!!!!!!!!1
-                (*it)->EquationIdVector(EquationId,CurrentProcessInfo);
+                pScheme->EquationId( *it, EquationId, CurrentProcessInfo );
 
                 //filling the list of active global indices (non fixed)
                 unsigned int num_active_indices = 0;
                 for (unsigned int i=0; i<EquationId.size(); i++)
-                    if ( EquationId[i] < BaseType::mEquationSystemSize )
-                    {
-                        assembling_temp[num_active_indices] =  EquationId[i];
-                        num_active_indices += 1;
-// KRATOS_WATCH(temp[i]);
-                    }
-
-// KRATOS_WATCH(" ");
-                if (num_active_indices != 0)
                 {
-                    int ierr = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
-//                                                        KRATOS_WATCH(num_active_indices);
-//                                                        KRATOS_WATCH(ierr);
-//                                                        for(unsigned aaa=0; aaa<num_active_indices; aaa++)
-//                                                            std::cout << assembling_temp[aaa] << " ";
-//                                                        std::cout << std::endl;
-                    if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 964","");
-                }
-            }
-// KRATOS_WATCH("assemble conditions");
-            // assemble all conditions
-            for (typename ConditionsArrayType::ptr_iterator it=rConditions.ptr_begin(); it!=rConditions.ptr_end(); it++)
-            {
-                //TODO! this should go through the scheme!!!!!!!!!1
-                (*it)->EquationIdVector(EquationId,CurrentProcessInfo);
-
-                //filling the list of active global indices (non fixed)
-                unsigned int num_active_indices = 0;
-                for (unsigned int i=0; i<EquationId.size(); i++)
                     if ( EquationId[i] < BaseType::mEquationSystemSize )
                     {
                         assembling_temp[num_active_indices] =  EquationId[i];
                         num_active_indices += 1;
                     }
+                }
 
                 if (num_active_indices != 0)
                 {
                     int ierr = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
-                    if (ierr < 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 986","");
+                    KRATOS_ERROR_IF( ierr < 0 ) << "In " << __FILE__ << ":" << __LINE__ << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
                 }
-            }
+          }
 
-            //finalizing graph construction
-            int graph_assemble_ierr = Agraph.GlobalAssemble();
-            if (graph_assemble_ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
+          // assemble all conditions
+          for (typename ConditionsArrayType::ptr_iterator it=rConditions.ptr_begin(); it!=rConditions.ptr_end(); ++it)
+          {
+              pScheme->Condition_EquationId( *it, EquationId, CurrentProcessInfo );
 
+              //filling the list of active global indices (non fixed)
+              unsigned int num_active_indices = 0;
+              for (unsigned int i=0; i<EquationId.size(); i++)
+              {
+                  if ( EquationId[i] < BaseType::mEquationSystemSize )
+                  {
+                      assembling_temp[num_active_indices] =  EquationId[i];
+                      num_active_indices += 1;
+                  }
+              }
 
-            //generate a new matrix pointer according to this graph
-            TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );
-            pA.swap(pNewA);
-// KRATOS_WATCH(*pA);
+              if (num_active_indices != 0)
+              {
+                  int ierr = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
+                  KRATOS_ERROR_IF( ierr < 0 ) << "In " << __FILE__ << ":" << __LINE__ << ": Epetra failure in Graph.InsertGlobalIndices. Error code: " << ierr << std::endl;
+              }
+          }
 
+          //finalizing graph construction
+          int ierr = Agraph.GlobalAssemble();
+          KRATOS_ERROR_IF( ierr != 0 ) << "In " << __FILE__ << ":" << __LINE__ << ": Epetra failure in Graph.GlobalAssemble, Error code: " << ierr << std::endl;
 
+          //generate a new matrix pointer according to this graph
+          TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );
+          pA.swap(pNewA);
 
-            //generate new vector pointers according to the given map
-            if ( pb == NULL || TSparseSpace::Size(*pb) != BaseType::mEquationSystemSize)
-            {
-                TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(my_map) );
-                pb.swap(pNewb);
-            }
-            if ( pDx == NULL || TSparseSpace::Size(*pDx) != BaseType::mEquationSystemSize)
-            {
-                TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(my_map) );
-                pDx.swap(pNewDx);
-            }
-            if ( BaseType::mpReactionsVector == NULL) //if the pointer is not initialized initialize it to an empty matrix
-            {
-                TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(my_map) );
-                BaseType::mpReactionsVector.swap(pNewReactionsVector);
-            }
+          //generate new vector pointers according to the given map
+          if ( pb == NULL || TSparseSpace::Size(*pb) != BaseType::mEquationSystemSize)
+          {
+              TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(my_map) );
+              pb.swap(pNewb);
+          }
+          if ( pDx == NULL || TSparseSpace::Size(*pDx) != BaseType::mEquationSystemSize)
+          {
+              TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(my_map) );
+              pDx.swap(pNewDx);
+          }
+          if ( BaseType::mpReactionsVector == NULL) //if the pointer is not initialized initialize it to an empty matrix
+          {
+              TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(my_map) );
+              BaseType::mpReactionsVector.swap(pNewReactionsVector);
+          }
 
-            delete [] temp;
-            delete [] assembling_temp;
-
-
-
-
+          delete [] temp;
+          delete [] assembling_temp;
         }
         else
         {
@@ -1229,22 +1201,13 @@ public:
             }
         }
 
-        //
-
-
         //if needed resize the vector for the calculation of reactions
         if (BaseType::mCalculateReactionsFlag == true)
         {
-            //unsigned int ReactionsVectorSize = BaseType::mDofSet.size()-BaseType::mEquationSystemSize;
-
-// 					BaseType::mpReactionsVector->resize(ReactionsVectorSize,false);
-
             KRATOS_THROW_ERROR(std::logic_error,"calculation of reactions not yet implemented with Trilinos","");
         }
 
-
         KRATOS_CATCH("")
-
     }
 
 
@@ -1329,25 +1292,6 @@ public:
         ModelPart& r_model_part,
         TSystemVectorType& b) override
     {}
-
-    /**
-    this function is intended to be called at the end of the solution step to clean up memory
-    storage not needed
-    */
-    void Clear() override
-    {
-        this->mDofSet = DofsArrayType();
-        //this->mReactionsVector = TSystemVectorType();
-        this->mpLinearSystemSolver->Clear();
-
-        if (this->GetEchoLevel()>0)
-        {
-
-            KRATOS_WATCH("TrilinosResidualBasedEliminationBuilderAndSolver Clear Function called");
-        }
-    }
-
-
 
 
     /*@} */
@@ -1474,4 +1418,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_TRILINOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER  defined */
-

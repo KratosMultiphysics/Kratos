@@ -9,7 +9,7 @@
 //
 //   Project Name:        $ExternalSolversApplication   $
 //   Last modified by:    $Author: michael.andre@tum.de $
-//   Date:                $Date:         September 2016 $
+//   Date:                $Date:             April 2017 $
 //   Revision:            $Revision:                0.0 $
 //
 //
@@ -22,14 +22,6 @@
 #include <algorithm>
 
 // External includes
-#include <boost/smart_ptr.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/numeric/ublas/storage.hpp>
-#include <amgcl/backend/builtin.hpp>
-#include <amgcl/adapter/zero_copy.hpp>
-#include <amgcl/value_type/complex.hpp>
-#include <amgcl/solver/skyline_lu.hpp>
 extern "C" {
 #include "feast.h"
 }
@@ -38,196 +30,18 @@ extern "C" {
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
+#include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "includes/ublas_interface.h"
+#include "includes/ublas_complex_interface.h"
 #include "spaces/ublas_space.h"
 
-#if !defined(KRATOS_FEAST_SOLVER )
+#if !defined(KRATOS_FEAST_SOLVER)
 #define  KRATOS_FEAST_SOLVER
 
 namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
-
-/// Sparse system matrix required for FEAST's inner iterations.
-/**
- *  Matrix arrays are accessed the same as for ublas compressed_matrix.
- */
-struct FEASTSystemMatrix
-{
-    typedef std::complex<double> ScalarType;
-    typedef boost::numeric::ublas::compressed_matrix<double> RealMatrixType;
-
-    /**
-     * The crs matrix structure remains constant during the inner iterations.
-     * It is initialized here.
-     */
-    void Initialize(const RealMatrixType& M, const RealMatrixType& K)
-    {
-        const std::size_t dimension = M.size1();
-
-        row_ptr.resize(dimension + 1);
-
-        std::vector<std::unordered_set<std::size_t> > indices(dimension);
-
-        row_ptr[0] = 0;
-        for (std::size_t i = 0; i < dimension; i++)
-        {
-            std::size_t row_begin, row_end;
-            indices[i].reserve(40);
-
-            row_begin = M.index1_data()[i];
-            row_end = M.index1_data()[i + 1];
-
-            indices[i].insert(M.index2_data().begin() + row_begin,
-                    M.index2_data().begin() + row_end);
-
-            row_begin = K.index1_data()[i];
-            row_end = K.index1_data()[i + 1];
-
-            indices[i].insert(K.index2_data().begin() + row_begin,
-                    K.index2_data().begin() + row_end);
-
-            row_ptr[i + 1] = row_ptr[i] + indices[i].size();
-        }
-
-        col_idx.resize(row_ptr[dimension]);
-
-        size_t k = 0;
-        for (std::size_t i = 0; i < dimension; i++)
-        {
-            std::for_each(std::begin(indices[i]), std::end(indices[i]),
-                    [&](std::size_t j) {col_idx[k++] = j;});
-
-            indices[i].clear();
-
-            std::sort(col_idx.begin() + row_ptr[i],
-                    col_idx.begin() + row_ptr[i + 1]);
-        }
-
-        values.resize(row_ptr[dimension]);
-    }
-
-    /**
-     * Similar to FEAST's zdaddcsr subroutine. Assumes crs matrix structure is
-     * already initialized.
-     */
-    void Calculate(const RealMatrixType& M, const RealMatrixType& K, ScalarType z)
-    {
-        std::size_t jm, jk;
-        double mij, kij;
-        const std::size_t dimension = M.size1();
-
-        std::size_t ptr = 0;
-        for (std::size_t i = 0; i < dimension; i++)
-        {
-            std::size_t m_ptr = M.index1_data()[i];
-            std::size_t k_ptr = K.index1_data()[i];
-            while (m_ptr < M.index1_data()[i + 1] || k_ptr < K.index1_data()[i + 1])
-            {
-                jm = (m_ptr < M.index1_data()[i + 1]) ?
-                        M.index2_data()[m_ptr] : dimension;
-                jk = (k_ptr < K.index1_data()[i + 1]) ?
-                        K.index2_data()[k_ptr] : dimension;
-
-                if (jm < jk)
-                {
-                    mij = M(i, jm);
-                    values[ptr] = z * mij;
-                    m_ptr++;
-                }
-                else if (jm > jk)
-                {
-                    kij = K(i, jk);
-                    values[ptr] = -kij;
-                    k_ptr++;
-                }
-                else
-                { // jm == jk
-                    mij = M(i, jm);
-                    kij = K(i, jk);
-                    values[ptr] = z * mij - kij;
-                    m_ptr++;
-                    k_ptr++;
-                }
-                ptr++;
-            }
-        }
-    }
-
-    boost::numeric::ublas::unbounded_array<std::ptrdiff_t>&
-    index1_data()
-    {
-        return row_ptr;
-    }
-
-    boost::numeric::ublas::unbounded_array<std::ptrdiff_t>&
-    index2_data()
-    {
-        return col_idx;
-    }
-
-    boost::numeric::ublas::unbounded_array<ScalarType>&
-    value_data()
-    {
-        return values;
-    }
-
-    std::size_t size1() const
-    {
-        return row_ptr.size() - 1;
-    }
-
-    std::size_t size2() const
-    {
-        return size1();
-    }
-
-    boost::numeric::ublas::unbounded_array<std::ptrdiff_t> row_ptr;
-    boost::numeric::ublas::unbounded_array<std::ptrdiff_t> col_idx;
-    boost::numeric::ublas::unbounded_array<ScalarType> values;
-};
-
-template<typename TScalarType>
-struct SkylineLUSolver
-{
-    typedef typename amgcl::backend::builtin<TScalarType>::matrix MatrixType;
-    typedef amgcl::solver::skyline_lu<TScalarType> SolverType;
-
-    boost::shared_ptr<MatrixType> pBuiltinMatrix;
-
-    boost::shared_ptr<SolverType> pSolver;
-
-    ~SkylineLUSolver()
-    {
-        Clear();
-    }
-
-    template<class Matrix>
-    void Factorize(Matrix &A)
-    {
-        Clear();
-
-        pBuiltinMatrix = amgcl::adapter::zero_copy(
-                A.size1(),
-                A.index1_data().begin(),
-                A.index2_data().begin(),
-                A.value_data().begin());
-
-        pSolver = boost::make_shared<SolverType>(*pBuiltinMatrix);
-    }
-
-    void Solve(std::vector<TScalarType> &b, std::vector<TScalarType> &x)
-    {
-        (*pSolver)(b, x);
-    }
-
-    void Clear()
-    {
-        pSolver.reset();
-        pBuiltinMatrix.reset();
-    }
-};
 
 /// Adapter to FEAST eigenvalue problem solver.
 template<class TSparseSpaceType, class TDenseSpaceType,
@@ -251,16 +65,25 @@ public:
 
     typedef typename TDenseSpaceType::VectorType DenseVectorType;
 
+    typedef UblasSpace<std::complex<double>, ComplexCompressedMatrix, ComplexVector> ComplexSparseSpaceType;
+
+    typedef UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector> ComplexDenseSpaceType;
+
+    typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
+
+    typedef ComplexLinearSolverType::SparseMatrixType ComplexSparseMatrixType;
+
+    typedef ComplexLinearSolverType::VectorType ComplexVectorType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
+    /// Constructor for built-in linear solver.
     /**
      * Parameters let the user control the settings of the FEAST library.
      */
-    FEASTSolver(Parameters::Pointer pParam)
-    : mpParam(pParam)
+    FEASTSolver(Parameters::Pointer pParam) : mpParam(pParam)
     {
         Parameters default_params(R"(
         {
@@ -273,18 +96,51 @@ public:
             "number_of_eigenvalues": 0,
             "search_dimension": 10,
             "linear_solver_settings": {
-                "solver.type": "skyline_lu"
+                "solver_type": "complex_skyline_lu_solver"
             }
         })");
 
         mpParam->RecursivelyValidateAndAssignDefaults(default_params);
+
+        if (mpParam->GetValue("linear_solver_settings")["solver_type"].GetString() != "complex_skyline_lu_solver")
+            KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
+            
+        mpLinearSolver = Kratos::make_shared<SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
+    }
+
+    /// Constructor for externally provided linear solver.
+    /**
+     * Parameters let the user control the settings of the FEAST library.
+     * Warning: For iterative solvers, very small tolerances (~1e-15)
+     *          may be needed for FEAST to work properly. Common iterative
+     *          solvers normally don't perform efficiently with FEAST
+     *          (M. Galgon et al., Parallel Computing (49) 2015 153-163).
+     */
+    FEASTSolver(Parameters::Pointer pParam, ComplexLinearSolverType::Pointer pLinearSolver)
+        : mpParam(pParam), mpLinearSolver(pLinearSolver)
+    {
+        Parameters default_params(R"(
+        {
+            "solver_type": "FEAST",
+            "print_feast_output": false,
+            "perform_stochastic_estimate": true,
+            "solve_eigenvalue_problem": true,
+            "lambda_min": 0.0,
+            "lambda_max": 1.0,
+            "number_of_eigenvalues": 0,
+            "search_dimension": 10,
+            "linear_solver_settings": {}
+        })");
+
+        // don't validate linear_solver_settings here
+        mpParam->ValidateAndAssignDefaults(default_params);
     }
 
     /// Deleted copy constructor.
     FEASTSolver(const FEASTSolver& Other) = delete;
 
     /// Destructor.
-    virtual ~FEASTSolver() {}
+    ~FEASTSolver() override {}
 
     ///@}
     ///@name Operators
@@ -301,11 +157,11 @@ public:
     /**
      * K is a symmetric matrix. M is a symmetric positive-definite matrix.
      */
-    virtual void Solve(
+    void Solve(
             SparseMatrixType& K,
             SparseMatrixType& M,
             DenseVectorType& Eigenvalues,
-            DenseMatrixType& Eigenvectors)
+            DenseMatrixType& Eigenvectors) override
     {
         const auto SystemSize = K.size1();
 
@@ -349,13 +205,13 @@ public:
     ///@{
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "FEAST solver.";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -366,6 +222,8 @@ private:
     ///@{
 
     Parameters::Pointer mpParam;
+
+    ComplexLinearSolverType::Pointer mpLinearSolver;
 
     ///@}
     ///@name Private Operations
@@ -396,17 +254,13 @@ private:
         matrix<double,column_major> Aq(SearchDimension,SearchDimension);
         matrix<double,column_major> Bq(SearchDimension,SearchDimension);
         std::complex<double> Ze;
-        FEASTSystemMatrix Az;
-        std::vector<std::complex<double> > b(SystemSize);
-        std::vector<std::complex<double> > x(SystemSize);
+        ComplexSparseMatrixType Az;
+        ComplexVectorType b(SystemSize);
+        ComplexVectorType x(SystemSize);
 
-        Az.Initialize(rMassMatrix,rStiffnessMatrix);
+        this->InitializeFEASTSystemMatrix(rMassMatrix, rStiffnessMatrix, Az);
 
         Parameters& FEAST_Settings = *mpParam;
-
-        // warning: if an iterative solver is used, very small tolerances (~1e-15)
-        // may be needed for FEAST to work properly.
-        SkylineLUSolver<std::complex<double> > Solver;
 
         // initialize FEAST eigenvalue solver (see FEAST documentation for details)
         feastinit(FEAST_Params);
@@ -452,8 +306,10 @@ private:
                 case 10:
                 {
                     // set up quadrature matrix (ZeM-K) and solver
-                    Az.Calculate(rMassMatrix,rStiffnessMatrix,Ze);
-                    Solver.Factorize(Az);
+                    this->CalculateFEASTSystemMatrix(Ze, rMassMatrix, rStiffnessMatrix, Az);
+                    mpLinearSolver->Clear();
+                    mpLinearSolver->Initialize(Az,x,b);
+                    mpLinearSolver->InitializeSolutionStep(Az, x, b);
                 } break;
                 case 11:
                 {
@@ -462,7 +318,13 @@ private:
                     {
                         for (int i=0; i < SystemSize; i++)
                             b[i] = zwork(i,j);
-                        Solver.Solve(b,x);
+                        try {
+                            mpLinearSolver->PerformSolutionStep(Az,x,b);
+                        } catch (Exception& e) {
+                            KRATOS_WARNING("FEAST WARNING") << "The used linear solver does not implement the 'PerformSolutionStep' function, 'Solve' is used as a fallback. "  << std::endl;
+                            mpLinearSolver->Solve(Az,x,b);
+                        }
+
                         for (int i=0; i < SystemSize; i++)
                             zwork(i,j) = x[i];
                     }
@@ -489,6 +351,101 @@ private:
         } // while
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * Initialize CSR matrix structure for FEAST system matrix: C = z * B - A.
+     */
+    void InitializeFEASTSystemMatrix(const SparseMatrixType& B,
+                                     const SparseMatrixType& A,
+                                     ComplexSparseMatrixType& C)
+    {
+        C.resize(B.size1(), B.size2(), false);
+
+        std::vector<std::unordered_set<std::size_t> > indices(C.size1());
+
+        // indices for row begin / end
+        C.index1_data()[0] = 0;
+        for (std::size_t i = 0; i < C.size1(); ++i)
+        {
+            std::size_t row_begin, row_end;
+            indices[i].reserve(40); // initialize C's indices
+
+            row_begin = B.index1_data()[i];
+            row_end = B.index1_data()[i + 1];
+            indices[i].insert(B.index2_data().begin() + row_begin,
+                    B.index2_data().begin() + row_end); // insert B's column indices for row i
+
+            row_begin = A.index1_data()[i];
+            row_end = A.index1_data()[i + 1];
+            indices[i].insert(A.index2_data().begin() + row_begin,
+                    A.index2_data().begin() + row_end); // insert A's column indices for row i
+
+            // C.index1_data()[i+1] = number of non-zeros in rows <= i
+            C.index1_data()[i + 1] = C.index1_data()[i] + indices[i].size();
+        }
+
+        // C.index1_data()[C.size1()] = number of non-zeros
+        C.reserve(C.index1_data()[C.size1()]);
+
+        // column indices
+        std::size_t k = 0;
+        for (std::size_t i = 0; i < C.size1(); ++i)
+        {
+            for (std::size_t j : indices[i])
+                C.index2_data()[k++] = j; // fill C's column indices
+
+            indices[i].clear();
+
+            std::sort(C.index2_data().begin() + C.index1_data()[i],
+                    C.index2_data().begin() + C.index1_data()[i + 1]);
+        }
+
+        C.set_filled(C.size1() + 1, C.index1_data()[C.size1()]);
+    }
+
+    /**
+     * Calculate FEAST system matrix: C = z * B - A. Similar to FEAST's zdaddcsr subroutine.
+     */
+    void CalculateFEASTSystemMatrix(std::complex<double> z,
+                                    SparseMatrixType& B,
+                                    SparseMatrixType& A,
+                                    ComplexSparseMatrixType& C)
+    {
+        std::size_t jb, ja;
+        const std::size_t dimension = B.size1();
+
+        std::size_t ptr = 0;
+        for (std::size_t i = 0; i < dimension; ++i)
+        {
+            std::size_t b_ptr = B.index1_data()[i];
+            std::size_t a_ptr = A.index1_data()[i];
+            while (b_ptr < B.index1_data()[i + 1] || a_ptr < A.index1_data()[i + 1])
+            {
+                jb = (b_ptr < B.index1_data()[i + 1]) ?
+                        B.index2_data()[b_ptr] : dimension;
+                ja = (a_ptr < A.index1_data()[i + 1]) ?
+                        A.index2_data()[a_ptr] : dimension;
+
+                if (jb < ja)
+                {
+                    C.value_data()[ptr] = z * B(i, jb).ref();
+                    b_ptr++;
+                }
+                else if (jb > ja)
+                {
+                    C.value_data()[ptr] = -A(i, ja).ref();
+                    a_ptr++;
+                }
+                else
+                { // jb == ja
+                    C.value_data()[ptr] = z * B(i, jb).ref() - A(i, ja).ref();
+                    b_ptr++;
+                    a_ptr++;
+                }
+                ptr++;
+            }
+        }
     }
 
     ///@}

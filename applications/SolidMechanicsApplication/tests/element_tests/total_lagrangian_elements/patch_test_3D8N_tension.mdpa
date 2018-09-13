@@ -1,0 +1,132 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Properties 6
+    DENSITY   1.00000E+03
+    YOUNG_MODULUS   1.00000E+03
+    POISSON_RATIO   3.00000E-01
+    C10    192.30769
+    BULK_MODULUS 833.333333
+End Properties
+
+Begin Nodes
+    1   0.0000000000   3.0000000000   3.0000000000
+    2   1.0000000000   2.2500000000   3.0000000000
+    3   0.7500000000   1.0000000000   3.0000000000
+    4   2.2500000000   2.0000000000   3.0000000000
+    5   0.0000000000   3.0000000000   0.0000000000
+    6   0.0000000000   0.0000000000   3.0000000000
+    7   3.0000000000   3.0000000000   3.0000000000
+    8   2.0000000000   0.7500000000   3.0000000000
+    9   1.0000000000   2.2500000000   0.0000000000
+   10   0.7500000000   1.0000000000   0.0000000000
+   11   2.2500000000   2.0000000000   0.0000000000
+   12   0.0000000000   0.0000000000   0.0000000000
+   13   3.0000000000   3.0000000000   0.0000000000
+   14   3.0000000000   0.0000000000   3.0000000000
+   15   2.0000000000   0.7500000000   0.0000000000
+   16   3.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements TotalLagrangianElement3D8N// GUI group identifier: Parts Auto2
+         1          6          8          3         10         15         14          6         12         16
+         2          6          4          8         15         11          7         14         16         13
+         3          6          2          4         11          9          1          7         13          5
+         4          6          2          3         10          9          4          8         15         11
+         5          6          1          6         12          5          2          3         10          9
+End Elements
+
+Begin Conditions SurfaceLoadCondition3D4N// GUI group identifier: Load on surfaces Auto1
+1 0 5 1 6 12
+End Conditions
+
+Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto2 // Subtree Parts
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+         2
+         3
+         4
+         5
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto3 // Group Displacement Auto3 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         7
+        13
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto4 // Group Displacement Auto4 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+        14
+        16
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto6 // Group Displacement Auto6 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart SurfaceLoad3D_Load_on_surfaces_Auto1 // Group Load on surfaces Auto1 // Subtree SurfaceLoad3D
+    Begin SubModelPartNodes
+         1
+         5
+         6
+        12
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+         1
+    End SubModelPartConditions
+End SubModelPart

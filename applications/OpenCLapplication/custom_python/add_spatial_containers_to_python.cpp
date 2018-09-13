@@ -68,7 +68,7 @@ void  AddSpatialContainersToPython()
 
     static const std::size_t Dim = 3;
 
-    typedef Kratos::Point<Dim> 		PointType;
+    typedef Kratos::Point 		PointType;
     typedef Kratos::Tetrahedra3D4<PointType>ObjectType;
 
     typedef PointType*			PtrPointType;

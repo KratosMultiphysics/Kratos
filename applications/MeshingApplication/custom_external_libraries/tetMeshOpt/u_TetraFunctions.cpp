@@ -9,7 +9,7 @@ void splitTetrain4(TTetra *t , TList<TVertex*>* vs ,TList<TTetra*>* ts)
 	TVertex *v0,*v1,*v2,*v3;
 	float4 fPos;
 	fPos = (t->vertexes[0]->fPos +  t->vertexes[1]->fPos +  t->vertexes[2]->fPos +  t->vertexes[3]->fPos)*0.25;
-	TVertex *v = new TVertex(fPos);
+	auto v = new TVertex(fPos);
 	vs->Add(v);
 	int i;
 	
@@ -20,7 +20,7 @@ void splitTetrain4(TTetra *t , TList<TVertex*>* vs ,TList<TTetra*>* ts)
 		v1 = t->vertexes[ TTetraFaces[i*3+1] ];
 		v2 = t->vertexes[ TTetraFaces[i*3+2] ];
 		v3 = v;
-		TTetra *nt = new TTetra(NULL,v0,v1,v2,v3);
+		auto nt = new TTetra(nullptr,v0,v1,v2,v3);
 		ts->Add(nt);
 	}
 	return ;
@@ -29,8 +29,8 @@ void splitTetrain4(TTetra *t , TList<TVertex*>* vs ,TList<TTetra*>* ts)
 void splitMeshin4(TMesh* m)
 {
 	//-------------------------------
-	TList<TVertex*>* vs = new TList<TVertex*>();
-	TList<TTetra*>* ts= new TList<TTetra*>();
+	auto  vs = new TList<TVertex*>();
+	auto  ts= new TList<TTetra*>();
 	for (int i=0; i<m->elements->Count() ; i++)
 	{
 		TTetra *t = (TTetra*)(m->elements->elementAt(i));
@@ -76,18 +76,18 @@ void igetSurfaceTriangles(TList<TObject*> *elements , TList<TObject*> *res, TLis
 	for (i = 0 ;i< elements->Count(); i++)
 	{
 		TTetra* t = (TTetra*)(elements->elementAt(i));
-		if (t==NULL) continue;
+		if (t==nullptr) continue;
 
-		tr = t->getSurfaceTriangle(false, _tempL,NULL);
+		tr = t->getSurfaceTriangle(false, _tempL,nullptr);
 
-		if (tr!=NULL)
+		if (tr!=nullptr)
 		{
 			for ( j = 0 ; j<tr->Count();j++)
 			{
 				TVertex* v =(TVertex*)(tr->elementAt(j)); 
 				res->Add(v);
 
-				if (surfVertexes!=NULL)
+				if (surfVertexes!=nullptr)
 				{
 					if (surfVertexes->indexOf(v)<0)
 						surfVertexes->Add(v);
@@ -109,7 +109,7 @@ bool innerGetElementsSurface(TList<TObject*>* elements,TList<TVertex*>* surfaceT
 	for (i = 0; i<elements->Count() ; i++)
 	{
 		t =(TTetra*)( elements->structure[i]);
-		if ( t == NULL) continue;		
+		if ( t == nullptr) continue;		
 		
 		for (j = 0 ;j<4 ;j++)
 		{
@@ -129,8 +129,8 @@ bool innerGetElementsSurface(TList<TObject*>* elements,TList<TVertex*>* surfaceT
 				}
 			}
 			if (faceVisited) continue;
-			TTetra *t2 = t->getTetraNeighbour(0,v0,v1,v2,NULL);
-			if ((t2 != NULL) &&  (elements->indexOf(t2)>=0)) continue;
+			TTetra *t2 = t->getTetraNeighbour(0,v0,v1,v2,nullptr);
+			if ((t2 != nullptr) &&  (elements->indexOf(t2)>=0)) continue;
 			
 			surfaceT->Add(v0);
 			surfaceT->Add(v1);
@@ -218,7 +218,7 @@ void TVolumeMesh::removeFreeVertexes()
 	for (int i=0; i<vertexes->Count() ; i++)
 	{ 
 		if (vertexes->structure[i]->elementsList->Count() == 0)
-			vertexes->setElementAt(i,NULL);
+			vertexes->setElementAt(i,nullptr);
 	}
 
 	vertexes->Pack();
@@ -230,7 +230,7 @@ TMesh()
 	elements = new TList<TObject*>();
 	elementsToAdd = new TList<TObject*>();
 	elementsToRemove= new TList<TObject*>();
-	this->memPool = NULL;
+	this->memPool = nullptr;
 }
 
 TVolumeMesh::~TVolumeMesh()
@@ -252,7 +252,7 @@ TVolumeMesh::~TVolumeMesh()
 	}
 	delete vertexes;
 	
-	if (fFaces != NULL)
+	if (fFaces != nullptr)
 	{
 		for (int i=0 ; i<fFaces->Count() ; i++)
 		{
@@ -262,11 +262,11 @@ TVolumeMesh::~TVolumeMesh()
 		fFaces->Clear();
 		delete fFaces;		
 	}
-	fFaces = NULL;
-	vertexes = NULL;
-	elements = NULL;
-	vertexesToRemove = NULL;
-	selectedElements = NULL;
+	fFaces = nullptr;
+	vertexes = nullptr;
+	elements = nullptr;
+	vertexesToRemove = nullptr;
+	selectedElements = nullptr;
 }
 void TVolumeMesh::updateIndexes(int flag )
 {
@@ -278,11 +278,11 @@ void TVolumeMesh::updateIndexes(int flag )
 	for (int i=0; i< numVertices; i++)
 	{
 		TVertex* v= vertexes->elementAt(i);
-		if (v==NULL) continue;  
+		if (v==nullptr) continue;  
 		if ( (flag & KEEP_ORIG_IDS) == 0)
 			v->setID( i );
 		fMassCenter = fMassCenter +v->fPos;
-		if (v->elementsList!=NULL)
+		if (v->elementsList!=nullptr)
 			v->elementsList->Clear();
 		else
 			v->elementsList = new TList<TObject*>();
@@ -292,14 +292,14 @@ void TVolumeMesh::updateIndexes(int flag )
 	for (int i=0 ; i<elements->Count(); i++)
 	{
 		TTetra* t =  (TTetra*)this->elements->elementAt(i);
-		if (t == NULL ) continue;
+		if (t == nullptr ) continue;
 		if ((flag & KEEP_ORIG_IDS) == 0) 
 			t->setID( i );
-		for (int k=0;k<4;k++)
+		for (auto & vertexe : t->vertexes)
 		{
-			if ( t->vertexes[k]->elementsList !=NULL) 
+			if ( vertexe->elementsList !=nullptr) 
 			{
-				t->vertexes[k]->elementsList->Add(t);
+				vertexe->elementsList->Add(t);
 			}
 		}
 	}
@@ -362,7 +362,7 @@ void TVolumeMesh::updateRefs()
 		TTetra* _nt = (TTetra*)(elements->elementAt(i));		
 		if ( _nt->flag==2)
 		{
-			elements->setElementAt(i,NULL);
+			elements->setElementAt(i,nullptr);
 			//delete _nt;
 		}
 	}
@@ -425,7 +425,7 @@ TTetra* TVolumeMesh::isPointInside( float4 pos )
 		if (t->isInside(pos)) 
 			return t;
 	}
-	return NULL;
+	return nullptr;
 }
 
 void TVolumeMesh::validate(bool showMessages)
@@ -505,7 +505,7 @@ void TVolumeMesh::getSurfaceTriangles()
 	this->fFaces->Clear();
 	res = new TList<TObject*>();
 
-	igetSurfaceTriangles(this->elements ,res,NULL);
+	igetSurfaceTriangles(this->elements ,res,nullptr);
 	for (j = 0 ; j<res->Count(); j=j+3)
 	{
 		t = new TTriangle( (TVertex*)res->elementAt(j),  (TVertex*)res->elementAt(j+1),  (TVertex*)res->elementAt(j+2));
@@ -523,7 +523,7 @@ bool swapVolumeMesh(TVolumeMesh* aMesh)
 	TTriangle *tr1;
 	TVertex *v0,* v1,*v2,*v3,*v4;
 	// aMesh.updateIndexes(0);
-	v0 = v1 = v2 = v3 = v4 = NULL;
+	v0 = v1 = v2 = v3 = v4 = nullptr;
 	l   = new TList<TObject*>();
 	l2   = new TList<TObject*>();
 	// l2 := TList.create; 
@@ -565,18 +565,18 @@ bool swapVolumeMesh(TVolumeMesh* aMesh)
 			if ((_t!=t0) &&  (_t->hasFace(v0,v1,v3)))
 			{
 				l2->Clear();
-				_t->getSurfaceTriangle(false,l2,NULL);
+				_t->getSurfaceTriangle(false,l2,nullptr);
 				if (l2->Count() == 0) continue;
 				t1 = _t;
 				break;
 			}
 		}
 		//No encontro ningun elemento vecino
-		if (t0 == NULL)  continue;
-		if (t1 == NULL) continue;
-		if (v3 == NULL)  continue;
+		if (t0 == nullptr)  continue;
+		if (t1 == nullptr) continue;
+		if (v3 == nullptr)  continue;
 		v4 = t1->oppositeVertex(v0,v1,v3);
-		if (v4 == NULL) continue;
+		if (v4 == nullptr) continue;
 
 		// verifico si mejora
 		if (swapTetra(v0,v1,v2,v3,v4) )
@@ -584,8 +584,8 @@ bool swapVolumeMesh(TVolumeMesh* aMesh)
 			t0->removeVertexRef();
 			t1->removeVertexRef();
 
-			t0->Create(NULL,v1,v2,v4,v3);
-			t1->Create(NULL,v0,v4,v2,v3);
+			t0->Create(nullptr,v1,v2,v4,v3);
+			t1->Create(nullptr,v0,v4,v2,v3);
 			aMesh->selectedElements->Add(t0);
 			aMesh->selectedElements->Add(t1);
 			//break;

@@ -11,14 +11,14 @@ def InitializeTables(model_part):
     tb2.AddRow(5000.0000000000e+00,      10.0000000000e+02)
     model_part.AddTable(2, tb2)
 
-    tb3 = PiecewiseLinearTable(TEMPERATURE, SOLID_FRACTION)
+    tb3 = PiecewiseLinearTable(TEMPERATURE, SOLIDFRACTION)
     tb3.AddRow(0.0000000,      1.0000000000e+00)
     tb3.AddRow(600.0000000,      1.0000000000e+00)
     tb3.AddRow(610.0000000,      0.0000000000e+00)
     tb3.AddRow(5000.0000000,      0.0000000000e+00)
     model_part.AddTable(3, tb3)
 
-    tb4 = PiecewiseLinearTable(TEMPERATURE, SOLID_FRACTION_RATE)
+    tb4 = PiecewiseLinearTable(TEMPERATURE, SOLIDFRACTION_RATE)
     tb4.AddRow(0.000,      0.0000000000e+00)
     tb4.AddRow(600.0,      0.0000000000e+00)
     tb4.AddRow(600.0,      -0.1000000000e+00)

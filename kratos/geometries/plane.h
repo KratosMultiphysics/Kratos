@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Nelson Lafontaine $
-//   Date:                $Date: 2009-01-21 09:56:10 $
-//   Revision:            $Revision: 1.14 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Nelson Lafontaine
 //
 
 #if !defined(KRATOS_PLANE_H_INCLUDED )
@@ -13,7 +17,6 @@
 #include <iostream>
 
 // External includes
-#include <boost/array.hpp>
 #include "utilities/math_utils.h"
 
 
@@ -56,7 +59,9 @@ public:
     {
         array_1d<double, 3> edge1 = p1 - p0;
         array_1d<double, 3> edge2 = p2 - p0;
-        mNormal   =  MathUtils<double>::UnitCrossProduct(edge1,edge2);
+
+        MathUtils<double>::UnitCrossProduct(mNormal, edge1, edge2);
+
         mConstant =  inner_prod(mNormal, p0);
     }
 
@@ -65,7 +70,9 @@ public:
     {
         array_1d<double, 3> edge1 = p1 - p0;
         array_1d<double, 3> edge2 = p2 - p0;
-        mNormal   =  MathUtils<double>::UnitCrossProduct(edge1,edge2);
+
+        MathUtils<double>::UnitCrossProduct(mNormal, edge1, edge2);
+
         mConstant =  inner_prod(mNormal, p0);
     }
 

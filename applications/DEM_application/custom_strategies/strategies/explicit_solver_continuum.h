@@ -10,7 +10,7 @@
 
 namespace Kratos {
 
-    class ContinuumExplicitSolverStrategy : public ExplicitSolverStrategy {
+    class KRATOS_API(DEM_APPLICATION) ContinuumExplicitSolverStrategy : public ExplicitSolverStrategy {
     public:
 
         typedef ExplicitSolverStrategy BaseType;
@@ -49,32 +49,31 @@ namespace Kratos {
                 const int delta_option,
                 ParticleCreatorDestructor::Pointer p_creator_destructor,
                 DEM_FEM_Search::Pointer p_dem_fem_search,
-                DEMIntegrationScheme::Pointer pScheme,
                 SpatialSearch::Pointer pSpSearch)
-        : ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pScheme, pSpSearch) {
+        : ExplicitSolverStrategy(settings, max_delta_time, n_step_search, safety_factor, delta_option, p_creator_destructor, p_dem_fem_search, pSpSearch) {
             BaseType::GetParticleCreatorDestructor() = p_creator_destructor;
         }
 
         /// Destructor.
 
         virtual ~ContinuumExplicitSolverStrategy() {
-            Timer::SetOuputFile("TimesPartialRelease");
-            Timer::PrintTimingInformation();
+            //Timer::SetOuputFile("TimesPartialRelease");
+            //Timer::PrintTimingInformation();
         }
 
-        virtual void Initialize();
-        virtual double Solve();
+        virtual void Initialize() override;
+        virtual double Solve() override;
         void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi);
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi);
-        void ComputeNewNeighboursHistoricalData();
-        void ComputeNewRigidFaceNeighboursHistoricalData();
+        void ComputeNewNeighboursHistoricalData() override;
+        void ComputeNewRigidFaceNeighboursHistoricalData() override;
         void CreateContactElements();
         void InitializeContactElements();
         void ContactInitializeSolutionStep();
         void PrepareContactElementsForPrinting();
         void SetCoordinationNumber(ModelPart& r_model_part);
         double ComputeCoordinationNumber(double& standard_dev);
-        void BoundingBoxUtility(bool is_time_to_mark_and_remove = true);
+        void BoundingBoxUtility(bool is_time_to_mark_and_remove = true) override;
         void Check_MPI(bool& has_mpi);
         virtual void CalculateMaxSearchDistance();
         virtual void MeshRepairOperations();
@@ -82,7 +81,7 @@ namespace Kratos {
         void CalculateMeanContactArea();
         void SetInitialDemContacts();
         void SetInitialFemContacts();
-        void FinalizeSolutionStep();
+        void FinalizeSolutionStep() override;
         void FinalizeSolutionStepFEM();
         void MarkNewSkinParticles();
 
@@ -110,7 +109,7 @@ namespace Kratos {
             return r_model_part.Elements();
         }
 
-        virtual ElementsArrayType& GetElements(ModelPart& r_model_part) {
+        virtual ElementsArrayType& GetElements(ModelPart& r_model_part) override {
             return r_model_part.GetCommunicator().LocalMesh().Elements();
         }
 

@@ -9,41 +9,32 @@
 // System includes
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 // Application includes
 #include "adjoint_fluid_application.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_schemes_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos
 {
-  
+
 namespace Python
 {
 
-using namespace boost::python;
-  
-BOOST_PYTHON_MODULE(KratosAdjointFluidApplication)
+using namespace pybind11;
+
+PYBIND11_MODULE(KratosAdjointFluidApplication,m)
 {
-  class_<KratosAdjointFluidApplication,
-	 KratosAdjointFluidApplication::Pointer,
-	 bases<KratosApplication>, boost::noncopyable >("KratosAdjointFluidApplication");
+    class_<KratosAdjointFluidApplication,
+           KratosAdjointFluidApplication::Pointer,
+           KratosApplication >(m,"KratosAdjointFluidApplication")
+           .def(init<>())
+           ;
 
-  AddCustomStrategiesToPython();
-  AddCustomSchemesToPython();
-  AddCustomUtilitiesToPython();
-  AddCustomProcessesToPython();
+  AddCustomSchemesToPython(m);
+  AddCustomResponseFunctionsToPython(m);
 
-  // Moved to Kratos Core for trilinos_application
-  //KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_VELOCITY );
-  //KRATOS_REGISTER_IN_PYTHON_VARIABLE( ADJOINT_PRESSURE );
-  //KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( PRIMAL_VELOCITY );
-  //KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRIMAL_PRESSURE );
-  //KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( SHAPE_SENSITIVITY );
-  //KRATOS_REGISTER_IN_PYTHON_VARIABLE( NORMAL_SENSITIVITY );
 }
 
 } // namespace Python

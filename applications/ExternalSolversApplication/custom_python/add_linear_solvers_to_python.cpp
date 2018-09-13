@@ -13,13 +13,13 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+#include <complex>
 
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "python/add_equation_systems_to_python.h"
+#include "python/add_linear_solvers_to_python.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/direct_solver.h"
@@ -33,21 +33,27 @@
   #include "external_includes/feast_solver.h"
 #endif
 
-#ifndef EXCLUDE_ITSOL
-  #include "external_includes/itsol_arms_solver.h"
-#endif
-
 #ifdef INCLUDE_PASTIX
   #include "external_includes/pastix_solver.h"
+  #include "external_includes/pastix_complex_solver.h"
 #endif
-  
+
 
 namespace Kratos
 {
 
 namespace Python
 {
-void  AddLinearSolversToPython()
+template <class TDataType>
+using TSpaceType = UblasSpace<TDataType, compressed_matrix<TDataType>, vector<TDataType>>;
+template <class TDataType>
+using TLocalSpaceType = UblasSpace<TDataType, matrix<TDataType>, vector<TDataType>>;
+template <class TDataType>
+using TLinearSolverType = LinearSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
+template <class TDataType>
+using TDirectSolverType = DirectSolver<TSpaceType<TDataType>, TLocalSpaceType<TDataType>>;
+
+void  AddLinearSolversToPython(pybind11::module& m)
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -59,56 +65,58 @@ void  AddLinearSolversToPython()
     typedef GMRESSolver<SpaceType, LocalSpaceType> GMRESSolverType;
     typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
 
-    using namespace boost::python;
+    using namespace pybind11;
+
 
     //***************************************************************************
     //linear solvers
     //***************************************************************************
 #ifdef INCLUDE_FEAST
-    typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;
-    class_<FEASTSolverType, FEASTSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >
-        ( "FEASTSolver", init<Parameters::Pointer>() )
+    typedef FEASTSolver<SpaceType, LocalSpaceType> FEASTSolverType;                          //SOME PROBLEM WITH THE SKYLINE_CUSTOM ... TO BE FIXED
+    class_<FEASTSolverType, FEASTSolverType::Pointer, LinearSolverType >
+        (m, "FEASTSolver")
+        .def(init<Parameters::Pointer>() )
+        .def(init<Parameters::Pointer, TLinearSolverType<std::complex<double>>::Pointer>())
         ;
 #endif    
           
     
-    class_<SuperLUSolverType, bases<DirectSolverType>, boost::noncopyable >
-    ( "SuperLUSolver",
-      init<>() )
+    class_<SuperLUSolverType, typename SuperLUSolverType::Pointer,DirectSolverType>
+    (m, "SuperLUSolver")
+      .def(init<>() )
       .def(init<Parameters>());
       
-    class_<SuperLUIterativeSolverType, bases<LinearSolverType>, boost::noncopyable >
-    ( "SuperLUIterativeSolver",init<>() )
+    class_<SuperLUIterativeSolverType, typename SuperLUIterativeSolverType::Pointer,LinearSolverType>
+    (m, "SuperLUIterativeSolver")
+    .def(init<>() )
     .def(init<double,int,int,double,double,double>())
     .def(init<Parameters>())
     ;
-    
-#ifndef EXCLUDE_ITSOL
-    typedef ITSOL_ARMS_Solver<SpaceType,  LocalSpaceType> ITSOL_ARMS_SolverType;
-    class_<ITSOL_ARMS_SolverType, bases<LinearSolverType>, boost::noncopyable >
-    ( "ITSOL_ARMS_Solver",init<>() )
-    .def(init<double,int,int>())
-    ;
-#endif
 
 #ifdef INCLUDE_PASTIX
     typedef PastixSolver<SpaceType,  LocalSpaceType> PastixSolverType;
-    class_<PastixSolverType, bases<LinearSolverType>, boost::noncopyable >
-    ( "PastixSolver",init<int,bool>() )
+    class_<PastixSolverType, typename PastixSolverType::Pointer, LinearSolverType>
+    (m, "PastixSolver")
+    .def(init<int,bool>() )
     .def(init<double,int,int,int,bool>())
     .def(init<Parameters>());
     ;
+    typedef PastixComplexSolver<TSpaceType<std::complex<double>>, TLocalSpaceType<std::complex<double>>> PastixComplexSolverType;
+    class_<PastixComplexSolverType, typename PastixComplexSolverType::Pointer, TDirectSolverType<std::complex<double>>>
+    (m,"PastixComplexSolver")
+    .def(init<Parameters&>())
+    ;
 #endif
     
-    class_<GMRESSolverType, bases<IterativeSolverType>, boost::noncopyable >
-    ( "GMRESSolver")
+    class_<GMRESSolverType,typename GMRESSolverType::Pointer, IterativeSolverType>
+    (m, "GMRESSolver")
     .def(init<Parameters >())
+    .def(init<Parameters,  PreconditionerType::Pointer >())
     .def(init<double>())
     .def(init<double, unsigned int>())
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
-    .def(self_ns::str(self))
+    .def("__repr__", &GMRESSolverType::Info)
     ;
-
 }
 
 }  // namespace Python.

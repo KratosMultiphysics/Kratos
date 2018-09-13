@@ -18,8 +18,6 @@
 #include <omp.h>
 #endif
 
-#include "boost/smart_ptr.hpp"
-
 /* Project includes */
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
@@ -29,7 +27,7 @@
 
 namespace Kratos
 {
-class CellularFlowField : public VelocityField
+class KRATOS_API(SWIMMING_DEM_APPLICATION) CellularFlowField : public VelocityField
 {
 public:
 
@@ -37,11 +35,11 @@ KRATOS_CLASS_POINTER_DEFINITION(CellularFlowField);
 
 /// Default constructor.
 
-CellularFlowField():VelocityField(),mL(1.0), mU(0.0), mK(2.72), mOmega(KRATOS_M_PI)
+CellularFlowField():VelocityField(),mL(1.0), mU(0.0), mK(2.72), mOmega(Globals::Pi)
 {
     mOneOverL = 1.0 / mL;
     mOmegaUOverL = mOmega * mU / mL;
-    unsigned int number_of_threads = omp_get_max_threads();
+    unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
     ResizeVectorsForParallelism(number_of_threads);
 }
 
@@ -51,7 +49,7 @@ CellularFlowField(const double half_wavelength, const double max_flow_speed, con
 
     mOneOverL = 1.0 / mL;
     mOmegaUOverL = mOmega * mU / mL;
-    unsigned int maximum_number_of_threads = omp_get_max_threads();
+    unsigned int maximum_number_of_threads = OpenMPUtils::GetNumThreads();
     ResizeVectorsForParallelism(maximum_number_of_threads);
 }
 
@@ -67,7 +65,7 @@ void ResizeVectorsForParallelism(const int n_threads) override;
 
 void UpdateCoordinates(const double time, const array_1d<double, 3>& coor, const int i_thread = 0) override;
 
-void UpdateCoordinates(const double time, const vector<double>& coor, const int i_thread = 0) override;
+void UpdateCoordinates(const double time, const DenseVector<double>& coor, const int i_thread = 0) override;
 
 void LockCoordinates(const int i_thread = 0) override;
 

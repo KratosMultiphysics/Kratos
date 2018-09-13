@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:                  KratosDamApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:           February 2017 $
@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-class ThermalLocalDamagePlaneStress2DLaw : public ThermalLocalDamagePlaneStrain2DLaw
+class KRATOS_API(DAM_APPLICATION) ThermalLocalDamagePlaneStress2DLaw : public ThermalLocalDamagePlaneStrain2DLaw
 {
 
 public:
@@ -33,10 +33,10 @@ public:
 
     /// Default Constructor
     ThermalLocalDamagePlaneStress2DLaw();
-    
+
     /// Second Constructor
-    ThermalLocalDamagePlaneStress2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
-    
+    ThermalLocalDamagePlaneStress2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
+
     /// Copy Constructor
     ThermalLocalDamagePlaneStress2DLaw (const ThermalLocalDamagePlaneStress2DLaw& rOther);
 
@@ -44,41 +44,41 @@ public:
     virtual ~ThermalLocalDamagePlaneStress2DLaw();
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    void GetLawFeatures(Features& rFeatures);
-    
-    ConstitutiveLaw::Pointer Clone() const;
-        
+
+    void GetLawFeatures(Features& rFeatures) override;
+
+    ConstitutiveLaw::Pointer Clone() const override;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    
+
 protected:
 
     /// Member Variables
-        
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        
-    void CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,const double& YoungModulus,const double& PoissonCoefficient );
-    
-    void CalculateThermalStrain(Vector& rThermalStrainVector, const MaterialResponseVariables& ElasticVariables);
+
+    void CalculateLinearElasticMatrix( Matrix& rLinearElasticMatrix,const double& YoungModulus,const double& PoissonCoefficient ) override;
+
+    void CalculateThermalStrain(Vector& rThermalStrainVector, const MaterialResponseVariables& ElasticVariables, double & rNodalReferenceTemperature) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     /// Serialization
-    
+
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
 }; // Class ThermalLocalDamagePlaneStress2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_THERMAL_LOCAL_DAMAGE_PLANE_STRESS_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_THERMAL_LOCAL_DAMAGE_PLANE_STRESS_2D_LAW_H_INCLUDED  defined

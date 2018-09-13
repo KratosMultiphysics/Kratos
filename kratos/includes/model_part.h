@@ -42,6 +42,11 @@
 #include "containers/pointer_hash_map_set.h"
 #include "input_output/logger.h"
 #include "includes/kratos_flags.h"
+#include "includes/master_slave_constraint.h"
+#include "containers/variable.h"
+#include "containers/variable_component.h"
+#include "containers/vector_component_adaptor.h"
+#include "containers/variable_data.h"
 
 namespace Kratos
 {
@@ -96,19 +101,24 @@ public:
     ///@{
 
     /// Pointer definition of ModelPart
-    KRATOS_CLASS_POINTER_DEFINITION(ModelPart);
+    //KRATOS_CLASS_POINTER_DEFINITION(ModelPart); //INTENTIONALLY REMOVING DEFINITION - DO NOT UNCOMMENT
 
     typedef std::size_t IndexType;
 
     typedef std::size_t SizeType;
 
     typedef Dof<double> DofType;
+    typedef std::vector< DofType::Pointer > DofsVectorType;
+    typedef Kratos::Variable<double> DoubleVariableType;
+    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
+    typedef Matrix MatrixType;
+    typedef Vector VectorType;
 
 //     typedef PointerVectorSet<DofType, SetIdentityFunction<DofType> > DofsArrayType;
-    typedef PointerVectorSet<DofType, 
-                SetIdentityFunction<DofType>, 
+    typedef PointerVectorSet<DofType,
+                SetIdentityFunction<DofType>,
                 std::less<SetIdentityFunction<DofType>::result_type>,
-                std::equal_to<SetIdentityFunction<DofType>::result_type>, 
+                std::equal_to<SetIdentityFunction<DofType>::result_type>,
                 DofType* > DofsArrayType;
 
 
@@ -208,11 +218,29 @@ public:
     Table by * operator and not a pointer for more convenient
     usage. */
     typedef TablesContainerType::const_iterator TableConstantIterator;
+    /**
+     *
+     */
+    /// The container of the constraints
+    typedef MeshType::MasterSlaveConstraintType MasterSlaveConstraintType;
+    typedef MeshType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
+
+    /** Iterator over the constraints. This iterator is an indirect
+    iterator over MasterSlaveConstraint::Pointer which turn back a reference to
+    MasterSlaveConstraint by * operator and not a pointer for more convenient
+    usage. */
+    typedef MeshType::MasterSlaveConstraintIteratorType MasterSlaveConstraintIteratorType;
+
+    /** Const iterator over the constraints. This iterator is an indirect
+    iterator over MasterSlaveConstraint::Pointer which turn back a reference to
+    Table by * operator and not a pointer for more convenient
+    usage. */
+    typedef MeshType::MasterSlaveConstraintConstantIteratorType MasterSlaveConstraintConstantIteratorType;
 
     /// The container of the sub model parts. A hash table is used.
     /**
     */
-    typedef PointerHashMapSet<ModelPart, boost::hash< std::string >, GetModelPartName, ModelPart*>  SubModelPartsContainerType;
+    typedef PointerHashMapSet<ModelPart, std::hash< std::string >, GetModelPartName, Kratos::shared_ptr<ModelPart> >  SubModelPartsContainerType;
 
     /// Iterator over the sub model parts of this model part.
     /**	Note that this iterator only iterates over the next level of
@@ -251,11 +279,11 @@ public:
     ModelPart(std::string const& NewName, IndexType NewBufferSize);
 
     /// Copy constructor.
-    ModelPart(ModelPart const& rOther);
+    ModelPart(ModelPart const& rOther) = delete;
 
 
     /// Destructor.
-    virtual ~ModelPart();
+    ~ModelPart() override;
 
 
     ///@}
@@ -263,7 +291,7 @@ public:
     ///@{
 
     /// Assignment operator.
-    ModelPart & operator=(ModelPart const& rOther);
+    ModelPart & operator=(ModelPart const& rOther) = delete;
 
     ///@}
     ///@name Solution Steps
@@ -309,11 +337,11 @@ public:
     void AddNode(NodeType::Pointer pNewNode, IndexType ThisIndex = 0);
 
     /** Inserts a list of nodes in a submodelpart provided their Id. Does nothing if applied to the top model part
-     */    
-    void AddNodes(std::vector<IndexType>& NodeIds, IndexType ThisIndex = 0);
-    
+     */
+    void AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIndex = 0);
+
     /** Inserts a list of pointers to nodes
-     */    
+     */
     template<class TIteratorType >
     void AddNodes(TIteratorType nodes_begin,  TIteratorType nodes_end, IndexType ThisIndex = 0)
     {
@@ -321,7 +349,7 @@ public:
         ModelPart::NodesContainerType  aux;
         ModelPart::NodesContainerType  aux_root; //they may not exist in the root
         ModelPart* root_model_part = &this->GetRootModelPart();
-        
+
         for(TIteratorType it = nodes_begin; it!=nodes_end; it++)
         {
             auto it_found = root_model_part->Nodes().find(it->Id());
@@ -336,28 +364,28 @@ public:
                     KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
-                    
+
             }
         }
-        
+
         //now add to the root model part
         for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
             root_model_part->Nodes().push_back( *(it.base()) );
         root_model_part->Nodes().Unique();
-        
+
         //add to all of the leaves
-        
+
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
             for(auto it = aux.begin(); it!=aux.end(); it++)
                 current_part->Nodes().push_back( *(it.base()) );
-            
+
             current_part->Nodes().Unique();
-            
+
             current_part = current_part->GetParentModelPart();
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -381,6 +409,11 @@ public:
 
     /** Returns a reference node corresponding to it's identifier */
     NodeType& GetNode(IndexType NodeId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).GetNode(NodeId);
+    }
+
+    const NodeType& GetNode(IndexType NodeId, IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).GetNode(NodeId);
     }
@@ -451,6 +484,11 @@ public:
         return GetMesh(ThisIndex).Nodes();
     }
 
+    const NodesContainerType& Nodes(IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).Nodes();
+    }
+
     NodesContainerType::Pointer pNodes(IndexType ThisIndex = 0)
     {
         return GetMesh(ThisIndex).pNodes();
@@ -469,10 +507,29 @@ public:
     template<class TDataType>
     void AddNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
     {
-        mpVariablesList->Add(ThisVariable);
+        if (!HasNodalSolutionStepVariable(ThisVariable))
+        {
+            // This error prevents memory leaks if variables are being added to a non-empty modelpart
+            KRATOS_ERROR_IF((this->GetRootModelPart()).Nodes().size() != 0)
+                << "Attempting to add the variable \"" << ThisVariable.Name()
+                << "\" to the model part with name \"" << this->Name() << "\" which is not empty" << std::endl;
+
+            mpVariablesList->Add(ThisVariable);
+        }
+    }
+
+    template<class TDataType>
+    bool HasNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable) const
+    {
+        return mpVariablesList->Has(ThisVariable);
     }
 
     VariablesList& GetNodalSolutionStepVariablesList()
+    {
+        return *mpVariablesList;
+    }
+
+    VariablesList const& GetNodalSolutionStepVariablesList() const
     {
         return *mpVariablesList;
     }
@@ -555,6 +612,157 @@ public:
     }
 
 
+    ///@}
+    ///@name MasterSlaveConstraints
+    ///@{
+
+    SizeType NumberOfMasterSlaveConstraints(IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).NumberOfMasterSlaveConstraints();
+    }
+
+    MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).MasterSlaveConstraints();
+    }
+
+    const MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0) const 
+    {
+        return GetMesh(ThisIndex).MasterSlaveConstraints();
+    }
+
+    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsBegin(IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).MasterSlaveConstraintsBegin();
+    }
+
+    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsEnd(IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).MasterSlaveConstraintsEnd();
+    }
+
+    MasterSlaveConstraintIteratorType  MasterSlaveConstraintsBegin(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).MasterSlaveConstraintsBegin();
+    }
+
+    MasterSlaveConstraintIteratorType  MasterSlaveConstraintsEnd(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).MasterSlaveConstraintsEnd();
+    }
+
+
+
+    /** Inserts a master-slave constraint in the current modelpart.
+     */
+    void AddMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint, IndexType ThisIndex = 0);
+
+    /** Inserts a list of master-slave constraints to a submodelpart provided their Id. Does nothing if applied to the top model part
+     */
+    void AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds, IndexType ThisIndex = 0);
+
+    /** Inserts a list of pointers to Master-Slave constraints
+     */
+    template<class TIteratorType >
+    void AddMasterSlaveConstraints(TIteratorType constraints_begin,  TIteratorType constraints_end, IndexType ThisIndex = 0)
+    {
+        KRATOS_TRY
+        ModelPart::MasterSlaveConstraintContainerType  aux;
+        ModelPart::MasterSlaveConstraintContainerType  aux_root;
+        ModelPart* root_model_part = &this->GetRootModelPart();
+
+        for(TIteratorType it = constraints_begin; it!=constraints_end; it++)
+        {
+            auto it_found = root_model_part->MasterSlaveConstraints().find(it->Id());
+            if(it_found == root_model_part->MasterSlaveConstraintsEnd()) //node does not exist in the top model part
+            {
+                aux_root.push_back( *(it.base()) );
+                aux.push_back( *(it.base()) );
+            }
+            else //if it does exist verify it is the same node
+            {
+                if(&(*it_found) != &(*it))//check if the pointee coincides
+                    KRATOS_ERROR << "attempting to add a new master-slave constraint with Id :" << it_found->Id() << ", unfortunately a (different) master-slave constraint with the same Id already exists" << std::endl;
+                else
+                    aux.push_back( *(it.base()) );
+            }
+        }
+
+        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
+                root_model_part->MasterSlaveConstraints().push_back( *(it.base()) );
+        root_model_part->MasterSlaveConstraints().Unique();
+
+        //add to all of the leaves
+
+        ModelPart* current_part = this;
+        while(current_part->IsSubModelPart())
+        {
+            for(auto it = aux.begin(); it!=aux.end(); it++)
+                current_part->MasterSlaveConstraints().push_back( *(it.base()) );
+
+            current_part->MasterSlaveConstraints().Unique();
+
+            current_part = current_part->GetParentModelPart();
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /** Creates a new master-slave constraint in the current modelpart.
+     * //TODO: replace these 3 functions by one that perfectly forwards arguments, then just define these 3 interfaces on the pybind side
+     */
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
+                                                                                    IndexType Id, 
+                                                                                    DofsVectorType& rMasterDofsVector,
+                                                                                    DofsVectorType& rSlaveDofsVector,
+                                                                                    const MatrixType& RelationMatrix,
+                                                                                    const VectorType& ConstantVector,
+                                                                                    IndexType ThisIndex = 0);
+
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
+                                                                                    IndexType Id, 
+                                                                                    NodeType& rMasterNode,
+                                                                                    const DoubleVariableType& rMasterVariable,
+                                                                                    NodeType& rSlaveNode,
+                                                                                    const DoubleVariableType& rSlaveVariable,
+                                                                                    const double Weight,
+                                                                                    const double Constant,
+                                                                                    IndexType ThisIndex = 0);
+
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
+                                                                                    IndexType Id, 
+                                                                                    NodeType& rMasterNode,
+                                                                                    const VariableComponentType& rMasterVariable,
+                                                                                    NodeType& rSlaveNode,
+                                                                                    const VariableComponentType& rSlaveVariable,
+                                                                                    double Weight,
+                                                                                    double Constant,
+                                                                                    IndexType ThisIndex = 0);
+
+    /** Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
+
+    /** Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveMasterSlaveConstraint(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0);
+
+    /** Remove the master-slave constraint with given Id from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemoveMasterSlaveConstraintFromAllLevels(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
+
+    /** Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0);
+
+    /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
+    MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ConstraintId, IndexType ThisIndex = 0);
+
+    /** Returns a reference MasterSlaveConstraint corresponding to it's identifier */
+    MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
+    /** Returns a const reference MasterSlaveConstraint corresponding to it's identifier */
+    const MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0) const ;
+
 
     ///@}
     ///@name Properties
@@ -581,13 +789,13 @@ public:
         {
             if(IsSubModelPart())
             {
-                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);                
+                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);
                 GetMesh(ThisIndex).AddProperties(pprop);
                 return pprop;
             }
             else
             {
-                PropertiesType::Pointer pnew_property = boost::make_shared<PropertiesType>(PropertiesId);
+                PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
                 GetMesh(ThisIndex).AddProperties(pnew_property);
                 return pnew_property;
             }
@@ -606,13 +814,13 @@ public:
         {
             if(IsSubModelPart())
             {
-                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);                
+                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);
                 GetMesh(ThisIndex).AddProperties(pprop);
                 return *pprop;
             }
             else
             {
-                PropertiesType::Pointer pnew_property = boost::make_shared<PropertiesType>(PropertiesId);
+                PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
                 GetMesh(ThisIndex).AddProperties(pnew_property);
                 return *pnew_property;
             }
@@ -700,13 +908,13 @@ public:
     /** Inserts a element in the current mesh.
      */
     void AddElement(ElementType::Pointer pNewElement, IndexType ThisIndex = 0);
-    
+
     /** Inserts a list of elements to a submodelpart provided their Id. Does nothing if applied to the top model part
-     */    
-    void AddElements(std::vector<IndexType>& ElementIds, IndexType ThisIndex = 0);
-    
+     */
+    void AddElements(std::vector<IndexType> const& ElementIds, IndexType ThisIndex = 0);
+
     /** Inserts a list of pointers to nodes
-     */    
+     */
     template<class TIteratorType >
     void AddElements(TIteratorType elements_begin,  TIteratorType elements_end, IndexType ThisIndex = 0)
     {
@@ -714,7 +922,7 @@ public:
         ModelPart::ElementsContainerType  aux;
         ModelPart::ElementsContainerType  aux_root;
         ModelPart* root_model_part = &this->GetRootModelPart();
-        
+
         for(TIteratorType it = elements_begin; it!=elements_end; it++)
         {
             auto it_found = root_model_part->Elements().find(it->Id());
@@ -725,30 +933,30 @@ public:
             }
             else //if it does exist verify it is the same node
             {
-                if(&(*it_found) != &(*it_found))//check if the pointee coincides
+                if(&(*it_found) != &(*it))//check if the pointee coincides
                     KRATOS_ERROR << "attempting to add a new element with Id :" << it_found->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
             }
         }
-        
+
         for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
                 root_model_part->Elements().push_back( *(it.base()) );
         root_model_part->Elements().Unique();
-        
+
         //add to all of the leaves
-        
+
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
             for(auto it = aux.begin(); it!=aux.end(); it++)
                 current_part->Elements().push_back( *(it.base()) );
-            
+
             current_part->Elements().Unique();
-            
+
             current_part = current_part->GetParentModelPart();
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -768,6 +976,11 @@ public:
 
     /** Returns a reference element corresponding to it's identifier */
     ElementType& GetElement(IndexType ElementId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).GetElement(ElementId);
+    }
+
+    const ElementType& GetElement(IndexType ElementId, IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).GetElement(ElementId);
     }
@@ -835,6 +1048,11 @@ public:
         return GetMesh(ThisIndex).Elements();
     }
 
+    const ElementsContainerType& Elements(IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).Elements();
+    }
+
     ElementsContainerType::Pointer pElements(IndexType ThisIndex = 0)
     {
         return GetMesh(ThisIndex).pElements();
@@ -863,13 +1081,13 @@ public:
     /** Inserts a condition in the current mesh.
      */
     void AddCondition(ConditionType::Pointer pNewCondition, IndexType ThisIndex = 0);
-    
+
     /** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
-     */    
-    void AddConditions(std::vector<IndexType>& ConditionIds, IndexType ThisIndex = 0);
-    
+     */
+    void AddConditions(std::vector<IndexType> const& ConditionIds, IndexType ThisIndex = 0);
+
     /** Inserts a list of pointers to nodes
-     */    
+     */
     template<class TIteratorType >
     void AddConditions(TIteratorType conditions_begin,  TIteratorType conditions_end, IndexType ThisIndex = 0)
     {
@@ -877,7 +1095,7 @@ public:
         ModelPart::ConditionsContainerType  aux;
         ModelPart::ConditionsContainerType  aux_root;
         ModelPart* root_model_part = &this->GetRootModelPart();
-        
+
         for(TIteratorType it = conditions_begin; it!=conditions_end; it++)
         {
             auto it_found = root_model_part->Conditions().find(it->Id());
@@ -888,31 +1106,31 @@ public:
             }
             else //if it does exist verify it is the same node
             {
-                if(&(*it_found) != &(*it_found))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
+                if(&(*it_found) != &(*it))//check if the pointee coincides
+                    KRATOS_ERROR << "attempting to add a new Condition with Id :" << it_found->Id() << ", unfortunately a (different) Condition with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
             }
         }
-        
+
         //now add to the root model part
         for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
                 root_model_part->Conditions().push_back( *(it.base()) );
         root_model_part->Conditions().Unique();
-        
+
         //add to all of the leaves
-        
+
         ModelPart* current_part = this;
         while(current_part->IsSubModelPart())
         {
             for(auto it = aux.begin(); it!=aux.end(); it++)
                 current_part->Conditions().push_back( *(it.base()) );
-            
+
             current_part->Conditions().Unique();
-            
+
             current_part = current_part->GetParentModelPart();
         }
-        
+
         KRATOS_CATCH("")
     }
 
@@ -936,6 +1154,11 @@ public:
 
     /** Returns a reference condition corresponding to it's identifier */
     ConditionType& GetCondition(IndexType ConditionId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).GetCondition(ConditionId);
+    }
+
+    const ConditionType& GetCondition(IndexType ConditionId, IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).GetCondition(ConditionId);
     }
@@ -1003,6 +1226,11 @@ public:
         return GetMesh(ThisIndex).Conditions();
     }
 
+    const ConditionsContainerType& Conditions(IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).Conditions();
+    }
+
     ConditionsContainerType::Pointer pConditions(IndexType ThisIndex = 0)
     {
         return GetMesh(ThisIndex).pConditions();
@@ -1040,7 +1268,7 @@ public:
     	In the case of conflict the new one would replace the old one
     	resulting inconsitency in parent.
     */
-    void AddSubModelPart(ModelPart& rThisSubModelPart);
+    void AddSubModelPart(Kratos::shared_ptr<ModelPart> pThisSubModelPart);
 
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
@@ -1053,6 +1281,19 @@ public:
             //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
 
             return *i;
+    }
+
+    /** Returns a shared pointer to the sub_model part with given string name
+    	In debug gives an error if does not exist.
+    */
+    ModelPart* pGetSubModelPart(std::string const& SubModelPartName)
+    {
+        SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
+        if(i == mSubModelParts.end())
+            KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
+            //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
+
+            return (i.base()->second).get();
     }
 
     /** Remove a sub modelpart with given name.
@@ -1204,10 +1445,10 @@ public:
     ///@{
 
     std::vector<std::string> GetSubModelPartNames();
-    
+
     void SetBufferSize(IndexType NewBufferSize);
 
-    IndexType GetBufferSize()
+    IndexType GetBufferSize() const
     {
         return mBufferSize;
     }
@@ -1234,13 +1475,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const override;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override;
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream, std::string const& PrefixString) const;
@@ -1314,9 +1555,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private  Access
@@ -1371,6 +1612,6 @@ KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream
 
 } // namespace Kratos.
 
-#endif // KRATOS_MODEL_PART_H_INCLUDED  defined 
+#endif // KRATOS_MODEL_PART_H_INCLUDED  defined
 
 

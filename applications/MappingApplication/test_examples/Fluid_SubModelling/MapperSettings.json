@@ -1,0 +1,19 @@
+{
+	"mapper_settings": [
+    {
+		"mapper_type": "NearestElement",
+		"interface_submodel_part_origin": "interface_chimera_background",
+		"interface_submodel_part_destination": "Inlet2D_inlet"
+	},
+    {
+		"mapper_type": "NearestElement",
+		"interface_submodel_part_origin": "interface_chimera_background",
+		"interface_submodel_part_destination": "Slip2D_walls"
+	},
+    {
+		"mapper_type": "NearestElement",
+		"interface_submodel_part_origin": "interface_chimera_background",
+		"interface_submodel_part_destination": "Outlet2D_outlet"
+	}
+ ]
+}

@@ -1,5 +1,5 @@
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 // Project includes
 #include "includes/ublas_interface.h"
@@ -8,34 +8,35 @@
 
 // Application includes
 #include "custom_python/add_custom_schemes_to_python.h"
-#include "custom_strategies/custom_schemes/adjoint_bossak_drag_scheme.h"
-#include "custom_strategies/custom_schemes/adjoint_steady_drag_scheme.h"
+#include "custom_schemes/adjoint_bossak_scheme.h"
+#include "custom_schemes/adjoint_steady_velocity_pressure_scheme.h"
 
 namespace Kratos
 {
-
 namespace Python
 {
-  using namespace boost::python;
+using namespace pybind11;
 
-  void AddCustomSchemesToPython()
-  {
+void AddCustomSchemesToPython(pybind11::module& m)
+{
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme<SparseSpaceType, LocalSpaceType> SchemeType;
 
-    class_< AdjointBossakDragScheme<SparseSpaceType, LocalSpaceType>,
-    	    bases<SchemeType>,
-    	    boost::noncopyable >
-        ( "AdjointBossakDragScheme", init<double>() )
+    class_<
+        AdjointBossakScheme<SparseSpaceType, LocalSpaceType>,
+        typename AdjointBossakScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        SchemeType>(m,"AdjointBossakScheme")
+        .def(init<Parameters&, ResponseFunction::Pointer>())
         ;
 
-    class_< AdjointSteadyDragScheme<SparseSpaceType, LocalSpaceType>,
-          bases<SchemeType>,
-          boost::noncopyable >
-        ( "AdjointSteadyDragScheme", init<>() )
+    class_<
+        AdjointSteadyVelocityPressureScheme<SparseSpaceType, LocalSpaceType>,
+        typename AdjointSteadyVelocityPressureScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+        SchemeType>(m,"AdjointSteadyVelocityPressureScheme")
+        .def(init<Parameters&, ResponseFunction::Pointer>())
         ;
-  }
+}
 
 } // namespace Python
 

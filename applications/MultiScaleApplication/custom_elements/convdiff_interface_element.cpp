@@ -13,10 +13,6 @@
 #include <iomanip>
 #include "custom_utilities/math_helpers.h"
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif // !M_PI
-
 #define K_GET_SIGN(X) return X < 0.0 ? -1.0 : 1.0
 
 namespace Kratos
@@ -334,7 +330,7 @@ namespace Kratos
 		}
 		else
 		{
-			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
+			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++)
 			{
 				SizeType j = i+half_num_gp;
 				res.clear();
@@ -353,7 +349,7 @@ namespace Kratos
 		if(rValues.size() != num_gp) rValues.resize(num_gp);
 		SizeType half_num_gp = num_gp / 2;
 		SizeType ndim = GetGeometry().WorkingSpaceDimension();
-		
+
 		Matrix res;
 		if(ndim == 2)
 		{
@@ -366,7 +362,7 @@ namespace Kratos
 		}
 		else
 		{
-			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
+			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++)
 			{
 				SizeType j = i+half_num_gp;
 				res.clear();
@@ -378,14 +374,14 @@ namespace Kratos
     }
 
 	void ConvDiffInterfaceElement::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable,
-                                                           std::vector<array_1d<double,3> >& rValues, 
+                                                           std::vector<array_1d<double,3> >& rValues,
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
 		SizeType num_gp = GetGeometry().IntegrationPoints().size();
 		if(rValues.size() != num_gp) rValues.resize(num_gp);
 		SizeType half_num_gp = num_gp / 2;
 		SizeType ndim = GetGeometry().WorkingSpaceDimension();
-		
+
 		array_1d<double, 3> res;
 		if (ndim == 2)
 		{
@@ -410,14 +406,14 @@ namespace Kratos
     }
 
 	void ConvDiffInterfaceElement::GetValueOnIntegrationPoints(const Variable<array_1d<double, 6> >& rVariable,
-                                                           std::vector<array_1d<double,6> >& rValues, 
+                                                           std::vector<array_1d<double,6> >& rValues,
                                                            const ProcessInfo& rCurrentProcessInfo)
     {
 		SizeType num_gp = GetGeometry().IntegrationPoints().size();
 		if(rValues.size() != num_gp) rValues.resize(num_gp);
 		SizeType half_num_gp = num_gp / 2;
 		SizeType ndim = GetGeometry().WorkingSpaceDimension();
-		
+
 		array_1d<double,6> res;
 		if(ndim == 2)
 		{
@@ -430,7 +426,7 @@ namespace Kratos
 		}
 		else
 		{
-			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++) 
+			for(SizeType i = 0; i < mConstitutiveLawVector.size(); i++)
 			{
 				SizeType j = i+half_num_gp;
 				res.clear();
@@ -637,7 +633,7 @@ namespace Kratos
 			}
 		}
 	}
-	
+
 	void ConvDiffInterfaceElement::TransformToGlobalAndAdd(const InterfaceIndexPermutation& P,
 		const Matrix& R,
 		const Matrix& LHS_local,
@@ -853,7 +849,7 @@ namespace Kratos
 		Vector localDisplacements(ndofs);
 		GetDisplacementVector(globalDisplacements);
 
-		// delta position for the jacobian computation 
+		// delta position for the jacobian computation
 		// with respect to the reference configuration
 		Matrix delta_position;
 		CalculateDeltaPosition(delta_position);
@@ -931,7 +927,7 @@ namespace Kratos
 			CalculateBMatrix(intp_id, B);
 			CalculateLocalTemperature(permutation_temp,iR,globalTemperature,localTemperature);
 			CalculateGeneralizedTemperatureStrains(intp_id, B, localTemperature, generalizedTemperatureStrains);
-			
+
 			// local displacement vector
 			CalculateLocalDisplacementVector(permutation_disp, iR, globalDisplacements, localDisplacements);
 			// calculate delta_disp

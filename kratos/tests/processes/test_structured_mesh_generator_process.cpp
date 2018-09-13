@@ -2,19 +2,19 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
 //
-	           
+//
+
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -32,20 +32,20 @@ namespace Kratos {
 		{
 			Kernel kernel;
 
-			Point<3>::Pointer p_point1(new Point<3>(0.00, 0.00, 0.00));
-			Point<3>::Pointer p_point2(new Point<3>(10.00, 0.00, 0.00));
-			Point<3>::Pointer p_point3(new Point<3>(10.00, 10.00, 0.00));
-			Point<3>::Pointer p_point4(new Point<3>(0.00, 10.00, 0.00));
-			Point<3>::Pointer p_point5(new Point<3>(0.00, 0.00, 10.00));
-			Point<3>::Pointer p_point6(new Point<3>(10.00, 0.00, 10.00));
-			Point<3>::Pointer p_point7(new Point<3>(10.00, 10.00, 10.00));
-			Point<3>::Pointer p_point8(new Point<3>(0.00, 10.00, 10.00));
+            Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
+            Node<3>::Pointer p_point2(new Node<3>(2, 10.00, 0.00, 0.00));
+            Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
+            Node<3>::Pointer p_point4(new Node<3>(4, 0.00, 10.00, 0.00));
+            Node<3>::Pointer p_point5(new Node<3>(5, 0.00, 0.00, 10.00));
+            Node<3>::Pointer p_point6(new Node<3>(6, 10.00, 0.00, 10.00));
+            Node<3>::Pointer p_point7(new Node<3>(7, 10.00, 10.00, 10.00));
+            Node<3>::Pointer p_point8(new Node<3>(8, 0.00, 10.00, 10.00));
 
-			Hexahedra3D8<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+            Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
 			ModelPart model_part("Generated");
 
-			Parameters mesher_parameters(R"( 
+			Parameters mesher_parameters(R"(
             {
                 "number_of_divisions":10,
                 "element_name": "Element3D4N"
@@ -69,26 +69,32 @@ namespace Kratos {
 					<< "," << i_element->GetGeometry()[3].Id() << "] with volume : " << element_volume << std::endl << *i_element;
 				total_volume += element_volume;
 			}
-			KRATOS_CHECK_NEAR(total_volume, 1000., 1.E-6) << "with total_volume = " << total_volume ;
+			KRATOS_CHECK_NEAR(total_volume, 1000., 1.E-6) << "with total_volume = " << total_volume;
+
+            KRATOS_CHECK(model_part.HasSubModelPart("Skin"));
+
+            KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Skin").NumberOfNodes(), 602);
+            KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Skin").NumberOfElements(), 0);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessQuadrilateral, KratosCoreFastSuite)
 		{
 			Kernel kernel;
 
-			Point<3>::Pointer p_point1(new Point<3>(0.00, 0.00, 0.00));
-			Point<3>::Pointer p_point2(new Point<3>(0.00, 10.00, 0.00));
-			Point<3>::Pointer p_point3(new Point<3>(10.00, 10.00, 0.00));
-			Point<3>::Pointer p_point4(new Point<3>(10.00, 0.00, 0.00));
+			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
+			Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
+			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
+			Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
 
-			Quadrilateral2D4<Point<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
 			ModelPart model_part("Generated");
 
-			Parameters mesher_parameters(R"( 
+			Parameters mesher_parameters(R"(
             {
                 "number_of_divisions":10,
-                "element_name": "Element2D3N"
+                "element_name": "Element2D3N",
+	            "create_skin_sub_model_part": false
             }  )");
 
 			std::size_t number_of_divisions = mesher_parameters["number_of_divisions"].GetInt();
@@ -107,7 +113,9 @@ namespace Kratos {
 					<< "," << i_element->GetGeometry()[2].Id() << "] with area : " << element_area << std::endl << *i_element;
 				total_area += element_area;
 			}
-			KRATOS_CHECK_EQUAL(total_area, 100.);
+			KRATOS_CHECK_NEAR(total_area, 100., 1.E-6) << "with total_area = " << total_area;
+
+            KRATOS_CHECK_IS_FALSE(model_part.HasSubModelPart("Skin"));
 		}
 	}
 }  // namespace Kratos.

@@ -26,7 +26,7 @@
 namespace Kratos
 {
 
-	Logger::Logger()
+	Logger::Logger(std::string const& TheLabel) : mCurrentMessage(TheLabel)
 	{
 	}
 
@@ -35,16 +35,25 @@ namespace Kratos
 		auto outputs = GetOutputsInstance();
 		#pragma omp critical
 		{
-			for (auto i_output = outputs.begin(); i_output != outputs.end(); i_output++)
-				i_output->WriteMessage(mCurrentMessage);
+            GetDefaultOutputInstance().WriteMessage(mCurrentMessage);
+			for (auto i_output = outputs.begin(); i_output != outputs.end(); ++i_output)
+				(*i_output)->WriteMessage(mCurrentMessage);
 		}
 	}
 
-	void Logger::AddOutput(LoggerOutput const& TheOutput)
+	void Logger::AddOutput(LoggerOutput::Pointer pTheOutput)
 	{
 		#pragma omp critical
 		{
-		  GetOutputsInstance().push_back(TheOutput);
+		  GetOutputsInstance().push_back(pTheOutput);
+		}
+	}
+
+	void Logger::Flush() {
+		auto outputs = GetOutputsInstance();
+		GetDefaultOutputInstance().Flush();
+		for (auto i_output = outputs.begin(); i_output != outputs.end(); ++i_output) {
+			(*i_output)->Flush();
 		}
 	}
 
@@ -62,6 +71,14 @@ namespace Kratos
 	{
 	}
 
+	/// Manipulator stream function
+	Logger& Logger::operator << (std::ostream& (*pf)(std::ostream&))
+	{
+		mCurrentMessage << pf;
+
+		return *this;
+	}
+
 	/// char stream function
 	Logger& Logger::operator << (const char * rString)
 	{
@@ -70,13 +87,15 @@ namespace Kratos
 		return *this;
 	}
 
-	Logger& Logger::operator << (std::ostream& (*pf)(std::ostream&))
+	// Location stream function
+	Logger& Logger::operator << (CodeLocation const& TheLocation)
 	{
-		mCurrentMessage << pf;
+		mCurrentMessage << TheLocation;
 
 		return *this;
 	}
 
+	/// Severity stream function
 	Logger& Logger::operator << (Severity const& TheSeverity)
 	{
 		mCurrentMessage << TheSeverity;
@@ -84,7 +103,9 @@ namespace Kratos
 		return *this;
 	}
 
-	Logger& Logger::operator << (Category const& TheCategory) {
+	/// Category stream function
+	Logger& Logger::operator << (Category const& TheCategory)
+	{
 		mCurrentMessage << TheCategory;
 
 		return *this;

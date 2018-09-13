@@ -9,7 +9,7 @@
 
 namespace Kratos {
 
-    class DEM_Dempack_torque : public DEM_Dempack {
+    class KRATOS_API(DEM_APPLICATION) DEM_Dempack_torque : public DEM_Dempack {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack_torque);
@@ -17,12 +17,12 @@ namespace Kratos {
         DEM_Dempack_torque() {
         }
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         ~DEM_Dempack_torque() {
         }
 
-        DEMContinuumConstitutiveLaw::Pointer Clone() const;       
+        DEMContinuumConstitutiveLaw::Pointer Clone() const override;       
 
         void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                               SphericContinuumParticle* neighbor,
@@ -33,17 +33,17 @@ namespace Kratos {
                                               double ElasticLocalRotationalMoment[3],
                                               double ViscoLocalRotationalMoment[3],
                                               double equiv_poisson,
-                                              double indentation);
+                                              double indentation) override;
     private:
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const {
+        virtual void save(Serializer& rSerializer) const override {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.save("MyMemberName",myMember);
         }
 
-        virtual void load(Serializer& rSerializer) {
+        virtual void load(Serializer& rSerializer) override {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }

@@ -89,12 +89,12 @@ public:
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
-    ConstitutiveLaw::Pointer Clone() const;
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Destructor.
      */
-    virtual ~HyperElasticUP3DLaw();
+    ~HyperElasticUP3DLaw() override;
 
     /**
      * Operators
@@ -109,7 +109,7 @@ public:
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
      */
-    void GetLawFeatures(Features& rFeatures);
+    void GetLawFeatures(Features& rFeatures) override;
 
 
     /**
@@ -118,7 +118,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters & rValues);
+    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -126,7 +126,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues);
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -145,15 +145,15 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
+    //String Info() const override;
     /**
      * Print information about this object.
      */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
+    //void PrintInfo(std::ostream& rOStream) const override;
     /**
      * Print object's data.
      */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    //void PrintData(std::ostream& rOStream) const override;
 
 protected:
 
@@ -176,7 +176,7 @@ protected:
      * @param rPressure the calculated pressure to be returned
      */
     double& CalculateVolumetricPressure (const MaterialResponseVariables & rElasticVariables,
-					 double & rPressure);
+					 double & rPressure) override;
 
 
     /**
@@ -185,7 +185,7 @@ protected:
      * @param rFactors Volumetric stress factors
      */
     Vector& CalculateVolumetricPressureFactors (const MaterialResponseVariables & rElasticVariables,
-						Vector & rFactors);
+						Vector & rFactors) override;
 
 
 
@@ -219,12 +219,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElastic3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElastic3DLaw )
     }
@@ -233,4 +233,4 @@ private:
 
 }; // Class HyperElasticUP3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HYPERELASTIC_U_P_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_HYPERELASTIC_U_P_3D_LAW_H_INCLUDED  defined

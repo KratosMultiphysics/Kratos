@@ -21,7 +21,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
@@ -71,14 +70,15 @@ public:
 
     struct ElementDataStruct
     {
-        bounded_matrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;
+        BoundedMatrix<double, TNumNodes, TDim> v, vn, vnn, vmesh, f;
         array_1d<double,TNumNodes> p, pn, pnn, rho, mu;
 
-        bounded_matrix<double, TNumNodes, TDim > DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
 
         Matrix C;
         Vector stress;
+        Vector strain;
 
         double bdf0;
         double bdf1;
@@ -86,8 +86,8 @@ public:
         double c;             // Wave velocity (needed if artificial compressibility is considered)
         double h;             // Element size
         double volume;        // In 2D: element area. In 3D: element volume
-        double delta_t;       // Only, needed if the temporal dependent term is considered in the subscales
-        double dyn_tau_coeff; // Only, needed if the temporal dependent term is considered in the subscales
+        double dt;            // Time increment
+        double dyn_tau;       // Dynamic tau considered in ASGS stabilization coefficients
     };
 
     ///@}
@@ -105,7 +105,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~NavierStokes() {};
+    ~NavierStokes() override {};
 
 
     ///@}
@@ -120,14 +120,14 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return boost::make_shared< NavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_shared< NavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return boost::make_shared< NavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< NavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -151,7 +151,7 @@ public:
         this->FillElementData(data, rCurrentProcessInfo);
 
         // Allocate memory needed
-        bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
+        BoundedMatrix<double,MatrixSize, MatrixSize> lhs_local;
         array_1d<double,MatrixSize> rhs_local;
 
         // Loop on gauss points
@@ -159,7 +159,7 @@ public:
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
 
         // Gauss point position
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
 
         for(unsigned int igauss = 0; igauss<Ncontainer.size2(); igauss++)
@@ -201,7 +201,7 @@ public:
         array_1d<double,MatrixSize> rhs_local;
 
         // Gauss point position
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
 
         // Loop on gauss point
@@ -234,7 +234,7 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY
 
@@ -284,8 +284,7 @@ public:
     }
 
 
-    // TODO: Check this Calculate function
-    virtual void Calculate(const Variable<double>& rVariable,
+    void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
                            const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -299,57 +298,6 @@ public:
             rOutput = this->SubscaleErrorEstimate(data);
             this->SetValue(ERROR_RATIO, rOutput);
         }
-        // if(rVariable == HEAT_FLUX) //compute the heat flux per unit volume induced by the shearing
-        // {
-        //     const unsigned int strain_size = (TDim*3)-3;
-        //
-        //     //struct to pass around the data
-        //     ElementDataStruct data;
-        //
-        //     //getting data for the given geometry
-        //     double Volume;
-        //     GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, Volume);
-        //
-        //     //~ for (unsigned int i = 0; i < NumNodes; i++)
-        //     for (unsigned int i = 0; i < TNumNodes; i++)
-        //     {
-        //         const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-        //
-        //         //~ for(unsigned int k=0; k<Dim; k++)
-        //         for(unsigned int k=0; k<TDim; k++)
-        //         {
-        //             data.v(i,k)   = vel[k];
-        //         }
-        //     }
-        //
-        //     if (data.stress.size() != strain_size) data.stress.resize(strain_size,false);
-        //
-        //     //compute strain
-        //     Vector strain(strain_size);
-        //     ComputeStrain(data, strain_size, strain);
-        //
-        //     //create constitutive law parameters:
-        //     ConstitutiveLaw::Parameters Values(this->GetGeometry(),GetProperties(),rCurrentProcessInfo);
-        //
-        //     //set constitutive law flags:
-        //     Flags& ConstitutiveLawOptions = Values.GetOptions();
-        //     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-        //     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-        //
-        //     //this is to pass the shape functions. Unfortunately it is needed to make a copy to a flexible size vector
-        //     const Vector Nvec(data.N);
-        //     Values.SetShapeFunctionsValues(Nvec);
-        //
-        //     Values.SetStrainVector(strain); //this is the input parameter
-        //     Values.SetStressVector(data.stress); //this is an ouput parameter
-        //     // Values.SetConstitutiveMatrix(data.C);      //this is an ouput parameter
-        //
-        //     //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
-        //     //this is ok under the hypothesis that no history dependent behaviour is employed
-        //     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
-        //
-        //     Output = inner_prod(data.stress, strain);
-        // }
 
         KRATOS_CATCH("")
     }
@@ -369,13 +317,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "NavierStokes #";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
@@ -406,7 +354,7 @@ protected:
     void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
-    void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ElementDataStruct& data);
+    void ComputeGaussPointLHSContribution(BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ElementDataStruct& data);
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ElementDataStruct& data);
 
     double SubscaleErrorEstimate(const ElementDataStruct& data);
@@ -450,8 +398,8 @@ protected:
         rData.bdf1 = BDFVector[1];
         rData.bdf2 = BDFVector[2];
 
-        rData.dyn_tau_coeff = rCurrentProcessInfo[DYNAMIC_TAU];  // Only, needed if the temporal dependent term is considered in the subscales
-        rData.delta_t = rCurrentProcessInfo[DELTA_TIME];         // Only, needed if the temporal dependent term is considered in the subscales
+        rData.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];  // Only, needed if the temporal dependent term is considered in the subscales
+        rData.dt = rCurrentProcessInfo[DELTA_TIME];         // Only, needed if the temporal dependent term is considered in the subscales
 
         rData.c = rCurrentProcessInfo[SOUND_VELOCITY];           // Wave velocity
 
@@ -483,7 +431,7 @@ protected:
     }
 
     //~ template< unsigned int TDim, unsigned int TNumNodes=TDim+1>
-    double ComputeH(boost::numeric::ublas::bounded_matrix<double,TNumNodes, TDim>& DN_DX)
+    double ComputeH(BoundedMatrix<double,TNumNodes, TDim>& DN_DX)
     {
         double h=0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
@@ -500,7 +448,7 @@ protected:
     }
 
     // 3D tetrahedra shape functions values at Gauss points
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,4,4>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,4,4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.58541020; Ncontainer(0,1) = 0.13819660; Ncontainer(0,2) = 0.13819660; Ncontainer(0,3) = 0.13819660;
         Ncontainer(1,0) = 0.13819660; Ncontainer(1,1) = 0.58541020; Ncontainer(1,2) = 0.13819660; Ncontainer(1,3) = 0.13819660;
@@ -509,7 +457,7 @@ protected:
     }
 
     // 2D triangle shape functions values at Gauss points
-    void GetShapeFunctionsOnGauss(boost::numeric::ublas::bounded_matrix<double,3,3>& Ncontainer)
+    void GetShapeFunctionsOnGauss(BoundedMatrix<double,3,3>& Ncontainer)
     {
         const double one_sixt = 1.0/6.0;
         const double two_third = 2.0/3.0;
@@ -519,40 +467,40 @@ protected:
     }
 
     // 3D tetrahedra shape functions values at centered Gauss point
-    void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,4>& Ncontainer)
+    void GetShapeFunctionsOnUniqueGauss(BoundedMatrix<double,1,4>& Ncontainer)
     {
         Ncontainer(0,0) = 0.25; Ncontainer(0,1) = 0.25; Ncontainer(0,2) = 0.25; Ncontainer(0,3) = 0.25;
     }
 
     // 2D triangle shape functions values at centered Gauss point
-    void GetShapeFunctionsOnUniqueGauss(boost::numeric::ublas::bounded_matrix<double,1,3>& Ncontainer)
+    void GetShapeFunctionsOnUniqueGauss(BoundedMatrix<double,1,3>& Ncontainer)
     {
         Ncontainer(0,0) = 1.0/3.0; Ncontainer(0,1) = 1.0/3.0; Ncontainer(0,2) = 1.0/3.0;
     }
 
     // Computes the strain rate in Voigt notation
-    void ComputeStrain(const ElementDataStruct& rData, const unsigned int& strain_size, Vector& strain)
+    void ComputeStrain(ElementDataStruct& rData, const unsigned int& strain_size)
     {
-        const bounded_matrix<double, TNumNodes, TDim>& v = rData.v;
-        const bounded_matrix<double, TNumNodes, TDim>& DN = rData.DN_DX;
+        const BoundedMatrix<double, TNumNodes, TDim>& v = rData.v;
+        const BoundedMatrix<double, TNumNodes, TDim>& DN = rData.DN_DX;
 
         // Compute strain (B*v)
         // 3D strain computation
         if (strain_size == 6)
         {
-            strain[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
-            strain[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
-            strain[2] = DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
-            strain[3] = DN(0,0)*v(0,1) + DN(0,1)*v(0,0) + DN(1,0)*v(1,1) + DN(1,1)*v(1,0) + DN(2,0)*v(2,1) + DN(2,1)*v(2,0) + DN(3,0)*v(3,1) + DN(3,1)*v(3,0);
-            strain[4] = DN(0,1)*v(0,2) + DN(0,2)*v(0,1) + DN(1,1)*v(1,2) + DN(1,2)*v(1,1) + DN(2,1)*v(2,2) + DN(2,2)*v(2,1) + DN(3,1)*v(3,2) + DN(3,2)*v(3,1);
-            strain[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
+            rData.strain[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
+            rData.strain[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
+            rData.strain[2] = DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
+            rData.strain[3] = DN(0,0)*v(0,1) + DN(0,1)*v(0,0) + DN(1,0)*v(1,1) + DN(1,1)*v(1,0) + DN(2,0)*v(2,1) + DN(2,1)*v(2,0) + DN(3,0)*v(3,1) + DN(3,1)*v(3,0);
+            rData.strain[4] = DN(0,1)*v(0,2) + DN(0,2)*v(0,1) + DN(1,1)*v(1,2) + DN(1,2)*v(1,1) + DN(2,1)*v(2,2) + DN(2,2)*v(2,1) + DN(3,1)*v(3,2) + DN(3,2)*v(3,1);
+            rData.strain[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
         }
         // 2D strain computation
         else if (strain_size == 3)
         {
-            strain[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0);
-            strain[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
-            strain[2] = DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0) + DN(0,0)*v(0,1) + DN(1,0)*v(1,1) + DN(2,0)*v(2,1);
+            rData.strain[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0);
+            rData.strain[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
+            rData.strain[2] = DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0) + DN(0,0)*v(0,1) + DN(1,0)*v(1,1) + DN(2,0)*v(2,1);
         }
     }
 
@@ -565,9 +513,10 @@ protected:
             rData.C.resize(strain_size,strain_size,false);
         if(rData.stress.size() != strain_size)
             rData.stress.resize(strain_size,false);
+        if(rData.strain.size() != strain_size)
+            rData.strain.resize(strain_size,false);
 
-        Vector strain(strain_size);
-        ComputeStrain(rData, strain_size, strain);
+        ComputeStrain(rData, strain_size);
 
         // Create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(this->GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -580,7 +529,7 @@ protected:
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        Values.SetStrainVector(strain);             //this is the input parameter
+        Values.SetStrainVector(rData.strain);       //this is the input parameter
         Values.SetStressVector(rData.stress);       //this is an ouput parameter
         Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
 
@@ -590,12 +539,20 @@ protected:
 
     }
 
-    // Computes effective viscosity as sigma = mu_eff*eps -> sigma*sigma = mu_eff*sigma*eps -> sigma*sigma = mu_eff*(mu_eff*eps)*eps
-    virtual double ComputeEffectiveViscosity(const Vector& rStrain, const Vector& rStress)
+    virtual double ComputeEffectiveViscosity(const ElementDataStruct& rData)
     {
-        return sqrt(inner_prod(rStress, rStress)/inner_prod(rStrain, rStrain));
+        // Computes effective viscosity as sigma = mu_eff*eps -> sigma*sigma = mu_eff*sigma*eps -> sigma*sigma = mu_eff*(mu_eff*eps)*eps
+        // return sqrt(inner_prod(rStress, rStress)/inner_prod(rStrain, rStrain)); // TODO: Might yield zero in some cases, think a more suitable manner
+
+        // Computes the effective viscosity as the average of the lower diagonal constitutive tensor
+        double mu_eff = 0.0;
+        const unsigned int strain_size = (TDim-1)*3;
+        for (unsigned int i=TDim; i<strain_size; ++i){mu_eff += rData.C(i,i);}
+        mu_eff /= (strain_size - TDim);
+
+        return mu_eff;
     }
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -625,12 +582,12 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }

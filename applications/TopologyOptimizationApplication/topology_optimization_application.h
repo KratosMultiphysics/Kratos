@@ -1,46 +1,12 @@
 // ==============================================================================
-/*
- KratosTopologyOptimizationApplication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Daniel Baumgaertner
-                     daniel.baumgaertner@tum.de
-                     Chair of Structural Analysis
-                     Technische Universitaet Muenchen
-                     Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-//==============================================================================
+//  KratosTopologyOptimizationApplication
 //
-//   Project Name:        KratosTopology                        $
-//   Last modified by:	  $Author:   daniel.baumgaertner@tum.de $
-// 						  $Co-Author: Octaviano Malfavón Farías $
-//   Date:                $Date:                    August 2016 $
-//   Revision:            $Revision:                        0.0 $
+//  License:         BSD License
+//                   license: TopologyOptimizationApplication/license.txt
+//
+//  Main authors:    Baumgärtner Daniel, https://github.com/dbaumgaertner
+//                   Octaviano Malfavón Farías
+//                   Eric Gonzales
 //
 // ==============================================================================
 
@@ -51,9 +17,9 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
-// External includes 
+// External includes
 
 // Core applications
 #include "topology_optimization_application.h"
@@ -72,7 +38,7 @@ namespace Kratos
 {
 
 	///@name Kratos Globals
-	///@{ 
+	///@{
 
     // Variables definition with Python connection
     KRATOS_DEFINE_VARIABLE( double, E_MIN )
@@ -86,16 +52,16 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, LOCAL_STRAIN_ENERGY )
 
 
-	///@} 
+	///@}
 	///@name Type Definitions
-	///@{ 
+	///@{
 
-	///@} 
+	///@}
 	///@name  Enum's
 	///@{
 
 	///@}
-	///@name  Functions 
+	///@name  Functions
 	///@{
 
 	///@}
@@ -110,24 +76,24 @@ namespace Kratos
 	public:
 		///@name Type Definitions
 		///@{
-		
+
 
 		/// Pointer definition of KratosTopologyOptimizationApplication
 		KRATOS_CLASS_POINTER_DEFINITION(KratosTopologyOptimizationApplication);
 
 		///@}
-		///@name Life Cycle 
-		///@{ 
+		///@name Life Cycle
+		///@{
 
 		/// Default constructor.
 		KratosTopologyOptimizationApplication();
 
 		/// Destructor.
-		virtual ~KratosTopologyOptimizationApplication(){}
+		~KratosTopologyOptimizationApplication() override {}
 
 
 		///@}
-		///@name Operators 
+		///@name Operators
 		///@{
 
 
@@ -141,7 +107,7 @@ namespace Kratos
 
 		///@}
 		///@name Access
-		///@{ 
+		///@{
 
 
 		///@}
@@ -149,7 +115,7 @@ namespace Kratos
 		///@{
 
 
-		///@}      
+		///@}
 		///@name Input and output
 		///@{
 
@@ -182,7 +148,7 @@ namespace Kratos
       }
 
 
-		///@}      
+		///@}
 		///@name Friends
 		///@{
 
@@ -190,49 +156,49 @@ namespace Kratos
 		///@}
 
 	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+		///@name Protected static Member Variables
+		///@{
 
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+		///@}
+		///@name Protected member Variables
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Protected Operators
-		///@{ 
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Protected Operations
-		///@{ 
+		///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+		///@}
+		///@name Protected  Access
+		///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+		///@}
+		///@name Protected Inquiry
+		///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+		///@}
+		///@name Protected LifeCycle
+		///@{
 
 
 		///@}
 
 	private:
-		///@name Static Member Variables 
-		///@{ 
+		///@name Static Member Variables
+		///@{
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
+		///@}
+		///@name Member Variables
+		///@{
 
         //small_displacement
       	const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D3N; // dummy element for surface representation
@@ -247,29 +213,29 @@ namespace Kratos
 //        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D27N;
 
 
-		///@} 
+		///@}
 		///@name Private Operators
-		///@{ 
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Private Operations
-		///@{ 
+		///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+		///@}
+		///@name Private  Access
+		///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+		///@}
+		///@name Private Inquiry
+		///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+		///@}
+		///@name Un accessible methods
+		///@{
 
 		/// Assignment operator.
 		KratosTopologyOptimizationApplication& operator=(KratosTopologyOptimizationApplication const& rOther);
@@ -278,26 +244,26 @@ namespace Kratos
 		KratosTopologyOptimizationApplication(KratosTopologyOptimizationApplication const& rOther);
 
 
-		///@}    
+		///@}
 
-	}; // Class KratosTopologyOptimizationApplication 
+	}; // Class KratosTopologyOptimizationApplication
 
-	///@} 
-
-
-	///@name Type Definitions       
-	///@{ 
+	///@}
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+	///@name Type Definitions
+	///@{
 
-	///@} 
+
+	///@}
+	///@name Input and output
+	///@{
+
+	///@}
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TOPOLOGYOPTIMIZATION_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_TOPOLOGYOPTIMIZATION_APPLICATION_H_INCLUDED  defined
 
 

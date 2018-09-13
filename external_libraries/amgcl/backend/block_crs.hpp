@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,8 @@ THE SOFTWARE.
  * \brief  Sparse matrix in block-CRS format.
  */
 
-#include <boost/range/algorithm.hpp>
-#include <boost/range/numeric.hpp>
+#include <algorithm>
+#include <numeric>
 
 #include <amgcl/util.hpp>
 #include <amgcl/backend/interface.hpp>
@@ -81,23 +81,13 @@ struct bcrs {
         {
             std::vector<ptrdiff_t> marker(bcols, -1);
 
-#ifdef _OPENMP
-            int nt  = omp_get_num_threads();
-            int tid = omp_get_thread_num();
-
-            size_t chunk_size  = (brows + nt - 1) / nt;
-            size_t chunk_start = tid * chunk_size;
-            size_t chunk_end   = std::min(brows, chunk_start + chunk_size);
-#else
-            size_t chunk_start = 0;
-            size_t chunk_end   = brows;
-#endif
-
             // Count number of nonzeros in block matrix.
-            typedef typename backend::row_iterator<Matrix>::type row_iterator;
-            for(size_t ib = chunk_start, ia = ib * block_size; ib < chunk_end; ++ib) {
-                for(size_t k = 0; k < block_size && ia < nrows; ++k, ++ia) {
-                    for(row_iterator a = backend::row_begin(A, ia); a; ++a) {
+#pragma omp for
+            for(ptr_type ib = 0; ib < static_cast<ptr_type>(brows); ++ib) {
+                ptr_type ia = ib * block_size;
+
+                for(size_t k = 0; k < block_size && ia < static_cast<ptr_type>(nrows); ++k, ++ia) {
+                    for(auto a = backend::row_begin(A, ia); a; ++a) {
                         col_type cb = a.col() / block_size;
 
                         if (marker[cb] != static_cast<col_type>(ib)) {
@@ -108,23 +98,24 @@ struct bcrs {
                 }
             }
 
-            boost::fill(marker, -1);
-
-#pragma omp barrier
 #pragma omp single
             {
-                boost::partial_sum(ptr, ptr.begin());
+                std::partial_sum(ptr.begin(), ptr.end(), ptr.begin());
                 col.resize(ptr.back());
                 val.resize(ptr.back() * block_size * block_size, 0);
             }
 
+            std::fill(marker.begin(), marker.end(), -1);
+
             // Fill the block matrix.
-            for(size_t ib = chunk_start, ia = ib * block_size; ib < chunk_end; ++ib) {
+#pragma omp for
+            for(ptr_type ib = 0; ib < static_cast<ptr_type>(brows); ++ib) {
+                ptr_type ia = ib * block_size;
                 ptr_type row_beg = ptr[ib];
                 ptr_type row_end = row_beg;
 
-                for(size_t k = 0; k < block_size && ia < nrows; ++k, ++ia) {
-                    for(row_iterator a = backend::row_begin(A, ia); a; ++a) {
+                for(size_t k = 0; k < block_size && ia < static_cast<ptr_type>(nrows); ++k, ++ia) {
+                    for(auto a = backend::row_begin(A, ia); a; ++a) {
                         col_type cb = a.col() / block_size;
                         col_type cc = a.col() % block_size;
                         val_type va = a.value();
@@ -159,7 +150,7 @@ struct block_crs {
     typedef typename builtin<real>::vector     matrix_diagonal;
     typedef solver::skyline_lu<value_type>     direct_solver;
 
-    struct provides_row_iterator : boost::false_type {};
+    struct provides_row_iterator : std::false_type {};
 
     /// Backend parameters.
     struct params {
@@ -167,53 +158,62 @@ struct block_crs {
         size_t block_size;
 
         params(size_t block_size = 4) : block_size(block_size) {}
+
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, block_size)
         {
-            AMGCL_PARAMS_CHECK(p, (block_size));
+            check_params(p, {"block_size"});
         }
         void get(boost::property_tree::ptree &p, const std::string &path) const {
             AMGCL_PARAMS_EXPORT_VALUE(p, path, block_size);
         }
+#endif
     };
 
     static std::string name() { return "block_crs"; }
 
     /// Copy matrix from builtin backend.
-    static boost::shared_ptr<matrix>
-    copy_matrix(boost::shared_ptr< typename backend::builtin<real>::matrix > A,
+    static std::shared_ptr<matrix>
+    copy_matrix(std::shared_ptr< typename backend::builtin<real>::matrix > A,
             const params &prm)
     {
-        return boost::make_shared<matrix>(*A, prm.block_size);
+        return std::make_shared<matrix>(*A, prm.block_size);
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     copy_vector(const vector &x, const params&)
     {
-        return boost::make_shared<vector>(x);
+        return std::make_shared<vector>(x);
+    }
+
+    static std::shared_ptr< vector >
+    copy_vector(const std::vector<value_type> &x, const params&)
+    {
+        return std::make_shared<vector>(x);
     }
 
     /// Copy vector from builtin backend.
-    static boost::shared_ptr<vector>
-    copy_vector(boost::shared_ptr< vector > x, const params&)
+    static std::shared_ptr<vector>
+    copy_vector(std::shared_ptr< vector > x, const params&)
     {
         return x;
     }
 
     /// Create vector of the specified size.
-    static boost::shared_ptr<vector>
+    static std::shared_ptr<vector>
     create_vector(size_t size, const params&)
     {
-        return boost::make_shared<vector>(size);
+        return std::make_shared<vector>(size);
     }
 
-    static boost::shared_ptr<direct_solver>
+    static std::shared_ptr<direct_solver>
     create_solver(
-            boost::shared_ptr< typename backend::builtin<real>::matrix > A,
+            std::shared_ptr< typename backend::builtin<real>::matrix > A,
             const params&)
     {
-        return boost::make_shared<direct_solver>(*A);
+        return std::make_shared<direct_solver>(*A);
     }
 };
 

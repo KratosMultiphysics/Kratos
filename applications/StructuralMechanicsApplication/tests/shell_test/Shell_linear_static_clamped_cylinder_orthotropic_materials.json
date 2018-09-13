@@ -1,0 +1,63 @@
+{
+    "properties" : [{
+        "model_part_name" : "Parts_Surface_Q4_thin",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticOrthotropic2DLaw"
+            },
+            "Variables"        : {
+                "SHELL_ORTHOTROPIC_LAYERS" : [
+                [0.5,0.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6],
+                [0.5,90.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6]
+                ]
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Parts_Surface_T3_thin",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticOrthotropic2DLaw"
+            },
+            "Variables"        : {
+                "SHELL_ORTHOTROPIC_LAYERS" : [
+                [0.5,0.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6],
+                [0.5,90.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6]
+                ]
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Parts_Surface_T3_thick",
+        "properties_id"   : 3,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticOrthotropic2DLaw"
+            },
+            "Variables"        : {
+                "SHELL_ORTHOTROPIC_LAYERS" : [
+                [0.5,0.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6],
+                [0.5,90.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6]
+                ]
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Parts_Surface_Q4_thick",
+        "properties_id"   : 4,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticOrthotropic2DLaw"
+            },
+            "Variables"        : {
+                "SHELL_ORTHOTROPIC_LAYERS" : [
+                [0.5,0.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6],
+                [0.5,90.0,7850,7.5E+6,2E+6,0.25,1.25E+6,0.625E+6,0.625E+6]
+                ]
+            },
+            "Tables"           : {}
+        }
+    }]
+}

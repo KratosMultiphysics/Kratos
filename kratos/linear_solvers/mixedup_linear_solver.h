@@ -128,7 +128,7 @@ public:
         KRATOS_THROW_ERROR (std::logic_error,"copy constructor not correctly implemented","");
     }
     /// Destructor.
-    virtual ~MixedUPLinearSolver() {}
+    ~MixedUPLinearSolver() override {}
     ///@}
     ///@name Operators
     ///@{
@@ -148,7 +148,7 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    virtual void Initialize (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    void Initialize (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
 	if (mBlocksAreAllocated == true)
 	{
@@ -170,7 +170,7 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    virtual void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {     
         //copy to local matrices
         if (mBlocksAreAllocated == false)
@@ -197,7 +197,7 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    virtual void PerformSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    void PerformSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         unsigned int m = mm;
         unsigned int max_iter = BaseType::GetMaxIterationsNumber();
@@ -210,7 +210,7 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    virtual void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         mpsolver_UU_block->FinalizeSolutionStep(mK, mu, mru);
         mpsolver_PP_block->FinalizeSolutionStep(mS, mp, mrp);
@@ -219,7 +219,7 @@ public:
      * Clear is designed to leave the solver object as if newly created.
      * After a clear a new Initialize is needed
      */
-    virtual void Clear()
+    void Clear() override
     {
         mK.clear();
         mG.clear();
@@ -243,7 +243,7 @@ public:
     guess for iterative linear solvers.
      @param rB. Right hand side vector.
     */
-    virtual bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         if (mis_initialized == false)
             this->Initialize (rA,rX,rB);
@@ -265,16 +265,16 @@ public:
     guess for iterative linear solvers.
      @param rB. Right hand side vector.
     */
-    virtual bool Solve (SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    bool Solve (SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
         return false;
     }
 
     /** Eigenvalue and eigenvector solve method for derived eigensolvers */
-    virtual  void Solve (SparseMatrixType& K,
+     void Solve (SparseMatrixType& K,
                          SparseMatrixType& M,
                          DenseVectorType& Eigenvalues,
-                         DenseMatrixType& Eigenvectors)
+                         DenseMatrixType& Eigenvectors) override
     {}
 
     /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
@@ -283,7 +283,7 @@ public:
      * which require knowledge on the spatial position of the nodes associated to a given dof.
      * This function tells if the solver requires such data
      */
-    virtual bool AdditionalPhysicalDataIsNeeded()
+    bool AdditionalPhysicalDataIsNeeded() override
     {
         return true;
     }
@@ -300,7 +300,7 @@ public:
         VectorType& rB,
         typename ModelPart::DofsArrayType& rdof_set,
         ModelPart& r_model_part
-    )
+    ) override
     {
         //count pressure dofs
         unsigned int n_pressure_dofs = 0;
@@ -365,17 +365,17 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "Linear solver";
     }
     /// Print information about this object.
-    virtual void PrintInfo (std::ostream& rOStream) const
+    void PrintInfo (std::ostream& rOStream) const override
     {
         rOStream << "Linear solver";
     }
     /// Print object's data.
-    virtual void PrintData (std::ostream& rOStream) const
+    void PrintData (std::ostream& rOStream) const override
     {
     }
     ///@}
@@ -464,7 +464,7 @@ protected:
             //allocate the schur complement
             ConstructSystemMatrix(S,G,D,L);
 
-            Vector diagK (mother_indices.size() );
+			VectorType diagK (mother_indices.size() );
             ComputeDiagonalByLumping (K,diagK);
 
             //fill the shur complement
@@ -507,7 +507,7 @@ protected:
                 }
             }
 
-            Vector diagK (mother_indices.size() );
+			VectorType diagK (mother_indices.size() );
             ComputeDiagonalByLumping (K,diagK);
 
             //fill the shur complement
@@ -546,19 +546,19 @@ private:
     unsigned int mm;
     bool mBlocksAreAllocated;
     bool mis_initialized;
-    boost::numeric::ublas::vector<unsigned int> mpressure_indices;
-    boost::numeric::ublas::vector<unsigned int> mother_indices;
-    boost::numeric::ublas::vector<int> mglobal_to_local_indexing;
-    boost::numeric::ublas::vector<int> mis_pressure_block;
+    DenseVector<unsigned int> mpressure_indices;
+    DenseVector<unsigned int> mother_indices;
+    DenseVector<int> mglobal_to_local_indexing;
+    DenseVector<int> mis_pressure_block;
     SparseMatrixType mK;
     SparseMatrixType mG;
     SparseMatrixType mD;
     SparseMatrixType mS;
     
-    Vector mrp;
-    Vector mru;
-    Vector mp;
-    Vector mu;
+    VectorType mrp;
+	VectorType mru;
+	VectorType mp;
+	VectorType mu;
 	
     ///@}
     ///@name Private Operators
@@ -621,11 +621,11 @@ private:
             if (m > max_iter)
                 m = max_iter;
         VectorType s (m+1), sn (m+1), w (dim), r (dim), y (m+1);
-        Vector  cs (m+1);
+		VectorType  cs (m+1);
         Matrix  H (m+1, m+1);
         int restart = 0;
         //preconditioner solve b and store in Minv_b
-        Vector preconditioned_b (dim);
+		VectorType preconditioned_b (dim);
         //TSparseSpaceType::Copy(b, preconditioned_b); //preconditioned_b=b
         //apply preconditioner
         SolveBlockPreconditioner (b,preconditioned_b);
@@ -792,13 +792,13 @@ private:
 
     void SolveBlockPreconditioner (const VectorType& rtot, VectorType& x)
     {
-        noalias(mp) = ZeroVector(mother_indices.size());
-        noalias(mu)  = ZeroVector(mother_indices.size());
-        Vector uaux (mother_indices.size() );
-        Vector paux (mpressure_indices.size() );
+		boost::numeric::ublas::noalias(mp) = boost::numeric::ublas::zero_vector<double>(mother_indices.size());
+		boost::numeric::ublas::noalias(mu) = boost::numeric::ublas::zero_vector<double>(mother_indices.size());
+		VectorType uaux (mother_indices.size() );
+		VectorType paux (mpressure_indices.size() );
 	
         //get diagonal of K (to be removed)
-        Vector diagK (mother_indices.size() );
+		VectorType diagK (mother_indices.size() );
         ComputeDiagonalByLumping (mK,diagK);
 
 	//get the u and p residuals
@@ -852,7 +852,7 @@ private:
 
         //KRATOS_WATCH(804)
 
-        typedef boost::numeric::ublas::vector<int> IndexVector;
+        typedef DenseVector<int> IndexVector;
         //typedef typename SparseMatrixType::iterator1 OuterIt;
         //typedef typename SparseMatrixType::iterator2 InnerIt;
         typedef typename boost::numeric::ublas::matrix_row< SparseMatrixType > RowType;
@@ -995,7 +995,7 @@ private:
         SparseMatrixType& rL
     )
     {
-        typedef boost::numeric::ublas::vector<int> IndexVector;
+        typedef DenseVector<int> IndexVector;
         typedef OpenMPUtils::PartitionVector PartitionVector;
         //typedef typename SparseMatrixType::iterator1 OuterIt;
         //typedef typename SparseMatrixType::iterator2 InnerIt;
@@ -1013,7 +1013,7 @@ private:
             #pragma omp parallel
             if ( OpenMPUtils::ThisThread() == k)
             {
-//                 boost::shared_ptr< IndexVector > pNext( new IndexVector(rL.size1() ) );
+//                 Kratos::shared_ptr< IndexVector > pNext( new IndexVector(rL.size1() ) );
 //                 IndexVector& Next = *pNext; // Keeps track of which columns were filled
                 IndexVector Next(rL.size1());
                 for (unsigned int m = 0; m < rL.size1(); m++) Next[m] = -1;

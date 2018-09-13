@@ -377,6 +377,24 @@ public:
         BaseType::mDofSetIsInitialized = true;
         // KRATOS_WATCH("finished setup dofset");
 
+
+    // If reactions are to be calculated, we check if all the dofs have reactions defined
+    // This is tobe done only in debug mode
+
+    #ifdef KRATOS_DEBUG        
+
+    if(BaseType::GetCalculateReactionsFlag())
+    {
+        for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+        { 
+                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+                    << "Node : "<<dof_iterator->Id()<< std::endl
+                    << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
+        }
+    }
+    #endif
+
+
         KRATOS_CATCH("")
     }
 
@@ -385,12 +403,11 @@ public:
     //**************************************************************************
 
     void ResizeAndInitializeVectors(
+        typename TSchemeType::Pointer pScheme,
         TSystemMatrixPointerType& pA,
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
+        ModelPart& rModelPart
     )
     {
         KRATOS_TRY
@@ -431,7 +448,8 @@ public:
         {
             if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
             {
-                KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
+                //KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
+                KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
                 ParallelConstructGraph(A);
             }
@@ -448,7 +466,7 @@ public:
         //if needed resize the vector for the calculation of reactions
         if (BaseType::mCalculateReactionsFlag == true)
         {
-            unsigned int ReactionsVectorSize = BaseType::mDofSet.size() - BaseType::mEquationSystemSize;
+            unsigned int ReactionsVectorSize = BaseType::mDofSet.size();
             if (BaseType::mpReactionsVector->size() != ReactionsVectorSize)
                 BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
         }

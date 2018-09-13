@@ -41,9 +41,9 @@ void startTimers()
 void startProcess(char* procName)
 {
 	if (!TimingIsActive ) return ;
-	if (processNames == NULL ) processNames = new TList<TTimeSignal*>();
+	if (processNames == nullptr ) processNames = new TList<TTimeSignal*>();
 	TTimeSignal *newT = findProcess(procName);
-	if (newT == NULL) 
+	if (newT == nullptr) 
 	{
 		newT = new TTimeSignal(procName);
 		processNames->Add(newT);
@@ -54,18 +54,18 @@ void startProcess(char* procName)
 void endProcess(char* procName)
 {
 	if (!TimingIsActive ) return ;
-	if (processNames == NULL ) return ;
+	if (processNames == nullptr ) return ;
 	TTimeSignal *newT = findProcess(procName);
-	if (newT == NULL)  return ;
+	if (newT == nullptr)  return ;
 	newT->endTime();	
 }
 
 double endProcessR(char* procName)
 {
 	if (!TimingIsActive ) return 0;
-	if (processNames == NULL ) return 0;
+	if (processNames == nullptr ) return 0;
 	TTimeSignal *newT = findProcess(procName);
-	if (newT == NULL)  return 0;
+	if (newT == nullptr)  return 0;
 	newT->endTime();
 	return newT->elapsedTime();
 }
@@ -95,5 +95,5 @@ TTimeSignal* findProcess(char* procName)
 		if ( str1.compare( str2) == 0)
 			return t;
 	}
-	return NULL;
+	return nullptr;
 }

@@ -14,8 +14,6 @@
 //                   Josep Maria Carbonell
 //
 
-
-
 #if !defined(KRATOS_TETRAHEDRA_3D_10_H_INCLUDED )
 #define  KRATOS_TETRAHEDRA_3D_10_H_INCLUDED
 
@@ -31,9 +29,26 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Tetrahedra3D10
+ * @ingroup KratosCore
+ * @brief A ten node tetrahedra geometry with quadratic shape functions
+ * @details The node ordering corresponds with:       
+ *                     3                              
+ *                   ,/|`\                          
+ *                 ,/  |  `\       
+ *               ,7    '.   `9     
+ *             ,/       8     `\   
+ *          ,/          |       `\ 
+ *         0--------6--'.--------2
+ *          `\.         |      ,/ 
+ *             `\.      |    ,5   
+ *                `4.   '. ,/     
+ *                   `\. |/       
+ *                      `1         
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Tetrahedra3D10 : public Geometry<TPointType>
 {
 public:
@@ -215,9 +230,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 10 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "Invalid points number. Expected 10, given " ,
-                                this->PointsNumber() );
+            KRATOS_ERROR << "Invalid points number. Expected 10, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -252,14 +265,14 @@ public:
     }
 
     /// Destructor. Does nothing!!!
-    virtual ~Tetrahedra3D10() {}
+    ~Tetrahedra3D10() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily()
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Tetrahedra;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType()
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Tetrahedra3D10;
     }
@@ -309,30 +322,13 @@ public:
      * Operations
      */
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const
+    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new Tetrahedra3D10( ThisPoints ) );
     }
 
-        virtual Geometry< Point<3> >::Pointer Clone() const
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
-
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
-        }
-
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Tetrahedra3D10< Point<3> >( NewPoints ) );
-
-        return p_clone;
-    }
-
-
     //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult ) const
+    Vector& LumpingFactors( Vector& rResult ) const override
     {
         if(rResult.size() != 10)
             rResult.resize( 10, false );
@@ -360,7 +356,7 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double Length() const
+    double Length() const override
     {
         return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
     }
@@ -379,13 +375,13 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double Area() const
+    double Area() const override
     {
         return Volume();
     }
 
 
-    virtual double Volume() const //Not a closed formula for a quadratic tetrahedra
+    double Volume() const override //Not a closed formula for a quadratic tetrahedra
     {
 
         Vector temp;
@@ -416,21 +412,40 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double DomainSize() const
+    double DomainSize() const override
     {
         return  Volume();
     }
 
-
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
+    /**
+     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * local point for the given global point
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
+     */
+    virtual bool IsInside( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult, 
+        const double Tolerance = std::numeric_limits<double>::epsilon() 
+        ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
         if ( (rResult[0] >= (0.0 - Tolerance)) && (rResult[0] <= (1.0 + Tolerance)) )
+        {
             if ( (rResult[1] >= (0.0 - Tolerance)) && (rResult[1] <= (1.0 + Tolerance)) )
+            {
                 if ( (rResult[2] >= (0.0 - Tolerance)) && (rResult[2] <= (1.0 + Tolerance)) )
+                {
                     if ((( 1.0 - ( rResult[0] + rResult[1] + rResult[2] ) ) >= (0.0 - Tolerance) ) && (( 1.0 - ( rResult[0] + rResult[1] + rResult[2] ) ) <= (1.0 + Tolerance) ) )
+                    {
                         return true;
+                    }
+                }
+            }
+        }
 
         return false;
     }
@@ -443,12 +458,12 @@ public:
     @see Edge()
      */
     // will be used by refinement algorithm, thus uncommented. janosch.
-    virtual SizeType EdgesNumber() const
+    SizeType EdgesNumber() const override
     {
         return 6;
     }
 
-    virtual SizeType FacesNumber() const
+    SizeType FacesNumber() const override
     {
         return 4;
     }
@@ -459,7 +474,7 @@ public:
     @see EdgesNumber()
     @see Edge()
     */
-    virtual GeometriesArrayType Edges( void )
+    GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -491,7 +506,7 @@ public:
         return edges;
     }
 
-    virtual GeometriesArrayType Faces( void )
+    GeometriesArrayType Faces( void ) override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -526,11 +541,53 @@ public:
         return faces;
     }
 
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
+    {
+        if(rResult.size1()!= 10 || rResult.size2()!= 3)
+            rResult.resize(10, 3, false);
+        rResult(0,0)=0.0;
+        rResult(0,1)=0.0;
+        rResult(0,2)=0.0;
+        rResult(1,0)=1.0;
+        rResult(1,1)=0.0;
+        rResult(1,2)=0.0;
+        rResult(2,0)=0.0;
+        rResult(2,1)=1.0;
+        rResult(2,2)=0.0;
+        rResult(3,0)=0.0;
+        rResult(3,1)=0.0;
+        rResult(3,2)=1.0;
+        rResult(4,0)=0.5;
+        rResult(4,1)=0.0;
+        rResult(4,2)=0.0;
+        rResult(5,0)=0.5;
+        rResult(5,1)=0.5;
+        rResult(5,2)=0.0;
+        rResult(6,0)=0.0;
+        rResult(6,1)=0.5;
+        rResult(6,2)=0.0;
+        rResult(7,0)=0.0;
+        rResult(7,1)=0.0;
+        rResult(7,2)=0.5;
+        rResult(8,0)=0.5;
+        rResult(8,1)=0.0;
+        rResult(8,2)=0.5;
+        rResult(9,0)=0.0;
+        rResult(9,1)=0.5;
+        rResult(9,2)=0.5;
+        return rResult;
+    }
 
 
     /**
      * Shape Function
      */
+
+    Vector& ShapeFunctionsValues(Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
+    {
+        ShapeFunctionsValuesImpl(rResult, rCoordinates);
+        return rResult;
+    }
 
     /**
      * Calculates the value of a given shape function at a given point.
@@ -540,10 +597,9 @@ public:
      * value of the shape function is calculated
      *
      * @return the value of the shape function at the given point
-     * TODO: TO BE VERIFIED
      */
-    virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
-                                       const CoordinatesArrayType& rPoint ) const
+    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+                                       const CoordinatesArrayType& rPoint ) const override
     {
         double fourthCoord = 1.0 - ( rPoint[0] + rPoint[1] + rPoint[2] );
 
@@ -570,11 +626,51 @@ public:
         case 9:
             return( 4*rPoint[1]*rPoint[2] );
         default:
-            KRATOS_THROW_ERROR( std::logic_error,
-                                "Wrong index of shape function!" , *this );
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
 
         return 0;
+    }
+
+    Matrix& ShapeFunctionsLocalGradients(Matrix& rResult,
+            const CoordinatesArrayType& rPoint) const override
+    {
+        const double fourthCoord = 1.0 - (rPoint[0] + rPoint[1] + rPoint[2]);
+        if (rResult.size1() != this->size() || rResult.size2() != this->LocalSpaceDimension())
+            rResult.resize(this->size(), this->LocalSpaceDimension(), false);
+
+        rResult(0, 0) = -(4.0 * fourthCoord - 1.0);
+        rResult(0, 1) = -(4.0 * fourthCoord - 1.0);
+        rResult(0, 2) = -(4.0 * fourthCoord - 1.0);
+        rResult(1, 0) =  4.0 * rPoint[0] - 1.0;
+        rResult(1, 1) =  0.0;
+        rResult(1, 2) =  0.0;
+        rResult(2, 0) =  0.0;
+        rResult(2, 1) =  4.0 * rPoint[1] - 1.0;
+        rResult(2, 2) =  0.0;
+        rResult(3, 0) =  0.0;
+        rResult(3, 1) =  0.0;
+        rResult(3, 2) =  4.0 * rPoint[2] - 1.0;
+        rResult(4, 0) = -4.0 * rPoint[0] + 4.0 * fourthCoord;
+        rResult(4, 1) = -4.0 * rPoint[0];
+        rResult(4, 2) = -4.0 * rPoint[0];
+        rResult(5, 0) =  4.0 * rPoint[1];
+        rResult(5, 1) =  4.0 * rPoint[0];
+        rResult(5, 2) =  0.0;
+        rResult(6, 0) = -4.0 * rPoint[1];
+        rResult(6, 1) = -4.0 * rPoint[1] + 4.0 * fourthCoord;
+        rResult(6, 2) = -4.0 * rPoint[1];
+        rResult(7, 0) = -4.0 * rPoint[2];
+        rResult(7, 1) = -4.0 * rPoint[2];
+        rResult(7, 2) = -4.0 * rPoint[2] + 4.0 * fourthCoord;
+        rResult(8, 0) =  4.0 * rPoint[2];
+        rResult(8, 1) =  0.0;
+        rResult(8, 2) =  4.0 * rPoint[0];
+        rResult(9, 0) =  0.0;
+        rResult(9, 1) =  4.0 * rPoint[2];
+        rResult(9, 2) =  4.0 * rPoint[1];
+
+        return rResult;
     }
 
 
@@ -589,7 +685,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "3 dimensional tetrahedra with ten nodes in 3D space";
     }
@@ -601,7 +697,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    virtual void PrintInfo( std::ostream& rOStream ) const
+    void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "3 dimensional tetrahedra with ten nodes in 3D space";
     }
@@ -615,7 +711,7 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    virtual void PrintData( std::ostream& rOStream ) const
+    void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
@@ -644,12 +740,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
@@ -662,93 +758,28 @@ private:
      */
 
     /**
-     * TODO: TO BE VERIFIED
+     * @brief Returns vector of shape function values at local coordinate.
+     * 
+     * For a definition of the shape functions see, e.g.,
+     * P. Wriggers, Nonlinear Finite Element Methods, Springer, 2008, Sec. 4.1.
      */
-    /**
-     * Calculates the gradients in terms of local coordinateds
-     * of all shape functions in a given point.
-     *
-     * @param rPoint the current point at which the gradients are calculated
-     * @return the gradients of all shape functions
-     * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
-     */
-    static Matrix& ShapeFunctionsLocalGradientsPrivate( Matrix& result,
-            const CoordinatesArrayType& rPoint )
+    static void ShapeFunctionsValuesImpl(Vector &rResult, const CoordinatesArrayType& rCoordinates)
     {
-        double fourthCoord = 1.0 - ( rPoint[0] + rPoint[1] + rPoint[2] );
-        double fourthCoord_DX = -1.0;
-        double fourthCoord_DY = -1.0;
-        double fourthCoord_DZ = -1.0;
-
-        if ( result.size1() != 10 || result.size2() != 3 )
-            result.resize( 10, 3, false );
-
-        result( 0, 0 ) = ( 4 * fourthCoord - 1.0 ) * fourthCoord_DX;
-
-        result( 0, 1 ) = ( 4 * fourthCoord - 1.0 ) * fourthCoord_DY;
-
-        result( 0, 2 ) = ( 4 * fourthCoord - 1.0 ) * fourthCoord_DZ;
-
-        result( 1, 0 ) =  4 * rPoint[0] - 1.0;
-
-        result( 1, 1 ) =  0.0;
-
-        result( 1, 2 ) =  0.0;
-
-        result( 2, 0 ) =  0.0;
-
-        result( 2, 1 ) =  4 * rPoint[1] - 1.0;
-
-        result( 2, 2 ) =  0.0;
-
-        result( 3, 0 ) =  0.0;
-
-        result( 3, 1 ) =  0.0 ;
-
-        result( 3, 2 ) =  4 * rPoint[2] - 1.0 ;
-
-        result( 4, 0 ) =  4 * fourthCoord_DX * rPoint[0] + 4 * fourthCoord;
-
-        result( 4, 1 ) =  4 * fourthCoord_DY * rPoint[0];
-
-        result( 4, 2 ) =  4 * fourthCoord_DZ * rPoint[0];
-
-        result( 5, 0 ) =  4 * rPoint[1];
-
-        result( 5, 1 ) =  4 * rPoint[0];
-
-        result( 5, 2 ) =  0.0;
-
-        result( 6, 0 ) =  4 * fourthCoord_DX * rPoint[1];
-
-        result( 6, 1 ) =  4 * fourthCoord_DY * rPoint[1] + 4 * fourthCoord;
-
-        result( 6, 2 ) =  4 * fourthCoord_DZ * rPoint[1];
-
-        result( 7, 0 ) =  4 * fourthCoord_DX * rPoint[2];
-
-        result( 7, 1 ) =  4 * fourthCoord_DY * rPoint[2];
-
-        result( 7, 2 ) =  4 * fourthCoord_DZ * rPoint[2] + 4 * fourthCoord;
-
-        result( 8, 0 ) =  4 * rPoint[2];
-
-        result( 8, 1 ) =  0.0;
-
-        result( 8, 2 ) =  4 * rPoint[0];
-
-        result( 9, 0 ) =  0.0;
-
-        result( 9, 1 ) =  4 * rPoint[2];
-
-        result( 9, 2 ) =  4 * rPoint[1];
-
-        return result;
+        if (rResult.size() != 10)
+            rResult.resize(10, false);
+        const double fourthCoord = 1.0 - rCoordinates[0] - rCoordinates[1] - rCoordinates[2];
+        rResult[0] = fourthCoord * (2.0 * fourthCoord - 1.0);
+        rResult[1] = rCoordinates[0] * (2.0 * rCoordinates[0] - 1.0);
+        rResult[2] = rCoordinates[1] * (2.0 * rCoordinates[1] - 1.0);
+        rResult[3] = rCoordinates[2] * (2.0 * rCoordinates[2] - 1.0);
+        rResult[4] = 4.0 * fourthCoord * rCoordinates[0];
+        rResult[5] = 4.0 * rCoordinates[0] * rCoordinates[1];
+        rResult[6] = 4.0 * rCoordinates[1] * fourthCoord;
+        rResult[7] = 4.0 * rCoordinates[2] * fourthCoord;
+        rResult[8] = 4.0 * rCoordinates[0] * rCoordinates[2];
+        rResult[9] = 4.0 * rCoordinates[1] * rCoordinates[2];
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -757,53 +788,23 @@ private:
      * @return the matrix of values of every shape function in each integration point
      *
      */
-    static Matrix CalculateShapeFunctionsIntegrationPointsValues(
-        typename BaseType::IntegrationMethod ThisMethod )
+    static Matrix CalculateShapeFunctionsIntegrationPointsValues(typename BaseType::IntegrationMethod ThisMethod)
     {
-        IntegrationPointsContainerType all_integration_points =
-            AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
-        //number of integration points
-        const int integration_points_number = integration_points.size();
-        //number of nodes in current geometry
-        const int points_number = 10;
-        //setting up return matrix
-        Matrix shape_function_values( integration_points_number, points_number );
+        const std::size_t points_number = 10;
+        IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
+        IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
+        Matrix shape_function_values(integration_points.size(), points_number);
         //loop over all integration points
-
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
+        Vector N(points_number);
+        for (std::size_t pnt = 0; pnt < integration_points.size(); ++pnt)
         {
-            double fourthCoord = 1.0 - ( integration_points[pnt].X() + integration_points[pnt].Y() + integration_points[pnt].Z() );
-
-            shape_function_values( pnt, 0 ) = fourthCoord * ( 2.0 * fourthCoord - 1.0 );
-
-            shape_function_values( pnt, 1 ) = integration_points[pnt].X() * ( 2.0 * integration_points[pnt].X() - 1.0 );
-
-            shape_function_values( pnt, 2 ) = integration_points[pnt].Y() * ( 2.0 * integration_points[pnt].Y() - 1.0 );
-
-            shape_function_values( pnt, 3 ) = integration_points[pnt].Z() * ( 2.0 * integration_points[pnt].Z() - 1.0 );
-
-            shape_function_values( pnt, 4 ) = 4.0 * fourthCoord * integration_points[pnt].X();
-
-            shape_function_values( pnt, 5 ) = 4.0 * integration_points[pnt].X() * integration_points[pnt].Y();
-
-            shape_function_values( pnt, 6 ) = 4.0 * fourthCoord * integration_points[pnt].Y();
-
-            shape_function_values( pnt, 7 ) = 4.0 * fourthCoord * integration_points[pnt].Z();
-
-            shape_function_values( pnt, 8 ) = 4.0 * integration_points[pnt].X() * integration_points[pnt].Z();
-
-            shape_function_values( pnt, 9 ) = 4.0 * integration_points[pnt].Y() * integration_points[pnt].Z();
-
+            ShapeFunctionsValuesImpl(N, integration_points[pnt]);
+            for (std::size_t i = 0; i < N.size(); ++i)
+                shape_function_values(pnt, i) = N[i];
         }
-
         return shape_function_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the local gradients of all shape functions in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -912,9 +913,6 @@ private:
         return shape_functions_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     static const ShapeFunctionsLocalGradientsContainerType
     AllShapeFunctionsLocalGradients()
     {

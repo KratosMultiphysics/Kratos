@@ -1,23 +1,16 @@
-// Kratos Multi-Physics
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-// Copyright (c) 2016 Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//                    
 //
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement:
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
@@ -96,7 +89,7 @@ public:
 
     typedef Condition ConditionType;
 
-    typedef vector<int> NeighbourIndicesContainerType;
+    typedef DenseVector<int> NeighbourIndicesContainerType;
 
     typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
 
@@ -184,9 +177,9 @@ public:
         mpInterfaceMesh(MeshType::Pointer(new MeshType))
     {
         MeshType mesh;
-        mLocalMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
-        mGhostMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
-        mInterfaceMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+        mLocalMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mGhostMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+        mInterfaceMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
     }
 
     /// Copy constructor.
@@ -245,17 +238,17 @@ public:
     ///@name Access
     ///@{
 
-    virtual int MyPID()
+    virtual int MyPID() const
     {
         return 0;
     }
 
-    virtual int TotalProcesses()
+    virtual int TotalProcesses() const
     {
         return 1;
     }
 
-    SizeType GetNumberOfColors()
+    SizeType GetNumberOfColors() const
     {
         return mNumberOfColors;
     }
@@ -274,9 +267,9 @@ public:
 
         for (IndexType i = 0; i < mNumberOfColors; i++)
         {
-            mLocalMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
-            mGhostMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
-            mInterfaceMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+            mLocalMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+            mGhostMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+            mInterfaceMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
         }
     }
 
@@ -474,14 +467,14 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Barrier()
+    virtual void Barrier() const
     {
         /*#if defined(KRATOS_USING_MPI )
                 std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
         #endif*/
     }
 
-    virtual bool SumAll(int& rValue)
+    virtual bool SumAll(int& rValue) const
     {
         // #if defined(KRATOS_USING_MPI )
         // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -489,7 +482,7 @@ public:
         return true;
     }
 
-    virtual bool SumAll(double& rValue)
+    virtual bool SumAll(double& rValue) const
     {
         // #if defined(KRATOS_USING_MPI )
         // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -497,7 +490,7 @@ public:
         return true;
     }
     
-    virtual bool SumAll(array_1d<double, 3>& rValue)
+    virtual bool SumAll(array_1d<double, 3>& rValue) const
     {
         // #if defined(KRATOS_USING_MPI )
         // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -505,7 +498,7 @@ public:
         return true;
     }
 
-    virtual bool MinAll(int& rValue)
+    virtual bool MinAll(int& rValue) const
     {
         // #if defined(KRATOS_USING_MPI )
         // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -513,7 +506,7 @@ public:
         return true;
     }
 
-    virtual bool MinAll(double& rValue)
+    virtual bool MinAll(double& rValue) const
     {
         // #if defined(KRATOS_USING_MPI )
         // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -521,7 +514,7 @@ public:
         return true;
     }
 
-    virtual bool MaxAll(int& rValue)
+    virtual bool MaxAll(int& rValue) const
     {
         /*#if defined(KRATOS_USING_MPI )
                 std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -529,7 +522,7 @@ public:
         return true;
     }
 
-    virtual bool MaxAll(double& rValue)
+    virtual bool MaxAll(double& rValue) const
     {
         // #if defined(KRATOS_USING_MPI )
         // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -537,13 +530,13 @@ public:
         return true;
     }
     
-    virtual bool ScanSum(const double& send_partial, double& receive_accumulated)
+    virtual bool ScanSum(const double& send_partial, double& receive_accumulated) const
     {
         receive_accumulated = send_partial;
         return true;
     }
     
-    virtual bool ScanSum(const int& send_partial, int& receive_accumulated)
+    virtual bool ScanSum(const int& send_partial, int& receive_accumulated) const
     {
         receive_accumulated = send_partial;
         return true;
@@ -703,7 +696,7 @@ public:
     }
     
     
-    virtual bool AssembleNonHistoricalData(Variable<vector<array_1d<double,3> > > const& ThisVariable)
+    virtual bool AssembleNonHistoricalData(Variable<DenseVector<array_1d<double,3> > > const& ThisVariable)
     {
         // #if defined(KRATOS_USING_MPI )
         //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -754,7 +747,7 @@ public:
         return true;
     }
     
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<vector<array_1d<double,3> > > const& ThisVariable)
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<DenseVector<array_1d<double,3> > > const& ThisVariable)
     {
     /*#if defined(KRATOS_USING_MPI )
                 std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
@@ -762,7 +755,7 @@ public:
         return true;
     }
     
-    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<vector<int> > const& ThisVariable)
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<DenseVector<int> > const& ThisVariable)
     {
     /*#if defined(KRATOS_USING_MPI )
                 std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;

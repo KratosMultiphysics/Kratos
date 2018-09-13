@@ -1,11 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Eduardo Soudah & Jordi Cotela $
-//   Date:                $Date: 2014-08-04 17:06:00 $
-//   Revision:            $Revision: 0.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Eduardo Soudah
+//                   Jordi Cotela
 //
-
 
 #if !defined(KRATOS_WINDKESSEL_H_INCLUDED )
 #define  KRATOS_WINDKESSEL_H_INCLUDED
@@ -86,7 +90,7 @@ public:
 
     /// Destructor.
 
-    virtual ~WindkesselModel()
+    ~WindkesselModel() override
     {
     }
 
@@ -101,7 +105,7 @@ public:
     ///@{
 
     /// Solve an iteration of the turbulent viscosity
-    void Execute()
+    void Execute() override
     {
         KRATOS_TRY
         double Flow_total=0.0;
@@ -175,7 +179,7 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "WindkesselModel";
@@ -184,14 +188,14 @@ public:
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "WindkesselModel";
     }
 
     /// Print object's data.
 
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

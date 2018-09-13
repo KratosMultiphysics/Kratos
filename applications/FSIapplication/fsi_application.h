@@ -6,114 +6,79 @@
 //
 //
 
-
-#if !defined(KRATOS_FSI_APPLICATION_H_INCLUDED )
-#define  KRATOS_FSI_APPLICATION_H_INCLUDED
-
-
+#if !defined(KRATOS_FSI_APPLICATION_H_INCLUDED)
+#define KRATOS_FSI_APPLICATION_H_INCLUDED
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
+#include "includes/fsi_variables.h"
 
-
-namespace Kratos
-{
+namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
 
-// Variables definition
-KRATOS_DEFINE_VARIABLE(int, CONVERGENCE_ACCELERATOR_ITERATION)
-KRATOS_DEFINE_VARIABLE(double, MAPPER_SCALAR_PROJECTION_RHS)
-KRATOS_DEFINE_VARIABLE(double, SCALAR_PROJECTED)
-KRATOS_DEFINE_VARIABLE(double, FICTITIOUS_FLUID_DENSITY)
-KRATOS_DEFINE_VARIABLE(double, FSI_INTERFACE_RESIDUAL_NORM)
-//	KRATOS_DEFINE_VARIABLE(double, PRESSURE_OLD_IT)
-//	KRATOS_DEFINE_VARIABLE(double, IS_INTERFACE)
-//	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
-
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MAPPER_VECTOR_PROJECTION_RHS)
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VAUX_EQ_TRACTION)
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VECTOR_PROJECTED)
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RELAXED_DISP)
-
-class KratosFSIApplication : public KratosApplication
-{
-public:
+class KratosFSIApplication : public KratosApplication {
+   public:
     ///@name Type Definitions
     ///@{
 
-
-    /// Pointer definition of KratosALEApplication
+    /// Pointer definition of KratosMeshMovingApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosFSIApplication);
-
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    KratosFSIApplication() {}
+    KratosFSIApplication() : KratosApplication("FSIApplication") {}
 
     /// Destructor.
-    virtual ~KratosFSIApplication() {}
-
+    ~KratosFSIApplication() override {}
 
     ///@}
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
 
-    virtual void Register();
-
-
+     void Register() override;
 
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "KratosFSIApplication";
-    }
+     std::string Info() const override { return "KratosFSIApplication"; }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
+     void PrintInfo(std::ostream& rOStream) const override {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
+     void PrintData(std::ostream& rOStream) const override{
         KRATOS_WATCH("in FSIApplication");
-        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
         rOStream << std::endl;
@@ -124,55 +89,45 @@ public:
         KratosComponents<Condition>().PrintData(rOStream);
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
 
-protected:
+   protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
 
-private:
+   private:
     ///@name Static Member Variables
     ///@{
-
 
     //       static const ApplicationCondition  msApplicationCondition;
 
@@ -180,26 +135,21 @@ private:
     ///@name Member Variables
     ///@{
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -211,17 +161,14 @@ private:
     /// Copy constructor.
     KratosFSIApplication(KratosFSIApplication const& rOther);
 
-
     ///@}
 
-}; // Class KratosFSIApplication
+};  // Class KratosFSIApplication
 
 ///@}
 
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
@@ -229,9 +176,6 @@ private:
 
 ///@}
 
-
 }  // namespace Kratos.
 
-#endif // KRATOS_FSI_APPLICATION_H_INCLUDED  defined 
-
-
+#endif  // KRATOS_FSI_APPLICATION_H_INCLUDED  defined

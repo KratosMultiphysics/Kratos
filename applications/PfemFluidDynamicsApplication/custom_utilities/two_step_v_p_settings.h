@@ -24,10 +24,8 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
-//#include "solving_strategies/schemes/residualbased_incremental_aitken_static_scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
-//#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "processes/process.h"
 
 // Application includes

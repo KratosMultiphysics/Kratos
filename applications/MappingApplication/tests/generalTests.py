@@ -1,5 +1,4 @@
 from KratosMultiphysics import *
-from KratosMultiphysics.MappingApplication import *
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 

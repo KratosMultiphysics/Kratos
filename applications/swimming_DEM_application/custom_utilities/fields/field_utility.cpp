@@ -21,9 +21,6 @@ void FieldUtility::ImposeFieldOnNodes(ModelPart& r_model_part, const Variable<ar
         const array_1d<double, 3>& coordinates = node_it->Coordinates();
         array_1d<double, 3>& vector = node_it->FastGetSolutionStepValue(variable_to_be_imposed);
         mpVectorField->Evaluate(time, coordinates, vector);
-        vector[0] = 0.0;
-        vector[1] = 0.0;
-        vector[2] = 0.0;
     }
 }
 

@@ -6,7 +6,6 @@
 #define  KRATOS_SOLIDFACE3D_H_INCLUDED
 
 // External includes
-//#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -19,19 +18,19 @@
 namespace Kratos
 {
 
-class SolidFace3D : public DEMWall
+class KRATOS_API(DEM_APPLICATION) SolidFace3D : public DEMWall
 {
 public:
 
     // Counted pointer of SolidFace3D
     KRATOS_CLASS_POINTER_DEFINITION( SolidFace3D );
-	
-	
-    typedef WeakPointerVector<Element> ParticleWeakVectorType; 
+
+
+    typedef WeakPointerVector<Element> ParticleWeakVectorType;
     typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
     typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 
-    typedef WeakPointerVector<Condition> ConditionWeakVectorType; 
+    typedef WeakPointerVector<Condition> ConditionWeakVectorType;
     typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
 
 
@@ -47,33 +46,26 @@ public:
     // Destructor
     virtual ~SolidFace3D();
 
-    Condition::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties ) const;
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
 
-    void Initialize();
-    virtual void CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    ProcessInfo& r_process_info );
-		
-    void CalculateNormal(array_1d<double, 3>& rnormal);
-    void FinalizeSolutionStep(ProcessInfo& r_process_info);
-    
-    void GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode);
+    void Initialize() override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
+    void CalculateNormal(array_1d<double, 3>& rnormal) override;
+    void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
+    void GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode) override;
 
 protected:
-  
+
 private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    virtual void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DEMWall );
     }
 
-    virtual void load( Serializer& rSerializer )
+    virtual void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DEMWall );
     }
@@ -82,4 +74,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_SOLIDFACE3D_H_INCLUDED  defined 
+#endif // KRATOS_SOLIDFACE3D_H_INCLUDED  defined

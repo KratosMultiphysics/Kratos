@@ -1,0 +1,9 @@
+{
+	"mapper_settings": [
+    {
+		"mapper_type": "nearest_element",
+		"interface_submodel_part_origin": "interface_origin",
+		"interface_submodel_part_destination": "interface_destination"
+	}
+ ]
+}

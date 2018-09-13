@@ -6,15 +6,10 @@
 //
 
 // External includes 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
+#include "spaces/ublas_space.h"
 
 // Project includes
-#include "includes/define.h"
-#include "containers/flags.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-#include "spaces/ublas_space.h"
 #include "includes/kratos_parameters.h"
 
 //linear solvers
@@ -33,25 +28,19 @@
 #include "custom_strategies/schemes/dam_P_scheme.hpp"
 
 
-//strategies
-#include "custom_strategies/strategies/dam_eulerian_convection_diffusion_strategy.hpp"
-
-
 namespace Kratos
 {
 
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-void  AddCustomStrategiesToPython()
+void  AddCustomStrategiesToPython(pybind11::module& m)
 {
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 
     //custom scheme types
     typedef IncrementalUpdateStaticSmoothingScheme< SparseSpaceType, LocalSpaceType >  IncrementalUpdateStaticSmoothingSchemeType; 
@@ -59,31 +48,29 @@ void  AddCustomStrategiesToPython()
     typedef BossakDisplacementSmoothingScheme< SparseSpaceType, LocalSpaceType >  BossakDisplacementSmoothingSchemeType;
     typedef DamUPScheme< SparseSpaceType, LocalSpaceType >  DamUPSchemeType;
     typedef DamPScheme< SparseSpaceType, LocalSpaceType >  DamPSchemeType;
-    
-    //custom strategies types
-    typedef DamEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > DamEulerianConvectionDiffusionStrategyType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	// Schemes
-    class_< IncrementalUpdateStaticSmoothingSchemeType, bases< BaseSchemeType >, boost::noncopyable >("IncrementalUpdateStaticSmoothingScheme",
-        init< >());
+    class_< IncrementalUpdateStaticSmoothingSchemeType, typename IncrementalUpdateStaticSmoothingSchemeType::Pointer, BaseSchemeType >
+    (m, "IncrementalUpdateStaticSmoothingScheme")
+    .def(init< >());
 
-    class_< IncrementalUpdateStaticDampedSmoothingSchemeType, bases< BaseSchemeType >, boost::noncopyable >("IncrementalUpdateStaticDampedSmoothingScheme",
-        init< double, double >());
+    class_< IncrementalUpdateStaticDampedSmoothingSchemeType, typename IncrementalUpdateStaticDampedSmoothingSchemeType::Pointer, BaseSchemeType >
+    (m, "IncrementalUpdateStaticDampedSmoothingScheme")
+    .def(init< double, double >());
 
-    class_< BossakDisplacementSmoothingSchemeType, bases< BaseSchemeType >, boost::noncopyable >("BossakDisplacementSmoothingScheme",
-        init< double, double, double >());
+    class_< BossakDisplacementSmoothingSchemeType, typename BossakDisplacementSmoothingSchemeType::Pointer, BaseSchemeType >
+    (m, "BossakDisplacementSmoothingScheme")
+    .def(init< double, double, double >());
 
-	class_< DamUPSchemeType, bases< BaseSchemeType >,  boost::noncopyable >("DamUPScheme",
-        init< double, double, double, double >());
+	class_< DamUPSchemeType, typename DamUPSchemeType::Pointer, BaseSchemeType >
+    (m, "DamUPScheme")
+    .def(init< double, double, double, double >());
     
-    class_< DamPSchemeType, bases< BaseSchemeType >,  boost::noncopyable >("DamPScheme",
-        init< double, double >());
-    // Strategies       
-    class_< DamEulerianConvectionDiffusionStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >("DamEulerianConvectionDiffusionStrategy", 
-        init < ModelPart&, LinearSolverType::Pointer, Parameters&, bool, int >());
-
+    class_< DamPSchemeType, typename DamPSchemeType::Pointer, BaseSchemeType >
+    (m, "DamPScheme")
+    .def(init< double, double >());
 }
 
 }  // namespace Python.

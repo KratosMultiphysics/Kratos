@@ -26,7 +26,7 @@ KRATOS_CLASS_POINTER_DEFINITION(CellularFlowPartialDerivatives);
 
 /// Default constructor.
 
-CellularFlowPartialDerivatives(): mL(1.0), mU(0.0), mK(2.72), mOmega(KRATOS_M_PI)
+CellularFlowPartialDerivatives(): mL(1.0), mU(0.0), mK(2.72), mOmega(Globals::Pi)
 {
     mOneOverL = 1.0 / mL;
     mOmegaUOverL = mOmega * mU / mL;

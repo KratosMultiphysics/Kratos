@@ -12,63 +12,29 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-
 //Utilities
-#include "custom_utilities/sprism_neighbours.hpp"
-#include "custom_utilities/eigenvector_to_solution_step_variable_transfer_utility.hpp"
+#include "custom_utilities/formfinding_io_utility.h"
 
 namespace Kratos
 {
 namespace Python
 {
 
-inline
-void TransferEigenvector1(
-        EigenvectorToSolutionStepVariableTransferUtility& rThisUtil,
-        ModelPart& rModelPart,
-        int iEigenMode)
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    rThisUtil.Transfer(rModelPart,iEigenMode);
-}
+    using namespace pybind11;
 
-inline
-void TransferEigenvector2(
-        EigenvectorToSolutionStepVariableTransferUtility& rThisUtil,
-        ModelPart& rModelPart,
-        int iEigenMode,
-        int step)
-{
-    rThisUtil.Transfer(rModelPart,iEigenMode,step);
-}
-
-void  AddCustomUtilitiesToPython()
-{
-    using namespace boost::python;
-
-//     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-//     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-//     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    
-    class_<SprismNeighbours>("SprismNeighbours", init<ModelPart&>())
-    .def("Execute",&SprismNeighbours::Execute)
-    .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
+    class_<FormfindingIOUtility>(m,"FormfindingIOUtility")
+    .def(init<ModelPart&, const Parameters>())
+    .def("PrintModelPart",&FormfindingIOUtility::PrintModelPart)
+    .def("ReadPrestressData",&FormfindingIOUtility::ReadPrestressData )
+    .def("PrintPrestressData",&FormfindingIOUtility::PrintPrestressData )
     ;
 
-    class_<EigenvectorToSolutionStepVariableTransferUtility>(
-                "EigenvectorToSolutionStepVariableTransferUtility")
-    .def("Transfer",TransferEigenvector1)
-    .def("Transfer",TransferEigenvector2)
-    ;
 
 }
 

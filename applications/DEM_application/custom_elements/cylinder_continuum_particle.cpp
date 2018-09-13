@@ -33,7 +33,7 @@ namespace Kratos
         { 
 
             double alpha = 1.0;
-            double circle_perimeter = 2*KRATOS_M_PI * GetRadius();       
+            double circle_perimeter = 2*Globals::Pi * GetRadius();       
             double total_equiv_perimeter = 0.0;
             unsigned int continuous_initial_neighbours_size = mContinuumInitialNeighborsSize;
             Vector& cont_ini_neigh_area = GetValue(NEIGHBOURS_CONTACT_AREAS);
@@ -63,7 +63,7 @@ namespace Kratos
         }                 //Contact Area Weighting
                
       double CylinderContinuumParticle::CalculateVolume() {
-          return KRATOS_M_PI * GetRadius() * GetRadius();
+          return Globals::Pi * GetRadius() * GetRadius();
       }
       
       double CylinderContinuumParticle::CalculateMomentOfInertia() {

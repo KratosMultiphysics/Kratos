@@ -39,7 +39,7 @@ public:
                     const double coordinates_of_stator_center_y,
                     const double initial_coordinates_of_rotor_center_x,
                     const double initial_coordinates_of_rotor_center_y,
-                    const double max_radius_of_rotor): Process(), mrModelPart(rModelPart)
+                    const unsigned int number_of_rotor_lobules): Process(), mrModelPart(rModelPart)
     {
         mW1[0] = 0.0;
         mW1[1] = 0.0;
@@ -54,7 +54,7 @@ public:
         mEccentricity = sqrt(centers_distance[0]*centers_distance[0] + centers_distance[1]*centers_distance[1]);
         mW2[0] = 0.0;
         mW2[1] = 0.0;
-        mW2[2] = -mW1[2] * mEccentricity / max_radius_of_rotor;
+        mW2[2] = -mW1[2] / number_of_rotor_lobules;
     }
 
     MoveRotorProcess(ModelPart& rModelPart,
@@ -68,11 +68,10 @@ public:
                 "coordinates_of_stator_center_y":0.0,
                 "initial_coordinates_of_rotor_center_x":0.0,
                 "initial_coordinates_of_rotor_center_y":0.0,
-                "max_radius_of_rotor":0.0
+                "number_of_rotor_lobules": 0
             }  )" );
 
         rParameters.ValidateAndAssignDefaults(default_parameters);
-
 
         mW1[0] = 0.0;
         mW1[1] = 0.0;
@@ -87,18 +86,17 @@ public:
         mEccentricity = sqrt(centers_distance[0]*centers_distance[0] + centers_distance[1]*centers_distance[1]);
         mW2[0] = 0.0;
         mW2[1] = 0.0;
-        mW2[2] = -mW1[2] * mEccentricity / rParameters["max_radius_of_rotor"].GetDouble();
+        mW2[2] = -mW1[2] / rParameters["number_of_rotor_lobules"].GetInt();
+
     }
 
     /// Destructor.
-    virtual ~MoveRotorProcess(){}
+    ~MoveRotorProcess() override{}
 
 
     void ExecuteBeforeSolutionLoop() override
     {
         KRATOS_TRY;
-
-
 
         KRATOS_CATCH("");
     }
@@ -127,7 +125,8 @@ public:
         const array_1d<double,3> current_rotor_position = mCoordinatesOfStatorCenter + vector_to_rotor_center;
 
         //UPDATE VELOCITY OF ROTOR AXIS:
-        const array_1d<double,3> rotor_velocity = MathUtils<double>::CrossProduct(vector_to_rotor_center, mW1);
+        array_1d<double, 3> rotor_velocity;
+        MathUtils<double>::CrossProduct(rotor_velocity, mW1, vector_to_rotor_center);
 
         //UPDATE LOCAL AXES (ROTATE THEM AROUND (0,0,1) THE ROTATED ANGLE )
         const double rotated_angle2 = mW2[2] * rCurrentTime;
@@ -160,14 +159,17 @@ public:
             noalias(node_i->FastGetSolutionStepValue(DISPLACEMENT)) = node_i->Coordinates() - node_i->GetInitialPosition();
 
             array_1d<double,3>& current_node_velocity = node_i->FastGetSolutionStepValue(VELOCITY);
-            noalias(current_node_velocity) = rotor_velocity + MathUtils<double>::CrossProduct(from_rotor_center_to_node, mW2);
+
+            array_1d<double, 3> aux_velocity;
+            MathUtils<double>::CrossProduct(aux_velocity, mW2, from_rotor_center_to_node);
+            noalias(current_node_velocity) = rotor_velocity + aux_velocity;
 
         }//end of loop over nodes
         KRATOS_CATCH("");
     }
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "MoveRotorProcess" ;
@@ -175,10 +177,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "MoveRotorProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "MoveRotorProcess";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override {}
+    void PrintData(std::ostream& rOStream) const override {}
 
 
 protected:

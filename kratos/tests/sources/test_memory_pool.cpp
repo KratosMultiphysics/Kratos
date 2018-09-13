@@ -106,7 +106,10 @@ namespace Kratos {
 		//}
 
 		class Block64byte : public PoolObject{
-			double block[8];
+            public:
+                Block64byte() {Block[0] = 0;};
+            private:
+                double Block[8];
 		};
 
 		KRATOS_DISABLED_TEST_CASE_IN_SUITE(PoolObjectParallelNewDelete, KratosCoreFastSuite)

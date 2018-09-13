@@ -1,31 +1,16 @@
-// Kratos Multi-Physics
-// 
-// Copyright (c) 2015, Pooyan Dadvand, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
-// All rights reserved.
-// 
-// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-// 
-// 	-	Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-// 	-	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer 
-// 		in the documentation and/or other materials provided with the distribution.
-// 	-	All advertising materials mentioning features or use of this software must display the following acknowledgement: 
-// 			This product includes Kratos Multi-Physics technology.
-// 	-	Neither the name of the CIMNE nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-// 	
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-// HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED ANDON ANY 
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
-// THE USE OF THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Kazem Kamran
+//                   Riccardo Rossi
+//
 
-//
-//   Project Name:        Kratos
-//   Last modified by:    $Author: kazem $
-//   Date:                $Date: 2009-01-21 14:15:02 $
-//   Revision:            $Revision: 1.6 $
-//
-//
 
 //#define GRADPN_FORM
 //#define STOKES
@@ -45,6 +30,8 @@
 #include "utilities/geometry_utilities.h"
 #include "includes/c2c_variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/deprecated_variables.h"
+
 
 namespace Kratos
 {
@@ -86,6 +73,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
 {
     KRATOS_TRY
 
+    const ProcessInfo& rConstProcessInfo = rCurrentProcessInfo;
     unsigned int nodes_number = GetGeometry().size();
     unsigned int dim = 3;
     unsigned int matsize = nodes_number;
@@ -101,9 +89,9 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     noalias(rLeftHandSideMatrix) = ZeroMatrix(matsize, matsize);
     noalias(rRightHandSideVector) = ZeroVector(matsize);
 
-    double delta_t = rCurrentProcessInfo[DELTA_TIME];
+    double delta_t = rConstProcessInfo[DELTA_TIME];
 
-    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    BoundedMatrix<double, 4, 3 > DN_DX;
     array_1d<double, 4 > N;
 
     //getting data for the given geometry
@@ -113,7 +101,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
 
 
     //calculating viscosity
-    ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+    ConvectionDiffusionSettings::Pointer my_settings = rConstProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
              //const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
     //        const Variable<double>& rSourceVar = my_settings->GetVolumeSourceVariable();
@@ -128,10 +116,10 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(rConvVar); //VELOCITY
     const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
 
-	double density = rCurrentProcessInfo[DENSITY];
+	double density = rConstProcessInfo[DENSITY];
     //double air_density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
 	double node_distance = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
-	int gravity_switch = 	rCurrentProcessInfo[IS_GRAVITY_FILLING];
+	int gravity_switch = 	rConstProcessInfo[IS_GRAVITY_FILLING];
 	double vel_fac = 1.0;
 	if (node_distance > 0.0 && gravity_switch == 1)
 		vel_fac = 1.0/density;
@@ -145,7 +133,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
         //             specific_heat += GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
         //             heat_source += GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
 
-		density =  rCurrentProcessInfo[DENSITY];
+		density =  rConstProcessInfo[DENSITY];
 		node_distance = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
         //air_density = GetGeometry()[i].FastGetSolutionStepValue(rDensityVar);
 		vel_fac = 1.0;
@@ -168,21 +156,21 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     // 	heat_source /= (specific_heat);
 
     double tau;
-    CalculateConvTau(ms_vel_gauss, tau, delta_t, Volume, rCurrentProcessInfo);
+    CalculateConvTau(ms_vel_gauss, tau, delta_t, Volume, rConstProcessInfo);
 
     //Crank-Nicholson factor
     double cr_nk = 0.5;
     double dt_inv = 1.0 / delta_t;
 
     //INERTIA CONTRIBUTION
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > msMassFactors = 0.25* IdentityMatrix(4, 4);
+    BoundedMatrix<double, 4, 4 > msMassFactors = 0.25* IdentityMatrix(4, 4);
     noalias(rLeftHandSideMatrix) = dt_inv * msMassFactors;
 
 
     //Advective term
     array_1d<double, 4 > a_dot_grad;
     noalias(a_dot_grad) = prod(DN_DX, ms_vel_gauss);
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
+    BoundedMatrix<double, 4, 4 > Advective_Matrix = outer_prod(N, a_dot_grad);
     noalias(rLeftHandSideMatrix) += (1.0 - cr_nk) * Advective_Matrix;
 
     //stabilization terms
@@ -220,10 +208,10 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
 ////        noalias(rLeftHandSideMatrix) += Kiso * prod(DN_DX,trans(DN_DX));
 //
 //     double kaniso = Kiso/(inner_prod(ms_vel_gauss,ms_vel_gauss)+1e-12);
-//     boost::numeric::ublas::bounded_matrix<double, 3, 3 > aux33 = Kiso*IdentityMatrix(3, 3);
+//     BoundedMatrix<double, 3, 3 > aux33 = Kiso*IdentityMatrix(3, 3);
 //     noalias(aux33) -= kaniso*outer_prod(ms_vel_gauss,ms_vel_gauss);
-// 
-//     boost::numeric::ublas::bounded_matrix<double, 3, 4 > aux34 = prod(aux33,trans(DN_DX));
+//
+//     BoundedMatrix<double, 3, 4 > aux34 = prod(aux33,trans(DN_DX));
 //     noalias(rLeftHandSideMatrix) += prod(DN_DX,aux34);
 
     //Add N_mass terms
@@ -236,7 +224,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     // 	noalias(rRightHandSideVector) -= cr_nk * conductivity * prod(Laplacian_Matrix, step_unknown);
 
     //Add all n_step terms
-    boost::numeric::ublas::bounded_matrix<double, 4, 4 > old_step_matrix = dt_inv*msMassFactors;
+    BoundedMatrix<double, 4, 4 > old_step_matrix = dt_inv*msMassFactors;
     old_step_matrix -= (cr_nk * Advective_Matrix);
     noalias(rRightHandSideVector) = prod(old_step_matrix, step_unknown);
 
@@ -254,7 +242,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
 	//	for(unsigned int k=0; k<3; k++)
 	//		div_v += DN_DX(i,k)* vel[k];
 	//}
-	//bounded_matrix<double,4,4> Mconsistent;
+	//BoundedMatrix<double,4,4> Mconsistent;
 	//for(unsigned int i=0; i<nodes_number; i++)
 	//{
 	//	Mconsistent(i,i) = 0.1;

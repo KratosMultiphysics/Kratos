@@ -1,0 +1,9 @@
+{
+	"mapper_settings": [
+    {
+		"mapper_type": "nearest_element",
+		"interface_submodel_part_origin": "LineLoad3D_mapping_line_tri",
+		"interface_submodel_part_destination": "LineLoad3D_mapping_line_quad"
+	}
+ ]
+}

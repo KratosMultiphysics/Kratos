@@ -70,8 +70,9 @@ int GiD_HashDone()
 {
   _LOCK_;
   
-  hdestroy(hashTable);
+  htabdestroy(hashTable);
   refree(fd_pool);
+
   hashTable = NULL;
   fd_pool=NULL;
   

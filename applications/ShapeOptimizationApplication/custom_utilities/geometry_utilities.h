@@ -1,45 +1,10 @@
 // ==============================================================================
-/*
- KratosShapeOptimizationApplication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Daniel Baumgaertner
-                     daniel.baumgaertner@tum.de
-                     Chair of Structural Analysis
-                     Technische Universitaet Muenchen
-                     Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-//==============================================================================
+//  KratosShapeOptimizationApplication
 //
-//   Project Name:        KratosShape                            $
-//   Created by:          $Author:    daniel.baumgaertner@tum.de $
-//   Date:                $Date:                   December 2016 $
-//   Revision:            $Revision:                         0.0 $
+//  License:         BSD License
+//                   license: ShapeOptimizationApplication/license.txt
+//
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
 //
 // ==============================================================================
 
@@ -52,26 +17,14 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <iomanip>      // for std::setprecision
-
-// ------------------------------------------------------------------------------
-// External includes
-// ------------------------------------------------------------------------------
-#include <boost/python.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
+#include <unordered_map>
 
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "../../kratos/includes/define.h"
-#include "../../kratos/processes/process.h"
-#include "../../kratos/includes/node.h"
-#include "../../kratos/includes/element.h"
-#include "../../kratos/includes/model_part.h"
-#include "../../kratos/includes/kratos_flags.h"
-#include "../../kratos/utilities/normal_calculation_utils.h"
+#include "includes/define.h"
+#include "includes/model_part.h"
+#include "includes/key_hash.h"
 #include "shape_optimization_application.h"
 
 // ==============================================================================
@@ -110,46 +63,20 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // ==========================================================================
-    // Type definitions for better reading later
-    // ==========================================================================
     typedef array_1d<double,3> array_3d;
+    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
     /// Pointer definition of GeometryUtilities
     KRATOS_CLASS_POINTER_DEFINITION(GeometryUtilities);
-
-	// Structs needed for operations related to surface extraction
-	struct KeyComparor
-	{
-		bool operator()(const vector<unsigned int>& lhs, const vector<unsigned int>& rhs) const
-		{
-			if(lhs.size() != rhs.size())
-				return false;
-
-			for(unsigned int i=0; i<lhs.size(); i++)
-				if(lhs[i] != rhs[i]) return false;
-
-			return true;
-		}
-	};
-	struct KeyHasher
-	{
-		std::size_t operator()(const vector<int>& k) const
-		{
-			return boost::hash_range(k.begin(), k.end());
-		}
-	};
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    GeometryUtilities( ModelPart& model_part )
-        : mr_model_part(model_part)
+    GeometryUtilities( ModelPart& modelPart )
+        : mrModelPart( modelPart )
     {
-        // Set precision for output
-        std::cout.precision(12);
     }
 
     /// Destructor.
@@ -167,128 +94,108 @@ public:
     ///@name Operations
     ///@{
 
-    // ==============================================================================
-
-    void compute_unit_surface_normals()
+    // --------------------------------------------------------------------------
+    void ComputeUnitSurfaceNormals()
     {
         KRATOS_TRY;
 
-        // Compute nodal are normal using given Kratos utilities (sets the variable "NORMAL")
-        NormalCalculationUtils normal_util = NormalCalculationUtils();
-        const unsigned int domain_size = mr_model_part.GetProcessInfo().GetValue(DOMAIN_SIZE);
-        normal_util.CalculateOnSimplex(mr_model_part,domain_size);
-
-        // Take into account boundary conditions, normalize area normal and store in respective variable
-        for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-        {
-            // Normalize normal and assign to solution step value
-            array_3d area_normal = node_i->FastGetSolutionStepValue(NORMAL);
-            array_3d normalized_normal = area_normal / norm_2(area_normal);
-            noalias(node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)) = normalized_normal;
-        }
+        const unsigned int domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+        KRATOS_ERROR_IF((domain_size == 3 && mrModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<
+            "> Normal calculation of 2-noded conditions in 3D domains is not possible!" << std::endl;
+        CalculateAreaNormals(mrModelPart.Conditions(),domain_size);
+        CalculateUnitNormals();
 
         KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
-    void project_grad_on_unit_surface_normal( bool constraint_given )
+    void ProjectNodalVariableOnUnitSurfaceNormals( const Variable<array_3d> &rNodalVariable )
     {
         KRATOS_TRY;
 
         // We loop over all nodes and compute the part of the sensitivity which is in direction to the surface normal
-        for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
+        for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
         {
+            array_3d &nodal_variable = node_i->FastGetSolutionStepValue(rNodalVariable);
+            array_3d &node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+
             // We compute dFdX_n = (dFdX \cdot n) * n
-            array_3d node_sens = node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY);
-            array_3d node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-            double surface_sens = inner_prod(node_sens,node_normal);
-            array_3d normal_node_sens = surface_sens * node_normal;
-
-            // Assign resulting sensitivities back to node
-            node_i->GetSolutionStepValue(OBJECTIVE_SURFACE_SENSITIVITY) = surface_sens;
-            noalias(node_i->FastGetSolutionStepValue(OBJECTIVE_SENSITIVITY)) = normal_node_sens;
-
-            // Repeat for constraint
-            if(constraint_given)
-            {
-                // We compute dFdX_n = (dFdX \cdot n) * n
-                node_sens = node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY);
-                node_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-                surface_sens = inner_prod(node_sens,node_normal);
-                normal_node_sens =  surface_sens * node_normal;
-
-                // Assign resulting sensitivities back to node
-                node_i->GetSolutionStepValue(CONSTRAINT_SURFACE_SENSITIVITY) = surface_sens;
-                noalias(node_i->FastGetSolutionStepValue(CONSTRAINT_SENSITIVITY)) = normal_node_sens;
-            }
+            double surface_sens = inner_prod(nodal_variable,node_normal);
+            nodal_variable = surface_sens * node_normal;
         }
 
         KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
-    void extract_surface_nodes( std::string const& NewSubModelPartName )
+    void ExtractBoundaryNodes( std::string const& NewSubModelPartName )
     {
     	KRATOS_TRY;
 
-    	if(mr_model_part.HasSubModelPart(NewSubModelPartName))
+    	if(mrModelPart.HasSubModelPart(NewSubModelPartName))
     	{
     		std::cout << "> Specified name for sub-model part already defined. Skipping extraction of surface nodes!" << std::endl;
     		return;
     	}
 
     	// Create new sub-model part within the given main model part that shall list all surface nodes
-    	mr_model_part.CreateSubModelPart(NewSubModelPartName);
+    	mrModelPart.CreateSubModelPart(NewSubModelPartName);
 
     	// Some type-definitions
-    	typedef boost::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
+        typedef std::unordered_map<vector<unsigned int>, unsigned int, KeyHasherRange<vector<unsigned int>>, KeyComparorRange<vector<unsigned int>> > hashmap;
 
     	// Create map to ask for number of faces for the given set of node ids representing one face in the model part
-    	hashmap n_faces_map;
+    	hashmap n_boundaries_map;
+
+        unsigned int domain_size = static_cast<unsigned int>(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
 
     	// Fill map that counts number of faces for given set of nodes
-    	for (ModelPart::ElementIterator itElem = mr_model_part.ElementsBegin(); itElem != mr_model_part.ElementsEnd(); itElem++)
+    	for (ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); itElem++)
     	{
-    		Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
+            Element::GeometryType::GeometriesArrayType boundaries;
+            if (domain_size==3)
+                boundaries = itElem->GetGeometry().Faces();
+            else if (domain_size == 2)
+                boundaries = itElem->GetGeometry().Edges();
 
-    		for(unsigned int face=0; face<faces.size(); face++)
-    		{
-    			// Create vector that stores all node is of current face
-    			vector<unsigned int> ids(faces[face].size());
+            for(unsigned int boundary=0; boundary<boundaries.size(); boundary++)
+            {
+                // Create vector that stores all node is of current face
+                DenseVector<unsigned int> ids(boundaries[boundary].size());
 
-    			// Store node ids
-    			for(unsigned int i=0; i<faces[face].size(); i++)
-    				ids[i] = faces[face][i].Id();
+                // Store node ids
+                for(unsigned int i=0; i<boundaries[boundary].size(); i++)
+                    ids[i] = boundaries[boundary][i].Id();
 
-    			//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-    			std::sort(ids.begin(), ids.end());
+                //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+                std::sort(ids.begin(), ids.end());
 
-    			// Fill the map
-    			n_faces_map[ids] += 1;
-    		}
+                // Fill the map
+                n_boundaries_map[ids] += 1;
+            }
     	}
 
     	// Vector to store all nodes on surface. Node ids may be listed several times
-    	std::vector<std::size_t> temp_surface_node_ids;
+    	std::vector<std::size_t> temp_boundary_node_ids;
 
     	// Add surface nodes to sub-model part
-    	for(typename hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
+    	for(auto it=n_boundaries_map.begin(); it!=n_boundaries_map.end(); it++)
     	{
     		// If given node set represents face that is not overlapping with a face of another element, add it as skin element
     		if(it->second == 1)
     		{
     			for(unsigned int i=0; i<it->first.size(); i++)
-    				temp_surface_node_ids.push_back(it->first[i]);
+    				temp_boundary_node_ids.push_back(it->first[i]);
     		}
     	}
 
     	// Add nodes and remove double entries
-    	mr_model_part.GetSubModelPart(NewSubModelPartName).AddNodes(temp_surface_node_ids);
+    	mrModelPart.GetSubModelPart(NewSubModelPartName).AddNodes(temp_boundary_node_ids);
 
     	KRATOS_CATCH("");
     }
 
-    // ==============================================================================
+    // --------------------------------------------------------------------------
 
     ///@}
     ///@name Access
@@ -375,10 +282,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    // ==============================================================================
-    // Initialized by class constructor
-    // ==============================================================================
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
 
     ///@}
     ///@name Private Operators
@@ -388,6 +292,127 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    // --------------------------------------------------------------------------
+    void CalculateAreaNormals(ConditionsArrayType& rConditions, int dimension)
+    {
+        KRATOS_TRY
+
+        //resetting the normals
+        array_1d<double,3> zero = Vector(3);
+        noalias(zero) = ZeroVector(3);
+
+        for(auto & cond_i : rConditions)
+        {
+            Element::GeometryType& rNodes = cond_i.GetGeometry();
+            for(unsigned int in = 0; in<rNodes.size(); in++)
+                noalias((rNodes[in]).GetSolutionStepValue(NORMAL)) = zero;
+        }
+
+        //calculating the normals and storing on the conditions
+        array_1d<double,3> An;
+        if(dimension == 2)
+        {
+            for(auto & cond_i : rConditions)
+            {
+                if (cond_i.GetGeometry().PointsNumber() == 2)
+                    CalculateNormal2D(cond_i,An);
+            }
+        }
+        else if(dimension == 3)
+        {
+            array_1d<double,3> v1;
+            array_1d<double,3> v2;
+            for(auto & cond_i : rConditions)
+            {
+                //calculate the normal on the given condition
+                if (cond_i.GetGeometry().PointsNumber() == 3)
+                    CalculateNormal3DTriangle(cond_i,An,v1,v2);
+                else if (cond_i.GetGeometry().PointsNumber() == 4)
+                    CalculateNormal3DQuad(cond_i,An,v1,v2);
+                else
+                    KRATOS_ERROR << "> Calculation of surface normal not implemented for the given surface conditions!";
+            }
+        }
+
+        //adding the normals to the nodes
+        for(auto & cond_i : rConditions)
+        {
+            Geometry<Node<3> >& pGeometry = cond_i.GetGeometry();
+            double coeff = 1.00/pGeometry.size();
+	        const array_1d<double,3>& normal = cond_i.GetValue(NORMAL);
+            for(unsigned int i = 0; i<pGeometry.size(); i++)
+                noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * normal;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    // --------------------------------------------------------------------------
+    static void CalculateNormal2D(Condition& cond, array_1d<double,3>& An)
+    {
+        Geometry<Node<3> >& pGeometry = cond.GetGeometry();
+
+        An[0] =    pGeometry[1].Y() - pGeometry[0].Y();
+        An[1] = - (pGeometry[1].X() - pGeometry[0].X());
+        An[2] =    0.00;
+
+        array_1d<double,3>& normal = cond.GetValue(NORMAL);
+        noalias(normal) = An;
+    }
+
+    // --------------------------------------------------------------------------
+    static void CalculateNormal3DTriangle(Condition& cond, array_1d<double,3>& An, array_1d<double,3>& v1,array_1d<double,3>& v2 )
+    {
+        Geometry<Node<3> >& pGeometry = cond.GetGeometry();
+
+        v1[0] = pGeometry[1].X() - pGeometry[0].X();
+        v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
+        v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
+
+        v2[0] = pGeometry[2].X() - pGeometry[0].X();
+        v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
+        v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
+
+        MathUtils<double>::CrossProduct(An,v1,v2);
+        An *= 0.5;
+
+        array_1d<double,3>& normal = cond.GetValue(NORMAL);
+        noalias(normal) = An;
+    }
+
+    // --------------------------------------------------------------------------
+    static void CalculateNormal3DQuad(Condition& cond, array_1d<double,3>& An, array_1d<double,3>& v1,array_1d<double,3>& v2 )
+    {
+        Geometry<Node<3> >& pGeometry = cond.GetGeometry();
+
+        v1[0] = pGeometry[2].X() - pGeometry[0].X();
+        v1[1] = pGeometry[2].Y() - pGeometry[0].Y();
+        v1[2] = pGeometry[2].Z() - pGeometry[0].Z();
+
+        v2[0] = pGeometry[3].X() - pGeometry[1].X();
+        v2[1] = pGeometry[3].Y() - pGeometry[1].Y();
+        v2[2] = pGeometry[3].Z() - pGeometry[1].Z();
+
+        MathUtils<double>::CrossProduct(An,v1,v2);
+        An *= 0.5;
+
+        array_1d<double,3>& normal = cond.GetValue(NORMAL);
+        noalias(normal) = An;
+    }
+
+    // --------------------------------------------------------------------------
+    void CalculateUnitNormals()
+    {
+        for (auto& node_i : mrModelPart.Nodes())
+        {
+            const array_1d<double,3>& area_normal = node_i.FastGetSolutionStepValue(NORMAL);
+            array_3d& normalized_normal = node_i.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+            noalias(normalized_normal) = area_normal/norm_2(area_normal);
+        }
+    }
+
+    // --------------------------------------------------------------------------
 
 
     ///@}

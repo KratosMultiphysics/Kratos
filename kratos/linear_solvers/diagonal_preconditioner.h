@@ -1,47 +1,14 @@
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-==============================================================================
-*/
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:33 $
-//   Revision:            $Revision: 1.2 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                    
 //
 
 
@@ -119,7 +86,7 @@ public:
         : BaseType(Other), mDiagonal(Other.mDiagonal), mTemp(Other.mTemp) {}
 
     /// Destructor.
-    virtual ~DiagonalPreconditioner() {}
+    ~DiagonalPreconditioner() override {}
 
 
     ///@}
@@ -147,7 +114,7 @@ public:
     @param rX Unknows vector
     @param rB Right side linear system of equations.
     */
-    void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         mDiagonal.resize(int(TSparseSpaceType::Size(rX)));
         mTemp.resize(int(TSparseSpaceType::Size(rX)));
@@ -176,12 +143,12 @@ public:
 
     }
 
-    void Initialize(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    void Initialize(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
         BaseType::Initialize(rA, rX, rB);
     }
 
-    void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
+    void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -191,7 +158,7 @@ public:
         ApplyLeft(rY);
     }
 
-    void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
+    void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -201,7 +168,7 @@ public:
         ApplyRight(rY);
     }
 
-    VectorType& ApplyLeft(VectorType& rX)
+    VectorType& ApplyLeft(VectorType& rX) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -211,7 +178,7 @@ public:
         return rX;
     }
 
-    VectorType& ApplyRight(VectorType& rX)
+    VectorType& ApplyRight(VectorType& rX) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -227,7 +194,7 @@ public:
     @param rXVector  Unknows of preconditioner suystem
     @param rYVector  Right side of preconditioner system.
     */
-    VectorType& ApplyTransposeLeft(VectorType& rX)
+    VectorType& ApplyTransposeLeft(VectorType& rX) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -237,7 +204,7 @@ public:
         return rX;
     }
 
-    VectorType& ApplyTransposeRight(VectorType& rX)
+    VectorType& ApplyTransposeRight(VectorType& rX) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -247,7 +214,7 @@ public:
         return rX;
     }
 
-    VectorType& ApplyInverseRight(VectorType& rX)
+    VectorType& ApplyInverseRight(VectorType& rX) override
     {
 // 	  const DataType zero = DataType();
 
@@ -260,7 +227,7 @@ public:
         return rX;
     }
 
-    VectorType& Finalize(VectorType& rX)
+    VectorType& Finalize(VectorType& rX) override
     {
         int i;
         #pragma omp parallel for private(i)
@@ -284,13 +251,13 @@ public:
     ///@{
 
     /// Return information about this object.
-    virtual std::string  Info() const
+    std::string  Info() const override
     {
         return "Diagonal preconditioner";
     }
 
     /// Print information about this object.
-    virtual void  PrintInfo(std::ostream& OStream) const
+    void  PrintInfo(std::ostream& OStream) const override
     {
         OStream << "Diagonal preconditioner";
     }

@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Nelson Lafontaine
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_LINE_SEARCHES_UTILITY)
@@ -16,7 +16,6 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "includes/define.h"
@@ -27,7 +26,7 @@
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 
-#include <cmath>
+//#include <cmath>
 
 namespace Kratos
 {
@@ -75,7 +74,7 @@ public:
     typedef typename PointerVectorSet<TDofType, IndexedObject>::iterator DofIterator;
     typedef typename PointerVectorSet<TDofType, IndexedObject>::const_iterator DofConstantIterator;
     */
-    
+
     /************************************* CONSTRUCTOR *********************************/
     /***********************************************************************************/
 
@@ -108,7 +107,7 @@ public:
 
     /************************************* DESTRUCTOR **********************************/
     /***********************************************************************************/
-    
+
     virtual ~LineSearchesUtility () {}
 
     /***********************************************************************************/
@@ -139,7 +138,7 @@ protected:
     * @param MoveMeshFlag: Boolean ("flag") that determines if the mesh is moved
     * @param ApplyLineSearches: Boolean that determines if the line search is applied
     */
-    
+
     void SetParametersLineSearches(
             unsigned int& MaxLineSearchIterations,
             double& tolls,
@@ -179,7 +178,7 @@ protected:
     * @param mb: The RHS of the system
     * @param mA: The LHS of the system
     */
-    
+
     bool LineSearches(
             ModelPart& rmodel_part,
             typename TSchemeType::Pointer& pScheme,

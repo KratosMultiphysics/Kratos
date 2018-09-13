@@ -66,10 +66,10 @@ public :
 		
 		for (int i=0; i<=lIndex ; i++)
 		{
-			if (structure[i] != NULL ) continue;
+			if (structure[i] != nullptr ) continue;
 			int nextNotNull = -1;
 			for (int j=i+1 ; j<=lIndex ; j++)
-				if (structure[j] != NULL)
+				if (structure[j] != nullptr)
 			    {
 					nextNotNull = j;
 					break;
@@ -77,13 +77,13 @@ public :
 			if (nextNotNull >0)
 			{
 				structure[i] = structure[nextNotNull] ;
-				structure[nextNotNull]  = NULL;				
+				structure[nextNotNull]  = nullptr;				
 			}
 		}
 		int lastIndex = 0;
 		for ( lastIndex=0; lastIndex<=lIndex ; lastIndex++)
 		{
-			if (structure[lastIndex] == NULL) 
+			if (structure[lastIndex] == nullptr) 
 				break;
 		}
 		structure.resize(lastIndex);	  
@@ -94,7 +94,7 @@ public :
 		if (structure.size() == 0) return;
 		if (structure.size() == 1)
 		{
-			if (structure[0] == NULL)
+			if (structure[0] == nullptr)
 				structure.resize(0);	  
 			return ;
 		}
@@ -102,17 +102,17 @@ public :
 		  return PackKeepingOrder();
 		int sSize = structure.size();
 		int lastIndex =sSize-1;
-		while ((lastIndex>0) &&(structure[lastIndex] == NULL)  ) lastIndex--;
+		while ((lastIndex>0) &&(structure[lastIndex] == nullptr)  ) lastIndex--;
 		int lIndex = lastIndex;
 
 		for (int i=0; i<=lIndex ; i++)
 		{
 			if (i>=lastIndex) break;
-			if (structure[i] == NULL)
+			if (structure[i] == nullptr)
 			{			  
 				structure[i] = structure[lastIndex] ;
-				structure[lastIndex]  = NULL;
-				while ((lastIndex>=i) &&(structure[lastIndex] == NULL)  ) lastIndex--;
+				structure[lastIndex]  = nullptr;
+				while ((lastIndex>=i) &&(structure[lastIndex] == nullptr)  ) lastIndex--;
 			}
 
 		}
@@ -122,7 +122,7 @@ public :
 	int Count() { return structure.size(); }
 	void Add(T elem)
 	{ 
-		if ((ommitNULLSwhenAdd) && (elem == NULL))
+		if ((ommitNULLSwhenAdd) && (elem == nullptr))
 			return ; 
 		structure.push_back(elem); 
 	}
@@ -257,10 +257,9 @@ public :
 	{
 		FILE* fMesh;
 		fMesh = fopen(filename,"wb"); //xx = rb, wb, read and write binary, more 		
-		for (unsigned int i=0; i<strings.size(); i++)
+		for (auto st : strings)
 		{ 
-			std::string st = strings[i];
-			fprintf( fMesh, "%s%s", st.data(),"\n");			 
+				fprintf( fMesh, "%s%s", st.data(),"\n");			 
 		}
 		fclose( fMesh );
 	}

@@ -1,10 +1,60 @@
-cmake_minimum_required (VERSION 2.8.6)
 project (KratosMultiphysics)
+cmake_minimum_required (VERSION 2.8.6)
+
+
+
+# Setting some policies
+if(POLICY CMP0054)
+  cmake_policy(SET CMP0054 OLD)
+endif(POLICY CMP0054)
+
+# Uses INTERFACE_LINK_LIBRARIES instead of LINK_INTERFACE_LIBRARIES
+if(POLICY CMP0022)
+  cmake_policy(SET CMP0022 NEW)
+endif(POLICY CMP0022)
+
+
 
 # Set here the version number **** only update upon tagging a release!
-set (KratosMultiphysics_MAJOR_VERSION 5)
+set (KratosMultiphysics_MAJOR_VERSION 6)
 set (KratosMultiphysics_MINOR_VERSION 0)
 set (KratosMultiphysics_PATCH_VERSION 0)
+
+# Define custom compiler build types
+SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
+SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
+#SET( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}" )
+#SET( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}" )
+SET( CMAKE_CXX_FLAGS_DEBUG "${BASIC_DEBUG_FLAGS} -DNDEBUG -DKRATOS_DEBUG" )
+SET( CMAKE_CXX_FLAGS_FULLDEBUG "${BASIC_DEBUG_FLAGS} -DKRATOS_DEBUG" )
+#SET( CMAKE_CXX_FLAGS_CUSTOM "${CMAKE_CXX_FLAGS_CUSTOM}" )
+
+# Define internal CMake flags needed
+SET( CMAKE_C_FLAGS_FULLDEBUG "${CMAKE_C_FLAGS_DEBUG}" )
+SET( CMAKE_SHARED_LINKER_FLAGS_FULLDEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" )
+SET( CMAKE_EXE_LINKER_FLAGS_FULLDEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG}" )
+SET( CMAKE_C_FLAGS_CUSTOM "" )
+SET( CMAKE_CXX_FLAGS_CUSTOM "" )
+SET( CMAKE_SHARED_LINKER_FLAGS_CUSTOM "" )
+SET( CMAKE_EXE_LINKER_FLAGS_CUSTOM "" )
+SET( CMAKE_MODULE_LINKER_FLAGS_FULLDEBUG "${CMAKE_MODULE_LINKER_FLAGS}")
+SET( CMAKE_MODULE_LINKER_FLAGS_CUSTOM "${CMAKE_MODULE_LINKER_FLAGS}")
+
+if(USE_COTIRE MATCHES ON)
+    set(CMAKE_SKIP_RPATH ON)
+endif(USE_COTIRE MATCHES ON)
+
+# If build mode is not defined, assume Release
+if(NOT CMAKE_BUILD_TYPE)
+  message("Undefined CMAKE_BUILD_TYPE, building in 'Release' mode.")
+  set(CMAKE_BUILD_TYPE Release)
+else(NOT CMAKE_BUILD_TYPE)
+  list(FIND CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} FOUND_MODE)
+  if(FOUND_MODE EQUAL -1)
+    message("Unknown CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}', using 'Release'.")
+    set(CMAKE_BUILD_TYPE Release)
+  endif(FOUND_MODE EQUAL -1)
+endif(NOT CMAKE_BUILD_TYPE)
 
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
@@ -22,6 +72,12 @@ else(GIT_FOUND)
   set (KratosMultiphysics_SHA1_NUMBER 0)
 endif(GIT_FOUND)
 
+set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+if( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
+  set (KratosMultiphysics_BUILD_SUFFIX "")
+else( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
+  set (KratosMultiphysics_BUILD_SUFFIX "-${CMAKE_BUILD_TYPE}" )
+endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
@@ -30,23 +86,32 @@ configure_file(
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -ffast-math -Wall -std=c++11")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -ffast-math -Wall")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
+  endif()
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
   message("additional default options were set for gcc")
   message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
   message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 endif(${CMAKE_COMPILER_IS_GNUCXX})
+
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
     set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas  ")
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-    message("additional default options were set for intel compiler")
+    message("additional default options were set for clang compiler")
     message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
     message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
   endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
+      # pybind requires min. version 17, but we need at least 18:
+      message( "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
+      message( FATAL_ERROR "Please use Version 18 or greater")
+    endif()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -lpthread -wd654 -wd10010  ")
     set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010  ")
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
@@ -65,56 +130,80 @@ else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif(${CMAKE_C_COMPILER} MATCHES "icc.*$")
 endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+
+
+# Old non-compatible versions of VS
 if(${MSVC80})
-  message("detected compiler as MSVC80")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
+  message( "DEPRECATED: detected compiler as MSVC80")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC80})
 
 if(${MSVC90})
-  message("detected compiler as MSVC90")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
+  message( "DEPRECATED: detected compiler as MSVC90")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC90})
 
 if(${MSVC10})
-  message("detected compiler as MSVC10")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES")
+  message( "DEPRECATED: detected compiler as MSVC10")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC10})
 
 if(${MSVC11})
-  message("detected compiler as MSVC11")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  message( "DEPRECATED: detected compiler as MSVC11")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC11})
 
 if(${MSVC12})
-  message("detected compiler as MSVC12")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  message( "DEPRECATED: detected compiler as MSVC12")
+  message( FATAL_ERROR "Please use VisualStudio 2015 or greater")
 endif(${MSVC12})
 
+# Common flags for MSVC
+if(${MSVC})
+  message("Detected compiler as MSVC")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+  string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
+  string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
+endif(${MSVC})
+
+# Specific flags for different versions of MSVC
 if(${MSVC14})
-  message("detected compiler as MSVC14")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  # message("Adding additional flags for MSVC14")
+  # Nothing needed right now
 endif(${MSVC14})
 
-# Tell the linker to give an error if undefined functions are found
-# set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+# If no test policy enable by default
+if(NOT DEFINED KRATOS_BUILD_TESTING)
+	message("KRATOS_BUILD_TESTING not defined. Setting to ON")
+	SET (KRATOS_BUILD_TESTING ON)
+endif(NOT DEFINED KRATOS_BUILD_TESTING)
+
+# If install prefix is set, install all the files.
+if(DEFINED KRATOS_INSTALL_PREFIX)
+	SET(INSTALL_TESTING_FILES ON)
+	SET(INSTALL_PYTHON_FILES ON)
+endif(DEFINED KRATOS_INSTALL_PREFIX)
 
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
-######################################################################################
-######################################################################################
-######################################################################################
+if(USE_COTIRE MATCHES ON)
+    include(cotire)
+endif(USE_COTIRE MATCHES ON)
 
-# if(DEFINED KRATOS_EXTRA_LINK_LIBRARIES)
-#     link_directories(${KRATOS_EXTRA_LINK_PATH})
-#     find_library(EXTRA_LINK_LIBS ${KRATOS_EXTRA_LINK_LIBRARIES} PATH ${KRATOS_EXTRA_LINK_PATH} )
-# endif(DEFINED KRATOS_EXTRA_LINK_LIBRARIES)
+################### PYBIND11
+include(pybind11Tools)
+
+# Reset pybind11 config and remove -LTO on FullDebug to speedup linking time,
+if(CMAKE_BUILD_TYPE MATCHES FullDebug)
+    set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
+    set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
+endif(CMAKE_BUILD_TYPE MATCHES FullDebug)
+
+######################################################################################
+######################################################################################
+######################################################################################
 
 ## Find all dependencies
 
@@ -125,7 +214,10 @@ if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 	message("**********************************************************")
 	message("OpenMP calculation was excluced artificially. Remove the var")
 	message("KRATOS_EXCLUDE_OPENMP from the configuration script or set it to off to include it")
-	message("**********************************************************")
+    message("**********************************************************")
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable 3180 ") # Disabling warning abt unrecognized omp pragmas
+    endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
 else(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 	message("OpenMP included")
 	find_package(OpenMP)
@@ -137,19 +229,19 @@ else(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 
 ##*****************************
-# Finding and including BOOST library
+# Finding and including BOOST library (version should not matter anymore)
+find_package(Boost)
+
 set(Boost_USE_STATIC_LIBS   OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_REALPATH ON)
-find_package(Boost COMPONENTS python REQUIRED)
+
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
+
+message("Boost Include: ${Boost_INCLUDE_DIRS}")
+message("Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 
 ##*****************************
-# Finding and including PYTHON
-find_package(PythonLibs REQUIRED)
-include_directories(${PYTHON_INCLUDE_DIRS})
-link_directories(${PYTHON_LIBRARIES})
 
 # Follow the symbolic links for the python lib only if needed
 if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
@@ -178,6 +270,10 @@ endif(${EXTERNAL_SOLVERS_APPLICATION} MATCHES ON )
 if(${TRILINOS_APPLICATION} MATCHES ON )
   set(BLAS_INCLUDE_NEEDED ON)
 endif(${TRILINOS_APPLICATION} MATCHES ON )
+
+if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+  find_package(Tetgen REQUIRED)
+endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
 
 # BLAS and LAPACK
 if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
@@ -223,7 +319,6 @@ endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 ##*****************************
 #finding Mpi
-set(MPI_NEEDED OFF)
 if(${METIS_APPLICATION} MATCHES ON )
   set(MPI_NEEDED ON)
 endif(${METIS_APPLICATION} MATCHES ON )
@@ -242,10 +337,33 @@ if(${MPI_NEEDED} MATCHES ON )
   set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
 
   # Note: that this will be included in the compilation of the kratos core, so that it is not needed to include it somewhere else
-  include_directories(${MPI_INCLUDE_PATH})
+  include_directories(SYSTEM ${MPI_INCLUDE_PATH})
   # find_package(Boost COMPONENTS mpi_python REQUIRED)
 endif(${MPI_NEEDED} MATCHES ON )
 
+# Find zlib (for gidpost)
+find_package(ZLIB)
+
+if( ZLIB_FOUND )
+  include_directories( ${ZLIB_INCLUDE_DIRS} )
+else( ZLIB_FOUND )
+  message( "-- Preparing local ZLIB compilation.")
+  include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
+  # Compile our own
+  add_subdirectory(external_libraries/zlib)
+  # we have to add this for zconf
+  include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
+  set( ZLIB_LIBRARIES zlib )
+endif( ZLIB_FOUND )
+
+# including the AMatrix
+if( AMATRIX_DIR )
+    message("AMATRIX_DIR : ${AMATRIX_DIR}")
+    include_directories ( "${AMATRIX_DIR}/include" )
+    add_definitions(-DKRATOS_USE_AMATRIX)
+else()
+    message( "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
+endif()
 
 ##echo user options
 message( " ")
@@ -256,35 +374,22 @@ message( " ")
 ######################################################################################
 #include internal dependencies
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries )
-include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/omptl )
-include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/zlib )
-# we have to add this for zconf
-include_directories( ${CMAKE_BINARY_DIR}/external_libraries/zlib )
-# include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/gidpost )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
-
-if(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
-    message("*************** ATTENTION AVOIDING DEFINING NDEBUG --- EXTREMELY SLOW!! ***************************")
-else(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
-    add_definitions( -DNDEBUG )
-endif(${DO_NOT_DEFINE_NDEBUG} MATCHES ON )
-
-if(${KRATOS_DEBUG} MATCHES ON )
-    message("*************** DEFINING KRATOS_DEBUG --- VERY SLOW!! ***************************")
-    add_definitions( -DKRATOS_DEBUG )
-endif(${KRATOS_DEBUG} MATCHES ON )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 # include subdirectories
-add_subdirectory(external_libraries/zlib)
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 add_subdirectory(applications)
+
+#compiling the triangle library
+add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)
+
 
 # Embedded python - compiles "krun and packages the python lib needed"
 if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
@@ -305,8 +410,6 @@ else(DEFINED KRATOS_INSTALL_PREFIX)
   message("--------------------------------  standard install dir ${CMAKE_INSTALL_PREFIX}")
 endif(DEFINED KRATOS_INSTALL_PREFIX)
 
-# get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-# message("inc_dirs = ${inc_dirs}")
 
 ################################################################################
 # install core files for the KratosMultiphysics python module
@@ -317,8 +420,12 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DE
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_unittest.py" DESTINATION KratosMultiphysics RENAME KratosUnittest.py )
 
-message("boost python lib used = " ${Boost_PYTHON_LIBRARY_RELEASE})
-install(FILES ${Boost_PYTHON_LIBRARY_RELEASE} DESTINATION libs)
+# Remove the tags in the event of multiple versions of boost being found
+# in the same directory
+# list(REMOVE_ITEM Boost_LIBRARIES "debug" "optimized")
+
+# Install the libraries in the libs folder
+install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
 
 # Install blas and lapack
@@ -329,28 +436,26 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
-# Kratos Testing
+# Kratos Testing. Install everything except sources
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests
+    PATTERN "*.git" EXCLUDE
+    PATTERN "*.c" EXCLUDE
+    PATTERN "*.h" EXCLUDE
+    PATTERN "*.cpp" EXCLUDE
+    PATTERN "*.hpp" EXCLUDE
+  )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 ################################################################################
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
     #take care: do not indent the lines below
 file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
-# # kratos_libs=\"${CMAKE_INSTALL_PREFIX}/libs\"
-# # kratos_applications=\"${CMAKE_INSTALL_PREFIX}/applications\"
-# # kratos_scripts=\"${CMAKE_INSTALL_PREFIX}/kratos/python_scripts\"
-# # kratos_tests=\"${CMAKE_INSTALL_PREFIX}/kratos/tests\"
-# # sys.path.append(kratos_libs)
-# # sys.path.append(kratos_applications)
-# # sys.path.append(kratos_scripts)
-# # sys.path.append(kratos_tests)
 import os.path
-kratos_libs=os.path.join(os.path.dirname(__file__),'../libs')
-kratos_applications=os.path.join(os.path.dirname(__file__),'../applications')
-kratos_scripts=os.path.join(os.path.dirname(__file__),'../kratos/python_scripts')
-kratos_tests=os.path.join(os.path.dirname(__file__),'../kratos/tests')
+kratos_libs=os.path.abspath(os.path.join(os.path.dirname(__file__),'../libs'))
+kratos_applications=os.path.abspath(os.path.join(os.path.dirname(__file__),'../applications'))
+kratos_scripts=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/python_scripts'))
+kratos_tests=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/tests'))
 sys.path.append(kratos_libs)
 sys.path.append(kratos_applications)
 sys.path.append(kratos_scripts)

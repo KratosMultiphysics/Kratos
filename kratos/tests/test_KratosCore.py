@@ -6,23 +6,36 @@ from KratosMultiphysics import *
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suites
-#from test_kratos_parameters import TestParameters as TParameters
-from test_model_part_io import TestModelPartIO as TModelPartIO
-from test_model_part import TestModelPart as TModelPart
+# Import the tests or test_classes to create the suites
+import test_model_part
+import test_model_part_io
 import test_kratos_parameters
 import test_materials_input
 import test_geometries
 import test_linear_solvers
+import test_eigen_solvers
+import test_condition_number
 import test_processes
 import test_importing
 import test_connectivity_preserve_modeler
 import test_model
 import test_redistance
+import test_levelset_convection
 import test_variable_utils
+import test_reorder
+import test_exact_integration
+import test_gid_io
+import test_vector_interface
+import test_matrix_interface
+import test_restart
+import test_gid_io_gauss_points
+import test_skin_detection_process
+import test_sparse_multiplication
+import test_variable_component
+import test_variable_redistribution
 
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -39,71 +52,48 @@ def AssambleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
-    #smallSuite.addTest(TModelPartIO('test_model_part_io_read_model_part'))
-    #smallSuite.addTest(TModelPartIO('test_model_part_io_write_model_part'))
-    #smallSuite.addTest(TModelPart('test_model_part_properties'))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TModelPart]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TModelPartIO]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part.TestModelPart]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_io.TestModelPartIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_materials_input.TestMaterialsInput]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometries.TestGeometry]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_kratos_parameters.TestParameters]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_solvers.TestLinearSolvers]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_eigen_solvers.TestEigenSolvers]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_condition_number.TestConditionNumber]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_processes.TestProcesses]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_importing.TestImporting]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_preserve_modeler.TestConnectivityPreserveModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model.TestModel]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_redistance.TestRedistance]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_levelset_convection.TestLevelSetConvection]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_utils.TestVariableUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_reorder.TestReorder]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_exact_integration.TestExactIntegration]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_gid_io.TestGidIO]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vector_interface.TestVectorInterface]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_matrix_interface.TestMatrixInterface]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_restart.TestRestart]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_gid_io_gauss_points.TestGiDIOGaussPoints]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_skin_detection_process.TestSkinDetectionProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixSum]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixTranspose]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixMultiplication]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_component.TestVariableComponent]))
+    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testLinearFunction'))
+    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testSharpCorners'))
+    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testVector'))
+    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testQuadratic'))
+    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testNodalArea'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
-
-    nightSuite.addTests(map(TModelPart, [
-        'test_model_part_sub_model_parts',
-        'test_model_part_nodes',
-        'test_model_part_tables'
-    ]))
-
-    #nightSuite.addTests(map(TParameters, [
-        #'test_kratos_parameters',
-        #'test_kratos_change_parameters',
-        #'test_kratos_copy_parameters',
-        #'test_kratos_wrong_parameters'
-    #]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TModelPartIO]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_kratos_parameters.TestParameters]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_materials_input.TestMaterialsInput]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometries.TestGeometry]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_solvers.TestLinearSolvers]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_processes.TestProcesses]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_importing.TestImporting]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_preserve_modeler.TestConnectivityPreserveModeler]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model.TestModel]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_redistance.TestRedistance]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_utils.TestVariableUtils]))
-
+    nightSuite.addTests(smallSuite)
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TModelPartIO,
-            TModelPart,
-            test_kratos_parameters.TestParameters,
-            test_materials_input.TestMaterialsInput,
-            test_geometries.TestGeometry,
-            test_linear_solvers.TestLinearSolvers,
-            test_processes.TestProcesses,
-            test_importing.TestImporting,
-            test_connectivity_preserve_modeler.TestConnectivityPreserveModeler,
-            test_importing.TestImporting,
-            test_model.TestModel,
-            test_redistance.TestRedistance,
-            test_variable_utils.TestVariableUtils
-        ])
-    )
+    allSuite.addTests(nightSuite) # already contains the smallSuite
 
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    KratosUnittest.runTests(AssembleTestSuites())

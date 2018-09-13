@@ -1,0 +1,19 @@
+{
+    "properties": [{
+            "model_part_name": "Parts_Parts_Auto1",
+            "properties_id": 1,
+            "Material": {
+                    "name": "Material",
+                    "constitutive_law": {
+                            "name": "LinearElasticPlaneStrain2DLaw"
+                    },
+                    "Variables": {
+                            "YOUNG_MODULUS": 1.00000E+03,
+                            "POISSON_RATIO": 3.00000E-01,
+                            "THICKNESS"    : 1.00000,
+                            "DENSITY"      : 1.0e0
+                    },
+                    "Tables": {}
+            }
+    }]
+}

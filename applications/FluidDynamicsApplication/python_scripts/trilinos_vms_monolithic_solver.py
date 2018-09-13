@@ -158,8 +158,7 @@ class MonolithicSolver:
             self.vel_criteria,
             self.vel_abs_criteria,
             self.press_criteria,
-            self.press_abs_criteria,
-            self.Comm)
+            self.press_abs_criteria)
 
         # creating the solution strategy
         #import trilinos_strategy_python_periodic

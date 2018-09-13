@@ -1,4 +1,4 @@
-//
+
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: anonymous $
 //   Date:                $Date: 2008-04-01 10:25:52 $
@@ -21,10 +21,15 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define.h" 
 #include "includes/kratos_application.h"
 
+#include <pybind11/pybind11.h>
+
+#include "ULF_application_variables.h"
+
 #include "includes/variables.h"
+#include "includes/deprecated_variables.h"
 #include "includes/condition.h"
 #include "custom_elements/updated_lagrangian_fluid.h"
 #include "custom_elements/updated_lagrangian_fluid3D.h"
@@ -32,32 +37,22 @@
 #include "custom_elements/updated_lagrangian_fluid3D_inc.h"
 #include "custom_elements/ulf_frac2d.h"
 #include "custom_elements/ulf_frac3d.h"
-#include "custom_elements/ulf_frac2d_swimming.h"
-#include "custom_elements/ulf_frac3d_swimming.h"
+#include "custom_elements/ulf_axisym.h"
+#include "custom_elements/fluid_2dGLS_expl.h"
+//#include "custom_elements/ulf_frac2d_swimming.h"
+//#include "custom_elements/ulf_frac3d_swimming.h"
 #include "custom_conditions/Point_Neumann3D.h"
+#include "custom_conditions/Point_Neumann2D.h"
+#include "custom_conditions/Point_Neumann_Axisym.h"
+#include "custom_elements/surface_tension.h"
+#include "includes/ublas_interface.h"
+
 namespace Kratos
 {
 
 ///@name Kratos Globals
 ///@{
 
-// Variables definition
-/*	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
-	KRATOS_DEFINE_VARIABLE(double, NODAL_H)
-	KRATOS_DEFINE_VARIABLE(double, IS_STRUCTURE)
-	KRATOS_DEFINE_VARIABLE(double, IS_FLUID)
-	KRATOS_DEFINE_VARIABLE(double, IS_BOUNDARY)
-	KRATOS_DEFINE_VARIABLE(double, IS_FREE_SURFACE)
-	KRATOS_DEFINE_VARIABLE(double, IS_FREE_SURFACE)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NORMAL_TO_WALL)
-*/
-//KRATOS_DEFINE_VARIABLE(double, IS_LAGRANGIAN_INLET)
-//	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
-
-
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
 ///@}
 ///@name Type Definitions
@@ -96,7 +91,8 @@ public:
     KratosULFApplication();
 
     /// Destructor.
-    virtual ~KratosULFApplication() {}
+//     virtual ~KratosULFApplication() {}
+    ~KratosULFApplication() override {}
 
 
     ///@}
@@ -108,7 +104,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
 
 
@@ -127,20 +123,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosULFApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in KratosULFApplication");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -214,10 +210,16 @@ private:
     //
     const UlfFrac2D mUlfFrac2D;
     const UlfFrac3D mUlfFrac3D;
-    const UlfFrac2DSwimming mUlfFrac2DSwimming;
-    const UlfFrac3DSwimming mUlfFrac3DSwimming;
+    const UlfAxisym mUlfAxisym;    
+    const Fluid2DGLS_expl mFluid2DGLS_expl;
     const PointNeumann3D  mPointNeumann3D;
-
+    const PointNeumann2D  mPointNeumann2D;
+    const PointNeumannAxisym  mPointNeumannAxisym;
+    
+       /// 2D instance of the SurfaceTension element
+    const SurfaceTension<2> mSurfaceTension2D;
+    /// 3D instance of the SurfaceTension element
+    const SurfaceTension<3> mSurfaceTension3D;
 
     ///@}
     ///@name Private Operators
@@ -271,6 +273,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_KRATOS_ULF_APPLICATION_H_INCLUDED  defined 
-
-
-

@@ -154,7 +154,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~FractionalStepDiscontinuous()
+    ~FractionalStepDiscontinuous() override
     {}
 
 
@@ -165,9 +165,9 @@ public:
     /// this function is essentially identical to the one of the father element, to which it only
     /// adds a term in the momentum equation to allow imposing weakly the tangential component of the velocity
     /// on the cut elements
-        virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+        void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo);
+                                          ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Operations
@@ -176,20 +176,21 @@ public:
     /// Create a new element of this type
     /**
      * Returns a pointer to a new FractionalStepDiscontinuous element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            Element::PropertiesType::Pointer pProperties) const
+                            Element::PropertiesType::Pointer pProperties) const override
     {
-	return boost::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+	return Kratos::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
-        Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const
-        {
-	  return boost::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, pGeom, pProperties);
-        }
+
+    Element::Pointer Create(IndexType NewId, Element::GeometryType::Pointer pGeom, Element::PropertiesType::Pointer pProperties) const override
+    {
+	  return Kratos::make_shared< FractionalStepDiscontinuous<TDim> >(NewId, pGeom, pProperties);
+    }
 
     ///@}
     ///@name Access
@@ -216,17 +217,17 @@ public:
             * @param rOutput (unused)
             * @param rCurrentProcessInfo Process info instance (unused)
             */
-    virtual void Calculate(const Variable<double>& rVariable,
+    void Calculate(const Variable<double>& rVariable,
                            double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo);
+                           const ProcessInfo& rCurrentProcessInfo) override;
     /**
              * @param rVariable Use ADVPROJ or VELOCITY
              * @param Output (unused)
              * @param rCurrentProcessInfo Process info instance (unused)
              */
-    virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+    void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                            array_1d<double, 3 > & rOutput,
-                           const ProcessInfo& rCurrentProcessInfo);
+                           const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -238,7 +239,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "FractionalStepDiscontinuous #" << this->Id();
@@ -246,7 +247,7 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "FractionalStepDiscontinuous" << TDim << "D";
     }
@@ -275,11 +276,11 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    virtual void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
+    void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo);
+            const ProcessInfo& rCurrentProcessInfo) override;
 
-    virtual void AddMomentumSystemTerms(Matrix& rLHSMatrix,
+    void AddMomentumSystemTerms(Matrix& rLHSMatrix,
                                         Vector& rRHSVector,
                                         const double Density,
                                         const Vector& rConvOperator,
@@ -291,15 +292,15 @@ protected:
                                         const double MassProjection,
                                         const ShapeFunctionsType& rN,
                                         const ShapeFunctionDerivativesType& rDN_DX,
-                                        const double Weight);
+                                        const double Weight) override;
     ///@}
     ///@name Protected Operations
     ///@{
 
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
-    virtual void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
+    void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
                                        Matrix& rNContainer,
-                                       Vector& rGaussWeights);
+                                       Vector& rGaussWeights) override;
 
 
 
@@ -336,13 +337,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         typedef FractionalStep<TDim> basetype;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, basetype );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         typedef FractionalStep<TDim> basetype;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, basetype );

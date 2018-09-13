@@ -1,48 +1,101 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-08-21 14:11:10 $
-//   Revision:            $Revision: 1.3 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi, Ruben Zorrilla
 //
 //
-
 
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
+#include "spaces/ublas_space.h"
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/FSI_utils.h"
 #include "custom_utilities/aitken_utils.h"
-
+#include "custom_utilities/partitioned_fsi_utilities.hpp"
+#include "custom_utilities/nodal_update_utilities.h"
 namespace Kratos
 {
 
 namespace Python
 {
 
-void  AddCustomUtilitiesToPython()
+void AddCustomUtilitiesToPython(pybind11::module &m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
-    class_<FSIUtils>("FSIUtils", init<>())
-//		.def("FSIUtils",&FSIUtils::GenerateCouplingElements)
-    .def("CheckPressureConvergence",&FSIUtils::CheckPressureConvergence)
-    .def("StructuralPressurePrediction",&FSIUtils::StructuralPressurePrediction)
-    ;
+    typedef UblasSpace<double, Matrix, Vector > TSpace;
+    typedef NodalUpdateBaseClass< 2 > NodalUpdateBaseClass2DType;
+    typedef NodalUpdateBaseClass< 3 > NodalUpdateBaseClass3DType;
 
-    class_<AitkenUtils>("AitkenUtils", init<>())
-    .def("ComputeAitkenFactor",&AitkenUtils::ComputeAitkenFactor)
-    .def("ComputeRelaxedDisplacement",&AitkenUtils::ComputeRelaxedDisplacement)
-    ;
+    class_<FSIUtils>(m,"FSIUtils")
+        .def(init<>())
+        .def("CheckPressureConvergence",&FSIUtils::CheckPressureConvergence)
+        .def("StructuralPressurePrediction",&FSIUtils::StructuralPressurePrediction)
+        ;
+
+    class_<AitkenUtils>(m,"AitkenUtils")
+        .def(init<>())
+        .def("ComputeAitkenFactor",&AitkenUtils::ComputeAitkenFactor)
+        .def("ComputeRelaxedDisplacement",&AitkenUtils::ComputeRelaxedDisplacement)
+        ;
+
+    class_<PartitionedFSIUtilities<TSpace,2>, PartitionedFSIUtilities<TSpace,2>::Pointer>(m,"PartitionedFSIUtilities2D")
+        .def(init<>())
+        .def("GetInterfaceArea",&PartitionedFSIUtilities<TSpace,2>::GetInterfaceArea)
+        .def("GetInterfaceResidualSize",&PartitionedFSIUtilities<TSpace,2>::GetInterfaceResidualSize)
+        .def("UpdateInterfaceValues",&PartitionedFSIUtilities<TSpace,2>::UpdateInterfaceValues)
+        .def("ComputeInterfaceResidualVector",&PartitionedFSIUtilities<TSpace,2>::ComputeInterfaceResidualVector)
+        .def("ComputeFluidInterfaceMeshVelocityResidualNorm",&PartitionedFSIUtilities<TSpace,2>::ComputeFluidInterfaceMeshVelocityResidualNorm)
+        .def("ComputeAndPrintFluidInterfaceNorms",&PartitionedFSIUtilities<TSpace,2>::ComputeAndPrintFluidInterfaceNorms)
+        .def("ComputeAndPrintStructureInterfaceNorms",&PartitionedFSIUtilities<TSpace,2>::ComputeAndPrintStructureInterfaceNorms)
+        .def("CheckCurrentCoordinatesFluid",&PartitionedFSIUtilities<TSpace,2>::CheckCurrentCoordinatesFluid)
+        .def("CheckCurrentCoordinatesStructure",&PartitionedFSIUtilities<TSpace,2>::CheckCurrentCoordinatesStructure)
+        ;
+
+    class_<PartitionedFSIUtilities<TSpace,3>, PartitionedFSIUtilities<TSpace,3>::Pointer>(m,"PartitionedFSIUtilities3D")
+        .def(init<>())
+        .def("GetInterfaceArea", &PartitionedFSIUtilities<TSpace, 3>::GetInterfaceArea)
+        .def("GetInterfaceResidualSize", &PartitionedFSIUtilities<TSpace, 3>::GetInterfaceResidualSize)
+        .def("UpdateInterfaceValues", &PartitionedFSIUtilities<TSpace, 3>::UpdateInterfaceValues)
+        .def("ComputeInterfaceResidualVector", &PartitionedFSIUtilities<TSpace, 3>::ComputeInterfaceResidualVector)
+        .def("ComputeFluidInterfaceMeshVelocityResidualNorm", &PartitionedFSIUtilities<TSpace, 3>::ComputeFluidInterfaceMeshVelocityResidualNorm)
+        .def("ComputeAndPrintFluidInterfaceNorms", &PartitionedFSIUtilities<TSpace, 3>::ComputeAndPrintFluidInterfaceNorms)
+        .def("ComputeAndPrintStructureInterfaceNorms", &PartitionedFSIUtilities<TSpace, 3>::ComputeAndPrintStructureInterfaceNorms)
+        .def("CheckCurrentCoordinatesFluid", &PartitionedFSIUtilities<TSpace, 3>::CheckCurrentCoordinatesFluid)
+        .def("CheckCurrentCoordinatesStructure", &PartitionedFSIUtilities<TSpace, 3>::CheckCurrentCoordinatesStructure);
+
+    class_<NodalUpdateBaseClass<2>>(m,"BaseNodalUpdate2D")
+        .def(init<>())
+        .def("UpdateMeshTimeDerivatives", &NodalUpdateBaseClass<2>::UpdateMeshTimeDerivatives)
+        .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateBaseClass<2>::SetMeshTimeDerivativesOnInterface);
+
+    class_<NodalUpdateBaseClass<3>>(m,"BaseNodalUpdate3D")
+        .def(init<>())
+        .def("UpdateMeshTimeDerivatives", &NodalUpdateBaseClass<3>::UpdateMeshTimeDerivatives)
+        .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateBaseClass<3>::SetMeshTimeDerivativesOnInterface);
+
+    class_<NodalUpdateNewmark<2>, NodalUpdateBaseClass2DType>(m,"NodalUpdateNewmark2D")
+        .def(init<const double>())
+        .def("UpdateMeshTimeDerivatives", &NodalUpdateNewmark<2>::UpdateMeshTimeDerivatives)
+        .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateNewmark<2>::SetMeshTimeDerivativesOnInterface);
+
+    class_<NodalUpdateNewmark<3>, NodalUpdateBaseClass3DType>(m,"NodalUpdateNewmark3D")
+        .def(init<const double>())
+        .def("UpdateMeshTimeDerivatives", &NodalUpdateNewmark<3>::UpdateMeshTimeDerivatives)
+        .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateNewmark<3>::SetMeshTimeDerivativesOnInterface);
 }
 
 }  // namespace Python.
 
 } // Namespace Kratos
-

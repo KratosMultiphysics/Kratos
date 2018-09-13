@@ -12,6 +12,7 @@
 //                   Felix Nagel
 //  contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
+//                   Bodhinanda Chandra
 //
 
 #if !defined(KRATOS_HEXAHEDRA_3D_8_H_INCLUDED )
@@ -25,13 +26,29 @@
 #include "geometries/quadrilateral_3d_4.h"
 #include "integration/hexahedron_gauss_legendre_integration_points.h"
 
-
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Hexahedra3D8
+ * @ingroup KratosCore
+ * @brief An eight node hexahedra geometry with linear shape functions
+ * @details The node ordering corresponds with: 
+ *             v
+ *      3----------2            
+ *      |\     ^   |\          
+ *      | \    |   | \        
+ *      |  \   |   |  \       
+ *      |   7------+---6        
+ *      |   |  +-- |-- | -> u   
+ *      0---+---\--1   |        
+ *       \  |    \  \  |        
+ *        \ |     \  \ |         
+ *         \|      w  \|         
+ *          4----------5   
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Hexahedra3D8 : public Geometry<TPointType>
 {
 public:
@@ -208,9 +225,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 8 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "Invalid points number. Expected 8, given " ,
-                                this->PointsNumber() );
+            KRATOS_ERROR << "Invalid points number. Expected 8, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -245,14 +260,14 @@ public:
     }
 
     /// Destructor. Does nothing!!!
-    virtual ~Hexahedra3D8() {}
+    ~Hexahedra3D8() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily()
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Hexahedra;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType()
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Hexahedra3D8;
     }
@@ -302,29 +317,29 @@ public:
      * Operations
      */
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const
+    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new Hexahedra3D8( ThisPoints ) );
     }
 
-    virtual Geometry< Point<3> >::Pointer Clone() const
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    // Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-            NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
-        }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //         NewPoints.push_back(Kratos::make_shared< Point<3> >((*this)[i]));
+    //     }
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Hexahedra3D8< Point<3> >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Hexahedra3D8< Point<3> >( NewPoints ) );
 
-        return p_clone;
-    }
+    //     return p_clone;
+    // }
 
     //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult ) const
+    Vector& LumpingFactors( Vector& rResult ) const override
     {
         if(rResult.size() != 8)
             rResult.resize( 8, false );
@@ -352,7 +367,7 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double Length() const
+    double Length() const override
     {
         return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
     }
@@ -371,12 +386,12 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double Area() const
+    double Area() const override
     {
         return Volume();
     }
 
-    virtual double Volume() const //Not a closed formula for a hexahedra
+    double Volume() const override //Not a closed formula for a hexahedra
     {
         Vector temp;
         this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
@@ -405,7 +420,7 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double DomainSize() const
+    double DomainSize() const override
     {
         return Volume();
     }
@@ -415,7 +430,7 @@ public:
      * @param rResult a Matrix that will be overwritten by the results
      * @return the coordinates of all points of the current geometry
      */
-    virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
         if ( rResult.size1() != 8 || rResult.size2() != 3 )
             rResult.resize( 8, 3, false );
@@ -456,16 +471,31 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry
+     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * local point for the given global point
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
+    virtual bool IsInside( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult, 
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
 
-        if ( fabs( rResult[0] ) <= (1.0 + Tolerance) )
-            if ( fabs( rResult[1] ) <= (1.0 + Tolerance) )
-                if ( fabs( rResult[2] ) <= (1.0 + Tolerance) )
+        if ( std::abs( rResult[0] ) <= (1.0 + Tolerance) )
+        {
+            if ( std::abs( rResult[1] ) <= (1.0 + Tolerance) )
+            {
+                if ( std::abs( rResult[2] ) <= (1.0 + Tolerance) )
+                {
                     return true;
+                }
+            }
+        }
 
         return false;
     }
@@ -478,12 +508,12 @@ public:
     @see Edge()
      */
     // will be used by refinement algorithm, thus uncommented. janosch.
-    virtual SizeType EdgesNumber() const
+    SizeType EdgesNumber() const override
     {
         return 12;
     }
 
-    virtual SizeType FacesNumber() const
+    SizeType FacesNumber() const override
     {
         return 6;
     }
@@ -494,7 +524,7 @@ public:
     @see EdgesNumber()
     @see Edge()
      */
-    virtual GeometriesArrayType Edges( void )
+    GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -537,7 +567,7 @@ public:
         return edges;
     }
 
-    virtual GeometriesArrayType Faces( void )
+    GeometriesArrayType Faces( void ) override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -574,6 +604,33 @@ public:
         return faces;
     }
 
+
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    {
+        using Quadrilateral3D4Type = Quadrilateral3D4<TPointType>;
+        // Check if faces have intersection
+        if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(2), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(4),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(5), this->pGetPoint(4)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(3),this->pGetPoint(2), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(4), this->pGetPoint(7), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(1),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        
+        CoordinatesArrayType local_coordinates;
+        // if there are no faces intersecting the box then or the box is inside the hexahedron or it does not have intersection
+        if(IsInside(rLowPoint,local_coordinates))
+            return true;
+
+        return false;
+    }
+
+
     /**
      * Shape Function
      */
@@ -588,8 +645,8 @@ public:
      * @return the value of the shape function at the given point
      * TODO: TO BE VERIFIED
      */
-    virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
-                                       const CoordinatesArrayType& rPoint ) const
+    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+                                       const CoordinatesArrayType& rPoint ) const override
     {
         switch ( ShapeFunctionIndex )
         {
@@ -610,8 +667,7 @@ public:
         case 7:
             return( 0.125*( 1.0 - rPoint[0] )*( 1.0 + rPoint[1] )*( 1.0 + rPoint[2] ) );
         default:
-            KRATOS_THROW_ERROR( std::logic_error,
-                                "Wrong index of shape function!" , *this );
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
 
         return 0;
@@ -628,7 +684,7 @@ public:
     @see ShapeFunctionsLocalGradients
     @see ShapeFunctionLocalGradient
     */
-    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
+    Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
       if(rResult.size() != 8) rResult.resize(8,false);
       rResult[0] =  0.125*( 1.0 - rCoordinates[0] )*( 1.0 - rCoordinates[1] )*( 1.0 - rCoordinates[2] ) ;
@@ -650,7 +706,7 @@ public:
      * @return the gradients of all shape functions
      * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
-    virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
+    Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         if ( rResult.size1() != 8 || rResult.size2() != 3 )
             rResult.resize( 8, 3, false );
@@ -692,7 +748,7 @@ public:
      * @param rPoint the given local coordinates the derivatives will be evaluated for.
      * @return a third order tensor containing the second order derivatives for each shape function
      */
-    virtual ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const
+    ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         if ( rResult.size() != this->PointsNumber() )
         {
@@ -802,7 +858,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "3 dimensional hexahedra with eight nodes in 3D space";
     }
@@ -814,7 +870,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    virtual void PrintInfo( std::ostream& rOStream ) const
+    void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "3 dimensional hexahedra with eight nodes in 3D space";
     }
@@ -828,7 +884,7 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    virtual void PrintData( std::ostream& rOStream ) const
+    void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
@@ -857,12 +913,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }

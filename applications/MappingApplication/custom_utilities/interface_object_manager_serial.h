@@ -7,300 +7,294 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher, Jordi Cotela
+//
+// See Master-Thesis P.Bucher
+// "Development and Implementation of a Parallel
+//  Framework for Non-Matching Grid Mapping"
 
 #if !defined(KRATOS_INTERFACE_OBJECT_MANAGER_SERIAL_H_INCLUDED )
 #define  KRATOS_INTERFACE_OBJECT_MANAGER_SERIAL_H_INCLUDED
 
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "interface_object_manager_base.h"
 
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class InterfaceObjectManagerSerial : public InterfaceObjectManagerBase
+/// Serial Verison of the Entity that manages the InterfaceObjects
+/** It implements the functions that are only needed if the mapper is a serial 
+* mapper. These functions are implemented as virtual functions in the BaseClass
+* Look into the class description of the MapperCommunicator to see how this Object is used in the application
+*/
+class InterfaceObjectManagerSerial : public InterfaceObjectManagerBase
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of InterfaceObjectManagerSerial
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceObjectManagerSerial);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    InterfaceObjectManagerSerial(ModelPart& rModelPart, int CommRank, int CommSize,
+                                 MapperUtilities::InterfaceObjectConstructionType InterfaceObjectType,
+                                 GeometryData::IntegrationMethod IntegrationMethod, const int EchoLevel,
+                                 const double ApproximationTolerance) :
+        InterfaceObjectManagerBase(
+            rModelPart, CommRank, CommSize, InterfaceObjectType,
+            IntegrationMethod, EchoLevel, ApproximationTolerance) { }
+
+    /// Destructor.
+    virtual ~InterfaceObjectManagerSerial() { }
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    // **********************************************************************
+    // Side we want to find neighbors for aka destination *******************
+    // **********************************************************************
+    void GetInterfaceObjectsSerialSearch(InterfaceObjectConfigure::ContainerType& rCandidateSendObjects) override
     {
-    public:
-      ///@name Type Definitions
-      ///@{
+        InitializeSizes();
+        for (auto interface_obj : mInterfaceObjects)
+        {
+            if (!interface_obj->NeighborOrApproximationFound())   // check if the interface object already found a neighbor
+            {
+                rCandidateSendObjects.push_back(interface_obj);
+            }
+        }
+    }
 
-      /// Pointer definition of InterfaceObjectManagerSerial
-      KRATOS_CLASS_POINTER_DEFINITION(InterfaceObjectManagerSerial);
+    void PostProcessReceivedResults(const InterfaceObjectConfigure::ContainerType& rCandidateSendObjects,
+                                    const std::vector<double>& rDistances,
+                                    const std::vector<int>& rPairingIndices) override
+    {
+        int i = 0;
+        for (auto interface_obj : rCandidateSendObjects)
+        {
+            if (rDistances[i] > -0.5f)   // failed search has value "-1"
+            {
+                interface_obj->ProcessSearchResult(rDistances[i], rPairingIndices[i], mCommRank);
+                mSendObjects[mCommRank].push_back(interface_obj);
+            }
+            ++i;
+        }
+    }
 
-      ///@}
-      ///@name Life Cycle
-      ///@{
+    // **********************************************************************
+    // Side where we search neighbors aka origin ****************************
+    // **********************************************************************
+    void StoreSearchResults(const std::vector<double>& rDistances,
+                            const std::vector<InterfaceObject::Pointer> TempClosestResults,
+                            const std::vector<std::vector<double>> TempShapeFunctionValues) override
+    {
+        for (std::size_t i = 0; i < rDistances.size(); ++i)
+        {
+            if (rDistances[i] > -0.5f)   // failed search has value "-1"
+            {
+                mReceiveObjects[mCommRank].push_back(TempClosestResults[i]);
+                mShapeFunctionValues[mCommRank].push_back(TempShapeFunctionValues[i]);
+            }
+        }
+    }
 
-      InterfaceObjectManagerSerial(ModelPart& i_model_part, int i_comm_rank, int i_comm_size,
-                                   MapperUtilities::InterfaceObjectConstructionType i_interface_object_type,
-                                   GeometryData::IntegrationMethod i_integration_method, int i_echo_level) :
-                                   InterfaceObjectManagerBase(
-                                   i_model_part, i_comm_rank, i_comm_size, i_interface_object_type,
-                                   i_integration_method, i_echo_level) { }
-
-      /// Destructor.
-      virtual ~InterfaceObjectManagerSerial() { }
-
-
-      ///@}
-      ///@name Operators
-      ///@{
-
-
-      ///@}
-      ///@name Operations
-      ///@{
-
-      // **********************************************************************
-      // Side we want to find neighbors for aka destination *******************
-      // **********************************************************************
-      void CheckResults() override {
-          for (auto& interface_obj : m_interface_objects) {
-              if (!interface_obj->NeighborFound()) {
-                  std::cout << "MAPPER WARNING,\tPoint has not found a neighbor, [ "
-                            << interface_obj->X() << " | " << interface_obj->Y() << " | "
-                            << interface_obj->Z() << " ]" << std::endl;
-              }
-          }
-      }
-
-      void GetInterfaceObjectsSerialSearch(InterfaceObjectConfigure::ContainerType& candidate_send_objects) override {
-          InitializeSizes();
-          for (auto interface_obj : m_interface_objects) {
-              if (!interface_obj->NeighborFound()) { // check if the interface object already found a neighbor
-                  candidate_send_objects.push_back(interface_obj);
-              }
-          }
-      }
-
-      void PostProcessReceivedResults(const std::vector<double>& distances,
-                                      const InterfaceObjectConfigure::ContainerType& candidate_send_objects) override {
-          int i = 0;
-          for (auto interface_obj : candidate_send_objects) {
-              if (distances[i] > -0.5f) { // failed search has value "-1"
-                  interface_obj->ProcessDistance(distances[i], m_comm_rank);
-                  m_send_objects[m_comm_rank].push_back(interface_obj);
-              }
-              ++i;
-          }
-      }
-
-      // **********************************************************************
-      // Side where we search neighbors aka origin ****************************
-      // **********************************************************************
-      void StoreSearchResults(const std::vector<double>& distances,
-                              const std::vector<InterfaceObject::Pointer> temp_closest_results,
-                              const std::vector<std::vector<double>> temp_shape_functions,
-                              const std::vector<array_1d<double,2>> temp_local_coordinates) override {
-          for (std::size_t i = 0; i < distances.size(); ++i) {
-              if (distances[i] > -0.5f) { // failed search has value "-1"
-                  m_receive_objects[m_comm_rank].push_back(temp_closest_results[i]);
-                  m_local_coordinates[m_comm_rank].push_back(temp_local_coordinates[i]);
-                  m_shape_functions[m_comm_rank].push_back(temp_shape_functions[i]);
-              }
-          }
-      }
-
-      std::vector<InterfaceObject::Pointer>& GetDestinationInterfaceObjects() override {
-          return m_send_objects[m_comm_rank];
-      }
-
-      std::vector<InterfaceObject::Pointer>& GetOriginInterfaceObjects() override {
-          return m_receive_objects[m_comm_rank];
-      }
-
-      ///@}
-      ///@name Access
-      ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
 
-      ///@}
-      ///@name Inquiry
-      ///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-      ///@}
-      ///@name Input and output
-      ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-      /// Turn back information as a string.
-      virtual std::string Info() const
-      {
-	      std::stringstream buffer;
+    /// Turn back information as a string.
+    virtual std::string Info() const override
+    {
+        std::stringstream buffer;
         buffer << "InterfaceObjectManagerSerial" ;
         return buffer.str();
-      }
+    }
 
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "InterfaceObjectManagerSerial";}
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "InterfaceObjectManagerSerial";
+    }
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
-
-
-      ///@}
-      ///@name Friends
-      ///@{
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
 
-      ///@}
-
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-      ///@}
-      ///@name Protected member Variables
-      ///@{
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operators
-      ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operations
-      ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-      ///@}
-      ///@name Protected  Access
-      ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-      ///@}
-
-    private:
-      ///@name Static Member Variables
-      ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-      ///@}
-      ///@name Member Variables
-      ///@{
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Private Operators
-      ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Private Operations
-      ///@{
-
-      void InitializeSizes() {
-          int size = m_interface_objects.size();
-          m_send_objects[m_comm_rank].reserve(size);
-          m_receive_objects[m_comm_rank].reserve(size);
-          m_shape_functions[m_comm_rank].reserve(size);
-          m_local_coordinates[m_comm_rank].reserve(size);
-      }
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-      ///@}
-      ///@name Private  Access
-      ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    void InitializeSizes()
+    {
+        int size = mInterfaceObjects.size();
+        mSendObjects[mCommRank].reserve(size);
+        mReceiveObjects[mCommRank].reserve(size);
+        mShapeFunctionValues[mCommRank].reserve(size);
+    }
 
 
-      ///@}
-      ///@name Private Inquiry
-      ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-      ///@}
-      ///@name Un accessible methods
-      ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-      /// Assignment operator.
-      InterfaceObjectManagerSerial& operator=(InterfaceObjectManagerSerial const& rOther);
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    InterfaceObjectManagerSerial& operator=(InterfaceObjectManagerSerial const& rOther);
 
     //   /// Copy constructor.
     //   InterfaceObjectManagerSerial(InterfaceObjectManagerSerial const& rOther){}
 
 
-      ///@}
+    ///@}
 
-    }; // Class InterfaceObjectManagerSerial
+}; // Class InterfaceObjectManagerSerial
 
-  ///@}
+///@}
 
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
+///@name Type Definitions
+///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    InterfaceObjectManagerSerial& rThis)
-    {
-        return rIStream;
-    }
+///@}
+///@name Input and output
+///@{
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const InterfaceObjectManagerSerial& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
 
-      return rOStream;
-    }
-  ///@}
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  InterfaceObjectManagerSerial& rThis)
+{
+    return rIStream;
+}
 
-  ///@} addtogroup block
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const InterfaceObjectManagerSerial& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+///@} addtogroup block
 
 }  // namespace Kratos.
 

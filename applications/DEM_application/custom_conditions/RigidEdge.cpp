@@ -33,8 +33,8 @@ RigidEdge3D::RigidEdge3D( IndexType NewId, GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         Condition::Pointer Master,
         Condition::Pointer Slave,
-        Point<3>& MasterContactLocalPoint,
-        Point<3>& SlaveContactLocalPoint,
+        Point& MasterContactLocalPoint,
+        Point& SlaveContactLocalPoint,
         int SlaveIntegrationPointIndex
                                             )
     : DEMWall( NewId, pGeometry, pProperties )
@@ -69,7 +69,7 @@ RigidEdge3D::~RigidEdge3D()
 
 void RigidEdge3D::Initialize() {
 
-//  mTgOfFrictionAngle = GetProperties()[WALL_FRICTION];
+//  mTgOfFrictionAngle = GetProperties()[FRICTION];
 
   this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
   this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
@@ -241,7 +241,7 @@ void RigidEdge3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
 	double n[3] = {Xnormal, Ynormal, Znormal};
 	GeometryFunctions::normalize(n);
 
-	double omiga = CyclePerSec * 2.0 * KRATOS_M_PI;
+	double omiga = CyclePerSec * 2.0 * Globals::Pi;
 	
 	double vel = NormalV;
 

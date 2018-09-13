@@ -8,7 +8,7 @@
 
 namespace Kratos {
 
-    class DEM_ExponentialHC : public DEMContinuumConstitutiveLaw {
+    class KRATOS_API(DEM_APPLICATION) DEM_ExponentialHC : public DEMContinuumConstitutiveLaw {
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_ExponentialHC);
@@ -24,13 +24,13 @@ namespace Kratos {
         double mGamma3;
         double mMaxDef;
 
-        void Initialize();
+        void Initialize() override;
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp) const;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
         ~DEM_ExponentialHC() {}
 
-        DEMContinuumConstitutiveLaw::Pointer Clone() const;
+        DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
         void CalculateNormalForces(double LocalElasticContactForce[3],
                 const double kn_el,
@@ -41,18 +41,18 @@ namespace Kratos {
                 SphericContinuumParticle* element1,
                 SphericContinuumParticle* element2,
                 int i_neighbour_count,
-                int time_steps);
+                int time_steps) override;
 
     private:
 
         friend class Serializer;
 
-        virtual void save(Serializer& rSerializer) const {
+        virtual void save(Serializer& rSerializer) const override {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.save("MyMemberName",myMember);
         }
 
-        virtual void load(Serializer& rSerializer) {
+        virtual void load(Serializer& rSerializer) override {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }

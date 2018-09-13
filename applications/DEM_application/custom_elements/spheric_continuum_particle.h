@@ -33,7 +33,7 @@
 
 namespace Kratos
 {
-    class SphericContinuumParticle : public SphericParticle
+    class KRATOS_API(DEM_APPLICATION) SphericContinuumParticle : public SphericParticle
     {
     public:
 
@@ -122,12 +122,11 @@ namespace Kratos
 
         virtual void Initialize(const ProcessInfo& r_process_info) override;
         virtual double GetInitialDeltaWithFEM(int index) override;
-        virtual void ComputeBallToBallContactForce(array_1d<double, 3>& rElasticForce,
-                                                   array_1d<double, 3>& rContactForce,
-                                                   double& RollingResistance,
+        virtual void ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer &,
                                                    ProcessInfo& r_process_info,
-                                                   const double dt,
-                                                   const bool multi_stage_RHS) final;
+                                                   array_1d<double, 3>& rElasticForce,
+                                                   array_1d<double, 3>& rContactForce,
+                                                   double& RollingResistance) override final;
 
         virtual void ComputeBrokenBondsRatio();
         virtual void AddContributionToRepresentativeVolume(const double distance,

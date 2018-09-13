@@ -1,9 +1,17 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.6 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
+//                   Janosch Stascheit
+//                   Felix Nagel
+//  contributors:    Hoang Giang Bui
+//                   Josep Maria Carbonell
 //
 
 #if !defined(KRATOS_TRIANGLE_3D_3_H_INCLUDED )
@@ -14,6 +22,7 @@
 // External includes
 
 // Project includes
+#include "geometries/plane_3d.h"
 #include "geometries/line_3d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
@@ -40,11 +49,25 @@ namespace Kratos
 ///@{
 
 /**
- * A four node quadrilateral geometry. While the shape functions are only defined in
- * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
- * defining surfaces on 3D elements.
+ * @class Triangle3D3
+ * @ingroup KratosCore
+ * @brief A three node 3D triangle geometry with linear shape functions
+ * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
+ * The node ordering corresponds with: 
+ *      v                                                              
+ *      ^                                                               
+ *      |                                                              
+ *      2                                   
+ *      |`\                   
+ *      |  `\                   
+ *      |    `\                 
+ *      |      `\                
+ *      |        `\                 
+ *      0----------1 --> u  
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Triangle3D3
     : public Geometry<TPointType>
 {
@@ -57,6 +80,8 @@ public:
      * Geometry as base class.
      */
     typedef Geometry<TPointType> BaseType;
+
+    typedef Geometry<TPointType> GeometryType;
 
     /**
      * Type of edge geometry
@@ -207,8 +232,7 @@ public:
         : BaseType( ThisPoints, &msGeometryData )
     {
         if ( this->PointsNumber() != 3 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                          "Invalid points number. Expected 3, given " , this->PointsNumber() );
+            KRATOS_ERROR << "Invalid points number. Expected 3, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -245,14 +269,14 @@ public:
     /**
      * Destructor. Does nothing!!!
      */
-    virtual ~Triangle3D3() {}
+    ~Triangle3D3() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily()
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Triangle;
     }
 
-    GeometryData::KratosGeometryType GetGeometryType()
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Triangle3D3;
     }
@@ -300,34 +324,34 @@ public:
     ///@name Operations
     ///@{
 
-    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const
+    typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new Triangle3D3( ThisPoints ) );
     }
 
 
-    virtual boost::shared_ptr< Geometry< Point<3> > > Clone() const
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    // Kratos::shared_ptr< Geometry< Point<3> > > Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
-        }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
+    //     }
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Triangle3D3< Point<3> >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Triangle3D3< Point<3> >( NewPoints ) );
 
-        return p_clone;
-    }
+    //     return p_clone;
+    // }
 
     /**
      * returns the local coordinates of all nodes of the current geometry
      * @param rResult a Matrix object that will be overwritten by the result
      * @return the local coordinates of all nodes
      */
-    virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
         rResult.resize( 3, 2 ,false);
         noalias( rResult ) = ZeroMatrix( 3, 2 );
@@ -341,7 +365,7 @@ public:
     }
 
     //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult ) const
+    Vector& LumpingFactors( Vector& rResult ) const override
     {
         rResult.resize( 3, false );
         std::fill( rResult.begin(), rResult.end(), 1.00 / 3.00 );
@@ -371,8 +395,9 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double Length() const {
-		  return std::sqrt(2.0 * Area());
+    double Length() const override
+    {
+        return std::sqrt(2.0 * Area());
     }
 
     /** This method calculates and returns area or surface area of
@@ -390,14 +415,15 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double Area() const {
-      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+    double Area() const override
+    {
+        const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+        const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+        const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
-      double s = (a+b+c) / 2.0;
+        const double s = (a+b+c) / 2.0;
 
-      return std::sqrt(s*(s-a)*(s-b)*(s-c));
+        return std::sqrt(s*(s-a)*(s-b)*(s-c));
     }
 
     /** This method calculates and returns length, area or volume of
@@ -414,8 +440,9 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    virtual double DomainSize() const {
-      return Area();
+    double DomainSize() const override
+    {
+        return Area();
     }
 
     /// Class Interface
@@ -428,16 +455,17 @@ public:
      * @see MaxEdgeLength()
      * @see AverageEdgeLength()
      */
-    virtual double MinEdgeLength() const {
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+    double MinEdgeLength() const override
+    {
+        const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+        const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+        const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      auto sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      auto sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      auto sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return CalculateMinEdgeLength(sa, sb, sc);
+        return CalculateMinEdgeLength(sa, sb, sc);
     }
 
     /** This method calculates and returns the maximum edge
@@ -448,16 +476,17 @@ public:
      * @see MinEdgeLength()
      * @see AverageEdgeLength()
      */
-    virtual double MaxEdgeLength() const {
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+    double MaxEdgeLength() const override
+    {
+        const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+        const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+        const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      auto sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      auto sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      auto sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return CalculateMaxEdgeLength(sa, sb, sc);
+        return CalculateMaxEdgeLength(sa, sb, sc);
     }
 
     /** This method calculates and returns the average edge
@@ -468,12 +497,13 @@ public:
      * @see MinEdgeLength()
      * @see MaxEdgeLength()
      */
-    virtual double AverageEdgeLength() const {
-      return CalculateAvgEdgeLength(
+    double AverageEdgeLength() const override
+    {
+        return CalculateAvgEdgeLength(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
         MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
         MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-      );
+        );
     }
 
     /** Calculates the circumradius of the geometry.
@@ -483,12 +513,13 @@ public:
      *
      * @see Inradius()
      */
-    virtual double Circumradius() const {
-      return CalculateCircumradius(
+    double Circumradius() const override
+    {
+        return CalculateCircumradius(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
         MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
         MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-      );
+        );
     }
 
     /** Calculates the inradius of the geometry.
@@ -498,12 +529,145 @@ public:
      *
      * @see Circumradius()
      */
-    virtual double Inradius() const {
-      return CalculateInradius(
+    double Inradius() const override
+    {
+        return CalculateInradius(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
         MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
         MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0))
-      );
+        );
+    }
+
+
+	bool AllSameSide(array_1d<double, 3> const& Distances)
+    {
+        constexpr double epsilon = std::numeric_limits<double>::epsilon();
+
+        // put U0,U1,U2 into plane equation 1 to compute signed distances to the plane//
+        double du0 = Distances[0];
+        double du1 = Distances[1];
+        double du2 = Distances[2];
+
+        // coplanarity robustness check //
+        if (std::abs(du0)<epsilon) du0 = 0.0;
+        if (std::abs(du1)<epsilon) du1 = 0.0;
+        if (std::abs(du2)<epsilon) du2 = 0.0;
+
+        const double du0du1 = du0*du1;
+        const double du0du2 = du0*du2;
+
+        if (du0du1>0.00 && du0du2>0.00)// same sign on all of them + not equal 0 ? //
+            return true;                   // no intersection occurs //
+
+        return false;
+
+	}
+
+	int GetMajorAxis(array_1d<double, 3> const& V)
+    {
+        int index = static_cast<int>(std::abs(V[0]) < std::abs(V[1]));
+        return (std::abs(V[index]) > std::abs(V[2])) ? index : 2;
+	}
+
+	bool HasIntersection(const GeometryType& ThisGeometry) override
+	{
+        // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
+        // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
+        // http://web.stanford.edu/class/cs277/resources/papers/Moller1997b.pdf
+
+        Plane3D plane_1(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2));
+        array_1d<double, 3> distances_1;
+        for (int i = 0; i < 3; i++)
+            distances_1[i] = plane_1.CalculateSignedDistance(ThisGeometry[i]);
+        if (AllSameSide(distances_1))
+            return false;
+
+        Plane3D plane_2(ThisGeometry[0], ThisGeometry[1], ThisGeometry[2]);
+        array_1d<double, 3> distances_2;
+        for (int i = 0; i < 3; i++)
+            distances_2[i] = plane_2.CalculateSignedDistance(this->GetPoint(i));
+        if (AllSameSide(distances_2))
+            return false;
+
+        // compute direction of intersection line //
+        array_1d<double, 3> intersection_direction;
+        MathUtils<double>::CrossProduct(intersection_direction, plane_1.GetNormal(), plane_2.GetNormal());
+
+        int index = GetMajorAxis(intersection_direction);
+
+        // this is the simplified projection onto L//
+        double vp0 = this->GetPoint(0)[index];
+        double vp1 = this->GetPoint(1)[index];
+        double vp2 = this->GetPoint(2)[index];
+
+        double up0 = ThisGeometry[0][index];
+        double up1 = ThisGeometry[1][index];
+        double up2 = ThisGeometry[2][index];
+
+
+        // compute interval for triangle 1 //
+        double a, b, c, x0, x1;
+        if (ComputeIntervals(vp0, vp1, vp2, distances_2[0], distances_2[1], distances_2[2], a, b, c, x0, x1) == true)
+        {
+            return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
+        }
+
+        // compute interval for triangle 2 //
+        double d, e, f, y0, y1;
+        if (ComputeIntervals(up0, up1, up2, distances_1[0], distances_1[1], distances_1[2], d, e, f, y0, y1) == true)
+        {
+            return CoplanarIntersectionCheck(plane_1.GetNormal(), ThisGeometry);
+        }
+
+
+        double xx, yy, xxyy, tmp;
+        xx = x0*x1;
+        yy = y0*y1;
+        xxyy = xx*yy;
+
+        array_1d<double, 2> isect1, isect2;
+
+        tmp = a*xxyy;
+        isect1[0] = tmp + b*x1*yy;
+        isect1[1] = tmp + c*x0*yy;
+
+        tmp = d*xxyy;
+        isect2[0] = tmp + e*xx*y1;
+        isect2[1] = tmp + f*xx*y0;
+
+        std::sort(isect1.begin(), isect1.end());
+        std::sort(isect2.begin(), isect2.end());
+
+        if (isect1[1]<isect2[0] || isect2[1]<isect1[0]) return false;
+        return true;
+
+	}
+
+    /**
+     * Check if an axis-aliged bounding box (AABB) intersects a triangle
+     *
+     * Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/personal/tomas_akenine-moller/code/tribox3.txt
+     * and the article "A Fast Triangle-Triangle Intersection Test", SIGGRAPH '05 ACM, Art.8, 2005:
+     * http://fileadmin.cs.lth.se/cs/personal/tomas_akenine-moller/code/tribox_tam.pdf
+     *
+     * @return bool if the triangle overlaps a box
+     * @param rLowPoint first corner of the box
+     * @param rHighPoint second corner of the box
+     */
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint) override
+    {
+        Point box_center;
+        Point box_half_size;
+
+        box_center[0] = 0.5 * (rLowPoint[0] + rHighPoint[0]);
+        box_center[1] = 0.5 * (rLowPoint[1] + rHighPoint[1]);
+        box_center[2] = 0.5 * (rLowPoint[2] + rHighPoint[2]);
+
+        box_half_size[0] = 0.5 * std::abs(rHighPoint[0] - rLowPoint[0]);
+        box_half_size[1] = 0.5 * std::abs(rHighPoint[1] - rLowPoint[1]);
+        box_half_size[2] = 0.5 * std::abs(rHighPoint[2] - rLowPoint[2]);
+
+        return TriBoxOverlap(box_center, box_half_size);
     }
 
     /// Quality functions
@@ -514,18 +678,19 @@ public:
      *  1 -> Optimal value
      *  0 -> Worst value
      *
-     * @formulae $$ \frac{r_K}{\ro_K} $$
+     * @formulae $$ \frac{r_K}{\rho_K} $$
      *
      * @return The inradius to circumradius quality metric.
      */
-    virtual double InradiusToCircumradiusQuality() const {
-      constexpr double normFactor = 1.0;
+    double InradiusToCircumradiusQuality() const override
+    {
+        constexpr double normFactor = 1.0;
 
-      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+        const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+        const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+        const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
-      return normFactor * CalculateInradius(a,b,c) / CalculateCircumradius(a,b,c);
+        return normFactor * CalculateInradius(a,b,c) / CalculateCircumradius(a,b,c);
     };
 
     /** Calculates the inradius to longest edge quality metric.
@@ -538,18 +703,19 @@ public:
      *
      * @return The inradius to longest edge quality metric.
      */
-    virtual double InradiusToLongestEdgeQuality() const {
-      constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
+    double InradiusToLongestEdgeQuality() const override
+    {
+        constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+        const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+        const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return normFactor * CalculateInradius(std::sqrt(sa),std::sqrt(sb),std::sqrt(sc)) / CalculateMaxEdgeLength(sa,sb,sc);
+        return normFactor * CalculateInradius(std::sqrt(sa),std::sqrt(sb),std::sqrt(sc)) / CalculateMaxEdgeLength(sa,sb,sc);
     }
 
     /** Calculates the area to edge length quality metric.
@@ -563,18 +729,19 @@ public:
      *
      * @return The Inradius to Circumradius Quality metric.
      */
-    virtual double AreaToEdgeLengthRatio() const {
-      constexpr double normFactor = 1.0;
+    double AreaToEdgeLengthRatio() const override
+    {
+        constexpr double normFactor = 1.0;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+        const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+        const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      return normFactor * Area() / (sa+sb+sc);
+        return normFactor * Area() / (sa+sb+sc);
     }
 
     /** Calculates the shortest altitude to edge length quality metric.
@@ -588,16 +755,16 @@ public:
      *
      * @return The shortest altitude to edge length quality metric.
      */
-    virtual double ShortestAltitudeToEdgeLengthRatio() const {
+    double ShortestAltitudeToEdgeLengthRatio() const override {
       constexpr double normFactor = 1.0;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+      const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+      const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+      const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+      const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+      const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+      const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
       // Shortest altitude is the one intersecting the largest base.
       double base = CalculateMaxEdgeLength(sa,sb,sc);
@@ -619,9 +786,9 @@ public:
     virtual double AreaToEdgeLengthSquareRatio() const {
       constexpr double normFactor = 1.0;
 
-      double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
-      double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
-      double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
+      const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
+      const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
+      const double c = MathUtils<double>::Norm3(this->GetPoint(2)-this->GetPoint(0));
 
       return normFactor * Area() / std::pow(a+b+c, 2);
     }
@@ -637,109 +804,83 @@ public:
      *
      * @return The shortest altitude to edge length quality metric.
      */
-    virtual double ShortestAltitudeToLongestEdge() const {
-      constexpr double normFactor = 1.0;
+    virtual double ShortestAltitudeToLongestEdge() const
+    {
+        constexpr double normFactor = 1.0;
 
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
+        const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
+        const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
+        const array_1d<double, 3> c = this->GetPoint(2) - this->GetPoint(0);
 
-      double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
-      double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
-      double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
+        const double sa = (a[0]*a[0])+(a[1]*a[1])+(a[2]*a[2]);
+        const double sb = (b[0]*b[0])+(b[1]*b[1])+(b[2]*b[2]);
+        const double sc = (c[0]*c[0])+(c[1]*c[1])+(c[2]*c[2]);
 
-      // Shortest altitude is the one intersecting the largest base (or edge).
-      double base = CalculateMaxEdgeLength(sa,sb,sc);
+        // Shortest altitude is the one intersecting the largest base (or edge).
+        const double base = CalculateMaxEdgeLength(sa,sb,sc);
 
-      return normFactor * (Area() * 2 / base ) / base;
+        return normFactor * (Area() * 2 / base ) / base;
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry
+     * It computes the area normal of the geometry
+     * @param rPointLocalCoordinates Local coordinates of the point
+     * in where the area normal is to be computed
+     * @return The area normal in the given point
      */
-    // Charlie: It appears to be wrong for 3D
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
+    array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const override
     {
-        PointLocalCoordinates( rResult, rPoint );
+        const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
+        const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
+
+        array_1d<double, 3> normal;
+        MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
+
+        return 0.5 * normal;
+    }
+
+    /**
+     * Returns whether given arbitrary point is inside the Geometry and the respective
+     * local point for the given global point
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
+     */
+    bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) override
+    {
+        PointLocalCoordinatesImplementation( rResult, rPoint, true );
 
         if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) )
+        {
             if ( (rResult[1] >= (0.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) )
+            {
                 if ( (rResult[0] + rResult[1]) <= (1.0+Tolerance) )
+                {
                     return true;
+                }
+            }
+        }
 
         return false;
     }
 
-    virtual CoordinatesArrayType& PointLocalCoordinates( CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint )
+    /**
+     * Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PointLocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+        ) override
     {
-        boost::numeric::ublas::bounded_matrix<double,3,3> X;
-        boost::numeric::ublas::bounded_matrix<double,3,2> DN;
-        for(unsigned int i=0; i<this->size();i++)
-        {
-            X(0,i ) = this->GetPoint( i ).X();
-            X(1,i ) = this->GetPoint( i ).Y();
-            X(2,i ) = this->GetPoint( i ).Z();
-        }
-
-        double tol = 1.0e-8;
-        int maxiter = 1000;
-
-        Matrix J = ZeroMatrix( 2, 2 );
-        Matrix invJ = ZeroMatrix( 2, 2 );
-
-        //starting with xi = 0
-        rResult = ZeroVector( 3 );
-        Vector DeltaXi = ZeroVector( 2 );
-        array_1d<double,3> CurrentGlobalCoords;
-
-
-        //Newton iteration:
-        for ( int k = 0; k < maxiter; k++ )
-        {
-            noalias(CurrentGlobalCoords) = ZeroVector( 3 );
-            this->GlobalCoordinates( CurrentGlobalCoords, rResult );
-
-            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
-
-
-            //derivatives of shape functions
-            Matrix shape_functions_gradients;
-            shape_functions_gradients = ShapeFunctionsLocalGradients(shape_functions_gradients, rResult );
-            noalias(DN) = prod(X,shape_functions_gradients);
-
-            noalias(J) = prod(trans(DN),DN);
-            Vector res = prod(trans(DN),CurrentGlobalCoords);
-
-            //deteminant of Jacobian
-            double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
-
-            //filling matrix
-            invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
-            invJ( 1, 0 ) = -( J( 1, 0 ) ) / ( det_j );
-            invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
-            invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
-
-
-            DeltaXi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
-            DeltaXi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
-
-            rResult[0] += DeltaXi[0];
-            rResult[1] += DeltaXi[1];
-            rResult[2] = 0.0;
-
-            if ( k>0 && norm_2( DeltaXi ) > 30 )
-            {
-                KRATOS_THROW_ERROR(std::logic_error,"computation of local coordinates failed at iteration",k)
-            }
-
-            if ( norm_2( DeltaXi ) < tol )
-            {
-                break;
-            }
-        }
-
-        return( rResult );
+        return PointLocalCoordinatesImplementation(rResult, rPoint);
     }
 
     ///@}
@@ -763,8 +904,8 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    virtual JacobiansType& Jacobian( JacobiansType& rResult,
-                                     IntegrationMethod ThisMethod ) const
+    JacobiansType& Jacobian( JacobiansType& rResult,
+                                     IntegrationMethod ThisMethod ) const override
     {
         Matrix jacobian( 3, 2 );
         jacobian( 0, 0 ) = -( BaseType::GetPoint( 0 ).X() ) + ( BaseType::GetPoint( 1 ).X() ); //on the Gauss points (J is constant at each element)
@@ -804,9 +945,9 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    virtual JacobiansType& Jacobian( JacobiansType& rResult,
+    JacobiansType& Jacobian( JacobiansType& rResult,
                                      IntegrationMethod ThisMethod,
-				     Matrix & DeltaPosition ) const
+				     Matrix & DeltaPosition ) const override
     {
         Matrix jacobian( 3, 2 );
         jacobian( 0, 0 ) = -( BaseType::GetPoint( 0 ).X() - DeltaPosition(0,0) ) + ( BaseType::GetPoint( 1 ).X() - DeltaPosition(1,0) ); //on the Gauss points (J is constant at each element)
@@ -849,9 +990,9 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    virtual Matrix& Jacobian( Matrix& rResult,
+    Matrix& Jacobian( Matrix& rResult,
                               IndexType IntegrationPointIndex,
-                              IntegrationMethod ThisMethod ) const
+                              IntegrationMethod ThisMethod ) const override
     {
         rResult.resize( 3, 2,false );
         rResult( 0, 0 ) = -( BaseType::GetPoint( 0 ).X() ) + ( BaseType::GetPoint( 1 ).X() ); //on the Gauss points (J is constant at each element)
@@ -878,7 +1019,7 @@ public:
     * @see DeterminantOfJacobian
     * @see InverseOfJacobian
      */
-    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
+    Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         rResult.resize( 3, 2 ,false);
         rResult( 0, 0 ) = -( BaseType::GetPoint( 0 ).X() ) + ( BaseType::GetPoint( 1 ).X() );
@@ -891,9 +1032,6 @@ public:
     }
 
     /**
-     * TODO: implemented but not yet tested
-     */
-    /**
      * Determinant of jacobians for given integration method.
      * This method calculates determinant of jacobian in all
      * integrations points of given integration method.
@@ -905,16 +1043,23 @@ public:
      * @see Jacobian
      * @see InverseOfJacobian
      */
-    virtual Vector& DeterminantOfJacobian( Vector& rResult,
-                                           IntegrationMethod ThisMethod ) const
+    Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const override
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Triangle3D::DeterminantOfJacobian", "Jacobian is not square" );
+        const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
+        if(rResult.size() != integration_points_number)
+        {
+            rResult.resize(integration_points_number,false);
+        }
+
+        const double detJ = 2.0*(this->Area());
+
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
+        {
+            rResult[pnt] = detJ;
+        }
         return rResult;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Determinant of jacobian in specific integration point of
      * given integration method. This method calculate determinant
@@ -934,16 +1079,12 @@ public:
      * @see Jacobian
      * @see InverseOfJacobian
      */
-    virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex,
-                                          IntegrationMethod ThisMethod ) const
+    double DeterminantOfJacobian( IndexType IntegrationPoint,
+                                          IntegrationMethod ThisMethod ) const override
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Triangle3D::DeterminantOfJacobian", "Jacobian is not square" );
-        return 0.0;
+        return 2.0*(this->Area());
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Determinant of jacobian in given point.
      * This method calculate determinant of jacobian
@@ -956,20 +1097,10 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
-     *
-     * KLUDGE: PointType needed for proper functionality
-     * KLUDGE: works only with explicitly generated Matrix object
      */
-    /**
-     * :TODO: needs to be changed to Point<3> again. As PointType can
-     * be a Node with unique ID or an IntegrationPoint or any arbitrary
-     * point in space this needs to be reviewed
-     * (comment by janosch)
-     */
-    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
+    double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const override
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Triangle3D::DeterminantOfJacobian", "Jacobian is not square" );
-        return 0.0;
+        return 2.0*(this->Area());
     }
 
     /**
@@ -993,10 +1124,10 @@ public:
      *
      * KLUDGE: works only with explicitly generated Matrix object
      */
-    virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult,
-            IntegrationMethod ThisMethod ) const
+    JacobiansType& InverseOfJacobian( JacobiansType& rResult,
+            IntegrationMethod ThisMethod ) const override
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "Triangle3D::InverseOfJacobian" << "Jacobian is not square" << std::endl;
         return rResult;
     }
 
@@ -1023,11 +1154,11 @@ public:
      *
      * KLUDGE: works only with explicitly generated Matrix object
      */
-    virtual Matrix& InverseOfJacobian( Matrix& rResult,
+    Matrix& InverseOfJacobian( Matrix& rResult,
                                        IndexType IntegrationPointIndex,
-                                       IntegrationMethod ThisMethod ) const
+                                       IntegrationMethod ThisMethod ) const override
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "Triangle3D::InverseOfJacobian" << "Jacobian is not square" << std::endl;
         return rResult;
     }
 
@@ -1047,17 +1178,17 @@ public:
      *
      * KLUDGE: works only with explicitly generated Matrix object
      */
-    virtual Matrix& InverseOfJacobian( Matrix& rResult,
-                                       const CoordinatesArrayType& rPoint ) const
+    Matrix& InverseOfJacobian( Matrix& rResult,
+                                       const CoordinatesArrayType& rPoint ) const override
     {
-        KRATOS_THROW_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
+        KRATOS_ERROR << "Triangle3D::InverseOfJacobian" << "Jacobian is not square" << std::endl;
         return rResult;
     }
 
     /** EdgesNumber
     @return SizeType containes number of this geometry edges.
     */
-    virtual SizeType EdgesNumber() const
+    SizeType EdgesNumber() const override
     {
         return 3;
     }
@@ -1066,7 +1197,7 @@ public:
     /** FacesNumber
     @return SizeType containes number of this geometry edges/faces.
     */
-    virtual SizeType FacesNumber() const
+    SizeType FacesNumber() const override
     {
       return EdgesNumber();
     }
@@ -1082,19 +1213,19 @@ public:
     @see EdgesNumber()
     @see Edge()
     */
-    virtual GeometriesArrayType Edges( void )
+    GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
         return edges;
     }
 
 
     //Connectivities of faces required
-    virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         if(NumberNodesInFaces.size() != 3 )
             NumberNodesInFaces.resize(3,false);
@@ -1105,20 +1236,22 @@ public:
 
     }
 
-    virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
+        // faces in columns
         if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
             NodesInFaces.resize(3,3,false);
 
-        NodesInFaces(0,0)=0;//face or other node
+        //face 1
+        NodesInFaces(0,0)=0;//contrary node to the face
         NodesInFaces(1,0)=1;
         NodesInFaces(2,0)=2;
-
-        NodesInFaces(0,1)=1;//face or other node
+        //face 2
+        NodesInFaces(0,1)=1;//contrary node to the face
         NodesInFaces(1,1)=2;
         NodesInFaces(2,1)=0;
-
-        NodesInFaces(0,2)=2;//face or other node
+        //face 3
+        NodesInFaces(0,2)=2;//contrary node to the face
         NodesInFaces(1,2)=0;
         NodesInFaces(2,2)=1;
 
@@ -1133,7 +1266,7 @@ public:
      * @see Edges
      * @see FacesNumber
     */
-    virtual GeometriesArrayType Faces( void )
+    GeometriesArrayType Faces( void ) override
     {
         return GeometriesArrayType();
     }
@@ -1144,9 +1277,6 @@ public:
     ///@{
 
     /**
-     * TODO: implemented but not yet tested
-     */
-    /**
      * Calculates the value of a given shape function at a given point.
      *
      * @param ShapeFunctionIndex The number of the desired shape function
@@ -1155,8 +1285,8 @@ public:
      *
      * @return the value of the shape function at the given point
      */
-    virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
-                                       const CoordinatesArrayType& rPoint ) const
+    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+                                       const CoordinatesArrayType& rPoint ) const override
     {
         switch ( ShapeFunctionIndex )
         {
@@ -1167,9 +1297,7 @@ public:
         case 2:
             return( rPoint[1] );
         default:
-            KRATOS_THROW_ERROR( std::logic_error,
-                          "Wrong index of shape function!" ,
-                          *this );
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
 
         return 0;
@@ -1187,7 +1315,7 @@ public:
      * @see ShapeFunctionLocalGradient
      */
 
-    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
+    Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
         if(rResult.size() != 3)
         {
@@ -1202,9 +1330,6 @@ public:
     }
 
     /**
-     * TODO: implemented but not yet tested
-     */
-    /**
      * Calculates the Gradients of the shape functions.
      * Calculates the gradients of the shape functions with regard to
      * the global coordinates in all
@@ -1217,16 +1342,15 @@ public:
      * KLUDGE: method call only works with explicit JacobiansType rather than creating
      * JacobiansType within argument list
     */
-    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod ) const
+        IntegrationMethod ThisMethod ) const override
     {
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
-            KRATOS_THROW_ERROR( std::logic_error,
-                          "This integration method is not supported" , *this );
+            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
         //workaround by riccardo
         if ( rResult.size() != integration_points_number )
@@ -1276,7 +1400,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "2 dimensional triangle with three nodes in 3D space";
     }
@@ -1287,7 +1411,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    virtual void PrintInfo( std::ostream& rOStream ) const
+    void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "2 dimensional triangle with three nodes in 3D space";
     }
@@ -1306,7 +1430,7 @@ public:
      * :TODO: needs to be reviewed because it is not properly implemented yet
      * (comment by janosch)
      */
-    virtual void PrintData( std::ostream& rOStream ) const
+    void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
@@ -1366,8 +1490,8 @@ public:
      * @return the gradients of all shape functions
      * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
-    virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
-            const CoordinatesArrayType& rPoint ) const
+    Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
+            const CoordinatesArrayType& rPoint ) const override
     {
         rResult.resize( 3, 2 ,false);
         noalias( rResult ) = ZeroMatrix( 3, 2 );
@@ -1410,7 +1534,7 @@ public:
      * @param rResult a third order tensor which contains the second derivatives
      * @param rPoint the given point the second order derivatives are calculated in
      */
-    virtual ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const
+    ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         if ( rResult.size() != this->PointsNumber() )
         {
@@ -1445,7 +1569,7 @@ public:
      * @param rResult a fourth order tensor which contains the third derivatives
      * @param rPoint the given point the third order derivatives are calculated in
      */
-    virtual ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( ShapeFunctionsThirdDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const
+    ShapeFunctionsThirdDerivativesType& ShapeFunctionsThirdDerivatives( ShapeFunctionsThirdDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         if ( rResult.size() != this->PointsNumber() )
         {
@@ -1458,7 +1582,7 @@ public:
 
         for ( IndexType i = 0; i < rResult.size(); i++ )
         {
-            boost::numeric::ublas::vector<Matrix> temp( this->PointsNumber() );
+            DenseVector<Matrix> temp( this->PointsNumber() );
             rResult[i].swap( temp );
         }
 
@@ -1508,12 +1632,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save( Serializer& rSerializer ) const
+    void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
     }
 
-    virtual void load( Serializer& rSerializer )
+    void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
@@ -1535,8 +1659,84 @@ private:
     ///@{
 
     /**
-     * TODO: implemented but not yet tested
+     * Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @param IsInside The flag that checks if we are computing IsInside (is common for seach to have the nodes outside the geometry)
+     * @return The vector containing the local coordinates of the point
      */
+    CoordinatesArrayType& PointLocalCoordinatesImplementation(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint,
+        const bool IsInside = false
+        )
+    {
+        BoundedMatrix<double, 3, 3> X;
+        BoundedMatrix<double, 3, 2> DN;
+        for(unsigned int i=0; i<this->size();i++)
+        {
+            X(0,i ) = this->GetPoint( i ).X();
+            X(1,i ) = this->GetPoint( i ).Y();
+            X(2,i ) = this->GetPoint( i ).Z();
+        }
+
+        static constexpr double MaxNormPointLocalCoordinates = 30.0;
+        static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 1000;
+        static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
+
+        BoundedMatrix<double, 2, 2> J = ZeroMatrix( 2, 2 );
+        BoundedMatrix<double, 2, 2> invJ = ZeroMatrix( 2, 2 );
+
+        //starting with xi = 0
+        noalias(rResult) = ZeroVector( 3 );
+        Vector delta_xi = ZeroVector( 2 );
+        array_1d<double,3> current_global_coords;
+
+        //Newton iteration:
+        for ( std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++ )
+        {
+            noalias(current_global_coords) = ZeroVector( 3 );
+            this->GlobalCoordinates( current_global_coords, rResult );
+
+            noalias( current_global_coords ) = rPoint - current_global_coords;
+
+            //derivatives of shape functions
+            Matrix shape_functions_gradients;
+            shape_functions_gradients = ShapeFunctionsLocalGradients(shape_functions_gradients, rResult );
+            noalias(DN) = prod(X,shape_functions_gradients);
+
+            noalias(J) = prod(trans(DN),DN);
+            Vector res = prod(trans(DN),current_global_coords);
+
+            //deteminant of Jacobian
+            const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
+
+            //filling matrix
+            invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
+            invJ( 1, 0 ) = -( J( 1, 0 ) ) / ( det_j );
+            invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
+            invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
+
+            delta_xi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
+            delta_xi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
+
+            rResult[0] += delta_xi[0];
+            rResult[1] += delta_xi[1];
+            rResult[2] = 0.0;
+
+            if ( k>0 && norm_2( delta_xi ) > MaxNormPointLocalCoordinates ) {
+                KRATOS_WARNING_IF("Triangle3D3", IsInside == false) << "detJ =\t" << det_j << " DeltaX =\t" << delta_xi << " stopping calculation. Iteration:\t" << k << std::endl;
+                break;
+            }
+
+            if ( norm_2( delta_xi ) < MaxTolerancePointLocalCoordinates ) {
+                break;
+            }
+        }
+
+        return( rResult );
+    }
+
     /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1571,9 +1771,6 @@ private:
         return shape_function_values;
     }
 
-    /**
-     * TODO: implemented but not yet tested
-     */
     /**
      * Calculates the local gradients of all shape functions
      * in all integration points.
@@ -1633,15 +1830,6 @@ private:
                 Quadrature<TriangleCollocationIntegrationPoints5, 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
-//             IntegrationPointsContainerType integration_points =
-//             {
-//                 Quadrature< TriangleGaussLegendreIntegrationPoints<1>,
-//                             2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//                             Quadrature<TriangleGaussLegendreIntegrationPoints<2>,
-//                             2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-//                             Quadrature<TriangleGaussLegendreIntegrationPoints<3>,
-//                             2, IntegrationPoint<3> >::GenerateIntegrationPoints()
-//             };
         return integration_points;
     }
 
@@ -1768,6 +1956,390 @@ private:
       return 0.5 * std::sqrt((b+c-a) * (c+a-b) * (a+b-c) / (a+b+c));
     }
 
+	bool ComputeIntervals(double& VV0,
+		double& VV1,
+		double& VV2,
+		double& D0,
+		double& D1,
+		double& D2,
+		double& A,
+		double& B,
+		double& C,
+		double& X0,
+		double& X1
+		)
+	{
+		double D0D1 = D0*D1;
+		double D0D2 = D0*D2;
+
+		if (D0D1>0.00)
+		{
+			// here we know that D0D2<=0.0 //
+			// that is D0, D1 are on the same side, D2 on the other or on the plane //
+			A = VV2;
+			B = (VV0 - VV2)*D2;
+			C = (VV1 - VV2)*D2;
+			X0 = D2 - D0;
+			X1 = D2 - D1;
+		}
+		else if (D0D2>0.00)
+		{
+			// here we know that d0d1<=0.0 //
+			A = VV1;
+			B = (VV0 - VV1)*D1;
+			C = (VV2 - VV1)*D1;
+			X0 = D1 - D0;
+			X1 = D1 - D2;
+		}
+		else if (D1*D2>0.00 || D0 != 0.00)
+		{
+			// here we know that d0d1<=0.0 or that D0!=0.0 //
+			A = VV0;
+			B = (VV1 - VV0)*D0;
+			C = (VV2 - VV0)*D0;
+			X0 = D0 - D1;
+			X1 = D0 - D2;
+		}
+		else if (D1 != 0.00)
+		{
+			A = VV1;
+			B = (VV0 - VV1)*D1;
+			C = (VV2 - VV1)*D1;
+			X0 = D1 - D0;
+			X1 = D1 - D2;
+		}
+		else if (D2 != 0.00)
+		{
+			A = VV2;
+			B = (VV0 - VV2)*D2;
+			C = (VV1 - VV2)*D2;
+			X0 = D2 - D0;
+			X1 = D2 - D1;
+		}
+		else
+		{
+			///Triangles are coplanar
+			return true;
+		}
+
+		return false;
+
+	}
+
+	bool CoplanarIntersectionCheck(const array_1d<double, 3>& N,
+		const GeometryType& OtherTriangle)
+	{
+		array_1d<double, 3 > A;
+		short i0, i1;
+
+		// first project onto an axis-aligned plane, that maximizes the area //
+		// of the triangles, compute indices: i0,i1. //
+		A[0] = std::abs(N[0]);
+		A[1] = std::abs(N[1]);
+		A[2] = std::abs(N[2]);
+		if (A[0]>A[1])
+		{
+			if (A[0]>A[2])
+			{
+				i0 = 1;      // A[0] is greatest //
+				i1 = 2;
+			}
+			else
+			{
+				i0 = 0;      // A[2] is greatest //
+				i1 = 1;
+			}
+		}
+		else   // A[0]<=A[1] //
+		{
+			if (A[2]>A[1])
+			{
+				i0 = 0;      // A[2] is greatest //
+				i1 = 1;
+			}
+			else
+			{
+				i0 = 0;      // A[1] is greatest //
+				i1 = 2;
+			}
+		}
+
+		// test all edges of triangle 1 against the edges of triangle 2 //
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(0), this->GetPoint(1), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
+
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(1), this->GetPoint(2), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
+
+		if (EdgeToTriangleEdgesCheck(i0, i1, this->GetPoint(2), this->GetPoint(0), OtherTriangle[0], OtherTriangle[1], OtherTriangle[2]) == true) return true;
+
+		// finally, test if tri1 is totally contained in tri2 or vice versa //
+		array_1d<double, 3> local_coordinates;
+		// TODO: I should add the const to the is inside method in all geometries. Pooyan.
+		if (const_cast<GeometryType&>(OtherTriangle).IsInside(this->GetPoint(0), local_coordinates) == true) return true;
+		if (IsInside(OtherTriangle[0], local_coordinates) == true) return true;
+
+		return false;
+	}
+
+	bool EdgeToTriangleEdgesCheck(const short& i0,
+		const short& i1,
+		const Point& V0,
+		const Point& V1,
+		const Point&U0,
+		const Point&U1,
+		const Point&U2)
+	{
+
+		double Ax, Ay, Bx, By, Cx, Cy, e, d, f;
+		Ax = V1[i0] - V0[i0];
+		Ay = V1[i1] - V0[i1];
+		// test edge U0,U1 against V0,V1 //
+
+		//std::cout<< "Proof One B " << std::endl;
+		if (EdgeToEdgeIntersectionCheck(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U0, U1) == true) return true;
+		// test edge U1,U2 against V0,V1 //
+		//std::cout<< "Proof Two B " << std::endl;
+		if (EdgeToEdgeIntersectionCheck(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U1, U2) == true) return true;
+		// test edge U2,U1 against V0,V1 //
+		if (EdgeToEdgeIntersectionCheck(Ax, Ay, Bx, By, Cx, Cy, e, d, f, i0, i1, V0, U2, U0) == true) return true;
+
+		return false;
+	}
+
+	//   this edge to edge test is based on Franlin Antonio's gem:
+	//   "Faster Line Segment Intersection", in Graphics Gems III,
+	//   pp. 199-202
+	bool EdgeToEdgeIntersectionCheck(double& Ax,
+		double& Ay,
+		double& Bx,
+		double& By,
+		double& Cx,
+		double& Cy,
+		double& e,
+		double& d,
+		double& f,
+		const short& i0,
+		const short& i1,
+		const Point& V0,
+		const Point& U0,
+		const Point& U1)
+	{
+		Bx = U0[i0] - U1[i0];
+		By = U0[i1] - U1[i1];
+		Cx = V0[i0] - U0[i0];
+		Cy = V0[i1] - U0[i1];
+		f = Ay*Bx - Ax*By;
+		d = By*Cx - Bx*Cy;
+
+		if (std::abs(f)<1E-10) f = 0.00;
+		if (std::abs(d)<1E-10) d = 0.00;
+
+
+		if ((f>0.00 && d >= 0.00 && d <= f) || (f<0.00 && d <= 0.00 && d >= f))
+		{
+			e = Ax*Cy - Ay*Cx;
+
+			if (f>0.00)
+			{
+				if (e >= 0.00 && e <= f) return true;
+			}
+			else
+			{
+				if (e <= 0.00 && e >= f) return true;
+			}
+		}
+		return false;
+	}
+
+
+    /**
+     * @see HasIntersection
+     * use separating axis theorem to test overlap between triangle and box
+     * need to test for overlap in these directions:
+     * 1) the {x,y,(z)}-directions
+     * 2) normal of the triangle
+     * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
+     */
+    inline bool TriBoxOverlap(Point& rBoxCenter, Point& rBoxHalfSize)
+    {
+        double abs_ex, abs_ey, abs_ez, distance;
+        array_1d<double,3 > vert0, vert1, vert2;
+        array_1d<double,3 > edge0, edge1, edge2, normal;
+        std::pair<double, double> min_max;
+
+        // move everything so that the boxcenter is in (0,0,0)
+        noalias(vert0) = this->GetPoint(0) - rBoxCenter;
+        noalias(vert1) = this->GetPoint(1) - rBoxCenter;
+        noalias(vert2) = this->GetPoint(2) - rBoxCenter;
+
+        // compute triangle edges
+        noalias(edge0) = vert1 - vert0;
+        noalias(edge1) = vert2 - vert1;
+        noalias(edge2) = vert0 - vert2;
+
+        // Bullet 3:
+        // test the 12 tests first (this was faster)
+        abs_ex = std::abs(edge0[0]);
+        abs_ey = std::abs(edge0[1]);
+        abs_ez = std::abs(edge0[2]);
+        if (AxisTestX(edge0[1],edge0[2],abs_ey,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
+        if (AxisTestY(edge0[0],edge0[2],abs_ex,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
+        if (AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
+
+        abs_ex = std::abs(edge1[0]);
+        abs_ey = std::abs(edge1[1]);
+        abs_ez = std::abs(edge1[2]);
+        if (AxisTestX(edge1[1],edge1[2],abs_ey,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
+        if (AxisTestY(edge1[0],edge1[2],abs_ex,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
+        if (AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
+
+        abs_ex = std::abs(edge2[0]);
+        abs_ey = std::abs(edge2[1]);
+        abs_ez = std::abs(edge2[2]);
+        if (AxisTestX(edge2[1],edge2[2],abs_ey,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
+        if (AxisTestY(edge2[0],edge2[2],abs_ex,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
+        if (AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
+
+        // Bullet 1:
+        //  first test overlap in the {x,y,z}-directions
+        //  find min, max of the triangle for each direction, and test for
+        //  overlap in that direction -- this is equivalent to testing a minimal
+        //  AABB around the triangle against the AABB
+
+        // test in X-direction
+        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
+        if(min_max.first>rBoxHalfSize[0] || min_max.second<-rBoxHalfSize[0]) return false;
+
+        // test in Y-direction
+        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
+        if(min_max.first>rBoxHalfSize[1] || min_max.second<-rBoxHalfSize[1]) return false;
+
+        // test in Z-direction
+        min_max = std::minmax({vert0[0], vert1[0], vert2[0]});
+        if(min_max.first>rBoxHalfSize[2] || min_max.second<-rBoxHalfSize[2]) return false;
+
+        // Bullet 2:
+        //  test if the box intersects the plane of the triangle
+        //  compute plane equation of triangle: normal*x+distance=0
+        MathUtils<double>::CrossProduct(normal, edge0, edge1);
+        distance = -inner_prod(normal, vert0);
+        if(!PlaneBoxOverlap(normal, distance, rBoxHalfSize)) return false;
+
+        return true;  // box and triangle overlaps
+    }
+
+    /**
+     * Check if a plane intersects a box
+     * @see TriBoxOverlap
+     *
+     * @return bool intersection flagg
+     * @param rNormal the plane normal
+     * @param rDist   distance to origin
+     * @param rMaxBox box corner from the origin
+     *
+     * plane equation: rNormal*x+rDist=0
+     */
+    bool PlaneBoxOverlap(const array_1d<double,3>& rNormal, const double& rDist, const array_1d<double,3>& rMaxBox)
+    {
+        array_1d<double,3> vmin, vmax;
+        for(int q = 0; q < 3; q++)
+        {
+            if(rNormal[q] > 0.00)
+            {
+                vmin[q] = -rMaxBox[q];
+                vmax[q] =  rMaxBox[q];
+            }
+            else
+            {
+                vmin[q] =  rMaxBox[q];
+                vmax[q] = -rMaxBox[q];
+            }
+        }
+        if(inner_prod(rNormal, vmin) + rDist >  0.00) return false;
+        if(inner_prod(rNormal, vmax) + rDist >= 0.00) return true;
+
+        return false;
+    }
+
+    /** AxisTestX
+     * This method returns true if there is a separating axis
+     *
+     * @param rEdgeY, rEdgeZ: i-edge corrdinates
+     * @param rAbsEdgeY, rAbsEdgeZ: i-edge abs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize
+     */
+    bool AxisTestX(double& rEdgeY, double& rEdgeZ,
+                   double& rAbsEdgeY, double& rAbsEdgeZ,
+                   array_1d<double,3>& rVertA,
+                   array_1d<double,3>& rVertC,
+                   Point& rBoxHalfSize)
+    {
+        double proj_a, proj_c, rad;
+        proj_a = rEdgeY*rVertA[2] - rEdgeZ*rVertA[1];
+        proj_c = rEdgeY*rVertC[2] - rEdgeZ*rVertC[1];
+        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
+
+        rad = rAbsEdgeZ*rBoxHalfSize[1] + rAbsEdgeY*rBoxHalfSize[2];
+
+        if(min_max.first>rad || min_max.second<-rad) return true;
+        else return false;
+    }
+
+    /** AxisTestY
+     * This method returns true if there is a separating axis
+     *
+     * @param rEdgeX, rEdgeZ: i-edge corrdinates
+     * @param rAbsEdgeX, rAbsEdgeZ: i-edge fabs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize
+     */
+    bool AxisTestY(double& rEdgeX, double& rEdgeZ,
+                   double& rAbsEdgeX, double& rAbsEdgeZ,
+                   array_1d<double,3>& rVertA,
+                   array_1d<double,3>& rVertC,
+                   Point& rBoxHalfSize)
+    {
+        double proj_a, proj_c, rad;
+        proj_a = rEdgeZ*rVertA[0] - rEdgeX*rVertA[2];
+        proj_c = rEdgeZ*rVertC[0] - rEdgeX*rVertC[2];
+        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
+
+        rad = rAbsEdgeZ*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[2];
+
+        if(min_max.first>rad || min_max.second<-rad) return true;
+        else return false;
+    }
+
+    /** AxisTestZ
+     * This method returns true if there is a separating axis
+     *
+     * @param rEdgeX, rEdgeY: i-edge corrdinates
+     * @param rAbsEdgeX, rAbsEdgeY: i-edge fabs coordinates
+     * @param rVertA: i   vertex
+     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC: i+2 vertex
+     * @param rBoxHalfSize
+     */
+    bool AxisTestZ(double& rEdgeX, double& rEdgeY,
+                   double& rAbsEdgeX, double& rAbsEdgeY,
+                   array_1d<double,3>& rVertA,
+                   array_1d<double,3>& rVertC,
+                   Point& rBoxHalfSize)
+    {
+        double proj_a, proj_c, rad;
+        proj_a = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];
+        proj_c = rEdgeX*rVertC[1] - rEdgeY*rVertC[0];
+        std::pair<double, double> min_max = std::minmax(proj_a, proj_c);
+
+        rad = rAbsEdgeY*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[1];
+
+        if(min_max.first>rad || min_max.second<-rad) return true;
+        else return false;
+    }
 
     ///@}
     ///@name Private  Access

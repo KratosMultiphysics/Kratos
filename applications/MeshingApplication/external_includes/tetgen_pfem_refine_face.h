@@ -83,7 +83,7 @@ public:
         mRhs(ZeroVector(3)) {} //dimension = number of nodes
 
     /// Destructor.
-    virtual ~TetGenPfemRefineFace() {}
+    virtual ~TetGenPfemRefineFace() = default;
 
 
     ///@}
@@ -219,7 +219,7 @@ public:
                     {
 
                         double erased_nodes = 0;
-                        for(PointIterator i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
+                        for(auto i=res.begin(); i!=res.begin() + n_points_in_radius ; i++)
                             erased_nodes += (*i)->Is(TO_ERASE);
 
 
@@ -346,7 +346,7 @@ public:
                 f->numberofpolygons = 1;
                 f->polygonlist = new tetgenio::polygon[f->numberofpolygons];
                 f->numberofholes = 0;
-                f->holelist = NULL;
+                f->holelist = nullptr;
 
 
                 p = &f->polygonlist[0];
@@ -367,7 +367,7 @@ public:
 
             //holes
             in.numberofholes = 0;
-            in.holelist = NULL;
+            in.holelist = nullptr;
 
             //regions
             in.numberofregions = 1;
@@ -747,7 +747,7 @@ public:
 
 
                 //KRATOS_WATCH(results.size())
-                for(PointIterator it=results.begin(); it!=results.begin() + number_of_points_in_radius; it++)
+                for(auto it=results.begin(); it!=results.begin() + number_of_points_in_radius; it++)
                 {
                     bool is_inside=false;
 // 									KRATOS_WATCH((*it)->Id());
@@ -781,14 +781,14 @@ public:
         ThisModelPart.Conditions().clear();
 
         //set the coordinates to the original value
-        for( PointVector::iterator it =  list_of_new_nodes.begin(); it!=list_of_new_nodes.end(); it++)
+        for(auto & list_of_new_node : list_of_new_nodes)
         {
-            const array_1d<double,3>& disp = (*it)->FastGetSolutionStepValue(DISPLACEMENT);
-            (*it)->X0() = (*it)->X() - disp[0];
-            (*it)->Y0() = (*it)->Y() - disp[1];
-            (*it)->Z0() = (*it)->Z() - disp[2];
+            const array_1d<double,3>& disp = list_of_new_node->FastGetSolutionStepValue(DISPLACEMENT);
+            list_of_new_node->X0() = list_of_new_node->X() - disp[0];
+            list_of_new_node->Y0() = list_of_new_node->Y() - disp[1];
+            list_of_new_node->Z0() = list_of_new_node->Z() - disp[2];
 
-            if((*it)->FastGetSolutionStepValue(IS_WATER) != 0.0 && (*it)->FastGetSolutionStepValue(IS_WATER) != 1.0)
+            if(list_of_new_node->FastGetSolutionStepValue(IS_WATER) != 0.0 && list_of_new_node->FastGetSolutionStepValue(IS_WATER) != 1.0)
                 KRATOS_WATCH("SSSSSSSSSSSSSSSSSSS a non_interpolated node SSSSSSSSSSSSSSSSSSSSS");
         }
         //cleaning unnecessary data
@@ -1661,7 +1661,7 @@ private:
                 f->numberofpolygons = 1;
                 f->polygonlist = new tetgenio::polygon[f->numberofpolygons];
                 f->numberofholes = 0;
-                f->holelist = NULL;
+                f->holelist = nullptr;
 
 
                 p = &f->polygonlist[0];
@@ -1677,7 +1677,7 @@ private:
 
             //holes
             in_shell.numberofholes = 0;
-            in_shell.holelist = NULL;
+            in_shell.holelist = nullptr;
 
         }
         KRATOS_WATCH("Bofere mesh generation");

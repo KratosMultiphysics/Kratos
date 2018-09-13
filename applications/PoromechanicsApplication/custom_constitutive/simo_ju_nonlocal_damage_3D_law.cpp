@@ -65,7 +65,7 @@ ConstitutiveLaw::Pointer SimoJuNonlocalDamage3DLaw::Clone() const
 void SimoJuNonlocalDamage3DLaw::CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry )
 {   
     //rCharacteristicSize is the diameter of a sphere with the same volume as the element
-    rCharacteristicSize = pow((6.0*DomainGeometry.Volume()/KRATOS_M_PI),0.33333333333333);
+    rCharacteristicSize = pow((6.0*DomainGeometry.Volume()/Globals::Pi),0.33333333333333);
 }
 
 } // Namespace Kratos

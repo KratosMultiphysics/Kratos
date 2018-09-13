@@ -1,8 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author:   JMCarbonell $
-//   Date:                $Date:   December 2015 $
-//   Revision:            $Revision:         1.7 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Josep Maria Carbonell
 //
 //
 
@@ -33,7 +38,7 @@ public:
 
     typedef IntegrationPoint<3> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 4> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -62,7 +67,7 @@ protected:
 private:
 
     static IntegrationPointsArrayType msIntegrationPoints;
-    
+
 }; // Class HexahedronGaussLobattoIntegrationPoints1
 
 class KRATOS_API(KRATOS_CORE) HexahedronGaussLobattoIntegrationPoints2
@@ -75,7 +80,7 @@ public:
 
     typedef IntegrationPoint<3> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 8> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 8> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -91,7 +96,7 @@ public:
         msIntegrationPoints[1] = IntegrationPointType(  1.00 , -1.00, -1.00, 0.50 );
         msIntegrationPoints[2] = IntegrationPointType(  1.00 ,  1.00, -1.00, 0.50 );
         msIntegrationPoints[3] = IntegrationPointType( -1.00 ,  1.00, -1.00, 0.50 );
-		
+
         msIntegrationPoints[4] = IntegrationPointType( -1.00 , -1.00,  1.00, 0.50 );
         msIntegrationPoints[5] = IntegrationPointType(  1.00 , -1.00,  1.00, 0.50 );
         msIntegrationPoints[6] = IntegrationPointType(  1.00 ,  1.00,  1.00, 0.50 );
@@ -117,6 +122,6 @@ private:
 
 }
 
-#endif // KRATOS_HEXAHEDRON_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED defined 
+#endif // KRATOS_HEXAHEDRON_GAUSS_LOBATTO_INTEGRATION_POINTS_H_INCLUDED defined
 
 

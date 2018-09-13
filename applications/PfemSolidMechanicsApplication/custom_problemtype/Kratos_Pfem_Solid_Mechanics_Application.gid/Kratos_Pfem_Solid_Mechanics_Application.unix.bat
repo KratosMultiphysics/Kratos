@@ -31,6 +31,7 @@ done < "${2}/${1}.kpt"
 
 if [ ${script_type} == "Use_Default" ]; then
  cp "${3}/script.py" "${2}/"
+ cp "${3}/MainKratos.py" "${2}/"
 # cp "${3}/run_example_trilinos.py" "${2}/"
 elif [ $script_type == "Copy_From" ]; then
  cp "$script_path" "${2}/script.py"
@@ -38,7 +39,8 @@ fi
 
 # Launch the script
 if [ -f "${2}/script.py" ]; then
- python3 -u "${2}/script.py" > "${2}/${1}.info" 2> "${2}/${1}.err"
+ python3 -u "${2}/MainKratos.py" > "${2}/${1}.info" 2> "${2}/${1}.err"
+ #python3 -u "${2}/script.py" > "${2}/${1}.info" 2> "${2}/${1}.err"
 fi
 
 

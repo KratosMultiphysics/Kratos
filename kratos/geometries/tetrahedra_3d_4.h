@@ -14,8 +14,6 @@
 //                   Josep Maria Carbonell
 //
 
-
-
 #if !defined(KRATOS_TETRAHEDRA_3D_4_H_INCLUDED )
 #define  KRATOS_TETRAHEDRA_3D_4_H_INCLUDED
 
@@ -32,7 +30,31 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Tetrahedra3D4
+ * @ingroup KratosCore
+ * @brief A four node tetrahedra geometry with linear shape functions
+ * @details The node ordering corresponds with:       
+ *                             v
+ *                            .
+ *                          ,/
+ *                         /
+ *                      2                                                            
+ *                    ,/|`\                                                       
+ *                  ,/  |  `\                         
+ *                ,/    '.   `\                      
+ *              ,/       |     `\                 
+ *            ,/         |       `\                
+ *           0-----------'.--------1 --> u        
+ *            `\.         |      ,/               
+ *               `\.      |    ,/                     
+ *                  `\.   '. ,/                      
+ *                     `\. |/                                
+ *                        `3                                   
+ *                           `\.
+ *                              ` w       
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
 template<class TPointType> class Tetrahedra3D4 : public Geometry<TPointType>
 {
@@ -191,9 +213,7 @@ public:
         : BaseType(ThisPoints, &msGeometryData)
     {
         if( this->PointsNumber() != 4)
-            KRATOS_THROW_ERROR(std::invalid_argument,
-                               "Invalid points number. Expected 4, given " ,
-                               this->PointsNumber());
+            KRATOS_ERROR << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
 
     /**
@@ -228,13 +248,13 @@ public:
     }
 
     /// Destructor. Does nothing!!!
-    virtual ~Tetrahedra3D4() {}
+    ~Tetrahedra3D4() override {}
 
-    GeometryData::KratosGeometryFamily GetGeometryFamily()
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Tetrahedra;
     }
-    GeometryData::KratosGeometryType GetGeometryType()
+    GeometryData::KratosGeometryType GetGeometryType() const override
     {
         return GeometryData::Kratos_Tetrahedra3D4;
     }
@@ -284,29 +304,29 @@ public:
      * Operations
      */
 
-    typename BaseType::Pointer Create(PointsArrayType const& ThisPoints) const
+    typename BaseType::Pointer Create(PointsArrayType const& ThisPoints) const override
     {
         return typename BaseType::Pointer(new Tetrahedra3D4(ThisPoints));
     }
 
-    virtual Geometry< Point<3> >::Pointer Clone() const
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    // Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
-        }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
+    //     }
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Tetrahedra3D4< Point<3> >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Tetrahedra3D4< Point<3> >( NewPoints ) );
 
-        return p_clone;
-    }
+    //     return p_clone;
+    // }
 
     //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors(Vector& rResult) const
+    Vector& LumpingFactors(Vector& rResult) const override
     {
         if(rResult.size() != 4)
             rResult.resize(4, false);
@@ -333,10 +353,10 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double Length() const
+    double Length() const override
     {
-        const double param = 2.0396489026555;  //12/raiz(2);
-        return  param * pow(Volume(), 0.33333333333333); //sqrt(fabs( DeterminantOfJacobian(PointType())));
+        constexpr double factor = 2.0396489026555;                              // (12/sqrt(2)) ^ 1/3);
+        return  factor * std::pow(std::fabs(Volume()), 0.33333333333333);            // sqrt(fabs( DeterminantOfJacobian(PointType())));
     }
 
     /**
@@ -353,7 +373,7 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double Area() const
+    double Area() const override
     {
         return this->Volume();
     }
@@ -361,13 +381,7 @@ public:
     /** This method calculates and returns the volume of this geometry.
      * This method calculates and returns the volume of this geometry.
      *
-     * Please note that the folling simplification is used during the
-     * calculus of the determinant in order to reduce the number of operations:
-     *
-     * | a e i 1 |   | a-d e-h i-l |
-     * | b f j 1 | = | b-d f-h j-l |
-     * | c g k 1 |   | c-d g-h k-l |
-     * | d h l 1 |
+     * This method uses the V = (A x B) * C / 6 formula.
      *
      * @return double value contains length, area or volume.
      *
@@ -377,7 +391,7 @@ public:
      *
      * :TODO: might be necessary to reimplement
      */
-    virtual double Volume() const {
+    double Volume() const override {
         //closed formula for the linear triangle
         const double onesixth = 1.0/6.0;
 
@@ -402,7 +416,7 @@ public:
         return  detJ*onesixth;
     }
 
-    virtual double DomainSize() const {
+    double DomainSize() const override {
       return Volume();
     }
 
@@ -413,7 +427,7 @@ public:
      * @see MaxEdgeLength()
      * @see AverageEdgeLength()
      */
-    virtual double MinEdgeLength() const {
+    double MinEdgeLength() const override {
       auto a = this->GetPoint(0) - this->GetPoint(1);
       auto b = this->GetPoint(1) - this->GetPoint(2);
       auto c = this->GetPoint(2) - this->GetPoint(0);
@@ -439,7 +453,7 @@ public:
      * @see MinEdgeLength()
      * @see AverageEdgeLength()
      */
-    virtual double MaxEdgeLength() const {
+    double MaxEdgeLength() const override {
       auto a = this->GetPoint(0) - this->GetPoint(1);
       auto b = this->GetPoint(1) - this->GetPoint(2);
       auto c = this->GetPoint(2) - this->GetPoint(0);
@@ -464,7 +478,7 @@ public:
      * @see MinEdgeLength()
      * @see MaxEdgeLength()
      */
-    virtual double AverageEdgeLength() const {
+    double AverageEdgeLength() const override {
       return CalculateAvgEdgeLength(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
         MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
@@ -479,7 +493,7 @@ public:
      *
      * @return The circumradius of the geometry
      */
-    virtual double Circumradius() const {
+    double Circumradius() const override {
       //    | s10 y10 z10 |           | s10 x10 z10 |           | s10 x10 y10 |           | x10 y10 z10 |
       // MX | s20 y20 z20 |        MY | s20 x20 z20 |        MZ | s20 x20 y20 |        AL | x20 y20 z20 |
       //    | s30 y30 z30 |           | s30 x30 z30 |           | s30 x30 y30 |           | x30 y30 z30 |
@@ -510,9 +524,9 @@ public:
       double y30 = rP2[1] - rP3[1];
       double z30 = rP2[2] - rP3[2];
 
-      double detJMX = s10 * y20 * z30 + y10 * z20 * s30 + z10 * s20 * y30 - s30 * y20 * z30 - y30 * z20 * s10 - z30 * s20 * y10;
-      double detJMY = s10 * x20 * z30 + x10 * z20 * s30 + z10 * s20 * x30 - s30 * x20 * z30 - x30 * z20 * s10 - z30 * s20 * x10;
-      double detJMZ = s10 * x20 * y30 + x10 * y20 * s30 + y10 * s20 * x30 - s30 * x20 * y30 - x30 * y20 * s10 - y30 * s20 * x10;
+      double detJMX = s10 * y20 * z30 + y10 * z20 * s30 + z10 * s20 * y30 - s30 * y20 * z10 - y30 * z20 * s10 - z30 * s20 * y10;
+      double detJMY = s10 * x20 * z30 + x10 * z20 * s30 + z10 * s20 * x30 - s30 * x20 * z10 - x30 * z20 * s10 - z30 * s20 * x10;
+      double detJMZ = s10 * x20 * y30 + x10 * y20 * s30 + y10 * s20 * x30 - s30 * x20 * y10 - x30 * y20 * s10 - y30 * s20 * x10;
       double detJAL = x10 * y20 * z30 + y10 * z20 * x30 + z10 * x20 * y30 - x30 * y20 * z10 - y30 * z20 * x10 - z30 * x20 * y10;
 
       return std::sqrt( (detJMX*detJMX + detJMY*detJMY + detJMZ*detJMZ)) / (2*std::abs(detJAL));
@@ -523,7 +537,7 @@ public:
      *
      * @return The inradius of the geometry
      */
-    virtual double Inradius() const {
+    double Inradius() const override {
       //    | x10 y10 z10 |
       // AL | x20 y20 z20 |
       //    | x30 y30 z30 |
@@ -533,10 +547,12 @@ public:
       const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
       const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
 
-      auto c012 = MathUtils<double>::CrossProduct(rP1-rP0, rP2-rP0);
-      auto c013 = MathUtils<double>::CrossProduct(rP1-rP0, rP3-rP0);
-      auto c023 = MathUtils<double>::CrossProduct(rP2-rP0, rP3-rP0);
-      auto c123 = MathUtils<double>::CrossProduct(rP2-rP1, rP3-rP1);
+      array_1d<double, 3> c012, c013, c023, c123;
+
+      MathUtils<double>::CrossProduct(c012, rP2-rP0, rP1-rP0);
+      MathUtils<double>::CrossProduct(c013, rP3-rP0, rP1-rP0);
+      MathUtils<double>::CrossProduct(c023, rP3-rP0, rP2-rP0);
+      MathUtils<double>::CrossProduct(c123, rP3-rP1, rP2-rP1);
 
       double n012 = std::sqrt(c012[0]*c012[0] + c012[1]*c012[1] + c012[2]*c012[2]);
       double n013 = std::sqrt(c013[0]*c013[0] + c013[1]*c013[1] + c013[2]*c013[2]);
@@ -569,11 +585,11 @@ public:
      *  1 -> Optimal value
      *  0 -> Worst value
      *
-     * \f$ \frac{r}{\ro} \f$
+     * \f$ \frac{r}{\rho} \f$
      *
      * @return The inradius to circumradius quality metric.
      */
-    virtual double InradiusToCircumradiusQuality() const {
+    double InradiusToCircumradiusQuality() const override {
       constexpr double normFactor = 3.0;
 
       return normFactor * Inradius() / Circumradius();
@@ -589,7 +605,7 @@ public:
      *
      * @return The inradius to longest edge quality metric.
      */
-    virtual double InradiusToLongestEdgeQuality() const {
+    double InradiusToLongestEdgeQuality() const override {
       constexpr double normFactor = 4.89897982161;
 
       auto a = this->GetPoint(0) - this->GetPoint(1);
@@ -619,7 +635,7 @@ public:
      *
      * @return [description]
      */
-    virtual double ShortestToLongestEdgeQuality() const {
+    double ShortestToLongestEdgeQuality() const override {
       auto a = this->GetPoint(0) - this->GetPoint(1);
       auto b = this->GetPoint(1) - this->GetPoint(2);
       auto c = this->GetPoint(2) - this->GetPoint(0);
@@ -637,17 +653,17 @@ public:
       return CalculateMinEdgeLength(sa,sb,sc,sd,se,sf) / CalculateMaxEdgeLength(sa,sb,sc,sd,se,sf);
     }
 
-    /** Calculates the Regualrity quality metric.
-     * Calculates the Regualrity quality metric.
+    /** Calculates the Regularity quality metric.
+     * Calculates the Regularity quality metric.
      *  1 -> Optimal value
      *  0 -> Worst value
      *
      * \f$ \frac{4r}{H} \f$
      *
-     * @return regualirty quality.
+     * @return regularity quality.
      */
-    virtual double RegualrityQuiality() const {
-      KRATOS_ERROR << "Method 'RegualrityQuiality' is not yet implemented for Tetrahedra3D4" << std::endl;
+    double RegularityQuality() const override {
+      KRATOS_ERROR << "Method 'RegularityQuality' is not yet implemented for Tetrahedra3D4" << std::endl;
       return 0.0;
     }
 
@@ -660,7 +676,7 @@ public:
      *
      * @return volume to surface quality.
      */
-    virtual double VolumeToSurfaceAreaQuality() const {
+    double VolumeToSurfaceAreaQuality() const override {
       KRATOS_ERROR << "Method 'VolumeToSurfaceAreaQuality' is not yet implemented for Tetrahedra3D4" << std::endl;
       return 0.0;
     }
@@ -674,7 +690,7 @@ public:
      *
      * @return Volume to edge length quality.
      */
-    virtual double VolumeToEdgeLengthQuality() const {
+    double VolumeToEdgeLengthQuality() const override {
       constexpr double normFactor = 12.0;
 
       auto a = this->GetPoint(0) - this->GetPoint(1);
@@ -691,7 +707,9 @@ public:
       double se = (e[0]*e[0]) + (e[1]*e[1]) + (e[2]*e[2]);
       double sf = (f[0]*f[0]) + (f[1]*f[1]) + (f[2]*f[2]);
 
-      return normFactor * std::pow(3*Volume(), 2.0 / 3.0) / (sa + sb + sc + sd + se + sf);
+      double vol = Volume();
+
+      return std::abs(normFactor * std::pow(9 * vol * vol, 1.0 / 3.0) / (sa + sb + sc + sd + se + sf)) * (vol < 0 ? -1 : 1);
     }
 
     /** Calculates the volume to average edge lenght quality metric.
@@ -703,10 +721,10 @@ public:
      *
      * @return [description]
      */
-    virtual double VolumeToAverageEdgeLength() const {
-      constexpr double normFactor = 3.0 * 1.41421356237309504880;
+    double VolumeToAverageEdgeLength() const override {
+      constexpr double normFactor = 6.0 * 1.41421356237309504880;
 
-      return normFactor * Volume() / AverageEdgeLength();
+      return normFactor * Volume() / std::pow(AverageEdgeLength(), 3);
     }
 
     /** Calculates the volume to average edge length quality metric.
@@ -720,8 +738,8 @@ public:
      *
      * @return [description]
      */
-    virtual double VolumeToRMSEdgeLength() const {
-      constexpr double normFactor = 3.0 * 1.41421356237309504880;
+    double VolumeToRMSEdgeLength() const override {
+      constexpr double normFactor = 6.0 * 1.41421356237309504880;
 
       auto a = this->GetPoint(0) - this->GetPoint(1);
       auto b = this->GetPoint(1) - this->GetPoint(2);
@@ -737,7 +755,7 @@ public:
       double se = (e[0]*e[0])+(e[1]*e[1])+(e[2]*e[2]);
       double sf = (f[0]*f[0])+(f[1]*f[1])+(f[2]*f[2]);
 
-      return normFactor * Volume() / std::sqrt(1.0/6.0 * (sa + sb + sc + sd + se + sf));
+      return normFactor * Volume() / std::pow(std::sqrt(1.0/6.0 * (sa + sb + sc + sd + se + sf)), 3.0);
     }
 
     /**
@@ -745,7 +763,7 @@ public:
     * @param rResult a Matrix that will be overwritten by the results
     * @return the coordinates of all points of the current geometry
     */
-    virtual Matrix& PointsLocalCoordinates( Matrix& rResult ) const
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
         if(rResult.size1()!= 4 || rResult.size2()!= 3)
             rResult.resize(4, 3, false);
@@ -767,16 +785,132 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry
+     * @brief Returns the local coordinates of a given arbitrary point
+     * @details Based on https://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch09.d/AFEM.Ch09.pdf. Section 9.1.6
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
      */
-    virtual bool IsInside( const CoordinatesArrayType& rPoint, CoordinatesArrayType& rResult, const double Tolerance = std::numeric_limits<double>::epsilon() )
+    CoordinatesArrayType& PointLocalCoordinates(
+            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint
+            ) override
+    {
+        // Compute RHS
+        array_1d<double,4> X;
+        X[0] = 1.0;
+        X[1] = rPoint[0];
+        X[2] = rPoint[1];
+        X[3] = rPoint[2];
+
+        // Auxiliar coordinates
+        const double x1 = this->GetPoint( 0 ).X();
+        const double x2 = this->GetPoint( 1 ).X();
+        const double x3 = this->GetPoint( 2 ).X();
+        const double x4 = this->GetPoint( 3 ).X();
+        const double y1 = this->GetPoint( 0 ).Y();
+        const double y2 = this->GetPoint( 1 ).Y();
+        const double y3 = this->GetPoint( 2 ).Y();
+        const double y4 = this->GetPoint( 3 ).Y();
+        const double z1 = this->GetPoint( 0 ).Z();
+        const double z2 = this->GetPoint( 1 ).Z();
+        const double z3 = this->GetPoint( 2 ).Z();
+        const double z4 = this->GetPoint( 3 ).Z();
+
+        // Auxiliar diff
+        const double x12 = x1 - x2;
+        const double x13 = x1 - x3;
+        const double x14 = x1 - x4;
+        const double x21 = x2 - x1;
+        const double x24 = x2 - x4;
+        const double x31 = x3 - x1;
+        const double x32 = x3 - x2;
+        const double x34 = x3 - x4;
+        const double x42 = x4 - x2;
+        const double x43 = x4 - x3;
+        const double y12 = y1 - y2;
+        const double y13 = y1 - y3;
+        const double y14 = y1 - y4;
+        const double y21 = y2 - y1;
+        const double y24 = y2 - y4;
+        const double y31 = y3 - y1;
+        const double y32 = y3 - y2;
+        const double y34 = y3 - y4;
+        const double y42 = y4 - y2;
+        const double y43 = y4 - y3;
+        const double z12 = z1 - z2;
+        const double z13 = z1 - z3;
+        const double z14 = z1 - z4;
+        const double z21 = z2 - z1;
+        const double z24 = z2 - z4;
+        const double z31 = z3 - z1;
+        const double z32 = z3 - z2;
+        const double z34 = z3 - z4;
+        const double z42 = z4 - z2;
+        const double z43 = z4 - z3;
+
+        // Compute LHS
+        BoundedMatrix<double, 4,4> invJ;
+        const double aux_volume = 1.0/(6.0*this->Volume());
+        invJ(0,0) = aux_volume * (x2*(y3*z4-y4*z3)+x3*(y4*z2-y2*z4)+x4*(y2*z3-y3*z2));
+        invJ(1,0) = aux_volume * (x1*(y4*z3-y3*z4)+x3*(y1*z4-y4*z1)+x4*(y3*z1-y1*z3));
+        invJ(2,0) = aux_volume * (x1*(y2*z4-y4*z2)+x2*(y4*z1-y1*z4)+x4*(y1*z2-y2*z1));
+        invJ(3,0) = aux_volume * (x1*(y3*z2-y2*z3)+x2*(y1*z3-y3*z1)+x3*(y2*z1-y1*z2));
+        invJ(0,1) = aux_volume * (y42*z32 - y32*z42);
+        invJ(1,1) = aux_volume * (y31*z43 - y34*z13);
+        invJ(2,1) = aux_volume * (y24*z14 - y14*z24);
+        invJ(3,1) = aux_volume * (y13*z21 - y12*z31);
+        invJ(0,2) = aux_volume * (x32*z42 - x42*z32);
+        invJ(1,2) = aux_volume * (x43*z31 - x13*z34);
+        invJ(2,2) = aux_volume * (x14*z24 - x24*z14);
+        invJ(3,2) = aux_volume * (x21*z13 - x31*z12);
+        invJ(0,3) = aux_volume * (x42*y32 - x32*y42);
+        invJ(1,3) = aux_volume * (x31*y43 - x34*y13);
+        invJ(2,3) = aux_volume * (x24*y14 - x14*y24);
+        invJ(3,3) = aux_volume * (x13*y21 - x12*y31);
+
+        const array_1d<double,4> result = prod(invJ, X);
+
+        if (rResult.size() != 3)
+            rResult.resize(3, false);
+
+        rResult[0] = result[1];
+        rResult[1] = result[2];
+        rResult[2] = result[3];
+
+        return rResult;
+    }
+
+    /**
+     * Returns whether given arbitrary point is inside the Geometry and the respective
+     * local point for the given global point
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
+     * @return True if the point is inside, false otherwise
+     */
+    bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
+
         if( rResult[0] >= 0.0-Tolerance )
+        {
             if( rResult[1] >= 0.0-Tolerance )
+            {
                 if( rResult[2] >= 0.0-Tolerance )
+                {
                     if( (rResult[0] + rResult[1] + rResult[2]) <= (1.0+Tolerance))
+                    {
                         return true;
+                    }
+                }
+            }
+        }
+
         return false;
     }
 
@@ -787,12 +921,12 @@ public:
     @see Edge()
      */
     // will be used by refinement algorithm, thus uncommented. janosch.
-    virtual SizeType EdgesNumber() const
+    SizeType EdgesNumber() const override
     {
         return 6;
     }
 
-    virtual SizeType FacesNumber() const
+    SizeType FacesNumber() const override
     {
         return 4;
     }
@@ -803,7 +937,7 @@ public:
     @see EdgesNumber()
     @see Edge()
      */
-    virtual GeometriesArrayType Edges(void)
+    GeometriesArrayType Edges(void) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer EdgePointerType;
@@ -829,7 +963,7 @@ public:
         return edges;
     }
 
-    virtual GeometriesArrayType Faces(void)
+    GeometriesArrayType Faces(void) override
     {
         GeometriesArrayType faces = GeometriesArrayType();
         typedef typename Geometry<TPointType>::Pointer FacePointerType;
@@ -853,7 +987,7 @@ public:
     }
 
     //Connectivities of faces required
-    virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
+    void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
     {
         NumberNodesInFaces.resize(4, false);
         // Linear Tetrahedra have elements of 3 nodes as faces
@@ -865,28 +999,32 @@ public:
     }
 
 
-    virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
+    void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
+        // faces in columns
+      if(NodesInFaces.size1() != 4 || NodesInFaces.size2() != 4)
         NodesInFaces.resize(4, 4, false);
-        NodesInFaces(0,0)=0;//face or other node
-        NodesInFaces(1,0)=1;
-        NodesInFaces(2,0)=2;
-        NodesInFaces(3,0)=3;
 
-        NodesInFaces(0,1)=1;//face or other node
-        NodesInFaces(1,1)=2;
-        NodesInFaces(2,1)=0;
-        NodesInFaces(3,1)=3;
-
-        NodesInFaces(0,2)=2;//face or other node
-        NodesInFaces(1,2)=0;
-        NodesInFaces(2,2)=1;
-        NodesInFaces(3,2)=3;
-
-        NodesInFaces(0,3)=3;//face or other node
-        NodesInFaces(1,3)=0;
-        NodesInFaces(2,3)=2;
-        NodesInFaces(3,3)=1;
+      //face 1
+      NodesInFaces(0,0)=0;//contrary node to the face
+      NodesInFaces(1,0)=1;
+      NodesInFaces(2,0)=2;
+      NodesInFaces(3,0)=3;
+      //face 2
+      NodesInFaces(0,1)=1;//contrary node to the face
+      NodesInFaces(1,1)=2;
+      NodesInFaces(2,1)=0;
+      NodesInFaces(3,1)=3;
+      //face 3
+      NodesInFaces(0,2)=2;//contrary node to the face
+      NodesInFaces(1,2)=0;
+      NodesInFaces(2,2)=1;
+      NodesInFaces(3,2)=3;
+      //face 4
+      NodesInFaces(0,3)=3;//contrary node to the face
+      NodesInFaces(1,3)=0;
+      NodesInFaces(2,3)=2;
+      NodesInFaces(3,3)=1;
 
     }
 
@@ -902,10 +1040,9 @@ public:
      * value of the shape function is calculated
      *
      * @return the value of the shape function at the given point
-     * TODO: TO BE VERIFIED
      */
-    virtual double ShapeFunctionValue( IndexType ShapeFunctionIndex,
-                                       const CoordinatesArrayType& rPoint) const
+    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+                                       const CoordinatesArrayType& rPoint) const override
     {
         switch( ShapeFunctionIndex )
         {
@@ -918,8 +1055,7 @@ public:
         case 3:
             return( rPoint[2] );
         default:
-            KRATOS_THROW_ERROR(std::logic_error,
-                               "Wrong index of shape function!" , *this);
+            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
         }
         return 0;
     }
@@ -937,7 +1073,7 @@ public:
     @see ShapeFunctionsLocalGradients
     @see ShapeFunctionLocalGradient
     */
-    virtual Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const
+    Vector& ShapeFunctionsValues (Vector &rResult, const CoordinatesArrayType& rCoordinates) const override
     {
       if(rResult.size() != 4) rResult.resize(4,false);
       rResult[0] =  1.0-(rCoordinates[0]+rCoordinates[1]+rCoordinates[2]);
@@ -956,7 +1092,7 @@ public:
      * @return the gradients of all shape functions
      * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
-    virtual Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
+    Matrix& ShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
         if(rResult.size1() != this->PointsNumber() || rResult.size2() != this->LocalSpaceDimension())
             rResult.resize(this->PointsNumber(),this->LocalSpaceDimension(),false);
@@ -981,30 +1117,29 @@ public:
      *
      * :TODO: TESTING!!!
      */
-    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod) const
+        IntegrationMethod ThisMethod) const override
     {
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber(ThisMethod);
         if(integration_points_number == 0)
-            KRATOS_THROW_ERROR(std::logic_error,
-                               "This integration method is not supported" , *this);
+            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
-        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
-        double x10 = this->Points()[1].X() - this->Points()[0].X();
-        double y10 = this->Points()[1].Y() - this->Points()[0].Y();
-        double z10 = this->Points()[1].Z() - this->Points()[0].Z();
+        BoundedMatrix<double,4,3> DN_DX;
+        const double x10 = this->Points()[1].X() - this->Points()[0].X();
+        const double y10 = this->Points()[1].Y() - this->Points()[0].Y();
+        const double z10 = this->Points()[1].Z() - this->Points()[0].Z();
 
-        double x20 = this->Points()[2].X() - this->Points()[0].X();
-        double y20 = this->Points()[2].Y() - this->Points()[0].Y();
-        double z20 = this->Points()[2].Z() - this->Points()[0].Z();
+        const double x20 = this->Points()[2].X() - this->Points()[0].X();
+        const double y20 = this->Points()[2].Y() - this->Points()[0].Y();
+        const double z20 = this->Points()[2].Z() - this->Points()[0].Z();
 
-        double x30 = this->Points()[3].X() - this->Points()[0].X();
-        double y30 = this->Points()[3].Y() - this->Points()[0].Y();
-        double z30 = this->Points()[3].Z() - this->Points()[0].Z();
+        const double x30 = this->Points()[3].X() - this->Points()[0].X();
+        const double y30 = this->Points()[3].Y() - this->Points()[0].Y();
+        const double z30 = this->Points()[3].Z() - this->Points()[0].Z();
 
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+        const double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
 
         DN_DX(0,0) = -y20 * z30 + y30 * z20 + y10 * z30 - z10 * y30 - y10 * z20 + z10 * y20;
         DN_DX(0,1) = -z20 * x30 + x20 * z30 - x10 * z30 + z10 * x30 + x10 * z20 - z10 * x20;
@@ -1033,31 +1168,30 @@ public:
     }
 
 
-    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+    ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
         ShapeFunctionsGradientsType& rResult
         , Vector& determinants_of_jacobian
-        , IntegrationMethod ThisMethod) const
+        , IntegrationMethod ThisMethod) const override
     {
         const unsigned int integration_points_number =
             msGeometryData.IntegrationPointsNumber(ThisMethod);
         if(integration_points_number == 0)
-            KRATOS_THROW_ERROR(std::logic_error,
-                               "This integration method is not supported" , *this);
+            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
 
-        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
-        double x10 = this->Points()[1].X() - this->Points()[0].X();
-        double y10 = this->Points()[1].Y() - this->Points()[0].Y();
-        double z10 = this->Points()[1].Z() - this->Points()[0].Z();
+        BoundedMatrix<double,4,3> DN_DX;
+        const double x10 = this->Points()[1].X() - this->Points()[0].X();
+        const double y10 = this->Points()[1].Y() - this->Points()[0].Y();
+        const double z10 = this->Points()[1].Z() - this->Points()[0].Z();
 
-        double x20 = this->Points()[2].X() - this->Points()[0].X();
-        double y20 = this->Points()[2].Y() - this->Points()[0].Y();
-        double z20 = this->Points()[2].Z() - this->Points()[0].Z();
+        const double x20 = this->Points()[2].X() - this->Points()[0].X();
+        const double y20 = this->Points()[2].Y() - this->Points()[0].Y();
+        const double z20 = this->Points()[2].Z() - this->Points()[0].Z();
 
-        double x30 = this->Points()[3].X() - this->Points()[0].X();
-        double y30 = this->Points()[3].Y() - this->Points()[0].Y();
-        double z30 = this->Points()[3].Z() - this->Points()[0].Z();
+        const double x30 = this->Points()[3].X() - this->Points()[0].X();
+        const double y30 = this->Points()[3].Y() - this->Points()[0].Y();
+        const double z30 = this->Points()[3].Z() - this->Points()[0].Z();
 
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+        const double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
 
         DN_DX(0,0) = -y20 * z30 + y30 * z20 + y10 * z30 - z10 * y30 - y10 * z20 + z10 * y20;
         DN_DX(0,1) = -z20 * x30 + x20 * z30 - x10 * z30 + z10 * x30 + x10 * z20 - z10 * x20;
@@ -1096,7 +1230,7 @@ public:
 
 
     /// detect if two tetrahedra are intersected
-    virtual bool HasIntersection( const BaseType& rThisGeometry)
+    bool HasIntersection( const BaseType& rThisGeometry) override
     {
 
         array_1d<Plane, 4>  plane;
@@ -1121,9 +1255,25 @@ public:
     }
 
 
-    virtual bool HasIntersection(const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint)
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
     {
-        return true;
+        using Triangle3D3Type = Triangle3D3<TPointType>;
+        // Check if faces have intersection
+        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(2), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(3), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Triangle3D3Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Triangle3D3Type(this->pGetPoint(2),this->pGetPoint(3), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+
+        CoordinatesArrayType local_coordinates;
+        // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
+        if(IsInside(rLowPoint,local_coordinates))
+            return true;
+
+        return false;
     }
 
 
@@ -1289,12 +1439,10 @@ public:
         array_1d<double, 3> edge21 = geom_1[2].Coordinates() - geom_1[1].Coordinates();
         array_1d<double, 3> edge31 = geom_1[3].Coordinates() - geom_1[1].Coordinates();
 
-
-        plane[0].mNormal = MathUtils<double>::UnitCrossProduct(edge20,edge10);  // <v0,v2,v1>
-        plane[1].mNormal = MathUtils<double>::UnitCrossProduct(edge10,edge30);  // <v0,v1,v3>
-        plane[2].mNormal = MathUtils<double>::UnitCrossProduct(edge30,edge20);  // <v0,v3,v2>
-        plane[3].mNormal = MathUtils<double>::UnitCrossProduct(edge21,edge31);  // <v1,v2,v3>
-
+        MathUtils<double>::UnitCrossProduct(plane[0].mNormal, edge10, edge20);  // <v0,v2,v1>
+        MathUtils<double>::UnitCrossProduct(plane[1].mNormal, edge30, edge10);  // <v0,v1,v3>
+        MathUtils<double>::UnitCrossProduct(plane[2].mNormal, edge20, edge30);  // <v0,v3,v2>
+        MathUtils<double>::UnitCrossProduct(plane[3].mNormal, edge31, edge21);  // <v1,v2,v3>
 
         double det = inner_prod(edge10, plane[3].mNormal);
         if (det < 0.00)
@@ -1324,7 +1472,7 @@ public:
      * @see PrintData()
      * @see PrintInfo()
      */
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "3 dimensional tetrahedra with four nodes in 3D space";
     }
@@ -1336,7 +1484,7 @@ public:
      * @see PrintData()
      * @see Info()
      */
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "3 dimensional tetrahedra with four nodes in 3D space";
     }
@@ -1350,7 +1498,7 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
         std::cout << std::endl;
@@ -1380,12 +1528,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
     }
 
-    virtual void load(Serializer& rSerializer)
+    void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
     }
@@ -1397,9 +1545,6 @@ private:
      * Private Operations
      */
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the gradients in terms of local coordinateds
      * of all shape functions in a given point.
@@ -1426,9 +1571,6 @@ private:
         return rResult;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1464,9 +1606,6 @@ private:
         return shape_function_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the local gradients of all shape functions in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1549,9 +1688,6 @@ private:
         return shape_functions_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     static const ShapeFunctionsLocalGradientsContainerType
     AllShapeFunctionsLocalGradients()
     {

@@ -117,7 +117,6 @@ def AddVariables(model_part):
     # ROTATION RELATED PROPERTIES
     model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
-    model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
 
     # OTHER PROPERTIES
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
@@ -1327,10 +1326,9 @@ def Run(debug_mode = False):
     return Benchmark.text_to_print
 
 if __name__ == '__main__':    
-    #print(Run(True))        
+    #print(Run(True))
     text_to_print = Run(False)
     f = open("hydrodynamic_forces.txt",'w')
     f.write(text_to_print)
     f.close
-    
     

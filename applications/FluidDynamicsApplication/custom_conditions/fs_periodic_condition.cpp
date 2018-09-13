@@ -49,7 +49,13 @@ FSPeriodicCondition<TDim>& FSPeriodicCondition<TDim>::operator =(FSPeriodicCondi
 template< unsigned int TDim >
 Condition::Pointer FSPeriodicCondition<TDim>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new FSPeriodicCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<FSPeriodicCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+template< unsigned int TDim >
+Condition::Pointer FSPeriodicCondition<TDim>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared<FSPeriodicCondition>(NewId, pGeom, pProperties);
 }
 
 template< unsigned int TDim >

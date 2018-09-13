@@ -39,7 +39,7 @@ std::string floatToString(float number)
 
 char* intToStr(int i)
 {
-	char* result = new char[100];       
+	auto  result = new char[100];       
 	sprintf( result, "%d", i );
 	return result ;
 }
@@ -52,7 +52,7 @@ char* intToStr(int i, char* result)
 
 char* floatToStr(float f)
 {
-	char* result = new char[100];       
+	auto  result = new char[100];       
 	sprintf( result, "%f", f );
 	return result ;
 }

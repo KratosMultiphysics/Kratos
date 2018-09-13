@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -80,7 +80,6 @@ namespace Kratos
 
     KRATOS_CREATE_VARIABLE( double, PRESSURE_DT )
     KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_DT )
-    KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_ACCELERATION )
     KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_NULL )
     KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_NULL_DT )
     KRATOS_CREATE_VARIABLE( double, WATER_PRESSURE_NULL_ACCELERATION )
@@ -172,7 +171,6 @@ namespace Kratos
 
         KRATOS_REGISTER_VARIABLE( PRESSURE_DT )
         KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_DT )
-        KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_ACCELERATION )
         KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_NULL )
         KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_NULL_DT )
         KRATOS_REGISTER_VARIABLE( WATER_PRESSURE_NULL_ACCELERATION )
@@ -216,13 +214,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( IS_CONTACT_SLAVE )
 //        KRATOS_REGISTER_VARIABLE( IS_BOUNDARY )
 //        KRATOS_REGISTER_VARIABLE( IS_VISITED )
-        
+
     }
 
 }  // namespace Kratos.
-
-// This CREATE must be HERE
-#undef DKRATOS_EXPORT_INTERFACE_2
-
-
-

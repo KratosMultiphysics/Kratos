@@ -434,7 +434,7 @@ protected:
 // KRATOS_WATCH("EXPLICITTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
 // KRATOS_WATCH("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 // 			//setting up the Vectors involved to the correct size
-// 			pBuilderAndSolver->ResizeAndInitializeVectors(mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
+// 			pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
 // KRATOS_WATCH("QQQQQQQQQQQQQQQQQQQQQQQQQ");
 // 			TSystemMatrixType& mA = *NewtonBaseType::mpA;
 // 			TSystemVectorType& mDx = *NewtonBaseType::mpDx;

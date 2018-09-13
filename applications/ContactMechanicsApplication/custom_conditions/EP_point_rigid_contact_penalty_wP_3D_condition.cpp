@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Created by:          $Author:                  LMonforte $
-//   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                    July 2013 $
-//   Revision:            $Revision:                      0.0 $
+//   Project Name:        KratosContactMechanicsApplication $
+//   Created by:          $Author:                LMonforte $
+//   Last modified by:    $Co-Author:                       $
+//   Date:                $Date:                  July 2013 $
+//   Revision:            $Revision:                    0.0 $
 //
 //
 
@@ -55,16 +55,16 @@ namespace Kratos
    Condition::Pointer EPPointRigidContactPenaltywP3DCondition::Create(IndexType NewId, NodesArrayType
          const& ThisNodes,  PropertiesType::Pointer pProperties) const
    {
-      return Condition::Pointer(new EPPointRigidContactPenaltywP3DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
+     return Kratos::make_shared<EPPointRigidContactPenaltywP3DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
    }
 
    Condition::Pointer EPPointRigidContactPenaltywP3DCondition::Clone(IndexType NewId, const NodesArrayType& ThisNodes) const
    {
       EPPointRigidContactPenaltywP3DCondition NewCondition( NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
-      NewCondition.mCurrentInfo = this->mCurrentInfo; 
-      NewCondition.mSavedInfo   = this->mSavedInfo; 
+      NewCondition.mCurrentInfo = this->mCurrentInfo;
+      NewCondition.mSavedInfo   = this->mSavedInfo;
 
-      return Condition::Pointer( new EPPointRigidContactPenaltywP3DCondition( NewCondition)  ); 
+      return Kratos::make_shared<EPPointRigidContactPenaltywP3DCondition>(NewCondition);
 
    }
 
@@ -143,7 +143,7 @@ namespace Kratos
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
       unsigned int condition_size        = number_of_nodes * (dimension + 1); // due to the water pressure
 
-      if ( rValues.size() != condition_size ) 
+      if ( rValues.size() != condition_size )
          rValues.resize( condition_size, false );
 
       for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -251,7 +251,7 @@ namespace Kratos
    //******************************************************************************************
 
    void EPPointRigidContactPenaltywP3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
+         ConditionVariables& rVariables,
          double& rIntegrationWeight)
 
    {
@@ -296,7 +296,7 @@ namespace Kratos
    // ********************* CalculateKuugTangent (with effective water pressure term) *******************
    // ***************************************************************************************************
    void EPPointRigidContactPenaltywP3DCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
-         GeneralVariables& rVariables,
+         ConditionVariables& rVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY

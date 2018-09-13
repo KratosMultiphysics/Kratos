@@ -30,9 +30,13 @@
 namespace Kratos
 {
 
-	MeshLocalSmoothingProcess::MeshLocalSmoothingProcess(ModelPart& rModelPart, double AptQuality, std::size_t IterationsNumber)
+	MeshLocalSmoothingProcess::MeshLocalSmoothingProcess(
+        ModelPart &rModelPart,
+        double AptQuality,
+        std::size_t IterationsNumber,
+        const Flags& rBoundaryFlag)
 		:mrModelPart(rModelPart), mMaxIterationsNumber(IterationsNumber), mAptQuality(AptQuality), mNumberOfLowQualityElements(0)
-		,mMeshMinQuality(0.00), mMeshQualityNorm(0.00)
+		,mMeshMinQuality(0.00), mMeshQualityNorm(0.00), mrBoundaryFlag(rBoundaryFlag)
 	{
 
 	}
@@ -119,10 +123,10 @@ namespace Kratos
 	{
 		PointsVectorType optimal_points;
 		Vector weights;
-		Point<3> node_optimal_position;
+		Point node_optimal_position;
 
 		for (ModelPart::NodeIterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++){
-			if (i_node->Is(SELECTED) && i_node->IsNot(BOUNDARY))
+			if (i_node->Is(SELECTED) && i_node->IsNot(mrBoundaryFlag))
 			{
 				FindOptimumPositionsAndWeights(*i_node, optimal_points, weights);
 				InterpolateNodeOptimumPosition(optimal_points, weights, node_optimal_position);
@@ -145,7 +149,7 @@ namespace Kratos
 		}
 	}
 
-	void MeshLocalSmoothingProcess::MoveNodeIfImprovesMinimumQuality(NodeType& rNode, Point<3> const& OptimumPosition)
+	void MeshLocalSmoothingProcess::MoveNodeIfImprovesMinimumQuality(NodeType& rNode, Point const& OptimumPosition)
 	{
 		constexpr std::size_t maximum_bisectioning_iteration = 1;
 
@@ -197,7 +201,7 @@ namespace Kratos
 		//}
 	}
 
-	void  MeshLocalSmoothingProcess::InterpolateNodeOptimumPosition(PointsVectorType const& rOptimumPoints, Vector const& rWeights, Point<3>& OptimumPosition)
+	void  MeshLocalSmoothingProcess::InterpolateNodeOptimumPosition(PointsVectorType const& rOptimumPoints, Vector const& rWeights, Point& OptimumPosition)
 	{
 		std::size_t size = rOptimumPoints.size();
 

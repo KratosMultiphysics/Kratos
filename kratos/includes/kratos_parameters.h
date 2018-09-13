@@ -5,31 +5,29 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//					 Kratos default license:
+//kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-
-#if !defined(KRATOS_KRATOS_PARAMETERS_H_INCLUDED )
-#define  KRATOS_KRATOS_PARAMETERS_H_INCLUDED
-
+#if !defined(KRATOS_KRATOS_PARAMETERS_H_INCLUDED)
+#define KRATOS_KRATOS_PARAMETERS_H_INCLUDED
 
 // System includes
 
-#include <string>
 #include <iostream>
 #include <sstream>
+#include <string>
+#include <utility>
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
-#include "json/json.hpp"                      //import nlohmann json library
+#include "json/json.hpp"                     
 
-namespace Kratos
-{
+namespace Kratos {
 ///@addtogroup ApplicationNameApplication
 ///@{
 
@@ -51,8 +49,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class Parameters
-{
+class Parameters {
 private:
     using json = nlohmann::json;
     ///@name Nested clases
@@ -164,10 +161,40 @@ private:
     ///@}
 
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(Parameters);
+  KRATOS_CLASS_POINTER_DEFINITION(Parameters);
 
-    using iterator = iterator_adaptor;
-    using const_iterator = const_iterator_adaptor;
+  using iterator = iterator_adaptor;
+  using const_iterator = const_iterator_adaptor;
+
+  Parameters(const std::string& json_string = "{}") {
+
+    mpdoc = Kratos::make_shared<rapidjson::Document>();
+    rapidjson::ParseResult ok = mpdoc->Parse<0>(json_string.c_str());
+
+    if (!ok) {
+      std::stringstream msg;
+      msg << rapidjson::GetParseError_En(ok.Code())
+          << " offset of the error from the beginning of the string = "
+          << ok.Offset() << std::endl;
+      msg << "a much more explicative error message can be obtained by "
+             "analysing the input string with an online analyzer such for "
+             "example json lint"
+          << std::endl;
+      msg << "the value of the string that was attempted to parse is :"
+          << std::endl
+          << std::endl;
+      msg << json_string;
+      KRATOS_ERROR << "error found in parsing the json_string, the value of "
+                      "the json string was: \n"
+                   << msg.str() << std::endl;
+    }
+
+    mpvalue = (mpdoc.get());
+  }
+
+  /// Assignment operator.
+  Parameters &operator=(Parameters const &rOther) {
+    mpvalue->CopyFrom(*(rOther.GetUnderlyingStorage()), mpdoc->GetAllocator());
 
     Parameters(const std::string& json_string)
     {
@@ -216,7 +243,20 @@ public:
     {
         return mpvalue->dump();
     }
+  }
+  Parameters AddEmptyValue(const std::string& entry) {
+    if (this->Has(entry) == false) {
+      rapidjson::Value tmp;
+      rapidjson::Value name(entry.c_str(),
+                            mpdoc->GetAllocator()); // rhis will be moved away
+      this->mpvalue->AddMember(name, tmp, mpdoc->GetAllocator());
+    }
+    return this->GetValue(entry);
+  }
 
+  bool RemoveValue(const std::string& entry) {
+    return mpvalue->RemoveMember(entry.c_str());
+  }
 
     const  std::string PrettyPrintJsonString() const
     {
@@ -224,6 +264,29 @@ public:
 
     }
 
+  double GetDouble() const {
+    KRATOS_ERROR_IF_NOT(mpvalue->IsNumber()) << "argument must be a number"
+                                             << std::endl;
+    return mpvalue->GetDouble();
+  }
+  int GetInt() const {
+    KRATOS_ERROR_IF_NOT(mpvalue->IsNumber()) << "argument must be a number"
+                                             << std::endl;
+    return mpvalue->GetInt();
+  }
+  bool GetBool() const {
+    KRATOS_ERROR_IF_NOT(mpvalue->IsBool()) << "argument must be a bool"
+                                           << std::endl;
+    return mpvalue->GetBool();
+  }
+  std::string GetString() const {
+    KRATOS_ERROR_IF_NOT(mpvalue->IsString()) << "argument must be a string"
+                                             << std::endl;
+    return mpvalue->GetString();
+  }
+  Vector GetVector() const {
+    KRATOS_ERROR_IF_NOT(mpvalue->IsArray())
+        << "argument must be a Vector (a json list)" << std::endl;
 
     //*******************************************************************************************************
     Parameters GetValue(const std::string& entry)
@@ -262,6 +325,37 @@ public:
         return this->GetValue(entry);
     }
 
+    return V;
+  }
+  Matrix GetMatrix() const {
+    KRATOS_ERROR_IF_NOT(mpvalue->IsArray())
+        << "argument must be a Matrix (a json list of lists)" << std::endl;
+
+    const unsigned int nrows = mpvalue->Size();
+    KRATOS_ERROR_IF(nrows == 0)
+        << "argument must be a Matrix (a json list of lists)" << std::endl;
+
+    unsigned int ncols = 0;
+    if ((*mpvalue)[0].IsArray())
+      ncols = (*mpvalue)[0].Size();
+
+    Matrix A(nrows, ncols);
+
+    for (unsigned int i = 0; i < nrows; ++i) {
+      auto &row_i = (*mpvalue)[i];
+      KRATOS_ERROR_IF_NOT(row_i.IsArray()) << "not an array on row " << i
+                                           << std::endl;
+      KRATOS_ERROR_IF_NOT(row_i.Size() == ncols) << "wrong size of row " << i
+                                                 << std::endl;
+      for (unsigned int j = 0; j < ncols; ++j) {
+        KRATOS_ERROR_IF_NOT((row_i)[j].IsNumber())
+            << "Entry (" << i << "," << j << ") is not a number!" << std::endl;
+        A(i, j) = (row_i)[j].GetDouble();
+      }
+    }
+
+    return A;
+  }
 
     //*******************************************************************************************************
     bool Has(const std::string& entry) const
@@ -325,6 +419,10 @@ public:
         if(mpvalue->is_string() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a string","");
         return mpvalue->get<std::string>();
     }
+  }
+  void SetMatrix(const Matrix &mat) {
+    const unsigned int nrows = mat.size1();
+    const unsigned int ncols = mat.size2();
 
     void SetDouble(const double value)
     {
@@ -342,7 +440,9 @@ public:
     {
         *mpvalue=value;
     }
+  }
 
+  iterator begin() { return iterator(this->mpvalue->MemberBegin(), mpdoc); }
 
     iterator begin()
     {
@@ -537,7 +637,13 @@ public:
             }
         }
 
+  void Append(const Matrix &mat) {
+    KRATOS_ERROR_IF_NOT(mpvalue->IsArray())
+        << "it must be an Array parameter to append" << std::endl;
+    rapidjson::Value tmp_value;
 
+    const unsigned int nrows = mat.size1();
+    const unsigned int ncols = mat.size2();
 
         //now iterate over all the defaults. In the case a default value is not assigned in the current Parameters
         //add an item copying its value
@@ -561,8 +667,16 @@ public:
             }
         }
 
+    for (unsigned int i = 0; i < nrows; ++i) {
+      tmp_value.PushBack(0, mpdoc->GetAllocator()); // Pushing back a default
+                                                    // element to allocate
+                                                    // memory
+      tmp_value[i].SetArray(); // change that default element to an array
+      tmp_value[i].Reserve(ncols, mpdoc->GetAllocator());
 
-        KRATOS_CATCH("")
+      for (unsigned int j = 0; j < ncols; ++j) {
+        tmp_value[i].PushBack(mat(i, j), mpdoc->GetAllocator());
+      }
     }
 
 //     void RecursivelyFindValue(
@@ -587,23 +701,224 @@ public:
 //         }
 //     }
 
+  void Append(const Parameters &object) {
+    KRATOS_ERROR_IF_NOT(mpvalue->IsArray())
+        << "it must be an Array parameter to append" << std::endl;
+    rapidjson::Value tmp_value;
+    tmp_value.CopyFrom(*(object.GetUnderlyingStorage()), mpdoc->GetAllocator());
+    mpvalue->PushBack(tmp_value, mpdoc->GetAllocator());
+  }
 
+  Parameters operator[](unsigned int index) {
+    return this->GetArrayItem(index);
+  }
 
+  /**This function is designed to verify that the parameters under testing match
+   * the
+   * form prescribed by the defaults.
+   * If the parameters contain values that do not appear in the defaults, an
+   * error is thrown,
+   * whereas if a parameter is found in the defaults but not in the Parameters
+   * been tested,
+   * it is copied to the parameters.
+   *
+   * this version of the function only walks one level, without descending in
+   * the branches
+   */
+  void ValidateAndAssignDefaults(Parameters &defaults) {
+    KRATOS_TRY
 
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return this->PrettyPrintJsonString();
+    // first verifies that all the enries in the current parameters
+    // have a correspondance in the defaults.
+    // if it is not the case throw an error
+    for (rapidjson::Value::ConstMemberIterator itr =
+             this->mpvalue->MemberBegin();
+         itr != this->mpvalue->MemberEnd(); ++itr) {
+      std::string item_name = itr->name.GetString();
+
+      if (!defaults.Has(item_name)) {
+        std::stringstream msg;
+        msg << "***************************************************************"
+               "***************************************"
+            << std::endl;
+        msg << "the item with name \"" << item_name
+            << "\" is present in this Parameters but NOT in the default values"
+            << std::endl;
+        msg << "***************************************************************"
+               "***************************************"
+            << std::endl;
+        msg << "hence Validation fails" << std::endl;
+        msg << "parameters being validated are : " << std::endl;
+        msg << this->PrettyPrintJsonString() << std::endl;
+        msg << "defaults against which the current parameters are validated "
+               "are :"
+            << std::endl;
+        msg << defaults.PrettyPrintJsonString() << std::endl;
+        KRATOS_ERROR << msg.str() << std::endl;
+      }
+
+      bool type_coincides = false;
+      rapidjson::Value *value_defaults =
+          (defaults[item_name.c_str()]).GetUnderlyingStorage();
+      if (itr->value.IsInt() && value_defaults->IsNumber())
+        type_coincides = true;
+      if (itr->value.IsBool() && value_defaults->IsBool())
+        type_coincides = true;
+      if (itr->value.IsDouble() && value_defaults->IsDouble())
+        type_coincides = true;
+      if (itr->value.IsArray() && value_defaults->IsArray())
+        type_coincides = true;
+      if (itr->value.IsString() && value_defaults->IsString())
+        type_coincides = true;
+      if (itr->value.IsObject() && value_defaults->IsObject())
+        type_coincides = true;
+      if (itr->value.IsNull() && value_defaults->IsNull())
+        type_coincides = true;
+
+      if (type_coincides == false) {
+        std::stringstream msg;
+        msg << "***************************************************************"
+               "***************************************"
+            << std::endl;
+        msg << "the item with name :\"" << item_name
+            << "\" does not have the same type as the corresponding one in the "
+               "default values"
+            << std::endl;
+        msg << "***************************************************************"
+               "***************************************"
+            << std::endl;
+        msg << "parameters being validated are : " << std::endl;
+        msg << this->PrettyPrintJsonString() << std::endl;
+        msg << "defaults against which the current parameters are validated "
+               "are :"
+            << std::endl;
+        msg << defaults.PrettyPrintJsonString() << std::endl;
+        KRATOS_ERROR << msg.str() << std::endl;
+      }
     }
 
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "Parameters Object " << Info();
+    // now iterate over all the defaults. In the case a default value is not
+    // assigned in the current Parameters
+    // add an item copying its value
+    if (defaults.IsSubParameter()) {
+      for (rapidjson::Value::MemberIterator itr =
+               defaults.mpvalue->MemberBegin();
+           itr != defaults.mpvalue->MemberEnd(); ++itr) {
+        std::string item_name = itr->name.GetString();
+        if (!this->Has(item_name)) {
+          rapidjson::Value *pvalue = &itr->value;
+
+          this->AddValue(item_name, Parameters(pvalue, defaults.mpdoc));
+        }
+      }
     }
 
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {};
+    KRATOS_CATCH("")
+  }
+
+  /**This function is designed to verify that the parameters under testing match
+   * the
+   * form prescribed by the defaults.
+   * If the parameters contain values that do not appear in the defaults, an
+   * error is thrown,
+   * whereas if a parameter is found in the defaults but not in the Parameters
+   * been tested,
+   * it is copied to the parameters.
+   *
+   * this version walks and validates the entire json tree below
+   * the point at which the function is called
+  */
+  void RecursivelyValidateAndAssignDefaults(Parameters &defaults) {
+    KRATOS_TRY
+
+    // first verifies that all the enries in the current parameters
+    // have a correspondance in the defaults.
+    // if it is not the case throw an error
+    for (rapidjson::Value::ConstMemberIterator itr =
+             this->mpvalue->MemberBegin();
+         itr != this->mpvalue->MemberEnd(); ++itr) {
+      std::string item_name = itr->name.GetString();
+
+      if (!defaults.Has(item_name)) {
+        std::stringstream msg;
+        msg << "the item with name \"" << item_name
+            << "\" is present in this Parameters but NOT in the default values"
+            << std::endl;
+        msg << "hence Validation fails" << std::endl;
+        msg << "parameters being validated are : " << std::endl;
+        msg << this->PrettyPrintJsonString() << std::endl;
+        msg << "defaults against which the current parameters are validated "
+               "are :"
+            << std::endl;
+        msg << defaults.PrettyPrintJsonString() << std::endl;
+        KRATOS_ERROR << msg.str() << std::endl;
+      }
+
+      bool type_coincides = false;
+      rapidjson::Value *value_defaults =
+          (defaults[item_name.c_str()]).GetUnderlyingStorage();
+      if (itr->value.IsInt() && value_defaults->IsInt())
+        type_coincides = true;
+      if (itr->value.IsBool() && value_defaults->IsBool())
+        type_coincides = true;
+      if (itr->value.IsDouble() && value_defaults->IsDouble())
+        type_coincides = true;
+      if (itr->value.IsArray() && value_defaults->IsArray())
+        type_coincides = true;
+      if (itr->value.IsString() && value_defaults->IsString())
+        type_coincides = true;
+      if (itr->value.IsObject() && value_defaults->IsObject())
+        type_coincides = true;
+      if (itr->value.IsNull() && value_defaults->IsNull())
+        type_coincides = true;
+
+      if (type_coincides == false) {
+        std::stringstream msg;
+        msg << "the item with name :\"" << item_name
+            << "\" does not have the same type as the corresponding one in the "
+               "default values"
+            << std::endl;
+        msg << "parameters being validated are : " << std::endl;
+        msg << this->PrettyPrintJsonString() << std::endl;
+        msg << "defaults against which the current parameters are validated "
+               "are :"
+            << std::endl;
+        msg << defaults.PrettyPrintJsonString() << std::endl;
+        KRATOS_ERROR << msg.str() << std::endl;
+      }
+      // now walk the tree recursively
+      if (itr->value.IsObject()) {
+        Parameters subobject = (*this)[item_name];
+        Parameters defaults_subobject = defaults[item_name];
+        subobject.RecursivelyValidateAndAssignDefaults(defaults_subobject);
+      }
+    }
+
+    // now iterate over all the defaults. In the case a default value is not
+    // assigned in the current Parameters
+    // add an item copying its value
+    if (defaults.IsSubParameter()) {
+      for (rapidjson::Value::MemberIterator itr =
+               defaults.mpvalue->MemberBegin();
+           itr != defaults.mpvalue->MemberEnd(); ++itr) {
+        std::string item_name = itr->name.GetString();
+        if (!this->Has(item_name)) {
+          rapidjson::Value *pvalue = &itr->value;
+
+          this->AddValue(item_name, Parameters(pvalue, defaults.mpdoc));
+        }
+
+        // now walk the tree recursively
+        if (itr->value.IsObject()) {
+          Parameters subobject = (*this)[item_name];
+          Parameters defaults_subobject = defaults[item_name];
+          subobject.ValidateAndAssignDefaults(defaults_subobject);
+        }
+      }
+    }
+
+    KRATOS_CATCH("")
+  }
 
 private:
     json* mpvalue; //this is where the json is actually stored
@@ -630,7 +945,6 @@ private:
     {
         return mpvalue;
     }
-
 };
 
 ///@}
@@ -638,37 +952,28 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  Parameters& rThis)
-{
-    return rIStream;
+inline std::istream &operator>>(std::istream &rIStream, Parameters &rThis) {
+  return rIStream;
 }
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const Parameters& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
+inline std::ostream &operator<<(std::ostream &rOStream,
+                                const Parameters &rThis) {
+  rThis.PrintInfo(rOStream);
+  rOStream << std::endl;
+  rThis.PrintData(rOStream);
 
-    return rOStream;
+  return rOStream;
 }
 ///@}
 
 ///@} addtogroup block
 
-
-
-
-
-}  // namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_KRATOS_PARAMETERS_H_INCLUDED  defined

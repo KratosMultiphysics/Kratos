@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2016 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2016, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -34,9 +34,7 @@ THE SOFTWARE.
 
 #include <vector>
 
-#include <boost/static_assert.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <memory>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>
@@ -49,13 +47,13 @@ namespace detail {
 // Same backends are always compatible
 template <class B1, class B2>
 struct compatible_backends
-    : boost::is_same<B1, B2>::type {};
+    : std::is_same<B1, B2>::type {};
 
 // Builtin backend allows mixing backends of different value types,
 // so that scalar and non-scalar backends may coexist.
 template <class V1, class V2>
 struct compatible_backends< backend::builtin<V1>, backend::builtin<V2> >
-    : boost::true_type {};
+    : std::true_type {};
 
 // Backend for schur complement preconditioner is selected as the one with
 // lower dimensionality of its value_type.
@@ -70,10 +68,10 @@ struct common_backend<B, B> {
 
 template <class V1, class V2>
 struct common_backend< backend::builtin<V1>, backend::builtin<V2>,
-    typename boost::disable_if<typename boost::is_same<V1, V2>::type>::type >
+    typename std::enable_if<!std::is_same<V1, V2>::value>::type >
 {
     typedef
-        typename boost::conditional<
+        typename std::conditional<
             (math::static_rows<V1>::value <= math::static_rows<V2>::value),
             backend::builtin<V1>, backend::builtin<V2>
             >::type
@@ -85,13 +83,11 @@ struct common_backend< backend::builtin<V1>, backend::builtin<V2>,
 /// Schur-complement pressure correction preconditioner
 template <class USolver, class PSolver>
 class schur_pressure_correction {
-    BOOST_STATIC_ASSERT_MSG(
-            (
-             detail::compatible_backends<
-                 typename USolver::backend_type,
-                 typename PSolver::backend_type
-                 >::value
-            ),
+    static_assert(
+            detail::compatible_backends<
+                typename USolver::backend_type,
+                typename PSolver::backend_type
+                >::value,
             "Backends for pressure and flow preconditioners should coincide!"
             );
     public:
@@ -118,37 +114,76 @@ class schur_pressure_correction {
 
             std::vector<char> pmask;
 
-            params() {}
+            // Approximate Kuu^-1 with inverted diagonal of Kuu during
+            // construction of matrix-less Schur complement.
+            // When false, USolver is used instead.
+            bool approx_schur;
 
+            params() : approx_schur(true) {}
+
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, usolver),
-                  AMGCL_PARAMS_IMPORT_CHILD(p, psolver)
+                  AMGCL_PARAMS_IMPORT_CHILD(p, psolver),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, approx_schur)
             {
-                void *pm = 0;
                 size_t n = 0;
 
-                pm = p.get("pmask",     pm);
-                n  = p.get("pmask_size", n);
-
-                precondition(pm,
-                        "Error in schur_complement parameters: "
-                        "pmask is not set");
+                n = p.get("pmask_size", n);
 
                 precondition(n > 0,
                         "Error in schur_complement parameters: "
-                        "pmask is set, but pmask_size is not"
-                        );
+                        "pmask_size is not set");
 
-                pmask.assign(static_cast<char*>(pm), static_cast<char*>(pm) + n);
+                if (p.count("pmask_pattern")) {
+                    pmask.resize(n, 0);
 
-                AMGCL_PARAMS_CHECK(p, (usolver)(psolver)(pmask)(pmask_size));
+                    std::string pattern = p.get("pmask_pattern", std::string());
+                    switch (pattern[0]) {
+                        case '%':
+                            {
+                                int start  = std::atoi(pattern.substr(1).c_str());
+                                int stride = std::atoi(pattern.substr(3).c_str());
+                                for(size_t i = start; i < n; i += stride) pmask[i] = 1;
+                            }
+                            break;
+                        case '<':
+                            {
+                                size_t m = std::atoi(pattern.c_str()+1);
+                                for(size_t i = 0; i < std::min(m, n); ++i) pmask[i] = 1;
+                            }
+                            break;
+                        case '>':
+                            {
+                                size_t m = std::atoi(pattern.c_str()+1);
+                                for(size_t i = m; i < n; ++i) pmask[i] = 1;
+                            }
+                            break;
+                        default:
+                            precondition(false, "Unknown pattern in pmask_pattern");
+                    }
+                } else if (p.count("pmask")) {
+                    void *pm = 0;
+                    pm = p.get("pmask", pm);
+                    pmask.assign(static_cast<char*>(pm), static_cast<char*>(pm) + n);
+                } else {
+                    precondition(false,
+                            "Error in schur_complement parameters: "
+                            "neither pmask_pattern, nor pmask is set"
+                            );
+                }
+
+                check_params(p, {"usolver", "psolver", "approx_schur", "pmask_size"},
+                        {"pmask", "pmask_pattern"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path = "") const
             {
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, usolver);
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, psolver);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, approx_schur);
             }
+#endif
         } prm;
 
         template <class Matrix>
@@ -159,11 +194,11 @@ class schur_pressure_correction {
                 )
             : prm(prm), n(backend::rows(K)), np(0), nu(0)
         {
-            init(boost::make_shared<build_matrix>(K), bprm);
+            init(std::make_shared<build_matrix>(K), bprm);
         }
 
         schur_pressure_correction(
-                boost::shared_ptr<build_matrix> K,
+                std::shared_ptr<build_matrix> K,
                 const params &prm = params(),
                 const backend_params &bprm = backend_params()
                 )
@@ -173,15 +208,7 @@ class schur_pressure_correction {
         }
 
         template <class Vec1, class Vec2>
-        void apply(
-                const Vec1 &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2       &x
-#else
-                Vec2       &&x
-#endif
-                ) const
-        {
+        void apply(const Vec1 &rhs, Vec2 &&x) const {
             backend::spmv(1, *x2u, rhs, 0, *rhs_u);
             backend::spmv(1, *x2p, rhs, 0, *rhs_p);
 
@@ -208,6 +235,10 @@ class schur_pressure_correction {
             backend::spmv(1, *p2x, *p, 1, x);
         }
 
+        std::shared_ptr<matrix> system_matrix_ptr() const {
+            return K;
+        }
+
         const matrix& system_matrix() const {
             return *K;
         }
@@ -218,51 +249,51 @@ class schur_pressure_correction {
             backend::spmv( alpha, P->system_matrix(), x, beta, y);
 
             backend::spmv(1, *Kup, x, 0, *tmp);
-            backend::clear(*u);
-            (*U)(*tmp, *u);
+
+            if (prm.approx_schur) {
+                backend::vmul(1, *M, *tmp, 0, *u);
+            } else {
+                backend::clear(*u);
+                (*U)(*tmp, *u);
+            }
+
             backend::spmv(-alpha, *Kpu, *u, 1, y);
         }
     private:
         size_t n, np, nu;
 
-        boost::shared_ptr<matrix> K, Kup, Kpu, x2u, x2p, u2x, p2x;
-        boost::shared_ptr<vector> rhs_u, rhs_p, u, p, tmp;
+        std::shared_ptr<matrix> K, Kup, Kpu, x2u, x2p, u2x, p2x;
+        std::shared_ptr<vector> rhs_u, rhs_p, u, p, tmp;
+        std::shared_ptr<typename backend_type::matrix_diagonal> M;
 
-        boost::shared_ptr<USolver> U;
-        boost::shared_ptr<PSolver> P;
+        std::shared_ptr<USolver> U;
+        std::shared_ptr<PSolver> P;
 
-        void init(const boost::shared_ptr<build_matrix> &K, const backend_params &bprm)
+        void init(const std::shared_ptr<build_matrix> &K, const backend_params &bprm)
         {
-            typedef typename backend::row_iterator<build_matrix>::type row_iterator;
-
             this->K = backend_type::copy_matrix(K, bprm);
 
             // Extract matrix subblocks.
-            boost::shared_ptr<build_matrix> Kuu = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> Kpu = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> Kup = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> Kpp = boost::make_shared<build_matrix>();
+            auto Kuu = std::make_shared<build_matrix>();
+            auto Kpu = std::make_shared<build_matrix>();
+            auto Kup = std::make_shared<build_matrix>();
+            auto Kpp = std::make_shared<build_matrix>();
 
             std::vector<ptrdiff_t> idx(n);
 
             for(size_t i = 0; i < n; ++i)
                 idx[i] = (prm.pmask[i] ? np++ : nu++);
 
-            boost::tie(Kuu->nrows, Kuu->ncols) = boost::make_tuple(nu, nu);
-            boost::tie(Kup->nrows, Kup->ncols) = boost::make_tuple(nu, np);
-            boost::tie(Kpu->nrows, Kpu->ncols) = boost::make_tuple(np, nu);
-            boost::tie(Kpp->nrows, Kpp->ncols) = boost::make_tuple(np, np);
-
-            Kuu->ptr.resize(nu + 1, 0);
-            Kup->ptr.resize(nu + 1, 0);
-            Kpu->ptr.resize(np + 1, 0);
-            Kpp->ptr.resize(np + 1, 0);
+            Kuu->set_size(nu, nu, true);
+            Kup->set_size(nu, np, true);
+            Kpu->set_size(np, nu, true);
+            Kpp->set_size(np, np, true);
 
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
                 ptrdiff_t ci = idx[i];
                 char      pi = prm.pmask[i];
-                for(row_iterator k = backend::row_begin(*K, i); k; ++k) {
+                for(auto k = backend::row_begin(*K, i); k; ++k) {
                     char pj = prm.pmask[k.col()];
 
                     if (pi) {
@@ -281,22 +312,10 @@ class schur_pressure_correction {
                 }
             }
 
-            boost::partial_sum(Kuu->ptr, Kuu->ptr.begin());
-            boost::partial_sum(Kup->ptr, Kup->ptr.begin());
-            boost::partial_sum(Kpu->ptr, Kpu->ptr.begin());
-            boost::partial_sum(Kpp->ptr, Kpp->ptr.begin());
-
-            Kuu->col.resize(Kuu->ptr.back());
-            Kuu->val.resize(Kuu->ptr.back());
-
-            Kup->col.resize(Kup->ptr.back());
-            Kup->val.resize(Kup->ptr.back());
-
-            Kpu->col.resize(Kpu->ptr.back());
-            Kpu->val.resize(Kpu->ptr.back());
-
-            Kpp->col.resize(Kpp->ptr.back());
-            Kpp->val.resize(Kpp->ptr.back());
+            Kuu->set_nonzeros(Kuu->scan_row_sizes());
+            Kup->set_nonzeros(Kup->scan_row_sizes());
+            Kpu->set_nonzeros(Kpu->scan_row_sizes());
+            Kpp->set_nonzeros(Kpp->scan_row_sizes());
 
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
@@ -313,7 +332,7 @@ class schur_pressure_correction {
                     up_head = Kup->ptr[ci];
                 }
 
-                for(row_iterator k = backend::row_begin(*K, i); k; ++k) {
+                for(auto k = backend::row_begin(*K, i); k; ++k) {
                     ptrdiff_t  j = k.col();
                     value_type v = k.value();
                     ptrdiff_t cj = idx[j];
@@ -343,8 +362,8 @@ class schur_pressure_correction {
                 }
             }
 
-            U = boost::make_shared<USolver>(*Kuu, prm.usolver, bprm);
-            P = boost::make_shared<PSolver>(*Kpp, prm.psolver, bprm);
+            U = std::make_shared<USolver>(*Kuu, prm.usolver, bprm);
+            P = std::make_shared<PSolver>(*Kpp, prm.psolver, bprm);
 
             this->Kup = backend_type::copy_matrix(Kup, bprm);
             this->Kpu = backend_type::copy_matrix(Kpu, bprm);
@@ -357,49 +376,72 @@ class schur_pressure_correction {
 
             tmp = backend_type::create_vector(nu, bprm);
 
+            if (prm.approx_schur)
+                M = backend_type::copy_vector(diagonal(*Kuu, /*invert = */true), bprm);
+
             // Scatter/Gather matrices
-            boost::shared_ptr<build_matrix> x2u = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> x2p = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> u2x = boost::make_shared<build_matrix>();
-            boost::shared_ptr<build_matrix> p2x = boost::make_shared<build_matrix>();
+            auto x2u = std::make_shared<build_matrix>();
+            auto x2p = std::make_shared<build_matrix>();
+            auto u2x = std::make_shared<build_matrix>();
+            auto p2x = std::make_shared<build_matrix>();
 
-            boost::tie(x2u->nrows, x2u->ncols) = boost::make_tuple(nu, n);
-            boost::tie(x2p->nrows, x2p->ncols) = boost::make_tuple(np, n);
-            boost::tie(u2x->nrows, u2x->ncols) = boost::make_tuple(n, nu);
-            boost::tie(p2x->nrows, p2x->ncols) = boost::make_tuple(n, np);
+            x2u->set_size(nu, n, true);
+            x2p->set_size(np, n, true);
+            u2x->set_size(n, nu, true);
+            p2x->set_size(n, np, true);
 
-            x2u->ptr.reserve(nu+1); x2u->ptr.push_back(0);
-            x2p->ptr.reserve(np+1); x2p->ptr.push_back(0);
-            u2x->ptr.reserve(n +1); u2x->ptr.push_back(0);
-            p2x->ptr.reserve(n +1); p2x->ptr.push_back(0);
+            {
+                ptrdiff_t x2u_head = 0, x2u_idx = 0;
+                ptrdiff_t x2p_head = 0, x2p_idx = 0;
+                ptrdiff_t u2x_head = 0, u2x_idx = 0;
+                ptrdiff_t p2x_head = 0, p2x_idx = 0;
 
-            x2u->col.reserve(nu);
-            x2p->col.reserve(np);
-            u2x->col.reserve(nu);
-            p2x->col.reserve(np);
+                for(size_t i = 0; i < n; ++i) {
+                    if (prm.pmask[i]) {
+                        x2p->ptr[++x2p_idx] = ++x2p_head;
+                        ++p2x_head;
+                    } else {
+                        x2u->ptr[++x2u_idx] = ++x2u_head;
+                        ++u2x_head;
+                    }
 
-            x2u->val.resize(nu, math::identity<value_type>());
-            x2p->val.resize(np, math::identity<value_type>());
-            u2x->val.resize(nu, math::identity<value_type>());
-            p2x->val.resize(np, math::identity<value_type>());
-
-            for(size_t i = 0; i < n; ++i) {
-                ptrdiff_t j = idx[i];
-
-                if (prm.pmask[i]) {
-                    x2p->col.push_back(i);
-                    x2p->ptr.push_back(x2p->col.size());
-
-                    p2x->col.push_back(j);
-                } else {
-                    x2u->col.push_back(i);
-                    x2u->ptr.push_back(x2u->col.size());
-
-                    u2x->col.push_back(j);
+                    p2x->ptr[++p2x_idx] = p2x_head;
+                    u2x->ptr[++u2x_idx] = u2x_head;
                 }
+            }
 
-                p2x->ptr.push_back(p2x->col.size());
-                u2x->ptr.push_back(u2x->col.size());
+            x2u->set_nonzeros();
+            x2p->set_nonzeros();
+            u2x->set_nonzeros();
+            p2x->set_nonzeros();
+
+            {
+                ptrdiff_t x2u_head = 0;
+                ptrdiff_t x2p_head = 0;
+                ptrdiff_t u2x_head = 0;
+                ptrdiff_t p2x_head = 0;
+
+                for(size_t i = 0; i < n; ++i) {
+                    ptrdiff_t j = idx[i];
+
+                    if (prm.pmask[i]) {
+                        x2p->col[x2p_head] = i;
+                        x2p->val[x2p_head] = math::identity<value_type>();
+                        ++x2p_head;
+
+                        p2x->col[p2x_head] = j;
+                        p2x->val[p2x_head] = math::identity<value_type>();
+                        ++p2x_head;
+                    } else {
+                        x2u->col[x2u_head] = i;
+                        x2u->val[x2u_head] = math::identity<value_type>();
+                        ++x2u_head;
+
+                        u2x->col[u2x_head] = j;
+                        u2x->val[u2x_head] = math::identity<value_type>();
+                        ++u2x_head;
+                    }
+                }
             }
 
             this->x2u = backend_type::copy_matrix(x2u, bprm);
@@ -416,12 +458,16 @@ class schur_pressure_correction {
             return os;
         }
 
+#if defined(AMGCL_DEBUG)
         template <typename I, typename E>
-        static void report(const std::string &name, const boost::tuple<I, E> &c) {
-#if defined(AMGCL_DEBUG) || !defined(NDEBUG)
-            std::cout << name << " (" << boost::get<0>(c) << ", " << boost::get<1>(c) << ")\n";
-#endif
+        static void report(const std::string &name, const std::tuple<I, E> &c) {
+            std::cout << name << " (" << std::get<0>(c) << ", " << std::get<1>(c) << ")\n";
         }
+#else
+        template <typename I, typename E>
+        static void report(const std::string&, const std::tuple<I, E>&) {
+        }
+#endif
 };
 
 } // namespace preconditioner
