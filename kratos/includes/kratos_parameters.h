@@ -433,8 +433,14 @@ public:
      */
     bool IsVector() const
     {
-        return false; //WIP
-//         return mpValue->is_array();
+        if (!mpValue->is_array())
+            return false;
+
+        for (IndexType i = 0; i < mpValue->size(); ++i) {
+            if (!(*mpValue)[i].is_number())
+                return false;
+        }
+        return true; // All entries are numbers or Vector is empty
     }
 
     /**
@@ -443,8 +449,30 @@ public:
      */
     bool IsMatrix() const
     {
-        return false; //WIP
-//         return mpValue->is_array();
+        if (!mpValue->is_array()) // mpValue != [ ... ]
+            return false;
+
+        const SizeType nrows = mpValue->size();
+        if (nrows == 0) // mpValue is an empty array/vector => "[]"
+            return false;
+
+        for (IndexType i = 0; i < nrows; ++i) {
+            auto& row_i = (*mpValue)[i];
+            if (!row_i.is_array())
+                return false;
+
+            IndexType ncols = row_i.size();
+            if (ncols != (*mpValue)[0].size()) // Compare number of columns to first row
+                return false;                  // Number of columns is not consistent
+
+            for (IndexType j = 0; j < ncols; ++j) { // Check all values in column
+                if (!row_i[j].is_number())
+                return false;
+            }
+        }
+
+        return true; // All entries are numbers or Matrix is empty ([[]] or
+                     // [[],[],[],...])
     }
 
     /**
@@ -462,6 +490,7 @@ public:
      */
     double GetDouble() const
     {
+        KRATOS_ERROR_IF_NOT(mpValue->is_number()) << "Argument must be a number" << std::endl;
         return mpValue->get<double>();
     }
 
@@ -504,9 +533,18 @@ public:
      */
     Vector GetVector() const
     {
-//         if(mpValue->is_string() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a string","");
-//         return mpValue->get<std::string>();
-        return Vector(); // TODO
+        KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "Argument must be a Vector (a json list)" << std::endl;
+
+        const SizeType size = mpValue->size();
+
+        Vector aux_V(size);
+
+        for (IndexType i = 0; i < size; ++i) {
+            KRATOS_ERROR_IF_NOT((*mpValue)[i].is_number()) << "Entry " << i << " is not a number!" << std::endl;
+            aux_V(i) = (*mpValue)[i].get<double>();
+        }
+
+        return aux_V;
     }
 
     /**
@@ -515,9 +553,28 @@ public:
      */
     Matrix GetMatrix() const
     {
-//         if(mpValue->is_string() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a string","");
-//         return mpValue->get<std::string>();
-        return Matrix(); // WIP
+        KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "Argument must be a Matrix (a json list of lists)" << std::endl;
+
+        const SizeType nrows = mpValue->size();
+        KRATOS_ERROR_IF(nrows == 0) << "Argument must be a Matrix (a json list of lists)" << std::endl;
+
+        IndexType ncols = 0;
+        if ((*mpValue)[0].is_array())
+            ncols = (*mpValue)[0].size();
+
+        Matrix aux_A(nrows, ncols);
+
+        for (IndexType i = 0; i < nrows; ++i) {
+            auto &row_i = (*mpValue)[i];
+            KRATOS_ERROR_IF_NOT(row_i.is_array()) << "Not an array on row " << i << std::endl;
+            KRATOS_ERROR_IF_NOT(row_i.size() == ncols) << "Wrong size of row " << i << std::endl;
+            for (IndexType j = 0; j < ncols; ++j) {
+                KRATOS_ERROR_IF_NOT((row_i)[j].is_number()) << "Entry (" << i << "," << j << ") is not a number!" << std::endl;
+                aux_A(i, j) = (row_i)[j].get<double>();
+            }
+        }
+
+        return aux_A;
     }
 
     /**
@@ -549,31 +606,55 @@ public:
 
     /**
      * @brief This method sets the string contained in the current Parameter
-     * @param Value The string value
+     * @param rValue The string value
      */
-    void SetString(const std::string& Value)
+    void SetString(const std::string& rValue)
     {
-        *mpValue=Value;
+        *mpValue=rValue;
     }
 
     /**
      * @brief This method sets the vector contained in the current Parameter
-     * @param Value The vector value
+     * @param rValue The vector value
      */
-    void SetVector(const Vector& Value)
+    void SetVector(const Vector& rValue)
     {
-        // TODO: Finish this
-//         *mpValue=Value;
+        const SizeType size = rValue.size();
+
+//         nlohmann::json j_array(nlohmann::json::value_t::array);
+//         j_array.reserve(size);
+//         (*mpValue) = j_array;
+//
+//         for (IndexType i = 0; i < size; ++i) {
+//             mpValue->push_back(vec[i]);
+//         }
     }
 
     /**
      * @brief This method sets the matrix contained in the current Parameter
      * @param Value The matrix value
      */
-    void SetMatrix(const Matrix& Value)
+    void SetMatrix(const Matrix& rValue)
     {
-        // TODO: Finish this
-//         *mpValue=Value;
+        const SizeType nrows = rValue.size1();
+        const SizeType ncols = rValue.size2();
+
+//         nlohmann::json j_row_array(nlohmann::json::value_t::array);
+//         j_row_array.reserve(nrows);
+//         (*mpValue) = j_row_array;
+//
+//         for (IndexType i = 0; i < nrows; ++i) {
+//             mpValue->push_back(0); // Pushing back a default
+//                                                          // element to allocate memory
+//             nlohmann::json j_col_array(nlohmann::json::value_t::array); // change that default element to an array
+//             j_col_array.reserve(size);
+//             (*mpValue)[i] = j_col_array;
+//             (*mpValue)[i].reserve(ncols);
+//
+//             for (IndexType j = 0; j < ncols; ++j) {
+//                 (*mpValue)[i].push_back(rValue(i, j));
+//             }
+//         }
     }
 
     /**
@@ -657,7 +738,9 @@ public:
     }
 
     /**
-     * @brief
+     * @brief This method sets an array item given an index
+     * @param Index The index of the parameter to set
+     * @param rOtherArrayItem The parameter corresponding to the given index
      */
     void SetArrayItem(
         const IndexType Index,
@@ -678,64 +761,116 @@ public:
      */
     void AddEmptyArray(const std::string& rEntry)
     {
-        // TODO: Implement this
+        KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
+        if(mpValue->find(rEntry) == mpValue->end()) {
+            nlohmann::json j_array(nlohmann::json::value_t::array);
+            (*mpValue)[rEntry] = j_array;
+        }
     }
 
     /**
-     * @brief
+     * @brief This method appends into an array a double value
+     * @param Value The double value to append
      */
     void Append(const double Value)
     {
-        // TODO: Implement this
-//         mpValue->push_back();
+        KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
+        nlohmann::json j_number_float(nlohmann::json::value_t::number_float);
+        j_number_float = Value;
+        mpValue->push_back(j_number_float);
     }
 
     /**
-     * @brief
+     * @brief This method appends into an array a integer value
+     * @param Value The integer value to append
      */
     void Append(const int Value)
     {
-        // TODO: Implement this
+        KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
+        nlohmann::json j_number_integer(nlohmann::json::value_t::number_integer);
+        j_number_integer = Value;
+        mpValue->push_back(j_number_integer);
     }
 
     /**
-     * @brief
+     * @brief This method appends into an array a boolean value
+     * @param Value The boolean value to append
      */
     void Append(const bool Value)
     {
-        // TODO: Implement this
+        KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
+        nlohmann::json j_boolean(nlohmann::json::value_t::boolean);
+        j_boolean = Value;
+        mpValue->push_back(j_boolean);
     }
 
     /**
-     * @brief
+     * @brief This method appends into an array a string value
+     * @param rValue The string value to append
      */
     void Append(const std::string& rValue)
     {
-        // TODO: Implement this
+        KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
+        nlohmann::json j_string(nlohmann::json::value_t::string);
+        j_string = rValue;
+        mpValue->push_back(j_string);
     }
 
     /**
-     * @brief
+     * @brief This method appends into an array a vector value
+     * @param rValue The vector value to append
      */
     void Append(const Vector& rValue)
     {
+        KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
         // TODO: Implement this
     }
 
     /**
-     * @brief
+     * @brief This method appends into an array a matrix value
+     * @param rValue The matrix value to append
      */
     void Append(const Matrix& rValue)
     {
+        KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
         // TODO: Implement this
     }
 
     /**
-     * @brief
+     * @brief This method appends into an array a Parameter value
+     * @param rValue The Parameter value to append
      */
     void Append(const Parameters& rValue)
     {
-        // TODO: Implement this
+        KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
+//         nlohmann::json j_object(nlohmann::json::value_t::object);
+//         j_object = *(rValue.GetUnderlyingStorage());
+//         mpValue->push_back(j_object);
+    }
+
+    /**
+     * @brief This method looks in a recursive way in the json structure
+     * @param rBaseValue The value where to find
+     * @param rValueToFind The value to look
+     */
+    void RecursivelyFindValue(
+        const nlohmann::json& rBaseValue,
+        const nlohmann::json& rValueToFind
+        ) const
+    {
+        // TODO: Finish this!!!
+//         for (auto itr = rBaseValue.begin(); itr != rBaseValue.end(); ++itr) {
+//             if (&(itr->value) == &rValueToFind) {
+// //                 rapidjson::StringBuffer buffer;
+// //                 rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+// //                 mpValue->Accept(writer);
+// //                 KRATOS_INFO("Parameters") << "Base = " << buffer.GetString() << std::endl
+// //                 << "Problematic var name " << itr->name.GetString() << " value " << itr->value.GetString() << std::endl;
+//             } else {
+//                 if (itr->value.is_object()) RecursivelyFindValue(itr->value, rValueToFind);
+//                 //TODO: it could be an array
+//             }
+//         }
     }
 
     /**
@@ -747,7 +882,52 @@ public:
     bool IsEquivalentTo(Parameters& rParameters)
     {
         // TODO: Implement this
-        return false;
+//         for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
+//             std::string item_name = itr->name.GetString();
+//
+//             bool found = false;
+//
+//             for (auto itr_ref = rParameters.mpValue->begin(); itr_ref != rParameters.mpValue->end(); ++itr_ref) {
+//                 if (item_name == itr_ref->name.GetString()) {
+//                     found = true;
+//                     Parameters subobject = (*this)[item_name];
+//                     Parameters reference_subobject = rParameters[item_name];
+//
+//                     if (itr->value.IsObject()) {
+//                         if (!subobject.IsEquivalentTo(reference_subobject))
+//                             return false;
+//                     } else {
+//                         if (itr->value != itr_ref->value)
+//                             return false;
+//                     }
+//                     break;
+//                 }
+//             }
+//
+//             if (!found)
+//                 return false;
+//         }
+//
+//         // Reverse check: the rParameters can contain fields that are missing in the object
+//         for (auto itr =  rParameters.mpValue->begin();  itr != rParameters.mpValue->end(); ++itr) {
+//             std::string item_name = itr->name.GetString();
+//
+//             bool found = false;
+//
+//             for (auto itr_ref = this->mpValue->begin(); itr_ref != this->mpValue->end(); ++itr_ref) {
+//                 if (item_name == itr_ref->name.GetString()) {
+//                     found = true;
+//                     // no need to check the values here, if they were found in the
+//                     // previous loop, values were checked there
+//                     break;
+//                 }
+//             }
+//
+//             if (!found)
+//                 return false;
+//         }
+
+        return true;
     }
 
     /**
@@ -759,7 +939,54 @@ public:
     bool HasSameKeysAndTypeOfValuesAs(Parameters& rParameters)
     {
         // TODO: Implement this
-        return false;
+//         for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
+//             std::string item_name = itr->name.GetString();
+//
+//             bool found = false;
+//
+//             for (auto itr_ref = rParameters.mpValue->begin(); itr_ref != rParameters.mpValue->end(); ++itr_ref) {
+//                 if (item_name == itr_ref->name.GetString()) {
+//                     found = true;
+//                     Parameters subobject = (*this)[item_name];
+//                     Parameters reference_subobject = rParameters[item_name];
+//
+//                     if (itr->value.IsObject()) {
+//                         if (!subobject.HasSameKeysAndTypeOfValuesAs(reference_subobject))
+//                             return false;
+//                     } else {
+//                         if (itr->value.GetType() != itr_ref->value.GetType()) {
+//                             return false;
+//                         }
+//                     }
+//                     break;
+//                 }
+//             }
+//
+//             if (!found)
+//                 return false;
+//         }
+//
+//         // reverse check: the rParameters can contain fields that are missing in the
+//         // object
+//         for (auto itr = rParameters.mpValue->begin(); itr != rParameters.mpValue->end(); ++itr) {
+//             std::string item_name = itr->name.GetString();
+//
+//         bool found = false;
+//
+//         for (auto itr_ref =  this->mpValue->begin(); itr_ref != this->mpValue->end(); ++itr_ref) {
+//             if (item_name == itr_ref->name.GetString()) {
+//                 found = true;
+//                 // no need to check the types here, if they were found in the previous
+//                 // loop, types were checked there
+//                 break;
+//             }
+//         }
+//
+//         if (!found)
+//             return false;
+//         }
+
+        return true;
     }
 
     /**This function is designed to verify that the parameters under testing match the
@@ -906,28 +1133,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-//     void RecursivelyFindValue(
-//         const rapidjson::Value& rbase_value,
-//         const rapidjson::Value& rvalue_to_find) const
-//     {
-//         for (rapidjson::Value::ConstMemberIterator itr = rbase_value.MemberBegin(); itr != rbase_value.MemberEnd(); ++itr)
-//         {
-//             if (&(itr->value) == &rvalue_to_find)
-//             {
-//                 rapidjson::StringBuffer buffer;
-//                 rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-//                 mpValue->Accept(writer);
-//                 std::cout << "base = " << buffer.GetString() << std::endl;
-//                 std::cout << "problematic var name " << itr->name.GetString() << " value " << itr->value.GetString() << std::endl;
-//             }
-//             else
-//             {
-//                 if (itr->value.IsObject()) RecursivelyFindValue(itr->value, rvalue_to_find);
-//                 //TODO: it could be an array
-//             }
-//         }
-//     }
 
     ///@}
     ///@name Access
