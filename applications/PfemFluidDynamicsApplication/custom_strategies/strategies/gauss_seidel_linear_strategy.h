@@ -290,8 +290,6 @@ public:
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb = *mpb;
 
-	boost::timer solve_step_time;
-
         if (BaseType::mRebuildLevel > 0 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
             TSparseSpace::SetToZero(mA);
@@ -316,15 +314,7 @@ public:
             std::cout << "solution obtained = " << mDx << std::endl;
             std::cout << "RHS  = " << mb << std::endl;
         }
-	unsigned int sizeA=mA.size1();
-	unsigned int nonZero=0;
-	for(unsigned int i=0; i<sizeA; i++){
-	  if(mA(10,i)!=0){
-	    nonZero++;
-	  }
-	}
-	std::cout<<"sizeA "<<sizeA<<"   nonZero "<<nonZero<<std::endl;
-	
+
         if (this->GetEchoLevel() == 4) //print to matrix market file
         {
             std::stringstream matrix_market_name;
@@ -335,9 +325,6 @@ public:
             matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm.rhs";
             TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), mb);
         }
-
-
-	std::cout << "solve_step_time : " << solve_step_time.elapsed() << std::endl;
 
         //update results
         DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();

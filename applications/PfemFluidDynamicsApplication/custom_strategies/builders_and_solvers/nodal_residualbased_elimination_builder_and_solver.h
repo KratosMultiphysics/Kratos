@@ -221,7 +221,7 @@ namespace Kratos
 		    ((1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*(1.0-2.0*itNode->FastGetSolutionStepValue(POISSON_RATIO))) + 2.0*secondLame/3.0;
 		}
 		else if(itNode->Is(FLUID)){		  		
-		  secondLame = itNode->FastGetSolutionStepValue(VISCOSITY);
+		  secondLame = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
 		  /* volumetricCoeff*=0.000025;//dam break fine */
 		  /* volumetricCoeff*=0.04;//sloshing coarse */
@@ -524,9 +524,9 @@ namespace Kratos
 
 	  Timer::Start("Build");
 	
-	boost::timer m_build_time;
+	/* boost::timer m_build_time; */
 	BuildNodally(pScheme, rModelPart, A, b);
-	std::cout << "MOMENTUM EQ: build_time : " << m_build_time.elapsed() << std::endl;
+	/* std::cout << "MOMENTUM EQ: build_time : " << m_build_time.elapsed() << std::endl; */
 
 
         Timer::Stop("Build");
@@ -541,9 +541,9 @@ namespace Kratos
         const double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
 
-	boost::timer m_solve_time;
+	/* boost::timer m_solve_time; */
 	SystemSolveWithPhysics(A, Dx, b, rModelPart);
-	std::cout << "MOMENTUM EQ: solve_time : " << m_solve_time.elapsed() << std::endl;
+	/* std::cout << "MOMENTUM EQ: solve_time : " << m_solve_time.elapsed() << std::endl; */
 
         Timer::Stop("Solve");
         const double stop_solve = OpenMPUtils::GetCurrentTime();
@@ -754,7 +754,7 @@ namespace Kratos
       {
         KRATOS_TRY
 
-	  boost::timer m_contruct_matrix;
+	  /* boost::timer m_contruct_matrix; */
 
 	  if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
 	    {
@@ -809,7 +809,7 @@ namespace Kratos
             if (BaseType::mpReactionsVector->size() != ReactionsVectorSize)
 	      BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
 	  }
-	std::cout << "MOMENTUM EQ: contruct_matrix : " << m_contruct_matrix.elapsed() << std::endl;
+	/* std::cout << "MOMENTUM EQ: contruct_matrix : " << m_contruct_matrix.elapsed() << std::endl; */
 	
         KRATOS_CATCH("")
 

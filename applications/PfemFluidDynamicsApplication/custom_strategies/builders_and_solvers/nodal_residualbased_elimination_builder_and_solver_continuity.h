@@ -213,7 +213,7 @@ namespace Kratos
 		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(POISSON_RATIO)*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/((1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*(1.0-2.0*itNode->FastGetSolutionStepValue(POISSON_RATIO))) + 2.0*deviatoricCoeff/3.0;
 		}
 		else if(itNode->Is(FLUID)){
-		  deviatoricCoeff = itNode->FastGetSolutionStepValue(VISCOSITY);
+		  deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 		  if(deviatoricCoeff>1.0){
 		    deviatoricCoeff=1.0;
 		  }
@@ -492,9 +492,9 @@ namespace Kratos
 
 	  Timer::Start("Build");
 
-	boost::timer c_build_time;
+	/* boost::timer c_build_time; */
 	BuildNodally(pScheme, rModelPart, A, b);
-	std::cout << "CONTINUITY EQ: build_time : " << c_build_time.elapsed() << std::endl;
+	/* std::cout << "CONTINUITY EQ: build_time : " << c_build_time.elapsed() << std::endl; */
 
 
         Timer::Stop("Build");
@@ -506,16 +506,15 @@ namespace Kratos
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-        const double start_solve = OpenMPUtils::GetCurrentTime();
+        /* const double start_solve = OpenMPUtils::GetCurrentTime(); */
         Timer::Start("Solve");
 
-	boost::timer c_solve_time;
+	/* boost::timer c_solve_time; */
 	SystemSolveWithPhysics(A, Dx, b, rModelPart);
-	std::cout << "CONTINUITY EQ: solve_time : " << c_solve_time.elapsed() << std::endl;
+	/* std::cout << "CONTINUITY EQ: solve_time : " << c_solve_time.elapsed() << std::endl; */
 
         Timer::Stop("Solve");
-        const double stop_solve = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+        /* const double stop_solve = OpenMPUtils::GetCurrentTime(); */
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
@@ -722,7 +721,7 @@ namespace Kratos
       {
         KRATOS_TRY
 
-	  boost::timer c_contruct_matrix;
+	  /* boost::timer c_contruct_matrix; */
 
 	  if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
 	    {
@@ -777,7 +776,7 @@ namespace Kratos
             if (BaseType::mpReactionsVector->size() != ReactionsVectorSize)
 	      BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
 	  }
-	std::cout << "CONTINUITY EQ: contruct_matrix : " << c_contruct_matrix.elapsed() << std::endl;
+	/* std::cout << "CONTINUITY EQ: contruct_matrix : " << c_contruct_matrix.elapsed() << std::endl; */
 	
         KRATOS_CATCH("")
 
@@ -917,7 +916,6 @@ namespace Kratos
 					    TSystemMatrixType& A,
 					    ModelPart& rModelPart)
       {
-	std::cout<<" ConstructMatrixStructure for Continuity equation"<<std::endl;
 	//filling with zero the matrix (creating the structure)
 	Timer::Start("MatrixStructure");
 

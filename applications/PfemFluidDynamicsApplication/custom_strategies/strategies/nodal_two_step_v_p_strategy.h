@@ -17,7 +17,7 @@
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 #include "geometries/geometry.h"
 #include "utilities/geometry_utilities.h"
@@ -841,7 +841,7 @@ namespace Kratos {
 		deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
 		volumetricCoeff = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio)) + 2.0*deviatoricCoeff/3.0;
 	      }else if(itNode->Is(FLUID)){
-		deviatoricCoeff = itNode->FastGetSolutionStepValue(VISCOSITY);
+		deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 		volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
 	      }
 	      double currFirstLame=volumetricCoeff - 2.0*deviatoricCoeff/3.0;
@@ -1015,7 +1015,7 @@ namespace Kratos {
 		deviatoricCoeff = timeInterval*youngModulus/(1.0+poissonRatio)*0.5;
 		volumetricCoeff = timeInterval*poissonRatio*youngModulus/((1.0+poissonRatio)*(1.0-2.0*poissonRatio)) + 2.0*deviatoricCoeff/3.0;
 	      }else if(itNode->Is(FLUID)){
-		deviatoricCoeff = itNode->FastGetSolutionStepValue(VISCOSITY);
+		deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 		volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
 	      }
 	      double currFirstLame=volumetricCoeff - 2.0*deviatoricCoeff/3.0;

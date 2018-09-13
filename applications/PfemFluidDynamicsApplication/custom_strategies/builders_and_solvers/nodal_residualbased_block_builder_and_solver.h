@@ -314,7 +314,7 @@ namespace Kratos
 		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(POISSON_RATIO)*itNode->FastGetSolutionStepValue(YOUNG_MODULUS)/((1.0+itNode->FastGetSolutionStepValue(POISSON_RATIO))*(1.0-2.0*itNode->FastGetSolutionStepValue(POISSON_RATIO))) + 2.0*deviatoricCoeff/3.0;
 		}
 		else if(itNode->Is(FLUID)){
-		  deviatoricCoeff = itNode->FastGetSolutionStepValue(VISCOSITY);
+		  deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
 		  volumetricCoeff = timeInterval*itNode->FastGetSolutionStepValue(BULK_MODULUS);
 		}
 

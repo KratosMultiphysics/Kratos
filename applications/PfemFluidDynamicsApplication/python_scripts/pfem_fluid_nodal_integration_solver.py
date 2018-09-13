@@ -147,7 +147,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
 
@@ -262,7 +262,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
     def SetProperties(self):
         for el in self.main_model_part.Elements:
             density = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-            viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+            viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
             bulk_modulus = el.Properties.GetValue(KratosMultiphysics.BULK_MODULUS)
             young_modulus = el.Properties.GetValue(KratosMultiphysics.YOUNG_MODULUS)
             poisson_ratio = el.Properties.GetValue(KratosMultiphysics.POISSON_RATIO)
