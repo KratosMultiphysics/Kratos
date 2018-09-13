@@ -25,10 +25,10 @@
 
 // Project includes
 #include "includes/define.h"
-#include "json/json.hpp"                     
+#include "json/json.hpp"
 
 namespace Kratos {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -49,6 +49,14 @@ namespace Kratos {
 ///@}
 ///@name Kratos Classes
 ///@{
+/**
+ * @class Parameters
+ * @ingroup KratosCore
+ * @brief This class provides to Kratos a data structure for I/O based on the standard of JSON
+ * @details In computing, JavaScript Object Notation or JSON is an open-standard file format that uses human-readable text to transmit data objects consisting of attribute–value pairs and array data types (or any other serializable value). It is a very common data format used for asynchronous browser–server communication, including as a replacement for XML in some AJAX-style systems. More info: https://json.org/
+ * This class uses nlohmann JSON header only library
+ * @author Riccardo Rossi
+ */
 class Parameters {
 private:
     using json = nlohmann::json;
@@ -535,7 +543,7 @@ public:
             bool type_coincides = false;
             auto value_defaults = (defaults[item_name]).GetUnderlyingStorage();
             if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
-            
+
 //             if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
             if(itr->is_array() && value_defaults->is_array()) type_coincides = true;
             if(itr->is_string() && value_defaults->is_string()) type_coincides = true;
@@ -544,7 +552,7 @@ public:
             //
             //both must be bool to be acceptable
             if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
-                
+
             if(type_coincides == false)
             {
                 std::stringstream msg;
