@@ -77,7 +77,7 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
             else:
                 #mesher_flags = "rQYYCCJF"
                 #mesher_flags = "nQMu0"
-                mesher_flags ="nJFu0";
+                mesher_flags ="nJQF";
                 #mesher_flags ="VJFu0"; #PSOLID
                 #mesher_flags ="rMfjYYaq2.5nQ";
                 #mesher_flags = "nJFMQO4/4"
@@ -146,7 +146,8 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 
         #rebuild boundary
-        rebuild_mesh_boundary = KratosDelaunay.GenerateNewConditions(self.model_part, self.MeshingParameters, self.echo_level)
+        #rebuild_mesh_boundary = KratosDelaunay.GenerateNewConditions(self.model_part, self.MeshingParameters, self.echo_level)
+        rebuild_mesh_boundary = KratosPfemFluid.BuildMeshBoundaryForFluids(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 
 
