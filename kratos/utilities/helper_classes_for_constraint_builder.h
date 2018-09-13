@@ -37,8 +37,8 @@ typedef Node<3> NodeType;
 typedef Geometry<NodeType> GeometryType;
 
 /// Matrix and vector definition
-typedef Matrix MatrixType;
-typedef Vector VectorType;
+typedef Kratos::Matrix MatrixType;
+typedef Kratos::Vector VectorType;
 
 /// Indexes definition
 typedef IndexedObject::IndexType IndexType;
@@ -122,12 +122,12 @@ void ResizeAndInitializeLocalMatrices(MatrixType& rMatrix, VectorType& rVector,
  *
  *   This stores the condensed form of the MasterSlaveConstraint objects into one object. if only one relation for a slave is added as
  *   MasterSlaveConstraint then there will only be one entry for master for its corresponding AuxiliaryGlobalMasterSlaveConstraint.
- *   Currently this class is designed to hold only one equation. There is only one unique object of this class for each slave. 
+ *   Currently this class is designed to hold only one equation. There is only one unique object of this class for each slave.
  *
  *   Future plan is to also make it possible to work with matrices (T) and vectors (for slave and master equation ids and constants)
  *
  *
- *  IMPORTANT : This is not seen by the user. This is a helper data structure which is exists only in the builder and solver. 
+ *  IMPORTANT : This is not seen by the user. This is a helper data structure which is exists only in the builder and solver.
  *
  * @author Aditya Ghantasala
  */
@@ -417,7 +417,7 @@ typedef std::unordered_map< IndexType, unique_ptr< AuxiliaryGlobalMasterSlaveCon
 template <class TSparseSpace,
           class TDenseSpace,
           class TLinearSolver
-          > // Made template to include the possibility to work with both local and global matrices for imposing the constraints. 
+          > // Made template to include the possibility to work with both local and global matrices for imposing the constraints.
 class ConstraintImposer {
 public:
     ///@name Type Definitions
@@ -428,8 +428,8 @@ public:
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
     typedef Internals::LocalIndices LocalIndicesType;
-    typedef Matrix MatrixType;
-    typedef Vector VectorType;
+    typedef Kratos::Matrix MatrixType;
+    typedef Kratos::Vector VectorType;
     typedef std::vector<IndexType> VectorIndexType;
     typedef std::vector<IndexType> EquationIdVectorType;
 
@@ -446,7 +446,7 @@ public:
     {
     }
 
-    ConstraintImposer( const ConstraintImposer &OtherObject) : 
+    ConstraintImposer( const ConstraintImposer &OtherObject) :
                 mrGlobalMasterSlaveConstraints (OtherObject.mrGlobalMasterSlaveConstraints) // copy constructor
     {
     }
@@ -502,7 +502,7 @@ public:
     }
 
     /**
-     * @brief   This function modifies the LHS and RHS of the rCurrentContainer to account for any master-slave constraints its nodes/dofs 
+     * @brief   This function modifies the LHS and RHS of the rCurrentContainer to account for any master-slave constraints its nodes/dofs
      *          are carrying.
      * @details Here cannot use the pure Geometry because, we would need the dof list from the element/geometry.
      * @param   rCurrentContainer the element or condition where the rEquationIds to be modified for master-slave constraints
@@ -610,8 +610,8 @@ private:
     void Reset()
     {
         mLocalIndices.Reset();
-        mTransformationMatrixLocal.resize(0,0);
-        mConstantVectorLocal.resize(0);
+        mTransformationMatrixLocal.resize(0,0, false);
+        mConstantVectorLocal.resize(0, false);
         mMasterEquationIds.clear();
         mMasterEquationIds.shrink_to_fit();
         mContainerDofs.clear();

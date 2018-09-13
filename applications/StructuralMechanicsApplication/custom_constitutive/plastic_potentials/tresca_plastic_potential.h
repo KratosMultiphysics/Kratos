@@ -26,6 +26,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // The size type definition
+    typedef std::size_t SizeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -40,16 +43,23 @@ namespace Kratos
 /**
  * @class TrescaPlasticPotential
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a plastic potential following the theory of Tresca
+ * @details Working from the conventional assumption that the strength is related to the difference between major and minor principal stresses results in the Tresca model for total stress. This gives a hexagonal form of the potential in the principal stress space
  * @author Alejandro Cornejo & Lucia Barbu
  */
+template <SizeType TVoigtSize = 6>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaPlasticPotential
 {
   public:
     ///@name Type Definitions
     ///@{
 
+    /// We define the dimension
+    static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
+      
+    /// The define the Voigt size
+    static constexpr SizeType VoigtSize = TVoigtSize;
+      
     /// Counted pointer of TrescaPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(TrescaPlasticPotential);
 
@@ -89,29 +99,29 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaPlasticPotential
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param StressVector The stress vector
-     * @param Deviator The deviatoric part of the stress vector
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rGFlux The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& rStressVector,
-        const Vector& rDeviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        Vector& rGFlux,
+        array_1d<double, VoigtSize>& rGFlux,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        Vector first_vector, second_vector, third_vector;
+        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities::CalculateThirdVector(rDeviator, J2, third_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         double J3, lode_angle;
-        ConstitutiveLawUtilities::CalculateJ3Invariant(rDeviator, J3);
-        ConstitutiveLawUtilities::CalculateLodeAngle(J2, J3, lode_angle);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
         const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 

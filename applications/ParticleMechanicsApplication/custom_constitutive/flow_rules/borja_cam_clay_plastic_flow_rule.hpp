@@ -7,10 +7,10 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
+//  Main authors:    Bodhinanda Chandra
 //
-#if !defined(KRATOS_MC_PLASTIC_FLOW_RULE_H_INCLUDED )
-#define      KRATOS_MC_PLASTIC_FLOW_RULE_H_INCLUDED
+#if !defined(KRATOS_BORJA_CAM_CLAY_PLASTIC_FLOW_RULE_H_INCLUDED )
+#define      KRATOS_BORJA_CAM_CLAY_PLASTIC_FLOW_RULE_H_INCLUDED
 
 
 // System includes
@@ -63,7 +63,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
  */
-class MCPlasticFlowRule
+class BorjaCamClayPlasticFlowRule
     :public MPMFlowRule
 {
 
@@ -74,21 +74,20 @@ public:
     ///@{
 
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
-    KRATOS_CLASS_POINTER_DEFINITION( MCPlasticFlowRule );
+    KRATOS_CLASS_POINTER_DEFINITION( BorjaCamClayPlasticFlowRule );
 
-    // Variable material parameters which can change due to hardening
     struct MaterialParameters
     {
-        double Cohesion;
-        double FrictionAngle;
-        double DilatancyAngle;
+        double PreconsolidationPressure;
+        double PlasticHardeningModulus;
+        double ConsistencyParameter;
 
     public:
         void PrintInfo()
         {
-            std::cout << "Cohesion       = " << Cohesion       << std::endl;
-            std::cout << "FrictionAngle  = " << FrictionAngle  << std::endl;
-            std::cout << "DilatancyAngle = " << DilatancyAngle << std::endl;
+            std::cout << "PreconsolidationPressure   = " <<  PreconsolidationPressure  << std::endl;
+            std::cout << "PlasticHardeningModulus   = " <<  PlasticHardeningModulus  << std::endl;
+            std::cout << "ConsistencyParameter   = " <<  ConsistencyParameter  << std::endl;
         }
 
     };
@@ -98,22 +97,22 @@ public:
     ///@{
 
     /// Default constructor.
-    MCPlasticFlowRule();
+    BorjaCamClayPlasticFlowRule();
 
     /// Initialization constructor.
-    MCPlasticFlowRule(YieldCriterionPointer pYieldCriterion);
+    BorjaCamClayPlasticFlowRule(YieldCriterionPointer pYieldCriterion);
 
     /// Copy constructor.
-    MCPlasticFlowRule(MCPlasticFlowRule const& rOther);
+    BorjaCamClayPlasticFlowRule(BorjaCamClayPlasticFlowRule const& rOther);
 
     /// Assignment operator.
-    MCPlasticFlowRule& operator=(MCPlasticFlowRule const& rOther);
+    BorjaCamClayPlasticFlowRule& operator=(BorjaCamClayPlasticFlowRule const& rOther);
 
     // CLONE
     MPMFlowRule::Pointer Clone() const override;
 
     /// Destructor.
-    ~MCPlasticFlowRule() override;
+    ~BorjaCamClayPlasticFlowRule() override;
 
     bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, const Matrix& rIncrementalDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen) override;
 
@@ -123,7 +122,6 @@ public:
 
     unsigned int GetPlasticRegion() override;
 
-    //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix) override;
     
     void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix) override;
@@ -172,15 +170,20 @@ public:
 protected:
     Vector mElasticPrincipalStrain;
     Vector mPlasticPrincipalStrain;
-    Vector mElasticPreviousPrincipalStrain;
-    Vector mPrincipalStressTrial;
+
     Vector mPrincipalStressUpdated;
+
     unsigned int mRegion;
     bool mLargeStrainBool;
-    double mEquivalentPlasticStrain;
 
     MaterialParameters mMaterialParameters;
 
+    double mInitialVolumetricStrain;
+
+    double mStateFunction;
+    Vector mStateFunctionFirstDerivative ;
+    Vector mStateFunctionSecondDerivative;
+    
     ///@name Protected static Member Variables
     ///@{
 
@@ -202,27 +205,32 @@ protected:
 
     void InitializeMaterialParameters();
 
-    virtual void ComputePlasticHardeningParameter(const Vector& rHenckyStrainVector, const double& rAlpha, double& rH);
+    void CalculatePrincipalStressVector(Vector& rPrincipalStrain, Vector& rPrincipalStress);
 
+    void CalculateMeanStress(const double& rVolumetricStrain, const double& rDeviatoricStrain, double& rMeanStress);
+
+    void CalculateDeviatoricStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, Vector& rDeviatoricStress);
+    
+    void CalculatePrincipalStrainFromStrainInvariants(Vector& rPrincipalStrain, const double& rVolumetricStrain, const double& rDeviatoricStrain, const Vector& rDirectionVector);
+
+    void CalculateStrainInvariantsFromPrincipalStrain(const Vector& rPrincipalStrain, double& rVolumetricStrain, double& rDeviatoricStrain, Vector& rDeviatoricStrainVector);
+    
     bool CalculateConsistencyCondition(RadialReturnVariables& rReturnMappingVariables, Vector& rPrincipalStress, Vector& rPrincipalStrain, unsigned int& region, Vector& rPrincipalStressUpdated);
  
-    void ComputeElasticMatrix_3X3(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix);
+    void CalculateLHSMatrix(Matrix& rLHSMatrix, const Vector& rPrincipalStressVector, const Vector& rUnknownVector, const double& rK_p);
 
-    void CalculateDepSurface(Matrix& rElasticMatrix, Vector& rFNorm, Vector& rGNorm, Matrix& rAuxDep);
+    void CalculateHessianMatrix_2x2(Matrix& rHessianMatrix);
 
-    void CalculateDepLine(Matrix& rInvD, Vector& rFNorm, Vector& rGNorm, Matrix& rAuxDep);
+    void ComputeElasticMatrix_2X2(const Vector& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, Matrix& rElasticMatrix);
 
-    void CalculateElastoPlasticMatrix(const RadialReturnVariables& rReturnMappingVariables, unsigned int& rRegion, Vector& DiffPrincipalStress, Matrix& rDep);
+    void ComputePlasticMatrix_2X2(const Vector& rPrincipalStressVector, const double& rVolumetricStrain, const double& rDeviatoricStrain, const Matrix& rElasticMatrix, Matrix& rPlasticMatrix);
 
     void ReturnStressFromPrincipalAxis(const Matrix& rEigenVectors, const Vector& rPrincipalStress, Matrix& rStressMatrix);
 
-
-    void CalculateInverseElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rInverseElasticMatrix);
-    void CalculateElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix);
-    void CalculateModificationMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rAuxT, Matrix& rInvAuxT);
-
     void CalculateTransformationMatrix(const Matrix& rMainDirection, Matrix& rA);
-    
+
+    void UpdateStateVariables(const Vector rPrincipalStress, const double rAlpha = 0.0, const double rConsistencyParameter = 0.0);
+
     double GetSmoothingLodeAngle();
 
     double GetPI();
@@ -337,4 +345,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MATSUOKA_NAKAI_PLASTIC_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_BORJA_CAM_CLAY_PLASTIC_FLOW_RULE_H_INCLUDED  defined 
