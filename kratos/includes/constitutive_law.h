@@ -793,6 +793,24 @@ public:
      * @return the expected stress measure
      */
     virtual StressMeasure GetStressMeasure();
+    
+    /**
+     * @brief Sets the strain measure of this constitutive law
+     * @param NewStrainMeasure the new strain measure
+     */
+    virtual void SetStrainMeasure(const StrainMeasure NewStrainMeasure)
+    {
+    	KRATOS_ERROR << "The method SetStrainMeasure must be implemented in the derived class. This does nothing" << std::endl;
+    }
+
+    /**
+     * @brief Sets the stress measure of this constitutive law
+     * @param NewStressMeasure the new stress measure
+     */
+    virtual void SetStressMeasure(const StressMeasure NewStressMeasure)
+    {
+    	KRATOS_ERROR << "The method SetStressMeasure must be implemented in the derived class. This does nothing" << std::endl;
+    }
 
     /**
      * returns whether this constitutive model is formulated in incremental strains/stresses
