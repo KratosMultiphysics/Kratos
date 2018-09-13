@@ -7,6 +7,21 @@ import structural_mechanics_analysis
 
 import time as timer
 
+def _GetModelPart(model, solver_settings):
+    #TODO can be removed once model is fully available
+    model_part_name = solver_settings["model_part_name"].GetString()
+    if not model.HasModelPart(model_part_name):
+        model_part = ModelPart(model_part_name)
+        domain_size = solver_settings["domain_size"].GetInt()
+        if domain_size < 0:
+            raise Exception('Please specify a "domain_size" >= 0!')
+        model_part.ProcessInfo.SetValue(DOMAIN_SIZE, domain_size)
+        model.AddModelPart(model_part)
+    else:
+        model_part = model.GetModelPart(model_part_name)
+
+    return model_part
+
 # ==============================================================================
 class ResponseFunctionBase(object):
     """The base class for structural response functions. Each response function
@@ -66,9 +81,9 @@ class StrainEnergyResponseFunction(ResponseFunctionBase):
         with open(response_settings["primal_settings"].GetString()) as parameters_file:
             ProjectParametersPrimal = Parameters(parameters_file.read())
 
-        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal) # model part is created here
+        self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
 
-        self.primal_model_part = model.GetModelPart(ProjectParametersPrimal["problem_data"]["model_part_name"].GetString())
+        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
         self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(self.primal_model_part, response_settings)
@@ -156,9 +171,9 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
             Logger.PrintWarning("\n> WARNING: Eigenfrequency response function requires mass normalization of eigenvectors!")
             Logger.PrintWarning("  Primal parameters were adjusted accordingly!\n")
 
-        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
+        self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
 
-        self.primal_model_part = model.GetModelPart(ProjectParametersPrimal["problem_data"]["model_part_name"].GetString())
+        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.primal_model_part.AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
 
         self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(self.primal_model_part, response_settings)
@@ -251,8 +266,10 @@ class AdjointResponseFunction(ResponseFunctionBase):
         # Create the primal solver
         with open(project_parameters["primal_settings"].GetString(),'r') as parameter_file:
             ProjectParametersPrimal = Parameters( parameter_file.read() )
+
+        self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
+
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
-        self.primal_model_part_name = ProjectParametersPrimal["problem_data"]["model_part_name"].GetString()
 
         # Create the adjoint solver
         with open(project_parameters["adjoint_settings"].GetString(),'r') as parameter_file:
@@ -260,17 +277,15 @@ class AdjointResponseFunction(ResponseFunctionBase):
         ProjectParametersAdjoint["solver_settings"].AddValue("response_function_settings", project_parameters)
 
         adjoint_model = Model()
+
+        self.adjoint_model_part = _GetModelPart(adjoint_model, ProjectParametersAdjoint["solver_settings"])
+
         # TODO find out why it is not possible to use the same model_part
         self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(adjoint_model, ProjectParametersAdjoint)
-        self.adjoint_model_part_name = ProjectParametersAdjoint["problem_data"]["model_part_name"].GetString()
-
 
     def Initialize(self):
         self.primal_analysis.Initialize()
         self.adjoint_analysis.Initialize()
-
-        self.primal_model_part = self.primal_analysis.model.GetModelPart(self.primal_model_part_name)
-        self.adjoint_model_part = self.adjoint_analysis.model.GetModelPart(self.adjoint_model_part_name)
 
     def InitializeSolutionStep(self):
         # synchronize the modelparts # TODO this should happen automatically
