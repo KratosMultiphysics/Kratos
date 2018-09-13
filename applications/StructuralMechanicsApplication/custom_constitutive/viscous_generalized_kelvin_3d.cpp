@@ -63,7 +63,9 @@ ViscousGeneralizedKelvin<TElasticBehaviourLaw>::~ViscousGeneralizedKelvin()
 template <class TElasticBehaviourLaw>
 void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
-    this->CalculateMaterialResponseCauchy(rValues);
+//     BaseType::CalculateMaterialResponsePK1(rValues);
+    // TODO: This requires to be properly defined to be able to set the StressMeasure
+    this->ComputeViscoElasticity(rValues);
 }
 
 /***********************************************************************************/
@@ -72,7 +74,9 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateMaterialResponsePK
 template <class TElasticBehaviourLaw>
 void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    this->CalculateMaterialResponseCauchy(rValues);
+//     BaseType::CalculateMaterialResponsePK2(rValues);
+    // TODO: This requires to be properly defined to be able to set the StressMeasure
+    this->ComputeViscoElasticity(rValues);
 }
 
 /***********************************************************************************/
@@ -81,7 +85,9 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateMaterialResponsePK
 template <class TElasticBehaviourLaw>
 void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-    this->CalculateMaterialResponseCauchy(rValues);
+//     BaseType::CalculateMaterialResponseKirchhoff(rValues);
+    // TODO: This requires to be properly defined to be able to set the StressMeasure
+    this->ComputeViscoElasticity(rValues);
 }
 
 /***********************************************************************************/
@@ -90,45 +96,9 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateMaterialResponseKi
 template <class TElasticBehaviourLaw>
 void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // Integrate kelvin Generalized
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    Vector& integrated_stress_vector = rValues.GetStressVector(); // To be updated
-    const Vector& strain_vector = rValues.GetStrainVector();
-    Matrix& tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-    const ProcessInfo& r_process_info = rValues.GetProcessInfo();
-    const double time_step = r_process_info[DELTA_TIME];
-    const double delay_time = r_material_properties[DELAY_TIME];
-    const Flags& constitutive_law_options = rValues.GetOptions();
-
-    // Elastic Matrix
-    Matrix C, inverse_C;
-    double detC = 0.0;
-    this->CalculateElasticMatrix(C, r_material_properties);
-    MathUtils<double>::InvertMatrix(C, inverse_C, detC);
-
-    Vector inelastic_strain = this->GetPreviousInelasticStrainVector();
-    const Vector& previous_stress = this->GetPreviousStressVector();
-    const IndexType number_sub_increments = 10;
-    const double dt = time_step / number_sub_increments;
-
-    Vector aux_stress_vector;
-    aux_stress_vector = previous_stress;
-    Vector aux = ZeroVector(6);
-
-    Vector elastic_strain;
-    for (IndexType i = 0; i < number_sub_increments; i++) {
-        aux = (std::exp(-dt / delay_time) * prod(inverse_C, aux_stress_vector)) / delay_time;
-        inelastic_strain = std::exp(-dt / delay_time) * inelastic_strain + aux;
-        elastic_strain = strain_vector - inelastic_strain;
-        noalias(aux_stress_vector) = prod(C, elastic_strain);
-    }
-    noalias(integrated_stress_vector) = aux_stress_vector;
-    if (constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        noalias(tangent_tensor) = C;
-        this->SetNonConvPreviousStressVector(integrated_stress_vector);
-        this->SetNonConvPreviousInelasticStrainVector(inelastic_strain);
-    }
-} // End CalculateMaterialResponseCauchy
+    // TODO: This requires to be properly defined to be able to set the StressMeasure
+    this->ComputeViscoElasticity(rValues);
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -149,31 +119,63 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeSolutionStep(
 /***********************************************************************************/
 
 template <class TElasticBehaviourLaw>
-void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateElasticMatrix(
-    Matrix& rElasticityTensor,
-    const Properties& rMaterialProperties)
+void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::ComputeViscoElasticity(ConstitutiveLaw::Parameters& rValues)
 {
-    const double E = rMaterialProperties[YOUNG_MODULUS];
-    const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
-    const double lambda = E * poisson_ratio / ((1. + poisson_ratio) * (1.0 - 2.0 * poisson_ratio));
-    const double mu = E / (2.0 + 2.0 * poisson_ratio);
+    // Integrate kelvin Generalized
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const ProcessInfo& r_process_info = rValues.GetProcessInfo();
+    const double time_step = r_process_info[DELTA_TIME];
+    const double delay_time = r_material_properties[DELAY_TIME];
+    const Flags& r_flags = rValues.GetOptions();
+    
+    // We compute the strain in case not provided
+    if( r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+        Vector& r_strain_vector = rValues.GetStrainVector();
+        this->CalculateValue(rValues, STRAIN, r_strain_vector);
+    }
+    
+    // We compute the stress
+    if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+        // Elastic Matrix
+        Matrix constitutive_matrix, inverse_constitutive_matrix;
+        double detC = 0.0;
+        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, constitutive_matrix);
+        MathUtils<double>::InvertMatrix(constitutive_matrix, inverse_constitutive_matrix, detC);
 
-    if (rElasticityTensor.size1() != 6 || rElasticityTensor.size2() != 6)
-        rElasticityTensor.resize(6, 6, false);
-    rElasticityTensor.clear();
-
-    rElasticityTensor(0, 0) = lambda + 2.0 * mu;
-    rElasticityTensor(0, 1) = lambda;
-    rElasticityTensor(0, 2) = lambda;
-    rElasticityTensor(1, 0) = lambda;
-    rElasticityTensor(1, 1) = lambda + 2.0 * mu;
-    rElasticityTensor(1, 2) = lambda;
-    rElasticityTensor(2, 0) = lambda;
-    rElasticityTensor(2, 1) = lambda;
-    rElasticityTensor(2, 2) = lambda + 2.0 * mu;
-    rElasticityTensor(3, 3) = mu;
-    rElasticityTensor(4, 4) = mu;
-    rElasticityTensor(5, 5) = mu;
+        // Ineslastic terms
+        Vector inelastic_strain = this->GetPreviousInelasticStrainVector();
+        const Vector& previous_stress = this->GetPreviousStressVector();
+        const IndexType number_sub_increments = 10;
+        const double dt = time_step / number_sub_increments;
+        
+        // Auxiliar terms
+        Vector aux_stress_vector(previous_stress);
+        Vector aux(VoigtSize);
+        Vector elastic_strain(VoigtSize);
+    
+        // Apply increments
+        const Vector& r_strain_vector = rValues.GetStrainVector();
+        for (IndexType i = 0; i < number_sub_increments; ++i) {
+            noalias(aux) = (std::exp(-dt / delay_time) * prod(inverse_constitutive_matrix, aux_stress_vector)) / delay_time;
+            noalias(inelastic_strain) = std::exp(-dt / delay_time) * inelastic_strain + aux;
+            noalias(elastic_strain) = r_strain_vector - inelastic_strain;
+            noalias(aux_stress_vector) = prod(constitutive_matrix, elastic_strain);
+        }
+        
+        Vector& integrated_stress_vector = rValues.GetStressVector(); // To be updated
+        noalias(integrated_stress_vector) = aux_stress_vector;
+        if (r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            rValues.SetConstitutiveMatrix(constitutive_matrix);
+            this->SetNonConvPreviousStressVector(integrated_stress_vector);
+            this->SetNonConvPreviousInelasticStrainVector(inelastic_strain);
+        }
+    } else {
+        // Elastic Matrix
+        if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+            Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+            this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -216,6 +218,19 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeMaterialResponseCau
 /***********************************************************************************/
 
 template <class TElasticBehaviourLaw>
+Vector& ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<Vector>& rThisVariable,
+    Vector& rValue
+    )
+{
+    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TElasticBehaviourLaw>
 Matrix& ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Matrix>& rThisVariable,
@@ -224,6 +239,8 @@ Matrix& ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateValue(
 {
     if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
         rValue = MathUtils<double>::StressVectorToTensor(this->GetPreviousStressVector());
+    } else {
+        rValue = BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }
 
     return rValue;

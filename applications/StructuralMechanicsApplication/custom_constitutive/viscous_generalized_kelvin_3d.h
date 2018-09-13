@@ -126,32 +126,31 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin
     ///@{
 
     /**
-     * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
+     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
     void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+     * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
     void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
+     * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
     void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * to be called at the end of each solution step
-     * (e.g. from Element::FinalizeSolutionStep)
+     * @brief To be called at the end of each solution step (e.g. from Element::FinalizeSolutionStep)
      * @param rMaterialProperties the Properties instance of the current element
      * @param rElementGeometry the geometry of the current element
      * @param rShapeFunctionsValues the shape functions values in the current integration point
@@ -161,7 +160,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     /**
      * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
@@ -186,6 +186,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin
      * @see Parameters
      */
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Calculates the value of a specified variable (Vector)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    Vector& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue
+        ) override;
 
     /**
      * @brief Calculates the value of a specified variable (Matrix)
@@ -297,13 +310,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin
     void SetNonConvPreviousInelasticStrainVector(Vector& toStrain) { mNonConvPrevInelasticStrainVector = toStrain; }
 
     /**
-     * @brief This method computes the elastic tensor
-     * @param rElasticityTensor The elastic tensor
-     * @param rMaterialProperties The material properties
+     * @brief Compute visco-elasticity
      */
-    void CalculateElasticMatrix(
-        Matrix& rElasticityTensor,
-        const Properties& rMaterialProperties);
+    void ComputeViscoElasticity(ConstitutiveLaw::Parameters& rValues);
 
     ///@}
     ///@name Private  Access
