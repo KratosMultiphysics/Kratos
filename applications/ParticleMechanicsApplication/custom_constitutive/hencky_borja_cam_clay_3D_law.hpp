@@ -7,36 +7,38 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Bodhinanda Chandra
 //
 
-#if !defined (KRATOS_HENCKY_MC_PLASTIC_UP_3D_LAW_H_INCLUDED)
-#define       KRATOS_HENCKY_MC_PLASTIC_UP_3D_LAW_H_INCLUDED
+#if !defined (KRATOS_HENCKY_BORJA_CAM_CLAY_PLASTIC_3D_LAW_H_INCLUDED)
+#define       KRATOS_HENCKY_BORJA_CAM_CLAY_PLASTIC_3D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/hencky_plastic_UP_3d_law.hpp"
-#include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
-#include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
+#include "custom_constitutive/hencky_plastic_3d_law.hpp"
+#include "custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.hpp"
+#include "custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.hpp"
+#include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
 
 
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law for non-associative Mohr Coulomb (MC) constitutive law
- * With an extra DOF for Pressure which will be solved at each nonlinear iteration
+ * Defines a critical-state constitutive law for associative two-invariant Modified Cam Clay model formulated by (Borja, 1998)
+ * With stress split in an volumetric and deviatoric parts
  * This material law is defined by the parameters needed by the yield criterion:
- * YOUNG_MODULUS, POISSON_RATIO, COHESION, INTERNAL_FRICTION_ANGLE, INTERNAL_DILATANCY_ANGLE
- * The functionality is designed for large displacements and perfectly plastic (no-hardening law)
+ * PRE_CONSOLIDATION_STRESS, OVER_CONSOLIDATION_RATIO, SWELLING_SLOPE, NORMAL_COMPRESSION_SLOPE, CRITICAL_STATE_LINE
+ * INITIAL_SHEAR_MODULUS, ALPHA_SHEAR
+ * The functionality is designed for large displacements and considering linear ln(v) - ln(p_c) Cam Clay hardening
+ * For reference, please refer to: (Borja, 1998)
 */
 
 
-
-class HenckyMCPlasticUP3DLaw
-    : public HenckyElasticPlasticUP3DLaw
+class HenckyBorjaCamClayPlastic3DLaw
+    : public HenckyElasticPlastic3DLaw
 
 {
 public:
@@ -47,7 +49,7 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
 
-    typedef MPMFlowRule::Pointer                MPMFlowRulePointer;
+    typedef MPMFlowRule::Pointer                FlowRulePointer;
     typedef YieldCriterion::Pointer    YieldCriterionPointer;
     typedef HardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer            PropertiesPointer;
@@ -56,7 +58,7 @@ public:
      * Counted pointer of HyperElasticPlasticJ2PlaneStrain2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( HenckyMCPlasticUP3DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION( HenckyBorjaCamClayPlastic3DLaw );
 
     /**
      * Life Cycle
@@ -65,15 +67,15 @@ public:
     /**
      * Default constructor.
      */
-    HenckyMCPlasticUP3DLaw();
+    HenckyBorjaCamClayPlastic3DLaw();
 
 
-    HenckyMCPlasticUP3DLaw(MPMFlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
+    HenckyBorjaCamClayPlastic3DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
      */
-    HenckyMCPlasticUP3DLaw (const HenckyMCPlasticUP3DLaw& rOther);
+    HenckyBorjaCamClayPlastic3DLaw (const HenckyBorjaCamClayPlastic3DLaw& rOther);
 
 
     /**
@@ -91,7 +93,7 @@ public:
     /**
      * Destructor.
      */
-    ~HenckyMCPlasticUP3DLaw() override;
+    ~HenckyBorjaCamClayPlastic3DLaw() override;
 
     /**
      * Operators
@@ -111,7 +113,7 @@ public:
      * @param CurrentProcessInfo
      * @return
      */
-    //int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
+    int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -182,16 +184,16 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlasticUP3DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlasticUP3DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }
 
 
 
 }; // Class HyperElasticPlasticMohrCoulombPlaneStrain2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HENCKY_MATSUOKA_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED defined
+#endif // KRATOS_HENCKY_BORJA_CAM_CLAY_PLASTIC_3D_LAW_H_INCLUDED defined

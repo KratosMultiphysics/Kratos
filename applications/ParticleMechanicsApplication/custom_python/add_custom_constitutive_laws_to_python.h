@@ -22,8 +22,6 @@
 #include <pybind11/pybind11.h>
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
