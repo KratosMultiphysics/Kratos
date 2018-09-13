@@ -49,11 +49,11 @@ class MultiscaleProcess(KratosMultiphysics.Process):
     def _InitializeRefinedModelPart(self):
         self.refined_model_part_name = self.settings['main_model_part_name'].GetString() + '_' + str(self.current_subscale + 1)
         coarse_model_part = self.model[self.coarse_model_part_name]
-        refined_model_part = KratosMultiphysics.ModelPart(self.refined_model_part_name)
-        self.model.AddModelPart(refined_model_part)
+        self.refined_model_part = KratosMultiphysics.ModelPart(self.refined_model_part_name)
+        self.model.AddModelPart(self.refined_model_part)
 
         # Create the new subscale process
-        self.subscales_utility = MeshingApplication.MultiScaleRefiningProcess(coarse_model_part, refined_model_part, self.settings["advanced_configuration"])
+        self.subscales_utility = MeshingApplication.MultiScaleRefiningProcess(coarse_model_part, self.refined_model_part, self.settings["advanced_configuration"])
         
         if self.echo_level > 0:
             print('The multiscale process is initialized')

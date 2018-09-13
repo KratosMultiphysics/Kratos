@@ -111,7 +111,7 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
     // Create the auxiliary entities
     CreateElementsToRefine(elem_id, elem_tag);
     CreateConditionsToRefine(elem_id, cond_tag);
-    
+
     // Execute the refinement
     int divisions = mrRefinedModelPart.GetValue(SUBSCALE_INDEX) * mDivisionsAtSubscale;
     auto uniform_refining = UniformRefineUtility<2>(mrRefinedModelPart, divisions);
@@ -204,9 +204,10 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
     // Create a model part to store the interface boundary conditions
     mrRefinedModelPart.CreateSubModelPart(mRefinedInterfaceName);
 
-    mMinNodeId = (subscale_index + 1) * 1e8;
-    mMinElemId = (subscale_index + 1) * 1e8;
-    mMinCondId = (subscale_index + 1) * 1e8;
+    const int subscale_digit = 100000000;
+    mMinNodeId = (subscale_index + 1) * subscale_digit;
+    mMinElemId = (subscale_index + 1) * subscale_digit;
+    mMinCondId = (subscale_index + 1) * subscale_digit;
 }
 
 
