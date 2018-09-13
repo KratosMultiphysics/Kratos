@@ -95,16 +95,18 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPot
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rGFlux The derivative of the plastic potential
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
         const Vector& rStressVector,
         const Vector& rDeviator,
         const double J2,
         Vector& rGFlux,
-        const Properties& rMaterialProperties
+        ConstitutiveLaw::Parameters& rValues
         )
     {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
         Vector first_vector, second_vector, third_vector;
 
         ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
@@ -117,7 +119,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPot
 
         const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
-        const double dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
+        const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
         const double sin_dil = std::sin(dilatancy);
         const double cos_dil = std::cos(dilatancy);
         const double sin_theta = std::sin(lode_angle);
@@ -127,8 +129,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPot
         const double tan_3theta = std::tan(3.0 * lode_angle);
         const double Root3 = std::sqrt(3.0);
 
-        const double compr_yield = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-        const double tensi_yield = rMaterialProperties[YIELD_STRESS_TENSION];
+        const double compr_yield = r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double tensi_yield = r_material_properties[YIELD_STRESS_TENSION];
         const double n = compr_yield / tensi_yield;
 
         const double angle_phi = (Globals::Pi * 0.25) + dilatancy * 0.5;

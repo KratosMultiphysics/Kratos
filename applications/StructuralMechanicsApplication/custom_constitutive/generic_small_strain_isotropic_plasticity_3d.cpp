@@ -68,7 +68,6 @@ template <class ConstLawIntegratorType>
 void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
 {
     // Integrate Stress plasticity
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
     const int voigt_size = this->GetStrainSize();
     Vector& integrated_stress_vector = rValues.GetStressVector();
     Matrix& tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
@@ -110,7 +109,7 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateM
 
         ConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, r_strain_vector,
                                                         uniaxial_stress, r_threshold, plastic_denominator, f_flux, g_flux, r_plastic_dissipation,
-                                                        plastic_strain_increment, r_constitutive_matrix, r_material_properties, characteristic_length);
+                                                        plastic_strain_increment, r_constitutive_matrix, rValues, characteristic_length);
 
         const double F = uniaxial_stress - r_threshold;
 
@@ -131,7 +130,7 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::CalculateM
             ConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, r_strain_vector,
                                                         uniaxial_stress, r_threshold, plastic_denominator, f_flux, g_flux,
                                                         r_plastic_dissipation, plastic_strain_increment, r_constitutive_matrix, r_plastic_strain,
-                                                        r_material_properties, characteristic_length);
+                                                        rValues, characteristic_length);
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
             this->SetNonConvPlasticDissipation(r_plastic_dissipation);
@@ -168,8 +167,13 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::Initialize
     const Vector& rShapeFunctionsValues
     )
 {
+    // We construct the CL parameters
+    ProcessInfo dummy_process_info;
+    ConstitutiveLaw::Parameters aux_param(rElementGeometry, rMaterialProperties, dummy_process_info);
+
+    // We call the integrator
     double initial_threshold;
-    ConstLawIntegratorType::GetInitialUniaxialThreshold(rMaterialProperties, initial_threshold);
+    ConstLawIntegratorType::GetInitialUniaxialThreshold(aux_param, initial_threshold);
     this->SetThreshold(initial_threshold);
 }
 
@@ -178,7 +182,7 @@ void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::Initialize
 
 template <class ConstLawIntegratorType>
 void GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>::FinalizeSolutionStep(
-    const Properties& r_material_properties,
+    const Properties& rMaterialProperties,
     const GeometryType &rElementGeometry,
     const Vector& rShapeFunctionsValues,
     const ProcessInfo &rCurrentProcessInfo

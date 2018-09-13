@@ -94,15 +94,17 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerPlasticPotential
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rGFlux The derivative of the plastic potential
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
         const Vector& StressVector,
         const Vector& Deviator,
         const double J2,
         Vector& rGFlux,
-        const Properties &rMaterialProperties)
+        ConstitutiveLaw::Parameters& rValues)
     {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
         Vector FirstVector, SecondVector, ThirdVector;
 
         ConstitutiveLawUtilities::CalculateFirstVector(FirstVector);
@@ -111,7 +113,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DruckerPragerPlasticPotential
 
         const double c3 = 0.0;
 
-        const double dilatancy = rMaterialProperties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
+        const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
         const double sin_dil = std::sin(dilatancy);
         const double Root3 = std::sqrt(3.0);
 

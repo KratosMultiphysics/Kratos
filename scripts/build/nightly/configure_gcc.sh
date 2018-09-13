@@ -32,6 +32,9 @@ cmake .. \
 -DMMG2D_LIBRARY="${HOME}/MMGPrecompiled-master/lib/libmmg2d.a"                                  \
 -DMMG3D_LIBRARY="${HOME}/MMGPrecompiled-master/lib/libmmg3d.a"                                  \
 -DMMGS_LIBRARY="${HOME}/MMGPrecompiled-master/lib/libmmgs.a"                                    \
+-DEIGEN_SOLVERS_APPLICATION=ON                                                                  \
+-DUSE_EIGEN_MKL=OFF                                                                             \
+-DEIGEN_ROOT="${HOME}/eigen/"                                                                   \
 -DMULTISCALE_APPLICATION=OFF                                                                    \
 -DPARTICLE_MECHANICS_APPLICATION=ON                                                             \
 -DPFEM_APPLICATION=OFF                                                                          \

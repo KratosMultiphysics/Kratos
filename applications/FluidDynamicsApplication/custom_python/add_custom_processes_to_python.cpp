@@ -67,7 +67,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     class_<BoussinesqForceProcess, BoussinesqForceProcess::Pointer, Process>
     (m,"BoussinesqForceProcess")
-    .def(init<ModelPart*, Parameters& >())
+    .def(init<ModelPart&, Parameters& >())
     ;
 
     class_<WindkesselModel, WindkesselModel::Pointer, Process>
