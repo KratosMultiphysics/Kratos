@@ -142,7 +142,9 @@ class PointOutputProcess(KratosMultiphysics.Process):
         # i.e. if no entity was found then also no output_file will be
         # initialized which means that the loop body will never be executed
         for var_list,ent,coord,f in zip(self.output_variables, self.entity, self.area_coordinates, self.output_file):
-            out = "{0:.12g}".format(time) # making the format more readable
+            # not formatting time in order to not lead to problems with time recognition
+            # in the file writer when restarting
+            out = str(time)
             for var in var_list:
                 value = Interpolate(var, ent, coord)
 

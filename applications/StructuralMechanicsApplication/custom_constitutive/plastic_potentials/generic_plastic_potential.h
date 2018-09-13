@@ -98,14 +98,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericPlasticPotential
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rGFlux The derivative of the plastic potential
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
         const Vector& rStressVector,
         const Vector& rDeviator,
         const double J2,
         Vector& rGFlux,
-        const Properties& rMaterialProperties)
+        ConstitutiveLaw::Parameters& rValues)
     {
     }
 

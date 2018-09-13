@@ -7,6 +7,7 @@ import KratosMultiphysics
 KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication", "TrilinosApplication")
 
 # Import applications
+import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Other imports

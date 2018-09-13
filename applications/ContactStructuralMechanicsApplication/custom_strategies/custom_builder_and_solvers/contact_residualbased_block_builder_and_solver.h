@@ -49,21 +49,28 @@ namespace Kratos
  * @details The RHS is constituted by the unbalanced loads (residual). Degrees of freedom are reordered putting the restrained degrees of freedom at the end of the system ordered in reverse order with respect to the DofSet. Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
 this information. Calculation of the reactions involves a cost very similiar to the calculation of the total residual
  * @author Vicente Mataix Ferrandiz
+ * @tparam TSparseSpace The sparse matrix system considered
+ * @tparam TDenseSpace The dense matrix system
+ * @tparam TLinearSolver The type of linear solver considered
+ * @tparam TBuilderAndSolver The builder and solver considered as base
  */
 template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
-         class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+         class TLinearSolver, //= LinearSolver<TSparseSpace,TDenseSpace>
+         class TBuilderAndSolver = ResidualBasedBlockBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
          >
 class ContactResidualBasedBlockBuilderAndSolver
-    : public ResidualBasedBlockBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
+    : public TBuilderAndSolver
 {
 public:
     ///@name Type Definitions
     ///@{
     
+    /// Pointer definition of ContactResidualBasedBlockBuilderAndSolver
     KRATOS_CLASS_POINTER_DEFINITION(ContactResidualBasedBlockBuilderAndSolver);
 
-    typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    /// Definitions dependent of the base class
+    typedef TBuilderAndSolver BaseType;
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
@@ -83,7 +90,7 @@ public:
      */
     ContactResidualBasedBlockBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : ResidualBasedBlockBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
+        : BaseType(pNewLinearSystemSolver)
     {
     }
 
