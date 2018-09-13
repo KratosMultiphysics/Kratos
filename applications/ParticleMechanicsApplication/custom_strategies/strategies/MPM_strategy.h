@@ -19,8 +19,6 @@
 #include <set>
 //#include <chrono>
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "spaces/ublas_space.h"
