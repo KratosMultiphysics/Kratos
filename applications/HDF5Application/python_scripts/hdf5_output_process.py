@@ -62,21 +62,6 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         # self.num_output_files = self.__GetNumberOfOutputFiles()
 
     def ExecuteInitialize(self):
-        model_part_comm = self.model[self.model_part_name].GetCommunicator()
-        is_mpi_execution = (model_part_comm.TotalProcesses() > 1)
-
-        if self.save_h5_files_in_folder:
-            folder_path = self.__GetFolderPathSave()
-            if not os.path.isdir(folder_path) and model_part_comm.MyPID() == 0:
-                os.makedirs(folder_path)
-            model_part_comm.Barrier()
-
-        if is_mpi_execution:
-            import partitioned_single_mesh_temporal_output_process as hdf5_process
-            # TODO set mpiio
-        else:
-            import single_mesh_temporal_output_process as hdf5_process
-
         # create folder if necessary and adapt paths
         hfd5_writer_process_parameters = KratosMultiphysics.Parameters("""{
             "Parameters" : {
@@ -94,12 +79,30 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
             }
         }""" % (self.model_part_name, self.__GetFullFilePath()))
 
-        hfd5_writer_process_parameters["Parameters"]["nodal_solution_step_data_settings"].AddValue(
+        hdf5_params = hfd5_writer_process_parameters["Parameters"]
+
+        hdf5_params["nodal_solution_step_data_settings"].AddValue(
             "list_of_variables", self.settings["nodal_solution_step_data_variables"])
-        hfd5_writer_process_parameters["Parameters"]["nodal_data_value_settings"].AddValue(
+        hdf5_params["nodal_data_value_settings"].AddValue(
             "list_of_variables", self.settings["nodal_data_value_variables"])
-        hfd5_writer_process_parameters["Parameters"]["element_data_value_settings"].AddValue(
+        hdf5_params["element_data_value_settings"].AddValue(
             "list_of_variables", self.settings["element_data_value_variables"])
+
+
+        model_part_comm = self.model[self.model_part_name].GetCommunicator()
+        is_mpi_execution = (model_part_comm.TotalProcesses() > 1)
+
+        if self.save_h5_files_in_folder:
+            folder_path = self.__GetFolderPathSave()
+            if not os.path.isdir(folder_path) and model_part_comm.MyPID() == 0:
+                os.makedirs(folder_path)
+            model_part_comm.Barrier()
+
+        if is_mpi_execution:
+            import partitioned_single_mesh_temporal_output_process as hdf5_process
+            hdf5_params["file_settings"].AddEmptyValue("file_driver").SetString("mpio") # TODO needed?
+        else:
+            import single_mesh_temporal_output_process as hdf5_process
 
         print(hfd5_writer_process_parameters.PrettyPrintJsonString())
 
@@ -141,6 +144,7 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         create_xdmf_file.WriteXdmfFile(self.file_name + ".h5", self.__GetFolderPathSave())
 
     def __GetNumberOfOutputFiles(self):
+        # TODO FIXME and use TIME
         return len(create_xdmf_file.GetListOfTimeLabels(self.xdmf_file_name.replace(".xdmf", ".h5")))
 
     def __GetFolderPathSave(self):
