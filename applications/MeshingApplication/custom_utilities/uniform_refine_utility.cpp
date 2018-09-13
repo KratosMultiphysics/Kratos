@@ -66,7 +66,6 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int Refi
 
     mStepDataSize = mrModelPart.GetNodalSolutionStepDataSize();
     mBufferSize = mrModelPart.GetBufferSize();
-    mDofs = mrModelPart.NodesBegin()->GetDofs();
 
     // Compute the sub model part maps
     SubModelPartsListUtility colors_utility(mrModelPart);
@@ -106,6 +105,10 @@ void UniformRefineUtility<TDim>::PrintData(std::ostream& rOStream) const {
 template< unsigned int TDim>
 void UniformRefineUtility<TDim>::Refine()
 {
+    if (mrModelPart.Nodes().size() == 0)
+        KRATOS_WARNING("UniformrefineUtility") << "Attempting to refine an empty model part" << std::endl;
+    else
+        mDofs = mrModelPart.NodesBegin()->GetDofs();
     // Get the lowest refinement level
     int minimum_divisions_level = 1e6;
     const IndexType n_elements = mrModelPart.Elements().size();
