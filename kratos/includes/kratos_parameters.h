@@ -60,17 +60,17 @@ namespace Kratos
 class Parameters
 {
 private:
-    using json = nlohmann::json;
     ///@name Nested clases
     ///@{
-    class iterator_adaptor : public std::iterator<std::forward_iterator_tag, Parameters>
+    class iterator_adaptor
+        : public std::iterator<std::forward_iterator_tag, Parameters>
     {
-        using value_iterator = json::iterator;
+        using value_iterator = nlohmann::json::iterator;
         value_iterator mValueIterator;
         std::unique_ptr<Parameters> mpParameters;
     public:
-        iterator_adaptor(value_iterator it,  Kratos::shared_ptr<json> proot) :mValueIterator(it), mpParameters(new Parameters(&(*it), proot)) {}
-        iterator_adaptor(const iterator_adaptor& it) : mValueIterator(it.mValueIterator),  mpParameters(new Parameters(*(it.mpParameters))) {}
+        iterator_adaptor(value_iterator itValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpParameters(new Parameters(&(*itValue), pRoot)) {}
+        iterator_adaptor(const iterator_adaptor& itValue) : mValueIterator(itValue.mValueIterator),  mpParameters(new Parameters(*(itValue.mpParameters))) {}
         iterator_adaptor& operator++()
         {
             mValueIterator++;
@@ -116,17 +116,17 @@ private:
 
     class const_iterator_adaptor : public std::iterator<std::forward_iterator_tag, Parameters>
     {
-        using value_iterator = json::const_iterator;
+        using value_iterator = nlohmann::json::const_iterator;
         value_iterator mValueIterator;
         std::unique_ptr<Parameters> mpParameters;
     public:
-        const_iterator_adaptor(value_iterator it,  Kratos::shared_ptr<json> proot) :mValueIterator(it), mpParameters(new Parameters(const_cast<json*>(&(*it)), proot)) {}
+        const_iterator_adaptor(value_iterator it,  Kratos::shared_ptr<nlohmann::json> proot) :mValueIterator(it), mpParameters(new Parameters(const_cast<nlohmann::json*>(&(*it)), proot)) {}
         //TODO: use copy constructor in the following method
         const_iterator_adaptor(const const_iterator_adaptor& it) : mValueIterator(it.mValueIterator), mpParameters(new Parameters(*(it.mpParameters))) {}
         const_iterator_adaptor& operator++()
         {
             mValueIterator++;
-            mpParameters->mpValue = const_cast<json*>( &(*mValueIterator) );
+            mpParameters->mpValue = const_cast<nlohmann::json*>( &(*mValueIterator) );
             return *this;
         }
         const_iterator_adaptor operator++(int)
@@ -192,9 +192,12 @@ public:
 
     /**
      * @brief Default constructor.
+     * @brief It assigns null pointers to the member variables
      */
     Parameters()
     {
+        mpRoot = nullptr;
+        mpValue = nullptr;
     }
 
     /**
@@ -203,7 +206,7 @@ public:
      */
     Parameters(const std::string& json_string)
     {
-        mpRoot = Kratos::shared_ptr<json>(new json( json::parse( json_string )));
+        mpRoot = Kratos::shared_ptr<nlohmann::json>(new nlohmann::json( nlohmann::json::parse( json_string )));
         mpValue = mpRoot.get();
     }
 
@@ -228,24 +231,34 @@ public:
     Parameters& operator=(Parameters const& rOther)
     {
         if(mpRoot.get() ==  mpValue || mpRoot == nullptr) {
-            mpRoot = Kratos::shared_ptr<json>(new json( json::parse( rOther.WriteJsonString() )));
+            mpRoot = Kratos::shared_ptr<nlohmann::json>(new nlohmann::json( nlohmann::json::parse( rOther.WriteJsonString() )));
             mpValue = mpRoot.get();
         } else {
-            *mpValue = json( json::parse( rOther.WriteJsonString() ) );
+            *mpValue = nlohmann::json( nlohmann::json::parse( rOther.WriteJsonString() ) );
             // note that mpRoot is unchanged
         }
 
         return *this;
     }
 
-    Parameters operator[](const std::string& entry)
+    /**
+     * @brief This metrod returns the Parameter corresponding to a given key
+     * @param rEntry The key identifier of the parameter
+     * @return The desired Parameter
+     */
+    Parameters operator[](const std::string& rEntry)
     {
-        return this->GetValue(entry);
+        return this->GetValue(rEntry);
     }
 
-    Parameters operator[](unsigned int index)
+    /**
+     * @brief This method allows to acces to an array item with the operator []
+     * @param Index The index of the term of interest
+     * @return The desired Parameter
+     */
+    Parameters operator[](const IndexType Index)
     {
-        return this->GetArrayItem(index);
+        return this->GetArrayItem(Index);
     }
 
     ///@}
@@ -260,110 +273,209 @@ public:
         return Parameters(mpValue->dump());                     //new json(*mpValue));
     }
 
+    /**
+     * @brief This method returns a string with the corresponding text to the equivalent *.json file
+     * @return The corresponding text
+     */
     const std::string WriteJsonString() const
     {
         return mpValue->dump();
     }
 
-    const  std::string PrettyPrintJsonString() const
+    /**
+     * @brief This method returns a string with the corresponding text to the equivalent *.json file (this version is prettier, and considers tabulations)
+     * @return The corresponding text
+     */
+    const std::string PrettyPrintJsonString() const
     {
         return mpValue->dump(4);
     }
 
-    //*******************************************************************************************************
-    Parameters GetValue(const std::string& entry)
+    /**
+     * @brief This method returns the Parameter corresponding to a certain entry
+     * @param rEntry The key identifier of the parameter
+     * @return The corresponding parameter
+     */
+    Parameters GetValue(const std::string& rEntry)
     {
-        auto j = mpValue->find(entry);
-        KRATOS_ERROR_IF(j == mpValue->end()) << "Getting a value that does not exist. entry string : " << entry << std::endl;
+        auto j = mpValue->find(rEntry);
+        KRATOS_ERROR_IF(j == mpValue->end()) << "Getting a value that does not exist. entry string : " << rEntry << std::endl;
         return Parameters(&(*j), mpRoot);
     }
 
-    void SetValue(const std::string& entry, const Parameters& other_value)
+    /**
+     * @brief This method sets an existing parameter with a given parameter
+     * @param rEntry The key identifier of the parameter
+     * @param rOtherValue The value to set
+     */
+    void SetValue(
+        const std::string& rEntry,
+        const Parameters& rOtherValue
+        )
     {
-        KRATOS_ERROR_IF(mpValue->find(entry) == mpValue->end()) << "Value must exist to be set. Use AddValue instead" << std::endl;
-        (*mpValue)[entry] = *(other_value.mpValue);
+        KRATOS_ERROR_IF(mpValue->find(rEntry) == mpValue->end()) << "Value must exist to be set. Use AddValue instead" << std::endl;
+        (*mpValue)[rEntry] = *(rOtherValue.mpValue);
     }
 
-    void AddValue(const std::string& entry, const Parameters& other_value)
+    /**
+     * @brief This method sets a non-existing parameter with a given parameter
+     * @param rEntry The key identifier of the parameter
+     * @param rOtherValue The value to set
+     */
+    void AddValue(
+        const std::string& rEntry,
+        const Parameters& rOtherValue
+        )
     {
-        if(mpValue->find(entry) == mpValue->end()) {
-            (*mpValue)[entry] = *(other_value.mpValue);
+        if(mpValue->find(rEntry) == mpValue->end()) {
+            (*mpValue)[rEntry] = *(rOtherValue.mpValue);
         }
     }
 
-    Parameters AddEmptyValue(const std::string& entry)
+    /**
+     * @brief This method adds an empty parameter
+     * @param rEntry The key identifier of the parameter
+     */
+    Parameters AddEmptyValue(const std::string& rEntry)
     {
-        if(this->Has(entry) == false) {
-            return Parameters(&(*mpValue)[entry],  mpRoot);
+        if(this->Has(rEntry) == false) {
+            return Parameters(&(*mpValue)[rEntry],  mpRoot);
         }
-        return this->GetValue(entry);
+        return this->GetValue(rEntry);
     }
 
-    //*******************************************************************************************************
-
-    bool RemoveValue(const std::string& entry)
+    /**
+     * @brief This method removes an entry of the Parameters given a certain key
+     * @param rEntry The key identifier of the parameter
+     * @return False if failed, true otherwise
+     */
+    bool RemoveValue(const std::string& rEntry)
     {
-        // TODO: Implement this!!
-        return false;
+        return static_cast<bool>(mpValue->erase(rEntry));
     }
 
-    bool Has(const std::string& entry) const
+    /**
+     * @brief This method checks if the Parameter contains a certain entry
+     * @param rEntry The key identifier of the parameter
+     * @return True if it contains, false otherwise
+     */
+    bool Has(const std::string& rEntry) const
     {
-        return mpValue->find(entry) != mpValue->end();
+        return mpValue->find(rEntry) != mpValue->end();
     }
 
+    /**
+     * @brief This method checks if the parameter is a null
+     * @return True if it is null, false otherwise
+     */
     bool IsNull() const
     {
         return mpValue->is_null();
     }
+
+    /**
+     * @brief This method checks if the parameter is a number
+     * @return True if it is a number, false otherwise
+     */
     bool IsNumber() const
     {
         return mpValue->is_number();
     }
+
+    /**
+     * @brief This method checks if the parameter is a double
+     * @return True if it is a double, false otherwise
+     */
     bool IsDouble() const
     {
         return mpValue->is_number_float();
     }
+
+    /**
+     * @brief This method checks if the parameter is a integer
+     * @return True if it is a integer, false otherwise
+     */
     bool IsInt() const
     {
         return mpValue->is_number_integer();
     }
+
+    /**
+     * @brief This method checks if the parameter is a boolean
+     * @return True if it is a boolean, false otherwise
+     */
     bool IsBool() const
     {
         return mpValue->is_boolean();
     }
+
+    /**
+     * @brief This method checks if the parameter is a string
+     * @return True if it is a string, false otherwise
+     */
     bool IsString() const
     {
         return mpValue->is_string();
     }
+
+    /**
+     * @brief This method checks if the parameter is an array
+     * @return True if it is an array, false otherwise
+     */
     bool IsArray() const
     {
         return mpValue->is_array();
     }
+
+    /**
+     * @brief This method checks if the parameter is a vector
+     * @return True if it is a vector, false otherwise
+     */
     bool IsVector() const
     {
         return false; //WIP
 //         return mpValue->is_array();
     }
+
+    /**
+     * @brief This method checks if the parameter is a matrix
+     * @return True if it is a matrix, false otherwise
+     */
     bool IsMatrix() const
     {
         return false; //WIP
 //         return mpValue->is_array();
     }
+
+    /**
+     * @brief This method checks if the parameter is a subparameter
+     * @return True if it is a suparameter, false otherwise
+     */
     bool IsSubParameter() const
     {
         return mpValue->is_object();
     }
 
+    /**
+     * @brief
+     */
     double GetDouble() const
     {
         return mpValue->get<double>();
     }
+
+    /**
+     * @brief
+     */
     int GetInt() const
     {
         KRATOS_ERROR_IF_NOT(mpValue->is_number()) << "Argument must be a number" << std::endl;
         return mpValue->get<int>();
     }
+
+    /**
+     * @brief
+     */
     bool GetBool() const
     {
         if (mpValue->is_boolean() == false) {
@@ -372,17 +484,29 @@ public:
         }
         return mpValue->get<bool>();
     }
+
+    /**
+     * @brief
+     */
     std::string GetString() const
     {
         KRATOS_ERROR_IF_NOT(mpValue->is_string()) << "Argument must be a string" << std::endl;
         return mpValue->get<std::string>();
     }
+
+    /**
+     * @brief
+     */
     Vector GetVector() const
     {
 //         if(mpValue->is_string() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a string","");
 //         return mpValue->get<std::string>();
         return Vector(); // WIP
     }
+
+    /**
+     * @brief
+     */
     Matrix GetMatrix() const
     {
 //         if(mpValue->is_string() == false) KRATOS_THROW_ERROR(std::invalid_argument,"argument must be a string","");
@@ -390,48 +514,83 @@ public:
         return Matrix(); // WIP
     }
 
+    /**
+     * @brief
+     */
     void SetDouble(const double value)
     {
         *mpValue=value;
     }
+
+    /**
+     * @brief
+     */
     void SetInt(const int value)
     {
         *mpValue=value;
     }
+
+    /**
+     * @brief
+     */
     void SetBool(const bool value)
     {
         *mpValue=value;
     }
+
+    /**
+     * @brief
+     */
     void SetString(const std::string& value)
     {
         *mpValue=value;
     }
+
+    /**
+     * @brief
+     */
     void SetVector(const Vector& value)
     {
         // TODO: Finish this
 //         *mpValue=value;
     }
+
+    /**
+     * @brief
+     */
     void SetMatrix(const Matrix& value)
     {
         // TODO: Finish this
 //         *mpValue=value;
     }
 
+    /**
+     * @brief
+     */
     iterator begin()
     {
         return iterator(mpValue->begin(),  mpRoot);
     }
 
+    /**
+     * @brief
+     */
     iterator end()
     {
         return iterator(mpValue->end(),  mpRoot);
     }
 
+    /**
+     * @brief
+     */
     const_iterator begin() const
     {
         return const_iterator(mpValue->cbegin(),  mpRoot);
     }
 
+    /**
+     * @brief
+     */
     const_iterator end() const
     {
         return const_iterator(mpValue->cend(),  mpRoot);
@@ -439,78 +598,119 @@ public:
 
     //*******************************************************************************************************
     //methods for array
+    /**
+     * @brief
+     */
     SizeType size() const
     {
         KRATOS_ERROR_IF_NOT(mpValue->is_array())  << "Size can only be queried if the value if of Array type" << std::endl;
         return mpValue->size();
     }
 
+    /**
+     * @brief
+     */
     void swap(Parameters& rOther) noexcept
     {
         std::swap(mpValue, rOther.mpValue);
         std::swap(mpRoot, rOther.mpRoot);
     }
 
+    /**
+     * @brief This method resets the whole parameter (it assigns an empty parameter)
+     */
     void Reset() noexcept
     {
         Parameters p;
         swap(p);
     }
 
-    Parameters GetArrayItem(unsigned int index)
+    /**
+     * @brief
+     */
+    Parameters GetArrayItem(const IndexType Index)
     {
-        if(mpValue->is_array() == false)
+        if(mpValue->is_array() == false) {
             KRATOS_ERROR << "GetArrayItem only makes sense if the value if of Array type" << std::endl;
-        else {
-            KRATOS_ERROR_IF(index >= mpValue->size()) << "Index exceeds array size. Index value is : " << index << std::endl;
-            return Parameters(&((*mpValue)[index]),  mpRoot);
+        } else {
+            KRATOS_ERROR_IF(Index >= mpValue->size()) << "Index exceeds array size. Index value is : " << Index << std::endl;
+            return Parameters(&((*mpValue)[Index]),  mpRoot);
         }
     }
 
-    void SetArrayItem(unsigned int index, const Parameters& other_array_item)
+    /**
+     * @brief
+     */
+    void SetArrayItem(const IndexType Index, const Parameters& other_array_item)
     {
         if(mpValue->is_array() == false) {
             KRATOS_ERROR << "SetArrayItem only makes sense if the value if of Array type" << std::endl;
         } else {
-            KRATOS_ERROR_IF(index >= mpValue->size()) << "Index exceeds array size. Index value is : " << index <<std::endl;
-            (*mpValue)[index] = *other_array_item.mpValue;
+            KRATOS_ERROR_IF(Index >= mpValue->size()) << "Index exceeds array size. Index value is : " << Index <<std::endl;
+            (*mpValue)[Index] = *other_array_item.mpValue;
         }
     }
 
+    /**
+     * @brief This method add a new entry with no value assigned
+     * @param rEntry The key identifier of the parameter
+     */
     void AddEmptyArray(const std::string& rEntry)
     {
         // TODO: Implement this
     }
 
+    /**
+     * @brief
+     */
     void Append(const double Value)
     {
         // TODO: Implement this
     }
+
+    /**
+     * @brief
+     */
     void Append(const int Value)
     {
         // TODO: Implement this
     }
 
+    /**
+     * @brief
+     */
     void Append(const bool Value)
     {
         // TODO: Implement this
     }
 
+    /**
+     * @brief
+     */
     void Append(const std::string& rValue)
     {
         // TODO: Implement this
     }
 
+    /**
+     * @brief
+     */
     void Append(const Vector& rValue)
     {
         // TODO: Implement this
     }
 
+    /**
+     * @brief
+     */
     void Append(const Matrix& rValue)
     {
         // TODO: Implement this
     }
 
+    /**
+     * @brief
+     */
     void Append(const Parameters& rValue)
     {
         // TODO: Implement this
@@ -559,13 +759,13 @@ public:
             std::string item_name = itr.key();
             if(!defaults.Has(item_name) ) {
                 std::stringstream msg;
-                msg << "the item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
-                msg << "hence Validation fails" << std::endl;
-                msg << "parameters being validated are : " << std::endl;
+                msg << "The item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
+                msg << "Hence Validation fails" << std::endl;
+                msg << "Parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
-                msg << "defaults against which the current parameters are validated are :" << std::endl;
+                msg << "Defaults against which the current parameters are validated are :" << std::endl;
                 msg << defaults.PrettyPrintJsonString() << std::endl;
-                KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());
+                KRATOS_ERROR << msg.str() << std::endl;
             }
 
             bool type_coincides = false;
@@ -581,28 +781,23 @@ public:
             //both must be bool to be acceptable
             if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
 
-            if(type_coincides == false)
-            {
+            if(type_coincides == false) {
                 std::stringstream msg;
                 msg << "******************************************************************************************************" << std::endl;
-                msg << "the item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
+                msg << "The item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
                 msg << "******************************************************************************************************" << std::endl;
-                msg << "parameters being validated are : " << std::endl;
+                msg << "Parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
-                msg << "defaults against which the current parameters are validated are :" << std::endl;
+                msg << "Defaults against which the current parameters are validated are :" << std::endl;
                 msg << defaults.PrettyPrintJsonString() << std::endl;
-                KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());
+                KRATOS_ERROR << msg.str() << std::endl;
             }
 
-            //now iterate over all the defaults. In the case a default value is not assigned in the current Parameters
-            //add an item copying its value
-            if(defaults.IsSubParameter())
-            {
-                for (json::iterator itr = defaults.mpValue->begin(); itr != defaults.mpValue->end(); ++itr)
-                {
+            // Now iterate over all the defaults. In the case a default value is not assigned in the current Parameters add an item copying its value
+            if(defaults.IsSubParameter()) {
+                for (auto itr = defaults.mpValue->begin(); itr != defaults.mpValue->end(); ++itr) {
                     std::string item_name = itr.key();
-                    if(!this->Has(item_name))
-                    {
+                    if(!this->Has(item_name)) {
                         (*mpValue)[item_name] = itr.value();
                     }
                 }
@@ -629,20 +824,18 @@ public:
         //first verifies that all the enries in the current parameters
         //have a correspondance in the defaults.
         //if it is not the case throw an error
-        for (auto itr = this->mpValue->cbegin(); itr != this->mpValue->cend(); ++itr)
-        {
+        for (auto itr = this->mpValue->cbegin(); itr != this->mpValue->cend(); ++itr) {
             std::string item_name = itr.key();
 
-            if(!defaults.Has(item_name) )
-            {
+            if(!defaults.Has(item_name) ) {
                 std::stringstream msg;
-                msg << "the item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
-                msg << "hence Validation fails" << std::endl;
-                msg << "parameters being validated are : " << std::endl;
+                msg << "The item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
+                msg << "Hence Validation fails" << std::endl;
+                msg << "Parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
-                msg << "defaults against which the current parameters are validated are :" << std::endl;
+                msg << "Defaults against which the current parameters are validated are :" << std::endl;
                 msg << defaults.PrettyPrintJsonString() << std::endl;
-                KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());
+                KRATOS_ERROR << msg.str() << std::endl;
             }
 
             bool type_coincides = false;
@@ -654,49 +847,40 @@ public:
             if(itr->is_string() && value_defaults->is_string()) type_coincides = true;
             if(itr->is_object() && value_defaults->is_object()) type_coincides = true;
 
-            if(type_coincides == false)
-            {
+            if(type_coincides == false) {
                 std::stringstream msg;
-                msg << "the item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
-                msg << "parameters being validated are : " << std::endl;
+                msg << "The item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
+                msg << "Parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
-                msg << "defaults against which the current parameters are validated are :" << std::endl;
+                msg << "Defaults against which the current parameters are validated are :" << std::endl;
                 msg << defaults.PrettyPrintJsonString() << std::endl;
-                KRATOS_THROW_ERROR(std::invalid_argument,"",msg.str());
+                KRATOS_ERROR << msg.str() << std::endl;
             }
+
             //now walk the tree recursively
-            if(itr->is_object())
-            {
+            if(itr->is_object()) {
                 Parameters subobject = (*this)[item_name];
                 Parameters defaults_subobject = defaults[item_name];
                 subobject.ValidateAndAssignDefaults(defaults_subobject);
             }
         }
 
-
-
-        //now iterate over all the defaults. In the case a default value is not assigned in the current Parameters
-        //add an item copying its value
-        if(defaults.IsSubParameter())
-        {
-            for (auto itr = defaults.mpValue->begin(); itr != defaults.mpValue->end(); ++itr)
-            {
+        // Now iterate over all the defaults. In the case a default value is not assigned in the current Parameters add an item copying its value
+        if(defaults.IsSubParameter()) {
+            for (auto itr = defaults.mpValue->begin(); itr != defaults.mpValue->end(); ++itr) {
                 std::string item_name = itr.key();
-                if(mpValue->find(item_name) ==  mpValue->end())
-                {
+                if(mpValue->find(item_name) ==  mpValue->end()) {
                     (*mpValue)[item_name] = itr.value();
                 }
 
-                //now walk the tree recursively
-                if(itr->is_object())
-                {
+                // Now walk the tree recursively
+                if(itr->is_object()) {
                     Parameters subobject = (*this)[item_name];
                     Parameters defaults_subobject = defaults[item_name];
                     subobject.ValidateAndAssignDefaults(defaults_subobject);
                 }
             }
         }
-
 
         KRATOS_CATCH("")
     }
@@ -789,8 +973,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    json* mpValue;                   // This is where the json is actually stored
-    Kratos::shared_ptr<json> mpRoot; // This is a shared pointer to the root structure (this is what allows us to acces in a tree structure to the JSON database)
+    nlohmann::json* mpValue;                   // This is where the json is actually stored
+    Kratos::shared_ptr<nlohmann::json> mpRoot; // This is a shared pointer to the root structure (this is what allows us to acces in a tree structure to the JSON database)
 
     ///@}
     ///@name Private Operators
@@ -806,7 +990,7 @@ private:
      * @param pRoot A shared pointer to a nlohmann::json class
      * @warning Please DO NOT use this constructor. It assumes nlohmann::json and hence it should be considered as an implementation detail
      */
-    Parameters(json* pvalue, Kratos::shared_ptr<json> proot): mpValue(pvalue), mpRoot(proot)
+    Parameters(nlohmann::json* pvalue, Kratos::shared_ptr<nlohmann::json> proot): mpValue(pvalue), mpRoot(proot)
     {}
 
     //ATTENTION: please DO NOT use this constructor. It assumes rapidjson and hence it should be considered as an implementation detail
@@ -825,7 +1009,7 @@ private:
      * @return mpValue The database storage
      * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
      */
-    json* GetUnderlyingStorage()
+    nlohmann::json* GetUnderlyingStorage()
     {
         return mpValue;
     }
@@ -835,12 +1019,12 @@ private:
      * @return mpValue The database storage
      * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
      */
-    Kratos::shared_ptr<json> GetUnderlyingRootStorage()
+    Kratos::shared_ptr<nlohmann::json> GetUnderlyingRootStorage()
     {
         return mpRoot;
     }
 
-};
+}; // Parameters class
 
 ///@}
 
