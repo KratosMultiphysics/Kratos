@@ -59,7 +59,7 @@ template<class TElasticBehaviourLaw>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin
     : public TElasticBehaviourLaw
 {
-  public:
+public:
     ///@name Type Definitions
     ///@{
 
@@ -246,7 +246,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -275,7 +275,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin
     ///@{
 
     ///@}
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -300,14 +300,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin
     ///@{
 
     Vector& GetPreviousStressVector() { return mPrevStressVector; }
-    void SetPreviousStressVector(Vector toStress) { mPrevStressVector = toStress; }
+    void SetPreviousStressVector(const Vector& PrevStressVector) { mPrevStressVector = PrevStressVector; }
     Vector& GetNonConvPreviousStressVector() { return mNonConvPrevStressVector; }
-    void SetNonConvPreviousStressVector(Vector toStress) { mNonConvPrevStressVector = toStress; }
+    void SetNonConvPreviousStressVector(const Vector& NonConvPrevStressVector) { mNonConvPrevStressVector = NonConvPrevStressVector; }
 
     Vector& GetPreviousInelasticStrainVector() { return mPrevInelasticStrainVector; }
-    void SetPreviousInelasticStrainVector(Vector& toStrain) { mPrevInelasticStrainVector = toStrain; }
+    void SetPreviousInelasticStrainVector(const Vector& PrevInelasticStrainVector) { mPrevInelasticStrainVector = PrevInelasticStrainVector; }
     Vector& GetNonConvPreviousInelasticStrainVector() { return mNonConvPrevInelasticStrainVector; }
-    void SetNonConvPreviousInelasticStrainVector(Vector& toStrain) { mNonConvPrevInelasticStrainVector = toStrain; }
+    void SetNonConvPreviousInelasticStrainVector(const Vector& NonConvPrevInelasticStrainVector) { mNonConvPrevInelasticStrainVector = NonConvPrevInelasticStrainVector; }
 
     /**
      * @brief Compute visco-elasticity

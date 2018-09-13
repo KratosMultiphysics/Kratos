@@ -15,74 +15,100 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_constitutive/viscous_generalized_maxwell_3d.h"
 
 namespace Kratos
 {
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+/******************************CONSTRUCTOR******************************************/
+/***********************************************************************************/
+
+template <class TElasticBehaviourLaw>
+ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::ViscousGeneralizedMaxwell()
+    : BaseType()
 {
-    this->CalculateMaterialResponseCauchy(rValues);
+}
+
+/******************************COPY CONSTRUCTOR*************************************/
+/***********************************************************************************/
+
+template <class TElasticBehaviourLaw>
+ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::ViscousGeneralizedMaxwell(const ViscousGeneralizedMaxwell& rOther)
+    : BaseType(rOther),
+      mPrevStressVector(rOther.mPrevStressVector),
+      mPrevStrainVector(rOther.mPrevStrainVector),
+      mNonConvPrevStressVector(rOther.mNonConvPrevStressVector),
+      mNonConvPrevStrainVector(rOther.mNonConvPrevStrainVector)
+{
+}
+
+/********************************CLONE**********************************************/
+/***********************************************************************************/
+
+template <class TElasticBehaviourLaw>
+ConstitutiveLaw::Pointer ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::Clone() const
+{
+    return Kratos::make_shared<ViscousGeneralizedMaxwell>(*this);
+}
+
+/*******************************DESTRUCTOR******************************************/
+/***********************************************************************************/
+
+template <class TElasticBehaviourLaw>
+ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::~ViscousGeneralizedMaxwell()
+{
+};
+
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+//     BaseType::CalculateMaterialResponsePK1(rValues);
+    // TODO: This requires to be properly defined to be able to set the StressMeasure
+    this->ComputeViscoElasticity(rValues);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    this->CalculateMaterialResponseCauchy(rValues);
+//     BaseType::CalculateMaterialResponsePK2(rValues);
+    // TODO: This requires to be properly defined to be able to set the StressMeasure
+    this->ComputeViscoElasticity(rValues);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-    this->CalculateMaterialResponseCauchy(rValues);
+//     BaseType::CalculateMaterialResponseKirchhoff(rValues);
+    // TODO: This requires to be properly defined to be able to set the StressMeasure
+    this->ComputeViscoElasticity(rValues);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // Integrate Stress Damage
-    const Properties &material_props = rValues.GetMaterialProperties();
-    Vector& integrated_stress_vector = rValues.GetStressVector(); // To be updated
-    const Vector& strain_vector = rValues.GetStrainVector();
-    Matrix& tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-    const ProcessInfo &process_info = rValues.GetProcessInfo();
-    const double time_step = process_info[DELTA_TIME];
-    const Flags &ConstitutiveLawOptions = rValues.GetOptions();
-
-    const double viscous_parameter = material_props[VISCOUS_PARAMETER]; //  C1/Cinf
-    const double delay_time = material_props[DELAY_TIME];
-
-    // Elastic Matrix
-    Matrix C;
-    this->CalculateElasticMatrix(C, material_props);
-
-    const Vector& previous_strain = this->GetPreviousStrainVector();
-    const Vector& previous_stress = this->GetPreviousStressVector();
-    const Vector& strain_increment = strain_vector - previous_strain;
-
-    const double coef = viscous_parameter * time_step / ((1.0 + viscous_parameter) * 2.0 * delay_time);
-    const Vector& auxiliar_strain = -(strain_vector - strain_increment) * std::exp(-time_step / delay_time) * (1.0 + coef) + strain_vector * (1.0 - coef);
-
-    noalias(integrated_stress_vector) = previous_stress * std::exp(-time_step / delay_time) + prod(C, auxiliar_strain);
-
-    if (ConstitutiveLawOptions.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        noalias(tangent_tensor) = C;
-        this->SetNonConvPreviousStressVector(integrated_stress_vector);
-        this->SetNonConvPreviousStrainVector(strain_vector);
-    }
-} // End CalculateMaterialResponseCauchy
+    // TODO: This requires to be properly defined to be able to set the StressMeasure
+    this->ComputeViscoElasticity(rValues);
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeSolutionStep(
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeSolutionStep(
     const Properties &rMaterialProperties,
     const GeometryType &rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -96,38 +122,60 @@ void ViscousGeneralizedMaxwell3D::FinalizeSolutionStep(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::CalculateElasticMatrix(
-    Matrix& rElasticityTensor,
-    const Properties &rMaterialProperties)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::ComputeViscoElasticity(ConstitutiveLaw::Parameters& rValues)
 {
-    const double E = rMaterialProperties[YOUNG_MODULUS];
-    const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
-    const double lambda =
-        E * poisson_ratio / ((1. + poisson_ratio) * (1.0 - 2.0 * poisson_ratio));
-    const double mu = E / (2.0 + 2.0 * poisson_ratio);
+    // Integrate Stress Damage
+    const Properties &material_props = rValues.GetMaterialProperties();
+    Vector& integrated_stress_vector = rValues.GetStressVector(); // To be updated
+    const ProcessInfo &process_info = rValues.GetProcessInfo();
+    const double time_step = process_info[DELTA_TIME];
+    const Flags& r_flags = rValues.GetOptions();
 
-    if (rElasticityTensor.size1() != 6 || rElasticityTensor.size2() != 6)
-        rElasticityTensor.resize(6, 6, false);
-    rElasticityTensor.clear();
+    // We compute the strain in case not provided
+    if( r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+        Vector& r_strain_vector = rValues.GetStrainVector();
+        this->CalculateValue(rValues, STRAIN, r_strain_vector);
+    }
+    
+    // We compute the stress
+    if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+        const double viscous_parameter = material_props[VISCOUS_PARAMETER]; //  C1/Cinf
+        const double delay_time = material_props[DELAY_TIME];
 
-    rElasticityTensor(0, 0) = lambda + 2.0 * mu;
-    rElasticityTensor(0, 1) = lambda;
-    rElasticityTensor(0, 2) = lambda;
-    rElasticityTensor(1, 0) = lambda;
-    rElasticityTensor(1, 1) = lambda + 2.0 * mu;
-    rElasticityTensor(1, 2) = lambda;
-    rElasticityTensor(2, 0) = lambda;
-    rElasticityTensor(2, 1) = lambda;
-    rElasticityTensor(2, 2) = lambda + 2.0 * mu;
-    rElasticityTensor(3, 3) = mu;
-    rElasticityTensor(4, 4) = mu;
-    rElasticityTensor(5, 5) = mu;
+        // Elastic Matrix
+        Matrix constitutive_matrix;
+        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, constitutive_matrix);
+
+        const Vector& r_strain_vector = rValues.GetStrainVector();
+        const Vector& previous_strain = this->GetPreviousStrainVector();
+        const Vector& previous_stress = this->GetPreviousStressVector();
+        const Vector strain_increment = r_strain_vector - previous_strain;
+
+        const double coef = viscous_parameter * time_step / ((1.0 + viscous_parameter) * 2.0 * delay_time);
+        const Vector auxiliar_strain = -(r_strain_vector - strain_increment) * std::exp(-time_step / delay_time) * (1.0 + coef) + r_strain_vector * (1.0 - coef);
+
+        noalias(integrated_stress_vector) = previous_stress * std::exp(-time_step / delay_time) + prod(constitutive_matrix, auxiliar_strain);
+        
+        if (r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            rValues.SetConstitutiveMatrix(constitutive_matrix);
+            this->SetNonConvPreviousStressVector(integrated_stress_vector);
+            this->SetNonConvPreviousStrainVector(r_strain_vector);
+        }
+    } else {
+        // Elastic Matrix
+        if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+            Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+            this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+        }
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     BaseType::FinalizeMaterialResponsePK1(rValues);
 }
@@ -135,7 +183,8 @@ void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::P
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     BaseType::FinalizeMaterialResponsePK2(rValues);
 }
@@ -143,7 +192,8 @@ void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::P
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     BaseType::FinalizeMaterialResponseKirchhoff(rValues);
 }
@@ -151,7 +201,8 @@ void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseKirchhoff(Constitutive
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     BaseType::FinalizeMaterialResponseCauchy(rValues);
 }
@@ -159,7 +210,21 @@ void ViscousGeneralizedMaxwell3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& ViscousGeneralizedMaxwell3D::CalculateValue(
+template <class TElasticBehaviourLaw>
+Vector& ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<Vector>& rThisVariable,
+    Vector& rValue
+    )
+{
+    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TElasticBehaviourLaw>
+Matrix& ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
@@ -167,9 +232,36 @@ Matrix& ViscousGeneralizedMaxwell3D::CalculateValue(
 {
     if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
         rValue = MathUtils<double>::StressVectorToTensor(this->GetPreviousStressVector());
+    } else {
+        rValue = BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }
 
     return rValue;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TElasticBehaviourLaw>
+int ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+
+    KRATOS_CHECK_VARIABLE_KEY(VISCOUS_PARAMETER);
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(VISCOUS_PARAMETER)) << "VISCOUS_PARAMETER is not a defined value" << std::endl;
+    
+    KRATOS_ERROR_IF_NOT(VoigtSize == this->GetStrainSize()) << "You are combining not compatible constitutive laws" << std::endl;
+
+    return check_base;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class ViscousGeneralizedMaxwell<ElasticIsotropic3D>;
 
 } // namespace Kratos

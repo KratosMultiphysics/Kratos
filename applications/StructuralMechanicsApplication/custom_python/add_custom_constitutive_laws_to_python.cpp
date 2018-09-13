@@ -157,7 +157,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"ViscousGeneralizedKelvin3D").def( init<>())
     ;
 
-    class_< ViscousGeneralizedMaxwell3D, typename ViscousGeneralizedMaxwell3D::Pointer,  ConstitutiveLaw  >
+    class_< ViscousGeneralizedMaxwell<ElasticIsotropic3D>, typename ViscousGeneralizedMaxwell<ElasticIsotropic3D>::Pointer,  ConstitutiveLaw  >
     (m,"ViscousGeneralizedMaxwell3D").def( init<>())
     ;
 

@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
 
 namespace Kratos
 {
@@ -41,7 +42,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class ViscousGeneralizedMaxwell3D
+ * @class ViscousGeneralizedMaxwell
  * @ingroup StructuralMechanicsApplication
  * @brief This is a viscous law using Maxwell formulation
  * @details The definition of a maxwell material can be found in https://en.wikipedia.org/wiki/Maxwell_material
@@ -49,59 +50,71 @@ namespace Kratos
  *
  *           -----^^^^^^-----------[------
  *                Spring (K)   Damper (C)
- *
+ * The Maxwell law requires the definition of the following properties:
+ * - VISCOUS_PARAMETER: It is the material coefficient of viscosity. This model describes the damper as a Newtonian fluid and models the spring with Hooke's law. 
  * @author Alejandro Cornejo & Lucia Barbu
  */
-
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell3D
-    : public ConstitutiveLaw
+template<class TElasticBehaviourLaw>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell
+    : public TElasticBehaviourLaw
 {
   public:
     ///@name Type Definitions
     ///@{
 
-    typedef ConstitutiveLaw BaseType;
+    /// Definition of the base CL class
+    typedef ConstitutiveLaw CLBaseType;
+    
+    /// Definition of the base class
+    typedef TElasticBehaviourLaw BaseType;
 
+    /// The index definition
+    typedef std::size_t IndexType;
+
+    /// The size definition
+    typedef std::size_t SizeType;
+
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = TElasticBehaviourLaw::Dimension;
+    
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = TElasticBehaviourLaw::VoigtSize;
+    
     /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(ViscousGeneralizedMaxwell3D);
+    KRATOS_CLASS_POINTER_DEFINITION(ViscousGeneralizedMaxwell);
+    
+    /// The node definition
+    typedef Node<3> NodeType;
+    
+    /// The geometry definition
+    typedef Geometry<NodeType> GeometryType;
+    
+    /// Definition of the machine precision tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /**
-    * Default constructor.
-    */
-    ViscousGeneralizedMaxwell3D()
-    {
-    }
+     * @brief Default constructor.
+     */
+    ViscousGeneralizedMaxwell();
 
     /**
-    * Clone.
+    * @brief Clone.
     */
-    ConstitutiveLaw::Pointer Clone() const override
-    {
-        return Kratos::make_shared<ViscousGeneralizedMaxwell3D>(*this);
-    }
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
-    * Copy constructor.
+    * @brief Copy constructor.
     */
-    ViscousGeneralizedMaxwell3D(const ViscousGeneralizedMaxwell3D &rOther)
-        : BaseType(rOther),
-          mPrevStressVector(rOther.mPrevStressVector),
-          mPrevStrainVector(rOther.mPrevStrainVector),
-          mNonConvPrevStressVector(rOther.mNonConvPrevStressVector),
-          mNonConvPrevStrainVector(rOther.mNonConvPrevStrainVector)
-    {
-    }
-
+    ViscousGeneralizedMaxwell(const ViscousGeneralizedMaxwell& rOther);
+    
     /**
-    * Destructor.
+    * @brief Destructor.
     */
-    ~ViscousGeneralizedMaxwell3D() override
-    {
-    }
+    ~ViscousGeneralizedMaxwell() override;
 
     ///@}
     ///@name Operators
@@ -110,22 +123,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell3D
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief Dimension of the law:
-     */
-    SizeType WorkingSpaceDimension() override
-    {
-        return 3;
-    };
-
-    /**
-     * @brief Voigt tensor size:
-     */
-    SizeType GetStrainSize() override
-    {
-        return 6;
-    };
 
     /**
      * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
@@ -190,6 +187,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell3D
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
+     * @brief Calculates the value of a specified variable (Vector)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    Vector& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue
+        ) override;
+
+    /**
      * @brief Calculates the value of a specified variable (Matrix)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
@@ -200,6 +210,21 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell3D
         ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue
+        ) override;
+
+    /**
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input or that no common error is found.
+     * @param rMaterialProperties The properties of the material
+     * @param rElementGeometry The geometry of the element
+     * @param rCurrentProcessInfo The current process info instance
+     * @return 0 if OK, 1 otherwise
+     */
+    int Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     ///@}
@@ -273,24 +298,20 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell3D
     ///@name Private Operations
     ///@{
 
-    Vector GetPreviousStressVector() { return mPrevStressVector; }
-    void SetPreviousStressVector(Vector toStress) { mPrevStressVector = toStress; }
-    Vector GetNonConvPreviousStressVector() { return mNonConvPrevStressVector; }
-    void SetNonConvPreviousStressVector(Vector toStress) { mNonConvPrevStressVector = toStress; }
+    Vector& GetPreviousStressVector() { return mPrevStressVector; }
+    void SetPreviousStressVector(const Vector& PrevStressVector) { mPrevStressVector = PrevStressVector; }
+    Vector& GetNonConvPreviousStressVector() { return mNonConvPrevStressVector; }
+    void SetNonConvPreviousStressVector(const Vector& NonConvPrevStressVector) { mNonConvPrevStressVector = NonConvPrevStressVector; }
 
-    Vector GetPreviousStrainVector() { return mPrevStrainVector; }
-    void SetPreviousStrainVector(Vector toStrain) { mPrevStrainVector = toStrain; }
-    Vector GetNonConvPreviousStrainVector() { return mNonConvPrevStrainVector; }
-    void SetNonConvPreviousStrainVector(Vector toStrain) { mNonConvPrevStrainVector = toStrain; }
+    Vector& GetPreviousStrainVector() { return mPrevStrainVector; }
+    void SetPreviousStrainVector(const Vector& PrevStrainVector) { mPrevStrainVector = PrevStrainVector; }
+    Vector& GetNonConvPreviousStrainVector() { return mNonConvPrevStrainVector; }
+    void SetNonConvPreviousStrainVector(const Vector& NonConvPrevStrainVector) { mNonConvPrevStrainVector = NonConvPrevStrainVector; }
 
     /**
-     * @brief This method computes the elastic tensor
-     * @param rElasticityTensor The elastic tensor
-     * @param rMaterialProperties The material properties
+     * @brief Compute visco-elasticity
      */
-    void CalculateElasticMatrix(
-        Matrix& rElasticityTensor,
-        const Properties &rMaterialProperties);
+    void ComputeViscoElasticity(ConstitutiveLaw::Parameters& rValues);
 
     ///@}
     ///@name Private  Access
