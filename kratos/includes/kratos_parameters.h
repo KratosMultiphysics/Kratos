@@ -626,7 +626,7 @@ public:
 //         (*mpValue) = j_array;
 //
 //         for (IndexType i = 0; i < size; ++i) {
-//             mpValue->push_back(vec[i]);
+//             mpValue->push_back(rValue[i]);
 //         }
     }
 
