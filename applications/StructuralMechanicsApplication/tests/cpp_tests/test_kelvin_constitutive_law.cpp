@@ -65,6 +65,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawKelvin, KratosStructuralMechanicsFastSu
     material_properties.SetValue(DELAY_TIME, 1.0);
 
     Flags cl_options;
+    cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     process_info.SetValue(DELTA_TIME, 0.1);
