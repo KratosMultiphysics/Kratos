@@ -28,9 +28,13 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
         default_parameters = KratosMultiphysics.Parameters("""
         {
-            "create_xdmf_file_level"         : 1,
-            "save_h5_files_in_folder"        : true,
-            "hdf5_writer_process_parameters" : { }
+            "model_part_name"                    : "PLEASE_SPECIFY_MOEL_PART_NAME",
+            "file_name"                          : "",
+            "save_h5_files_in_folder"            : true,
+            "create_xdmf_file_level"             : 1,
+            "nodal_solution_step_data_variables" : [],
+            "nodal_data_value_variables"         : [],
+            "element_data_value_variables"       : []
         }
         """)
 
@@ -39,17 +43,33 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         # Overwrite the default settings with user-provided parameters
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(default_parameters)
-        self.model_part_name = self.settings["hdf5_writer_process_parameters"]["model_part_name"].GetString()
+        self.model_part_name = self.settings["model_part_name"].GetString()
+        self.file_name = self.settings["file_name"].GetString()
+        if self.file_name == "": # in case not file name is specified then the name of the ModelPart is used
+            self.file_name = self.model_part_name
+
+        self.raw_path, self.file_name = os.path.split(self.file_name) # maybe add os.getcwd to raw_path?
+        self.raw_path = os.path.join(os.getcwd(), self.raw_path)
+
+        self.folder_name = self.file_name + "__h5_files"
+        self.save_h5_files_in_folder = self.settings["save_h5_files_in_folder"].GetBool()
+
         self.create_xdmf_file_level = self.settings["create_xdmf_file_level"].GetInt()
         if self.create_xdmf_file_level > 0 and have_xdmf is False:
             KratosMultiphysics.Logger.PrintWarning("XDMF-Writing is not available!")
             self.create_xdmf_file_level = 0
-        self.xdmf_file_name = self.model_part_name + ".xdmf"
-        self.num_output_files = self.__GetNumberOfOutputFiles()
+        self.xdmf_file_name = self.__GetFullFilePath() + ".xdmf"
+        # self.num_output_files = self.__GetNumberOfOutputFiles()
 
     def ExecuteInitialize(self):
-        model_part = self.model[self.model_part_name]
-        is_mpi_execution = (model_part.GetCommunicator().TotalProcesses() > 1)
+        model_part_comm = self.model[self.model_part_name].GetCommunicator()
+        is_mpi_execution = (model_part_comm.TotalProcesses() > 1)
+
+        if self.save_h5_files_in_folder:
+            folder_path = self.__GetFolderPathSave()
+            if not os.path.isdir(folder_path) and model_part_comm.MyPID() == 0:
+                os.makedirs(folder_path)
+            model_part_comm.Barrier()
 
         if is_mpi_execution:
             import partitioned_single_mesh_temporal_output_process as hdf5_process
@@ -58,9 +78,30 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
             import single_mesh_temporal_output_process as hdf5_process
 
         # create folder if necessary and adapt paths
+        hfd5_writer_process_parameters = KratosMultiphysics.Parameters("""{
+            "Parameters" : {
+                "model_part_name" : "%s",
+                "nodal_solution_step_data_settings" : { },
+                "nodal_data_value_settings"         : { },
+                "element_data_value_settings"       : { },
+                "file_settings" : {
+                    "file_access_mode" : "truncate"
+                },
+                "output_time_settings" : {
+                    "output_step_frequency" : 20,
+                    "file_name" : "%s"
+                }
+            }
+        }""" % (self.model_part_name, self.__GetFullFilePath()))
 
-        hfd5_writer_process_parameters = KratosMultiphysics.Parameters("{}")
-        hfd5_writer_process_parameters.AddValue("Parameters", self.settings["hdf5_writer_process_parameters"])
+        hfd5_writer_process_parameters["Parameters"]["nodal_solution_step_data_settings"].AddValue(
+            "list_of_variables", self.settings["nodal_solution_step_data_variables"])
+        hfd5_writer_process_parameters["Parameters"]["nodal_data_value_settings"].AddValue(
+            "list_of_variables", self.settings["nodal_data_value_variables"])
+        hfd5_writer_process_parameters["Parameters"]["element_data_value_settings"].AddValue(
+            "list_of_variables", self.settings["element_data_value_variables"])
+
+        print(hfd5_writer_process_parameters.PrettyPrintJsonString())
 
         self.hfd5_writer_process = hdf5_process.Factory(hfd5_writer_process_parameters, self.model)
         self.hfd5_writer_process.ExecuteInitialize()
@@ -97,7 +138,16 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
             self.__WriteXdmfFile()
 
     def __WriteXdmfFile(self):
-        create_xdmf_file.WriteXdmfFile(self.xdmf_file_name.replace(".xdmf", ".h5"))
+        create_xdmf_file.WriteXdmfFile(self.file_name + ".h5", self.__GetFolderPathSave())
 
     def __GetNumberOfOutputFiles(self):
         return len(create_xdmf_file.GetListOfTimeLabels(self.xdmf_file_name.replace(".xdmf", ".h5")))
+
+    def __GetFolderPathSave(self):
+        if self.save_h5_files_in_folder:
+            return os.path.join(self.raw_path, self.folder_name)
+        else:
+            return self.raw_path
+
+    def __GetFullFilePath(self):
+        return os.path.join(self.__GetFolderPathSave(), self.file_name)
