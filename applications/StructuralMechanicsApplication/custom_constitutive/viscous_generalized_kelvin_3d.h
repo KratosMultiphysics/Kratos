@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
 
 namespace Kratos
 {
@@ -39,7 +40,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class ViscousGeneralizedKelvin3D
+ * @class ViscousGeneralizedKelvin
  * @ingroup StructuralMechanicsApplication
  * @brief This is a constitutive law that reproduces the behaviour of viscous Kelvin material
  * @details The definition of the Kelvin-Voigt material can be founf in Wikipedia https://en.wikipedia.org/wiki/Kelvin%E2%80%93Voigt_material
@@ -54,15 +55,19 @@ namespace Kratos
  * @author Alejandro Cornejo&  Lucia Barbu
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
-    : public ConstitutiveLaw
+template<class TElasticBehaviourLaw>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin
+    : public TElasticBehaviourLaw
 {
   public:
     ///@name Type Definitions
     ///@{
 
+    /// Definition of the base CL class
+    typedef ConstitutiveLaw CLBaseType;
+    
     /// Definition of the base class
-    typedef ConstitutiveLaw BaseType;
+    typedef TElasticBehaviourLaw BaseType;
 
     /// The index definition
     typedef std::size_t IndexType;
@@ -70,41 +75,47 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
     /// The size definition
     typedef std::size_t SizeType;
 
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = TElasticBehaviourLaw::Dimension;
+    
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = TElasticBehaviourLaw::VoigtSize;
+    
     /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(ViscousGeneralizedKelvin3D);
+    KRATOS_CLASS_POINTER_DEFINITION(ViscousGeneralizedKelvin);
+    
+    /// The node definition
+    typedef Node<3> NodeType;
+    
+    /// The geometry definition
+    typedef Geometry<NodeType> GeometryType;
+    
+    /// Definition of the machine precision tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /**
-    * Default constructor.
-    */
-    ViscousGeneralizedKelvin3D()
-    {
-    }
+     * @brief Default constructor.
+     */
+    ViscousGeneralizedKelvin();
 
     /**
-    * Clone.
+    * @brief Clone.
     */
-    ConstitutiveLaw::Pointer Clone() const override
-    {
-        return Kratos::make_shared<ViscousGeneralizedKelvin3D>(*this);
-    }
+    ConstitutiveLaw::Pointer Clone() const override;
 
     /**
-    * Copy constructor.
+    * @brief Copy constructor.
     */
-    ViscousGeneralizedKelvin3D(const ViscousGeneralizedKelvin3D& rOther)
-        : ConstitutiveLaw(rOther)
-    {
-    }
+    ViscousGeneralizedKelvin(const ViscousGeneralizedKelvin& rOther);
+    
     /**
-    * Destructor.
+    * @brief Destructor.
     */
-    ~ViscousGeneralizedKelvin3D() override
-    {
-    }
+    ~ViscousGeneralizedKelvin() override;
 
     ///@}
     ///@name Operators
@@ -113,22 +124,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief Dimension of the law:
-     */
-    SizeType WorkingSpaceDimension() override
-    {
-        return 3;
-    };
-
-    /**
-     * @brief Voigt tensor size:
-     */
-    SizeType GetStrainSize() override
-    {
-        return 6;
-    };
 
     /**
      * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
@@ -205,6 +200,21 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
         Matrix& rValue
         ) override;
 
+    /**
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input or that no common error is found.
+     * @param rMaterialProperties The properties of the material
+     * @param rElementGeometry The geometry of the element
+     * @param rCurrentProcessInfo The current process info instance
+     * @return 0 if OK, 1 otherwise
+     */
+    int Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+        
     ///@}
     ///@name Access
     ///@{
@@ -261,12 +271,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
     ///@{
 
     // Converged values
-    Vector mPrevStressVector = ZeroVector(6);
-    Vector mPrevInelasticStrainVector = ZeroVector(6);
+    Vector mPrevStressVector = ZeroVector(VoigtSize);
+    Vector mPrevInelasticStrainVector = ZeroVector(VoigtSize);
 
     // Non Converged values
-    Vector mNonConvPrevStressVector = ZeroVector(6);
-    Vector mNonConvPrevInelasticStrainVector = ZeroVector(6);
+    Vector mNonConvPrevStressVector = ZeroVector(VoigtSize);
+    Vector mNonConvPrevInelasticStrainVector = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators
@@ -276,15 +286,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedKelvin3D
     ///@name Private Operations
     ///@{
 
-    Vector GetPreviousStressVector() { return mPrevStressVector; }
+    Vector& GetPreviousStressVector() { return mPrevStressVector; }
     void SetPreviousStressVector(Vector toStress) { mPrevStressVector = toStress; }
-    Vector GetNonConvPreviousStressVector() { return mNonConvPrevStressVector; }
+    Vector& GetNonConvPreviousStressVector() { return mNonConvPrevStressVector; }
     void SetNonConvPreviousStressVector(Vector toStress) { mNonConvPrevStressVector = toStress; }
 
-    Vector GetPreviousInelasticStrainVector() { return mPrevInelasticStrainVector; }
-    void SetPreviousInelasticStrainVector(Vector toStrain) { mPrevInelasticStrainVector = toStrain; }
-    Vector GetNonConvPreviousInelasticStrainVector() { return mNonConvPrevInelasticStrainVector; }
-    void SetNonConvPreviousInelasticStrainVector(Vector toStrain) { mNonConvPrevInelasticStrainVector = toStrain; }
+    Vector& GetPreviousInelasticStrainVector() { return mPrevInelasticStrainVector; }
+    void SetPreviousInelasticStrainVector(Vector& toStrain) { mPrevInelasticStrainVector = toStrain; }
+    Vector& GetNonConvPreviousInelasticStrainVector() { return mNonConvPrevInelasticStrainVector; }
+    void SetNonConvPreviousInelasticStrainVector(Vector& toStrain) { mNonConvPrevInelasticStrainVector = toStrain; }
 
     /**
      * @brief This method computes the elastic tensor

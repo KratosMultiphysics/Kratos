@@ -18,7 +18,50 @@
 
 namespace Kratos
 {
-void ViscousGeneralizedKelvin3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+/******************************CONSTRUCTOR******************************************/
+/***********************************************************************************/
+
+template <class TElasticBehaviourLaw>
+ViscousGeneralizedKelvin<TElasticBehaviourLaw>::ViscousGeneralizedKelvin()
+    : BaseType()
+{
+}
+
+/******************************COPY CONSTRUCTOR*************************************/
+/***********************************************************************************/
+
+template <class TElasticBehaviourLaw>
+ViscousGeneralizedKelvin<TElasticBehaviourLaw>::ViscousGeneralizedKelvin(const ViscousGeneralizedKelvin& rOther)
+    : BaseType(rOther),
+      mPrevStressVector(rOther.mPrevStressVector),
+      mPrevInelasticStrainVector(rOther.mPrevInelasticStrainVector),
+      mNonConvPrevStressVector(rOther.mNonConvPrevStressVector),
+      mNonConvPrevInelasticStrainVector(rOther.mNonConvPrevInelasticStrainVector)
+{
+}
+
+/********************************CLONE**********************************************/
+/***********************************************************************************/
+
+template <class TElasticBehaviourLaw>
+ConstitutiveLaw::Pointer ViscousGeneralizedKelvin<TElasticBehaviourLaw>::Clone() const
+{
+    return Kratos::make_shared<ViscousGeneralizedKelvin>(*this);
+}
+
+/*******************************DESTRUCTOR******************************************/
+/***********************************************************************************/
+
+template <class TElasticBehaviourLaw>
+ViscousGeneralizedKelvin<TElasticBehaviourLaw>::~ViscousGeneralizedKelvin()
+{
+};
+
+/***********************************************************************************/
+/***********************************************************************************/
+    
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -26,7 +69,8 @@ void ViscousGeneralizedKelvin3D::CalculateMaterialResponsePK1(ConstitutiveLaw::P
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -34,7 +78,8 @@ void ViscousGeneralizedKelvin3D::CalculateMaterialResponsePK2(ConstitutiveLaw::P
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
 }
@@ -42,7 +87,8 @@ void ViscousGeneralizedKelvin3D::CalculateMaterialResponseKirchhoff(Constitutive
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     // Integrate kelvin Generalized
     const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -87,7 +133,8 @@ void ViscousGeneralizedKelvin3D::CalculateMaterialResponseCauchy(ConstitutiveLaw
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::FinalizeSolutionStep(
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues,
@@ -101,7 +148,8 @@ void ViscousGeneralizedKelvin3D::FinalizeSolutionStep(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::CalculateElasticMatrix(
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateElasticMatrix(
     Matrix& rElasticityTensor,
     const Properties& rMaterialProperties)
 {
@@ -131,7 +179,8 @@ void ViscousGeneralizedKelvin3D::CalculateElasticMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     BaseType::FinalizeMaterialResponsePK1(rValues);
 }
@@ -139,7 +188,8 @@ void ViscousGeneralizedKelvin3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Pa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     BaseType::FinalizeMaterialResponsePK2(rValues);
 }
@@ -147,7 +197,8 @@ void ViscousGeneralizedKelvin3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Pa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
     BaseType::FinalizeMaterialResponseKirchhoff(rValues);
 }
@@ -155,7 +206,8 @@ void ViscousGeneralizedKelvin3D::FinalizeMaterialResponseKirchhoff(ConstitutiveL
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ViscousGeneralizedKelvin3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+template <class TElasticBehaviourLaw>
+void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     BaseType::FinalizeMaterialResponseCauchy(rValues);
 }
@@ -163,7 +215,8 @@ void ViscousGeneralizedKelvin3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw:
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& ViscousGeneralizedKelvin3D::CalculateValue(
+template <class TElasticBehaviourLaw>
+Matrix& ViscousGeneralizedKelvin<TElasticBehaviourLaw>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<Matrix>& rThisVariable,
     Matrix& rValue
@@ -175,5 +228,27 @@ Matrix& ViscousGeneralizedKelvin3D::CalculateValue(
 
     return rValue;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TElasticBehaviourLaw>
+int ViscousGeneralizedKelvin<TElasticBehaviourLaw>::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+
+    KRATOS_ERROR_IF_NOT(VoigtSize == this->GetStrainSize()) << "You are combining not compatible constitutive laws" << std::endl;
+
+    return check_base;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class ViscousGeneralizedKelvin<ElasticIsotropic3D>;
 
 } // namespace Kratos

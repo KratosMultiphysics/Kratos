@@ -79,7 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawKelvin, KratosStructuralMechanicsFastSu
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
     // Create the CL
-    ViscousGeneralizedKelvin3D kelvin_cl = ViscousGeneralizedKelvin3D();
+    ViscousGeneralizedKelvin<ElasticIsotropic3D> kelvin_cl = ViscousGeneralizedKelvin<ElasticIsotropic3D>();
 
     std::vector<double> kelvin_res;
     kelvin_res = {-53828.8, -53828.8, -190847, 0, 0, -1.45077e-12};

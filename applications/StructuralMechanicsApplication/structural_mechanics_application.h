@@ -448,7 +448,7 @@ private:
     // Damage and plasticity laws
     const SmallStrainIsotropicPlasticityFactory mSmallStrainIsotropicPlasticityFactory;
     const SmallStrainIsotropicDamageFactory mSmallStrainIsotropicDamageFactory;
-    const ViscousGeneralizedKelvin3D mViscousGeneralizedKelvin3D;
+    const ViscousGeneralizedKelvin<ElasticIsotropic3D> mViscousGeneralizedKelvin3D;
     const ViscousGeneralizedMaxwell3D mViscousGeneralizedMaxwell3D;
     const GenericSmallStrainViscoplasticity3D mGenericSmallStrainViscoplasticity3D;
 

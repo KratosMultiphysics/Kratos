@@ -153,7 +153,7 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"SmallStrainIsotropicPlasticityFactory").def( init<>())
     ;
 
-    class_< ViscousGeneralizedKelvin3D, typename ViscousGeneralizedKelvin3D::Pointer,  ConstitutiveLaw  >
+    class_< ViscousGeneralizedKelvin<ElasticIsotropic3D>, typename ViscousGeneralizedKelvin<ElasticIsotropic3D>::Pointer,  ConstitutiveLaw  >
     (m,"ViscousGeneralizedKelvin3D").def( init<>())
     ;
 
