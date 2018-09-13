@@ -26,9 +26,6 @@ class CoSimulationAnalysis(object):
             else:
                 raise Exception('"parallel_type" can only be "OpenMP" or "MPI"!')
 
-        if "flush_terminal" in self.cosim_settings["problem_data"]:
-            self.flush_stdout = self.cosim_settings["problem_data"]["parallel_type"]
-
         self.echo_level = 0
         if "echo_level" in self.cosim_settings["problem_data"]:
             self.echo_level = self.cosim_settings["problem_data"]["echo_level"]
@@ -49,9 +46,7 @@ class CoSimulationAnalysis(object):
             self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
-
-            if self.flush_stdout:
-                sys.stdout.flush()
+            sys.stdout.flush()
 
     def Initialize(self):
         self._GetSolver().Initialize()
@@ -65,15 +60,16 @@ class CoSimulationAnalysis(object):
         self.time = self.cosim_settings["problem_data"]["start_time"]
         self.step = 0
 
-        if self.flush_stdout:
-            sys.stdout.flush()
+        sys.stdout.flush()
 
     def Finalize(self):
         self._GetSolver().Finalize()
 
-    def InitializeSolutionStep(self):
-        csprint(0, bold("time={0:.12g}".format(self.time)+ " | step="+ str(self.step)))
+    def PrintInfo(self):
+        self._GetSolver().PrintInfo()
 
+    def InitializeSolutionStep(self):
+        print( cs_tools.bcolors.GREEN + cs_tools.bcolors.BOLD +"Time = {0:.10f}".format(self.time) + " | Step = " + str(self.step) + cs_tools.bcolors.ENDC )
         self._GetSolver().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
@@ -88,10 +84,17 @@ class CoSimulationAnalysis(object):
         return self._solver
 
     def _CreateSolver(self):
-        """Create the solver
-        """
-        import co_simulation_solvers.python_solvers_wrapper_co_simulation as solvers_wrapper
-        return solvers_wrapper.CreateSolver(self.cosim_settings["solver_settings"], level=0)
+        if("coupled_solver_settings" in self.cosim_settings):
+            import co_simulation_coupled_solver_factory as coupled_solver_factory
+            return coupled_solver_factory.CreateCoupledSolver(self.cosim_settings)
+        elif ("solvers" in self.cosim_settings):
+            num_solvers = len(self.cosim_settings["solvers"])
+            if(num_solvers > 1 or num_solvers == 0):
+                Exception("More than one or no solvers defined with out coupled solver !")
+            else:
+                import co_simulation_solver_factory as solver_factory
+                return solver_factory.CreateSolverInterface(self.cosim_settings["solvers"][0])
+
 
 if __name__ == '__main__':
     from sys import argv
