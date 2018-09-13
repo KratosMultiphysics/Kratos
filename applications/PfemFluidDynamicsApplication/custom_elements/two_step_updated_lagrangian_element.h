@@ -352,13 +352,6 @@ namespace Kratos
       ///@name Protected member Variables
       ///@{
 
-      /* std::vector< Matrix > mCurrentFgrad; */
-      /* std::vector< Matrix > mUpdatedFgrad; */
-      /* std::vector< Vector > mCurrentTotalCauchyStress; */
-      /* std::vector< Vector > mCurrentDeviatoricCauchyStress; */
-      /* std::vector< Vector > mUpdatedTotalCauchyStress; */
-      /* std::vector< Vector > mUpdatedDeviatoricCauchyStress; */
-
       ///@}
       ///@name Protected Operators
       ///@{
