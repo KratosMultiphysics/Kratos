@@ -14,6 +14,12 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return NonlinearSensitivityProcess(Model, settings["Parameters"])
 
+def zero_vector(size):
+    v = KratosMultiphysics.Vector(size)
+    for i in range(size):
+        v[i] = 0.0
+    return v
+
 class NonlinearSensitivityProcess(KratosMultiphysics.Process):
     """This class is used to compute sensitivity information to charactarize
     to structural nonlinear behaviour.
@@ -180,10 +186,10 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
                         #    for index in range(len(value)):
                         #        value_json = values_json[index]
 
-                if variable_name == "DISPLACEMENT":
-                    node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY, curvature_array)
-                    node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_FIRST_ORDER, sen_first_array)
-                    node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_SECOND_ORDER, sen_second_array)
+                        if variable_name == "DISPLACEMENT":
+                            node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY, curvature_array)
+                            node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_FIRST_ORDER, sen_first_array)
+                            node.SetValue(StructuralMechanicsApplication.DISPLACEMENT_NL_SENSITIVITY_SECOND_ORDER, sen_second_array)
 
             # Elemental values
             for elem in self.sub_model_part.Elements:
@@ -243,10 +249,40 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
                         #        values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)][step - 1]
                         #        for index in range(len(value[gp])):
                         #            value_json = values_json[index]
-                if variable_name == "FORCE":
-                    elem.SetValue(StructuralMechanicsApplication.FORCE_NL_SENSITIVITY, curvature_array)
-                    elem.SetValue(StructuralMechanicsApplication.FORCE_NL_SENSITIVITY_FIRST_ORDER, sen_first_array)
-                    elem.SetValue(StructuralMechanicsApplication.FORCE_NL_SENSITIVITY_SECOND_ORDER, sen_second_array)
+                        elif variable_type == "Matrix":
+                            row_size = value[0].Size1()
+                            column_size = value[0].Size2()
+                            result_size = row_size*column_size
+                            curvature_vector = zero_vector(result_size)
+                            sen_first_vector = zero_vector(result_size)
+                            sen_second_vector = zero_vector(result_size)
+                            for gp in range(gauss_point_number):
+                                values_json = self.data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)]
+                                if len(values_json) is 3:
+                                    index = 0
+                                    for value1, value2, value3 in zip(values_json[0], values_json[1], values_json[2]):
+                                        values_array = [value1, value2, value3]
+                                        curvature_vector[index] += self.__ComputeEFCurvature(values_array, input_time_list)
+                                        sen_first_vector[index] += self.__ComputeFirstOrderNLSensitivityFactors(values_array, input_time_list)
+                                        sen_second_vector[index] += self.__ComputeSecondOrderNLSensitivityFactors(values_array, input_time_list)
+                                        index += 1
+                                else:
+                                    raise Exception("Number of response values does not fit!")
+                            curvature_vector /= gauss_point_number
+                            sen_first_vector /= gauss_point_number
+                            sen_second_vector /= gauss_point_number
+                            curvature_matrix = self.__AssembleVectorValuesIntoMatrix(curvature_vector, row_size, column_size)
+                            sen_first_matrix = self.__AssembleVectorValuesIntoMatrix(sen_first_vector, row_size, column_size)
+                            sen_second_matrix = self.__AssembleVectorValuesIntoMatrix(sen_second_vector, row_size, column_size)
+
+                        if variable_name == "FORCE":
+                            elem.SetValue(StructuralMechanicsApplication.FORCE_NL_SENSITIVITY, curvature_array)
+                            elem.SetValue(StructuralMechanicsApplication.FORCE_NL_SENSITIVITY_FIRST_ORDER, sen_first_array)
+                            elem.SetValue(StructuralMechanicsApplication.FORCE_NL_SENSITIVITY_SECOND_ORDER, sen_second_array)
+                        elif variable_name == "SHELL_MOMENT_GLOBAL":
+                            elem.SetValue(StructuralMechanicsApplication.SHELL_MOMENT_GLOBAL_NL_SENSITIVITY, curvature_matrix)
+                            elem.SetValue(StructuralMechanicsApplication.SHELL_MOMENT_GLOBAL_NL_SENSITIVITY_FIRST_ORDER, sen_first_matrix)
+                            elem.SetValue(StructuralMechanicsApplication.SHELL_MOMENT_GLOBAL_NL_SENSITIVITY_SECOND_ORDER, sen_second_matrix)
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -343,8 +379,8 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
         lambda_1 = load_factor_array[1]
         lambda_2 = load_factor_array[2]
         delta_10 = lambda_1 - lambda_0
-        delta_20 = lambda_2 - lambda_0
-        if (delta_10 < 1e-10) or (delta_20 < 1e-10):
+        delta_21 = lambda_2 - lambda_1
+        if (delta_10 < 1e-10) or (delta_21 < 1e-10):
             raise Exception("Pseudo-time steps are not valid!")
 
         response_0 = response_value_array[0]
@@ -355,9 +391,23 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
 
 
         slope_10 = (response_1 - response_0) / delta_10
-        slope_20 = (response_2 - response_0) / delta_20
+        slope_21 = (response_2 - response_1) / delta_21
 
         if abs(slope_10) > 1e-10:
-            sensitivity_second_order = slope_20 / slope_10
+            sensitivity_second_order = slope_21 / slope_10
 
         return sensitivity_second_order
+
+    def __AssembleVectorValuesIntoMatrix(self, given_vector, row_size, column_size):
+        vector_size = given_vector.Size()
+        if not vector_size == (row_size*column_size):
+            raise Exception("Vector size does not fit!")
+        m = KratosMultiphysics.Matrix(row_size, column_size)
+        index = 0
+        for row_index in range(row_size):
+            for column_index in range(column_size):
+                m[row_index, column_index] = given_vector[index]
+                index += 1
+        return m
+
+
