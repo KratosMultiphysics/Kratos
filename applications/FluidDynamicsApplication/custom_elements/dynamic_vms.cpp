@@ -590,7 +590,7 @@ void DynamicVMS<TDim>::CalculateGeometryData()
     MathUtils<double>::InvertMatrix( J[0], InvJ, mDetJ );
 
     // calculate the shape function derivatives in global coordinates
-    mDN_DX.resize(NumNodes,TDim);
+    mDN_DX.resize(NumNodes,TDim, false);
     noalias( mDN_DX ) = prod( DN_De[0], InvJ );
 
     // calculate minimum element length (used in stabilization Tau)

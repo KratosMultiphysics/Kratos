@@ -95,7 +95,7 @@ void StationaryStokes<TDim>::Initialize()
         MathUtils<double>::InvertMatrix( J[g], InvJ, DetJ );
 
         //calculating the shape function derivatives in global coordinates
-        mDN_DX[g].resize(NumNodes,TDim);
+        mDN_DX[g].resize(NumNodes,TDim, false);
         noalias( mDN_DX[g] ) = prod( DNv_De[g], InvJ );
 
         // Gauss point weight is stored as a fraction of the elemental area
