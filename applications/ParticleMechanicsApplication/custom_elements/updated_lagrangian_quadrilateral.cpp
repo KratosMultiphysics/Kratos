@@ -289,7 +289,7 @@ void UpdatedLagrangianQuadrilateral::SetGeneralVariables(GeneralVariables& rVari
             }
         }
 
-        KRATOS_THROW_ERROR( std::invalid_argument," MPM UPDATED LAGRANGIAN DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", rVariables.detF )
+        KRATOS_ERROR << "MPM UPDATED LAGRANGIAN DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = " << rVariables.detF << std::endl;
     }
 
     rVariables.detFT = rVariables.detF * rVariables.detF0;
@@ -523,7 +523,7 @@ void UpdatedLagrangianQuadrilateral::CalculateDeformationMatrix(Matrix& rB,
     }
     else
     {
-        KRATOS_THROW_ERROR( std::invalid_argument, "Dimension given is wrong", "Something is wrong with the given dimension in function: CalculateDeformationMatrix" )
+        KRATOS_ERROR << "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateDeformationMatrix" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -555,10 +555,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddRHS(LocalSystemComponents& r
                 calculated = true;
             }
 
-            if(calculated == false)
-            {
-                KRATOS_THROW_ERROR( std::logic_error, " ELEMENT can not supply the required local system variable: ", rRightHandSideVariables[i] )
-            }
+            KRATOS_ERROR_IF(calculated == false) << "ELEMENT can not supply the required local system variable: " << rRightHandSideVariables[i] << std::endl;
 
         }
     }
@@ -642,10 +639,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAndAddLHS(LocalSystemComponents& r
                 calculated = true;
             }
 
-            if(calculated == false)
-            {
-                KRATOS_THROW_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i])
-            }
+            KRATOS_ERROR_IF(calculated == false) << "ELEMENT can not supply the required local system variable: " << rLeftHandSideVariables[i] << std::endl;
 
         }
     }
@@ -1027,9 +1021,23 @@ void UpdatedLagrangianQuadrilateral::FinalizeStepVariables( GeneralVariables & r
 
     this->SetValue(MP_CAUCHY_STRESS_VECTOR, rVariables.StressVector);
     this->SetValue(MP_ALMANSI_STRAIN_VECTOR, rVariables.StrainVector);
+
+    // Delta Plastic Strains
+    double DeltaPlasticStrain = mConstitutiveLawVector->GetValue(DELTA_PLASTIC_STRAIN, DeltaPlasticStrain );
+    this->SetValue(MP_DELTA_PLASTIC_STRAIN, DeltaPlasticStrain);
+
+    double DeltaPlasticVolumetricStrain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, DeltaPlasticVolumetricStrain);
+    this->SetValue(MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN, DeltaPlasticVolumetricStrain);
+
+    double DeltaPlasticDeviatoricStrain = mConstitutiveLawVector->GetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, DeltaPlasticDeviatoricStrain);
+    this->SetValue(MP_DELTA_PLASTIC_DEVIATORIC_STRAIN, DeltaPlasticDeviatoricStrain);
     
+    // Total Plastic Strain
     double EquivalentPlasticStrain = mConstitutiveLawVector->GetValue(PLASTIC_STRAIN, EquivalentPlasticStrain );
     this->SetValue(MP_EQUIVALENT_PLASTIC_STRAIN, EquivalentPlasticStrain);
+
+    double AccumulatedPlasticVolumetricStrain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, AccumulatedPlasticVolumetricStrain);
+    this->SetValue(MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN, AccumulatedPlasticVolumetricStrain);
 
     double AccumulatedPlasticDeviatoricStrain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);
     this->SetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);
@@ -1130,7 +1138,7 @@ void UpdatedLagrangianQuadrilateral::InitializeMaterial()
                 Variables.N );
     }
     else
-        KRATOS_THROW_ERROR( std::logic_error, "A constitutive law needs to be specified for the element with ID ", this->Id() )
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID: " << this->Id() << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -1224,7 +1232,7 @@ void UpdatedLagrangianQuadrilateral::CalculateAlmansiStrain(const Matrix& rF,
     }
     else
     {
-        KRATOS_THROW_ERROR( std::invalid_argument, "Dimension given is wrong", "Something is wrong with the given dimension in function: CalculateAlmansiStrain" )
+        KRATOS_ERROR << "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateAlmansiStrain" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -1264,7 +1272,7 @@ void UpdatedLagrangianQuadrilateral::CalculateGreenLagrangeStrain(const Matrix& 
     }
     else
     {
-        KRATOS_THROW_ERROR( std::invalid_argument, "Dimension given is wrong", "Something is wrong with the given dimension in function: CalculateGreenLagrangeStrain" )
+        KRATOS_ERROR << "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateGreenLagrangeStrain" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -1831,58 +1839,41 @@ int  UpdatedLagrangianQuadrilateral::Check( const ProcessInfo& rCurrentProcessIn
             correct_strain_measure = true;
     }
 
-    if( correct_strain_measure == false )
-        KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Large Displacements " )
+    KRATOS_ERROR_IF(correct_strain_measure == false ) << "Constitutive law is not compatible with the element type: Large Displacements " << std::endl;
 
-        // Verify that the variables are correctly initialized
-        if ( VELOCITY.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
-
-            if ( DISPLACEMENT.Key() == 0 )
-                KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
-
-                if ( ACCELERATION.Key() == 0 )
-                    KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-
-                    if ( DENSITY.Key() == 0 )
-                        KRATOS_THROW_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" )
-
-                        // Verify that the dofs exist
-                        for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
-                        {
-                            if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-                                KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
-
-                            if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-
-                                KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
-                        }
-
-    // Verify that the constitutive law exists
-    if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
+    // Verify that the variables are correctly initialized
+    KRATOS_ERROR_IF( VELOCITY.Key() == 0 ) << "VELOCITY has Key zero! (check if the application is correctly registered" << std::endl;
+    KRATOS_ERROR_IF( DISPLACEMENT.Key() == 0 ) << "DISPLACEMENT has Key zero! (check if the application is correctly registered" << std::endl;
+    KRATOS_ERROR_IF( ACCELERATION.Key() == 0 ) << "ACCELERATION has Key zero! (check if the application is correctly registered" << std::endl;
+    KRATOS_ERROR_IF( DENSITY.Key() == 0 ) <<  "DENSITY has Key zero! (check if the application is correctly registered" << std::endl;
+    // Verify that the dofs exist
+    for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
     {
-        KRATOS_THROW_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
+        KRATOS_ERROR_IF( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false ) << "Missing variable DISPLACEMENT on node " << this->GetGeometry()[i].Id() << std::endl;
+        KRATOS_ERROR_IF( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false ) << "Missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << std::endl;
     }
 
-    // Verify that the constitutive law has the correct dimension
-    if ( dimension == 2 )
+    // Verify that the constitutive law exists
+    if( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false)
     {
-        if ( THICKNESS.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" )
-
-            if ( this->GetProperties().Has( THICKNESS ) == false )
-                KRATOS_THROW_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
-            }
+        KRATOS_ERROR << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
+    }
     else
     {
-        if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )
-            KRATOS_THROW_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() )
+        // Verify that the constitutive law has the correct dimension
+        if ( dimension == 2 )
+        {
+            KRATOS_ERROR_IF(THICKNESS.Key() == 0 ) << "THICKNESS has Key zero! (check if the application is correctly registered" << std::endl;
+            KRATOS_ERROR_IF( this->GetProperties().Has( THICKNESS ) == false ) << "THICKNESS not provided for element " << this->Id() << std::endl;
+        }
+        else
+        {
+            KRATOS_ERROR_IF( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 ) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) " << this->Id() << std::endl;
         }
 
-    // Check constitutive law
-    if (mConstitutiveLawVector!= 0)
-    {
-        return mConstitutiveLawVector->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
+        // Check constitutive law
+        this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
+
     }
 
     return 0;
