@@ -409,7 +409,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    777 The base type definition
+    /// The base type definition
     typedef BinBasedFastPointLocator<TDim, SpatialContainersConfigure<TDim, Condition>> BaseType;
 
     /// Pointer definition of BinBasedFastPointLocatorConditions
