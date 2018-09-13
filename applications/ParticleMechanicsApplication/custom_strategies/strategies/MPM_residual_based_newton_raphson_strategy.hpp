@@ -384,28 +384,28 @@ public:
         // if the operations needed were already performed this does nothing
         if (mInitializeWasPerformed == false)
         {
-            KRATOS_INFO("MPM_Strategy") << "Initializing solving strategy" << std::endl;
+            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing solving strategy" << std::endl;
             if(mInitializeWasPerformed == true)
                 KRATOS_THROW_ERROR( std::logic_error, " Initialization was already performed ", mInitializeWasPerformed );
 
             // Pointers needed in the solution
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
-            KRATOS_INFO("MPM_Strategy") << "Initializing scheme" << std::endl;
+            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing scheme" << std::endl;
             
             // Initialize The Scheme - OPERATIONS TO BE DONE ONCE
             if (pScheme->SchemeIsInitialized() == false)
                 pScheme->Initialize(BaseType::GetModelPart());
-            KRATOS_INFO("MPM_Strategy") << "Initializing elements" << std::endl;
+            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing elements" << std::endl;
             
             // Initialize The Elements - OPERATIONS TO BE DONE ONCE
             if (pScheme->ElementsAreInitialized() == false)
                 pScheme->InitializeElements(BaseType::GetModelPart());
-            KRATOS_INFO("MPM_Strategy") << "Initializing conditions" << std::endl;
+            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing conditions" << std::endl;
             
             // Initialize The Conditions - OPERATIONS TO BE DONE ONCE
             if (pScheme->ConditionsAreInitialized() == false)
                 pScheme->InitializeConditions(BaseType::GetModelPart());
-            KRATOS_INFO("MPM_Strategy") << "Initializing convergence criteria"<<std::endl;
+            KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing convergence criteria"<<std::endl;
             
             // Initialisation of the convergence criteria
             if (mpConvergenceCriteria->IsInitialized() == false)
@@ -458,13 +458,9 @@ public:
         
         is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
         
-        if (this->GetEchoLevel() >= 3)
-        {
-            KRATOS_INFO("MPM_Strategy") << "PreCriteria" << std::endl;
-            KRATOS_INFO("MPM_Strategy") << "is_converged" << is_converged << std::endl;
-            KRATOS_INFO("MPM_Strategy") << "mRebuildLevel" << BaseType::mRebuildLevel << std::endl;
-            KRATOS_INFO("MPM_Strategy") << "mStiffnessMatrixIsBuilt" << BaseType::mStiffnessMatrixIsBuilt << std::endl;
-        }
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() >= 3) << "PreCriteria:" 
+        << "\tIs_converged: " << is_converged  << "\tmRebuildLevel: " << BaseType::mRebuildLevel 
+        << "\tmStiffnessMatrixIsBuilt: " << BaseType::mStiffnessMatrixIsBuilt << std::endl;
 
         if (BaseType::mRebuildLevel > 1 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
@@ -494,6 +490,7 @@ public:
             KRATOS_INFO("MPM_Strategy") << "solution obtained = " << mDx << std::endl;
             KRATOS_INFO("MPM_Strategy") << "RHS  = " << mb << std::endl;
         }
+
         if (this->GetEchoLevel() == 4) // Print to matrix market file
         {
             std::stringstream matrix_market_name;
@@ -652,7 +649,6 @@ public:
         // Prints informations about the current time
         if (this->GetEchoLevel() == 2 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
-            KRATOS_INFO("MPM_Strategy") << " " << std::endl;
             KRATOS_INFO("MPM_Strategy") << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
         }
 
@@ -922,9 +918,7 @@ public:
     void Clear() override
     {
         KRATOS_TRY
-
-        if (this->GetEchoLevel() > 1) // If it is needed to print info
-            
+           
         SparseSpaceType::Clear(mpA);
         TSystemMatrixType& mA = *mpA;
         SparseSpaceType::Resize(mA, 0, 0);
