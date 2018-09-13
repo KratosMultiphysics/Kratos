@@ -1,10 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 # Other imports
-from . import io_factory
-
-def CreateSolver(cosim_solver_settings, level):
-    return CoSimulationBaseSolver(cosim_solver_settings, level)
+from . import co_simulation_io_factory as io_factory
 
 class CoSimulationBaseSolver(object):
     ## Constructor :  The base class for the CoSimulation Solver interfaces

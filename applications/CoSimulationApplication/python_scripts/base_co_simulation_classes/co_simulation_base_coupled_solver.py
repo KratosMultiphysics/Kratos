@@ -140,7 +140,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     def _SynchronizeOutputData(self, solver, solver_name):
         if self.coupling_started:
             output_data_list = self.cosim_solver_details[solver_name]["output_data_list"]
-            for output_data in output_data_list
+            for output_data in output_data_list:
                 to_solver = self.solvers[output_data["to_solver"]]
                 data_name = output_data["data_name"]
                 data_definition = to_solver.GetDataDefinition(data_name)
