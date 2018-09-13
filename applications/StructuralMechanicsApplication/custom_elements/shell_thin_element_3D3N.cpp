@@ -438,6 +438,21 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<Matrix>& 
 	// Check if we are doing a non-linear analysis type. If not, print warning
 	// for just the first element.
 
+    if(this->Has(rVariable))
+    {
+        // Resize Output
+        const SizeType  write_points_number = GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+        if (rValues.size() != write_points_number)
+            rValues.resize(write_points_number);
+
+        // Get result value for output
+        const auto& output_value = this->GetValue(rVariable);
+
+        // Write the same result on all Gauss-Points
+        for(IndexType i = 0; i < write_points_number; ++i)
+            rValues[i] = output_value;
+    }
+
 	if (this->Id() == 1)
 	{
 		if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
@@ -452,6 +467,7 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<Matrix>& 
 	}
 
     if(TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
+
 }
 
 void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
