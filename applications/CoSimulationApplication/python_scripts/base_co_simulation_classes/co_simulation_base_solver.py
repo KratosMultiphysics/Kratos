@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 # Other imports
-from . import co_simulation_io_factory as io_factory
+import co_simulation_io_factory as io_factory
 
 class CoSimulationBaseSolver(object):
     ## Constructor :  The base class for the CoSimulation Solver interfaces
