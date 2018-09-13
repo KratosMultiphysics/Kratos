@@ -41,7 +41,7 @@
 #include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
 // Constitutive law
-#include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
+#include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
 
 namespace Kratos
 {
@@ -64,12 +64,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class SmallStrainIsotropicPlasticityFactory3D
+ * @class SmallStrainIsotropicPlasticityFactory
  * @ingroup StructuralMechanicsApplication
  * @brief Dummy class to register, only implements create()
  * @author Alejandro Cornejo & Lucia Barbu
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticityFactory3D
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticityFactory
     : public ConstitutiveLaw
 {
   public:
@@ -77,7 +77,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticit
     ///@{
 
     /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicPlasticityFactory3D);
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicPlasticityFactory);
 
     ///@}
     ///@name Life Cycle
@@ -86,14 +86,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticit
     /**
     * Default constructor.
     */
-    SmallStrainIsotropicPlasticityFactory3D()
+    SmallStrainIsotropicPlasticityFactory()
     {
     }
 
     /**
     * Destructor.
     */
-    ~SmallStrainIsotropicPlasticityFactory3D() override
+    ~SmallStrainIsotropicPlasticityFactory() override
     {
     }
 

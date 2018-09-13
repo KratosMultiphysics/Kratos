@@ -17,6 +17,7 @@
 // Project includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
+// Elastic laws
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "custom_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
@@ -35,14 +36,14 @@
 #include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
-// CL
-#include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
-#include "custom_constitutive/small_strain_isotropic_damage_factory_3d.h"
+// Plastic and damage laws
+#include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
+#include "custom_constitutive/small_strain_isotropic_damage_factory.h"
 #include "custom_constitutive/viscous_generalized_maxwell_3d.h"
 #include "custom_constitutive/viscous_generalized_kelvin_3d.h"
 #include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
-#include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
-#include "custom_constitutive/generic_small_strain_isotropic_damage_3d.h"
+#include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
+#include "custom_constitutive/generic_small_strain_isotropic_damage.h"
 
 namespace Kratos
 {
@@ -124,12 +125,12 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     ;
     
 
-    class_< SmallStrainIsotropicDamageFactory3D, typename SmallStrainIsotropicDamageFactory3D::Pointer,  ConstitutiveLaw  >
-    (m,"SmallStrainIsotropicDamageFactory3D").def( init<>())
+    class_< SmallStrainIsotropicDamageFactory, typename SmallStrainIsotropicDamageFactory::Pointer,  ConstitutiveLaw  >
+    (m,"SmallStrainIsotropicDamageFactory").def( init<>())
     ;
 
-    class_< SmallStrainIsotropicPlasticityFactory3D, typename SmallStrainIsotropicPlasticityFactory3D::Pointer,  ConstitutiveLaw  >
-    (m,"SmallStrainIsotropicPlasticityFactory3D").def( init<>())
+    class_< SmallStrainIsotropicPlasticityFactory, typename SmallStrainIsotropicPlasticityFactory::Pointer,  ConstitutiveLaw  >
+    (m,"SmallStrainIsotropicPlasticityFactory").def( init<>())
     ;
 
     class_< ViscousGeneralizedKelvin3D, typename ViscousGeneralizedKelvin3D::Pointer,  ConstitutiveLaw  >

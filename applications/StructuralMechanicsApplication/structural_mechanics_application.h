@@ -102,10 +102,10 @@
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
 // Advanced Constitutive laws
-#include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
-#include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
-#include "custom_constitutive/generic_small_strain_isotropic_damage_3d.h"
-#include "custom_constitutive/small_strain_isotropic_damage_factory_3d.h"
+#include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
+#include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
+#include "custom_constitutive/generic_small_strain_isotropic_damage.h"
+#include "custom_constitutive/small_strain_isotropic_damage_factory.h"
 #include "custom_constitutive/viscous_generalized_kelvin_3d.h"
 #include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
 #include "custom_constitutive/viscous_generalized_maxwell_3d.h"
@@ -200,8 +200,7 @@ public:
     ///// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        KRATOS_WATCH("in my application");
-        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        KRATOS_INFO("KratosStructuralMechanicsApplication") << "Has the following number of components: " << KratosComponents<VariableData>::GetComponents().size() << std::endl;
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
         rOStream << std::endl;
@@ -428,8 +427,8 @@ private:
     const LinearIsotropicDamage3D mLinearIsotropicDamage3D;
 
     // Damage and plasticity laws
-    const SmallStrainIsotropicPlasticityFactory3D mSmallStrainIsotropicPlasticityFactory3D;
-    const SmallStrainIsotropicDamageFactory3D mSmallStrainIsotropicDamageFactory3D;
+    const SmallStrainIsotropicPlasticityFactory mSmallStrainIsotropicPlasticityFactory;
+    const SmallStrainIsotropicDamageFactory mSmallStrainIsotropicDamageFactory;
     const ViscousGeneralizedKelvin3D mViscousGeneralizedKelvin3D;
     const ViscousGeneralizedMaxwell3D mViscousGeneralizedMaxwell3D;
     const GenericSmallStrainViscoplasticity3D mGenericSmallStrainViscoplasticity3D;
