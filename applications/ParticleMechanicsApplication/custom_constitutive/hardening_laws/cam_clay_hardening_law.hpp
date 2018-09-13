@@ -7,11 +7,11 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
+//  Main authors:    Bodhinanda Chandra
 //
 
-#if !defined(KRATOS_MC_YIELD_CRITERION_H_INCLUDED)
-#define      KRATOS_MC_YIELD_CRITERION_H_INCLUDED
+#if !defined(KRATOS_BORJA_CAM_CLAY_HARDENING_LAW_H_INCLUDED )
+#define  KRATOS_BORJA_CAM_CLAY_HARDENING_LAW_H_INCLUDED
 
 
 
@@ -20,7 +20,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
+#include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
 
 namespace Kratos
 {
@@ -32,6 +32,7 @@ namespace Kratos
 
 ///@}
 ///@name Type Definitions
+///@{
 
 ///@}
 ///@name  Enum's
@@ -48,36 +49,32 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class MCYieldCriterion
-    : public YieldCriterion
+class CamClayHardeningLaw 
+        : public HardeningLaw 
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of MisesHuberYieldCriterion
-    KRATOS_CLASS_POINTER_DEFINITION( MCYieldCriterion );
+    /// Pointer definition of CamClayHardeningLaw
+    KRATOS_CLASS_POINTER_DEFINITION( CamClayHardeningLaw );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    MCYieldCriterion();
+    CamClayHardeningLaw();
 
-    /// Initialization constructor.
-    MCYieldCriterion(HardeningLawPointer pHardeningLaw);
 
     /// Copy constructor.
-    MCYieldCriterion(MCYieldCriterion const& rOther);
+    CamClayHardeningLaw(CamClayHardeningLaw const& rOther);
 
     /// Assignment operator.
-    MCYieldCriterion& operator=(MCYieldCriterion const& rOther);
-
+    CamClayHardeningLaw& operator=(CamClayHardeningLaw const& rOther);
 
     /// Destructor.
-    ~MCYieldCriterion() override;
-
+    ~CamClayHardeningLaw();
 
     ///@}
     ///@name Operators
@@ -88,8 +85,9 @@ public:
     ///@name Operations
     ///@{
 
-    double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rCohesion, const double& rFrictionAngle) override;
-
+    double& CalculateHardening(double &rHardening, const double &rAlpha, const double rOldPreconsolidationPressure) override;
+	
+    ///@}
     ///@name Access
     ///@{
 
@@ -102,6 +100,16 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+    // std::string Info() const;
+
+    // /// Print information about this object.
+    // void PrintInfo(std::ostream& rOStream) const;
+
+    // /// Print object's data.
+    // void PrintData(std::ostream& rOStream) const;
+
 
     ///@}
     ///@name Friends
@@ -119,7 +127,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-
+     
     ///@}
     ///@name Protected Operators
     ///@{
@@ -129,15 +137,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    double GetSmoothingLodeAngle();
 
-    double GetPI();
-
-    double GetSmoothingHiperbolic();
-    
     ///@}
     ///@name Protected  Access
     ///@{
+
 
     ///@}
     ///@name Protected Inquiry
@@ -147,6 +151,7 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
+
 
     ///@}
 
@@ -159,7 +164,7 @@ private:
     ///@name Member Variables
     ///@{
 
-
+	
     ///@}
     ///@name Private Operators
     ///@{
@@ -169,10 +174,10 @@ private:
     ///@name Private Operations
     ///@{
 
+
     ///@}
     ///@name Private  Access
     ///@{
-
 
     ///@}
     ///@name Serialization
@@ -194,9 +199,10 @@ private:
     ///@name Un accessible methods
     ///@{
 
+
     ///@}
 
-}; 
+}; // Class CamClayHardeningLaw
 
 ///@}
 
@@ -211,11 +217,11 @@ private:
 
 // /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   MisesHuberYieldCriterion& rThis);
+//                                   LinearIsotropicHardeningLaw& rThis);
 
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const MisesHuberYieldCriterion& rThis)
+//                                   const LinearIsotropicHardeningLaw& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
@@ -229,6 +235,5 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRESCA_YIELD_CRITERION_H_INCLUDED  defined 
-
+#endif // KRATOS_MPM_CAM_CLAY_HARDENING_LAW_H_INCLUDED defined
 

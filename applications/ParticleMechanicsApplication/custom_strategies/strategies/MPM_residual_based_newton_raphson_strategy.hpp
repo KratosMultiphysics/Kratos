@@ -385,8 +385,7 @@ public:
         if (mInitializeWasPerformed == false)
         {
             KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing solving strategy" << std::endl;
-            if(mInitializeWasPerformed == true)
-                KRATOS_THROW_ERROR( std::logic_error, " Initialization was already performed ", mInitializeWasPerformed );
+            KRATOS_ERROR_IF(mInitializeWasPerformed == true) << "Initialization was already performed " << mInitializeWasPerformed << std::endl;
 
             // Pointers needed in the solution
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
