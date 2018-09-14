@@ -114,8 +114,8 @@ void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
             const double GaussWeight = mDetJ * IntegrationPoints[g].Weight();
 
             // Evaluate convective velocity on integration point
-            array_1d<double,3> Velocity(3,0.0);
-            array_1d<double,3> MeshVelocity(3,0.0);
+            array_1d<double,3> Velocity = ZeroVector(3);
+            array_1d<double,3> MeshVelocity = ZeroVector(3);
             this->EvaluateInPoint(Velocity,VELOCITY,N);
             this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,N);
 
@@ -209,8 +209,8 @@ void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
         double MolecularViscosity;
         double LastViscosity;
 
-        array_1d<double,3> Velocity(3,0.0);
-        array_1d<double,3> MeshVelocity(3,0.0);
+        array_1d<double,3> Velocity = ZeroVector(3);
+        array_1d<double,3> MeshVelocity = ZeroVector(3);
 
         this->EvaluateInPoint(MolecularViscosity,MOLECULAR_VISCOSITY,N);
         this->EvaluateInPoint(LastViscosity,TURBULENT_VISCOSITY,N);
@@ -230,7 +230,7 @@ void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 
         // Evaluate the gradient of the transported variable on the integration point
         // (used in the linearisation of the non-conservative diffusion term)
-        array_1d<double,3> LastViscosityGradient(3,0.0);
+        array_1d<double,3> LastViscosityGradient = ZeroVector(3);
         for (SizeType i = 0; i < NumNodes; i++)
         {
             double NodalViscosity = this->GetGeometry()[i].FastGetSolutionStepValue(TURBULENT_VISCOSITY);
@@ -580,8 +580,8 @@ double SpalartAllmaras::CalculateTau(double ElementSize, const ProcessInfo &rCur
     double Diffusivity = (MolecularViscosity + EddyViscosity) / sigma;
 
     // Convective velocity
-    array_1d<double,3> Velocity(3,0.0);
-    array_1d<double,3> MeshVelocity(3,0.0);
+    array_1d<double,3> Velocity = ZeroVector(3);
+    array_1d<double,3> MeshVelocity = ZeroVector(3);
     this->EvaluateInPoint(Velocity,VELOCITY,N);
     this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,N);
     Velocity -= MeshVelocity;
@@ -601,9 +601,7 @@ double SpalartAllmaras::ElementSize()
     const SizeType NumNodes = rGeom.PointsNumber();
 
     // Maximum edge length
-    array_1d<double,3> Edge(3,0.0);
-
-    Edge = rGeom[1].Coordinates() - rGeom[0].Coordinates();
+    array_1d<double,3> Edge = rGeom[1].Coordinates() - rGeom[0].Coordinates();
     double MaxLength = Edge[0]*Edge[0];
     for (SizeType d = 1; d < Dim; d++)
         MaxLength += Edge[d]*Edge[d];

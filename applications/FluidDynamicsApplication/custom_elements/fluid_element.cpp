@@ -236,7 +236,7 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
             const auto& r_dndx = shape_derivatives[g];
             data.UpdateGeometryValues(
                 g, gauss_weights[g], row(shape_functions, g), r_dndx);
-            
+
             this->CalculateMaterialResponse(data);
 
             this->AddVelocitySystem(data, rDampMatrix, rRightHandSideVector);
@@ -541,7 +541,7 @@ array_1d<double, 3> FluidElement<TElementData>::GetAtCoordinate(
     const typename TElementData::NodalVectorData& rValues,
     const typename TElementData::ShapeFunctionsType& rN) const
 {
-    array_1d<double, 3> result(3, 0.0);
+    array_1d<double, 3> result = ZeroVector(3);
 
     for (size_t i = 0; i < NumNodes; i++) {
         for (size_t j = 0; j < Dim; j++) {
@@ -706,7 +706,7 @@ template <class TElementData>
 void FluidElement<TElementData>::GetCurrentValuesVector(
     const TElementData& rData,
     array_1d<double,LocalSize>& rValues) const {
-        
+
     int local_index = 0;
 
     const auto& r_velocities = rData.Velocity;

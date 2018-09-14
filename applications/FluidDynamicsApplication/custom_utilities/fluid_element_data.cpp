@@ -66,7 +66,7 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNodalD
     NodalScalarData& rData, const Variable<double>& rVariable,
     const Geometry<Node<3>>& rGeometry)
 {
-    noalias(rData) = array_1d<double,TNumNodes>(TNumNodes,0.0);
+    noalias(rData) = ZeroVector(TNumNodes);
     for (size_t i = 0; i < TNumNodes; i++) {
         rData[i] = rGeometry[i].FastGetSolutionStepValue(rVariable);
     }
@@ -91,7 +91,7 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromHistor
     NodalScalarData& rData, const Variable<double>& rVariable,
     const Geometry<Node<3>>& rGeometry, const unsigned int Step)
 {
-    noalias(rData) = array_1d<double,TNumNodes>(TNumNodes,0.0);
+    noalias(rData) = ZeroVector(TNumNodes);
     for (size_t i = 0; i < TNumNodes; i++) {
         rData[i] = rGeometry[i].FastGetSolutionStepValue(rVariable,Step);
     }

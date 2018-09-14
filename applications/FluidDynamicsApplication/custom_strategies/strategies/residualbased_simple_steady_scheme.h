@@ -254,7 +254,7 @@ public:
       #pragma omp parallel for
       for (int i = 0; i < number_of_nodes; i++) {
         ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
-        noalias(it_node->FastGetSolutionStepValue(ADVPROJ)) = array_1d<double,3>(3,0.0);
+        noalias(it_node->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
         it_node->FastGetSolutionStepValue(DIVPROJ) = 0.0;
         it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
       }

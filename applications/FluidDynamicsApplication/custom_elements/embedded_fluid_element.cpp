@@ -339,7 +339,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
     // If there is embedded velocity, substract it to the previous iteration solution
     if (this->Has(EMBEDDED_VELOCITY)) {
         const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp(LocalSize, 0.0);
+        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
 
         for (unsigned int i = 0; i < NumNodes; ++i) {
             for (unsigned int comp = 0; comp < Dim; ++comp) {
@@ -791,7 +791,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
     }
 
     // Compute the element average velocity value
-    array_1d<double, Dim> avg_vel(Dim,0.0);
+    array_1d<double, Dim> avg_vel = ZeroVector(Dim);
 
     for (unsigned int i = 0; i < NumNodes; ++i) {
         avg_vel += row(rData.Velocity, i);
@@ -927,7 +927,7 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
         nitsche_lhs.clear();
 
         const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> aux_embedded_vel(LocalSize,0.0);
+        array_1d<double, LocalSize> aux_embedded_vel = ZeroVector(LocalSize);
 
         for (unsigned int i=0; i<NumNodes; i++) {
             aux_embedded_vel(i*BlockSize) = embedded_vel(0);
