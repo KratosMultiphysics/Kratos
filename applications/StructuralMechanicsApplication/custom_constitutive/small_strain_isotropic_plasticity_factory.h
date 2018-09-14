@@ -19,29 +19,6 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
-#include "structural_mechanics_application_variables.h"
-
-// Integrator
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
-
-// Yield surfaces
-#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
-
-// Plastic potentials
-#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
-#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
-
-// Constitutive law
-#include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
 
 namespace Kratos
 {
@@ -64,12 +41,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class SmallStrainIsotropicPlasticityFactory3D
+ * @class SmallStrainIsotropicPlasticityFactory
  * @ingroup StructuralMechanicsApplication
  * @brief Dummy class to register, only implements create()
  * @author Alejandro Cornejo & Lucia Barbu
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticityFactory3D
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticityFactory
     : public ConstitutiveLaw
 {
   public:
@@ -77,7 +54,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticit
     ///@{
 
     /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicPlasticityFactory3D);
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicPlasticityFactory);
 
     ///@}
     ///@name Life Cycle
@@ -86,14 +63,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticit
     /**
     * Default constructor.
     */
-    SmallStrainIsotropicPlasticityFactory3D()
+    SmallStrainIsotropicPlasticityFactory()
     {
     }
 
     /**
     * Destructor.
     */
-    ~SmallStrainIsotropicPlasticityFactory3D() override
+    ~SmallStrainIsotropicPlasticityFactory() override
     {
     }
 
@@ -102,17 +79,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallStrainIsotropicPlasticit
      * @param NewParameters The configuration parameters of the new constitutive law
      * @return a Pointer to the new constitutive law
      */
-    ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override
-    {
-        const std::string& yield = NewParameters["yield_surface"].GetString();
-        const std::string& potential = NewParameters["plastic_potential"].GetString();
-
-        KRATOS_ERROR_IF(yield == "SimoJu") << "SimoJu yield surface not available in plasticity " << yield << std::endl;
-        KRATOS_ERROR_IF(yield == "Rankine") << "Rankine yield surface not available in plasticity " << yield << std::endl;
-
-        const std::string& name = "SmallStrainIsotropicPlasticity3D" + yield + potential;
-        return KratosComponents<ConstitutiveLaw>::Get(name).Clone();
-    }
+    ConstitutiveLaw::Pointer Create(Kratos::Parameters NewParameters) const override;
 
     ///@}
     ///@name Operators
