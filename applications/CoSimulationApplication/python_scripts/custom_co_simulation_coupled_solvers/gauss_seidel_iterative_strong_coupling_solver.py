@@ -28,8 +28,6 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
         for p in range(0,self.number_of_participants) :
             self.participating_solver_names.append(self.participants_setting_dict[p]['name'])
 
-        solvers = tools.GetSolvers(self.full_settings['solvers'])
-
         ### Making the convergence accelerator for this strategy
         self.convergence_accelerator = None
 
@@ -68,9 +66,9 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
             #self.convergence_criteria.InitializeNonLinearIteration()
 
             for solver_name, solver in self.participating_solvers.items():
-                #self._SynchronizeInputData(solver, solver_name)
+                #self._SynchronizeInputData(solver_name)
                 solver.SolveSolutionStep()
-                #self._SynchronizeOutputData(solver, solver_name)
+                #self._SynchronizeOutputData(solver_name)
 
             #self.convergence_accelerator.FinalizeNonLinearIteration()
             #self.convergence_criteria.FinalizeNonLinearIteration()
