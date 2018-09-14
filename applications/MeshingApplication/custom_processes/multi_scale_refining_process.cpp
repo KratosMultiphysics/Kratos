@@ -496,19 +496,22 @@ void MultiScaleRefiningProcess::IdentifyConditionsToErase()
 
 void MultiScaleRefiningProcess::IdentifyRefinedNodesToErase()
 {
-    ModelPart::ElementsContainerType::iterator element_begin = mrRefinedModelPart.ElementsBegin();
-    const IndexType element_nodes = element_begin->GetGeometry().size();
     const IndexType nelems = mrRefinedModelPart.Elements().size();
-
-    for (IndexType i = 0; i < nelems; i++)
+    if (nelems != 0) // just avoiding segfault in case of an empty coarse model part
     {
-        auto elem = element_begin + i;
-        if (elem->Is(TO_ERASE))
+        ModelPart::ElementsContainerType::iterator element_begin = mrRefinedModelPart.ElementsBegin();
+        const IndexType element_nodes = element_begin->GetGeometry().size();
+
+        for (IndexType i = 0; i < nelems; i++)
         {
-            for (IndexType inode = 0; inode < element_nodes; inode++)
+            auto elem = element_begin + i;
+            if (elem->Is(TO_ERASE))
             {
-                if ((elem->GetGeometry()[inode]).IsNot(TO_REFINE))
-                    (elem->GetGeometry()[inode]).Set(TO_ERASE, true);
+                for (IndexType inode = 0; inode < element_nodes; inode++)
+                {
+                    if ((elem->GetGeometry()[inode]).IsNot(TO_REFINE))
+                        (elem->GetGeometry()[inode]).Set(TO_ERASE, true);
+                }
             }
         }
     }

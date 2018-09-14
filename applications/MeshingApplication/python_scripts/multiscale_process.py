@@ -87,3 +87,6 @@ class MultiscaleProcess(KratosMultiphysics.Process):
 
     def ExecuteRefinement(self):
         self.subscales_utility.ExecuteRefinement()
+
+    def ExecuteCoarsening(self):
+        self.subscales_utility.ExecuteCoarsening()
