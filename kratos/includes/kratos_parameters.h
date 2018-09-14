@@ -859,8 +859,7 @@ public:
     void Append(const Parameters& rValue)
     {
         KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
-        nlohmann::json j_object(nlohmann::json::value_t::object);
-//         j_object = (rValue.GetUnderlyingStorage())->get<object>();
+        nlohmann::json j_object = nlohmann::json( nlohmann::json::parse( rValue.WriteJsonString() ) );
         mpValue->push_back(j_object);
     }
 
@@ -1239,7 +1238,7 @@ private:
 //     }
 
     /**
-     * @brief This method is created in order to access from the iterators to the databae
+     * @brief This method is created in order to access from the iterators to the database
      * @return mpValue The database storage
      * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
      */
@@ -1249,13 +1248,43 @@ private:
     }
 
     /**
-     * @brief This method is created in order to access from the iterators to the databae
+     * @brief This method is created in order to set the database
+     * @param pNewValue The database storage
+     * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
+     */
+    void SetUnderlyingSotrage(nlohmann::json* pNewValue)
+    {
+        mpValue = pNewValue;
+    }
+
+    /**
+     * @brief This method is created in order to access from the iterators to the database
      * @return mpValue The database storage
      * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
      */
     Kratos::shared_ptr<nlohmann::json> GetUnderlyingRootStorage()
     {
         return mpRoot;
+    }
+
+    /**
+     * @brief This method is created in order to set the database
+     * @param pNewValue The database storage
+     * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
+     */
+    void SetUnderlyingRootStorage(Kratos::shared_ptr<nlohmann::json> pNewValue)
+    {
+        mpRoot = pNewValue;
+    }
+
+    /**
+     * @brief This method sets the database from other Parameters
+     * @param rOtherValue The database to copy
+     * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
+     */
+    void InternalSetValue(const Parameters& rOtherValue)
+    {
+        mpValue = new nlohmann::json( nlohmann::json::parse( rOtherValue.WriteJsonString()));
     }
 
 }; // Parameters class
