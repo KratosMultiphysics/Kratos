@@ -9,15 +9,16 @@
 //
 //  Main authors:    Bodhinanda Chandra
 //
+
+
 #if !defined(KRATOS_BORJA_CAM_CLAY_PLASTIC_FLOW_RULE_H_INCLUDED )
 #define      KRATOS_BORJA_CAM_CLAY_PLASTIC_FLOW_RULE_H_INCLUDED
 
-
 // System includes
+#include <cmath>
 
 // External includes
 
-#include<cmath>
 // Project includes
 #include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
 

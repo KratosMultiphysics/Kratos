@@ -9,11 +9,13 @@
 //
 //  Main authors:    Ilaria Iaconeta
 //
+
+
 // System includes
 #include <iostream>
+#include <cmath>
 
 // External includes
-#include<cmath>
 
 // Project includes
 #include "includes/properties.h"

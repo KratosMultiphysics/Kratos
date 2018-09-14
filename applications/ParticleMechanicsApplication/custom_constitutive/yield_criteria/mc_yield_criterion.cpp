@@ -10,6 +10,7 @@
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
+
 // System includes
 #include <string>
 #include <iostream>
@@ -22,8 +23,6 @@
 #include "particle_mechanics_application.h"
 #include "utilities/math_utils.h"
 
-// ROUNDED MohrCoulomb YIELD CRITERION (Sloan & Booker, 1986 ) (in the octahedral)
-// Hyperbolic in the other plane... (Abbo & Lyamin, Sloan, Hambleton )
 namespace Kratos
 {
 

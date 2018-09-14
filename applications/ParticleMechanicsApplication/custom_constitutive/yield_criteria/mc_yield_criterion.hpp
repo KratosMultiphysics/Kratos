@@ -10,10 +10,9 @@
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
+
 #if !defined(KRATOS_MC_YIELD_CRITERION_H_INCLUDED)
 #define      KRATOS_MC_YIELD_CRITERION_H_INCLUDED
-
-
 
 // System includes
 
