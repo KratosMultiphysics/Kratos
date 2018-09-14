@@ -15,12 +15,10 @@ def ValidateAndAssignInputParameters(default, input, warnUnused=True):
 
         else:
             if type(default[key]) == type:
-                error =  "ERROR: mandatory key ", key, ":", default[key], "is missing! "
+                error =  "ERROR: mandatory setting ", key, ":", default[key], "is missing! "
                 raise ValueError(error)
             else:
                 output[key] = default[key]
-                warning_msg = "DEFAULT setting is used: " + str(key) + ":" + str(default[key])
-                warnings.warn(warning_msg, Warning)
 
         for inputSetting in input.keys():
             if inputSetting not in default.keys():
@@ -34,33 +32,6 @@ def ValidateAndAssignInputParameters(default, input, warnUnused=True):
                     warnings.warn(warning_msg, Warning)
 
     return output
-
-def GetSolvers(SolversDataList):
-    solvers_map = {}
-    num_solvers = len(SolversDataList)
-
-    for i in range(0,num_solvers):
-        solvers_module_name = "custom_co_simulation_solver_interfaces"
-        __import__(solvers_module_name)
-        import co_simulation_solver_factory as factory
-        solver = factory.CreateSolverInterface(SolversDataList[i])
-        solver_name = SolversDataList[i]["name"]
-        solvers_map[solver_name] = solver
-
-    return solvers_map
-
-def GetSolverCoSimulationDetails(co_simulation_solver_settings):
-    num_solvers = len(co_simulation_solver_settings)
-    solver_cosim_details = {}
-    for solver_settings in co_simulation_solver_settings:
-        solver_name = solver_settings["name"]
-        solver_cosim_details[solver_name] = solver_settings
-    # TODO: check if the data is consitently defined! => maybe do at another place though...
-    # - input in one is output in another
-    # - one IO is defined for each data_name
-    # - if the same data is defined multiple times
-    # - check if data format has been specified
-    return solver_cosim_details
 
 
 ## Class contains definition of colors. This is to be used as a struct
@@ -77,3 +48,19 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+
+def GetDataConfig(custom_config):
+    defaultSettings = {}
+    defaultSettings["name"] = str # MANDATORY
+    defaultSettings["format"] = "python_list"
+    defaultSettings["dimension"] = int # MANDATORY
+    defaultSettings["size"] = 0
+    defaultSettings["mesh_name"] = ""
+    defaultSettings["location_on_mesh"] = ""
+    settings = ValidateAndAssignInputParameters(defaultSettings, custom_config, False)
+
+    if settings["format"] == "python_list" :
+        settings["data"] = []
+
+    return settings
