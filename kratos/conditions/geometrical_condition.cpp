@@ -92,7 +92,7 @@ Condition::Pointer GeometricalCondition::Create(
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<Condition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_shared<GeometricalCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
@@ -106,7 +106,7 @@ Condition::Pointer GeometricalCondition::Create(
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<Condition>(NewId, pGeom, pProperties);
+    return Kratos::make_shared<GeometricalCondition>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 

@@ -92,7 +92,7 @@ Element::Pointer GeometricalElement::Create(
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_shared<GeometricalElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
@@ -106,7 +106,7 @@ Element::Pointer GeometricalElement::Create(
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<Element>(NewId, pGeom, pProperties);
+    return Kratos::make_shared<GeometricalElement>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
