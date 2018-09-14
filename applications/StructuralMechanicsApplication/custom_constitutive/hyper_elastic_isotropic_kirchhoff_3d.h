@@ -66,6 +66,12 @@ public:
     /// The definition of the size type
     typedef std::size_t             SizeType;
 
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 3;
+    
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 6;
+    
     /// Pointer definition of HyperElasticIsotropicKirchhoff3D
     KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicKirchhoff3D );
 
@@ -98,25 +104,45 @@ public:
     ///@{
 
     /**
-     * This function is designed to be called once to check compatibility with element
+     * @brief This function is designed to be called once to check compatibility with element
      * @param rFeatures: The Features of the law
      */
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-     * Dimension of the law:
+     * @brief Dimension of the law:
      */
-    SizeType WorkingSpaceDimension() override {
-        return 3;
+    SizeType WorkingSpaceDimension() override 
+    {
+        return Dimension;
     };
 
     /**
-     * Voigt tensor size:
+     * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override {
-        return 6;
+    SizeType GetStrainSize() override 
+    {
+        return VoigtSize;
     };
 
+    /**
+     * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
+     * @return the expected strain measure
+     */
+    StrainMeasure GetStrainMeasure() override
+    {
+        return StrainMeasure_GreenLagrange;
+    }
+
+    /**
+     * @brief Returns the stress measure of this constitutive law (by default 2st Piola-Kirchhoff stress in voigt notation)
+     * @return the expected stress measure
+     */
+    StressMeasure GetStressMeasure() override
+    {
+        return StressMeasure_PK2;
+    }
+    
     /**
      * @brief Computes the material response: PK1 stresses and algorithmic ConstitutiveMatrix
      * @param rValues The Internalvalues of the law
