@@ -246,7 +246,7 @@ Vector& HyperElasticIsotropicKirchhoff3D::CalculateValue(
     Vector& rValue
     ) 
 {
-    // We compute the strain
+    // We compute the strain or stresses
     if (rThisVariable == STRAIN) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
@@ -254,6 +254,20 @@ Vector& HyperElasticIsotropicKirchhoff3D::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
         this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
+    } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+        this->CalculateMaterialResponsePK2(rParameterValues);
+    } else if (rThisVariable == ALMANSI_STRAIN_VECTOR) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+        this->CalculateMaterialResponseKirchhoff(rParameterValues);
     } else if (rThisVariable == STRESSES) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
@@ -261,6 +275,27 @@ Vector& HyperElasticIsotropicKirchhoff3D::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
         this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
+    } if (rThisVariable == KIRCHHOFF_STRESS_VECTOR) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        this->CalculateMaterialResponseKirchhoff(rParameterValues);
+    } if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        this->CalculateMaterialResponseCauchy(rParameterValues);
+    } if (rThisVariable == PK2_STRESS_VECTOR) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        this->CalculateMaterialResponsePK2(rParameterValues);
     }
 
     return( rValue );
@@ -275,7 +310,7 @@ Matrix& HyperElasticIsotropicKirchhoff3D::CalculateValue(
     Matrix& rValue
     ) 
 {
-    // We compute the strain
+    // We compute the constitutive matrix
     if (rThisVariable == CONSTITUTIVE_MATRIX) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
@@ -283,6 +318,20 @@ Matrix& HyperElasticIsotropicKirchhoff3D::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
         this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
+    } else if (rThisVariable == CONSTITUTIVE_MATRIX_PK2) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+        this->CalculateMaterialResponsePK2(rParameterValues);
+    } else if (rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+        this->CalculateMaterialResponsePK2(rParameterValues);
     }
 
     return( rValue );
