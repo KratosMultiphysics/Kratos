@@ -34,8 +34,7 @@ LinearIsotropicDamagePlaneStrain2D::LinearIsotropicDamagePlaneStrain2D(
 
 ConstitutiveLaw::Pointer LinearIsotropicDamagePlaneStrain2D::Clone() const
 {
-    LinearIsotropicDamagePlaneStrain2D::Pointer pclone(new LinearIsotropicDamagePlaneStrain2D(*this));
-    return pclone;
+    return Kratos::make_shared<LinearIsotropicDamagePlaneStrain2D>(LinearIsotropicDamagePlaneStrain2D(*this));
 }
 
 //********************************DESTRUCTOR******************************************
