@@ -42,6 +42,7 @@
 #include "utilities/timer.h"
 
 #include "utilities/binbased_fast_point_locator.h"
+#include "utilities/binbased_fast_point_locator_conditions.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
 #include "utilities/geometry_tester.h"
 #include "utilities/cutting_utility.h"

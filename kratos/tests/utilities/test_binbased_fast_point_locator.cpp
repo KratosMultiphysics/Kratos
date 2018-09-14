@@ -23,6 +23,7 @@
 
 /* Utilities */
 #include "utilities/binbased_fast_point_locator.h"
+#include "utilities/binbased_fast_point_locator_conditions.h"
 
 namespace Kratos 
 {
