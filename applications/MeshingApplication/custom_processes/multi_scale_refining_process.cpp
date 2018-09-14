@@ -183,7 +183,7 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
     mrRefinedModelPart.SetValue(SUBSCALE_INDEX, ++subscale_index);
 
     // Copy the variables
-    AddNodalSolutionStepVariables();
+    AddVariablesToRefinedModelPart();
 
     // Copy all the tables and properties
     AddAllTablesToModelPart(mrCoarseModelPart, mrRefinedModelPart);
@@ -214,7 +214,7 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
 }
 
 
-void MultiScaleRefiningProcess::AddNodalSolutionStepVariables()
+void MultiScaleRefiningProcess::AddVariablesToRefinedModelPart()
 {
     auto variables_list = mrCoarseModelPart.GetNodalSolutionStepVariablesList();
 

@@ -133,7 +133,7 @@ public:
     void ExecuteRefinement();
 
     /**
-     * ExecuteCoarsening deletes the entities of the refined model part which are not TO_REFINE
+     * ExecuteCoarsening deletes the entities of the refined model part which in the coarse model part are not TO_REFINE
      */
     void ExecuteCoarsening();
 
@@ -281,9 +281,9 @@ public:
     void InitializeRefinedModelPart(const StringVectorType& rNames);
 
     /**
-     * @brief AddNodalSolutionStepVariables copies the variables from the coarse to the refined model part
+     * @brief AddVariablesToRefinedModelPart copies the variables from the coarse to the refined model part
      */
-    void AddNodalSolutionStepVariables();
+    void AddVariablesToRefinedModelPart();
 
     /**
      * @brief AddAllPropertiesToModelPart adds all properties from an origin model part to a destination model part
