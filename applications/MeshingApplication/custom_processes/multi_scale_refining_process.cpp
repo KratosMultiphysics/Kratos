@@ -174,6 +174,31 @@ ModelPart& MultiScaleRefiningProcess::RecursiveGetSubModelPart(ModelPart& rThisM
 }
 
 
+void MultiScaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart)
+{
+    // Copy all the tables and properties
+    AddAllTablesToModelPart(rReferenceModelPart, rNewModelPart);
+    AddAllPropertiesToModelPart(rReferenceModelPart, rNewModelPart);
+
+    // Get the model part hierarchy
+    StringVectorType sub_model_parts_names;
+    sub_model_parts_names = rReferenceModelPart.GetSubModelPartNames();
+    // sub_model_parts_names = RecursiveGetSubModelPartNames(mrCoarseModelPart);
+
+    // Copy the hierarchy to the refined model part
+    for (auto name : sub_model_parts_names)
+    {
+        ModelPart& sub_model_part = rNewModelPart.CreateSubModelPart(name);
+
+        ModelPart& origin_model_part = rReferenceModelPart.GetSubModelPart(name);
+
+        // Copy all the tables and properties
+        AddAllTablesToModelPart(origin_model_part, sub_model_part);
+        AddAllPropertiesToModelPart(origin_model_part, sub_model_part);
+    }
+}
+
+
 void MultiScaleRefiningProcess::InitializeCoarseModelPart(const StringVectorType& rNames)
 {}
 
@@ -186,25 +211,6 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
 
     // Copy the variables
     AddVariablesToRefinedModelPart();
-
-    // Copy all the tables and properties
-    AddAllTablesToModelPart(mrCoarseModelPart, mrRefinedModelPart);
-    AddAllPropertiesToModelPart(mrCoarseModelPart, mrRefinedModelPart);
-
-    // Copy the hierarchy to the refined model part
-    for (auto name : rNames)
-    {
-        ModelPart& sub_model_part = mrRefinedModelPart.CreateSubModelPart(name);
-
-        ModelPart& origin_model_part = mrCoarseModelPart.GetSubModelPart(name);
-
-        // Copy all the tables and properties
-        AddAllTablesToModelPart(origin_model_part, sub_model_part);
-        AddAllPropertiesToModelPart(origin_model_part, sub_model_part);
-    
-        // Note: we don't add the nodes, elements and conditions
-        // This operation is the refining process itself
-    }
 
     // Create a model part to store the interface boundary conditions
     mrRefinedModelPart.CreateSubModelPart(mRefinedInterfaceName);

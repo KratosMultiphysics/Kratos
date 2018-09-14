@@ -138,6 +138,14 @@ public:
      */
     void ExecuteCoarsening();
 
+    /**
+     * @brief InitializeNewModelPart is an auxiliary function to copy properties, variables, tables and sub model parts
+     * @param rReferenceModelPart
+     * @param rNewModelPart
+     */
+    static void InitializeNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart);
+
+
     ///@}
     ///@name Access
     ///@{
@@ -292,14 +300,14 @@ public:
      * @param rOriginModelPart
      * @param pDestinationModelPart
      */
-    void AddAllPropertiesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
+    static void AddAllPropertiesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
 
     /**
      * @brief AddAllTablesToModelPart adds all tables from an origin model part to a destination model part
      * @param rOriginModelPart
      * @param pDestinationModelPart
      */
-    void AddAllTablesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
+    static void AddAllTablesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
 
     /**
      * @brief AddAllNodesToModelPart adds all nodes from an origin model part to a destination model part
