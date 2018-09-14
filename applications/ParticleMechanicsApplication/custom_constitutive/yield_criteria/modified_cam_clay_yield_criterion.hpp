@@ -183,8 +183,6 @@ class ModifiedCamClayYieldCriterion
 
         double GetPI();
 
-        double GetSmoothingLodeAngle();
-
         ///@}
         ///@name Private  Access
         ///@{

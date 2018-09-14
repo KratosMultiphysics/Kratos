@@ -132,11 +132,6 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionSecondDerivative(const
 
 }
 
-double ModifiedCamClayYieldCriterion::GetSmoothingLodeAngle()
-{
-    return 27.0*GetPI()/180.0;
-}
-
 double ModifiedCamClayYieldCriterion::GetPI()
 {
     return std::atan(1.0)*4.0;

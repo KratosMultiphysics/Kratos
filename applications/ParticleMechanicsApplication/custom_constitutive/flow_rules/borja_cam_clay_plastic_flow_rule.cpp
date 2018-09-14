@@ -749,12 +749,6 @@ void BorjaCamClayPlasticFlowRule::UpdateStateVariables(const Vector rPrincipalSt
     mMaterialParameters.ConsistencyParameter = rConsistencyParameter;
 }
 
-double BorjaCamClayPlasticFlowRule::GetSmoothingLodeAngle()
-{
-    return 29.0*GetPI()/180.0;
-}
-
-
 double BorjaCamClayPlasticFlowRule::GetPI()
 {
     return std::atan(1.0)*4.0;

@@ -128,11 +128,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    double GetSmoothingLodeAngle();
-
     double GetPI();
-
-    double GetSmoothingHiperbolic();
     
     ///@}
     ///@name Protected  Access

@@ -90,19 +90,9 @@ double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const 
 }
 
 
-double MCYieldCriterion::GetSmoothingLodeAngle()
-{
-    return 29.0*GetPI()/180.0;
-}
-
 double MCYieldCriterion::GetPI()
 {
     return std::atan(1.0)*4.0;
-}
-
-double MCYieldCriterion::GetSmoothingHiperbolic()
-{
-    return 2.0;
 }
 
 void MCYieldCriterion::save( Serializer& rSerializer ) const

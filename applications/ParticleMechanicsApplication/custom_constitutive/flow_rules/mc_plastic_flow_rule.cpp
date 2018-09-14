@@ -774,11 +774,6 @@ bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnM
     return true;
 }
 
-double MCPlasticFlowRule::GetSmoothingLodeAngle()
-{
-    return 29.0*GetPI()/180.0;
-}
-
 
 double MCPlasticFlowRule::GetPI()
 {
