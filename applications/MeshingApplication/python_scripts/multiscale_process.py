@@ -62,6 +62,7 @@ class MultiscaleProcess(KratosMultiphysics.Process):
         self.model.AddModelPart(self.visualization_model_part)
         buffer_size = coarse_model_part.GetBufferSize()
         self.visualization_model_part.SetBufferSize(buffer_size)
+        self.visualization_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         MeshingApplication.MultiScaleRefiningProcess.InitializeNewModelPart(coarse_model_part, self.visualization_model_part)
 
     def _InitializeRefinedModelPart(self):

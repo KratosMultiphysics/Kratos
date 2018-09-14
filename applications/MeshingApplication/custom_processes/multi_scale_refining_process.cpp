@@ -123,6 +123,9 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
     auto uniform_refining = UniformRefineUtility<2>(mrRefinedModelPart, divisions);
     uniform_refining.Refine(node_id, elem_id, cond_id);
 
+    // Update the visualization model part
+    UpdateVisualizationAfterRefinement();
+
     // Reset the flags
     FinalizeRefinement();
 }
@@ -219,10 +222,10 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
     // Create a model part to store the interface boundary conditions
     mrRefinedModelPart.CreateSubModelPart(mRefinedInterfaceName);
 
-    const int subscale_digit = 100000000;
-    mMinNodeId = (subscale_index + 1) * subscale_digit;
-    mMinElemId = (subscale_index + 1) * subscale_digit;
-    mMinCondId = (subscale_index + 1) * subscale_digit;
+    const int subscale_digit = 1000000;
+    mMinNodeId = (subscale_index) * subscale_digit;
+    mMinElemId = (subscale_index) * subscale_digit;
+    mMinCondId = (subscale_index) * subscale_digit;
 }
 
 
@@ -238,6 +241,18 @@ void MultiScaleRefiningProcess::InitializeVisualizationModelPart(const StringVec
         ModelPart& origin = mrCoarseModelPart.GetSubModelPart(name);
         FastTransferBetweenModelPartsProcess(destination, origin)();
     }
+}
+
+
+void MultiScaleRefiningProcess::UpdateVisualizationAfterRefinement()
+{
+    // Remove the refined elements and conditions to substitute them by the refined ones
+    mrVisualizationModelPart.RemoveElementsFromAllLevels(TO_REFINE);
+    mrVisualizationModelPart.RemoveConditionsFromAllLevels(TO_REFINE);
+
+    // Add the new entities which are refined
+    FastTransferBetweenModelPartsProcess(mrVisualizationModelPart, mrRefinedModelPart,
+        FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, NEW_ENTITY)();
 }
 
 
@@ -528,6 +543,8 @@ void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, Index
                 coarse_elem->pGetProperties());
             
             aux_elem->SetValue(FATHER_ELEMENT, *coarse_elem.base());
+            aux_elem->Set(TO_REFINE, false);
+            aux_elem->Set(NEW_ENTITY, true);
 
             IndexType tag = rElemTag[coarse_elem->Id()];
             tag_elems_map[tag].push_back(rElemId);
@@ -581,6 +598,8 @@ void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, Ind
                 coarse_cond->pGetProperties());
             
             aux_cond->SetValue(FATHER_CONDITION, *coarse_cond.base());
+            aux_cond->Set(TO_REFINE, false);
+            aux_cond->Set(NEW_ENTITY, true);
 
             IndexType tag = rCondTag[coarse_cond->Id()];
             tag_conds_map[tag].push_back(rCondId);

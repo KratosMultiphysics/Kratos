@@ -323,6 +323,9 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::CreateNodeInEdge(
         int& this_node_level = middle_node->GetValue(NUMBER_OF_DIVISIONS);
         this_node_level = rNumberOfDivisions;
 
+        // Set the appropriate flags
+        middle_node->Set(NEW_ENTITY, true);
+
         // Set the DoF's
         for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
             middle_node->pAddDof(*it_dof);
@@ -394,6 +397,9 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::CreateNodeInFace(
         // Set the refinement level
         int& this_node_level = middle_node->GetValue(NUMBER_OF_DIVISIONS);
         this_node_level = rNumberOfDivisions;
+
+        // Set the appropriate flags
+        middle_node->Set(NEW_ENTITY, true);
 
         // Set the DoF's
         for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
