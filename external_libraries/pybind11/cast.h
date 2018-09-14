@@ -778,7 +778,7 @@ template <typename T1, typename T2> struct is_copy_constructible<std::pair<T1, T
 template <typename type> class type_caster_base : public type_caster_generic {
     using itype = intrinsic_t<type>;
 public:
-    static constexpr auto name = _<type>();
+    static PYBIND11_DESCR name() { return type_descr(_<type>()); }
 
     type_caster_base() : type_caster_base(typeid(type)) { }
     explicit type_caster_base(const std::type_info &info) : type_caster_generic(info) { }
@@ -835,7 +835,7 @@ public:
             nullptr, nullptr, holder);
     }
 
-    template <typename T> using cast_op_type = detail::cast_op_type<T>;
+    template <typename T> using cast_op_type = cast_op_type<T>;
 
     operator itype*() { return (type *) value; }
     operator itype&() { if (!value) throw reference_cast_error(); return *((itype *) value); }
@@ -885,7 +885,7 @@ private:
             "std::reference_wrapper<T> caster requires T to have a caster with an `T &` operator");
 public:
     bool load(handle src, bool convert) { return subcaster.load(src, convert); }
-    static constexpr auto name = caster_t::name;
+    static PYBIND11_DESCR name() { return caster_t::name(); }
     static handle cast(const std::reference_wrapper<type> &src, return_value_policy policy, handle parent) {
         // It is definitely wrong to take ownership of this pointer, so mask that rvp
         if (policy == return_value_policy::take_ownership || policy == return_value_policy::automatic)
@@ -900,7 +900,7 @@ public:
     protected: \
         type value; \
     public: \
-        static constexpr auto name = py_name; \
+        static PYBIND11_DESCR name() { return type_descr(py_name); } \
         template <typename T_, enable_if_t<std::is_same<type, remove_cv_t<T_>>::value, int> = 0> \
         static handle cast(T_ *src, return_value_policy policy, handle parent) { \
             if (!src) return none().release(); \
@@ -980,12 +980,11 @@ public:
     static handle cast(T src, return_value_policy /* policy */, handle /* parent */) {
         if (std::is_floating_point<T>::value) {
             return PyFloat_FromDouble((double) src);
-        } else if (sizeof(T) <= sizeof(ssize_t)) {
-            // This returns a long automatically if needed
+        } else if (sizeof(T) <= sizeof(long)) {
             if (std::is_signed<T>::value)
-                return PYBIND11_LONG_FROM_SIGNED(src);
+                return PyLong_FromLong((long) src);
             else
-                return PYBIND11_LONG_FROM_UNSIGNED(src);
+                return PyLong_FromUnsignedLong((unsigned long) src);
         } else {
             if (std::is_signed<T>::value)
                 return PyLong_FromLongLong((long long) src);
@@ -1050,7 +1049,7 @@ public:
 
     template <typename T> using cast_op_type = void*&;
     operator void *&() { return value; }
-    static constexpr auto name = _("capsule");
+    static PYBIND11_DESCR name() { return type_descr(_("capsule")); }
 private:
     void *value = nullptr;
 };
@@ -1172,7 +1171,7 @@ private:
 #else
         // PyPy seems to have multiple problems related to PyUnicode_UTF*: the UTF8 version
         // sometimes segfaults for unknown reasons, while the UTF16 and 32 versions require a
-        // non-const char * arguments, which is also a nuissance, so bypass the whole thing by just
+        // non-const char * arguments, which is also a nuisance, so bypass the whole thing by just
         // passing the encoding as a string value, which works properly:
         return PyUnicode_Decode(buffer, nbytes, UTF_N == 8 ? "utf-8" : UTF_N == 16 ? "utf-16" : "utf-32", nullptr);
 #endif
@@ -1293,7 +1292,7 @@ public:
         return one_char;
     }
 
-    static constexpr auto name = _(PYBIND11_STRING_NAME);
+    static PYBIND11_DESCR name() { return type_descr(_(PYBIND11_STRING_NAME)); }
     template <typename _T> using cast_op_type = pybind11::detail::cast_op_type<_T>;
 };
 
@@ -1318,7 +1317,9 @@ public:
         return cast_impl(std::forward<T>(src), policy, parent, indices{});
     }
 
-    static constexpr auto name = _("Tuple[") + concat(make_caster<Ts>::name...) + _("]");
+    static PYBIND11_DESCR name() {
+        return type_descr(_("Tuple[") + detail::concat(make_caster<Ts>::name()...) + _("]"));
+    }
 
     template <typename T> using cast_op_type = type;
 
@@ -1391,7 +1392,7 @@ public:
 
     explicit operator type*() { return this->value; }
     explicit operator type&() { return *(this->value); }
-    explicit operator holder_type*() { return &holder; }
+    explicit operator holder_type*() { return std::addressof(holder); }
 
     // Workaround for Intel compiler bug
     // see pybind11 issue 94
@@ -1461,9 +1462,9 @@ struct move_only_holder_caster {
 
     static handle cast(holder_type &&src, return_value_policy, handle) {
         auto *ptr = holder_helper<holder_type>::get(src);
-        return type_caster_base<type>::cast_holder(ptr, &src);
+        return type_caster_base<type>::cast_holder(ptr, std::addressof(src));
     }
-    static constexpr auto name = type_caster_base<type>::name;
+    static PYBIND11_DESCR name() { return type_caster_base<type>::name(); }
 };
 
 template <typename type, typename deleter>
@@ -1494,10 +1495,10 @@ template <typename base, typename holder> struct is_holder_type :
 template <typename base, typename deleter> struct is_holder_type<base, std::unique_ptr<base, deleter>> :
     std::true_type {};
 
-template <typename T> struct handle_type_name { static constexpr auto name = _<T>(); };
-template <> struct handle_type_name<bytes> { static constexpr auto name = _(PYBIND11_BYTES_NAME); };
-template <> struct handle_type_name<args> { static constexpr auto name = _("*args"); };
-template <> struct handle_type_name<kwargs> { static constexpr auto name = _("**kwargs"); };
+template <typename T> struct handle_type_name { static PYBIND11_DESCR name() { return _<T>(); } };
+template <> struct handle_type_name<bytes> { static PYBIND11_DESCR name() { return _(PYBIND11_BYTES_NAME); } };
+template <> struct handle_type_name<args> { static PYBIND11_DESCR name() { return _("*args"); } };
+template <> struct handle_type_name<kwargs> { static PYBIND11_DESCR name() { return _("**kwargs"); } };
 
 template <typename type>
 struct pyobject_caster {
@@ -1515,7 +1516,7 @@ struct pyobject_caster {
     static handle cast(const handle &src, return_value_policy /* policy */, handle /* parent */) {
         return src.inc_ref();
     }
-    PYBIND11_TYPE_CASTER(type, handle_type_name<type>::name);
+    PYBIND11_TYPE_CASTER(type, handle_type_name<type>::name());
 };
 
 template <typename T>
@@ -1560,9 +1561,13 @@ template <typename type> using cast_is_temporary_value_reference = bool_constant
 
 // When a value returned from a C++ function is being cast back to Python, we almost always want to
 // force `policy = move`, regardless of the return value policy the function/method was declared
-// with.  Some classes (most notably Eigen::Ref and related) need to avoid this, and so can do so by
-// specializing this struct.
+// with.
 template <typename Return, typename SFINAE = void> struct return_value_policy_override {
+    static return_value_policy policy(return_value_policy p) { return p; }
+};
+
+template <typename Return> struct return_value_policy_override<Return,
+        detail::enable_if_t<std::is_base_of<type_caster_generic, make_caster<Return>>::value, void>> {
     static return_value_policy policy(return_value_policy p) {
         return !std::is_lvalue_reference<Return>::value && !std::is_pointer<Return>::value
             ? return_value_policy::move : p;
@@ -1835,7 +1840,7 @@ public:
     static constexpr bool has_kwargs = kwargs_pos < 0;
     static constexpr bool has_args = args_pos < 0;
 
-    static constexpr auto arg_names = concat(type_descr(make_caster<Args>::name)...);
+    static PYBIND11_DESCR arg_names() { return detail::concat(make_caster<Args>::name()...); }
 
     bool load_args(function_call &call) {
         return load_impl_sequence(call, indices{});
@@ -2054,13 +2059,9 @@ object object_api<Derived>::call(Args &&...args) const {
 
 NAMESPACE_END(detail)
 
-#define PYBIND11_MAKE_OPAQUE(...) \
+#define PYBIND11_MAKE_OPAQUE(Type) \
     namespace pybind11 { namespace detail { \
-        template<> class type_caster<__VA_ARGS__> : public type_caster_base<__VA_ARGS__> { }; \
+        template<> class type_caster<Type> : public type_caster_base<Type> { }; \
     }}
-
-/// Lets you pass a type containing a `,` through a macro parameter without needing a separate
-/// typedef, e.g.: `PYBIND11_OVERLOAD(PYBIND11_TYPE(ReturnType<A, B>), PYBIND11_TYPE(Parent<C, D>), f, arg)`
-#define PYBIND11_TYPE(...) __VA_ARGS__
 
 NAMESPACE_END(PYBIND11_NAMESPACE)
