@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 
 
@@ -20,12 +21,12 @@
 #include <sstream>
 
 // External includes
+#include "json/json.hpp" // Import nlohmann json library
 
 // Project includes
 #include "includes/define.h"
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
-#include "json/json.hpp"                      //import nlohmann json library
 
 namespace Kratos
 {
@@ -57,73 +58,157 @@ namespace Kratos
  * @details In computing, JavaScript Object Notation or JSON is an open-standard file format that uses human-readable text to transmit data objects consisting of attribute–value pairs and array data types (or any other serializable value). It is a very common data format used for asynchronous browser–server communication, including as a replacement for XML in some AJAX-style systems. More info: https://json.org/
  * This class uses nlohmann JSON header only library
  * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
  */
 class Parameters
 {
 private:
     ///@name Nested clases
     ///@{
+    /**
+     * @class iterator_adaptor
+     * @ingroup KratosCore
+     * @brief This nested class can be used to adapt a Parameter iterator
+     * @author Riccardo Rossi
+     */
     class iterator_adaptor
         : public std::iterator<std::forward_iterator_tag, Parameters>
     {
-        using value_iterator = nlohmann::json::iterator;
-        value_iterator mValueIterator;
-        std::unique_ptr<Parameters> mpParameters;
+        ///@name Type Definitions
+        ///@{
+
+        using value_iterator = nlohmann::json::iterator; /// Iterator definition
+
+        ///@}
+        ///@name Member Variables
+        ///@{
+
+        value_iterator mValueIterator;                   /// Our iterator
+        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
+
+        ///@}
     public:
+        ///@name Life Cycle
+        ///@{
+
+        /**
+         * @brief Default constructor (iterator + root Parameter)
+         * @param itValue The iterator to adapt
+         * @param pRoot The root Parameter pointer
+         */
         iterator_adaptor(value_iterator itValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpParameters(new Parameters(&(*itValue), pRoot)) {}
+
+        /**
+         * @brief Default constructor (just iterator)
+         * @param itValue The iterator to adapt
+         */
         iterator_adaptor(const iterator_adaptor& itValue) : mValueIterator(itValue.mValueIterator),  mpParameters(new Parameters(*(itValue.mpParameters))) {}
+
+        ///@}
+        ///@name Operators
+        ///@{
+
         iterator_adaptor& operator++()
         {
             mValueIterator++;
             return *this;
         }
+
         iterator_adaptor operator++(int)
         {
             iterator_adaptor tmp(*this);
             operator++();
             return tmp;
         }
+
         bool operator==(const iterator_adaptor& rhs) const
         {
             return mValueIterator == rhs.mValueIterator;
         }
+
         bool operator!=(const iterator_adaptor& rhs) const
         {
             return mValueIterator != rhs.mValueIterator;
         }
+
         Parameters& operator*() const
         {
             mpParameters->mpValue = &(*mValueIterator);
             return *mpParameters;
         }
+
         Parameters* operator->() const
         {
             mpParameters->mpValue = &(*mValueIterator);
             return mpParameters.get();
         }
+
+        ///@}
+        ///@name Operations
+        ///@{
+
         value_iterator& base()
         {
             return mValueIterator;
         }
+
         value_iterator const& base() const
         {
             return mValueIterator;
         }
+
         const std::string name()
         {
             return mValueIterator.key();
         }
+
+        ///@}
     };
 
-    class const_iterator_adaptor : public std::iterator<std::forward_iterator_tag, Parameters>
+    /**
+     * @class const_iterator_adaptor
+     * @ingroup KratosCore
+     * @brief This nested class can be used to adapt a Parameter constant iterator
+     * @author Riccardo Rossi
+     */
+    class const_iterator_adaptor
+        : public std::iterator<std::forward_iterator_tag, Parameters>
     {
-        using value_iterator = nlohmann::json::const_iterator;
-        value_iterator mValueIterator;
-        std::unique_ptr<Parameters> mpParameters;
+        ///@name Type Definitions
+        ///@{
+        using value_iterator = nlohmann::json::const_iterator; /// Iterator definition
+
+        ///@}
+        ///@name Member Variables
+        ///@{
+
+        value_iterator mValueIterator;                         /// Our iterator
+        std::unique_ptr<Parameters> mpParameters;              /// The unique pointer to the base Parameter
+
+        ///@}
     public:
+        ///@name Life Cycle
+        ///@{
+
+        /**
+         * @brief Default constructor (constant iterator + root Parameter)
+         * @param itValue The iterator to adapt
+         * @param pRoot The root Parameter pointer
+         */
+
         const_iterator_adaptor(value_iterator it,  Kratos::shared_ptr<nlohmann::json> proot) :mValueIterator(it), mpParameters(new Parameters(const_cast<nlohmann::json*>(&(*it)), proot)) {}
-        //TODO: use copy constructor in the following method
+
+        /**
+         * @brief Default constructor (just constant iterator)
+         * @param itValue The iterator to adapt
+         * @todo Use copy constructor in the following method
+         */
         const_iterator_adaptor(const const_iterator_adaptor& it) : mValueIterator(it.mValueIterator), mpParameters(new Parameters(*(it.mpParameters))) {}
+
+        ///@}
+        ///@name Operators
+        ///@{
+
         const_iterator_adaptor& operator++()
         {
             mValueIterator++;
@@ -136,36 +221,49 @@ private:
             operator++();
             return tmp;
         }
+
         bool operator==(const const_iterator_adaptor& rhs) const
         {
             return mValueIterator == rhs.mValueIterator;
         }
+
         bool operator!=(const const_iterator_adaptor& rhs) const
         {
             return mValueIterator != rhs.mValueIterator;
         }
+
         const Parameters& operator*() const
         {
             //mpParameters->mpValue = &(*mValueIterator);
             return *mpParameters;
 
         }
+
         const Parameters* operator->() const
         {
             return mpParameters.get();
         }
+
+        ///@}
+        ///@name Operations
+        ///@{
+
         value_iterator& base()
         {
             return mValueIterator;
         }
+
         value_iterator const& base() const
         {
             return mValueIterator;
         }
+
         const std::string name()
         {
             return mValueIterator.key();
         }
+
+        ///@}
     };
 
     ///@}
@@ -893,107 +991,105 @@ public:
      */
     bool IsEquivalentTo(Parameters& rParameters)
     {
-        // TODO: Implement this
-//         for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
-//             const std::string& item_name = itr.key();
-//
-//             bool found = false;
-//
-//             for (auto itr_ref = rParameters.mpValue->begin(); itr_ref != rParameters.mpValue->end(); ++itr_ref) {
-//                 if (item_name == itr_ref.key()) {
-//                     found = true;
-//                     Parameters subobject = (*this)[item_name];
-//                     Parameters reference_subobject = rParameters[item_name];
-//
-//                     if (itr->is_object()) {
-//                         if (!subobject.IsEquivalentTo(reference_subobject))
-//                             return false;
-//                     } else {
-//                         if (itr.value() != itr_ref.value())
-//                             return false;
-//                     }
-//                     break;
-//                 }
-//             }
-//
-//             if (!found)
-//                 return false;
-//         }
-//
-//         // Reverse check: the rParameters can contain fields that are missing in the object
-//         for (auto itr = rParameters.mpValue->begin();  itr != rParameters.mpValue->end(); ++itr) {
-//             const std::string& item_name = itr.key();
-//
-//             bool found = false;
-//
-//             for (auto itr_ref = this->mpValue->begin(); itr_ref != this->mpValue->end(); ++itr_ref) {
-//                 if (item_name == itr_ref.key()) {
-//                     found = true;
-//                     // No need to check the values here, if they were found in the previous loop, values were checked there
-//                     break;
-//                 }
-//             }
-//
-//             if (!found)
-//                 return false;
-//         }
+        for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
+            const std::string& item_name = itr.key();
+
+            bool found = false;
+
+            for (auto itr_ref = rParameters.mpValue->begin(); itr_ref != rParameters.mpValue->end(); ++itr_ref) {
+                if (item_name == itr_ref.key()) {
+                    found = true;
+                    Parameters subobject = (*this)[item_name];
+                    Parameters reference_subobject = rParameters[item_name];
+
+                    if (itr->is_object()) {
+                        if (!subobject.IsEquivalentTo(reference_subobject))
+                            return false;
+                    } else {
+                        if (itr.value() != itr_ref.value())
+                            return false;
+                    }
+                    break;
+                }
+            }
+
+            if (!found)
+                return false;
+        }
+
+        // Reverse check: the rParameters can contain fields that are missing in the object
+        for (auto itr = rParameters.mpValue->begin();  itr != rParameters.mpValue->end(); ++itr) {
+            const std::string& item_name = itr.key();
+
+            bool found = false;
+
+            for (auto itr_ref = this->mpValue->begin(); itr_ref != this->mpValue->end(); ++itr_ref) {
+                if (item_name == itr_ref.key()) {
+                    found = true;
+                    // No need to check the values here, if they were found in the previous loop, values were checked there
+                    break;
+                }
+            }
+
+            if (!found)
+                return false;
+        }
 
         return true;
     }
 
     /**
-     * @brief  Checks if the names and the type of values are the same, no importance to the order.
+     * @brief Checks if the names and the type of values are the same, no importance to the order.
      * @details Lists have to be ordered, though! Take into account that in Kratos some physical vectors are represented with a list.
      * @param rParameters The parameters to be checked
      * @return True if it has, false othersise
      */
     bool HasSameKeysAndTypeOfValuesAs(Parameters& rParameters)
     {
-        // TODO: Implement this
-//         for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
-//             const std::string& item_name = itr.key();
-//
-//             bool found = false;
-//
-//             for (auto itr_ref = rParameters.mpValue->begin(); itr_ref != rParameters.mpValue->end(); ++itr_ref) {
-//                 if (item_name == itr_ref.key()) {
-//                     found = true;
-//                     Parameters subobject = (*this)[item_name];
-//                     Parameters reference_subobject = rParameters[item_name];
-//
-//                     if (itr->is_object()) {
-//                         if (!subobject.HasSameKeysAndTypeOfValuesAs(reference_subobject))
-//                             return false;
-//                     } else {
-//                         if (itr.value().GetType() != itr_ref.value().GetType()) {
-//                             return false;
-//                         }
-//                     }
-//                     break;
-//                 }
-//             }
-//
-//             if (!found)
-//                 return false;
-//         }
-//
-//         // Reverse check: the rParameters can contain fields that are missing in the object
-//         for (auto itr = rParameters.mpValue->begin(); itr != rParameters.mpValue->end(); ++itr) {
-//             const std::string& item_name = itr.key();
-//
-//             bool found = false;
-//
-//             for (auto itr_ref =  this->mpValue->begin(); itr_ref != this->mpValue->end(); ++itr_ref) {
-//                 if (item_name == itr_ref.key()) {
-//                     found = true;
-//                     // No need to check the types here, if they were found in the previous loop, types were checked there
-//                     break;
-//                 }
-//             }
-//
-//             if (!found)
-//                 return false;
-//         }
+        for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
+            const std::string& item_name = itr.key();
+
+            bool found = false;
+
+            for (auto itr_ref = rParameters.mpValue->begin(); itr_ref != rParameters.mpValue->end(); ++itr_ref) {
+                if (item_name == itr_ref.key()) {
+                    found = true;
+                    Parameters subobject = (*this)[item_name];
+                    Parameters reference_subobject = rParameters[item_name];
+
+                    if (itr->is_object()) {
+                        if (!subobject.HasSameKeysAndTypeOfValuesAs(reference_subobject))
+                            return false;
+                    } else {
+                        if (itr.value().type() != itr_ref.value().type()) {
+                            return false;
+                        }
+                    }
+                    break;
+                }
+            }
+
+            if (!found)
+                return false;
+        }
+
+        // Reverse check: the rParameters can contain fields that are missing in the object
+        for (auto itr = rParameters.mpValue->begin(); itr != rParameters.mpValue->end(); ++itr) {
+            const std::string& item_name = itr.key();
+
+            bool found = false;
+
+            for (auto itr_ref =  this->mpValue->begin(); itr_ref != this->mpValue->end(); ++itr_ref) {
+                if (item_name == itr_ref.key()) {
+                    found = true;
+                    // No need to check the types here, if they were found in the previous loop, types were checked there
+                    break;
+                }
+            }
+
+            if (!found)
+                return false;
+        }
 
         return true;
     }
