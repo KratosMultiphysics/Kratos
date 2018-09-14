@@ -71,6 +71,12 @@ public:
     /// The definition of the index type
     typedef std::size_t                      IndexType;
 
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 2;
+    
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 3;
+    
     /// Pointer definition of HyperElasticIsotropicNeoHookeanPlaneStrain2D
     KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicNeoHookeanPlaneStrain2D );
 
@@ -116,7 +122,7 @@ public:
      */
     SizeType WorkingSpaceDimension() override
     {
-        return 2;
+        return Dimension;
     };
 
     /**
@@ -124,7 +130,7 @@ public:
      */
     SizeType GetStrainSize() override
     {
-        return 3;
+        return VoigtSize;
     };
 
 protected:
