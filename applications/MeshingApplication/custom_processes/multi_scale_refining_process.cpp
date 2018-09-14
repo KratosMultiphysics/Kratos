@@ -277,53 +277,6 @@ void MultiScaleRefiningProcess::AddAllTablesToModelPart(ModelPart& rOriginModelP
     }
 }
 
-void MultiScaleRefiningProcess::AddAllNodesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart)
-{
-    const int nnodes = static_cast<int>(rOriginModelPart.Nodes().size());
-    IndexVectorType origin_nodes(nnodes);
-    ModelPart::NodesContainerType::iterator node_begin = rOriginModelPart.NodesBegin();
-
-    #pragma omp parallel for
-    for (int i = 0; i < nnodes; i++)
-    {
-        auto node = node_begin + i;
-        origin_nodes[i] = node->Id();
-    }
-    rDestinationModelPart.AddNodes(origin_nodes);
-}
-
-
-void MultiScaleRefiningProcess::AddAllElementsToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart)
-{
-    const int nelems = static_cast<int>(rOriginModelPart.Elements().size());
-    IndexVectorType origin_elems(nelems);
-    ModelPart::ElementsContainerType::iterator elem_begin = rOriginModelPart.ElementsBegin();
-
-    #pragma omp parallel for
-    for (int i = 0; i < nelems; i++)
-    {
-        auto elem = elem_begin + i;
-        origin_elems[i] = elem->Id();
-    }
-    rDestinationModelPart.AddElements(origin_elems);
-}
-
-
-void MultiScaleRefiningProcess::AddAllConditionsToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart)
-{
-    const int nconds = static_cast<int>(rOriginModelPart.Conditions().size());
-    IndexVectorType origin_conds(nconds);
-    ModelPart::ConditionsContainerType::iterator cond_begin = rOriginModelPart.ConditionsBegin();
-
-    #pragma omp parallel for
-    for (int i = 0; i < nconds; i++)
-    {
-        auto cond = cond_begin + i;
-        origin_conds[i] = cond->Id();
-    }
-    rDestinationModelPart.AddConditions(origin_conds);
-}
-
 
 void MultiScaleRefiningProcess::MarkElementsFromNodalFlag()
 {

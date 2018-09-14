@@ -296,7 +296,6 @@ public:
      */
     void InitializeVisualizationModelPart(const StringVectorType& rNames); 
 
-
     /**
      * @brief AddVariablesToRefinedModelPart copies the variables from the coarse to the refined model part
      */
@@ -315,27 +314,6 @@ public:
      * @param pDestinationModelPart
      */
     static void AddAllTablesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
-
-    /**
-     * @brief AddAllNodesToModelPart adds all nodes from an origin model part to a destination model part
-     * @param rOriginModelPart
-     * @param pDestinationModelPart
-     */
-    void AddAllNodesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
-
-    /**
-     * @brief AddAllElementsToModelPart adds all elements from an origin model part to a destination model part
-     * @param rOriginModelPart
-     * @param pDestinationModelPart
-     */
-    void AddAllElementsToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
-
-    /**
-     * @brief AddAllConditionsToModelPart adds all conditions from an origin model part to a destination model part
-     * @param rOriginModelPart
-     * @param pDestinationModelPart
-     */
-    void AddAllConditionsToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
 
     /**
      * @brief This function sets the elements TO_REFINE depending on the nodal flags
