@@ -28,7 +28,7 @@ KRATOS_CREATE_LOCAL_FLAG( RigidBodyElement, COMPUTE_LHS_MATRIX,                 
 //************************************************************************************
 
 RigidBodyElement::RigidBodyElement(IndexType NewId,GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+    :Element(NewId, pGeometry)
 {
 }
 
@@ -36,7 +36,7 @@ RigidBodyElement::RigidBodyElement(IndexType NewId,GeometryType::Pointer pGeomet
 //************************************************************************************
 
 RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+    :Element(NewId, pGeometry, pProperties)
 {
     KRATOS_TRY
 
@@ -50,7 +50,7 @@ RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeome
 
 
 RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, NodesContainerType::Pointer pNodes)
-    : Element(NewId, pGeometry, pProperties)
+    :Element(NewId, pGeometry, pProperties)
 {
     KRATOS_TRY
 
@@ -108,10 +108,10 @@ void RigidBodyElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& 
 
     ElementalDofList.resize(0);
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
 	ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
@@ -134,17 +134,17 @@ void RigidBodyElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& 
 void RigidBodyElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int element_size          = number_of_nodes * ( dofs_size );
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    SizeType dofs_size = this->GetDofsSize();
 
-    if ( rResult.size() != element_size )
-        rResult.resize( element_size, false );
+    if ( rResult.size() != dofs_size )
+        rResult.resize(dofs_size, false);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    dofs_size = dimension * (dimension + 1) * 0.5;
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
-      int index = i * (dofs_size);
+      SizeType index = i * (dofs_size);
       rResult[index]   = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
       rResult[index+1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
       if( dimension == 2 ){
@@ -168,16 +168,17 @@ void RigidBodyElement::GetValuesVector(Vector& rValues, int Step)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int       element_size    = number_of_nodes * (dofs_size);
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    SizeType dofs_size = this->GetDofsSize();
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    dofs_size = dimension * (dimension + 1) * 0.5;
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
-      int index = i * (dofs_size);
+      SizeType index = i * (dofs_size);
       rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
       rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
       if( dimension == 2 ){
@@ -197,22 +198,21 @@ void RigidBodyElement::GetValuesVector(Vector& rValues, int Step)
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-//************************************************************************************
-//************************************************************************************
 void RigidBodyElement::GetFirstDerivativesVector(Vector& rValues, int Step)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int       element_size    = number_of_nodes * (dofs_size);
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    SizeType dofs_size = this->GetDofsSize();
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    dofs_size = dimension * (dimension + 1) * 0.5;
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
-      int index = i * (dofs_size);
+      SizeType index = i * (dofs_size);
       rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
       rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
       if( dimension == 2 ){
@@ -237,16 +237,17 @@ void RigidBodyElement::GetSecondDerivativesVector(Vector& rValues, int Step)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int       element_size    = number_of_nodes * (dofs_size);
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    SizeType dofs_size = this->GetDofsSize();
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    dofs_size = dimension * (dimension + 1) * 0.5;
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
-      int index = i * (dofs_size);
+      SizeType index = i * (dofs_size);
       rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
       rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
       if( dimension == 2 ){
@@ -265,16 +266,6 @@ void RigidBodyElement::GetSecondDerivativesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodyElement::GetValueOnIntegrationPoints( const Variable<array_1d<double, 3 > >& rVariable,
-						    std::vector< array_1d<double, 3 > >& rValues,
-						    const ProcessInfo& rCurrentProcessInfo )
-{
-    this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-
-}
 
 //************************************************************************************
 //************************************************************************************
@@ -344,12 +335,11 @@ void RigidBodyElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 						Flags& rCalculationFlags)
 
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int MatSize               = number_of_nodes * ( dofs_size );
+    SizeType MatSize               = this->GetDofsSize();
 
     if ( rCalculationFlags.Is(RigidBodyElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
@@ -376,7 +366,7 @@ Vector& RigidBodyElement::GetNodalCurrentValue(const Variable<array_1d<double,3>
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     array_1d<double,3> ArrayValue;
     ArrayValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable );
@@ -384,7 +374,7 @@ Vector& RigidBodyElement::GetNodalCurrentValue(const Variable<array_1d<double,3>
     if( rValue.size() != dimension )
       rValue.resize(dimension, false);
 
-    for( unsigned int i=0; i<dimension; i++ )
+    for( SizeType i=0; i<dimension; i++ )
     {
       rValue[i] = ArrayValue[i];
     }
@@ -401,7 +391,7 @@ Vector& RigidBodyElement::GetNodalPreviousValue(const Variable<array_1d<double,3
 {
     KRATOS_TRY
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
 
     array_1d<double,3> ArrayValue;
     ArrayValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable, 1 );
@@ -409,7 +399,7 @@ Vector& RigidBodyElement::GetNodalPreviousValue(const Variable<array_1d<double,3
     if( rValue.size() != dimension )
       rValue.resize(dimension, false);
 
-    for( unsigned int i=0; i<dimension; i++ )
+    for( SizeType i=0; i<dimension; i++ )
     {
       rValue[i] = ArrayValue[i];
     }
@@ -625,9 +615,9 @@ void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideV
 {
     KRATOS_TRY
 
-    unsigned int number_of_nodes   = GetGeometry().PointsNumber();
-    unsigned int dimension         = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size   = dimension * (dimension + 1) * 0.5;
+    SizeType number_of_nodes   = GetGeometry().PointsNumber();
+    SizeType dimension         = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size   = dimension * (dimension + 1) * 0.5;
 
     double DomainSize = rVariables.RigidBody.Mass;
 
@@ -635,12 +625,12 @@ void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideV
     Vector GravityLoad(dimension);
     noalias(GravityLoad) = ZeroVector(dimension);
 
-    unsigned int RowIndex = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    SizeType RowIndex = 0;
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
       RowIndex = i * (dofs_size);
 
-      for ( unsigned int j = 0; j < dimension; j++ )
+      for ( SizeType j = 0; j < dimension; j++ )
       {
         GravityLoad[j] = rVolumeForce[j] * DomainSize;
       }
@@ -667,16 +657,16 @@ void RigidBodyElement::AddExplicitContribution(const VectorType& rRHSVector,
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size       = dimension * (dimension + 1) * 0.5;
 
     if( (rRHSVariable == RESIDUAL_VECTOR) ){
 
       if ( rDestinationVariable == FORCE_RESIDUAL )
       {
 
-        for(unsigned int i=0; i< number_of_nodes; i++)
+        for(SizeType i=0; i< number_of_nodes; i++)
         {
           int index = (dofs_size) * i;
 
@@ -684,7 +674,7 @@ void RigidBodyElement::AddExplicitContribution(const VectorType& rRHSVector,
 
           array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-          for(unsigned int j=0; j<dimension; j++)
+          for(SizeType j=0; j<dimension; j++)
           {
             ForceResidual[j] += rRHSVector[index + j];
           }
@@ -695,7 +685,7 @@ void RigidBodyElement::AddExplicitContribution(const VectorType& rRHSVector,
       else if( rDestinationVariable == MOMENT_RESIDUAL )
       {
 
-        for(unsigned int i=0; i< number_of_nodes; i++)
+        for(SizeType i=0; i< number_of_nodes; i++)
         {
           int index = dimension + (dofs_size) * i;
 
@@ -707,7 +697,7 @@ void RigidBodyElement::AddExplicitContribution(const VectorType& rRHSVector,
             MomentResidual[2] += rRHSVector[index];
           }
           else{
-            for(unsigned int j=0; j<dimension; j++)
+            for(SizeType j=0; j<dimension; j++)
             {
               MomentResidual[j] += rRHSVector[index + j];
             }
@@ -730,15 +720,15 @@ Vector&  RigidBodyElement::CalculateVolumeForce( Vector& rVolumeForce)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( rVolumeForce.size() != dimension )
       rVolumeForce.resize(dimension,false);
 
     noalias(rVolumeForce) = ZeroVector(dimension);
 
-    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    for ( SizeType j = 0; j < number_of_nodes; j++ )
     {
         if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
             rVolumeForce += GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
@@ -921,10 +911,10 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int MatSize               = number_of_nodes * (dofs_size);
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size       = dimension * (dimension + 1) * 0.5;
+    SizeType MatSize               = number_of_nodes * (dofs_size);
 
     if(rLeftHandSideMatrix.size1() != MatSize)
       rLeftHandSideMatrix.resize (MatSize, MatSize, false);
@@ -972,7 +962,7 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     std::vector<QuaternionType> PreviousNodeQuaternions;
     QuaternionType QuaternionValue;
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 
 	//Current Compound Rotation Vector
@@ -1114,19 +1104,19 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
 
     MassMatrixBlock2 = prod( MassMatrixBlock2, LinearPartRotationTensor );
 
-    unsigned int RowIndex = 0;
-    unsigned int ColIndex = 0;
+    SizeType RowIndex = 0;
+    SizeType ColIndex = 0;
 
     Matrix DiagonalMatrix = IdentityMatrix(3);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
     	m11 = ZeroMatrix(3,3);
     	m22 = ZeroMatrix(3,3);
 
     	RowIndex = i * (dofs_size);
 
-    	for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    	for ( SizeType j = 0; j < number_of_nodes; j++ )
     	  {
     	    ColIndex = j * (dofs_size);
 
@@ -1217,19 +1207,19 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
 
 
 
-    // unsigned int RowIndex = 0;
-    // unsigned int ColIndex = 0;
+    // SizeType RowIndex = 0;
+    // SizeType ColIndex = 0;
 
     // Matrix DiagonalMatrix = IdentityMatrix(3);
 
-    // for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    // for ( SizeType i = 0; i < number_of_nodes; i++ )
     //   {
     // 	m11 = ZeroMatrix(3,3);
     // 	m22 = ZeroMatrix(3,3);
 
     // 	RowIndex = i * (dofs_size);
 
-    // 	for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    // 	for ( SizeType j = 0; j < number_of_nodes; j++ )
     // 	  {
 
     // 	    ColIndex = j * (dofs_size);
@@ -1262,10 +1252,10 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int MatSize               = number_of_nodes * (dofs_size);
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size       = dimension * (dimension + 1) * 0.5;
+    SizeType MatSize               = number_of_nodes * (dofs_size);
 
     if(rRightHandSideVector.size() != MatSize)
       rRightHandSideVector.resize(MatSize, false);
@@ -1302,7 +1292,7 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
     Vector CurrentValueVector(3);
     noalias(CurrentValueVector) = ZeroVector(3);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	//Current Compound Rotation Vector
 	CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
@@ -1400,9 +1390,9 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
     //Initialize Local Matrices
     VectorType Fi(dofs_size);
     noalias(Fi) = ZeroVector(dofs_size);
-    unsigned int RowIndex = 0;
+    SizeType RowIndex = 0;
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 
     	RowIndex = i * (dofs_size);
@@ -1433,10 +1423,10 @@ void RigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix,
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int MatSize               = number_of_nodes * (dofs_size);
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size       = dimension * (dimension + 1) * 0.5;
+    SizeType MatSize               = number_of_nodes * (dofs_size);
 
     if(rMassMatrix.size1() != MatSize)
         rMassMatrix.resize (MatSize, MatSize, false);
@@ -1462,14 +1452,14 @@ void RigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix,
     InertiaDyadic = RigidBody.InertiaTensor;
 
 
-    for( unsigned int i=0; i < number_of_nodes; i++ )
+    for( SizeType i=0; i < number_of_nodes; i++ )
       {
 
         double temp = TotalMass;
 
     	int RowIndex = i * (dofs_size);
 
-    	for( unsigned int k=0; k < dimension; k++ )
+    	for( SizeType k=0; k < dimension; k++ )
     	  {
     	    m11(k,k) = temp;
     	  }
@@ -1525,7 +1515,7 @@ void RigidBodyElement::CalculateRotationLinearPartTensor(Vector& rRotationVector
     if( NormRotation != 0 )
       Coefficient = 0.5 * NormRotation / std::tan( 0.5 * NormRotation );
 
-    for(unsigned int i=0; i<3; i++)
+    for(SizeType i=0; i<3; i++)
       RotationxRotation(i,i) -= 1.0;
 
     RotationxRotation *= (-1)*Coefficient;
@@ -1671,17 +1661,22 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
      KRATOS_CATCH("")
 }
 
+
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-						    std::vector< array_1d<double, 3 > >& rOutput,
-                                                    const ProcessInfo& rCurrentProcessInfo)
+RigidBodyElement::SizeType RigidBodyElement::GetDofsSize()
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    KRATOS_CATCH("")
+  const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+  const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+
+  return (number_of_nodes*(dimension*(dimension + 1)*0.5));
+
+  KRATOS_CATCH( "" )
 }
+
 
 //************************************************************************************
 //************************************************************************************
@@ -1721,7 +1716,7 @@ int  RigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_THROW_ERROR( std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered", "" )
 
     //verify that the dofs exist
-    for(unsigned int i=0; i<this->GetGeometry().size(); i++)
+    for(SizeType i=0; i<this->GetGeometry().size(); i++)
     {
         if(this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
             KRATOS_THROW_ERROR( std::invalid_argument,"missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )

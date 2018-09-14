@@ -71,7 +71,8 @@ public:
     typedef Node<3>                                             NodeType;
     ///Type for nodes container
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
-
+    ///Type for size
+    typedef GeometryData::SizeType                              SizeType;
 
     /// Counted pointer of RigidBodyElement
     KRATOS_CLASS_POINTER_DEFINITION( RigidBodyElement );
@@ -220,26 +221,6 @@ public:
      */
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
-    //on integration points:
-    /**
-     * Access for variables on Integration points.
-     * This gives access to variables stored in the constitutive law on each integration point.
-     * Specialisations of element.h (e.g. the TotalLagrangian) must specify the actual
-     * interface to the constitutive law!
-     * Note, that these functions expect a std::vector of values for the
-     * specified variable type that contains a value for each integration point!
-     * SetValueOnIntegrationPoints: set the values for given Variable.
-     * GetValueOnIntegrationPoints: get the values for given Variable.
-     */
-
-    //GET:
-    /**
-     * Get on rVariable a Vector Value from the Element Constitutive Law
-     */
-    void GetValueOnIntegrationPoints( const Variable< array_1d<double, 3 > >& rVariable,
-				      std::vector< array_1d<double, 3 > >& rValues,
-				      const ProcessInfo& rCurrentProcessInfo ) override;
-
 
     //************* STARTING - ENDING  METHODS
 
@@ -354,14 +335,6 @@ public:
      */
     void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo) override;
 
-    //on integration points:
-    /**
-     * Calculate a double Variable on the Element Constitutive Law
-     */
-    void CalculateOnIntegrationPoints( const Variable< array_1d<double, 3 > >& rVariable,
-                                       std::vector< array_1d<double, 3 > >& Output,
-                                       const ProcessInfo& rCurrentProcessInfo) override;
-
 
     //************************************************************************************
     //************************************************************************************
@@ -373,6 +346,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -518,6 +492,11 @@ protected:
       */
     virtual void UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo);
 
+    /**
+     * Get element size from the dofs
+     */
+    virtual SizeType GetDofsSize();
+
 
     ///@}
     ///@name Protected  Access
@@ -568,4 +547,3 @@ private:
 
 } // namespace Kratos.
 #endif //  KRATOS_RIGID_BODY_ELEMENT_H_INCLUDED defined
-

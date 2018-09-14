@@ -18,17 +18,11 @@
 namespace Kratos
 {
 
-/**
- * Flags related to the element computation
- */
-KRATOS_CREATE_LOCAL_FLAG(RigidBodySegregatedVElement, COMPUTE_RHS_VECTOR, 0);
-KRATOS_CREATE_LOCAL_FLAG(RigidBodySegregatedVElement, COMPUTE_LHS_MATRIX, 1);
-
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
 RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId,GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+    :RigidBodyElement(NewId, pGeometry)
 {
 }
 
@@ -36,35 +30,23 @@ RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId,Geometr
 //************************************************************************************
 
 RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+    :RigidBodyElement(NewId, pGeometry, pProperties)
 {
-    KRATOS_TRY
-
-    this->Set(RIGID);
-
-    KRATOS_CATCH("")
 }
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
 RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, NodesContainerType::Pointer pNodes)
-    : Element(NewId, pGeometry, pProperties)
+    :RigidBodyElement(NewId, pGeometry, pProperties)
 {
-    KRATOS_TRY
-
-    mpNodes = pNodes;
-
-    KRATOS_CATCH("")
 }
 
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
 RigidBodySegregatedVElement::RigidBodySegregatedVElement(RigidBodySegregatedVElement const& rOther)
-    :Element(rOther)
-    ,mInitialLocalQuaternion(rOther.mInitialLocalQuaternion)
-    ,mpNodes(rOther.mpNodes)
+    :RigidBodyElement(rOther)
 {
 }
 
@@ -103,46 +85,37 @@ RigidBodySegregatedVElement::~RigidBodySegregatedVElement()
 
 void RigidBodySegregatedVElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
 {
-    rElementalDofList.resize( 0 );
+  rElementalDofList.resize(0);
 
-    switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
-    {
-      case VELOCITY_STEP:
+  switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
+  {
+    case VELOCITY_STEP:
+      {
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
-          const SizeType number_of_nodes = GetGeometry().size();
-          const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-          for ( unsigned int i = 0; i < number_of_nodes; i++ )
-          {
-            ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
-            ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
-            if( dimension == 2 ){
-              ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
-            }
-            else{
-              ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
-              ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
-              ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
-              ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
-            }
+          ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
+          ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
+          if( dimension == 2 ){
+            ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
           }
-          
-          for ( SizeType i = 0; i < GetGeometry().size(); i++ )
-          {
-            rElementalDofList.push_back( GetGeometry()[i].pGetDof( VELOCITY_X ) );
-            rElementalDofList.push_back( GetGeometry()[i].pGetDof( VELOCITY_Y ) );
-
-            if( dimension == 3 )
-              rElementalDofList.push_back( GetGeometry()[i].pGetDof( VELOCITY_Z ) );
+          else{
+            ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
+            ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
+            ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
+            ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
           }
-          break;
         }
-      case PRESSURE_STEP:
-        {
-          break;
-        }
-      default:
-        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
-    }
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+  }
 
 }
 
@@ -151,42 +124,42 @@ void RigidBodySegregatedVElement::GetDofList(DofsVectorType& ElementalDofList,Pr
 
 void RigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
+  SizeType dofs_size = this->GetDofsSize();
 
-    const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
-    const SizeType dofs_size       = this->GetDofsSize();
+  if ( rResult.size() != dofs_size )
+    rResult.resize(dofs_size, false);
 
-    if ( rResult.size() != element_size )
-        rResult.resize(dofs_size, false);
-    
-    switch(mStepVariable)
-    {
-      case VELOCITY_STEP:
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        dofs_size = dimension * (dimension + 1) * 0.5;
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
-          for ( SizeType i = 0; i < number_of_nodes; i++ )
-          {
-            int index = i * (dofs_size);
-            rResult[index]   = GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
-            rResult[index+1] = GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
-            if( dimension == 2 ){
-              rResult[index+2] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
-            }
-            else{
-              rResult[index+2] = GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
-              rResult[index+3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
-              rResult[index+4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
-              rResult[index+5] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
-            }
+          SizeType index = i * (dofs_size);
+          rResult[index]   = GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
+          rResult[index+1] = GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
+          if( dimension == 2 ){
+            rResult[index+2] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
           }
-          break;
+          else{
+            rResult[index+2] = GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
+            rResult[index+3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
+            rResult[index+4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
+            rResult[index+5] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
+          }
         }
-      case PRESSURE_STEP:
-        {
-          break;
-        }
-      default:
-        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
-    }
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+  }
 }
 
 
@@ -195,83 +168,91 @@ void RigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult
 
 void RigidBodySegregatedVElement::GetValuesVector(Vector& rValues, int Step)
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int       element_size    = number_of_nodes * (dofs_size);
+  SizeType dofs_size = this->GetDofsSize();
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+  if ( rValues.size() != dofs_size )
+    rValues.resize( dofs_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-      int index = i * (dofs_size);
-      rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
-      rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
-      if( dimension == 2 ){
-	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        dofs_size = dimension * (dimension + 1) * 0.5;
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+          SizeType index = i * (dofs_size);
+          rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
+          rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
+          if( dimension == 2 ){
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
+          }
+          else{
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+            rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ROTATION_X, Step );
+            rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Y, Step );
+            rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
+          }
+        }
+        break;
       }
-      else{
-	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
-	rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ROTATION_X, Step );
-	rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Y, Step );
-	rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
+    case PRESSURE_STEP:
+      {
+        break;
       }
-    }
-
-    KRATOS_CATCH("")
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+  }
+  KRATOS_CATCH("")
 }
 
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-//************************************************************************************
-//************************************************************************************
 void RigidBodySegregatedVElement::GetFirstDerivativesVector(Vector& rValues, int Step)
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    unsigned int dofs_size = this->GetDofsSize();
+  SizeType dofs_size = this->GetDofsSize();
 
-    if ( rValues.size() != dofs_size )
-      rValues.resize( dofs_size, false );
+  if ( rValues.size() != dofs_size )
+    rValues.resize( dofs_size, false );
 
-    
-    
-    switch(mStepVariable)
-    {
-      case VELOCITY_STEP:
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        const SizeType number_of_nodes  = GetGeometry().size();
+        const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
+        dofs_size = dimension * (dimension + 1) * 0.5;
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
-          const SizeType number_of_nodes  = GetGeometry().size();
-          const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-          unsigned int index              = 0;
-          for ( SizeType i = 0; i < number_of_nodes; i++ )
-          {
-            int index = i * dimension * (dimension + 1) * 0.5;
-            rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
-            rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
-            if( dimension == 2 ){
-              rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );
-            }
-            else{
-              rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
-              rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_X, Step );
-              rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Y, Step );
-              rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );
-            }
+          SizeType index = i * dimension * (dimension + 1) * 0.5;
+          rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
+          rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+          if( dimension == 2 ){
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );
           }
-          break;
+          else{
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
+            rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_X, Step );
+            rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Y, Step );
+            rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );
+          }
         }
-      case PRESSURE_STEP:
-        {
-          break;
-        }
-      default:
-        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
-    }
-    
-    KRATOS_CATCH("")
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+  }
+  KRATOS_CATCH("")
 }
 
 //*********************************ACCELERATION***************************************
@@ -279,45 +260,46 @@ void RigidBodySegregatedVElement::GetFirstDerivativesVector(Vector& rValues, int
 
 void RigidBodySegregatedVElement::GetSecondDerivativesVector(Vector& rValues, int Step)
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int       element_size    = number_of_nodes * (dofs_size);
+  SizeType dofs_size = this->GetDofsSize();
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+  if ( rValues.size() != dofs_size )
+    rValues.resize( dofs_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-      int index = i * (dofs_size);
-      rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
-      rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
-      if( dimension == 2 ){
-	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        const SizeType number_of_nodes = GetGeometry().size();
+        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+        dofs_size = dimension * (dimension + 1) * 0.5;
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        {
+          SizeType index = i * (dofs_size);
+          rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
+          rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
+          if( dimension == 2 ){
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
+          }
+          else{
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
+            rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_X, Step );
+            rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Y, Step );
+            rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
+          }
+
+        }
+        break;
       }
-      else{
-	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
-	rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_X, Step );
-	rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Y, Step );
-	rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
+    case PRESSURE_STEP:
+      {
+        break;
       }
-
-    }
-
-
-    KRATOS_CATCH("")
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodySegregatedVElement::GetValueOnIntegrationPoints( const Variable<array_1d<double, 3 > >& rVariable,
-						    std::vector< array_1d<double, 3 > >& rValues,
-						    const ProcessInfo& rCurrentProcessInfo )
-{
-    this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+  }
+  KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -325,16 +307,11 @@ void RigidBodySegregatedVElement::GetValueOnIntegrationPoints( const Variable<ar
 
 void RigidBodySegregatedVElement::Initialize()
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    if(this->IsNot(RigidBodyElement::INITIALIZED))
-    {        
-      RigidBodyElement::Initialize();
+  RigidBodyElement::Initialize();
 
-      this->Set(RigidBodyElement::INITIALIZED,true);
-    }
-    
-    KRATOS_CATCH("")
+  KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -342,26 +319,26 @@ void RigidBodySegregatedVElement::Initialize()
 
 void RigidBodySegregatedVElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    this->SetProcessInformation(rCurrentProcessInfo);
-    
-    switch(mStepVariable)
-    {
-      case VELOCITY_STEP:
-        {
-          RigidBodyElement::InitializeSolutionStep(rCurrentProcessInfo);
-          break;
-        }
-      case PRESSURE_STEP:
-        {
-          break;
-        }
-      default:
-        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
-    }   
-         
-    KRATOS_CATCH("")
+  this->SetProcessInformation(rCurrentProcessInfo);
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        RigidBodyElement::InitializeSolutionStep(rCurrentProcessInfo);
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+  }
+
+  KRATOS_CATCH("")
 }
 
 
@@ -370,13 +347,42 @@ void RigidBodySegregatedVElement::InitializeSolutionStep(ProcessInfo& rCurrentPr
 
 void RigidBodySegregatedVElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-     KRATOS_TRY
+  KRATOS_TRY
 
-     this->SetProcessInformation(rCurrentProcessInfo);
+  this->SetProcessInformation(rCurrentProcessInfo);
 
-     RigidBodyElement::InitializeNonLinearIteration(rCurrentProcessInfo);
-     
-     KRATOS_CATCH("")
+  RigidBodyElement::InitializeNonLinearIteration(rCurrentProcessInfo);
+
+  KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void RigidBodySegregatedVElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+{
+  KRATOS_TRY
+
+  this->SetProcessInformation(rCurrentProcessInfo);
+  this->SetProcessInformation(rCurrentProcessInfo);
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        RigidBodyElement::FinalizeNonLinearIteration(rCurrentProcessInfo);
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+  }
+
+
+  KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -384,43 +390,28 @@ void RigidBodySegregatedVElement::InitializeNonLinearIteration( ProcessInfo& rCu
 
 void RigidBodySegregatedVElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    this->SetProcessInformation(rCurrentProcessInfo);
+  this->SetProcessInformation(rCurrentProcessInfo);
 
-    switch(mStepVariable)
-    {
-      case VELOCITY_STEP:
-        {
-          RigidBodyElement::FinalizeSolutionStep(rCurrentProcessInfo);
-          break;
-        }
-      case PRESSURE_STEP:
-        {
-          //set as VELOCITY STEP for gauss point calculations:
-          mStepVariable = VELOCITY_STEP;
-          break;
-        }
-      default:
-        KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
-    }
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        RigidBodyElement::FinalizeSolutionStep(rCurrentProcessInfo);
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        //set as VELOCITY STEP for gauss point calculations:
+        mStepVariable = VELOCITY_STEP;
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+  }
 
-    KRATOS_CATCH( "" )
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodySegregatedVElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-     KRATOS_TRY
-
-     this->SetProcessInformation(rCurrentProcessInfo);
-
-     RigidBodyElement::FinalizeNonLinearIteration(rCurrentProcessInfo);
-
-     KRATOS_CATCH("")
+  KRATOS_CATCH( "" )
 }
 
 
@@ -430,14 +421,14 @@ void RigidBodySegregatedVElement::FinalizeNonLinearIteration( ProcessInfo& rCurr
 void RigidBodySegregatedVElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
                                                          ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    //process information
-    this->SetProcessInformation(rCurrentProcessInfo);
+  //process information
+  this->SetProcessInformation(rCurrentProcessInfo);
 
-    SolidElement::CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
+  SolidElement::CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
 
-    KRATOS_CATCH("")
+  KRATOS_CATCH("")
 }
 
 
@@ -447,14 +438,14 @@ void RigidBodySegregatedVElement::CalculateRightHandSide(VectorType& rRightHandS
 void RigidBodySegregatedVElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                                         ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    //process information
-    this->SetProcessInformation(rCurrentProcessInfo);
+  //process information
+  this->SetProcessInformation(rCurrentProcessInfo);
 
-    RigidBodyElement::CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
+  RigidBodyElement::CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
 
-    KRATOS_CATCH("")
+  KRATOS_CATCH("")
 }
 
 
@@ -465,14 +456,14 @@ void RigidBodySegregatedVElement::CalculateLocalSystem(MatrixType& rLeftHandSide
                                                        VectorType& rRightHandSideVector,
                                                        ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    //process information
-    this->SetProcessInformation(rCurrentProcessInfo);
+  //process information
+  this->SetProcessInformation(rCurrentProcessInfo);
 
-    RigidBodyElement::CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-        
-    KRATOS_CATCH("")
+  RigidBodyElement::CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+
+  KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -481,77 +472,76 @@ void RigidBodySegregatedVElement::CalculateLocalSystem(MatrixType& rLeftHandSide
 void RigidBodySegregatedVElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
                                                           ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    //create and initialize element variables:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+  //create and initialize element variables:
+  ElementVariables Variables;
+  this->InitializeElementVariables(Variables, rCurrentProcessInfo);
 
-    std::cout<<" ID "<<this->Id()<<std::endl;
-    std::cout<<" Displacement "<<GetGeometry()[0].FastGetSolutionStepValue( DISPLACEMENT )<<std::endl;
-    std::cout<<" Rotation     "<<GetGeometry()[0].FastGetSolutionStepValue( ROTATION )<<std::endl;
+  std::cout<<" ID "<<this->Id()<<std::endl;
+  std::cout<<" Displacement "<<GetGeometry()[0].FastGetSolutionStepValue( DISPLACEMENT )<<std::endl;
+  std::cout<<" Rotation     "<<GetGeometry()[0].FastGetSolutionStepValue( ROTATION )<<std::endl;
 
-    //Compute Rigid Body Properties:
-    this->CalculateRigidBodyProperties(Variables.RigidBody);
+  //Compute Rigid Body Properties:
+  this->CalculateRigidBodyProperties(Variables.RigidBody);
 
-    // initialize variables short version;
+  // initialize variables short version:
+  if ( rLocalSystem.CalculationFlags.Is(RigidBodySegregatedVElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+  {
+    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
-    if ( rLocalSystem.CalculationFlags.Is(RigidBodySegregatedVElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-      {
-	MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+    this->CalculateAndAddInertiaLHS( rLeftHandSideMatrix, Variables, rCurrentProcessInfo); // (R_N+1, R_N)
 
-	this->CalculateAndAddInertiaLHS( rLeftHandSideMatrix, Variables, rCurrentProcessInfo); // (R_N+1, R_N)
+    //std::cout<<" LeftHandSide "<<rLeftHandSideMatrix<<std::endl;
+  }
 
-	//std::cout<<" LeftHandSide "<<rLeftHandSideMatrix<<std::endl;
-      }
+  if ( rLocalSystem.CalculationFlags.Is(RigidBodySegregatedVElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+  {
+    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
-    if ( rLocalSystem.CalculationFlags.Is(RigidBodySegregatedVElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
-      {
-	VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+    this->CalculateAndAddInertiaRHS( rRightHandSideVector, Variables, rCurrentProcessInfo);
 
-	this->CalculateAndAddInertiaRHS( rRightHandSideVector, Variables, rCurrentProcessInfo);
+    Vector VolumeForce(3);
+    noalias(VolumeForce) = ZeroVector(3);
+    VolumeForce = CalculateVolumeForce(VolumeForce);
+    this->CalculateAndAddExternalForces( rRightHandSideVector, Variables, VolumeForce);
 
-	Vector VolumeForce(3);
-	noalias(VolumeForce) = ZeroVector(3);
-	VolumeForce = CalculateVolumeForce(VolumeForce);
-	this->CalculateAndAddExternalForces( rRightHandSideVector, Variables, VolumeForce);
-
-	//std::cout<<" VolumeForce "<<VolumeForce<<std::endl;
-	//std::cout<<" RightHandSide "<<rRightHandSideVector<<std::endl;
-      }
+    //std::cout<<" VolumeForce "<<VolumeForce<<std::endl;
+    //std::cout<<" RightHandSide "<<rRightHandSideVector<<std::endl;
+  }
 
 
-    // Note:
-    // That means that the standard rotation K = Q·K'·QT and F = Q·F' is the correct transformation
+  // Note:
+  // That means that the standard rotation K = Q·K'·QT and F = Q·F' is the correct transformation
 
-    Matrix InitialLocalMatrix = ZeroMatrix(3,3);
-    mInitialLocalQuaternion.ToRotationMatrix(InitialLocalMatrix);
+  Matrix InitialLocalMatrix = ZeroMatrix(3,3);
+  mInitialLocalQuaternion.ToRotationMatrix(InitialLocalMatrix);
 
-    // Transform Local to Global LHSMatrix:
-    if ( rLocalSystem.CalculationFlags.Is(RigidBodySegregatedVElement::COMPUTE_LHS_MATRIX) ){
+  // Transform Local to Global LHSMatrix:
+  if ( rLocalSystem.CalculationFlags.Is(RigidBodySegregatedVElement::COMPUTE_LHS_MATRIX) ){
 
-      MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
-      // works for 2D and 3D case
-      BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rLeftHandSideMatrix);
+    // works for 2D and 3D case
+    BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rLeftHandSideMatrix);
 
-      //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
-    }
+    //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
+  }
 
-    // Transform Local to Global RHSVector:
-    if ( rLocalSystem.CalculationFlags.Is(RigidBodySegregatedVElement::COMPUTE_RHS_VECTOR) ){
+  // Transform Local to Global RHSVector:
+  if ( rLocalSystem.CalculationFlags.Is(RigidBodySegregatedVElement::COMPUTE_RHS_VECTOR) ){
 
-      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
-      //std::cout<<"["<<this->Id()<<"] RB Dynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+    //std::cout<<"["<<this->Id()<<"] RB Dynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
 
-      // works for 2D and 3D case
-      BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rRightHandSideVector);
+    // works for 2D and 3D case
+    BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rRightHandSideVector);
 
-      //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
-    }
+    //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+  }
 
-    KRATOS_CATCH("")
+  KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -559,120 +549,13 @@ void RigidBodySegregatedVElement::CalculateDynamicSystem( LocalSystemComponents&
 
 Vector& RigidBodySegregatedVElement::MapToInitialLocalFrame(Vector& rVariable)
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    BeamMathUtilsType::MapToCurrentLocalFrame(mInitialLocalQuaternion, rVariable);
+  BeamMathUtilsType::MapToCurrentLocalFrame(mInitialLocalQuaternion, rVariable);
 
-    return rVariable;
+  return rVariable;
 
-    KRATOS_CATCH("")
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodySegregatedVElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-                                                                ElementVariables& rVariables,
-                                                                Vector& rVolumeForce)
-{
-    KRATOS_TRY
-
-    unsigned int number_of_nodes   = GetGeometry().PointsNumber();
-    unsigned int dimension         = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size   = dimension * (dimension + 1) * 0.5;
-
-    double DomainSize = rVariables.RigidBody.Mass;
-
-    //gravity load
-    Vector GravityLoad(dimension);
-    noalias(GravityLoad) = ZeroVector(dimension);
-
-    unsigned int RowIndex = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-      RowIndex = i * (dofs_size);
-
-      for ( unsigned int j = 0; j < dimension; j++ )
-      {
-        GravityLoad[j] = rVolumeForce[j] * DomainSize;
-      }
-
-      //substract because is added as a component of the InertiaRHS and is substracted again later in the scheme
-      BeamMathUtilsType::SubstractVector( GravityLoad, rRightHandSideVector, RowIndex );
-
-    }
-
-    std::cout<<" Rigid Element Gravity "<<GravityLoad<<std::endl;
-    std::cout<<" rRightHandSideVector "<<rRightHandSideVector<<std::endl;
-
-    KRATOS_CATCH("")
-}
-
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodySegregatedVElement::AddExplicitContribution(const VectorType& rRHSVector,
-                                                          const Variable<VectorType>& rRHSVariable,
-                                                          Variable<array_1d<double,3> >& rDestinationVariable,
-                                                          const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-
-    if( (rRHSVariable == RESIDUAL_VECTOR) ){
-
-      if ( rDestinationVariable == FORCE_RESIDUAL )
-      {
-
-        for(unsigned int i=0; i< number_of_nodes; i++)
-        {
-          int index = (dofs_size) * i;
-
-          GetGeometry()[i].SetLock();
-
-          array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-
-          for(unsigned int j=0; j<dimension; j++)
-          {
-            ForceResidual[j] += rRHSVector[index + j];
-          }
-
-          GetGeometry()[i].UnSetLock();
-        }
-      }
-      else if( rDestinationVariable == MOMENT_RESIDUAL )
-      {
-
-        for(unsigned int i=0; i< number_of_nodes; i++)
-        {
-          int index = dimension + (dofs_size) * i;
-
-          GetGeometry()[i].SetLock();
-
-          array_1d<double, 3 > &MomentResidual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
-
-          if( dimension == 2 ){
-            MomentResidual[2] += rRHSVector[index];
-          }
-          else{
-            for(unsigned int j=0; j<dimension; j++)
-            {
-              MomentResidual[j] += rRHSVector[index + j];
-            }
-          }
-          GetGeometry()[i].UnSetLock();
-        }
-
-      }
-
-
-    }
-
-    KRATOS_CATCH("")
+  KRATOS_CATCH("")
 }
 
 
@@ -683,53 +566,14 @@ void RigidBodySegregatedVElement::CalculateSecondDerivativesContributions(Matrix
                                                                           VectorType& rRightHandSideVector,
                                                                           ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
+  //process information
+  this->SetProcessInformation(rCurrentProcessInfo);
 
-    bool ComputeDynamicTangent = false;
-    if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) ){
+  RigidBodyElement::CalculateSecondDerivativesContributions(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
-      if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true){
-	ComputeDynamicTangent = true;
-      }
-    }
-
-    if( ComputeDynamicTangent == true ){
-
-      //create local system components
-      LocalSystemComponents LocalSystem;
-
-      //calculation flags
-      LocalSystem.CalculationFlags.Set(RigidBodySegregatedVElement::COMPUTE_RHS_VECTOR);
-      LocalSystem.CalculationFlags.Set(RigidBodySegregatedVElement::COMPUTE_LHS_MATRIX);
-
-      //Initialize sizes for the system components:
-      this->InitializeSystemMatrices(rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags);
-
-      //Set Variables to Local system components
-      LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
-      LocalSystem.SetRightHandSideVector(rRightHandSideVector);
-
-      //Calculate elemental system
-      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
-
-    }
-    else{
-
-      //1.-Calculate Tangent Inertia Matrix:
-      this->CalculateMassMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
-
-      double MatSize = rLeftHandSideMatrix.size1();
-
-      //2.-Calculate Inertial Forces:
-      if ( rRightHandSideVector.size() != MatSize )
-	rRightHandSideVector.resize( MatSize, false );
-
-      noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
-    }
-
-
-    KRATOS_CATCH("")
+  KRATOS_CATCH("")
 }
 
 
@@ -739,96 +583,30 @@ void RigidBodySegregatedVElement::CalculateSecondDerivativesContributions(Matrix
 void RigidBodySegregatedVElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
                                                                 ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    bool ComputeDynamicTangent = false;
-    if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) )
-      if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
-	ComputeDynamicTangent = true;
+  //process information
+  this->SetProcessInformation(rCurrentProcessInfo);
 
-    if( ComputeDynamicTangent == true ){
+  RigidBodyElement::CalculateSecondDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
 
-      //create local system components
-      LocalSystemComponents LocalSystem;
-
-      //calculation flags
-      LocalSystem.CalculationFlags.Set(RigidBodySegregatedVElement::COMPUTE_LHS_MATRIX);
-
-      VectorType RightHandSideVector = Vector();
-
-      //Initialize sizes for the system components:
-      this->InitializeSystemMatrices(rLeftHandSideMatrix, RightHandSideVector,  LocalSystem.CalculationFlags);
-
-      //Set Variables to Local system components
-      LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
-      LocalSystem.SetRightHandSideVector(RightHandSideVector);
-
-      //Calculate elemental system
-      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
-
-    }
-    else{
-
-      //1.-Calculate Tangent Inertia Matrix:
-      this->CalculateMassMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
-
-    }
-
-    KRATOS_CATCH("")
+  KRATOS_CATCH("")
 }
 
 //************************************************************************************
 //************************************************************************************
 
 void RigidBodySegregatedVElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-                                                     ProcessInfo& rCurrentProcessInfo)
+                                                                ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    bool ComputeDynamicTangent = false;
-    if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) )
-      if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
-	ComputeDynamicTangent = true;
+  //process information
+  this->SetProcessInformation(rCurrentProcessInfo);
 
-    if( ComputeDynamicTangent == true ){
+  RigidBodyElement::CalculateSecondDerivativesRHS(rRightHandSideVector, rCurrentProcessInfo);
 
-      //create local system components
-      LocalSystemComponents LocalSystem;
-
-      //calculation flags
-      LocalSystem.CalculationFlags.Set(RigidBodySegregatedVElement::COMPUTE_RHS_VECTOR);
-
-      MatrixType LeftHandSideMatrix = Matrix();
-
-      //Initialize sizes for the system components:
-      this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
-
-      //Set Variables to Local system components
-      LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
-      LocalSystem.SetRightHandSideVector(rRightHandSideVector);
-
-      //Calculate elemental system
-      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
-
-    }
-    else{
-
-      //create local system components
-      LocalSystemComponents LocalSystem;
-
-      //calculation flags
-      LocalSystem.CalculationFlags.Set(RigidBodySegregatedVElement::COMPUTE_RHS_VECTOR);
-
-      MatrixType LeftHandSideMatrix = Matrix();
-
-      //Initialize sizes for the system components:
-      this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
-
-      //RHS reseted to zero
-    }
-
-
-    KRATOS_CATCH("")
+  KRATOS_CATCH("")
 }
 
 
@@ -840,336 +618,336 @@ void RigidBodySegregatedVElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
                                                             ElementVariables& rVariables,
                                                             ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int MatSize               = number_of_nodes * (dofs_size);
+  const SizeType number_of_nodes = GetGeometry().size();
+  const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
+  const SizeType dofs_size       = dimension * (dimension + 1) * 0.5;
+  SizeType MatSize               = number_of_nodes * (dofs_size);
 
-    if(rLeftHandSideMatrix.size1() != MatSize)
-      rLeftHandSideMatrix.resize (MatSize, MatSize, false);
+  if(rLeftHandSideMatrix.size1() != MatSize)
+    rLeftHandSideMatrix.resize (MatSize, MatSize, false);
 
-    rLeftHandSideMatrix = ZeroMatrix( MatSize, MatSize );
+  rLeftHandSideMatrix = ZeroMatrix( MatSize, MatSize );
 
-    //rCurrentProcessInfo must give it:
-    double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+  //rCurrentProcessInfo must give it:
+  double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
-    double Newmark1 = (1.0/ ( DeltaTime * DeltaTime * rCurrentProcessInfo[NEWMARK_BETA] ));
-    double Newmark2 = ( DeltaTime * rCurrentProcessInfo[NEWMARK_GAMMA] );
+  double Newmark1 = (1.0/ ( DeltaTime * DeltaTime * rCurrentProcessInfo[NEWMARK_BETA] ));
+  double Newmark2 = ( DeltaTime * rCurrentProcessInfo[NEWMARK_GAMMA] );
 
-    //block m(1,1) of the mass matrix
+  //block m(1,1) of the mass matrix
 
-    MatrixType m11 = ZeroMatrix(3,3);
+  MatrixType m11 = ZeroMatrix(3,3);
 
-    double TotalMass = 0;
-    TotalMass = rVariables.RigidBody.Mass;
+  double TotalMass = 0;
+  TotalMass = rVariables.RigidBody.Mass;
 
-    //block m(2,2) of the mass matrix
+  //block m(2,2) of the mass matrix
 
-    MatrixType m22 = ZeroMatrix(3,3);
+  MatrixType m22 = ZeroMatrix(3,3);
 
-    Vector CurrentCompoundRotationVector(3);
-    noalias(CurrentCompoundRotationVector) = ZeroVector(3);
-    Vector PreviousCompoundRotationVector(3);
-    noalias(PreviousCompoundRotationVector) = ZeroVector(3);
+  Vector CurrentCompoundRotationVector(3);
+  noalias(CurrentCompoundRotationVector) = ZeroVector(3);
+  Vector PreviousCompoundRotationVector(3);
+  noalias(PreviousCompoundRotationVector) = ZeroVector(3);
 
-    Vector CurrentStepRotationVector(3);
-    noalias(CurrentStepRotationVector) = ZeroVector(3);
-    Vector AngularVelocityVector(3);
-    noalias(AngularVelocityVector) = ZeroVector(3);
-    Vector AngularAccelerationVector(3);
-    noalias(AngularAccelerationVector) = ZeroVector(3);
-    Vector CurrentAngularAccelerationVector(3);
-    noalias(CurrentAngularAccelerationVector) = ZeroVector(3);
-    Vector PreviousAngularAccelerationVector(3);
-    noalias(PreviousAngularAccelerationVector) = ZeroVector(3);
+  Vector CurrentStepRotationVector(3);
+  noalias(CurrentStepRotationVector) = ZeroVector(3);
+  Vector AngularVelocityVector(3);
+  noalias(AngularVelocityVector) = ZeroVector(3);
+  Vector AngularAccelerationVector(3);
+  noalias(AngularAccelerationVector) = ZeroVector(3);
+  Vector CurrentAngularAccelerationVector(3);
+  noalias(CurrentAngularAccelerationVector) = ZeroVector(3);
+  Vector PreviousAngularAccelerationVector(3);
+  noalias(PreviousAngularAccelerationVector) = ZeroVector(3);
 
-    Vector CurrentValueVector(3);
-    noalias(CurrentValueVector) = ZeroVector(3);
-    Vector PreviousValueVector(3);
-    noalias(PreviousValueVector) = ZeroVector(3);
+  Vector CurrentValueVector(3);
+  noalias(CurrentValueVector) = ZeroVector(3);
+  Vector PreviousValueVector(3);
+  noalias(PreviousValueVector) = ZeroVector(3);
 
-    std::vector<QuaternionType> PreviousNodeQuaternions;
-    QuaternionType QuaternionValue;
+  std::vector<QuaternionType> PreviousNodeQuaternions;
+  QuaternionType QuaternionValue;
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
+  for ( SizeType i = 0; i < number_of_nodes; i++ )
+  {
 
-	//Current Compound Rotation Vector
-	CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
-	CurrentValueVector = MapToInitialLocalFrame( CurrentValueVector );
+    //Current Compound Rotation Vector
+    CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
+    CurrentValueVector = MapToInitialLocalFrame( CurrentValueVector );
 
-    	CurrentCompoundRotationVector = CurrentValueVector;
+    CurrentCompoundRotationVector = CurrentValueVector;
 
-    	//Previous Compound Rotation Vector
-	PreviousValueVector = GetNodalPreviousValue( ROTATION, PreviousValueVector, i );
-	PreviousValueVector = MapToInitialLocalFrame( PreviousValueVector );
+    //Previous Compound Rotation Vector
+    PreviousValueVector = GetNodalPreviousValue( ROTATION, PreviousValueVector, i );
+    PreviousValueVector = MapToInitialLocalFrame( PreviousValueVector );
 
-	PreviousCompoundRotationVector = PreviousValueVector;
+    PreviousCompoundRotationVector = PreviousValueVector;
 
-	//Current Step Rotation Vector
-	CurrentValueVector = GetNodalCurrentValue( STEP_ROTATION, CurrentValueVector, i );
-	CurrentStepRotationVector              = CurrentValueVector;
+    //Current Step Rotation Vector
+    CurrentValueVector = GetNodalCurrentValue( STEP_ROTATION, CurrentValueVector, i );
+    CurrentStepRotationVector              = CurrentValueVector;
 
-	//Angular Velocity Vector
-	CurrentValueVector = GetNodalCurrentValue( ANGULAR_VELOCITY, CurrentValueVector, i );
-	AngularVelocityVector                  = CurrentValueVector;
+    //Angular Velocity Vector
+    CurrentValueVector = GetNodalCurrentValue( ANGULAR_VELOCITY, CurrentValueVector, i );
+    AngularVelocityVector                  = CurrentValueVector;
 
-	//CurrentAngular Acceleration Vector
-	CurrentValueVector = GetNodalCurrentValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
-	CurrentAngularAccelerationVector       = CurrentValueVector;
+    //CurrentAngular Acceleration Vector
+    CurrentValueVector = GetNodalCurrentValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
+    CurrentAngularAccelerationVector       = CurrentValueVector;
 
-        //PreviousAngular Acceleration Vector
-	CurrentValueVector = GetNodalPreviousValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
-	PreviousAngularAccelerationVector       = CurrentValueVector;
+    //PreviousAngular Acceleration Vector
+    CurrentValueVector = GetNodalPreviousValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
+    PreviousAngularAccelerationVector       = CurrentValueVector;
 
-      }
+  }
 
-    //Set step variables to local frame (current Frame is the local frame)
-    CurrentStepRotationVector         = MapToInitialLocalFrame( CurrentStepRotationVector );
-    AngularVelocityVector             = MapToInitialLocalFrame( AngularVelocityVector );
-    CurrentAngularAccelerationVector  = MapToInitialLocalFrame( CurrentAngularAccelerationVector );
-    PreviousAngularAccelerationVector = MapToInitialLocalFrame( PreviousAngularAccelerationVector );
+  //Set step variables to local frame (current Frame is the local frame)
+  CurrentStepRotationVector         = MapToInitialLocalFrame( CurrentStepRotationVector );
+  AngularVelocityVector             = MapToInitialLocalFrame( AngularVelocityVector );
+  CurrentAngularAccelerationVector  = MapToInitialLocalFrame( CurrentAngularAccelerationVector );
+  PreviousAngularAccelerationVector = MapToInitialLocalFrame( PreviousAngularAccelerationVector );
 
-    double AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+  double AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
 
-    AngularAccelerationVector = (1.0-AlphaM)*CurrentAngularAccelerationVector + AlphaM*(PreviousAngularAccelerationVector);
+  AngularAccelerationVector = (1.0-AlphaM)*CurrentAngularAccelerationVector + AlphaM*(PreviousAngularAccelerationVector);
 
-    //Set step variables to local frame (current Frame is the local frame)
-    Matrix CurrentRotationMatrix  = ZeroMatrix(3,3);
-    Matrix PreviousRotationMatrix = ZeroMatrix(3,3);
-
-
-    //1.-Get rotation matrix
-    QuaternionType TotalQuaternion;
-
-    //1.1.-Current Rotation Matrix
-    TotalQuaternion = QuaternionType::FromRotationVector(CurrentCompoundRotationVector);
-
-    TotalQuaternion.ToRotationMatrix( CurrentRotationMatrix );
-
-    //1.2.-Previous Rotation Matrix
-
-    //option 1:
-    TotalQuaternion = QuaternionType::FromRotationVector(PreviousCompoundRotationVector);
-
-    TotalQuaternion.ToRotationMatrix( PreviousRotationMatrix );
-
-    //2.-Get inertia dyadic
-    Matrix InertiaDyadic = ZeroMatrix(3,3);
-    InertiaDyadic = rVariables.RigidBody.InertiaTensor;
-    //Inertia dyadic expressed in the spatial frame
-    InertiaDyadic = prod(CurrentRotationMatrix,InertiaDyadic);
-    InertiaDyadic = prod(InertiaDyadic,trans(CurrentRotationMatrix));
+  //Set step variables to local frame (current Frame is the local frame)
+  Matrix CurrentRotationMatrix  = ZeroMatrix(3,3);
+  Matrix PreviousRotationMatrix = ZeroMatrix(3,3);
 
 
-    // SIMO -----------------------------
-    //2.- Compute Term 1:
+  //1.-Get rotation matrix
+  QuaternionType TotalQuaternion;
 
-    Matrix MassTerm1 = ZeroMatrix(3,3);
+  //1.1.-Current Rotation Matrix
+  TotalQuaternion = QuaternionType::FromRotationVector(CurrentCompoundRotationVector);
 
-    Vector InertiaxAngularVelocity     = prod( InertiaDyadic, AngularVelocityVector );
-    Vector InertiaxAngularAcceleration = prod( InertiaDyadic, AngularAccelerationVector );
+  TotalQuaternion.ToRotationMatrix( CurrentRotationMatrix );
 
-    // previous implementation
-    // Vector VectorTerm1 = MathUtils<double>::CrossProduct( AngularVelocityVector, InertiaxAngularVelocity);
-    // VectorTerm1 += InertiaxAngularAcceleration;
+  //1.2.-Previous Rotation Matrix
 
-    Matrix TensorAngularVelocity = ZeroMatrix(3,3);
-    BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
+  //option 1:
+  TotalQuaternion = QuaternionType::FromRotationVector(PreviousCompoundRotationVector);
 
-    Vector VectorTerm1(3);
-    noalias(VectorTerm1) = ZeroVector(3);
+  TotalQuaternion.ToRotationMatrix( PreviousRotationMatrix );
 
-    VectorTerm1  = prod( TensorAngularVelocity, InertiaxAngularVelocity );
+  //2.-Get inertia dyadic
+  Matrix InertiaDyadic = ZeroMatrix(3,3);
+  InertiaDyadic = rVariables.RigidBody.InertiaTensor;
+  //Inertia dyadic expressed in the spatial frame
+  InertiaDyadic = prod(CurrentRotationMatrix,InertiaDyadic);
+  InertiaDyadic = prod(InertiaDyadic,trans(CurrentRotationMatrix));
 
-    VectorTerm1 += InertiaxAngularAcceleration;
 
-    BeamMathUtilsType::VectorToSkewSymmetricTensor(VectorTerm1, MassTerm1);
+  // SIMO -----------------------------
+  //2.- Compute Term 1:
 
-    //3.- Compute Term 2:
+  Matrix MassTerm1 = ZeroMatrix(3,3);
 
-    Matrix MassTerm2 = ZeroMatrix(3,3);
+  Vector InertiaxAngularVelocity     = prod( InertiaDyadic, AngularVelocityVector );
+  Vector InertiaxAngularAcceleration = prod( InertiaDyadic, AngularAccelerationVector );
 
-    // Matrix TensorAngularVelocity = ZeroMatrix(3,3);
-    // BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
+  // previous implementation
+  // Vector VectorTerm1 = MathUtils<double>::CrossProduct( AngularVelocityVector, InertiaxAngularVelocity);
+  // VectorTerm1 += InertiaxAngularAcceleration;
 
-    Matrix InertiaxAngularVelocityTensor = ZeroMatrix(3,3);
-    BeamMathUtilsType::VectorToSkewSymmetricTensor( InertiaxAngularVelocity, InertiaxAngularVelocityTensor );
+  Matrix TensorAngularVelocity = ZeroMatrix(3,3);
+  BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
 
-    Matrix TensorAngularVelocityxInertia = ZeroMatrix(3,3);
-    noalias(TensorAngularVelocityxInertia) = prod( TensorAngularVelocity, InertiaDyadic );
+  Vector VectorTerm1(3);
+  noalias(VectorTerm1) = ZeroVector(3);
 
-    Matrix InertiaxTensorAngularVelocity = ZeroMatrix(3,3);
-    noalias(InertiaxTensorAngularVelocity) = prod( InertiaDyadic, TensorAngularVelocity );
+  VectorTerm1  = prod( TensorAngularVelocity, InertiaxAngularVelocity );
 
-    //MassTerm2 = InertiaDyadic - Newmark2 * InertiaxAngularVelocityTensor + Newmark2 * TensorAngularVelocityxInertia + Newmark2 * InertiaxTensorAngularVelocity; //Cardona
+  VectorTerm1 += InertiaxAngularAcceleration;
 
-    MassTerm2 = (1.0-AlphaM) * InertiaDyadic - Newmark2 * InertiaxAngularVelocityTensor + Newmark2 * TensorAngularVelocityxInertia; //Simo
+  BeamMathUtilsType::VectorToSkewSymmetricTensor(VectorTerm1, MassTerm1);
 
-    MassTerm2 *= Newmark1;
+  //3.- Compute Term 2:
 
-    MatrixType MassMatrixBlock2 = ZeroMatrix(3,3);
+  Matrix MassTerm2 = ZeroMatrix(3,3);
 
-    MassMatrixBlock2 = (-1) * MassTerm1 + MassTerm2;
+  // Matrix TensorAngularVelocity = ZeroMatrix(3,3);
+  // BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
 
-    // Compute Linear Part of the Step Rotation
-    Matrix LinearPartRotationTensor = ZeroMatrix(3,3);
+  Matrix InertiaxAngularVelocityTensor = ZeroMatrix(3,3);
+  BeamMathUtilsType::VectorToSkewSymmetricTensor( InertiaxAngularVelocity, InertiaxAngularVelocityTensor );
 
-    double NormCurrentStepRotation =  norm_2(CurrentStepRotationVector);
-    if( NormCurrentStepRotation != 0 ){
+  Matrix TensorAngularVelocityxInertia = ZeroMatrix(3,3);
+  noalias(TensorAngularVelocityxInertia) = prod( TensorAngularVelocity, InertiaDyadic );
 
-      this->CalculateRotationLinearPartTensor( CurrentStepRotationVector , LinearPartRotationTensor );
+  Matrix InertiaxTensorAngularVelocity = ZeroMatrix(3,3);
+  noalias(InertiaxTensorAngularVelocity) = prod( InertiaDyadic, TensorAngularVelocity );
 
+  //MassTerm2 = InertiaDyadic - Newmark2 * InertiaxAngularVelocityTensor + Newmark2 * TensorAngularVelocityxInertia + Newmark2 * InertiaxTensorAngularVelocity; //Cardona
+
+  MassTerm2 = (1.0-AlphaM) * InertiaDyadic - Newmark2 * InertiaxAngularVelocityTensor + Newmark2 * TensorAngularVelocityxInertia; //Simo
+
+  MassTerm2 *= Newmark1;
+
+  MatrixType MassMatrixBlock2 = ZeroMatrix(3,3);
+
+  MassMatrixBlock2 = (-1) * MassTerm1 + MassTerm2;
+
+  // Compute Linear Part of the Step Rotation
+  Matrix LinearPartRotationTensor = ZeroMatrix(3,3);
+
+  double NormCurrentStepRotation =  norm_2(CurrentStepRotationVector);
+  if( NormCurrentStepRotation != 0 ){
+
+    this->CalculateRotationLinearPartTensor( CurrentStepRotationVector , LinearPartRotationTensor );
+
+  }
+  else{
+
+    //std::cout<<" Attention... problem sure "<<std::endl;
+    LinearPartRotationTensor = IdentityMatrix(3);
+  }
+
+  //this->CalculateRotationLinearPartTensor( CurrentStepRotationVector , LinearPartRotationTensor );
+  // std::cout<<" MassMatrixBlock 2 SPA "<<MassMatrixBlock2<<std::endl;
+  // std::cout<<" LinearPartRotationTensor SPA "<<LinearPartRotationTensor<<std::endl;
+
+  MassMatrixBlock2 = prod( MassMatrixBlock2, LinearPartRotationTensor );
+
+  SizeType RowIndex = 0;
+  SizeType ColIndex = 0;
+
+  Matrix DiagonalMatrix = IdentityMatrix(3);
+
+  for ( SizeType i = 0; i < number_of_nodes; i++ )
+  {
+    m11 = ZeroMatrix(3,3);
+    m22 = ZeroMatrix(3,3);
+
+    RowIndex = i * (dofs_size);
+
+    for ( SizeType j = 0; j < number_of_nodes; j++ )
+    {
+      ColIndex = j * (dofs_size);
+
+      m11 = (1.0-AlphaM) * Newmark1 * TotalMass * DiagonalMatrix;
+
+      m22 = MassMatrixBlock2;
+
+
+      //Building the Local Tangent Inertia Matrix
+      BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
+      if(dimension == 2)
+        rLeftHandSideMatrix(RowIndex+3,ColIndex+3) = m22(2,2);
+      else
+        BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
     }
-    else{
+  }
 
-      //std::cout<<" Attention... problem sure "<<std::endl;
-      LinearPartRotationTensor = IdentityMatrix(3);
-    }
+  //std::cout<<" rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
 
-    //this->CalculateRotationLinearPartTensor( CurrentStepRotationVector , LinearPartRotationTensor );
-    // std::cout<<" MassMatrixBlock 2 SPA "<<MassMatrixBlock2<<std::endl;
-    // std::cout<<" LinearPartRotationTensor SPA "<<LinearPartRotationTensor<<std::endl;
-
-    MassMatrixBlock2 = prod( MassMatrixBlock2, LinearPartRotationTensor );
-
-    unsigned int RowIndex = 0;
-    unsigned int ColIndex = 0;
-
-    Matrix DiagonalMatrix = IdentityMatrix(3);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-    	m11 = ZeroMatrix(3,3);
-    	m22 = ZeroMatrix(3,3);
-
-    	RowIndex = i * (dofs_size);
-
-    	for ( unsigned int j = 0; j < number_of_nodes; j++ )
-    	  {
-    	    ColIndex = j * (dofs_size);
-
-    	    m11 = (1.0-AlphaM) * Newmark1 * TotalMass * DiagonalMatrix;
-
-    	    m22 = MassMatrixBlock2;
+  // SIMO -----------------------------
 
 
-    	    //Building the Local Tangent Inertia Matrix
-    	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
-	    if(dimension == 2)
-	      rLeftHandSideMatrix(RowIndex+3,ColIndex+3) = m22(2,2);
-	    else
-	      BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
-    	  }
-      }
+  // GERADIN --------------------------
+  // //2.- Compute Damping term:
 
-    //std::cout<<" rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
-
-    // SIMO -----------------------------
+  // Matrix DampingTerm = ZeroMatrix(3,3);
+  // Matrix TensorAngularVelocity = ZeroMatrix(3,3);
+  // BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
+  // TensorAngularVelocity *= (-1);
+  // Matrix TensorAngularVelocityxInertia = ZeroMatrix(3,3);
+  // noalias(TensorAngularVelocityxInertia) = prod( TensorAngularVelocity, InertiaDyadic );
 
 
-    // GERADIN --------------------------
-    // //2.- Compute Damping term:
+  // Vector InertiaxAngularVelocity     = prod( InertiaDyadic, AngularVelocityVector );
+  // Matrix TensorInertiaxAngularVelocity = ZeroMatrix(3,3);
+  // BeamMathUtilsType::VectorToSkewSymmetricTensor( InertiaxAngularVelocity, TensorInertiaxAngularVelocity );
+  // TensorInertiaxAngularVelocity *= (-1);
 
-    // Matrix DampingTerm = ZeroMatrix(3,3);
-    // Matrix TensorAngularVelocity = ZeroMatrix(3,3);
-    // BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
-    // TensorAngularVelocity *= (-1);
-    // Matrix TensorAngularVelocityxInertia = ZeroMatrix(3,3);
-    // noalias(TensorAngularVelocityxInertia) = prod( TensorAngularVelocity, InertiaDyadic );
+  // DampingTerm = TensorAngularVelocityxInertia - TensorInertiaxAngularVelocity;
 
 
-    // Vector InertiaxAngularVelocity     = prod( InertiaDyadic, AngularVelocityVector );
-    // Matrix TensorInertiaxAngularVelocity = ZeroMatrix(3,3);
-    // BeamMathUtilsType::VectorToSkewSymmetricTensor( InertiaxAngularVelocity, TensorInertiaxAngularVelocity );
-    // TensorInertiaxAngularVelocity *= (-1);
+  // //3.- Compute Stiffness term:
 
-    // DampingTerm = TensorAngularVelocityxInertia - TensorInertiaxAngularVelocity;
+  // Matrix StiffnessTerm = ZeroMatrix(3,3);
 
+  // Matrix TensorAngularAcceleration = ZeroMatrix(3,3);
+  // BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularAccelerationVector, TensorAngularAcceleration );
+  // TensorAngularAcceleration *= (-1);
 
-    // //3.- Compute Stiffness term:
+  // Matrix InertiaxTensorAngularAcceleration = prod( InertiaDyadic, TensorAngularAcceleration );
 
-    // Matrix StiffnessTerm = ZeroMatrix(3,3);
+  // Matrix VelocityxInertiaxVelocity = prod( InertiaDyadic, TensorAngularVelocity );
+  // VelocityxInertiaxVelocity = prod( TensorAngularVelocity, InertiaDyadic );
 
-    // Matrix TensorAngularAcceleration = ZeroMatrix(3,3);
-    // BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularAccelerationVector, TensorAngularAcceleration );
-    // TensorAngularAcceleration *= (-1);
+  // Matrix TensorInertiaxAngularVelocityxVelocity = prod( TensorInertiaxAngularVelocity, TensorAngularVelocity );
 
-    // Matrix InertiaxTensorAngularAcceleration = prod( InertiaDyadic, TensorAngularAcceleration );
+  // Matrix InertiaxVelocityxVelocity = prod( InertiaDyadic, TensorAngularVelocity );
+  // InertiaxVelocityxVelocity = prod( InertiaxVelocityxVelocity, TensorAngularVelocity );
 
-    // Matrix VelocityxInertiaxVelocity = prod( InertiaDyadic, TensorAngularVelocity );
-    // VelocityxInertiaxVelocity = prod( TensorAngularVelocity, InertiaDyadic );
-
-    // Matrix TensorInertiaxAngularVelocityxVelocity = prod( TensorInertiaxAngularVelocity, TensorAngularVelocity );
-
-    // Matrix InertiaxVelocityxVelocity = prod( InertiaDyadic, TensorAngularVelocity );
-    // InertiaxVelocityxVelocity = prod( InertiaxVelocityxVelocity, TensorAngularVelocity );
-
-    // StiffnessTerm = 0.5 * ( VelocityxInertiaxVelocity + InertiaxTensorAngularAcceleration - TensorInertiaxAngularVelocityxVelocity ) - (1.0/3.0) * InertiaxVelocityxVelocity;
+  // StiffnessTerm = 0.5 * ( VelocityxInertiaxVelocity + InertiaxTensorAngularAcceleration - TensorInertiaxAngularVelocityxVelocity ) - (1.0/3.0) * InertiaxVelocityxVelocity;
 
 
-    // Matrix MassMatrixBlock2 = Newmark1 * (InertiaDyadic + Newmark2*DampingTerm) + StiffnessTerm;
+  // Matrix MassMatrixBlock2 = Newmark1 * (InertiaDyadic + Newmark2*DampingTerm) + StiffnessTerm;
 
-    // MassMatrixBlock2 = prod( CurrentRotationMatrix, MassMatrixBlock2 );
+  // MassMatrixBlock2 = prod( CurrentRotationMatrix, MassMatrixBlock2 );
 
-    // MassMatrixBlock2 = prod( MassMatrixBlock2, trans(PreviousRotationMatrix));
+  // MassMatrixBlock2 = prod( MassMatrixBlock2, trans(PreviousRotationMatrix));
 
-    // // Compute Linear Part of the Step Rotation
-    // Matrix LinearPartRotationTensor = ZeroMatrix(3,3);
+  // // Compute Linear Part of the Step Rotation
+  // Matrix LinearPartRotationTensor = ZeroMatrix(3,3);
 
-    // double NormCurrentStepRotation =  norm_2(CurrentStepRotationVector);
-    // if( NormCurrentStepRotation != 0 ){
+  // double NormCurrentStepRotation =  norm_2(CurrentStepRotationVector);
+  // if( NormCurrentStepRotation != 0 ){
 
-    //   this->CalculateRotationLinearPartTensor( CurrentStepRotationVector , LinearPartRotationTensor );
+  //   this->CalculateRotationLinearPartTensor( CurrentStepRotationVector , LinearPartRotationTensor );
 
-    // }
-    // else{
+  // }
+  // else{
 
-    //   LinearPartRotationTensor = IdentityMatrix(3);
-    //   MassMatrixBlock2 = InertiaDyadic;
+  //   LinearPartRotationTensor = IdentityMatrix(3);
+  //   MassMatrixBlock2 = InertiaDyadic;
 
-    // }
+  // }
 
-    // //std::cout<<" LinearPartRotationTensor "<<LinearPartRotationTensor<<std::endl;
+  // //std::cout<<" LinearPartRotationTensor "<<LinearPartRotationTensor<<std::endl;
 
-    // MassMatrixBlock2 = prod( MassMatrixBlock2, LinearPartRotationTensor );
+  // MassMatrixBlock2 = prod( MassMatrixBlock2, LinearPartRotationTensor );
 
 
 
-    // unsigned int RowIndex = 0;
-    // unsigned int ColIndex = 0;
+  // SizeType RowIndex = 0;
+  // SizeType ColIndex = 0;
 
-    // Matrix DiagonalMatrix = IdentityMatrix(3);
+  // Matrix DiagonalMatrix = IdentityMatrix(3);
 
-    // for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    //   {
-    // 	m11 = ZeroMatrix(3,3);
-    // 	m22 = ZeroMatrix(3,3);
+  // for ( SizeType i = 0; i < number_of_nodes; i++ )
+  //   {
+  // 	m11 = ZeroMatrix(3,3);
+  // 	m22 = ZeroMatrix(3,3);
 
-    // 	RowIndex = i * (dofs_size);
+  // 	RowIndex = i * (dofs_size);
 
-    // 	for ( unsigned int j = 0; j < number_of_nodes; j++ )
-    // 	  {
+  // 	for ( SizeType j = 0; j < number_of_nodes; j++ )
+  // 	  {
 
-    // 	    ColIndex = j * (dofs_size);
+  // 	    ColIndex = j * (dofs_size);
 
-    // 	    m11 = TotalMass * DiagonalMatrix;
+  // 	    m11 = TotalMass * DiagonalMatrix;
 
-    // 	    m22 = MassMatrixBlock2;
+  // 	    m22 = MassMatrixBlock2;
 
 
-    // 	    //Building the Local Tangent Inertia Matrix
-    // 	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
-    // 	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
+  // 	    //Building the Local Tangent Inertia Matrix
+  // 	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
+  // 	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
 
-    // 	  }
-    //   }
+  // 	  }
+  //   }
 
-    // GERADIN --------------------------
+  // GERADIN --------------------------
 
-    KRATOS_CATCH("")
+  KRATOS_CATCH("")
 
 }
 
@@ -1181,184 +959,182 @@ void RigidBodySegregatedVElement::CalculateAndAddInertiaRHS(VectorType& rRightHa
                                                             ElementVariables& rVariables,
                                                             ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
+  KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int MatSize               = number_of_nodes * (dofs_size);
+  const SizeType number_of_nodes = GetGeometry().size();
+  const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
+  const SizeType dofs_size       = dimension * (dimension + 1) * 0.5;
+  SizeType MatSize               = number_of_nodes * (dofs_size);
 
-    if(rRightHandSideVector.size() != MatSize)
-      rRightHandSideVector.resize(MatSize, false);
+  if(rRightHandSideVector.size() != MatSize)
+    rRightHandSideVector.resize(MatSize, false);
 
-    noalias(rRightHandSideVector) = ZeroVector( MatSize );
+  noalias(rRightHandSideVector) = ZeroVector( MatSize );
 
-    double TotalMass = 0;
-    TotalMass = rVariables.RigidBody.Mass;
+  double TotalMass = 0;
+  TotalMass = rVariables.RigidBody.Mass;
+
+  //displacements and rotations vector
+  Matrix TotalRotationMatrix(3,3);
+  noalias(TotalRotationMatrix) = ZeroMatrix(3,3);
+  Vector TotalRotationVector(3);
+  noalias(TotalRotationVector) = ZeroVector(3);
+
+  Vector LinearAccelerationVector(3);
+  noalias(LinearAccelerationVector) = ZeroVector(3);
+  Vector CurrentLinearAccelerationVector(3);
+  noalias(CurrentLinearAccelerationVector) = ZeroVector(3);
+  Vector PreviousLinearAccelerationVector(3);
+  noalias(PreviousLinearAccelerationVector) = ZeroVector(3);
+
+  Vector AngularVelocityVector(3);
+  noalias(AngularVelocityVector) = ZeroVector(3);
+  Vector AngularAccelerationVector(3);
+  noalias(AngularAccelerationVector) = ZeroVector(3);
+  Vector CurrentAngularAccelerationVector(3);
+  noalias(CurrentAngularAccelerationVector) = ZeroVector(3);
+  Vector PreviousAngularAccelerationVector(3);
+  noalias(PreviousAngularAccelerationVector) = ZeroVector(3);
 
 
-    //displacements and rotations vector
-    Matrix TotalRotationMatrix(3,3);
-    noalias(TotalRotationMatrix) = ZeroMatrix(3,3);
-    Vector TotalRotationVector(3);
-    noalias(TotalRotationVector) = ZeroVector(3);
+  Vector CurrentValueVector(3);
+  noalias(CurrentValueVector) = ZeroVector(3);
 
-    Vector LinearAccelerationVector(3);
-    noalias(LinearAccelerationVector) = ZeroVector(3);
-    Vector CurrentLinearAccelerationVector(3);
-    noalias(CurrentLinearAccelerationVector) = ZeroVector(3);
-    Vector PreviousLinearAccelerationVector(3);
-    noalias(PreviousLinearAccelerationVector) = ZeroVector(3);
+  for ( SizeType i = 0; i < number_of_nodes; i++ )
+  {
+    //Current Compound Rotation Vector
+    CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
+    TotalRotationVector             =  CurrentValueVector;
 
-    Vector AngularVelocityVector(3);
-    noalias(AngularVelocityVector) = ZeroVector(3);
-    Vector AngularAccelerationVector(3);
-    noalias(AngularAccelerationVector) = ZeroVector(3);
-    Vector CurrentAngularAccelerationVector(3);
-    noalias(CurrentAngularAccelerationVector) = ZeroVector(3);
-    Vector PreviousAngularAccelerationVector(3);
-    noalias(PreviousAngularAccelerationVector) = ZeroVector(3);
+    //Current Linear Acceleration Vector
+    CurrentValueVector = GetNodalCurrentValue( ACCELERATION, CurrentValueVector, i );
+    CurrentLinearAccelerationVector  = CurrentValueVector;
 
+    //Previous Linear Acceleration Vector
+    CurrentValueVector = GetNodalPreviousValue( ACCELERATION, CurrentValueVector, i );
+    PreviousLinearAccelerationVector = CurrentValueVector;
 
-    Vector CurrentValueVector(3);
-    noalias(CurrentValueVector) = ZeroVector(3);
+    //Angular Velocity Vector
+    CurrentValueVector = GetNodalCurrentValue( ANGULAR_VELOCITY, CurrentValueVector, i );
+    AngularVelocityVector           =  CurrentValueVector;
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	//Current Compound Rotation Vector
-	CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
-	TotalRotationVector             =  CurrentValueVector;
+    //Current Angular Acceleration Vector
+    CurrentValueVector = GetNodalCurrentValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
+    CurrentAngularAccelerationVector       =  CurrentValueVector;
 
-	//Current Linear Acceleration Vector
-	CurrentValueVector = GetNodalCurrentValue( ACCELERATION, CurrentValueVector, i );
-	CurrentLinearAccelerationVector  = CurrentValueVector;
+    //Previous Angular Acceleration Vector
+    CurrentValueVector = GetNodalPreviousValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
+    PreviousAngularAccelerationVector       =  CurrentValueVector;
 
-	//Previous Linear Acceleration Vector
-	CurrentValueVector = GetNodalPreviousValue( ACCELERATION, CurrentValueVector, i );
-	PreviousLinearAccelerationVector = CurrentValueVector;
+  }
 
-	//Angular Velocity Vector
-	CurrentValueVector = GetNodalCurrentValue( ANGULAR_VELOCITY, CurrentValueVector, i );
-	AngularVelocityVector           =  CurrentValueVector;
+  //Set step variables to local frame (current Frame is the local frame)
+  TotalRotationVector               = MapToInitialLocalFrame( TotalRotationVector );
+  CurrentLinearAccelerationVector   = MapToInitialLocalFrame( CurrentLinearAccelerationVector );
+  PreviousLinearAccelerationVector  = MapToInitialLocalFrame( PreviousLinearAccelerationVector );
+  AngularVelocityVector             = MapToInitialLocalFrame( AngularVelocityVector );
+  CurrentAngularAccelerationVector  = MapToInitialLocalFrame( CurrentAngularAccelerationVector );
+  PreviousAngularAccelerationVector = MapToInitialLocalFrame( PreviousAngularAccelerationVector );
 
-	//Current Angular Acceleration Vector
-	CurrentValueVector = GetNodalCurrentValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
-	CurrentAngularAccelerationVector       =  CurrentValueVector;
+  double AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
+  LinearAccelerationVector  = (1.0-AlphaM) * CurrentLinearAccelerationVector + AlphaM * (PreviousLinearAccelerationVector);
+  AngularAccelerationVector = (1.0-AlphaM) * CurrentAngularAccelerationVector + AlphaM * (PreviousAngularAccelerationVector);
 
-        //Previous Angular Acceleration Vector
-	CurrentValueVector = GetNodalPreviousValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
-	PreviousAngularAccelerationVector       =  CurrentValueVector;
+  QuaternionType TotalQuaternion = QuaternionType::FromRotationVector(TotalRotationVector);
+  Matrix CurrentRotationMatrix   = ZeroMatrix(3,3);
+  TotalQuaternion.ToRotationMatrix( CurrentRotationMatrix );
 
-      }
+  //-----------------
+  //block m(1) of the inertial force vector
 
-    //Set step variables to local frame (current Frame is the local frame)
-    TotalRotationVector               = MapToInitialLocalFrame( TotalRotationVector );
-    CurrentLinearAccelerationVector   = MapToInitialLocalFrame( CurrentLinearAccelerationVector );
-    PreviousLinearAccelerationVector  = MapToInitialLocalFrame( PreviousLinearAccelerationVector );
-    AngularVelocityVector             = MapToInitialLocalFrame( AngularVelocityVector );
-    CurrentAngularAccelerationVector  = MapToInitialLocalFrame( CurrentAngularAccelerationVector );
-    PreviousAngularAccelerationVector = MapToInitialLocalFrame( PreviousAngularAccelerationVector );
+  //Compute Linear Term:
 
-    double AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-    LinearAccelerationVector  = (1.0-AlphaM) * CurrentLinearAccelerationVector + AlphaM * (PreviousLinearAccelerationVector);
-    AngularAccelerationVector = (1.0-AlphaM) * CurrentAngularAccelerationVector + AlphaM * (PreviousAngularAccelerationVector);
+  Vector LinearInertialForceVector(3);
+  noalias(LinearInertialForceVector) = ZeroVector(3);
 
-    QuaternionType TotalQuaternion = QuaternionType::FromRotationVector(TotalRotationVector);
-    Matrix CurrentRotationMatrix   = ZeroMatrix(3,3);
-    TotalQuaternion.ToRotationMatrix( CurrentRotationMatrix );
+  //this transformation is wrong
+  //LinearInertialForceVector  = MapToMaterialFrame( TotalQuaternion, LinearInertialForceVector );
 
-    //-----------------
-    //block m(1) of the inertial force vector
+  LinearInertialForceVector = TotalMass * LinearAccelerationVector;
 
-    //Compute Linear Term:
+  //-----------------
+  //block m(2,2) of the inertial force vector (rotations part::to be defined)
 
-    Vector LinearInertialForceVector(3);
-    noalias(LinearInertialForceVector) = ZeroVector(3);
+  //Get inertia dyadic
+  Matrix InertiaDyadic = ZeroMatrix(3,3);
+  InertiaDyadic = rVariables.RigidBody.InertiaTensor;
+  //Inertia dyadic expressed in the initial frame
+  InertiaDyadic = prod(CurrentRotationMatrix,InertiaDyadic);
+  InertiaDyadic = prod(InertiaDyadic,trans(CurrentRotationMatrix));
 
-    //this transformation is wrong
-    //LinearInertialForceVector  = MapToMaterialFrame( TotalQuaternion, LinearInertialForceVector );
+  //Compute Angular Term:
 
-    LinearInertialForceVector = TotalMass * LinearAccelerationVector;
+  Vector InertiaxAngularVelocity     = prod( InertiaDyadic, AngularVelocityVector );
+  Vector InertiaxAngularAcceleration = prod( InertiaDyadic, AngularAccelerationVector );
 
-    //-----------------
-    //block m(2,2) of the inertial force vector (rotations part::to be defined)
+  Matrix TensorAngularVelocity = ZeroMatrix(3,3);
+  BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
 
-    //Get inertia dyadic
-    Matrix InertiaDyadic = ZeroMatrix(3,3);
-    InertiaDyadic = rVariables.RigidBody.InertiaTensor;
-    //Inertia dyadic expressed in the initial frame
-    InertiaDyadic = prod(CurrentRotationMatrix,InertiaDyadic);
-    InertiaDyadic = prod(InertiaDyadic,trans(CurrentRotationMatrix));
+  Vector AngularInertialForceVector(3);
+  noalias(AngularInertialForceVector) = ZeroVector(3);
 
-    //Compute Angular Term:
+  AngularInertialForceVector  = prod( TensorAngularVelocity, InertiaxAngularVelocity );
 
-    Vector InertiaxAngularVelocity     = prod( InertiaDyadic, AngularVelocityVector );
-    Vector InertiaxAngularAcceleration = prod( InertiaDyadic, AngularAccelerationVector );
+  // CROSS PRODUCT of AxB = prod( skewA, B )  where (skewA) = [Ax] = [A]^v =>  (skewA)^T = hat(A) (nomenclature)
+  AngularInertialForceVector += InertiaxAngularAcceleration;
 
-    Matrix TensorAngularVelocity = ZeroMatrix(3,3);
-    BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
+  //compose total acceleration integral function:
 
-    Vector AngularInertialForceVector(3);
-    noalias(AngularInertialForceVector) = ZeroVector(3);
+  Vector TotalInertialForceVector(3);
+  noalias(TotalInertialForceVector) = ZeroVector(dofs_size);
 
-    AngularInertialForceVector  = prod( TensorAngularVelocity, InertiaxAngularVelocity );
+  BeamMathUtilsType::AddVector(LinearInertialForceVector, TotalInertialForceVector, 0);
 
-    // CROSS PRODUCT of AxB = prod( skewA, B )  where (skewA) = [Ax] = [A]^v =>  (skewA)^T = hat(A) (nomenclature)
-    AngularInertialForceVector += InertiaxAngularAcceleration;
+  if(dimension == 2)
+    TotalInertialForceVector[dofs_size-1] = AngularInertialForceVector[2];
+  else
+    BeamMathUtilsType::AddVector(AngularInertialForceVector, TotalInertialForceVector, 3);
 
-    //compose total acceleration integral function:
+  //Initialize Local Matrices
+  VectorType Fi(dofs_size);
+  noalias(Fi) = ZeroVector(dofs_size);
+  SizeType RowIndex = 0;
 
-    Vector TotalInertialForceVector(3);
-    noalias(TotalInertialForceVector) = ZeroVector(dofs_size);
+  for ( SizeType i = 0; i < number_of_nodes; i++ )
+  {
 
-    BeamMathUtilsType::AddVector(LinearInertialForceVector, TotalInertialForceVector, 0);
+    RowIndex = i * (dofs_size);
 
-    if(dimension == 2)
-      TotalInertialForceVector[dofs_size-1] = AngularInertialForceVector[2];
-    else
-      BeamMathUtilsType::AddVector(AngularInertialForceVector, TotalInertialForceVector, 3);
-
-    //Initialize Local Matrices
-    VectorType Fi(dofs_size);
     noalias(Fi) = ZeroVector(dofs_size);
-    unsigned int RowIndex = 0;
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
+    //nodal force vector
+    Fi  = TotalInertialForceVector;
 
-    	RowIndex = i * (dofs_size);
+    BeamMathUtilsType::AddVector(Fi, rRightHandSideVector, RowIndex);
 
-    	noalias(Fi) = ZeroVector(dofs_size);
+    //std::cout<<" Fi "<<Fi<<std::endl;
 
-    	//nodal force vector
-    	Fi  = TotalInertialForceVector;
+  }
 
-	BeamMathUtilsType::AddVector(Fi, rRightHandSideVector, RowIndex);
+  //std::cout<<" Rigid Body: rRightHandSideVector "<<rRightHandSideVector<<std::endl;
 
-    	//std::cout<<" Fi "<<Fi<<std::endl;
-
-      }
-
-    //std::cout<<" Rigid Body: rRightHandSideVector "<<rRightHandSideVector<<std::endl;
-
-    KRATOS_CATCH("")
+  KRATOS_CATCH("")
 }
 
 //************************************************************************************
 //************************************************************************************
 
-unsigned int RigidBodySegregatedVElement::GetDofsSize()
+RigidBodyElement::Sizetype RigidBodySegregatedVElement::GetDofsSize()
 {
   KRATOS_TRY
 
-  const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-  const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-  
-  unsigned int size = 0;
+  SizeType size = 0;
   switch(mStepVariable)
   {
     case VELOCITY_STEP:
-      size = number_of_nodes * dimension * (dimension + 1) * 0.5; //size for velocity
+      const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+      const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+      size = number_of_nodes*dimension*(dimension + 1)*0.5; //size for velocity
       break;
     case PRESSURE_STEP:
       size = 0;
@@ -1377,15 +1153,15 @@ unsigned int RigidBodySegregatedVElement::GetDofsSize()
 
 int RigidBodySegregatedVElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-        
-    // Perform base element checks
-    int ErrorCode = 0;
-    ErrorCode = RigidBodyElement::Check(rCurrentProcessInfo);
+  KRATOS_TRY
 
-    return ErrorCode;
+  // Perform base element checks
+  int ErrorCode = 0;
+  ErrorCode = RigidBodyElement::Check(rCurrentProcessInfo);
 
-    KRATOS_CATCH("")
+  return ErrorCode;
+
+  KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -1393,12 +1169,12 @@ int RigidBodySegregatedVElement::Check(const ProcessInfo& rCurrentProcessInfo)
 
 void RigidBodySegregatedVElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, RigidBodyElement )
+  KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, RigidBodyElement )
 }
 
 void RigidBodySegregatedVElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, RigidBodyElement )
+  KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, RigidBodyElement )
 }
 
 

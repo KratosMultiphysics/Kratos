@@ -144,7 +144,7 @@ void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult,
 {
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int   dofs_size        = GetDofsSize();
+    const SizeType dofs_size        = GetDofsSize();
 
     if ( rResult.size() != dofs_size )
         rResult.resize( dofs_size, false );
@@ -191,14 +191,14 @@ void LargeDisplacementVElement::CalculateAndAddLHS(LocalSystemComponents& rLocal
 //************************************************************************************
 //************************************************************************************
 
-unsigned int LargeDisplacementVElement::GetDofsSize()
+LargeDisplacementVElement::SizeType LargeDisplacementVElement::GetDofsSize()
 {
   KRATOS_TRY
 
   const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
   const SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
-  unsigned int size = number_of_nodes * dimension; //usual size for velocity based elements
+  SizeType size = number_of_nodes * dimension; //usual size for velocity based elements
 
   return size;
 
@@ -266,7 +266,7 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
     mConstitutiveLawVector[rPointNumber]->GetLawFeatures(LawFeatures);
 
     bool strain_rate_measure = false;
-    for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
+    for(SizeType i=0; i<LawFeatures.mStrainMeasures.size(); i++)
     {
       if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Velocity_Gradient)
 	strain_rate_measure = true;

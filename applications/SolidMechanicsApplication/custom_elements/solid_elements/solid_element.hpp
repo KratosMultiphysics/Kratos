@@ -758,7 +758,7 @@ protected:
     /**
      * Get element size from the dofs
      */
-    virtual unsigned int GetDofsSize();
+    virtual SizeType GetDofsSize();
 
 
     /**

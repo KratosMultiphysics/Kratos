@@ -78,7 +78,7 @@ SolidElement&  SolidElement::operator=(SolidElement const& rOther)
     mConstitutiveLawVector.clear();
     mConstitutiveLawVector.resize( rOther.mConstitutiveLawVector.size() );
 
-    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+    for(SizeType i=0; i<mConstitutiveLawVector.size(); i++)
     {
         mConstitutiveLawVector[i] = rOther.mConstitutiveLawVector[i];
     }
@@ -119,7 +119,7 @@ Element::Pointer SolidElement::Clone( IndexType NewId, NodesArrayType const& rTh
 
       }
 
-    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+    for(SizeType i=0; i<mConstitutiveLawVector.size(); i++)
       {
 	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
       }
@@ -182,13 +182,13 @@ void SolidElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& r
 void SolidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
     const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int   dofs_size       = GetDofsSize();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size = GetDofsSize();
 
     if ( rResult.size() != dofs_size )
         rResult.resize( dofs_size, false );
 
-    unsigned int index = 0;
+    SizeType index = 0;
     for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
         index = i * dimension;
@@ -206,13 +206,13 @@ void SolidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo&
 void SolidElement::GetValuesVector( Vector& rValues, int Step )
 {
     const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = GetDofsSize();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size = GetDofsSize();
 
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
-    unsigned int index = 0;
+    SizeType index = 0;
     for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
         index = i * dimension;
@@ -232,13 +232,13 @@ void SolidElement::GetValuesVector( Vector& rValues, int Step )
 void SolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 {
     const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = GetDofsSize();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size = GetDofsSize();
 
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
-    unsigned int index = 0;
+    SizeType index = 0;
     for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
         index = i * dimension;
@@ -256,13 +256,13 @@ void SolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 void SolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
     const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = GetDofsSize();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size = GetDofsSize();
 
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
-    unsigned int index = 0;
+    SizeType index = 0;
     for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
         index = i * dimension;
@@ -282,7 +282,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<double>& rVariabl
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
-    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+    for ( SizeType PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
     {
         mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
     }
@@ -296,7 +296,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<Vector>& rVariabl
         const ProcessInfo& rCurrentProcessInfo )
 {
 
-    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+    for ( SizeType PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
     {
         mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
     }
@@ -312,7 +312,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<Matrix>& rVariabl
         const ProcessInfo& rCurrentProcessInfo )
 {
 
-    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+    for ( SizeType PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
     {
         mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
     }
@@ -337,7 +337,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::
                 KRATOS_ERROR << " constitutive law not has the correct size solid element " << std::endl;
         }
 
-        for(unsigned int i=0; i<rValues.size(); i++)
+        for(SizeType i=0; i<rValues.size(); i++)
         {
             mConstitutiveLawVector[i] = rValues[i];
         }
@@ -359,14 +359,14 @@ void SolidElement::GetValueOnIntegrationPoints( const Variable<double>& rVariabl
     }
     else
     {
-      const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+      const SizeType& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
       if ( rValues.size() != integration_points_number )
       {
         rValues.resize( integration_points_number );
       }
 
-      for ( unsigned int ii = 0; ii < integration_points_number; ii++ )
+      for ( SizeType ii = 0; ii < integration_points_number; ii++ )
       {
         rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
       }
@@ -381,7 +381,7 @@ void SolidElement::GetValueOnIntegrationPoints( const Variable<Vector>& rVariabl
 						std::vector<Vector>& rValues,
 						const ProcessInfo& rCurrentProcessInfo )
 {
-    const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+    const SizeType& integration_points_number = mConstitutiveLawVector.size();
 
     if ( rValues.size() != integration_points_number )
         rValues.resize( integration_points_number );
@@ -408,7 +408,7 @@ void SolidElement::GetValueOnIntegrationPoints( const Variable<Vector>& rVariabl
     else
     {
 
-        for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
+        for ( SizeType PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
         {
             rValues[PointNumber] = mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
         }
@@ -425,7 +425,7 @@ void SolidElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariabl
 						const ProcessInfo& rCurrentProcessInfo )
 {
 
-    const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+    const SizeType& integration_points_number = mConstitutiveLawVector.size();
 
     if ( rValues.size() != integration_points_number )
         rValues.resize( integration_points_number );
@@ -451,7 +451,7 @@ void SolidElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariabl
     else
     {
 
-        for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
+        for ( SizeType PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
         {
             rValues[PointNumber] = mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
         }
@@ -476,7 +476,7 @@ void SolidElement::GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::
             rValues.resize(mConstitutiveLawVector.size());
         }
 
-        for(unsigned int i=0; i<rValues.size(); i++)
+        for(SizeType i=0; i<rValues.size(); i++)
         {
             rValues[i] = mConstitutiveLawVector[i];
         }
@@ -516,7 +516,7 @@ void SolidElement::InitializeConstitutiveLaw()
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+        for ( SizeType i = 0; i < mConstitutiveLawVector.size(); i++ )
         {
             mConstitutiveLawVector[i] = GetProperties()[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(),
@@ -541,7 +541,7 @@ void SolidElement::ResetConstitutiveLaw()
 
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+        for ( SizeType i = 0; i < mConstitutiveLawVector.size(); i++ )
             mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
     }
 
@@ -556,7 +556,7 @@ void SolidElement::InitializeElementData (ElementDataType& rVariables, const Pro
 
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    const unsigned int voigt_size   = dimension * (dimension +1) * 0.5;
+    const SizeType voigt_size   = dimension * (dimension +1) * 0.5;
 
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
 
@@ -599,14 +599,14 @@ void SolidElement::TransformElementData(ElementDataType& rVariables, const doubl
 //************************************************************************************
 //************************************************************************************
 
-unsigned int SolidElement::GetDofsSize()
+SolidElement::SizeType SolidElement::GetDofsSize()
 {
   KRATOS_TRY
 
   const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
   const SizeType number_of_nodes = GetGeometry().PointsNumber();
 
-  unsigned int size = number_of_nodes * dimension; //usual size for displacement based elements
+  SizeType size = number_of_nodes * dimension; //usual size for displacement based elements
 
   return size;
 
@@ -624,7 +624,7 @@ void SolidElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 {
 
     //resizing as needed the LHS
-    const unsigned int MatSize = this->GetDofsSize();
+    const SizeType MatSize = this->GetDofsSize();
 
     if ( rCalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
@@ -705,7 +705,7 @@ void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
     Vector VolumeForce(dimension);
     noalias(VolumeForce) = ZeroVector(dimension);
 
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+    for ( SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
         //compute element kinematic variables B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
@@ -776,7 +776,7 @@ void SolidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
     //reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+    for ( SizeType PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
         //compute element kinetic variables B, F, DN_DX ...
         this->CalculateKinetics(Variables, PointNumber);
@@ -907,8 +907,8 @@ void SolidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, El
 
   //mass matrix
   const SizeType number_of_nodes = GetGeometry().PointsNumber();
-  const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
-  const unsigned int MatSize = this->GetDofsSize();
+  const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+  const SizeType MatSize = this->GetDofsSize();
 
   if(rLeftHandSideMatrix.size1() != MatSize)
     rLeftHandSideMatrix.resize (MatSize, MatSize, false);
@@ -1403,9 +1403,9 @@ void SolidElement::InitializeExplicitContributions()
 //***********************************************************************************
 
 void SolidElement::AddExplicitContribution(const VectorType& rRHSVector,
-						       const Variable<VectorType>& rRHSVariable,
-						       Variable<array_1d<double,3> >& rDestinationVariable,
-						       const ProcessInfo& rCurrentProcessInfo)
+                                           const Variable<VectorType>& rRHSVariable,
+                                           Variable<array_1d<double,3> >& rDestinationVariable,
+                                           const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
