@@ -283,6 +283,10 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
                             elem.SetValue(StructuralMechanicsApplication.SHELL_MOMENT_GLOBAL_NL_SENSITIVITY, curvature_matrix)
                             elem.SetValue(StructuralMechanicsApplication.SHELL_MOMENT_GLOBAL_NL_SENSITIVITY_FIRST_ORDER, sen_first_matrix)
                             elem.SetValue(StructuralMechanicsApplication.SHELL_MOMENT_GLOBAL_NL_SENSITIVITY_SECOND_ORDER, sen_second_matrix)
+                        elif variable_name == "VON_MISES_STRESS":
+                            elem.SetValue(StructuralMechanicsApplication.VON_MISES_STRESS_NL_SENSITIVITY, curvature )
+                            elem.SetValue(StructuralMechanicsApplication.VON_MISES_STRESS_NL_SENSITIVITY_FIRST_ORDER, sen_first)
+                            elem.SetValue(StructuralMechanicsApplication.VON_MISES_STRESS_NL_SENSITIVITY_SECOND_ORDER, sen_second)
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
