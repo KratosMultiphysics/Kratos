@@ -1166,9 +1166,9 @@ protected:
 
     void MaxIterationsExceeded()
     {
-        std::cout << "***************************************************" << std::endl;
-        std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
-        std::cout << "***************************************************" << std::endl;
+        KRATOS_INFO("MPMStrategy") << "***************************************************" << std::endl;
+        KRATOS_INFO("MPM_Strategy") << "******* ATTENTION: max iterations exceeded ********" << std::endl;
+        KRATOS_INFO("MPM_Strategy") << "***************************************************" << std::endl;
 
     }
 

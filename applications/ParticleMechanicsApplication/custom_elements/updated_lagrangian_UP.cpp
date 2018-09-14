@@ -419,7 +419,6 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
 
         AUX_MP_Pressure += Variables.N[j] * NodalPressure;
 
-        //std::cout<<"NodalVelocity "<< GetGeometry()[j].Id()<<std::endl;
         for (unsigned int k = 0; k < dimension; k++)
         {
             AUX_MP_Velocity[k] += Variables.N[j] * NodalVelocity[k];

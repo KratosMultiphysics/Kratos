@@ -86,9 +86,9 @@ public:
     public:
         void PrintInfo()
         {
-            std::cout << "Cohesion       = " << Cohesion       << std::endl;
-            std::cout << "FrictionAngle  = " << FrictionAngle  << std::endl;
-            std::cout << "DilatancyAngle = " << DilatancyAngle << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "Cohesion       = " << Cohesion       << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "FrictionAngle  = " << FrictionAngle  << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "DilatancyAngle = " << DilatancyAngle << std::endl;
         }
 
     };

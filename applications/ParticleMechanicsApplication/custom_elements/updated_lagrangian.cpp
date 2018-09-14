@@ -242,8 +242,8 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
     // Check if detF is negative (element is inverted)
     if(rVariables.detF<0)
     {
-        std::cout<<" Element: "<<this->Id()<<std::endl;
-        std::cout<<" Element position: "<<this->GetValue(GAUSS_COORD)<<std::endl;
+        KRATOS_INFO("UpdatedLagrangian")<<" Element: "<<this->Id()<<std::endl;
+        KRATOS_INFO("UpdatedLagrangian")<<" Element position: "<<this->GetValue(GAUSS_COORD)<<std::endl;
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -252,8 +252,8 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
             array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-            std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: (Current position: "<<CurrentPosition<<") "<<std::endl;
-            std::cout<<" ---Current Disp: "<<CurrentDisplacement<<" (Previour Disp: "<<PreviousDisplacement<<")"<<std::endl;
+            KRATOS_INFO("UpdatedLagrangian")<<" NODE ["<<GetGeometry()[i].Id()<<"]: (Current position: "<<CurrentPosition<<") "<<std::endl;
+            KRATOS_INFO("UpdatedLagrangian")<<" ---Current Disp: "<<CurrentDisplacement<<" (Previour Disp: "<<PreviousDisplacement<<")"<<std::endl;
         }
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -262,11 +262,11 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
             {
                 array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
                 array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
-                std::cout<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Cur:"<<ContactForce<<") "<<std::endl;
+                KRATOS_INFO("UpdatedLagrangian")<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Cur:"<<ContactForce<<") "<<std::endl;
             }
             else
             {
-                std::cout<<" ---Contact_Force: NULL "<<std::endl;
+                KRATOS_INFO("UpdatedLagrangian")<<" ---Contact_Force: NULL "<<std::endl;
             }
         }
 

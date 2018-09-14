@@ -85,9 +85,9 @@ public:
     public:
         void PrintInfo()
         {
-            std::cout << "PreconsolidationPressure   = " <<  PreconsolidationPressure  << std::endl;
-            std::cout << "PlasticHardeningModulus   = " <<  PlasticHardeningModulus  << std::endl;
-            std::cout << "ConsistencyParameter   = " <<  ConsistencyParameter  << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "PreconsolidationPressure = " <<  PreconsolidationPressure  << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "PlasticHardeningModulus  = " <<  PlasticHardeningModulus   << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "ConsistencyParameter     = " <<  ConsistencyParameter      << std::endl;
         }
 
     };
