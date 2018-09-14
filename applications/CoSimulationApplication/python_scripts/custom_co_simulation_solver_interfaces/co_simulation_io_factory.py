@@ -8,17 +8,17 @@ eg : "name_in_JSON" : "python module(file) name"
 available_ios = {
     "kratos" : "kratos_io",
     "sdof"   : "su2_io",
-    "dummy"  : "dummy_io"
+    "dummy"  : "dummy_co_simulation_io"
 }
 
-def CreateIO(io_name, solvers, solver_name, level):
+def CreateIO(io_type, settings):
     """
     This function creates and returns the IO used for CoSimulation
     New IOs have to be registered by adding them to "available_ios"
     """
     if io_type in available_ios:
         io_module = __import__(available_ios[io_type])
-        return io_module.Create(solvers, solver_name, level)
+        return io_module.Create(settings)
     else:
         err_msg  = 'The requested IO "' + io_name + '" is not available!\n'
         err_msg += 'The available IOs are :\n'
