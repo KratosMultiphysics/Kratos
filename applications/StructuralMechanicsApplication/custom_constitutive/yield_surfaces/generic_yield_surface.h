@@ -32,6 +32,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // The size type definition
+    typedef std::size_t SizeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -46,8 +49,8 @@ namespace Kratos
 /**
  * @class GenericYieldSurface
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class defines a generic yield surface
+ * @details This is a static "template" to use as main reference to define the rest of yield surfaces
  * @tparam TPlasticPotentialType The plastic potential considered
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu & Vicente Mataix
@@ -62,6 +65,12 @@ public:
     /// The type of potential plasticity
     typedef TPlasticPotentialType PlasticPotentialType;
 
+    /// The Plastic potential already defines the working simension size
+    static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
+    
+    /// The Plastic potential already defines the Voigt size
+    static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
+    
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericYieldSurface);
 
@@ -102,33 +111,43 @@ public:
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param StressVector The stress vector
-     * @param StrainVector The StrainVector vector
-     * @param rMaterialProperties The material properties
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The StrainVector vector
+     * @param rEquivalentStress The effective stress or equivalent uniaxial stress is a scalar. It is an invariant value which measures the “intensity” of a 3D stress state.
+     * @param rValues Parameters of the constitutive law
      */
-    static void CalculateEquivalentStress(const Vector &StressVector, double &rEqStress, const Properties &rMaterialProperties)
+    static void CalculateEquivalentStress(
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const Vector& rStrainVector,
+        double& rEquivalentStress,
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
     }
 
     /**
      * @brief This method returns the initial uniaxial stress threshold
      * @param rThreshold The uniaxial stress threshold
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
-    static void GetInitialUniaxialThreshold(const Properties &rMaterialProperties, double &rThreshold)
+    static void GetInitialUniaxialThreshold(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rThreshold
+        )
     {
     }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
-     * @param AParameter The damage parameter
-     * @param rMaterialProperties The material properties
+     * @param rAParameter The damage parameter
+     * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
-        const Properties &rMaterialProperties,
-        double &AParameter,
-        const double CharacteristicLength)
+        ConstitutiveLaw::Parameters& rValues,
+        double& rAParameter,
+        const double CharacteristicLength
+        )
     {
     }
 
@@ -137,17 +156,18 @@ public:
      * @param StressVector The stress vector
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
-     * @param rg The derivative of the plastic potential
-     * @param rMaterialProperties The material properties
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
-        const double &J2,
-        Vector &rg,
-        const Properties &rMaterialProperties)
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
+        const double& J2,
+        array_1d<double, VoigtSize>& rDerivativePlasticPotential,
+        ConstitutiveLaw::Parameters& rValues
+        )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(StressVector, Deviator, J2, rg, rMaterialProperties);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -159,14 +179,14 @@ public:
      * @param Deviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
-     * @param rMaterialProperties The material properties
+     * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector &StressVector,
-        const Vector &Deviator,
+        const array_1d<double, VoigtSize>& StressVector,
+        const array_1d<double, VoigtSize>& Deviator,
         const double J2,
-        Vector &rFFlux,
-        const Properties &rMaterialProperties)
+        array_1d<double, VoigtSize>& rFFlux,
+        ConstitutiveLaw::Parameters& rValues)
     {
     }
 

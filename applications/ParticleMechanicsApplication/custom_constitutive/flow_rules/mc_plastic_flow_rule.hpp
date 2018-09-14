@@ -7,7 +7,7 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 #if !defined(KRATOS_MC_PLASTIC_FLOW_RULE_H_INCLUDED )
 #define      KRATOS_MC_PLASTIC_FLOW_RULE_H_INCLUDED
@@ -76,10 +76,9 @@ public:
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
     KRATOS_CLASS_POINTER_DEFINITION( MCPlasticFlowRule );
 
+    // Variable material parameters which can change due to hardening
     struct MaterialParameters
     {
-        double YoungModulus;
-        double PoissonRatio;
         double Cohesion;
         double FrictionAngle;
         double DilatancyAngle;
@@ -87,8 +86,6 @@ public:
     public:
         void PrintInfo()
         {
-            std::cout << "YoungModulus   = " << YoungModulus   << std::endl;
-            std::cout << "PoissonRatio   = " << PoissonRatio   << std::endl;
             std::cout << "Cohesion       = " << Cohesion       << std::endl;
             std::cout << "FrictionAngle  = " << FrictionAngle  << std::endl;
             std::cout << "DilatancyAngle = " << DilatancyAngle << std::endl;
@@ -128,6 +125,9 @@ public:
 
     //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix) override;
+    
+    void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix) override;
+
     ///@}
     ///@name Operators
     ///@{
