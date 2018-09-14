@@ -22,7 +22,9 @@
 #include "includes/define.h"
 #include "includes/kratos_components.h"
 #include "includes/element.h"
+#include "elements/geometrical_element.h"
 #include "includes/condition.h"
+#include "conditions/geometrical_condition.h"
 #include "includes/periodic_condition.h"
 #include "utilities/quaternion.h"
 #include "includes/master_slave_constraint.h"
@@ -83,7 +85,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@{
 
     virtual void Register()
-
     {
         RegisterVariables();
     }
@@ -356,38 +357,37 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     // General conditions must be defined
 
     // Point conditions
-    const Condition mPointCondition2D1N;
-    const Condition mPointCondition3D1N;
+    const GeometricalCondition mPointCondition2D1N;
+    const GeometricalCondition mPointCondition3D1N;
     // Line conditions
-    const Condition mLineCondition2D2N;
-    const Condition mLineCondition2D3N;
-    const Condition mLineCondition3D2N;
-    const Condition mLineCondition3D3N;
+    const GeometricalCondition mLineCondition2D2N;
+    const GeometricalCondition mLineCondition2D3N;
+    const GeometricalCondition mLineCondition3D2N;
+    const GeometricalCondition mLineCondition3D3N;
     // Surface conditions
-    const Condition mSurfaceCondition3D3N;
-    const Condition mSurfaceCondition3D6N;
-    const Condition mSurfaceCondition3D4N;
-    const Condition mSurfaceCondition3D8N;
-    const Condition mSurfaceCondition3D9N;
-
+    const GeometricalCondition mSurfaceCondition3D3N;
+    const GeometricalCondition mSurfaceCondition3D6N;
+    const GeometricalCondition mSurfaceCondition3D4N;
+    const GeometricalCondition mSurfaceCondition3D8N;
+    const GeometricalCondition mSurfaceCondition3D9N;
 
     // Master-Slave base constraint
     const MasterSlaveConstraint mMasterSlaveConstraint;
     const LinearMasterSlaveConstraint mLinearMasterSlaveConstraint;
 
-    // Deprecated conditions start
-    const Condition mCondition;
-    const Condition mCondition2D;
-    const Condition mCondition2D2N;
-    const Condition mCondition2D3N;
-    const Condition mCondition3D;
-    const Condition mCondition3D2N;
-    const Condition mCondition3D3N;
-    const Condition mCondition3D6N;
-    const Condition mCondition3D4N;
-    const Condition mCondition3D8N;
-    const Condition mCondition3D9N;
-    // Deprecated conditions end
+    // BEGIN Deprecated conditions
+    const GeometricalCondition mCondition;
+    const GeometricalCondition mCondition2D;
+    const GeometricalCondition mCondition2D2N;
+    const GeometricalCondition mCondition2D3N;
+    const GeometricalCondition mCondition3D;
+    const GeometricalCondition mCondition3D2N;
+    const GeometricalCondition mCondition3D3N;
+    const GeometricalCondition mCondition3D6N;
+    const GeometricalCondition mCondition3D4N;
+    const GeometricalCondition mCondition3D8N;
+    const GeometricalCondition mCondition3D9N;
+    // END Deprecated conditions
 
     // Periodic Condition
     const PeriodicCondition mPeriodicCondition;
@@ -395,22 +395,22 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const PeriodicCondition mPeriodicConditionCorner;
 
     // General elements must be defined
-    const Element mElement;
-    const Element mElement2D2N;
-    const Element mElement2D3N;
-    const Element mElement2D4N;
+    const GeometricalElement mElement;
+    const GeometricalElement mElement2D2N;
+    const GeometricalElement mElement2D3N;
+    const GeometricalElement mElement2D4N;
 
-    const Element mElement3D2N;
-    const Element mElement3D3N;
-    const Element mElement3D4N;
-    const Element mElement3D6N;
-    const Element mElement3D8N;
-    const Element mElement3D10N;
+    const GeometricalElement mElement3D2N;
+    const GeometricalElement mElement3D3N;
+    const GeometricalElement mElement3D4N;
+    const GeometricalElement mElement3D6N;
+    const GeometricalElement mElement3D8N;
+    const GeometricalElement mElement3D10N;
 
-
-
+    // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
 
+    // KratosComponents definition
     KratosComponents<VariableData>::ComponentsContainerType* mpVariableData;
 
     KratosComponents<Variable<int> >::ComponentsContainerType* mpIntVariables;
@@ -447,6 +447,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     KratosComponents<MasterSlaveConstraint>::ComponentsContainerType* mpMasterSlaveConstraints;
 
+    // Serialization
     Serializer::RegisteredObjectsContainerType* mpRegisteredObjects;
 
     Serializer::RegisteredObjectsNameContainerType* mpRegisteredObjectsName;
