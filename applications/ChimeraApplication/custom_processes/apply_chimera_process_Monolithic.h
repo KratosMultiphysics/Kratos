@@ -627,6 +627,12 @@ class ApplyChimeraProcessMonolithic : public Process
 			VtkOutput VtkOutput_Boundary = VtkOutput(*pModifiedPatchBoundaryModelPart,"nnn",parameters);
 			VtkOutput_Boundary.PrintOutput();
 
+			VtkOutput VtkOutput_ModPatch = VtkOutput(*pModifiedPatchModelPart,"nnn",parameters);
+			VtkOutput_ModPatch.PrintOutput();
+
+			VtkOutput VtkOutput_DBoundary = VtkOutput(rDomainBoundaryModelPart,"nnn",parameters);
+			VtkOutput_DBoundary.PrintOutput();
+
 			//CalculateModifiedPatchBoundary(rPatchBoundaryModelPart, *pOutOfDomainPatchBoundaryModelPart, *pModifiedPatchBoundaryModelPart);
 			//this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, rPatchInsideBoundaryModelPart);
 			this->pCalculateDistanceProcess->CalculateSignedDistance(rBackgroundModelPart, *pModifiedPatchBoundaryModelPart);

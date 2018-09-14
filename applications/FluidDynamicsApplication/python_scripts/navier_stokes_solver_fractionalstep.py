@@ -44,7 +44,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "AMGCL",
                 "max_iteration"                  : 200,
-                "tolerance"                      : 1e-6,
+                "tolerance"                      : 1e-9,
                 "provide_coordinates"            : false,
                 "smoother_type"                  : "ilu0",
                 "krylov_type"                    : "cg",
@@ -57,7 +57,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             "velocity_linear_solver_settings": {
                 "solver_type"                    : "AMGCL",
                 "max_iteration"                  : 200,
-                "tolerance"                      : 1e-6,
+                "tolerance"                      : 1e-9,
                 "provide_coordinates"            : false,
                 "smoother_type"                  : "ilu0",
                 "krylov_type"                    : "lgmres",
