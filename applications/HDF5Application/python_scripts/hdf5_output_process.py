@@ -56,7 +56,7 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
             self.file_name = self.model_part_name
 
         self.raw_path, self.file_name = os.path.split(self.file_name)
-        # self.raw_path = os.path.join(os.getcwd(), self.raw_path) # maybe add os.getcwd to raw_path?
+        # self.raw_path = os.path.join(os.getcwd(), self.raw_path) # TODO is this necessary?
 
         self.folder_name = self.file_name + "__h5_files"
         self.save_h5_files_in_folder = self.settings["save_h5_files_in_folder"].GetBool()
@@ -66,7 +66,6 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
             KratosMultiphysics.Logger.PrintWarning("XDMF-Writing is not available!")
             self.create_xdmf_file_level = 0
         self.num_output_files = 0 # force rewritting xdmf
-
 
     def ExecuteInitialize(self):
         model_part_comm = self.model[self.model_part_name].GetCommunicator()
@@ -108,7 +107,6 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
             if self.num_output_files != current_num_out_files:
                 self.num_output_files = current_num_out_files
                 self.__WriteXdmfFile()
-                print("Recreating XDMF")
 
     def ExecuteBeforeOutputStep(self):
         self.hfd5_writer_process.ExecuteBeforeOutputStep()
@@ -176,7 +174,7 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
                     "file_name" : "%s"
                 }
             }
-        }""" % (self.model_part_name, self.__GetFullFilePath(self.file_name)))
+        }""" % (self.model_part_name, self.__GetFullFilePath(self.file_name))) # using the "old" formatting, bcs the new one might get confused with the existing "{}"
 
         hdf5_params = hfd5_writer_process_parameters["Parameters"]
 
