@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //    Co-authors:    Vicente Mataix Ferrandiz
@@ -379,6 +379,10 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( STRESS_ON_GP  );
     KRATOS_REGISTER_VARIABLE( STRESS_ON_NODE  );
     KRATOS_REGISTER_VARIABLE( DESIGN_VARIABLE_NAME );
+    
+    // Some variables related with CL
+    KRATOS_REGISTER_VARIABLE(INELASTIC_FLAG)
+    KRATOS_REGISTER_VARIABLE(INFINITY_YIELD_STRESS)
 
     //Register the truss element
     KRATOS_REGISTER_ELEMENT("TrussElement3D2N", mTrussElement3D2N)
@@ -481,9 +485,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SpringDamperElement3D2N", mSpringDamperElement3D2N);
 
     //Register the adjoint elements
-    KRATOS_REGISTER_ELEMENT( "AdjointFiniteDifferencingBaseElement", mAdjointFiniteDifferencingBaseElement )
-    KRATOS_REGISTER_ELEMENT( "AdjointFiniteDifferencingShellElement", mAdjointFiniteDifferencingShellElement )
-    KRATOS_REGISTER_ELEMENT( "AdjointFiniteDifferenceCrBeamElement", mAdjointFiniteDifferenceCrBeamElement )
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingBaseElement", mAdjointFiniteDifferencingBaseElement )
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferencingShellElement", mAdjointFiniteDifferencingShellElement )
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceCrBeamElement", mAdjointFiniteDifferenceCrBeamElement )
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussElement", mAdjointFiniteDifferenceTrussElement)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussLinearElement", mAdjointFiniteDifferenceTrussLinearElement)
 
@@ -514,11 +518,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("PointMomentCondition3D1N", mPointMomentCondition3D1N);
 
     // Adjoint conditions
-    KRATOS_REGISTER_CONDITION( "AdjointSemiAnalyticPointLoadCondition2D1N", mAdjointSemiAnalyticPointLoadCondition2D1N )
-    KRATOS_REGISTER_CONDITION( "AdjointSemiAnalyticPointLoadCondition3D1N", mAdjointSemiAnalyticPointLoadCondition3D1N )
-
-    KRATOS_REGISTER_VARIABLE(INELASTIC_FLAG)
-    KRATOS_REGISTER_VARIABLE(INFINITY_YIELD_STRESS)
+    KRATOS_REGISTER_CONDITION("AdjointSemiAnalyticPointLoadCondition2D1N", mAdjointSemiAnalyticPointLoadCondition2D1N )
+    KRATOS_REGISTER_CONDITION("AdjointSemiAnalyticPointLoadCondition3D1N", mAdjointSemiAnalyticPointLoadCondition3D1N )
+    
     // Register linear elastics laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussConstitutiveLaw", mTrussConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TrussPlasticityConstitutiveLaw", mTrussPlasticityConstitutiveLaw);
@@ -539,12 +541,12 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearJ2Plasticity3DLaw", mLinearJ2Plasticity3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearIsotropicDamage3DLaw", mLinearIsotropicDamage3D);
 
-	// damage and plasticity
-	KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticityFactory3D", mSmallStrainIsotropicPlasticityFactory3D);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamageFactory3D", mSmallStrainIsotropicDamageFactory3D);
+    // Damage and plasticity
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticityFactory", mSmallStrainIsotropicPlasticityFactory);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicDamageFactory", mSmallStrainIsotropicDamageFactory);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ViscousGeneralizedKelvin3D", mViscousGeneralizedKelvin3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ViscousGeneralizedMaxwell3D", mViscousGeneralizedMaxwell3D);
-	KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericSmallStrainViscoplasticity3D", mGenericSmallStrainViscoplasticity3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericSmallStrainViscoplasticity3D", mGenericSmallStrainViscoplasticity3D);
 
     // Custom Constitutive laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainIsotropicPlasticity3DVonMisesVonMises", mSmallStrainIsotropicPlasticity3DVonMisesVonMises);

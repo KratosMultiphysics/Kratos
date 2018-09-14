@@ -119,7 +119,11 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MP_TOTAL_ENERGY )
         KRATOS_REGISTER_VARIABLE( MP_PRESSURE )
         KRATOS_REGISTER_VARIABLE( MP_JACOBIAN )
+        KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_EQUIVALENT_PLASTIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_DEVIATORIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_CONSTITUTIVE_PRESSURE )
         KRATOS_REGISTER_VARIABLE( NODAL_MPRESSURE )
@@ -193,16 +197,22 @@ namespace Kratos
         // CL: Mohr Coulomb Strain Softening
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCStrainSofteningPlastic3DLaw", mHenckyMCStrainSofteningPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCStrainSofteningPlasticPlaneStrain2DLaw", mHenckyMCStrainSofteningPlasticPlaneStrain2DLaw);
+        // CL: Borja Cam Clay
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyBorjaCamClayPlastic3DLaw", mHenckyBorjaCamClayPlastic3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyBorjaCamClayPlasticPlaneStrain2DLaw", mHenckyBorjaCamClayPlasticPlaneStrain2DLaw);
 
         //Register Flow Rules
         Serializer::Register("MCPlasticFlowRule", mMCPlasticFlowRule);
         Serializer::Register("MCStrainSofteningPlasticFlowRule", mMCStrainSofteningPlasticFlowRule);
+        Serializer::Register("BorjaCamClayPlasticFlowRule", mBorjaCamClayPlasticFlowRule);
 
         //Register Yield Criterion
         Serializer::Register("MCYieldCriterion", mMCYieldCriterion);
+        Serializer::Register("ModifiedCamClayYieldCriterion", mModifiedCamClayYieldCriterion);
 
         //Register Hardening Laws
         Serializer::Register("ExponentialStrainSofteningLaw", mExponentialStrainSofteningLaw);
+        Serializer::Register("CamClayHardeningLaw", mCamClayHardeningLaw);
 
     }
 

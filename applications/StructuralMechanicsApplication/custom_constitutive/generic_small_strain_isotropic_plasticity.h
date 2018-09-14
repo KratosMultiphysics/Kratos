@@ -19,6 +19,7 @@
 
 // Project includes
 #include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/linear_plane_strain.h"
 
 namespace Kratos
 {
@@ -29,6 +30,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // The size type definition
+    typedef std::size_t SizeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -42,25 +46,38 @@ namespace Kratos
 ///@{
 
 /**
- * @class GenericConstitutiveLawIntegrator
+ * @class GenericSmallStrainIsotropicPlasticity
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class is the base class which define all the constitutive laws for plasticity in small deformation
+ * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity
+ * @tparam TConstLawIntegratorType The constitutive law integrator considered
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class ConstLawIntegratorType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPlasticity3D
-    : public ElasticIsotropic3D
+template <class TConstLawIntegratorType>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicPlasticity
+    : public std::conditional<TConstLawIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Definition of the base class
-    typedef ElasticIsotropic3D BaseType;
+    /// The define the working dimension size, already defined in the integrator
+    static constexpr SizeType Dimension = TConstLawIntegratorType::Dimension;
 
-    /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicPlasticity3D);
+    /// The define the Voigt size, already defined in the  integrator
+    static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
+    
+    /// Definition of the base class
+    typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
+
+    /// Counted pointer of GenericSmallStrainIsotropicPlasticity
+    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicPlasticity);
+    
+    /// The node definition
+    typedef Node<3> NodeType;
+    
+    /// The geometry definition
+    typedef Geometry<NodeType> GeometryType;
 
     ///@}
     ///@name Life Cycle
@@ -69,7 +86,7 @@ public:
     /**
     * Default constructor.
     */
-    GenericSmallStrainIsotropicPlasticity3D()
+    GenericSmallStrainIsotropicPlasticity()
     {
     }
 
@@ -78,13 +95,13 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericSmallStrainIsotropicPlasticity3D<ConstLawIntegratorType>>(*this);
+        return Kratos::make_shared<GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>>(*this);
     }
 
     /**
     * Copy constructor.
     */
-    GenericSmallStrainIsotropicPlasticity3D(const GenericSmallStrainIsotropicPlasticity3D &rOther)
+    GenericSmallStrainIsotropicPlasticity(const GenericSmallStrainIsotropicPlasticity &rOther)
         : BaseType(rOther),
           mPlasticDissipation(rOther.mPlasticDissipation),
           mThreshold(rOther.mThreshold),
@@ -99,7 +116,7 @@ public:
     /**
     * Destructor.
     */
-    ~GenericSmallStrainIsotropicPlasticity3D() override
+    ~GenericSmallStrainIsotropicPlasticity() override
     {
     }
 
@@ -164,13 +181,6 @@ public:
         ) override;
 
     /**
-     * @brief Finalize the material response,  called by the element in FinalizeSolutionStep.
-     * @see Parameters
-     * @see StressMeasures
-     */
-    void FinalizeMaterialResponse(ConstitutiveLaw::Parameters &rValues, const StressMeasure &rStressMeasure); //override;
-
-    /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
@@ -206,6 +216,13 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Vector> &rThisVariable) override;
+    
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (Matrix)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<Matrix> &rThisVariable) override;
 
     /**
      * @brief Sets the value of a specified variable (double)
@@ -250,7 +267,8 @@ public:
      */
     Vector& GetValue(
         const Variable<Vector> &rThisVariable,
-        Vector& rValue) override;
+        Vector& rValue
+        ) override;
 
     /**
      * @brief Returns the value of a specified variable (matrix)
@@ -260,7 +278,8 @@ public:
      */
     Matrix& GetValue(
         const Variable<Matrix>& rThisVariable,
-        Matrix& rValue) override;
+        Matrix& rValue
+        ) override;
 
     /**
      * @brief Returns the value of a specified variable (double)
@@ -275,6 +294,19 @@ public:
         double& rValue) override;
 
     /**
+     * @brief Returns the value of a specified variable (vector)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    Vector& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue
+        ) override;
+        
+    /**
      * @brief Returns the value of a specified variable (matrix)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
@@ -284,7 +316,8 @@ public:
     Matrix& CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Matrix>& rThisVariable,
-        Matrix& rValue) override;
+        Matrix& rValue
+        ) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -341,11 +374,11 @@ protected:
 
     void SetThreshold(const double Threshold) { mThreshold = Threshold; }
     void SetPlasticDissipation(const double PlasticDissipation) { mPlasticDissipation = PlasticDissipation; }
-    void SetPlasticStrain(const Vector& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
+    void SetPlasticStrain(const array_1d<double, VoigtSize>& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
 
     void SetNonConvThreshold(const double NonConvThreshold) { mNonConvThreshold = NonConvThreshold; }
     void SetNonConvPlasticDissipation(const double NonConvPlasticDissipation) { mNonConvPlasticDissipation = NonConvPlasticDissipation; }
-    void SetNonConvPlasticStrain(const Vector& rNonConvPlasticStrain) { mNonConvPlasticStrain = rNonConvPlasticStrain; }
+    void SetNonConvPlasticStrain(const array_1d<double, VoigtSize>& rNonConvPlasticStrain) { mNonConvPlasticStrain = rNonConvPlasticStrain; }
 
     ///@}
     ///@name Protected Operations
@@ -375,12 +408,12 @@ protected:
     // Converged values
     double mPlasticDissipation = 0.0;
     double mThreshold = 0.0;
-    Vector mPlasticStrain = ZeroVector(6);
+    Vector mPlasticStrain = ZeroVector(VoigtSize);
 
     // Non Converged values
     double mNonConvPlasticDissipation = 0.0;
     double mNonConvThreshold = 0.0;
-    Vector mNonConvPlasticStrain = ZeroVector(6);
+    Vector mNonConvPlasticStrain = ZeroVector(VoigtSize);
 
     // Auxiliar to print (NOTE: Alejandro do we need this now?)
     double mUniaxialStress = 0.0;
