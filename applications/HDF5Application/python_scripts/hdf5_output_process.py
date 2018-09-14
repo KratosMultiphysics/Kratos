@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 
-# Other
+# Other imports
 import os
 try:
     # in case the h5py-module is not installed (e.g. on clusters) we don't want it to crash the simulation!
@@ -14,10 +14,12 @@ try:
 except ImportError:
     have_xdmf = False
 
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return HDF5OutputProcess(Model, settings["Parameters"])
+
 
 class HDF5OutputProcess(KratosMultiphysics.Process):
     """This process writes output in hdf5-files
@@ -31,6 +33,7 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
             "model_part_name"                    : "PLEASE_SPECIFY_MOEL_PART_NAME",
             "file_name"                          : "",
             "save_h5_files_in_folder"            : true,
+            "backwards_in_time"                  : false,
             "create_xdmf_file_level"             : 1,
             "nodal_solution_step_data_variables" : [],
             "nodal_data_value_variables"         : [],
@@ -43,6 +46,7 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         # Overwrite the default settings with user-provided parameters
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(default_parameters)
+
         self.model_part_name = self.settings["model_part_name"].GetString()
         self.file_name = self.settings["file_name"].GetString()
         if self.file_name == "": # in case not file name is specified then the name of the ModelPart is used
@@ -58,8 +62,8 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         if self.create_xdmf_file_level > 0 and have_xdmf is False:
             KratosMultiphysics.Logger.PrintWarning("XDMF-Writing is not available!")
             self.create_xdmf_file_level = 0
-        self.xdmf_file_name = self.__GetFullFilePath() + ".xdmf"
-        # self.num_output_files = self.__GetNumberOfOutputFiles()
+        # self.xdmf_file_name = self.__GetFullFilePath() + ".xdmf"
+        self.num_output_files = 0 # force rewritting xdmf
 
     def ExecuteInitialize(self):
         # create folder if necessary and adapt paths
@@ -77,7 +81,7 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
                     "file_name" : "%s"
                 }
             }
-        }""" % (self.model_part_name, self.__GetFullFilePath()))
+        }""" % (self.model_part_name, self.__GetFullFilePath(self.file_name)))
 
         hdf5_params = hfd5_writer_process_parameters["Parameters"]
 
@@ -106,6 +110,8 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
 
         print(hfd5_writer_process_parameters.PrettyPrintJsonString())
 
+        # TODO delete the old files!
+
         self.hfd5_writer_process = hdf5_process.Factory(hfd5_writer_process_parameters, self.model)
         self.hfd5_writer_process.ExecuteInitialize()
 
@@ -125,6 +131,7 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
             if self.num_output_files != current_num_out_files:
                 self.num_output_files = current_num_out_files
                 self.__WriteXdmfFile()
+                print("Recreating XDMF")
 
     def ExecuteBeforeOutputStep(self):
         self.hfd5_writer_process.ExecuteBeforeOutputStep()
@@ -136,16 +143,24 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         self.hfd5_writer_process.ExecuteFinalize()
 
         if self.create_xdmf_file_level == 1:
-            # if create_xdmf_file_level is larger then the xdmf-file will
+            # if create_xdmf_file_level is larger, then the xdmf-file will
             # already have been created in "ExecuteFinalizeSolutionStep"
             self.__WriteXdmfFile()
 
     def __WriteXdmfFile(self):
-        create_xdmf_file.WriteXdmfFile(self.file_name + ".h5", self.__GetFolderPathSave())
+        current_time = self.model[self.model_part_name].ProcessInfo[KratosMultiphysics.TIME]
+        create_xdmf_file.WriteXdmfFile(self.file_name + ".h5",
+                                       self.__GetFolderPathSave(),
+                                       current_time)
 
     def __GetNumberOfOutputFiles(self):
-        # TODO FIXME and use TIME
-        return len(create_xdmf_file.GetListOfTimeLabels(self.xdmf_file_name.replace(".xdmf", ".h5")))
+        h5_files_path = os.path.join(self.__GetFolderPathSave(), self.file_name + ".h5")
+        current_time = self.model[self.model_part_name].ProcessInfo[KratosMultiphysics.TIME]
+        list_time_labels = create_xdmf_file.GetListOfTimeLabels(h5_files_path)
+
+        num_output_files = sum(float(time_label) <= current_time for time_label in list_time_labels)
+
+        return num_output_files
 
     def __GetFolderPathSave(self):
         if self.save_h5_files_in_folder:
@@ -153,5 +168,5 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         else:
             return self.raw_path
 
-    def __GetFullFilePath(self):
-        return os.path.join(self.__GetFolderPathSave(), self.file_name)
+    def __GetFullFilePath(self, file_name):
+        return os.path.join(self.__GetFolderPathSave(), file_name)
