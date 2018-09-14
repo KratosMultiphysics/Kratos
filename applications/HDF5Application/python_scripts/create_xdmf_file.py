@@ -63,8 +63,10 @@ def GetElementResults(h5py_file):
 
 def GetListOfTimeLabels(file_name):
     list_of_file_names = []
+    path, file_name = os.path.split(file_name)
+    if path == "": path = "." # os.listdir fails with empty path
     time_prefix = file_name.replace(".h5", "-")
-    for name in os.listdir():
+    for name in os.listdir(path):
         if name.find(time_prefix) == 0:
             list_of_file_names.append(name)
     list_of_time_labels = []
@@ -74,14 +76,15 @@ def GetListOfTimeLabels(file_name):
     return list_of_time_labels
 
 
-def WriteXdmfFile(file_name):
+def WriteXdmfFile(file_name, rel_path_h5_files=""):
     temporal_grid = xdmf.TemporalGrid()
-    GenerateXdmfConnectivities(file_name)
+    h5_files_full_path = os.path.join(rel_path_h5_files, file_name)
+    GenerateXdmfConnectivities(h5_files_full_path)
     # Get the initial spatial grid from the base file.
-    with h5py.File(file_name, "r") as h5py_file:
+    with h5py.File(h5_files_full_path, "r") as h5py_file:
         current_spatial_grid = GetSpatialGrid(h5py_file)
-    for current_time in GetListOfTimeLabels(file_name):
-        current_file_name = file_name.replace(".h5", "-" + current_time + ".h5")
+    for current_time in GetListOfTimeLabels(h5_files_full_path):
+        current_file_name = h5_files_full_path.replace(".h5", "-" + current_time + ".h5")
         # Check if the current file has mesh information.
         with h5py.File(current_file_name, "r") as h5py_file:
             has_mesh = ("ModelData" in h5py_file.keys())
