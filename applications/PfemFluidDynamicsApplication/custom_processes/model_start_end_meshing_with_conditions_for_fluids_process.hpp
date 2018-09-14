@@ -1,14 +1,14 @@
 //
 //   Project Name:        KratosPfemFluidApplication $
-//   Created by:          $Author:      JMCarbonell  $
+//   Created by:          $Author:          AFranci  $
 //   Last modified by:    $Co-Author:                $
-//   Date:                $Date:      February 2016  $
+//   Date:                $Date:     September 2016  $
 //   Revision:            $Revision:            0.0  $
 //
 //
 
-#if !defined(KRATOS_MODEL_START_END_MESHING_FOR_FLUIDS_PROCESS_H_INCLUDED )
-#define  KRATOS_MODEL_START_END_MESHING_FOR_FLUIDS_PROCESS_H_INCLUDED
+#if !defined(KRATOS_MODEL_START_END_MESHING_WITH_CONDITIONS_FOR_FLUIDS_PROCESS_H_INCLUDED )
+#define  KRATOS_MODEL_START_END_MESHING_WITH_CONDITIONS_FOR_FLUIDS_PROCESS_H_INCLUDED
 
 
 // System includes
@@ -61,22 +61,22 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class ModelStartEndMeshingForFluidsProcess
+  class ModelStartEndMeshingWithConditionsForFluidsProcess
     : public SettleModelStructureProcess
   {
   public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ModelStartEndMeshingForFluidsProcess
-    KRATOS_CLASS_POINTER_DEFINITION( ModelStartEndMeshingForFluidsProcess );
+    /// Pointer definition of ModelStartEndMeshingWithConditionsForFluidsProcess
+    KRATOS_CLASS_POINTER_DEFINITION( ModelStartEndMeshingWithConditionsForFluidsProcess );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    ModelStartEndMeshingForFluidsProcess(ModelPart& rMainModelPart,
+    ModelStartEndMeshingWithConditionsForFluidsProcess(ModelPart& rMainModelPart,
 					 Flags Options,
 					 int EchoLevel = 0)
       :SettleModelStructureProcess(rMainModelPart,Options,EchoLevel)
@@ -84,7 +84,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~ModelStartEndMeshingForFluidsProcess()
+    virtual ~ModelStartEndMeshingWithConditionsForFluidsProcess()
     {
     }
 
@@ -139,13 +139,13 @@ namespace Kratos
     /// Turn back information as a string.
     std::string Info() const override
     {
-      return "ModelStartEndMeshingForFluidsProcess";
+      return "ModelStartEndMeshingWithConditionsForFluidsProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-      rOStream << "ModelStartEndMeshingForFluidsProcess";
+      rOStream << "ModelStartEndMeshingWithConditionsForFluidsProcess";
     }
 
 
@@ -177,11 +177,11 @@ namespace Kratos
       rModelPart.Elements().clear();
 
       //contact conditions are located on Mesh_0
-      // ModelPart::ConditionsContainerType PreservedConditions;
+      ModelPart::ConditionsContainerType PreservedConditions;
 
       unsigned int nodeId=1;
       unsigned int elemId=1;
-      // unsigned int condId=1;
+      unsigned int condId=1;
 
 
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
@@ -295,83 +295,83 @@ namespace Kratos
 
 	    }
 
-	    // for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
-	    //   {
-	    // 	if( i_cond->IsNot(TO_ERASE) ){
-	    // 	  i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
-	    // 	  PreservedConditions.push_back(*(i_cond.base()));
-	    // 	  PreservedConditions.back().SetId(condId);
-	    // 	  condId+=1;
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+	      {
+	    	if( i_cond->IsNot(TO_ERASE) ){
+	    	  i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
+	    	  PreservedConditions.push_back(*(i_cond.base()));
+	    	  PreservedConditions.back().SetId(condId);
+	    	  condId+=1;
 
 
-	    // 	  Geometry< Node<3> >& rGeometry = i_cond->GetGeometry();
-	    // 	  unsigned int NumNodes=rGeometry.size();
-	    // 	  unsigned int freeSurfaceNodes=0;
-	    // 	  unsigned int rigidNodes=0;
-	    // 	  for (unsigned int n = 0; n < NumNodes; ++n)
-	    // 	    {
+	    	  Geometry< Node<3> >& rGeometry = i_cond->GetGeometry();
+	    	  unsigned int NumNodes=rGeometry.size();
+	    	  unsigned int freeSurfaceNodes=0;
+	    	  unsigned int rigidNodes=0;
+	    	  for (unsigned int n = 0; n < NumNodes; ++n)
+	    	    {
 
-	    // 	      if(rGeometry[n].Is(RIGID) || rGeometry[n].Is(SOLID)){
-	    // 	  	// std::cout<<"rigid node! "<<rGeometry[n].X()<<" "<<rGeometry[n].Y()<<std::endl;
-	    // 	  	rigidNodes++;
-	    // 	      }else {
-	    // 	  	freeSurfaceNodes++;
-	    // 	      }
-	    // 	    }
-	    // 	  if((freeSurfaceNodes>0 && rigidNodes>0) || rigidNodes==0){
-	    // 	    for (unsigned int n = 0; n < NumNodes; ++n)
-	    // 	      {
-	    // 		rGeometry[n].Set(FREE_SURFACE);
-	    // 	      }
-	    // 	  }
+	    	      if(rGeometry[n].Is(RIGID) || rGeometry[n].Is(SOLID)){
+	    	  	// std::cout<<"rigid node! "<<rGeometry[n].X()<<" "<<rGeometry[n].Y()<<std::endl;
+	    	  	rigidNodes++;
+	    	      }else {
+	    	  	freeSurfaceNodes++;
+	    	      }
+	    	    }
+	    	  if((freeSurfaceNodes>0 && rigidNodes>0) || rigidNodes==0){
+	    	    for (unsigned int n = 0; n < NumNodes; ++n)
+	    	      {
+	    		rGeometry[n].Set(FREE_SURFACE);
+	    	      }
+	    	  }
 
 
-	    // 	}
-	    //   }
+	    	}
+	      }
 
 	  }
 	}
 
 
-      // this->BuildBoundaryModelParts(rModelPart,PreservedConditions, nodeId, elemId, condId);
+      this->BuildBoundaryModelParts(rModelPart,PreservedConditions, nodeId, elemId, condId);
 
-      // for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
-      // 	{
-      // 	  if( i_mp->Is(BOUNDARY) ){ //boundary model part
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+      	{
+      	  if( i_mp->Is(BOUNDARY) ){ //boundary model part
 
-      // 	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
-      // 	      {
-      // 		if( i_cond->IsNot(TO_ERASE) ){
-      // 		  i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
-      // 		  PreservedConditions.push_back(*(i_cond.base()));
-      // 		  PreservedConditions.back().SetId(condId);
-      // 		  condId+=1;
-      // 		}
-      // 	      }
-      // 	  }
+      	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+      	      {
+      		if( i_cond->IsNot(TO_ERASE) ){
+      		  i_cond->Reset(NEW_ENTITY); //reset here if the condition is inserted
+      		  PreservedConditions.push_back(*(i_cond.base()));
+      		  PreservedConditions.back().SetId(condId);
+      		  condId+=1;
+      		}
+      	      }
+      	  }
 
-      // 	}
+      	}
 
-      // for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
-      // 	{
-      // 	  if(i_cond->Is(CONTACT)){
-      // 	    PreservedConditions.push_back(*(i_cond.base()));
-      // 	    PreservedConditions.back().SetId(condId);
-      // 	    condId+=1;
-      // 	  }
-      // 	}
+      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
+      	{
+      	  if(i_cond->Is(CONTACT)){
+      	    PreservedConditions.push_back(*(i_cond.base()));
+      	    PreservedConditions.back().SetId(condId);
+      	    condId+=1;
+      	  }
+      	}
 
-      // rModelPart.Conditions().swap(PreservedConditions);
+      rModelPart.Conditions().swap(PreservedConditions);
 
       //Sort
       rModelPart.Nodes().Sort();
       rModelPart.Elements().Sort();
-      // rModelPart.Conditions().Sort();
+      rModelPart.Conditions().Sort();
 
       //Unique
       rModelPart.Nodes().Unique();
       rModelPart.Elements().Unique();
-      // rModelPart.Conditions().Unique();
+      rModelPart.Conditions().Unique();
 
       //Sort Again to have coherent numeration for nodes (mesh with shared nodes)
       unsigned int consecutive_index = 1;
@@ -413,7 +413,7 @@ namespace Kratos
 
       rComputingModelPart.Nodes().clear();
       rComputingModelPart.Elements().clear();
-      // rComputingModelPart.Conditions().clear();
+      rComputingModelPart.Conditions().clear();
 
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
 	{
@@ -427,10 +427,10 @@ namespace Kratos
 		// rComputingModelPart.AddNode(*(i_node.base())); // very slow!
 	      }
 
-	    // for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
-	    //   {
-	    // 	rComputingModelPart.AddCondition(*(i_cond.base()));
-	    //   }
+	    for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; i_cond++)
+	      {
+	    	rComputingModelPart.AddCondition(*(i_cond.base()));
+	      }
 
 
 	    for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; i_elem++)
@@ -443,12 +443,12 @@ namespace Kratos
       //Sort
       rComputingModelPart.Nodes().Sort();
       rComputingModelPart.Elements().Sort();
-      // rComputingModelPart.Conditions().Sort();
+      rComputingModelPart.Conditions().Sort();
 
       //Unique
       rComputingModelPart.Nodes().Unique();
       rComputingModelPart.Elements().Unique();
-      // rComputingModelPart.Conditions().Unique();
+      rComputingModelPart.Conditions().Unique();
 
       if( EchoLevel > 1 )
 	std::cout<<"    [ SUBMODEL PART ["<<rComputingModelPart.Name()<<"] [Elems="<<rComputingModelPart.NumberOfElements()<<"|Nodes="<<rComputingModelPart.NumberOfNodes()<<"|Conds="<<rComputingModelPart.NumberOfConditions()<<"] ] "<<std::endl;
@@ -534,15 +534,15 @@ namespace Kratos
     ///@{
 
     /// Assignment operator.
-    ModelStartEndMeshingForFluidsProcess& operator=(ModelStartEndMeshingForFluidsProcess const& rOther);
+    ModelStartEndMeshingWithConditionsForFluidsProcess& operator=(ModelStartEndMeshingWithConditionsForFluidsProcess const& rOther);
 
     /// Copy constructor.
-    //ModelStartEndMeshingForFluidsProcess(ModelStartEndMeshingForFluidsProcess const& rOther);
+    //ModelStartEndMeshingWithConditionsForFluidsProcess(ModelStartEndMeshingWithConditionsForFluidsProcess const& rOther);
 
 
     ///@}
 
-  }; // Class ModelStartEndMeshingForFluidsProcess
+  }; // Class ModelStartEndMeshingWithConditionsForFluidsProcess
 
   ///@}
 
@@ -557,11 +557,11 @@ namespace Kratos
 
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream,
-				    ModelStartEndMeshingForFluidsProcess& rThis);
+				    ModelStartEndMeshingWithConditionsForFluidsProcess& rThis);
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream,
-				    const ModelStartEndMeshingForFluidsProcess& rThis)
+				    const ModelStartEndMeshingWithConditionsForFluidsProcess& rThis)
   {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -574,4 +574,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MODEL_START_END_MESHING_FOR_FLUIDS_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_MODEL_START_END_MESHING_WITH_CONDITIONS_FOR_FLUIDS_PROCESS_H_INCLUDED  defined
