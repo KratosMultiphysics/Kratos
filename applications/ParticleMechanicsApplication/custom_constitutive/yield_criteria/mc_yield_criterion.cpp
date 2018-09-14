@@ -82,7 +82,7 @@ double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const 
     double FrictionAngle = rFrictionAngle;
 
     const double FrictionCoefficient = (1 + std::sin(FrictionAngle))/(1 - std::sin(FrictionAngle));
-    const double CohesionCoefficient = 2 * Cohesion * sqrt(FrictionCoefficient);
+    const double CohesionCoefficient = 2 * Cohesion * std::sqrt(FrictionCoefficient);
 
     // f = k*s1 -s3 - comp
     rStateFunction = FrictionCoefficient * rStressVector(0) - rStressVector(2) - CohesionCoefficient;

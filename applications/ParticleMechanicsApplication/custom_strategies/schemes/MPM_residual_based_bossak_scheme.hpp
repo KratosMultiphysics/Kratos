@@ -552,13 +552,13 @@ public:
                 }
             }
 
-            NormVel = sqrt(NormVel);
-            NormAcc = sqrt(NormAcc);
-            NormPres = sqrt(NormPres);
+            NormVel = std::sqrt(NormVel);
+            NormAcc = std::sqrt(NormAcc);
+            NormPres = std::sqrt(NormPres);
 
-            NormDeltaVel = sqrt(NormDeltaVel);
-            NormDeltaAcc = sqrt(NormDeltaAcc);
-            NormDeltaPres = sqrt(NormDeltaPres);
+            NormDeltaVel = std::sqrt(NormDeltaVel);
+            NormDeltaAcc = std::sqrt(NormDeltaAcc);
+            NormDeltaPres = std::sqrt(NormDeltaPres);
             
             ++ItNum;
         }

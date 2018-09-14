@@ -331,15 +331,15 @@ private:
     ///@{
 
     //static inline bool floateq(double a, double b) {
-    //return std::fabs(a - b) < std::numeric_limits<double>::epsilon();
+    //return std::std::abs(a - b) < std::numeric_limits<double>::epsilon();
     //}
 
     //static inline bool floatle(double a, double b) {
-    //return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a < b;
+    //return std::std::abs(a - b) < std::numeric_limits<double>::epsilon() || a < b;
     //}
 
     //static inline bool floatge(double a, double b) {
-    //return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a > b;
+    //return std::std::abs(a - b) < std::numeric_limits<double>::epsilon() || a > b;
     //}
 
     ///@}
