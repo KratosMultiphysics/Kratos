@@ -24,8 +24,8 @@ LinearIsotropicDamagePlaneStrain2D::LinearIsotropicDamagePlaneStrain2D()
 //********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
 LinearIsotropicDamagePlaneStrain2D::LinearIsotropicDamagePlaneStrain2D(
-        const LinearIsotropicDamagePlaneStrain2D &rOther)
-        : LinearIsotropicDamage3D(rOther)
+    const LinearIsotropicDamagePlaneStrain2D &rOther)
+    : LinearIsotropicDamage3D(rOther)
 {
 }
 
@@ -34,7 +34,7 @@ LinearIsotropicDamagePlaneStrain2D::LinearIsotropicDamagePlaneStrain2D(
 
 ConstitutiveLaw::Pointer LinearIsotropicDamagePlaneStrain2D::Clone() const
 {
-   LinearIsotropicDamagePlaneStrain2D::Pointer pclone(new LinearIsotropicDamagePlaneStrain2D(*this));
+    LinearIsotropicDamagePlaneStrain2D::Pointer pclone(new LinearIsotropicDamagePlaneStrain2D(*this));
     return pclone;
 }
 
@@ -47,9 +47,9 @@ LinearIsotropicDamagePlaneStrain2D::~LinearIsotropicDamagePlaneStrain2D() = defa
 //************************************************************************************
 
 void LinearIsotropicDamagePlaneStrain2D::CalculateConstitutiveMatrix(
-        Matrix &rConstitTensor,
-        const Properties &rMaterialProperties
-        )
+    Matrix &rConstitTensor,
+    const Properties &rMaterialProperties
+    )
 {
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double nu = rMaterialProperties[POISSON_RATIO];

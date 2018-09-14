@@ -42,7 +42,7 @@ namespace Kratos
 /**
  * @class LinearIsotropicDamagePlaneStrain2D
  * @ingroup StructuralMechanicsApplication
- * @brief Defines a damage with hardening/softening constitutive law in 2D
+ * @brief Defines a damage with hardening/softening constitutive law in 2D (Plane Strain)
  * @details This material law is defined by the parameters:
  * - YOUNG_MODULUS
  * - POISSON_RATIO
