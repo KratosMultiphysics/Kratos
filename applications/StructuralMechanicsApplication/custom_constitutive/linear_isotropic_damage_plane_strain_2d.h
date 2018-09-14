@@ -112,62 +112,10 @@ public:
         return 3;
     };
 
-
-    /**
-     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of Cauchy stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override {
+        rOStream << "Linear Isotropic Damage Plane Strain 2D constitutive law\n";
+    };
 
 protected:
     ///@name Protected static Member Variables
@@ -176,29 +124,24 @@ protected:
 
     ///@name Protected member Variables
     ///@{
-
-    //double r;
-    //double r_prev;
-    //double strain_norm;
-    int mInelasticFlag = 0;
-    double mStrainEnergy;
-    // boost::numeric::ublas::matrix<double>& constitutiveMatrix();
     ///@}
 
     ///@name Protected Operators
     ///@{
-    double EvaluateHardeningLaw(double r, const Properties &rMaterialProperties);
-    void CalculateConstitutiveMatrix(Matrix &constitutiveMatrix, const Properties &props) override;
+    void CalculateConstitutiveMatrix(
+            Matrix &constitutiveMatrix,
+            const Properties &rMaterialProperties
+            ) override;
     ///@}
 
     ///@name Protected Operations
     ///@{
+
     ///@}
 
 private:
     ///@name Static Member Variables
     ///@{
-    // bool m_initialized;
     ///@}
 
     ///@name Member Variables
