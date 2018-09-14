@@ -859,9 +859,9 @@ public:
     void Append(const Parameters& rValue)
     {
         KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
-//         nlohmann::json j_object(nlohmann::json::value_t::object);
-//         j_object = *(rValue.GetUnderlyingStorage());
-//         mpValue->push_back(j_object);
+        nlohmann::json j_object(nlohmann::json::value_t::object);
+//         j_object = (rValue.GetUnderlyingStorage())->get<object>();
+        mpValue->push_back(j_object);
     }
 
     /**
@@ -1005,36 +1005,33 @@ public:
         return true;
     }
 
-    /**This function is designed to verify that the parameters under testing match the
-     * form prescribed by the defaults.
-     * If the parameters contain values that do not appear in the defaults, an error is thrown,
-     * whereas if a parameter is found in the defaults but not in the Parameters been tested,
-     * it is copied to the parameters.
-     *
-     * this version of the function only walks one level, without descending in the branches
+    /**
+     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the rDefaultParameters.
+     * @details If the parameters contain values that do not appear in the rDefaultParameters, an error is thrown, whereas if a parameter is found in the rDefaultParameters but not in the Parameters been tested, it is copied to the parameters.
+     * This version of the function only walks one level, without descending in the branches
+     * @param rDefaultParameters Parameters of reference which we use to check
      */
-    void ValidateAndAssignDefaults(Parameters& defaults)
+    void ValidateAndAssignDefaults(Parameters& rDefaultParameters)
     {
         KRATOS_TRY
 
-        //first verifies that all the enries in the current parameters
-        //have a correspondance in the defaults.
-        //if it is not the case throw an error
+        // First verifies that all the enries in the current parameters have a correspondance in the rDefaultParameters.
+        // If it is not the case throw an error
         for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
             std::string item_name = itr.key();
-            if(!defaults.Has(item_name) ) {
+            if(!rDefaultParameters.Has(item_name) ) {
                 std::stringstream msg;
                 msg << "The item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
                 msg << "Hence Validation fails" << std::endl;
                 msg << "Parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
                 msg << "Defaults against which the current parameters are validated are :" << std::endl;
-                msg << defaults.PrettyPrintJsonString() << std::endl;
+                msg << rDefaultParameters.PrettyPrintJsonString() << std::endl;
                 KRATOS_ERROR << msg.str() << std::endl;
             }
 
             bool type_coincides = false;
-            auto value_defaults = (defaults[item_name]).GetUnderlyingStorage();
+            auto value_defaults = (rDefaultParameters[item_name]).GetUnderlyingStorage();
             if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
 
 //             if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
@@ -1042,8 +1039,7 @@ public:
             if(itr->is_string() && value_defaults->is_string()) type_coincides = true;
             if(itr->is_object() && value_defaults->is_object()) type_coincides = true;
 
-            //
-            //both must be bool to be acceptable
+            // Both must be bool to be acceptable
             if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
 
             if(type_coincides == false) {
@@ -1054,13 +1050,13 @@ public:
                 msg << "Parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
                 msg << "Defaults against which the current parameters are validated are :" << std::endl;
-                msg << defaults.PrettyPrintJsonString() << std::endl;
+                msg << rDefaultParameters.PrettyPrintJsonString() << std::endl;
                 KRATOS_ERROR << msg.str() << std::endl;
             }
 
-            // Now iterate over all the defaults. In the case a default value is not assigned in the current Parameters add an item copying its value
-            if(defaults.IsSubParameter()) {
-                for (auto itr = defaults.mpValue->begin(); itr != defaults.mpValue->end(); ++itr) {
+            // Now iterate over all the rDefaultParameters. In the case a default value is not assigned in the current Parameters add an item copying its value
+            if(rDefaultParameters.IsSubParameter()) {
+                for (auto itr = rDefaultParameters.mpValue->begin(); itr != rDefaultParameters.mpValue->end(); ++itr) {
                     std::string item_name = itr.key();
                     if(!this->Has(item_name)) {
                         (*mpValue)[item_name] = itr.value();
@@ -1072,39 +1068,34 @@ public:
         KRATOS_CATCH("")
     }
 
-    /**This function is designed to verify that the parameters under testing match the
-     * form prescribed by the defaults.
-     * If the parameters contain values that do not appear in the defaults, an error is thrown,
-     * whereas if a parameter is found in the defaults but not in the Parameters been tested,
-     * it is copied to the parameters.
-     *
-     * this version walks and validates the entire json tree below
-     * the point at which the function is called
-    */
-    void RecursivelyValidateAndAssignDefaults(Parameters& defaults)
+    /**
+     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the defaults.
+     * @details If the parameters contain values that do not appear in the defaults, an error is thrown, whereas if a parameter is found in the defaults but not in the Parameters been tested, it is copied to the parameters.
+     * This version walks and validates the entire json tree below the point at which the function is called
+     * @param rDefaultParameters Parameters of reference which we use to check
+     */
+    void RecursivelyValidateAndAssignDefaults(Parameters& rDefaultParameters)
     {
         KRATOS_TRY
 
-
-        //first verifies that all the enries in the current parameters
-        //have a correspondance in the defaults.
-        //if it is not the case throw an error
+        // First verifies that all the enries in the current parameters have a correspondance in the rDefaultParameters.
+        // If it is not the case throw an error
         for (auto itr = this->mpValue->cbegin(); itr != this->mpValue->cend(); ++itr) {
-            std::string item_name = itr.key();
+            const std::string& item_name = itr.key();
 
-            if(!defaults.Has(item_name) ) {
+            if(!rDefaultParameters.Has(item_name) ) {
                 std::stringstream msg;
                 msg << "The item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
                 msg << "Hence Validation fails" << std::endl;
                 msg << "Parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
                 msg << "Defaults against which the current parameters are validated are :" << std::endl;
-                msg << defaults.PrettyPrintJsonString() << std::endl;
+                msg << rDefaultParameters.PrettyPrintJsonString() << std::endl;
                 KRATOS_ERROR << msg.str() << std::endl;
             }
 
             bool type_coincides = false;
-            auto value_defaults = (defaults[item_name]).GetUnderlyingStorage();
+            auto value_defaults = (rDefaultParameters[item_name]).GetUnderlyingStorage();
             if(itr->is_number_integer() && value_defaults->is_number_integer()) type_coincides = true;
             if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
             if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
@@ -1118,22 +1109,22 @@ public:
                 msg << "Parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
                 msg << "Defaults against which the current parameters are validated are :" << std::endl;
-                msg << defaults.PrettyPrintJsonString() << std::endl;
+                msg << rDefaultParameters.PrettyPrintJsonString() << std::endl;
                 KRATOS_ERROR << msg.str() << std::endl;
             }
 
-            //now walk the tree recursively
+            // Now walk the tree recursively
             if(itr->is_object()) {
                 Parameters subobject = (*this)[item_name];
-                Parameters defaults_subobject = defaults[item_name];
+                Parameters defaults_subobject = rDefaultParameters[item_name];
                 subobject.ValidateAndAssignDefaults(defaults_subobject);
             }
         }
 
-        // Now iterate over all the defaults. In the case a default value is not assigned in the current Parameters add an item copying its value
-        if(defaults.IsSubParameter()) {
-            for (auto itr = defaults.mpValue->begin(); itr != defaults.mpValue->end(); ++itr) {
-                std::string item_name = itr.key();
+        // Now iterate over all the rDefaultParameters. In the case a default value is not assigned in the current Parameters add an item copying its value
+        if(rDefaultParameters.IsSubParameter()) {
+            for (auto itr = rDefaultParameters.mpValue->begin(); itr != rDefaultParameters.mpValue->end(); ++itr) {
+                const std::string& item_name = itr.key();
                 if(mpValue->find(item_name) ==  mpValue->end()) {
                     (*mpValue)[item_name] = itr.value();
                 }
@@ -1141,7 +1132,7 @@ public:
                 // Now walk the tree recursively
                 if(itr->is_object()) {
                     Parameters subobject = (*this)[item_name];
-                    Parameters defaults_subobject = defaults[item_name];
+                    Parameters defaults_subobject = rDefaultParameters[item_name];
                     subobject.ValidateAndAssignDefaults(defaults_subobject);
                 }
             }
@@ -1216,8 +1207,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    nlohmann::json* mpValue;                   // This is where the json is actually stored
-    Kratos::shared_ptr<nlohmann::json> mpRoot; // This is a shared pointer to the root structure (this is what allows us to acces in a tree structure to the JSON database)
+    nlohmann::json* mpValue;                   /// This is where the json is actually stored
+    Kratos::shared_ptr<nlohmann::json> mpRoot; /// This is a shared pointer to the root structure (this is what allows us to acces in a tree structure to the JSON database)
 
     ///@}
     ///@name Private Operators
