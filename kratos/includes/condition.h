@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -209,7 +209,7 @@ public:
     ///@{
 
     /** Dimensional space of the element geometry
-	@return SizeType, working space dimension of this geometry.
+    @return SizeType, working space dimension of this geometry.
     */
 
     SizeType WorkingSpaceDimension() const
@@ -235,7 +235,7 @@ public:
      * @return a Pointer to the new condition
      */
     virtual Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-			   PropertiesType::Pointer pProperties) const
+               PropertiesType::Pointer pProperties) const
     {
         return Kratos::make_shared<Condition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
@@ -264,13 +264,12 @@ public:
     virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
     {
         KRATOS_TRY
-	
+        KRATOS_WARNING("Condition") << " Call base class condition Clone " << std::endl;
         Condition::Pointer p_new_cond = Kratos::make_shared<Condition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
-	p_new_cond->SetData(this->GetData());
-	p_new_cond->Set(Flags(*this));
-	return p_new_cond;
-        
-	KRATOS_CATCH("");
+        p_new_cond->SetData(this->GetData());
+        p_new_cond->Set(Flags(*this));
+        return p_new_cond;
+        KRATOS_CATCH("");
     }
 
     /**
@@ -285,7 +284,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-				  ProcessInfo& rCurrentProcessInfo)
+                  ProcessInfo& rCurrentProcessInfo)
     {
         if (rResult.size() != 0)
             rResult.resize(0);
@@ -297,7 +296,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofsVectorType& rConditionDofList,
-			    ProcessInfo& rCurrentProcessInfo)
+                ProcessInfo& rCurrentProcessInfo)
     {
         if (rConditionDofList.size() != 0)
             rConditionDofList.resize(0);
@@ -429,13 +428,13 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-				      VectorType& rRightHandSideVector,
-				      ProcessInfo& rCurrentProcessInfo)
+                      VectorType& rRightHandSideVector,
+                      ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
     /**
@@ -462,10 +461,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-				       ProcessInfo& rCurrentProcessInfo)
+                       ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
     }
 
     /**
@@ -476,8 +475,8 @@ public:
      * @param rLHSVariables parameter describing the expected LHSs
      */
     virtual void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
-					const std::vector< Variable< MatrixType > >& rLHSVariables,
-					ProcessInfo& rCurrentProcessInfo)
+                    const std::vector< Variable< MatrixType > >& rLHSVariables,
+                    ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -488,10 +487,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-					ProcessInfo& rCurrentProcessInfo)
+                    ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
     /**
@@ -502,8 +501,8 @@ public:
      * @param rRHSVariables parameter describing the expected RHSs
      */
     virtual void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
-					const std::vector< Variable< VectorType > >& rRHSVariables,
-					ProcessInfo& rCurrentProcessInfo)
+                    const std::vector< Variable< VectorType > >& rRHSVariables,
+                    ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -527,13 +526,13 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-							VectorType& rRightHandSideVector,
-							ProcessInfo& rCurrentProcessInfo)
+                            VectorType& rRightHandSideVector,
+                            ProcessInfo& rCurrentProcessInfo)
     {
        if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
     /**
@@ -543,10 +542,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					      ProcessInfo& rCurrentProcessInfo)
+                          ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
     }
 
 
@@ -557,10 +556,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
-					      ProcessInfo& rCurrentProcessInfo)
+                          ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
 
@@ -583,13 +582,13 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo)
+                             VectorType& rRightHandSideVector,
+                             ProcessInfo& rCurrentProcessInfo)
     {
        if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
 
@@ -600,10 +599,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					       ProcessInfo& rCurrentProcessInfo)
+                           ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
     }
 
 
@@ -614,10 +613,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-					       ProcessInfo& rCurrentProcessInfo)
+                           ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
 
@@ -636,7 +635,7 @@ public:
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
-	  rMassMatrix.resize(0, 0, false);
+      rMassMatrix.resize(0, 0, false);
     }
 
 
@@ -649,7 +648,7 @@ public:
     virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampingMatrix.size1() != 0)
-	  rDampingMatrix.resize(0, 0, false);
+      rDampingMatrix.resize(0, 0, false);
     }
 
 
@@ -707,26 +706,26 @@ public:
      */
 
     virtual void Calculate(const Variable<double >& rVariable,
-			   double& Output,
-			   const ProcessInfo& rCurrentProcessInfo)
+               double& Output,
+               const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void Calculate(const Variable< array_1d<double,3> >& rVariable,
-			   array_1d<double,3>& Output,
-			   const ProcessInfo& rCurrentProcessInfo)
+               array_1d<double,3>& Output,
+               const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void Calculate(const Variable<Vector >& rVariable,
-			   Vector& Output,
-			   const ProcessInfo& rCurrentProcessInfo)
+               Vector& Output,
+               const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void Calculate(const Variable<Matrix >& rVariable,
-			   Matrix& Output,
-			   const ProcessInfo& rCurrentProcessInfo)
+               Matrix& Output,
+               const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -741,26 +740,26 @@ public:
      */
 
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-					      std::vector<double>& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector<double>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					      std::vector< array_1d<double, 3 > >& Output,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector< array_1d<double, 3 > >& Output,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-					      std::vector< Vector >& Output,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector< Vector >& Output,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
-					      std::vector< Matrix >& Output,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector< Matrix >& Output,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -778,64 +777,64 @@ public:
     //SET ON INTEGRATION POINTS - METHODS
 
     virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<double>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					     std::vector<array_1d<double, 3 > > rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<array_1d<double, 3 > > rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-					     std::vector<Vector>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<Vector>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-					     std::vector<Matrix>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<Matrix>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     //GET ON INTEGRATION POINTS METHODS
 
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<double>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
-					     std::vector<int>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<int>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					     std::vector<array_1d<double, 3 > >& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<array_1d<double, 3 > >& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-					     std::vector<array_1d<double, 6 > >& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<array_1d<double, 6 > >& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-					     std::vector<Vector>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<Vector>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-					     std::vector<Matrix>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<Matrix>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -885,7 +884,7 @@ public:
     virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
-	  rMassMatrix.resize(0, 0, false);
+      rMassMatrix.resize(0, 0, false);
     }
 
     /**
@@ -907,7 +906,7 @@ public:
     virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampMatrix.size1() != 0)
-	  rDampMatrix.resize(0, 0, false);
+      rDampMatrix.resize(0, 0, false);
     }
 
     /**
@@ -928,7 +927,7 @@ public:
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampingMatrix.size1() != 0)
-	  rDampingMatrix.resize(0, 0, false);
+      rDampingMatrix.resize(0, 0, false);
     }
 
     /**
@@ -1062,7 +1061,7 @@ public:
 
     Flags& GetFlags()
       {
-	return *this;
+    return *this;
       }
 
     Flags const& GetFlags() const
