@@ -23,8 +23,6 @@ def CreateCoupledSolver(settings):
     coupled_solver_type = settings["coupled_solver_settings"]["solver_type"]
 
     if coupled_solver_type in available_coupled_solvers:
-        coupled_solvers_module_name = "custom_co_simulation_coupled_solvers"
-        __import__(coupled_solvers_module_name)
         coupled_solver_module = __import__(available_coupled_solvers[coupled_solver_type])
         return coupled_solver_module.Create(settings)
     else:
