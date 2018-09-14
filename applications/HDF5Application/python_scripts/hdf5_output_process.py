@@ -123,7 +123,8 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
             self.__WriteXdmfFile()
 
     def __WriteXdmfFile(self):
-        create_xdmf_file.WriteXdmfFile(self.file_name + ".h5", self.__GetFolderPathSave())
+        if self.model[self.model_part_name].GetCommunicator().MyPID() == 0:
+            create_xdmf_file.WriteXdmfFile(self.file_name + ".h5", self.__GetFolderPathSave())
 
     def __GetNumberOfOutputFiles(self):
         h5_files_path = os.path.join(self.__GetFolderPathSave(), self.file_name + ".h5")
