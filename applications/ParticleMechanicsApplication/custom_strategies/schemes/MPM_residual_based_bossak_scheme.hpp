@@ -11,6 +11,7 @@
 //
 //
 
+
 #if !defined(KRATOS_MPM_RESIDUAL_BASED_BOSSAK_SCHEME )
 #define  KRATOS_MPM_RESIDUAL_BASED_BOSSAK_SCHEME
 
@@ -28,7 +29,6 @@
 
 #include "particle_mechanics_application.h"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
-
 
 namespace Kratos
 {

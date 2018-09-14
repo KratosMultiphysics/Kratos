@@ -11,11 +11,11 @@
 //
 //
 
+
 #if !defined(KRATOS_MPM_RESIDUAL_BASED_NEWTON_RAPHSON_STRATEGY )
 #define  KRATOS_MPM_RESIDUAL_BASED_NEWTON_RAPHSON_STRATEGY
 
 /* System includes */
-
 
 /* External includes */
 
