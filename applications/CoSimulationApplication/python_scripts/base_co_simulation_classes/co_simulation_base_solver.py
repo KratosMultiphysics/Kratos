@@ -93,13 +93,22 @@ class CoSimulationBaseSolver(object):
     def SolveSolutionStep(self):
         pass
 
+    ## GetDataConfig : This function gets the definition of data in this solver
+    #
+    #  @param self            The object pointer.
+    def GetDataConfig(self, data_name):
+        if data_name in self.data_list.keys():
+            return self.data_list[data_name]
+        else:
+            raise Exception(tools.bcolors.FAIL+ "Requested data field " + data_name + " does not exist in the solver "+self.cosim_solver_settings[name]+tools.bcolors.ENDC)
+
     ## ImportData : This function imports the requesed data from
     #               from_client
     #
     #  @param self            The object pointer.
     #  @param data_name       string : Name of the data to be imported from from_client
     #  @param from_client     python obj : The client from which data_name has to be imported
-    def ImportData(self, data_name, from_client):
+    def ImportData(self, data_name, from_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
         data_conf = self.GetDataConfig(data_name)
@@ -111,7 +120,7 @@ class CoSimulationBaseSolver(object):
     #  @param self            The object pointer.
     #  @param mesh_name       string : Name of the mesh to be imported from from_client
     #  @param from_client     python obj : The client from which data_name has to be imported
-    def ImportMesh(self, mesh_name, from_client):
+    def ImportMesh(self, mesh_name, from_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
         self.io.ImportMesh(mesh_name, from_client)
@@ -120,7 +129,7 @@ class CoSimulationBaseSolver(object):
     #               to_client
     #
     #  @param self            The object pointer.
-    def ExportData(self, data_name, to_client):
+    def ExportData(self, data_name, to_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
         self.io.ExportData(data_name, to_client)
@@ -129,7 +138,7 @@ class CoSimulationBaseSolver(object):
     #               to to_client
     #
     #  @param self            The object pointer.
-    def ExportMesh(self, mesh_name, to_client):
+    def ExportMesh(self, mesh_name, to_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
         self.io.ExportMesh(mesh_name, to_client)
@@ -179,7 +188,7 @@ class CoSimulationBaseSolver(object):
     def _GetDataList(self):
         data_list = {}
         for data_def in self.cosim_solver_settings["data"]:
-            data_conf = tools.GetDataConfig(data_def)
+            data_conf = tools.MakeDataConfig(data_def)
             data_list[data_conf["name"]] = data_conf
 
         return data_list
