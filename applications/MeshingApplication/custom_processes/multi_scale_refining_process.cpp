@@ -19,6 +19,7 @@
 
 // Project includes
 #include "custom_processes/multi_scale_refining_process.h"
+#include "processes/fast_transfer_between_model_parts_process.h"
 #include "utilities/sub_model_parts_list_utility.h"
 #include "custom_utilities/uniform_refine_utility.h"
 
@@ -73,6 +74,9 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
 
     // Initialize the refined model part
     InitializeRefinedModelPart(sub_model_parts_names);
+
+    // Copy all the entities to the visualization model part
+    InitializeVisualizationModelPart(sub_model_parts_names);
 }
 
 
@@ -222,6 +226,21 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
 }
 
 
+void MultiScaleRefiningProcess::InitializeVisualizationModelPart(const StringVectorType& rNames)
+{
+    // Add the entities to the root model part
+    FastTransferBetweenModelPartsProcess(mrVisualizationModelPart, mrCoarseModelPart)();
+
+    // Add the entities to the submodel parts
+    for (auto name : rNames)
+    {
+        ModelPart& destination = mrVisualizationModelPart.GetSubModelPart(name);
+        ModelPart& origin = mrCoarseModelPart.GetSubModelPart(name);
+        FastTransferBetweenModelPartsProcess(destination, origin)();
+    }
+}
+
+
 void MultiScaleRefiningProcess::AddVariablesToRefinedModelPart()
 {
     auto variables_list = mrCoarseModelPart.GetNodalSolutionStepVariablesList();
@@ -339,6 +358,7 @@ void MultiScaleRefiningProcess::MarkConditionsFromNodalFlag()
     const int nconds = static_cast<int>(mrCoarseModelPart.Conditions().size());
     ModelPart::ConditionsContainerType::iterator cond_begin = mrCoarseModelPart.ConditionsBegin();
 
+    // We assume all the conditions have the same number of nodes
     const IndexType number_of_nodes = cond_begin->GetGeometry().size();
 
     // We will refine the conditions which all the nodes are to refine

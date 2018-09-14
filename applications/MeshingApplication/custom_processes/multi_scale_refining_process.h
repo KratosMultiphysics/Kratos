@@ -291,6 +291,13 @@ public:
     void InitializeRefinedModelPart(const StringVectorType& rNames);
 
     /**
+     * @brief InitializeVisualizationModelPart adds all the nodes, elements and conditions to the visualization model part
+     * @param rNemes The vector containing the sub model part names
+     */
+    void InitializeVisualizationModelPart(const StringVectorType& rNames); 
+
+
+    /**
      * @brief AddVariablesToRefinedModelPart copies the variables from the coarse to the refined model part
      */
     void AddVariablesToRefinedModelPart();
