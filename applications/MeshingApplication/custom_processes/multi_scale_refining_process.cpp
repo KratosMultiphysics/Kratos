@@ -28,9 +28,11 @@ namespace Kratos
 MultiScaleRefiningProcess::MultiScaleRefiningProcess(
     ModelPart& rThisCoarseModelPart,
     ModelPart& rThisRefinedModelPart,
+    ModelPart& rThisVisualizationModelPart,
     Parameters ThisParameters)
     : mrCoarseModelPart(rThisCoarseModelPart)
     , mrRefinedModelPart(rThisRefinedModelPart)
+    , mrVisualizationModelPart(rThisVisualizationModelPart)
     , mParameters(ThisParameters)
 {
     Parameters DefaultParameters = Parameters(R"(

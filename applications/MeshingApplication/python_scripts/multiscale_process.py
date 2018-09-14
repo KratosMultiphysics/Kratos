@@ -17,6 +17,7 @@ class MultiscaleProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters("""
         {
             "main_model_part_name"            : "MainModelPart",
+            "visualization_model_part_name"   : "VisualizationModelPart",
             "current_subscale"                : 0,
             "maximum_number_of_subscales"     : 4,    
             "echo_level"                      : 0,
@@ -39,12 +40,28 @@ class MultiscaleProcess(KratosMultiphysics.Process):
         self.current_subscale = self.settings['current_subscale'].GetInt()
         self.maximum_number_of_subscales = self.settings['maximum_number_of_subscales'].GetInt()
 
+        # Get the coarse model part name
         self.coarse_model_part_name = self.settings['main_model_part_name'].GetString()
         if (self.current_subscale > 0):
             self.coarse_model_part_name += '_' + str(self.current_subscale)
 
+        # Get the visualization model part
+        if (self.current_subscale == 0):
+            self._InitializeVisualizationModelPart()
+        else:
+            self.visualization_model_part = self.model[self.settings['visualization_model_part_name'].GetString()]
+
+        # Initialize the refined model part and the subscales process
         if (self.current_subscale < self.maximum_number_of_subscales):
             self._InitializeRefinedModelPart()
+
+    def _InitializeVisualizationModelPart(self):
+        visualization_model_part_name = self.settings['visualization_model_part_name'].GetString()
+        coarse_model_part = self.model[self.coarse_model_part_name]
+        self.visualization_model_part = KratosMultiphysics.ModelPart(visualization_model_part_name)
+        self.model.AddModelPart(self.visualization_model_part)
+        buffer_size = coarse_model_part.GetBufferSize()
+        self.visualization_model_part.SetBufferSize(buffer_size)
 
     def _InitializeRefinedModelPart(self):
         self.refined_model_part_name = self.settings['main_model_part_name'].GetString() + '_' + str(self.current_subscale + 1)
@@ -55,7 +72,11 @@ class MultiscaleProcess(KratosMultiphysics.Process):
         self.refined_model_part.SetBufferSize(buffer_size)
 
         # Create the new subscale process
-        self.subscales_utility = MeshingApplication.MultiScaleRefiningProcess(coarse_model_part, self.refined_model_part, self.settings["advanced_configuration"])
+        self.subscales_utility = MeshingApplication.MultiScaleRefiningProcess(
+            coarse_model_part,
+            self.refined_model_part,
+            self.visualization_model_part,
+            self.settings["advanced_configuration"])
         
         if self.echo_level > 0:
             print('The multiscale process is initialized')

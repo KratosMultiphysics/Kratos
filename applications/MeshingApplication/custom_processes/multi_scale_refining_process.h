@@ -106,6 +106,7 @@ public:
     MultiScaleRefiningProcess(
         ModelPart& rThisCoarseModelPart,
         ModelPart& rThisRefinedModelPart,
+        ModelPart& rThisVisualizationModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
@@ -214,6 +215,7 @@ public:
 
     ModelPart& mrCoarseModelPart;  /// The coarse sub model part
     ModelPart& mrRefinedModelPart; /// Where the refinement is performed
+    ModelPart& mrVisualizationModelPart;
     Parameters mParameters;
 
     std::string mElementName;
