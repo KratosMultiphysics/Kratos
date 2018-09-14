@@ -31,6 +31,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // The size type definition
+    typedef std::size_t SizeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -48,8 +51,10 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief: This object integrates the predictive stress using the isotropic damage theory by means of
  * linear/exponential softening.
- * @details
- * @tparam TYieldSurfaceType
+ * @details The definitions of these classes is completely static, the derivation is done in a static way
+ * The damage integrator requires the definition of the following properties:
+ * - SOFTENING_TYPE: The fosftening behaviour considered (linear, exponential,etc...)
+ * @tparam TYieldSurfaceType The yield surface considered
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TYieldSurfaceType>
@@ -62,6 +67,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     /// The type of yield surface
     typedef TYieldSurfaceType YieldSurfaceType;
 
+    /// The define the working dimension size, already defined in the yield surface
+    static constexpr SizeType Dimension = YieldSurfaceType::Dimension;
+
+    /// The define the Voigt size, already defined in the yield surface
+    static constexpr SizeType VoigtSize = YieldSurfaceType::VoigtSize;
+    
     /// The type of plastic potential
     typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
@@ -107,7 +118,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void IntegrateStressVector(
-        Vector& rPredictiveStressVector,
+        array_1d<double, VoigtSize>& rPredictiveStressVector,
         const double UniaxialStress,
         double& rDamage,
         double& rThreshold,

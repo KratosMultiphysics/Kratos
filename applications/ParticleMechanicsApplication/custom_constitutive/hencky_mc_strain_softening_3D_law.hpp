@@ -27,12 +27,13 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law J2 in plane strain 2D
- * With stress split in an isochoric and volumetric parts
+ * Defines a hyperelastic-plastic isotropic constitutive law for non-associative Mohr Coulomb (MC) constitutive law
  * This material law is defined by the parameters needed by the yield criterion:
-
- * The functionality is limited to large displacements
- */
+ * YOUNG_MODULUS, POISSON_RATIO, COHESION, INTERNAL_FRICTION_ANGLE, INTERNAL_DILATANCY_ANGLE,
+ * COHESION_RESIDUAL, INTERNAL_FRICTION_ANGLE_RESIDUAL, INTERNAL_DILATANCY_ANGLE_RESIDUAL, SHAPE_FUNCTION_BETA
+ * The functionality is designed for large displacements and considering exponential strain softening law
+ * For reference, please refer to: (Fern & Soga, 2016)
+*/
 
 
 
@@ -112,7 +113,7 @@ public:
      * @param CurrentProcessInfo
      * @return
      */
-    //int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
+    int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 

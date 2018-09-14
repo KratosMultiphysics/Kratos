@@ -39,30 +39,48 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStrain : public ElasticIsotropic3D
+    
+/**
+ * @class LinearPlaneStrain
+ * @ingroup StructuralMechanicsApplication
+ * @brief This class defines a small deformation linear elastic constitutive model for plane strain cases
+ * @details This class derives from the linear elastic case on 3D
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ */
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStrain 
+    : public ElasticIsotropic3D
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    /// The process info definition
     typedef ProcessInfo      ProcessInfoType;
+    
+    /// The base class ConstitutiveLaw type definition
     typedef ConstitutiveLaw       CLBaseType;
+    
+    /// The base class ElasticIsotropic3D type definition
     typedef ElasticIsotropic3D      BaseType;
+    
+    /// The size type definition
     typedef std::size_t             SizeType;
-    /**
-     * Counted pointer of LinearPlaneStrain
-     */
-
+    
+    /// Counted pointer of LinearPlaneStrain
     KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStrain );
 
     ///@name Life Cycle
     ///@{
 
     /**
-     * Default constructor.
+     * @brief Default constructor.
      */
     LinearPlaneStrain();
 
+    /**
+     * @brief The clone operation
+     */
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
@@ -72,7 +90,7 @@ public:
 
 
     /**
-     * Destructor.
+     * @brief Destructor.
      */
     ~LinearPlaneStrain() override;
 
@@ -85,13 +103,14 @@ public:
     ///@{
 
     /**
-     * This function is designed to be called once to check compatibility with element
+     * @brief This function is designed to be called once to check compatibility with element
      * @param rFeatures: The Features of the law
      */
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-     * Dimension of the law:
+     * @brief Dimension of the law:
+     * @return The dimension were the law is working 
      */
     SizeType WorkingSpaceDimension() override
     {
@@ -99,7 +118,8 @@ public:
     };
 
     /**
-     * Voigt tensor size:
+     * @brief Voigt tensor size:
+     * @return The size of the strain vector in Voigt notation
      */
     SizeType GetStrainSize() override
     {
@@ -123,7 +143,7 @@ public:
     ///@{
 
     /**
-     * returns the value of a specified variable
+     * @brief  Itreturns the value of a specified variable
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
@@ -150,33 +170,36 @@ protected:
     ///@{
 
     /**
-    * It calculates the constitutive matrix C
-    * @param C: The constitutive matrix
-    * @param rValues Parameters of the constitutive law
-    */
-    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
+     * @brief It calculates the constitutive matrix C
+     * @param C The constitutive matrix
+     * @param rValues Parameters of the constitutive law
+     */
+    void CalculateElasticMatrix(
+        Matrix& C, 
+        ConstitutiveLaw::Parameters& rValues
+        ) override;
 
     /**
-    * It calculates the stress vector
-    * @param rStrainVector The strain vector in Voigt notation
-    * @param rStressVector The stress vector in Voigt notation
-    * @param rValues Parameters of the constitutive law
-    */
+     * @brief It calculates the stress vector
+     * @param rStrainVector The strain vector in Voigt notation
+     * @param rStressVector The stress vector in Voigt notation
+     * @param rValues Parameters of the constitutive law
+     */
     void CalculatePK2Stress(
         const Vector& rStrainVector,
         Vector& rStressVector,
         ConstitutiveLaw::Parameters& rValues
-    ) override;
+        ) override;
 
     /**
-    * It calculates the strain vector
-    * @param rValues The internal values of the law
-    * @param rStrainVector The strain vector in Voigt notation
-    */
+     * @brief It calculates the strain vector
+     * @param rValues The internal values of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
     void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector
-    ) override;
+        ) override;
 
     ///@}
 
