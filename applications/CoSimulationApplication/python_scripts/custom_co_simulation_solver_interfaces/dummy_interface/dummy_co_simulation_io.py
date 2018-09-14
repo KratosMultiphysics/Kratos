@@ -21,8 +21,14 @@ class DummyCoSimulationIO(CoSimulationBaseIO):
     #  @param data_config     python dictionary : configuration of the data to be imported.
     #                                             data will be imported into this dictionary
     #  @param from_client     python object : The client from which data is to be imported.
-    def ImportData(self, data_config, from_client):
-        pass
+    def ImportData(self, data_config, from_client=None):
+        if(from_client != None):
+            # exchange data from python cosim solver
+            pass
+        else:
+            # import data from remote solver
+            pass
+
 
     ## ImportMesh :  used to import mesh from other clients
     #
@@ -30,8 +36,13 @@ class DummyCoSimulationIO(CoSimulationBaseIO):
     #  @param mesh_conig      python dictionary : configuration of the mesh to be imported.
     #                                             mesh will be imported into this dictionary.
     #  @param from_client     python object : The client from which mesh is to be imported.
-    def ImportMesh(self, mesh_conig, from_client):
-        pass
+    def ImportMesh(self, mesh_conig, from_client=None):
+        if(from_client != None):
+            # exchange mesh from python cosim solver
+            pass
+        else:
+            # import mesh from remote solver
+            pass
 
     ## ExportData :  used to export data to other clients
     #
@@ -39,8 +50,13 @@ class DummyCoSimulationIO(CoSimulationBaseIO):
     #  @param data_config     python dictionary : configuration of the mesh to be exported.
     #                                             also contains the data to export.
     #  @param to_client       python object : The client to which mesh is to be exported.
-    def ExportData(self, data_config, to_client):
-        pass
+    def ExportData(self, data_config, to_client=None):
+        if(to_client != None): # IMPORTANT : exchangig data between python cosim solvers should be avoided here.
+            # put data on to python cosim solver.
+            pass
+        else:
+            # export the given data to the remote solver
+            pass
 
     ## ExportMesh :  used to export mesh to other clients
     #
@@ -48,7 +64,13 @@ class DummyCoSimulationIO(CoSimulationBaseIO):
     #  @param mesh_conig      python dictionary : configuration of the mesh to be exported.
     #                                             also contains the mesh data to export.
     #  @param to_client       python object : The client to which mesh is to be exported.
-    def ExportMesh(self, mesh_conig, to_client):
+    def ExportMesh(self, mesh_conig, to_client=None):
+        if(to_client != None): # IMPORTANT : exchangig mesh between python cosim solvers should be avoided here.
+            # put mesh on to python cosim solver.
+            pass
+        else:
+            # export the given mesh to the remote solver
+            pass
         pass
 
     ## Sets the echo level of for this IO object. Used for output of information during CoSimulation
