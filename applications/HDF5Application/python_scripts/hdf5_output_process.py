@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 # Other imports
 import os
@@ -32,6 +33,8 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         {
             "model_part_name"                    : "PLEASE_SPECIFY_MOEL_PART_NAME",
             "file_name"                          : "",
+            "output_control_type"                : "step",
+            "output_frequency"                   : 1.0,
             "save_h5_files_in_folder"            : true,
             "backwards_in_time"                  : false,
             "create_xdmf_file_level"             : 1,
@@ -52,8 +55,8 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         if self.file_name == "": # in case not file name is specified then the name of the ModelPart is used
             self.file_name = self.model_part_name
 
-        self.raw_path, self.file_name = os.path.split(self.file_name) # maybe add os.getcwd to raw_path?
-        self.raw_path = os.path.join(os.getcwd(), self.raw_path)
+        self.raw_path, self.file_name = os.path.split(self.file_name)
+        # self.raw_path = os.path.join(os.getcwd(), self.raw_path) # maybe add os.getcwd to raw_path?
 
         self.folder_name = self.file_name + "__h5_files"
         self.save_h5_files_in_folder = self.settings["save_h5_files_in_folder"].GetBool()
@@ -62,37 +65,10 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
         if self.create_xdmf_file_level > 0 and have_xdmf is False:
             KratosMultiphysics.Logger.PrintWarning("XDMF-Writing is not available!")
             self.create_xdmf_file_level = 0
-        # self.xdmf_file_name = self.__GetFullFilePath() + ".xdmf"
         self.num_output_files = 0 # force rewritting xdmf
 
+
     def ExecuteInitialize(self):
-        # create folder if necessary and adapt paths
-        hfd5_writer_process_parameters = KratosMultiphysics.Parameters("""{
-            "Parameters" : {
-                "model_part_name" : "%s",
-                "nodal_solution_step_data_settings" : { },
-                "nodal_data_value_settings"         : { },
-                "element_data_value_settings"       : { },
-                "file_settings" : {
-                    "file_access_mode" : "truncate"
-                },
-                "output_time_settings" : {
-                    "output_step_frequency" : 20,
-                    "file_name" : "%s"
-                }
-            }
-        }""" % (self.model_part_name, self.__GetFullFilePath(self.file_name)))
-
-        hdf5_params = hfd5_writer_process_parameters["Parameters"]
-
-        hdf5_params["nodal_solution_step_data_settings"].AddValue(
-            "list_of_variables", self.settings["nodal_solution_step_data_variables"])
-        hdf5_params["nodal_data_value_settings"].AddValue(
-            "list_of_variables", self.settings["nodal_data_value_variables"])
-        hdf5_params["element_data_value_settings"].AddValue(
-            "list_of_variables", self.settings["element_data_value_variables"])
-
-
         model_part_comm = self.model[self.model_part_name].GetCommunicator()
         is_mpi_execution = (model_part_comm.TotalProcesses() > 1)
 
@@ -102,15 +78,16 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
                 os.makedirs(folder_path)
             model_part_comm.Barrier()
 
+        self.__DeleteOldH5Files()
+
+        hfd5_writer_process_parameters = self.__CreateHDF5WriterProcessParams()
+
         if is_mpi_execution:
             import partitioned_single_mesh_temporal_output_process as hdf5_process
-            hdf5_params["file_settings"].AddEmptyValue("file_driver").SetString("mpio") # TODO needed?
+            file_settings = hfd5_writer_process_parameters["Parameters"]["file_settings"]
+            file_settings.AddEmptyValue("file_driver").SetString("mpio") # TODO needed?
         else:
             import single_mesh_temporal_output_process as hdf5_process
-
-        print(hfd5_writer_process_parameters.PrettyPrintJsonString())
-
-        # TODO delete the old files!
 
         self.hfd5_writer_process = hdf5_process.Factory(hfd5_writer_process_parameters, self.model)
         self.hfd5_writer_process.ExecuteInitialize()
@@ -148,19 +125,13 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
             self.__WriteXdmfFile()
 
     def __WriteXdmfFile(self):
-        current_time = self.model[self.model_part_name].ProcessInfo[KratosMultiphysics.TIME]
-        create_xdmf_file.WriteXdmfFile(self.file_name + ".h5",
-                                       self.__GetFolderPathSave(),
-                                       current_time)
+        create_xdmf_file.WriteXdmfFile(self.file_name + ".h5", self.__GetFolderPathSave())
 
     def __GetNumberOfOutputFiles(self):
         h5_files_path = os.path.join(self.__GetFolderPathSave(), self.file_name + ".h5")
-        current_time = self.model[self.model_part_name].ProcessInfo[KratosMultiphysics.TIME]
         list_time_labels = create_xdmf_file.GetListOfTimeLabels(h5_files_path)
 
-        num_output_files = sum(float(time_label) <= current_time for time_label in list_time_labels)
-
-        return num_output_files
+        return len(create_xdmf_file.GetListOfTimeLabels(h5_files_path))
 
     def __GetFolderPathSave(self):
         if self.save_h5_files_in_folder:
@@ -170,3 +141,62 @@ class HDF5OutputProcess(KratosMultiphysics.Process):
 
     def __GetFullFilePath(self, file_name):
         return os.path.join(self.__GetFolderPathSave(), file_name)
+
+    def __DeleteOldH5Files(self):
+        """This function deletes the old h5-files containing the time-data
+        """
+        kratos_utils.DeleteFileIfExisting(self.file_name+".xdmf")
+
+        current_time = self.model[self.model_part_name].ProcessInfo[KratosMultiphysics.TIME]
+        time_prefix = self.file_name+"-"
+        backwards_in_time = self.settings["backwards_in_time"].GetBool() # e.g. for adjoint problems
+        for name in os.listdir(self.__GetFolderPathSave()):
+            if name.find(time_prefix) == 0:
+                file_time = float(name.replace(".h5", "")[len(time_prefix):])
+                if backwards_in_time:
+                    if file_time < current_time:
+                        kratos_utils.DeleteFileIfExisting(self.__GetFullFilePath(name))
+                else:
+                    if file_time > current_time:
+                        kratos_utils.DeleteFileIfExisting(self.__GetFullFilePath(name))
+
+    def __CreateHDF5WriterProcessParams(self):
+        """This function translates the input for the HDF-output-processes
+        """
+        hfd5_writer_process_parameters = KratosMultiphysics.Parameters("""{
+            "Parameters" : {
+                "model_part_name" : "%s",
+                "nodal_solution_step_data_settings" : { },
+                "nodal_data_value_settings"         : { },
+                "element_data_value_settings"       : { },
+                "file_settings" : {
+                    "file_access_mode" : "truncate"
+                },
+                "output_time_settings" : {
+                    "file_name" : "%s"
+                }
+            }
+        }""" % (self.model_part_name, self.__GetFullFilePath(self.file_name)))
+
+        hdf5_params = hfd5_writer_process_parameters["Parameters"]
+
+        hdf5_params["nodal_solution_step_data_settings"].AddValue(
+            "list_of_variables", self.settings["nodal_solution_step_data_variables"])
+        hdf5_params["nodal_data_value_settings"].AddValue(
+            "list_of_variables", self.settings["nodal_data_value_variables"])
+        hdf5_params["element_data_value_settings"].AddValue(
+            "list_of_variables", self.settings["element_data_value_variables"])
+
+        output_control_type = self.settings["output_control_type"].GetString()
+        if output_control_type == "time":
+            hdf5_params["output_time_settings"].AddValue("output_time_frequency", self.settings["output_frequency"])
+        elif output_control_type == "step":
+            # "output_step_frequency" is an int, therefore explicit conversion necessary!
+            output_frequency = int(self.settings["output_frequency"].GetDouble())
+            hdf5_params["output_time_settings"].AddEmptyValue("output_step_frequency").SetInt(output_frequency)
+        else:
+            err_msg =  'The requested output_control_type "' + output_control_type + '" is not available!\n'
+            err_msg += 'Available options are: "time", "step"'
+            raise Exception(err_msg)
+
+        return hfd5_writer_process_parameters
