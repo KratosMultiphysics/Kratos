@@ -2,7 +2,13 @@ from __future__ import print_function, absolute_import, division
 
 # Other imports
 import co_simulation_io_factory as io_factory
+import co_simulation_tools as tools
 
+##
+#  IMPORTANT : This is a BASE CLASS
+#               Please do not change any thing in this class.
+#
+# This Class servers as a base class for all the Solver interfaces which will be implemented
 class CoSimulationBaseSolver(object):
     ## Constructor :  The base class for the CoSimulation Solver interfaces
     #                  Constructor of the Base-Solver interface
@@ -11,10 +17,16 @@ class CoSimulationBaseSolver(object):
     #  @param self                      The object pointer.
     #  @param cosim_solver_settings     python dictionary : with the solver settings.
     def __init__(self, cosim_solver_settings):
-        self.cosim_solver_settings = cosim_solver_settings
-        self.echo_level = 0
-        if "echo_level" in self.cosim_solver_settings:
-            self.echo_level = self.cosim_solver_settings["echo_level"]
+        defaultSettings = {}
+        defaultSettings["name"] = str # MANDATORY
+        defaultSettings["settings"] = dict # MANDATORY
+        defaultSettings["data"] = list # MANDATORY
+        defaultSettings["echo_level"] = 0
+        self.cosim_solver_settings = tools.ValidateAndAssignInputParameters(defaultSettings, cosim_solver_settings, False)
+        self.SetEchoLevel( self.cosim_solver_settings["echo_level"] )
+
+        self.data_list = self._GetDataList()
+
         self.io_is_initialized = False
 
     ## Initialize : Initialize function for the solver class. Necessary
@@ -27,14 +39,12 @@ class CoSimulationBaseSolver(object):
     #                   usually a particular type of solver has a particular default IO type
     #  @param self                      The object pointer.
     #  @param io_echo_level             int : echo level for the io to be initialized.
-    def InitializeIO(self, io_echo_level):
+    def InitializeIO(self, io_echo_level=0):
         solver_name = self.cosim_solver_settings["name"]
         if self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is already initialized!')
 
-        self.io = io_factory.CreateIO(self._GetIOName(),
-                                      solvers,
-                                      solver_name)
+        self.io = io_factory.CreateIO(self._GetIOName(), solver_name)
         self.io.SetEchoLevel(io_echo_level)
         self.io_is_initialized = True
 
@@ -87,15 +97,20 @@ class CoSimulationBaseSolver(object):
     #               from_client
     #
     #  @param self            The object pointer.
+    #  @param data_name       string : Name of the data to be imported from from_client
+    #  @param from_client     python obj : The client from which data_name has to be imported
     def ImportData(self, data_name, from_client):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        self.io.ImportData(data_name, from_client)
+        data_conf = self.GetDataConfig(data_name)
+        self.io.ImportData(data_conf, from_client)
 
     ## ImportMesh : This function imports the requesed surface/volume
     #               mesh from from_client
     #
     #  @param self            The object pointer.
+    #  @param mesh_name       string : Name of the mesh to be imported from from_client
+    #  @param from_client     python obj : The client from which data_name has to be imported
     def ImportMesh(self, mesh_name, from_client):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
@@ -130,14 +145,14 @@ class CoSimulationBaseSolver(object):
     #
     #  @param self            The object pointer.
     def GetDeltaTime(self):
-        raise Exception('!!!WARNING!!!  Calling "GetDeltaTime" function from base Co-Simulation Solver class!')
+        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling GetDeltaTime function from base Co-Simulation Solver class!" + tools.bcolors.ENDC)
 
     ## PrintInfo : Function to display information about the
     #              specifics of the coupled solver.
     #
     #  @param self            The object pointer.
     def PrintInfo(self):
-        pass
+        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling PrintInfo function from base Co-Simulation Solver class!" + tools.bcolors.ENDC)
 
     ## SetEchoLevel : Function to set the Echo level for this solver
     #
@@ -150,11 +165,21 @@ class CoSimulationBaseSolver(object):
     #
     #  @param self            The object pointer.
     def Check(self):
-        print("!!!WARNING!!! Calling Check from base Co-Simulation Solver class !!!")
+        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling Check function from base Co-Simulation Solver class!" + tools.bcolors.ENDC)
 
-    ## _GetIOType : Function to obtain the type of IO this solver has as default
+    ## _GetIOType : Private Function to obtain the type of IO this solver has as default
     #
     #  @param self            The object pointer.
     def _GetIOType(self):
-        raise Exception('"_GetIOName" function must be implemented in derived class!')
+        raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling _GetIOName function from base Co-Simulation Solver class!" + tools.bcolors.ENDC)
 
+    ## _GetIOType : Private Function to obtain the list of data objects
+    #
+    #  @param self            The object pointer.
+    def _GetDataList(self):
+        data_list = {}
+        for data_def in self.cosim_solver_settings["data"]:
+            data_conf = tools.GetDataConfig(data_def)
+            data_list[data_conf["name"]] = data_conf
+
+        return data_list
