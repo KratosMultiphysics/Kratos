@@ -67,6 +67,12 @@ public:
     /// The definition of the index type
     typedef std::size_t       IndexType;
 
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 3;
+    
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 6;
+    
     /// Pointer definition of HyperElasticIsotropicNeoHookean3D
     KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicNeoHookean3D );
 
@@ -112,7 +118,7 @@ public:
      */
     SizeType WorkingSpaceDimension() override
     {
-        return 3;
+        return Dimension;
     };
 
     /**
@@ -120,10 +126,28 @@ public:
      */
     SizeType GetStrainSize() override
     {
-        return 6;
+        return VoigtSize;
     };
 
- /**
+    /**
+     * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
+     * @return the expected strain measure
+     */
+    StrainMeasure GetStrainMeasure() override
+    {
+        return StrainMeasure_GreenLagrange;
+    }
+
+    /**
+     * @brief Returns the stress measure of this constitutive law (by default 2st Piola-Kirchhoff stress in voigt notation)
+     * @return the expected stress measure
+     */
+    StressMeasure GetStressMeasure() override
+    {
+        return StressMeasure_PK2;
+    }
+    
+    /**
      * @brief Computes the material response: PK1 stresses and algorithmic ConstitutiveMatrix
      * @param rValues The Internalvalues of the law
      * @see   Parameters
