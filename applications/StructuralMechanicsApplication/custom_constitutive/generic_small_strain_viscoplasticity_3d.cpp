@@ -17,16 +17,16 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
-#include "custom_constitutive/viscous_generalized_maxwell_3d.h"
+#include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
+#include "custom_constitutive/viscous_generalized_maxwell.h"
 #include "generic_small_strain_viscoplasticity_3d.h"
 
 namespace Kratos
 {
 ConstitutiveLaw::Pointer GenericSmallStrainViscoplasticity3D::Create(Kratos::Parameters NewParameters) const
 {
-    ConstitutiveLaw::Pointer p_plasticity_cl = SmallStrainIsotropicPlasticityFactory3D().Create(NewParameters);
-    ConstitutiveLaw::Pointer p_viscous_cl = Kratos::make_shared<ViscousGeneralizedMaxwell3D>();
+    ConstitutiveLaw::Pointer p_plasticity_cl = SmallStrainIsotropicPlasticityFactory().Create(NewParameters);
+    ConstitutiveLaw::Pointer p_viscous_cl = Kratos::make_shared<ViscousGeneralizedMaxwell<ElasticIsotropic3D>>();
     return Kratos::make_shared<GenericSmallStrainViscoplasticity3D>(p_plasticity_cl, p_viscous_cl);
 
     //return GenericSmallStrainViscoplasticity3D(p_plasticity_cl, p_viscous_cl).Clone();

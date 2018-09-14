@@ -21,7 +21,7 @@
 
 namespace Kratos
 {
-//******************************CONSTRUCTOR*******************************************
+/******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
 
 ElasticIsotropic3D::ElasticIsotropic3D()
@@ -29,7 +29,7 @@ ElasticIsotropic3D::ElasticIsotropic3D()
 {
 }
 
-//******************************COPY CONSTRUCTOR**************************************
+/******************************COPY CONSTRUCTOR*************************************/
 /***********************************************************************************/
 
 ElasticIsotropic3D::ElasticIsotropic3D(const ElasticIsotropic3D& rOther)
@@ -37,7 +37,7 @@ ElasticIsotropic3D::ElasticIsotropic3D(const ElasticIsotropic3D& rOther)
 {
 }
 
-//********************************CLONE***********************************************
+/********************************CLONE**********************************************/
 /***********************************************************************************/
 
 ConstitutiveLaw::Pointer ElasticIsotropic3D::Clone() const
@@ -45,7 +45,7 @@ ConstitutiveLaw::Pointer ElasticIsotropic3D::Clone() const
     return Kratos::make_shared<ElasticIsotropic3D>(*this);
 }
 
-//*******************************DESTRUCTOR*******************************************
+/*******************************DESTRUCTOR******************************************/
 /***********************************************************************************/
 
 ElasticIsotropic3D::~ElasticIsotropic3D()
@@ -61,7 +61,7 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     // b.- Get Values to compute the constitutive law:
     Flags & r_options=rValues.GetOptions();
 
-    Vector& r_strain_vector                  = rValues.GetStrainVector();
+    Vector& r_strain_vector = rValues.GetStrainVector();
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if( r_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {

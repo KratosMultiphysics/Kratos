@@ -18,6 +18,7 @@
 #include <custom_constitutive/linear_isotropic_damage_plane_strain_2d.h>
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
+// Elastic laws
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "custom_constitutive/truss_plasticity_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
@@ -36,14 +37,34 @@
 #include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/linear_isotropic_damage_3D_law.h"
 
-// CL
-#include "custom_constitutive/small_strain_isotropic_plasticity_factory_3d.h"
-#include "custom_constitutive/small_strain_isotropic_damage_factory_3d.h"
-#include "custom_constitutive/viscous_generalized_maxwell_3d.h"
-#include "custom_constitutive/viscous_generalized_kelvin_3d.h"
+// Plastic, damage laws and viscosities
+#include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
+#include "custom_constitutive/small_strain_isotropic_damage_factory.h"
+#include "custom_constitutive/viscous_generalized_maxwell.h"
+#include "custom_constitutive/viscous_generalized_kelvin.h"
 #include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
-#include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
-#include "custom_constitutive/generic_small_strain_isotropic_damage_3d.h"
+#include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
+#include "custom_constitutive/generic_small_strain_isotropic_damage.h"
+
+// Integrators
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+
+// Yield surfaces
+#include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
+
+// Plastic potentials
+#include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
 namespace Kratos
 {
@@ -129,19 +150,19 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     ;
     
 
-    class_< SmallStrainIsotropicDamageFactory3D, typename SmallStrainIsotropicDamageFactory3D::Pointer,  ConstitutiveLaw  >
-    (m,"SmallStrainIsotropicDamageFactory3D").def( init<>())
+    class_< SmallStrainIsotropicDamageFactory, typename SmallStrainIsotropicDamageFactory::Pointer,  ConstitutiveLaw  >
+    (m,"SmallStrainIsotropicDamageFactory").def( init<>())
     ;
 
-    class_< SmallStrainIsotropicPlasticityFactory3D, typename SmallStrainIsotropicPlasticityFactory3D::Pointer,  ConstitutiveLaw  >
-    (m,"SmallStrainIsotropicPlasticityFactory3D").def( init<>())
+    class_< SmallStrainIsotropicPlasticityFactory, typename SmallStrainIsotropicPlasticityFactory::Pointer,  ConstitutiveLaw  >
+    (m,"SmallStrainIsotropicPlasticityFactory").def( init<>())
     ;
 
-    class_< ViscousGeneralizedKelvin3D, typename ViscousGeneralizedKelvin3D::Pointer,  ConstitutiveLaw  >
+    class_< ViscousGeneralizedKelvin<ElasticIsotropic3D>, typename ViscousGeneralizedKelvin<ElasticIsotropic3D>::Pointer,  ConstitutiveLaw  >
     (m,"ViscousGeneralizedKelvin3D").def( init<>())
     ;
 
-    class_< ViscousGeneralizedMaxwell3D, typename ViscousGeneralizedMaxwell3D::Pointer,  ConstitutiveLaw  >
+    class_< ViscousGeneralizedMaxwell<ElasticIsotropic3D>, typename ViscousGeneralizedMaxwell<ElasticIsotropic3D>::Pointer,  ConstitutiveLaw  >
     (m,"ViscousGeneralizedMaxwell3D").def( init<>())
     ;
 

@@ -65,7 +65,13 @@ public:
     
     /// The size type definition
     typedef std::size_t             SizeType;
-
+    
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 3;
+    
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 6;
+    
     /// Counted pointer of ElasticIsotropic3D
     KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropic3D );
 
@@ -112,7 +118,7 @@ public:
     */
     SizeType WorkingSpaceDimension() override
     {
-        return 3;
+        return Dimension;
     };
 
     /**
@@ -120,7 +126,7 @@ public:
      */
     SizeType GetStrainSize() override
     {
-        return 6;
+        return VoigtSize;
     };
 
     /**
