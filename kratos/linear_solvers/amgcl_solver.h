@@ -46,6 +46,7 @@
 #include <amgcl/coarsening/runtime.hpp>
 #include <amgcl/relaxation/runtime.hpp>
 #include <amgcl/solver/runtime.hpp>
+#include <amgcl/preconditioner/runtime.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -65,7 +66,6 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-
 enum AMGCLSmoother
 {
     SPAI0,SPAI1,ILU0,DAMPED_JACOBI,GAUSS_SEIDEL,CHEBYSHEV
@@ -101,25 +101,29 @@ AMGCLScalarSolve(
     typename TSparseSpaceType::VectorType& rB,
     typename TSparseSpaceType::IndexType& rIterationNumber,
     double& rResidual,
-    const boost::property_tree::ptree &amgclParams
+    const boost::property_tree::ptree &amgclParams,
+    int verbosity_level
     )
 {
     typedef amgcl::backend::builtin<double> Backend;
 
+    // amgcl::make_solver<
+    //     amgcl::amg<
+    //         Backend,
+    //         amgcl::runtime::coarsening::wrapper,
+    //         amgcl::runtime::relaxation::wrapper
+    //         >,
+    //     amgcl::runtime::solver::wrapper<Backend>
+    //     > solve(amgcl::adapter::zero_copy(TSparseSpaceType::Size1(rA), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), amgclParams);
+
     amgcl::make_solver<
-        amgcl::amg<
-            Backend,
-            amgcl::runtime::coarsening::wrapper,
-            amgcl::runtime::relaxation::wrapper
-            >,
+        amgcl::runtime::preconditioner<Backend>,
         amgcl::runtime::solver::wrapper<Backend>
         > solve(amgcl::adapter::zero_copy(TSparseSpaceType::Size1(rA), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), amgclParams);
 
-    // Compute preconditioner
-//         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 0) << solve.precond() << std::endl;
-//         else solve.precond();
-
     std::tie(rIterationNumber, rResidual) = solve(rB, rX);
+
+    //if(mVerbosity > 1 )
 }
 
 /**
@@ -138,7 +142,8 @@ AMGCLBlockSolve(
     typename TSparseSpaceType::VectorType& rB,
     typename TSparseSpaceType::IndexType& rIterationNumber,
     double& rResidual,
-    boost::property_tree::ptree amgclParams
+    boost::property_tree::ptree amgclParams,
+    int verbosity_level
     )
 {
     amgclParams.put("precond.coarsening.aggr.block_size",1);
@@ -149,18 +154,19 @@ AMGCLBlockSolve(
 
     std::size_t n = TSparseSpaceType::Size1(rA);
 
+    // amgcl::make_solver<
+    //     amgcl::amg<
+    //         Backend,
+    //         amgcl::runtime::coarsening::wrapper,
+    //         amgcl::runtime::relaxation::wrapper
+    //         >,
+    //     amgcl::runtime::solver::wrapper<Backend>
+    //     > solve( amgcl::adapter::block_matrix<value_type>(std::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() )), amgclParams);
+
     amgcl::make_solver<
-        amgcl::amg<
-            Backend,
-            amgcl::runtime::coarsening::wrapper,
-            amgcl::runtime::relaxation::wrapper
-            >,
+        amgcl::runtime::preconditioner<Backend>,
         amgcl::runtime::solver::wrapper<Backend>
         > solve( amgcl::adapter::block_matrix<value_type>(std::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() )), amgclParams);
-
-//         //compute preconditioner
-//         if(mverbosity > 0) std::cout << solve.precond() << std::endl;
-//         else solve.precond();
 
     rhs_type* x_begin = reinterpret_cast<rhs_type*>(&rX[0]);
     boost::iterator_range<rhs_type*> x_range = boost::make_iterator_range(x_begin, x_begin + n / TBlockSize);
@@ -230,8 +236,9 @@ public:
     {
         Parameters default_parameters( R"(
         {
+            "preconditioner_type"            : "amg",
             "solver_type"                    : "AMGCL",
-            "smoother_type"                  :"ilu0",
+            "smoother_type"                  : "ilu0",
             "krylov_type"                    : "gmres",
             "coarsening_type"                : "aggregation",
             "max_iteration"                  : 100,
@@ -251,10 +258,22 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
+        std::set<std::string> available_preconditioner = {"amg","relaxation","dummy"};
+
+        //selecting preconditioner type - default is AMG
+        mAMGCLParameters.put("precond.class", ThisParameters["preconditioner_type"].GetString());
+        if(ThisParameters["preconditioner_type"].GetString() == "relaxation") //this implies not using. Use a relaxation sweep as preconditioning. Relaxation type is taken from smoother_type 
+        {
+            mAMGCLParameters.put("precond.type", ThisParameters["smoother_type"].GetString());
+        }
+        
+
         // Validate if values are admissible
         std::set<std::string> available_smoothers = {"spai0","spai1","ilu0","ilut","iluk","damped_jacobi","gauss_seidel","chebyshev"};
         std::set<std::string> available_solvers = {"gmres","bicgstab","cg","bicgstabl","lgmres","fgmres", "bicgstab_with_gmres_fallback","idrs"};
         std::set<std::string> available_coarsening = {"ruge_stuben","aggregation","smoothed_aggregation","smoothed_aggr_emin"};
+        
+
 
         std::stringstream msg;
 
@@ -273,6 +292,11 @@ public:
             msg << "Admissible values are : ruge_stuben,aggregation,smoothed_aggregation,smoothed_aggr_emin" << std::endl;
             KRATOS_ERROR << " coarsening_type is invalid: available possibilities are : " << msg.str() << std::endl;
         }
+        if(available_preconditioner.find(ThisParameters["preconditioner_type"].GetString()) == available_preconditioner.end()) {
+            msg << "Currently prescribed preconditioner_type : " << ThisParameters["preconditioner_type"].GetString() << std::endl;
+            msg << "Admissible values are : amg, relaxation, dummy" << std::endl;
+            KRATOS_ERROR << " preconditioner_type is invalid: available possibilities are : " << msg.str() << std::endl;
+        }
 
         mProvideCoordinates = ThisParameters["provide_coordinates"].GetBool();
         mCoarseEnough = ThisParameters["coarse_enough"].GetInt();
@@ -284,7 +308,6 @@ public:
         mGMRESSize = ThisParameters["gmres_krylov_space_dimension"].GetInt();
 
         const std::string& solver_type = ThisParameters["krylov_type"].GetString();
-        KRATOS_WATCH(solver_type)
         if(solver_type == "gmres" || solver_type == "lgmres" || solver_type == "fgmres") {
             //KRATOS_ERROR << "------------------------  aaaaaaa";
             mAMGCLParameters.put("solver.M",  mGMRESSize);
@@ -297,23 +320,33 @@ public:
             mFallbackToGMRES = false;
             mAMGCLParameters.put("solver.type", solver_type);
         }
-        mAMGCLParameters.put("precond.relax.type", ThisParameters["smoother_type"].GetString());
-        mAMGCLParameters.put("precond.coarsening.type",  ThisParameters["coarsening_type"].GetString());
+
+        //settings only needed if full AMG is used
+        // if(ThisParameters["preconditioner_type"].GetString() == "amg")
+        {
+            mAMGCLParameters.put("precond.relax.type", ThisParameters["smoother_type"].GetString());
+            mAMGCLParameters.put("precond.coarsening.type",  ThisParameters["coarsening_type"].GetString());
+
+            
+
+            int max_levels = ThisParameters["max_levels"].GetInt();
+            if(max_levels >= 0)
+                mAMGCLParameters.put("precond.max_levels",  max_levels); 
+
+            mAMGCLParameters.put("precond.npre",  ThisParameters["pre_sweeps"].GetInt());
+            mAMGCLParameters.put("precond.npost",  ThisParameters["post_sweeps"].GetInt());
+        }
 
         mUseBlockMatricesIfPossible = ThisParameters["use_block_matrices_if_possible"].GetBool();
-
-        int max_levels = ThisParameters["max_levels"].GetInt();
-        if(max_levels >= 0)
-            mAMGCLParameters.put("precond.max_levels",  max_levels); 
-
-        mAMGCLParameters.put("precond.npre",  ThisParameters["pre_sweeps"].GetInt());
-        mAMGCLParameters.put("precond.npost",  ThisParameters["post_sweeps"].GetInt());
 
         if(mProvideCoordinates && mUseBlockMatricesIfPossible) {
             KRATOS_WARNING("AMGCL Linear Solver") << "Sorry coordinates can not be provided when using block matrices, hence setting muse_block_matrices_if_possible to false" << std::endl;
             mUseBlockMatricesIfPossible = false;
             ThisParameters["use_block_matrices_if_possible"].SetBool(false);
         }
+        
+
+
     }
 
     /**
@@ -488,20 +521,20 @@ public:
             if(mUseBlockMatricesIfPossible) {
                 KRATOS_ERROR_IF(TSparseSpaceType::Size1(rA)%mBlockSize != 0) << "The block size employed " << mBlockSize << " is not an exact multiple of the matrix size "
                     << TSparseSpaceType::Size1(rA) << std::endl;
-                if(mBlockSize == 1) AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
-                else if(mBlockSize == 2) AMGCLBlockSolve<2, TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
-                else if(mBlockSize == 3) AMGCLBlockSolve<3, TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
-                else if(mBlockSize == 4) AMGCLBlockSolve<4, TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
+                if(mBlockSize == 1) AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity);
+                else if(mBlockSize == 2) AMGCLBlockSolve<2, TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity);
+                else if(mBlockSize == 3) AMGCLBlockSolve<3, TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity);
+                else if(mBlockSize == 4) AMGCLBlockSolve<4, TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity);
                 else
-                    AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
+                    AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity);
             } else {
-                AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
+                AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity);
             }
         } //please do not remove this parenthesis!
 
         if(mFallbackToGMRES && resid > mTolerance ) {
             mAMGCLParameters.put("solver.type", "gmres");
-            AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters);
+            AMGCLScalarSolve<TSparseSpaceType>(rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity);
         }
 
         KRATOS_WARNING_IF("AMGCL Linear Solver", mTolerance < resid)<<"Non converged linear solution. ["<< resid << " > "<< mTolerance << "]" << std::endl;

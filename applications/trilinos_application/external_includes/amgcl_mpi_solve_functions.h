@@ -32,7 +32,8 @@ AMGCLScalarSolve(
     typename TSparseSpaceType::VectorType& rB,
     typename TSparseSpaceType::IndexType& rIterationNumber,
     double& rResidual,
-    const boost::property_tree::ptree &amgclParams
+    const boost::property_tree::ptree &amgclParams,
+    int verbosity_level
     )
 {
     typedef amgcl::backend::builtin<double> Backend;
@@ -69,7 +70,8 @@ AMGCLBlockSolve(
     typename TSparseSpaceType::VectorType& rB,
     typename TSparseSpaceType::IndexType& rIterationNumber,
     double& rResidual,
-    boost::property_tree::ptree amgclParams
+    boost::property_tree::ptree amgclParams,
+    int verbosity_level
     )
 {
     amgclParams.put("precond.coarsening.aggr.block_size",1);
