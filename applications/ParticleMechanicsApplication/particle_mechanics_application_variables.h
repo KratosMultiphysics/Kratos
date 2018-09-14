@@ -21,7 +21,6 @@
 #include "includes/variables.h"
 #include "includes/deprecated_variables.h"
 
-
 namespace Kratos
 {
     
