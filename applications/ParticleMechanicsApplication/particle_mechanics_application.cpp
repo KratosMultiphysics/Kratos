@@ -12,12 +12,9 @@
 //
 
 
-
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "geometries/triangle_2d_3.h"
@@ -51,13 +48,13 @@
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 
-//#include "includes/define.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
 
 #include "particle_mechanics_application.h"
+
 namespace Kratos
 {
 

@@ -12,9 +12,10 @@
 
 
 // System includes
+#include <omp.h>
+#include <sstream>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -22,10 +23,6 @@
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "particle_mechanics_application.h"
-
-
-#include <omp.h>
-#include <sstream>
 
 namespace Kratos
 {
@@ -419,7 +416,6 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
 
         AUX_MP_Pressure += Variables.N[j] * NodalPressure;
 
-        //std::cout<<"NodalVelocity "<< GetGeometry()[j].Id()<<std::endl;
         for (unsigned int k = 0; k < dimension; k++)
         {
             AUX_MP_Velocity[k] += Variables.N[j] * NodalVelocity[k];

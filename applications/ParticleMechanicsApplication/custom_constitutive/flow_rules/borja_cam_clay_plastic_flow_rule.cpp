@@ -9,9 +9,11 @@
 //
 //  Main authors:    Bodhinanda Chandra
 //
+
+
 // System includes
 #include <iostream>
-#include<cmath>
+#include <cmath>
 
 // External includes
 #include "includes/ublas_interface.h"
@@ -216,8 +218,8 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
 
     // Constant direction of deviatoric strain vector -- with check if TrialDeviatoricStrain == 0
     Vector DirectionStrainVector = ZeroVector(3);
-    if(fabs(TrialDeviatoricStrain) > 1.e-9) 
-        DirectionStrainVector = sqrt(2.0/3.0) * TrialDeviatoricStrainVector / TrialDeviatoricStrain;
+    if(std::abs(TrialDeviatoricStrain) > 1.e-9) 
+        DirectionStrainVector = std::sqrt(2.0/3.0) * TrialDeviatoricStrainVector / TrialDeviatoricStrain;
 
     // Initialize additional temporary Matrices and Vectors;
     mStateFunction = 0.0;
@@ -274,7 +276,7 @@ bool BorjaCamClayPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVari
         this->CalculatePrincipalStressVector(PrincipalStrainVector, PrincipalStressVector);
 
         // Weighted residual Convergence criteria - to exit Newton iteration loop
-        if( fabs(mStateFunction) <= tolerance || fabs(NormRatio) <= norm_tolerance || counter == maxcounter)
+        if( std::abs(mStateFunction) <= tolerance || std::abs(NormRatio) <= norm_tolerance || counter == maxcounter)
         {    
             // These updates are done since the following variables will be used during ComputeElastoPlasticTangentMatrix
                 rAlpha  = TrialVolumetricStrain - UnknownVector(0);
@@ -352,7 +354,7 @@ void BorjaCamClayPlasticFlowRule::ComputeElasticMatrix_2X2(const Vector& rPrinci
     // Decompose principalstress
     double MeanStressP, DeviatoricQ;
     MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( rPrincipalStressVector, MeanStressP, DeviatoricQ);
-    DeviatoricQ *= sqrt(3.0); //Q = sqrt(3) * J2
+    DeviatoricQ *= std::sqrt(3.0); //Q = sqrt(3) * J2
 
     // Assemble matrix
     rElasticMatrix(0,0) = - MeanStressP / SwellingSlope;
@@ -403,17 +405,17 @@ void BorjaCamClayPlasticFlowRule::ComputePlasticMatrix_2X2(const Vector& rPrinci
 
     // Construct Vector a
     a(0) = ( d(0) * (b(1,1) * c(0) - b(0,1) * c(1)) + d(1) * (b(0,0) * c(1) - b(1,0) * c(0)) + detb * K_ptrial * mStateFunctionFirstDerivative(2) );
-    a(1) = sqrt(2.0/3.0) * ( d(1) * b(0,0) - d(0) * b(0,1) );
+    a(1) = std::sqrt(2.0/3.0) * ( d(1) * b(0,0) - d(0) * b(0,1) );
     
     // Check if e == 0
-    if (fabs(e) < 1.e-9){ a *= 1.0 / 1.e-9; }
+    if (std::abs(e) < 1.e-9){ a *= 1.0 / 1.e-9; }
     else{ a *= 1.0 / e; }
 
     // Arrange rPlasticMatrix from all the constructed variables
     rPlasticMatrix(0,0) = b(1,1) * (c(0) - a(0) * mStateFunctionFirstDerivative(0)) - b(0,1) * (c(1) - a(0) * mStateFunctionFirstDerivative(1));
-    rPlasticMatrix(0,1) = b(0,1) * (-1.0 + sqrt(3.0/2.0) * a(1) * mStateFunctionFirstDerivative(1)) - sqrt(3.0/2.0) * b(1,1) * a(1) * mStateFunctionFirstDerivative(0);
+    rPlasticMatrix(0,1) = b(0,1) * (-1.0 + std::sqrt(3.0/2.0) * a(1) * mStateFunctionFirstDerivative(1)) - std::sqrt(3.0/2.0) * b(1,1) * a(1) * mStateFunctionFirstDerivative(0);
     rPlasticMatrix(1,0) = b(0,0) * (c(1) - a(0) * mStateFunctionFirstDerivative(1)) - b(1,0) * (c(0) - a(0) * mStateFunctionFirstDerivative(0));
-    rPlasticMatrix(1,1) = b(0,0) * (1.0  - sqrt(3.0/2.0) * a(1) * mStateFunctionFirstDerivative(1)) + sqrt(3.0/2.0) * b(1,0) * a(1) * mStateFunctionFirstDerivative(0);
+    rPlasticMatrix(1,1) = b(0,0) * (1.0  - std::sqrt(3.0/2.0) * a(1) * mStateFunctionFirstDerivative(1)) + std::sqrt(3.0/2.0) * b(1,0) * a(1) * mStateFunctionFirstDerivative(0);
     rPlasticMatrix     *= 1.0 / detb; 
 
 }
@@ -501,7 +503,7 @@ void BorjaCamClayPlasticFlowRule::CalculatePrincipalStrainFromStrainInvariants(V
     {
         rPrincipalStrain[i] += 1.0/3.0 * rVolumetricStrain;
     }
-    rPrincipalStrain += sqrt(3.0/2.0) * rDeviatoricStrain * rDirectionVector;
+    rPrincipalStrain += std::sqrt(3.0/2.0) * rDeviatoricStrain * rDirectionVector;
 }
 
 
@@ -514,7 +516,7 @@ void BorjaCamClayPlasticFlowRule::CalculateStrainInvariantsFromPrincipalStrain(c
     {
         rDeviatoricStrainVector[i] -= 1.0/3.0 * rVolumetricStrain;
     }
-    rDeviatoricStrain = sqrt(2.0/3.0) * norm_2(rDeviatoricStrainVector);
+    rDeviatoricStrain = std::sqrt(2.0/3.0) * norm_2(rDeviatoricStrainVector);
 }
 
 // Function to return matrix from principal space to normal space
@@ -539,7 +541,7 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
     Vector PrincipalStressVector = mPrincipalStressUpdated;
     double MeanStressP, DeviatoricQ;
     MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( PrincipalStressVector, MeanStressP, DeviatoricQ);
-    DeviatoricQ *= sqrt(3.0); //Q = sqrt(3) * J2
+    DeviatoricQ *= std::sqrt(3.0); //Q = sqrt(3) * J2
 
     // Compute StrainComponents and direction -- with check if DeviatoricStrain == 0
     double VolumetricStrain, DeviatoricStrain;
@@ -547,8 +549,8 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
     this->CalculateStrainInvariantsFromPrincipalStrain(mElasticPrincipalStrain, VolumetricStrain, DeviatoricStrain, DeviatoricStrainVector);
     
     Vector DirectionVector = ZeroVector(3);
-    if (fabs(DeviatoricStrain) > 1.e-9)
-        DirectionVector = sqrt(2.0/3.0) * DeviatoricStrainVector / DeviatoricStrain;
+    if (std::abs(DeviatoricStrain) > 1.e-9)
+        DirectionVector = std::sqrt(2.0/3.0) * DeviatoricStrainVector / DeviatoricStrain;
 
     // Compute ElasticMatrix (2x2) D^e
     Matrix ElasticMatrixDe = ZeroMatrix(2,2);
@@ -611,14 +613,14 @@ void BorjaCamClayPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const Radial
 
     // Perform check in case DeviatoricStrain == 0
     double DeviatoricQ_by_DeviatoricStrain; 
-    if (fabs(DeviatoricStrain) < 1.e-9 ) {DeviatoricQ_by_DeviatoricStrain = DeviatoricQ / 1.e-9;}
+    if (std::abs(DeviatoricStrain) < 1.e-9 ) {DeviatoricQ_by_DeviatoricStrain = DeviatoricQ / 1.e-9;}
     else{DeviatoricQ_by_DeviatoricStrain = DeviatoricQ / DeviatoricStrain;}  
 
     // Compute Consistent Tangent Stiffness matrix in principal space
     Matrix DepcP = ZeroMatrix(6,6);
     DepcP  = ( ElastoPlasticMatrixDep(0,0) - 2.0 * DeviatoricQ_by_DeviatoricStrain / 9.0 ) * IdentityCross;
-    DepcP += ( sqrt(2.0/3.0) * ElastoPlasticMatrixDep(0,1) ) * Tensor_1xN; 
-    DepcP += ( sqrt(2.0/3.0) * ElastoPlasticMatrixDep(1,0) ) * Tensor_Nx1;
+    DepcP += ( std::sqrt(2.0/3.0) * ElastoPlasticMatrixDep(0,1) ) * Tensor_1xN; 
+    DepcP += ( std::sqrt(2.0/3.0) * ElastoPlasticMatrixDep(1,0) ) * Tensor_Nx1;
     DepcP += ( 2.0 * DeviatoricQ_by_DeviatoricStrain / 3.0 ) * (FourthOrderIdentity - Tensor_NxN);
     DepcP += ( 2.0 / 3.0 * ElastoPlasticMatrixDep(1,1) ) * Tensor_NxN;
 
@@ -746,12 +748,6 @@ void BorjaCamClayPlasticFlowRule::UpdateStateVariables(const Vector rPrincipalSt
     // Update Consistency Parameter
     mMaterialParameters.ConsistencyParameter = rConsistencyParameter;
 }
-
-double BorjaCamClayPlasticFlowRule::GetSmoothingLodeAngle()
-{
-    return 29.0*GetPI()/180.0;
-}
-
 
 double BorjaCamClayPlasticFlowRule::GetPI()
 {

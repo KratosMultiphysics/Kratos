@@ -10,10 +10,9 @@
 //  Main authors:    Bodhinanda Chandra
 //
 
+
 #if !defined(KRATOS_BORJA_CAM_CLAY_HARDENING_LAW_H_INCLUDED )
 #define  KRATOS_BORJA_CAM_CLAY_HARDENING_LAW_H_INCLUDED
-
-
 
 // System includes
 

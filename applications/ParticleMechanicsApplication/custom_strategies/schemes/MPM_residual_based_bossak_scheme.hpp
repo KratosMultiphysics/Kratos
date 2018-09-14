@@ -11,6 +11,7 @@
 //
 //
 
+
 #if !defined(KRATOS_MPM_RESIDUAL_BASED_BOSSAK_SCHEME )
 #define  KRATOS_MPM_RESIDUAL_BASED_BOSSAK_SCHEME
 
@@ -28,7 +29,6 @@
 
 #include "particle_mechanics_application.h"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
-
 
 namespace Kratos
 {
@@ -552,13 +552,13 @@ public:
                 }
             }
 
-            NormVel = sqrt(NormVel);
-            NormAcc = sqrt(NormAcc);
-            NormPres = sqrt(NormPres);
+            NormVel = std::sqrt(NormVel);
+            NormAcc = std::sqrt(NormAcc);
+            NormPres = std::sqrt(NormPres);
 
-            NormDeltaVel = sqrt(NormDeltaVel);
-            NormDeltaAcc = sqrt(NormDeltaAcc);
-            NormDeltaPres = sqrt(NormDeltaPres);
+            NormDeltaVel = std::sqrt(NormDeltaVel);
+            NormDeltaAcc = std::sqrt(NormDeltaAcc);
+            NormDeltaPres = std::sqrt(NormDeltaPres);
             
             ++ItNum;
         }
