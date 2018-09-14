@@ -2,15 +2,16 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 15.0,
-        "echo_level" : 4
+        "end_time" : 1.0,
+        "echo_level" : 1
     },
     "coupled_solver_settings" :
     {
+        "name" : "first",
         "solver_type" : "gauss_seidel_strong_coupling",
-        "echo_level" : 4,
+        "echo_level" : 1,
         "max_coupling_iterations" : 12,
-        "start_coupling_time" : 0.0,
+        "start_coupling_time" : 0.3,
         "convergence_accelerator_settings" :
         {
             "type"          : "aitken",
@@ -45,17 +46,15 @@
                 {
                     "from_solver" : "dummy_two",
                     "data_name"   : "disp",
-                    "io_settings"   : {
+                    "settings"   : {
                     }
-
                 }
             ],
             "output_data_list" : [
                 {
                     "data_name"   : "force",
-                    "io_settings"   : {
+                    "settings"   : {
                     }
-
                 }
             ]
         },
@@ -65,16 +64,15 @@
                 {
                     "from_solver" : "dummy_one",
                     "data_name"   : "force",
-                    "io_settings"   : {
+                    "settings"   : {
                     }
 
                 }
             ],
             "output_data_list": [
                 {
-                    "to_solver" : "fluid",
                     "data_name"   : "disp",
-                    "io_settings"   : {
+                    "settings"   : {
                     }
                 }
             ]
@@ -88,20 +86,24 @@
             "solver_type" : "dummy",
             "settings":{
                 "working_directory" : "dummy_two",
-                "input_file"  : "dummy_two_input"
+                "input_file"  : "dummy_two_input.file"
             },
-            "data" : {
-                "disp" : {
+            "data" : [
+                {
+                    "name"            : "disp",
+                    "dimension"       : 1,
                     "geometry_name"   : "dummy_geo_one",
                     "data_identifier" : "disp_one",
                     "data_format"     : "array"
                 },
-                "force" : {
+                {
+                    "name"            : "force",
                     "geometry_name"   : "dummy_geo_one",
+                    "dimension"       : 1,
                     "data_identifier" : "force_one",
                     "data_format"     : "array"
                 }
-            }
+            ]
         },
         {
             "name" : "dummy_two",
@@ -110,18 +112,21 @@
                 "working_directory" : "dummy_two",
                 "input_file"  : "dummy_two_input"
             },
-            "data" : {
-                "disp" : {
+            "data" : [
+                {
+                    "name"            : "disp",
                     "geometry_name"   : "dummy_geo_two",
+                    "dimension"       : 1,
                     "data_identifier" : "disp_two",
                     "data_format"     : "array"
                 },
-                "force" : {
+                {   "name"            : "force",
                     "geometry_name"   : "dummy_geo_two",
+                    "dimension"       : 1,
                     "data_identifier" : "force_two",
                     "data_format"     : "array"
                 }
-            }
+            ]
         }
     ]
 }

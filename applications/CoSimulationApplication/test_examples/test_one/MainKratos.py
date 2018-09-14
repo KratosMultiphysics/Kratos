@@ -3,12 +3,8 @@ import json
 import KratosMultiphysics
 from KratosMultiphysics import *
 import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
-import custom_convergence_criteria as ccc
-from custom_co_simulation_solver_interfaces.co_simulation_base_solver import CoSimulationBaseSolver
-
-from custom_co_simulation_coupled_solvers import *
-import custom_co_simulation_coupled_solvers as cc
-import custom_co_simulation_coupled_solvers.co_simulation_coupled_solver_factory as fact
+from __init__ import *
+from co_simulation_analysis import CoSimulationAnalysis
 
 filename = '/home/aditya/work/Kratos/applications/CoSimulationApplication/test_examples/test_one/test_json.json'
 
@@ -18,4 +14,6 @@ if filename:
         json_data = json.load(f)
 
 
-gs = fact.CreateCoupledSolver(json_data)
+cs = CoSimulationAnalysis(json_data)
+cs.PrintInfo()
+cs.Run()
