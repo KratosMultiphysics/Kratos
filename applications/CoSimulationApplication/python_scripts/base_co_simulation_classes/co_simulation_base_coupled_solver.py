@@ -5,12 +5,14 @@ import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
 from co_simulation_base_solver import CoSimulationBaseSolver
 
 # Other imports
-import os
+
+
+##
+#  IMPORTANT : This is a BASE CLASS
+#               Please do not change any thing in this class.
+#
+#  This class is intended to server as the base class for all the coupled solvers.
 class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
-    '''
-        This class is intended to server as the base class for all the
-        coupled solvers.
-    '''
     ## The constructor
     #
     #  @param self            The object pointer.
@@ -21,7 +23,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         # default values for all available settings
         # for mandatory settings, the type is defined
         self.full_settings = custom_settings
-        super(CoSimulationBaseCoupledSolver,self).__init__(custom_settings)
+        #super(CoSimulationBaseCoupledSolver,self).__init__(custom_settings)
         defaultSettings = {}
         defaultSettings["echo_level"] = 1
         defaultSettings["max_coupling_iterations"] = 10
@@ -32,7 +34,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         self.echo_level = self.settings["echo_level"]
 
         # Get the participating solvers a map with their names and objects
-        self.participating_solvers = tools.GetSolvers(self.full_settings['solvers'])
+        self.participating_solvers = self._GetSolvers(self.full_settings['solvers'])
 
         # With this setting the coupling can start later
         self.start_coupling_time = 0.0
@@ -137,17 +139,18 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #                          participating solvers.
     #
     #  @param self            The object pointer.
-    def _SynchronizeInputData(self, solver, solver_name):
+    #  @param solver_name     string: name of the solver for which data has to be synchronized
+    def _SynchronizeInputData(self, solver_name):
         if self.coupling_started:
+            solver = self.participating_solvers[solver_name]
             input_data_list = self.cosim_solver_details[solver_name]["input_data_list"]
             for input_data in input_data_list:
-                from_solver = self.solvers[input_data["from_solver"]]
+                from_solver = self.participating_solvers[input_data["from_solver"]]
                 data_name = input_data["data_name"]
-                data_definition = from_solver.GetDataDefinition(data_name)
-                data_settings = { "data_format" : data_definition["data_format"],
-                                  "data_name"   : data_name,
-                                  "io_settings" : input_data["io_settings"] }
-                solver.ImportData(data_settings, from_solver)
+                from_solver_data_conf = from_solver.GetDataConfig(data_name)
+                current_sovler_data_conf = solver.GetDataConfig(data_name)
+                if( from_solver_data_conf["dimension"] == current_sovler_data_conf["dimension"] ):
+                    solver.ImportData(data_name, from_solver)
 
     ## _SynchronizeOutputData : Private Function to export/output new (if any) output data in the
     #                           participating solvers.
@@ -165,3 +168,18 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
                                   "data_name"   : data_name,
                                   "io_settings" : output_data["io_settings"] }
                 solver.ExportData(data_settings, to_solver)
+
+    ## _GetSolvers : Private Function to make the paticipating solver objects
+    #
+    #  @param self            The object pointer.
+    def _GetSolvers(self, SolversDataList):
+        solvers_map = {}
+        num_solvers = len(SolversDataList)
+
+        for i in range(0,num_solvers):
+            import co_simulation_solver_factory as factory
+            solver = factory.CreateSolverInterface(SolversDataList[i])
+            solver_name = SolversDataList[i]["name"]
+            solvers_map[solver_name] = solver
+
+        return solvers_map
