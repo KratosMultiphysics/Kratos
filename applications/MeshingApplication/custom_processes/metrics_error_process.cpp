@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -73,22 +73,18 @@ void MetricErrorProcess<TDim>::Execute()
     /******************************************************************************
     --1-- Initialize metric --1--
     ******************************************************************************/
-    // Getting metric variable
-    const Variable<Vector>& metric_variable = KratosComponents<Variable<Vector>>::Get("MMG_METRIC");
+    // Tensor variable definition
+    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
 
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     KRATOS_DEBUG_ERROR_IF(nodes_array.size() == 0) <<  "ERROR:: Empty list of nodes" << std::endl;
-    if (nodes_array.begin()->Has(metric_variable) == false) {
-        // The process info
-        const ProcessInfo& process_info = mrThisModelPart.GetProcessInfo();
-
-        const SizeType size = process_info[DOMAIN_SIZE] == 2 ? 3: 6;
-        const Vector zero_vector = ZeroVector(size);
+    if (nodes_array.begin()->Has(tensor_variable) == false) {
+        const TensorArrayType zero_array(3 * (TDim - 1), 0.0);
 
         // We iterate over the nodes
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-            (nodes_array.begin() + i)->SetValue(metric_variable, zero_vector);
+            (nodes_array.begin() + i)->SetValue(tensor_variable, zero_array);
     }
 
     /******************************************************************************
@@ -167,8 +163,8 @@ void MetricErrorProcess<TDim>::CalculateMetric()
         find_neighbours.Execute();
     }
 
-    // Getting metric variable
-    const Variable<Vector>& metric_variable = KratosComponents<Variable<Vector>>::Get("MMG_METRIC");
+    // Tensor variable definition
+    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
 
     // Iteration over all nodes
     const int num_nodes = static_cast<int>(nodes_array.size());
@@ -203,22 +199,10 @@ void MetricErrorProcess<TDim>::CalculateMetric()
             metric_matrix(i,i) = 1.0/std::pow(h_min, 2);
 
         // Transform metric matrix to a vector
-        Vector metric(3 * (TDim - 1));
-
-        metric[0] = metric_matrix(0, 0);
-        metric[1] = metric_matrix(0, 1);
-
-        if (TDim == 2) {
-            metric[2] = metric_matrix(1, 1);
-        } else  {
-            metric[2] = metric_matrix(0, 2);
-            metric[3] = metric_matrix(1, 1);
-            metric[4] = metric_matrix(1, 2);
-            metric[5] = metric_matrix(2, 2);
-        }
+        const TensorArrayType metric = MathUtils<double>::StressTensorToVector<MatrixType, TensorArrayType>(metric_matrix);
 
         // Setting value
-        it_node->SetValue(metric_variable, metric);
+        it_node->SetValue(tensor_variable, metric);
 
         KRATOS_INFO_IF("MetricErrorProcess", mEchoLevel > 2) << "Node " << it_node->Id() << " has metric: "<< metric << std::endl;
     }

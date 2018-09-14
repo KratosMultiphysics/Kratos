@@ -24,6 +24,7 @@
         "line_search"                        : false,
         "compute_reactions"                  : true,
         "block_builder"                      : false,
+        "multi_point_constraints_used"       : false,
         "move_mesh_flag"                     : true,
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,

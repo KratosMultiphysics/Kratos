@@ -166,66 +166,71 @@ public:
         IndexType is_converged_active = 0;
         IndexType is_converged_slip = 0;
 
+        // We get the process info
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-        const double common_epsilon = r_process_info[INITIAL_PENALTY];
-        const double scale_factor = r_process_info[SCALE_FACTOR];
-        const double tangent_factor = r_process_info[TANGENT_FACTOR];
 
-        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
+        if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
+            const double common_epsilon = r_process_info[INITIAL_PENALTY];
+            const double scale_factor = r_process_info[SCALE_FACTOR];
+            const double tangent_factor = r_process_info[TANGENT_FACTOR];
 
-        #pragma omp parallel for reduction(+:is_converged_active, is_converged_slip)
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
+            NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
-            const double epsilon = it_node->Has(INITIAL_PENALTY) ? it_node->GetValue(INITIAL_PENALTY) : common_epsilon;
+            #pragma omp parallel for reduction(+:is_converged_active, is_converged_slip)
+            for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+                auto it_node = nodes_array.begin() + i;
 
-            const array_1d<double,3>& lagrange_multiplier = it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-            const array_1d<double,3>& nodal_normal = it_node->FastGetSolutionStepValue(NORMAL);
-            const double normal_lagrange_multiplier = inner_prod(nodal_normal, lagrange_multiplier);
+                const double epsilon = it_node->Has(INITIAL_PENALTY) ? it_node->GetValue(INITIAL_PENALTY) : common_epsilon;
 
-            const double augmented_normal_pressure = scale_factor * normal_lagrange_multiplier + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
+                const array_1d<double,3>& lagrange_multiplier = it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                const array_1d<double,3>& nodal_normal = it_node->FastGetSolutionStepValue(NORMAL);
+                const double normal_lagrange_multiplier = inner_prod(nodal_normal, lagrange_multiplier);
 
-            it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure);
+                const double augmented_normal_pressure = scale_factor * normal_lagrange_multiplier + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
 
-            if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
-                if (it_node->IsNot(ACTIVE)) {
-                    it_node->Set(ACTIVE, true);
-                    is_converged_active += 1;
-                }
+                it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure);
 
-                // The friction coefficient
-                const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
+                if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
+                    if (it_node->IsNot(ACTIVE)) {
+                        it_node->Set(ACTIVE, true);
+                        is_converged_active += 1;
+                    }
 
-                // The weighted slip
-                const array_1d<double, 3>& gt = it_node->FastGetSolutionStepValue(WEIGHTED_SLIP);
+                    // The friction coefficient
+                    const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
 
-                // Computing the augmented tangent pressure
-                const array_1d<double,3> tangent_lagrange_multiplier = lagrange_multiplier - normal_lagrange_multiplier * nodal_normal;
-                const array_1d<double,3> augmented_tangent_pressure_components = scale_factor * tangent_lagrange_multiplier + tangent_factor * epsilon * gt;
+                    // The weighted slip
+                    const array_1d<double, 3>& gt = it_node->FastGetSolutionStepValue(WEIGHTED_SLIP);
 
-                // Finally we assign and compute the norm
-                it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, augmented_tangent_pressure_components);
-                const double augmented_tangent_pressure = norm_2(augmented_tangent_pressure_components);
+                    // Computing the augmented tangent pressure
+                    const array_1d<double,3> tangent_lagrange_multiplier = lagrange_multiplier - normal_lagrange_multiplier * nodal_normal;
+                    const array_1d<double,3> augmented_tangent_pressure_components = scale_factor * tangent_lagrange_multiplier + tangent_factor * epsilon * gt;
 
-                if (augmented_tangent_pressure <= - mu * augmented_normal_pressure) { // STICK CASE
-//                     KRATOS_WARNING_IF("ALMFrictionalMortarConvergenceCriteria", norm_2(gt) > Tolerance) << "In case of stick should be zero, if not this means that is not properly working. Node ID: " << it_node->Id() << std::endl;
-//                     it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = zero_array; // NOTE: In case of stick should be zero, if not this means that is not properly working
-                    if (it_node->Is(SLIP)) {
+                    // Finally we assign and compute the norm
+                    it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, augmented_tangent_pressure_components);
+                    const double augmented_tangent_pressure = norm_2(augmented_tangent_pressure_components);
+
+                    if (augmented_tangent_pressure <= - mu * augmented_normal_pressure) { // STICK CASE
+//                         KRATOS_WARNING_IF("ALMFrictionalMortarConvergenceCriteria", norm_2(gt) > Tolerance) << "In case of stick should be zero, if not this means that is not properly working. Node ID: " << it_node->Id() << std::endl;
+//                         it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = zero_array; // NOTE: In case of stick should be zero, if not this means that is not properly working
+                        if (it_node->Is(SLIP)) {
+                            it_node->Set(SLIP, false);
+                            is_converged_slip += 1;
+                        }
+                    } else { // SLIP CASE
+                        if (it_node->IsNot(SLIP)) {
+                            it_node->Set(SLIP, true);
+                            is_converged_slip += 1;
+                        }
+                    }
+                } else {
+                    it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = zero_array;
+                    if (it_node->Is(ACTIVE)) {
+                        it_node->Set(ACTIVE, false);
                         it_node->Set(SLIP, false);
-                        is_converged_slip += 1;
+                        is_converged_active += 1;
                     }
-                } else { // SLIP CASE
-                    if (it_node->IsNot(SLIP)) {
-                        it_node->Set(SLIP, true);
-                        is_converged_slip += 1;
-                    }
-                }
-            } else {
-                it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = zero_array;
-                if (it_node->Is(ACTIVE)) {
-                    it_node->Set(ACTIVE, false);
-                    it_node->Set(SLIP, false);
-                    is_converged_active += 1;
                 }
             }
         }

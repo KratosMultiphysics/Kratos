@@ -92,10 +92,40 @@ bool HenckyElasticPlastic3DLaw::Has( const Variable<Matrix>& rThisVariable )
 
 double& HenckyElasticPlastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
+    if (rThisVariable==DELTA_PLASTIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.DeltaPlasticStrain;
+    }
+    
     if (rThisVariable==PLASTIC_STRAIN)
     {
         const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
         rValue=InternalVariables.EquivalentPlasticStrain;
+    }
+
+    if (rThisVariable==MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.DeltaPlasticVolumetricStrain;
+    }
+
+    if (rThisVariable==MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.AccumulatedPlasticVolumetricStrain;
+    }
+
+    if (rThisVariable==MP_DELTA_PLASTIC_DEVIATORIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.DeltaPlasticDeviatoricStrain;
+    }
+
+    if (rThisVariable==MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN)
+    {
+        const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
+        rValue=InternalVariables.AccumulatedPlasticDeviatoricStrain;
     }
 
     if (rThisVariable==MIU)
@@ -334,45 +364,9 @@ void HenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& 
 void HenckyElasticPlastic3DLaw::CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables, Parameters& rValues, 
     const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
 {
-    Vector MainStrain      = ZeroVector(3);
-    const Properties& MaterialProperties   = rValues.GetMaterialProperties();
 
-    for (unsigned int i = 0; i<3; ++i)
-    {
-        MainStrain[i] = rNewElasticLeftCauchyGreen(i,i);
-    }
+    mpMPMFlowRule->CalculatePrincipalStressTrial(rReturnMappingVariables, rNewElasticLeftCauchyGreen, rStressMatrix);
 
-    // Calculate the elastic matrix
-    Matrix ElasticMatrix = ZeroMatrix(3,3);
-    const double& Young     = MaterialProperties[YOUNG_MODULUS];
-    const double& Nu        = MaterialProperties[POISSON_RATIO];
-    const double diagonal   = Young/(1.0+Nu)/(1.0-2.0*Nu) * (1.0-Nu);
-    const double nodiagonal = Young/(1.0+Nu)/(1.0-2.0*Nu) * ( Nu);
-
-    for (unsigned int i = 0; i<3; ++i)
-    {
-        for (unsigned int j = 0; j<3; ++j)
-        {
-            if (i == j)
-            {
-                ElasticMatrix(i,i) = diagonal;
-            }
-            else
-            {
-                ElasticMatrix(i,j) = nodiagonal;
-            }
-        }
-    }
-
-    Vector PrincipalStress = ZeroVector(3);
-
-    // Evalute the Kirchhoff principal stress
-    PrincipalStress = prod(ElasticMatrix, MainStrain);
-
-    for(unsigned int i=0; i<3; i++)
-    {
-        rStressMatrix(i,i) = PrincipalStress(i);
-    }
 }
 
 //************************************************************************************
@@ -714,23 +708,8 @@ int HenckyElasticPlastic3DLaw::Check(const Properties& rMaterialProperties,
                                      const ProcessInfo& rCurrentProcessInfo)
 {
 
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
-    {
-        KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
-    }
-
-    const double& nu = rMaterialProperties[POISSON_RATIO];
-    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
-
-    if(POISSON_RATIO.Key() == 0 || check==true)
-    {
-        KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value " << std::endl;
-    }
-
-    if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00)
-    {
-        KRATOS_ERROR << "DENSITY has Key zero or invalid value " << std::endl;
-    }
+    // Verify Positive Density
+    KRATOS_ERROR_IF(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00) << "DENSITY has Key zero or invalid value " << std::endl;
 
     return 0;
 }

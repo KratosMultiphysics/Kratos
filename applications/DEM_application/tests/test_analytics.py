@@ -13,6 +13,16 @@ this_working_dir_backup = os.getcwd()
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
+def CreateAndRunObjectInOneOpenMPThread(my_obj):
+    omp_utils = Kratos.OpenMPUtils()
+    if "OMP_NUM_THREADS" in os.environ:
+        initial_number_of_threads = os.environ['OMP_NUM_THREADS']
+        omp_utils.SetNumThreads(1)
+
+    my_obj().Run()
+
+    if "OMP_NUM_THREADS" in os.environ:
+        omp_utils.SetNumThreads(int(initial_number_of_threads))
 
 class AnalyticsTestSolution(main_script.Solution):
 
@@ -179,10 +189,6 @@ class MultiGhostsTestSolution(main_script.Solution):
         self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
 
 
-
-
-
-
 class TestAnalytics(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -190,17 +196,20 @@ class TestAnalytics(KratosUnittest.TestCase):
 
     @classmethod
     def test_Analytics_1(self):
-        AnalyticsTestSolution().Run()
+        CreateAndRunObjectInOneOpenMPThread(AnalyticsTestSolution)
+
 
     @classmethod
     @KratosUnittest.expectedFailure
     def test_Analytics_2(self):
-        GhostsTestSolution().Run()
+        CreateAndRunObjectInOneOpenMPThread(GhostsTestSolution)
+
 
     @classmethod
     @KratosUnittest.expectedFailure
     def test_Analytics_3(self):
-        MultiGhostsTestSolution().Run()
+        CreateAndRunObjectInOneOpenMPThread(MultiGhostsTestSolution)
+
 
     def tearDown(self):
         file_to_remove = os.path.join("analytics_tests_files", "TimesPartialRelease")

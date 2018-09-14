@@ -361,7 +361,7 @@ void UpdatedLagrangianUP::CalculateDeformationMatrix(Matrix& rB,
     }
     else
     {
-        KRATOS_THROW_ERROR( std::invalid_argument, "Dimension given is wrong", "Something is wrong with the given dimension in function: CalculateDeformationMatrix" )
+        KRATOS_ERROR << "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateDeformationMatrix" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -1224,14 +1224,12 @@ int UpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo )
     ConstitutiveLaw::Features LawFeatures;
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
-    if(LawFeatures.mOptions.IsNot(ConstitutiveLaw::U_P_LAW))
-        KRATOS_THROW_ERROR( std::logic_error, "Constitutive law is not compatible with the U-P element type ", " Large Displacements U_P" )
+    KRATOS_ERROR_IF(LawFeatures.mOptions.IsNot(ConstitutiveLaw::U_P_LAW)) << "Constitutive law is not compatible with the U-P element type: Large Displacements U_P" << std::endl;
 
-        // Verify that the variables are correctly initialized
-        if ( PRESSURE.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" )
+    // Verify that the variables are correctly initialized
+    KRATOS_ERROR_IF( PRESSURE.Key() == 0 ) <<  "PRESSURE has Key zero! (check if the application is correctly registered" << std::endl;
 
-            return correct;
+    return correct;
 
     KRATOS_CATCH( "" );
 }

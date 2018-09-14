@@ -7,7 +7,7 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
 #if !defined(KRATOS_MPM_FLOW_RULE_H_INCLUDED )
@@ -192,6 +192,10 @@ public:
     {
         double EquivalentPlasticStrain;
         double DeltaPlasticStrain;
+        double AccumulatedPlasticVolumetricStrain;
+        double AccumulatedPlasticDeviatoricStrain;
+        double DeltaPlasticVolumetricStrain;
+        double DeltaPlasticDeviatoricStrain;
         Matrix  Normal;
 
         double LameMu_bar;
@@ -207,7 +211,11 @@ public:
         void clear()
         {
             EquivalentPlasticStrain = 0;
+            AccumulatedPlasticVolumetricStrain = 0;
+            AccumulatedPlasticDeviatoricStrain = 0; 
             DeltaPlasticStrain = 0;
+            DeltaPlasticVolumetricStrain = 0;
+            DeltaPlasticDeviatoricStrain = 0;
             Normal.clear();
             LameMu_bar  = 0;
             Friction    = 0;
@@ -222,6 +230,10 @@ public:
             std::cout<<" Internal Variables "<<std::endl;
             std::cout<<" EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
             std::cout<<" DeltaPlasticStrain: "<<DeltaPlasticStrain<<std::endl;
+            std::cout<<" AccumulatedPlasticVolumetricStrain: "<<AccumulatedPlasticVolumetricStrain<<std::endl;
+            std::cout<<" DeltaPlasticVolumetricStrain: "<<DeltaPlasticVolumetricStrain<<std::endl;
+            std::cout<<" AccumulatedPlasticDeviatoricStrain: "<<AccumulatedPlasticDeviatoricStrain<<std::endl;
+            std::cout<<" DeltaPlasticDeviatoricStrain: "<<DeltaPlasticDeviatoricStrain<<std::endl;
             std::cout<<" EquivalentPlasticStrainOld: "<<EquivalentPlasticStrainOld<<std::endl;
         }
 
@@ -235,6 +247,10 @@ public:
         {
             rSerializer.save("EquivalentPlasticStrain",EquivalentPlasticStrain);
             rSerializer.save("DeltaPlasticStrain",DeltaPlasticStrain);
+            rSerializer.save("AccumulatedPlasticVolumetricStrain",AccumulatedPlasticVolumetricStrain);
+            rSerializer.save("DeltaPlasticVolumetricStrain",DeltaPlasticVolumetricStrain);
+            rSerializer.save("AccumulatedPlasticDeviatoricStrain",AccumulatedPlasticDeviatoricStrain);
+            rSerializer.save("DeltaPlasticDeviatoricStrain",DeltaPlasticDeviatoricStrain);
             rSerializer.save("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
         };
 
@@ -242,6 +258,10 @@ public:
         {
             rSerializer.load("EquivalentPlasticStrain",EquivalentPlasticStrain);
             rSerializer.load("DeltaPlasticStrain",DeltaPlasticStrain);
+            rSerializer.load("AccumulatedPlasticVolumetricStrain",AccumulatedPlasticVolumetricStrain);
+            rSerializer.load("DeltaPlasticVolumetricStrain",DeltaPlasticVolumetricStrain);
+            rSerializer.load("AccumulatedPlasticDeviatoricStrain",AccumulatedPlasticDeviatoricStrain);
+            rSerializer.load("DeltaPlasticDeviatoricStrain",DeltaPlasticDeviatoricStrain);           
             rSerializer.load("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
         };
     };
@@ -389,6 +409,11 @@ public:
     virtual unsigned int GetPlasticRegion()
     {
         KRATOS_ERROR << "Calling the base class function (GetPlasticRegion) in MPM FlowRule:: illegal operation!" << std::endl;
+    };
+
+    virtual void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+    {
+        KRATOS_ERROR << "Calling the base class function (CalculatePrincipalStressTrial) in MPM FlowRule:: illegal operation!" << std::endl;
     };
 
 

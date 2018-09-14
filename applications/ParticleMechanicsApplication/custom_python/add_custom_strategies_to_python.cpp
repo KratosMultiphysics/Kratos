@@ -86,6 +86,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     .def( "SearchElement", &MPMStrategyType2D::SearchElement)
     .def( "MP16ShapeFunctions", &MPMStrategyType2D::MP16ShapeFunctions)
     .def( "MP33ShapeFunctions", &MPMStrategyType2D::MP33ShapeFunctions)
+    .def( "SetEchoLevel", &MPMStrategyType2D::SetEchoLevel)
     ;
 
     class_< MPMStrategyType3D,typename MPMStrategyType3D::Pointer, BaseSolvingStrategyType >(m,"MPM3D")
@@ -93,6 +94,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     .def( "SearchElement", &MPMStrategyType3D::SearchElement)
     .def( "MP16ShapeFunctions", &MPMStrategyType3D::MP16ShapeFunctions)
     .def( "MP33ShapeFunctions", &MPMStrategyType3D::MP33ShapeFunctions)
+    .def( "SetEchoLevel", &MPMStrategyType3D::SetEchoLevel)
     ;
 
     class_< MPMResidualBasedNewtonRaphsonStrategyType,typename MPMResidualBasedNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >(m,"MPMResidualBasedNewtonRaphsonStrategy")

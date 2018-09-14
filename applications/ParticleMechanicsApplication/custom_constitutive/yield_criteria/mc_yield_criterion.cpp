@@ -7,7 +7,7 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
 // System includes
@@ -76,10 +76,10 @@ MCYieldCriterion::~MCYieldCriterion()
 //************************* CALCULATE YIELD FUNCTION  ******************
 //**********************************************************************
 
-double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha)
+double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rCohesion, const double& rFrictionAngle)
 {
-    const double Cohesion = this->GetHardeningLaw().GetProperties()[COHESION];
-    const double FrictionAngle = this->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
+    double Cohesion      = rCohesion;
+    double FrictionAngle = rFrictionAngle;
 
     const double FrictionCoefficient = (1 + std::sin(FrictionAngle))/(1 - std::sin(FrictionAngle));
     const double CohesionCoefficient = 2 * Cohesion * sqrt(FrictionCoefficient);
@@ -89,6 +89,7 @@ double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const 
 
     return rStateFunction;
 }
+
 
 double MCYieldCriterion::GetSmoothingLodeAngle()
 {

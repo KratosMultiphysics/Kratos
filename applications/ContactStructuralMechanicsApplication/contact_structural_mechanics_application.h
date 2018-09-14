@@ -60,7 +60,7 @@ namespace Kratos
  * This application features Elements, Conditions, Constitutive laws and Utilities
  * for structural analysis problems
  */
-class KratosContactStructuralMechanicsApplication : public KratosApplication
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) KratosContactStructuralMechanicsApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions

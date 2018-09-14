@@ -46,7 +46,7 @@ void AdjointFiniteDifferenceTrussElementLinear::Calculate(const Variable<Vector 
             case TracedStressType::FX:
             {
                 std::vector< array_1d<double, 3 > > force_vector;
-                mpPrimalElement->GetValueOnIntegrationPoints(FORCE, force_vector, rCurrentProcessInfo);
+                mpPrimalElement->CalculateOnIntegrationPoints(FORCE, force_vector, rCurrentProcessInfo);
                 for(IndexType i = 0; i < GP_num ; ++i)
                     rOutput(i) = force_vector[i][0];
                 break;
@@ -90,23 +90,6 @@ void AdjointFiniteDifferenceTrussElementLinear::CalculateStressDisplacementDeriv
     else
         AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative(rStressVariable,
                                    rOutput, rCurrentProcessInfo);
-
-    KRATOS_CATCH("")
-}
-
-double AdjointFiniteDifferenceTrussElementLinear::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
-{
-    KRATOS_TRY;
-
-    if(rDesignVariable == SHAPE)
-    {
-        const double L = this->GetGeometry().DomainSize();
-        KRATOS_DEBUG_ERROR_IF(L <= std::numeric_limits<double>::epsilon())
-            << "Pertubation size for shape derivatives of element" << this->Id() << "~ 0" << std::endl;
-        return L;
-    }
-    else
-        return 1.0;
 
     KRATOS_CATCH("")
 }
