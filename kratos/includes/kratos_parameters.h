@@ -23,6 +23,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "input_output/logger.h"
 #include "includes/ublas_interface.h"
 #include "json/json.hpp"                      //import nlohmann json library
 
@@ -873,19 +874,15 @@ public:
         const nlohmann::json& rValueToFind
         ) const
     {
-        // TODO: Finish this!!!
-//         for (auto itr = rBaseValue.begin(); itr != rBaseValue.end(); ++itr) {
-//             if (&(itr->value) == &rValueToFind) {
-// //                 rapidjson::StringBuffer buffer;
-// //                 rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-// //                 mpValue->Accept(writer);
-// //                 KRATOS_INFO("Parameters") << "Base = " << buffer.GetString() << std::endl
-// //                 << "Problematic var name " << itr->name.GetString() << " value " << itr->value.GetString() << std::endl;
-//             } else {
-//                 if (itr->value.is_object()) RecursivelyFindValue(itr->value, rValueToFind);
-//                 //TODO: it could be an array
-//             }
-//         }
+        for (auto itr = rBaseValue.begin(); itr != rBaseValue.end(); ++itr) {
+            if (&(itr.value()) == &rValueToFind) {
+                KRATOS_INFO("Parameters") << "Base = " << PrettyPrintJsonString() << std::endl
+                         << "Problematic var name " << itr.key() << " value " << itr.value() << std::endl;
+            } else {
+                if (itr->is_object()) RecursivelyFindValue(itr.value(), rValueToFind);
+                //TODO: it could be an array
+            }
+        }
     }
 
     /**
@@ -898,21 +895,21 @@ public:
     {
         // TODO: Implement this
 //         for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
-//             std::string item_name = itr->name.GetString();
+//             const std::string& item_name = itr.key();
 //
 //             bool found = false;
 //
 //             for (auto itr_ref = rParameters.mpValue->begin(); itr_ref != rParameters.mpValue->end(); ++itr_ref) {
-//                 if (item_name == itr_ref->name.GetString()) {
+//                 if (item_name == itr_ref.key()) {
 //                     found = true;
 //                     Parameters subobject = (*this)[item_name];
 //                     Parameters reference_subobject = rParameters[item_name];
 //
-//                     if (itr->value.IsObject()) {
+//                     if (itr->is_object()) {
 //                         if (!subobject.IsEquivalentTo(reference_subobject))
 //                             return false;
 //                     } else {
-//                         if (itr->value != itr_ref->value)
+//                         if (itr.value() != itr_ref.value())
 //                             return false;
 //                     }
 //                     break;
@@ -924,16 +921,15 @@ public:
 //         }
 //
 //         // Reverse check: the rParameters can contain fields that are missing in the object
-//         for (auto itr =  rParameters.mpValue->begin();  itr != rParameters.mpValue->end(); ++itr) {
-//             std::string item_name = itr->name.GetString();
+//         for (auto itr = rParameters.mpValue->begin();  itr != rParameters.mpValue->end(); ++itr) {
+//             const std::string& item_name = itr.key();
 //
 //             bool found = false;
 //
 //             for (auto itr_ref = this->mpValue->begin(); itr_ref != this->mpValue->end(); ++itr_ref) {
-//                 if (item_name == itr_ref->name.GetString()) {
+//                 if (item_name == itr_ref.key()) {
 //                     found = true;
-//                     // no need to check the values here, if they were found in the
-//                     // previous loop, values were checked there
+//                     // No need to check the values here, if they were found in the previous loop, values were checked there
 //                     break;
 //                 }
 //             }
@@ -955,21 +951,21 @@ public:
     {
         // TODO: Implement this
 //         for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
-//             std::string item_name = itr->name.GetString();
+//             const std::string& item_name = itr.key();
 //
 //             bool found = false;
 //
 //             for (auto itr_ref = rParameters.mpValue->begin(); itr_ref != rParameters.mpValue->end(); ++itr_ref) {
-//                 if (item_name == itr_ref->name.GetString()) {
+//                 if (item_name == itr_ref.key()) {
 //                     found = true;
 //                     Parameters subobject = (*this)[item_name];
 //                     Parameters reference_subobject = rParameters[item_name];
 //
-//                     if (itr->value.IsObject()) {
+//                     if (itr->is_object()) {
 //                         if (!subobject.HasSameKeysAndTypeOfValuesAs(reference_subobject))
 //                             return false;
 //                     } else {
-//                         if (itr->value.GetType() != itr_ref->value.GetType()) {
+//                         if (itr.value().GetType() != itr_ref.value().GetType()) {
 //                             return false;
 //                         }
 //                     }
@@ -981,24 +977,22 @@ public:
 //                 return false;
 //         }
 //
-//         // reverse check: the rParameters can contain fields that are missing in the
-//         // object
+//         // Reverse check: the rParameters can contain fields that are missing in the object
 //         for (auto itr = rParameters.mpValue->begin(); itr != rParameters.mpValue->end(); ++itr) {
-//             std::string item_name = itr->name.GetString();
+//             const std::string& item_name = itr.key();
 //
-//         bool found = false;
+//             bool found = false;
 //
-//         for (auto itr_ref =  this->mpValue->begin(); itr_ref != this->mpValue->end(); ++itr_ref) {
-//             if (item_name == itr_ref->name.GetString()) {
-//                 found = true;
-//                 // no need to check the types here, if they were found in the previous
-//                 // loop, types were checked there
-//                 break;
+//             for (auto itr_ref =  this->mpValue->begin(); itr_ref != this->mpValue->end(); ++itr_ref) {
+//                 if (item_name == itr_ref.key()) {
+//                     found = true;
+//                     // No need to check the types here, if they were found in the previous loop, types were checked there
+//                     break;
+//                 }
 //             }
-//         }
 //
-//         if (!found)
-//             return false;
+//             if (!found)
+//                 return false;
 //         }
 
         return true;
@@ -1226,12 +1220,12 @@ private:
     Parameters(nlohmann::json* pvalue, Kratos::shared_ptr<nlohmann::json> proot): mpValue(pvalue), mpRoot(proot)
     {}
 
-    //ATTENTION: please DO NOT use this constructor. It assumes rapidjson and hence it should be considered as an implementation detail
+    //ATTENTION: please DO NOT use this constructor. It assumes nlohmann::json and hence it should be considered as an implementation detail
 //     Parameters(const json::iterator& it): mpValue(*it)
 //     {
 //         mis_owner = false;
 //     }
-//     //ATTENTION: please DO NOT use this constructor. It assumes rapidjson and hence it should be considered as an implementation detail
+//     //ATTENTION: please DO NOT use this constructor. It assumes nlohmann::json and hence it should be considered as an implementation detail
 //     Parameters(const json::const_iterator& it): mpValue(*it)
 //     {
 //         mis_owner = false;
@@ -1284,6 +1278,7 @@ private:
      */
     void InternalSetValue(const Parameters& rOtherValue)
     {
+        delete[] mpValue;
         mpValue = new nlohmann::json( nlohmann::json::parse( rOtherValue.WriteJsonString()));
     }
 
