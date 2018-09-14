@@ -145,7 +145,7 @@ void DVMS<TElementData>::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
         this->CalculateMaterialResponse(data);
 
         // Not doing the update "in place" because SubscaleVelocity uses mOldSubscaleVelocity
-        array_1d<double,3> UpdatedValue{0.0, 0.0, 0.0};
+        array_1d<double,3> UpdatedValue = ZeroVector(3);
         this->SubscaleVelocity(data,UpdatedValue);
         array_1d<double,Dim>& r_value = mOldSubscaleVelocity[g];
         for (unsigned int d = 0; d < Dim; d++) {
