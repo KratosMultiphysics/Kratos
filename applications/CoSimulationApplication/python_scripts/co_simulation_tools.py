@@ -50,7 +50,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 
-def GetDataConfig(custom_config):
+def MakeDataConfig(custom_config):
     defaultSettings = {}
     defaultSettings["name"] = str # MANDATORY
     defaultSettings["format"] = "python_list"
