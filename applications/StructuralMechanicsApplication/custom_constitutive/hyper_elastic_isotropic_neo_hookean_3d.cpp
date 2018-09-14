@@ -273,6 +273,8 @@ Vector& HyperElasticIsotropicNeoHookean3D::CalculateValue(
         
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
+    
+        // Previous flags saved
         const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
@@ -290,6 +292,7 @@ Vector& HyperElasticIsotropicNeoHookean3D::CalculateValue(
             this->CalculateMaterialResponseKirchhoff(rParameterValues);
         }
         
+        // Previous flags restored
         r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
@@ -300,6 +303,8 @@ Vector& HyperElasticIsotropicNeoHookean3D::CalculateValue(
         
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
+    
+        // Previous flags saved
         const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
@@ -319,6 +324,7 @@ Vector& HyperElasticIsotropicNeoHookean3D::CalculateValue(
             this->CalculateMaterialResponsePK2(rParameterValues);
         }
         
+        // Previous flags restored
         r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
@@ -341,6 +347,8 @@ Matrix& HyperElasticIsotropicNeoHookean3D::CalculateValue(
         rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
         // Get Values to compute the constitutive law:
         Flags& r_flags = rParameterValues.GetOptions();
+    
+        // Previous flags saved
         const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
@@ -358,6 +366,7 @@ Matrix& HyperElasticIsotropicNeoHookean3D::CalculateValue(
             this->CalculateMaterialResponsePK2(rParameterValues);
         }
         
+        // Previous flags restored
         r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
