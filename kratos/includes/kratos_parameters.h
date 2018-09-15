@@ -525,7 +525,7 @@ public:
     Parameters AddEmptyValue(const std::string& rEntry)
     {
         if(this->Has(rEntry) == false) {
-            return Parameters(&(*mpValue)[rEntry],  mpRoot);
+            return Parameters(&(*mpValue)[rEntry], mpRoot);
         }
         return this->GetValue(rEntry);
     }
@@ -843,7 +843,7 @@ public:
      */
     iterator begin()
     {
-        return iterator(mpValue->begin(),  mpRoot);
+        return iterator(mpValue->begin(), mpRoot);
     }
 
     /**
@@ -852,7 +852,7 @@ public:
      */
     iterator end()
     {
-        return iterator(mpValue->end(),  mpRoot);
+        return iterator(mpValue->end(), mpRoot);
     }
 
     /**
@@ -861,7 +861,7 @@ public:
      */
     const_iterator begin() const
     {
-        return const_iterator(mpValue->cbegin(),  mpRoot);
+        return const_iterator(mpValue->cbegin(), mpRoot);
     }
 
     /**
@@ -870,7 +870,7 @@ public:
      */
     const_iterator end() const
     {
-        return const_iterator(mpValue->cend(),  mpRoot);
+        return const_iterator(mpValue->cend(), mpRoot);
     }
 
     /**
@@ -913,7 +913,7 @@ public:
             KRATOS_ERROR << "GetArrayItem only makes sense if the value if of Array type" << std::endl;
         } else {
             KRATOS_ERROR_IF(Index >= mpValue->size()) << "Index exceeds array size. Index value is : " << Index << std::endl;
-            return Parameters(&((*mpValue)[Index]),  mpRoot);
+            return Parameters(&((*mpValue)[Index]), mpRoot);
         }
     }
 
