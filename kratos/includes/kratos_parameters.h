@@ -108,12 +108,23 @@ private:
         ///@name Operators
         ///@{
 
+        /**
+         * @brief operator ++
+         * @details This adds one to the current iterator
+         * @return The next iterator
+         */
         iterator_adaptor& operator++()
         {
             mValueIterator++;
             return *this;
         }
 
+        /**
+         * @brief operator ++int
+         * @details This adds N to the current iterator
+         * @param int N increment of iterations
+         * @return The +N iterator
+         */
         iterator_adaptor operator++(int)
         {
             iterator_adaptor tmp(*this);
@@ -121,22 +132,42 @@ private:
             return tmp;
         }
 
+        /**
+         * @brief operator ==
+         * @details This operator check if the iterator is equal to another given iterator
+         * @return True if equal, false otherwise
+         */
         bool operator==(const iterator_adaptor& rhs) const
         {
             return mValueIterator == rhs.mValueIterator;
         }
 
+        /**
+         * @brief operator !=
+         * @details This operator check if the iterator is not equal to another given iterator
+         * @return True if not equal, false otherwise
+         */
         bool operator!=(const iterator_adaptor& rhs) const
         {
             return mValueIterator != rhs.mValueIterator;
         }
 
+        /**
+         * @brief operator*
+         * @details This operator returns the pointer of a given iterator
+         * @return The Pointer of the given iterator
+         */
         Parameters& operator*() const
         {
             mpParameters->mpValue = &(*mValueIterator);
             return *mpParameters;
         }
 
+        /**
+         * @brief operator ->
+         * @details This operator acces to the pointer of the Parameter
+         * @return The pointer of the parameter
+         */
         Parameters* operator->() const
         {
             mpParameters->mpValue = &(*mValueIterator);
@@ -147,16 +178,28 @@ private:
         ///@name Operations
         ///@{
 
+        /**
+         * @brief This method returns the base iterator
+         * @return The base iterator
+         */
         value_iterator& base()
         {
             return mValueIterator;
         }
 
+        /**
+         * @brief This method returns the base iterator (const)
+         * @return The base iterator (const)
+         */
         value_iterator const& base() const
         {
             return mValueIterator;
         }
 
+        /**
+         * @brief This method returns the key of the current Parameter iterator
+         * @return The key (name) of the Parameter iterator
+         */
         const std::string name()
         {
             return mValueIterator.key();
@@ -208,13 +251,25 @@ private:
         ///@}
         ///@name Operators
         ///@{
-
+        
+        /**
+         * @brief operator ++
+         * @details This adds one to the current iterator
+         * @return The next iterator (const)
+         */
         const_iterator_adaptor& operator++()
         {
             mValueIterator++;
             mpParameters->mpValue = const_cast<nlohmann::json*>( &(*mValueIterator) );
             return *this;
         }
+        
+        /**
+         * @brief operator ++int
+         * @details This adds N to the current iterator
+         * @param int N increment of iterations
+         * @return The +N iterator (const)
+         */
         const_iterator_adaptor operator++(int)
         {
             const_iterator_adaptor tmp(*this);
@@ -222,16 +277,31 @@ private:
             return tmp;
         }
 
+        /**
+         * @brief operator ==
+         * @details This operator check if the iterator is equal to another given iterator
+         * @return True if equal, false otherwise
+         */
         bool operator==(const const_iterator_adaptor& rhs) const
         {
             return mValueIterator == rhs.mValueIterator;
         }
 
+        /**
+         * @brief operator !=
+         * @details This operator check if the iterator is not equal to another given iterator
+         * @return True if not equal, false otherwise
+         */
         bool operator!=(const const_iterator_adaptor& rhs) const
         {
             return mValueIterator != rhs.mValueIterator;
         }
 
+        /**
+         * @brief operator*
+         * @details This operator returns the pointer of a given iterator
+         * @return The Pointer of the given iterator
+         */
         const Parameters& operator*() const
         {
             //mpParameters->mpValue = &(*mValueIterator);
@@ -239,6 +309,11 @@ private:
 
         }
 
+        /**
+         * @brief operator ->
+         * @details This operator acces to the pointer of the Parameter
+         * @return The pointer of the parameter
+         */
         const Parameters* operator->() const
         {
             return mpParameters.get();
@@ -248,16 +323,28 @@ private:
         ///@name Operations
         ///@{
 
+        /**
+         * @brief This method returns the base iterator
+         * @return The base iterator
+         */
         value_iterator& base()
         {
             return mValueIterator;
         }
-
+        
+        /**
+         * @brief This method returns the base iterator (const)
+         * @return The base iterator (const)
+         */
         value_iterator const& base() const
         {
             return mValueIterator;
         }
 
+        /**
+         * @brief This method returns the key of the current Parameter iterator
+         * @return The key (name) of the Parameter iterator
+         */
         const std::string name()
         {
             return mValueIterator.key();
@@ -1121,15 +1208,14 @@ public:
 
             bool type_coincides = false;
             auto value_defaults = (rDefaultParameters[item_name]).GetUnderlyingStorage();
-            if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
-
-//             if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
+//             if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
+            if(itr->is_number_integer() && value_defaults->is_number_integer()) type_coincides = true;
+            if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
+            if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
+            if(itr->is_null() && value_defaults->is_null()) type_coincides = true;
             if(itr->is_array() && value_defaults->is_array()) type_coincides = true;
             if(itr->is_string() && value_defaults->is_string()) type_coincides = true;
             if(itr->is_object() && value_defaults->is_object()) type_coincides = true;
-
-            // Both must be bool to be acceptable
-            if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
 
             if(type_coincides == false) {
                 std::stringstream msg;
@@ -1185,9 +1271,11 @@ public:
 
             bool type_coincides = false;
             auto value_defaults = (rDefaultParameters[item_name]).GetUnderlyingStorage();
+//             if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
             if(itr->is_number_integer() && value_defaults->is_number_integer()) type_coincides = true;
-            if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
             if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
+            if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
+            if(itr->is_null() && value_defaults->is_null()) type_coincides = true;
             if(itr->is_array() && value_defaults->is_array()) type_coincides = true;
             if(itr->is_string() && value_defaults->is_string()) type_coincides = true;
             if(itr->is_object() && value_defaults->is_object()) type_coincides = true;
