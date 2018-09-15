@@ -224,6 +224,7 @@ namespace Kratos {
         void InitializeFEMElements();
         //void InitializeRigidBodyElements();
         void InitializeFEMWallsAsRigidBodyElements(ModelPart::SubModelPartsContainerType::iterator& sub_model_part);
+        void MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart);
         void ComputeNodalArea();
         void ComputeNormalPressureVectorField();
         virtual void CalculateConditionsRHSAndAdd();

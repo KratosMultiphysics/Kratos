@@ -23,7 +23,7 @@ class Solution(main_script.Solution):
             self._CheckNvidiaParameters()
             self.nvidia_flex_wrapper.UpdateFlex()
 
-        self.nvidia_flex_wrapper.SolveTimeSteps(self.dt, 1) #DO NOT CHANGE THIS 1, OR INSTABILITIES MAY APPEAR
+        self.nvidia_flex_wrapper.SolveTimeSteps(self.dt, 25) #3) #DO NOT CHANGE THIS 1, OR INSTABILITIES MAY APPEAR
         self.nvidia_flex_wrapper.TransferDataFromFlexToKratos()
 
     def _CheckNvidiaParameters(self):

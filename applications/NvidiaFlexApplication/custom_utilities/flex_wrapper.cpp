@@ -63,8 +63,8 @@ namespace Kratos {
         NvFlexSetSolverDescDefaults(&mSolverDescriptor);
 
         //mSolverDescriptor.featureMode = eNvFlexFeatureModeSimpleSolids;
-        mSolverDescriptor.maxNeighborsPerParticle = 6; //32;
-        mSolverDescriptor.maxContactsPerParticle = 6; //10;
+        mSolverDescriptor.maxNeighborsPerParticle = 32; //6; //32;
+        mSolverDescriptor.maxContactsPerParticle = 10; //6; //10;
         mSolverDescriptor.maxParticles = mMaxparticles;
         mSolverDescriptor.maxDiffuseParticles = 0;
         mFlexSolver = NvFlexCreateSolver(mFlexLibrary, &mSolverDescriptor);
@@ -225,15 +225,15 @@ namespace Kratos {
     void FlexWrapper::SetNvFlexParams(NvFlexParams& mFlexParameters) {
 
         const array_1d<double,3>& gravity = mrSpheresModelPart.GetProcessInfo()[GRAVITY];
-        mFlexParameters.gravity[0] = 0.0f; //(float)gravity[0];
-        mFlexParameters.gravity[1] = 0.0f; //(float)gravity[1];
-        mFlexParameters.gravity[2] = 0.0f; //(float)gravity[2];
+        mFlexParameters.gravity[0] = (float)gravity[0];
+        mFlexParameters.gravity[1] = (float)gravity[1];
+        mFlexParameters.gravity[2] = (float)gravity[2];
 
         mFlexParameters.wind[0] = 0.0f;
         mFlexParameters.wind[1] = 0.0f;
         mFlexParameters.wind[2] = 0.0f;
 
-        mFlexParameters.radius = 0.01f; //0.15f;
+        mFlexParameters.radius = 0.01f;
         /*const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
         for (size_t i=0; i< number_of_nodes; i++) {
             const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
@@ -243,13 +243,13 @@ namespace Kratos {
         //TODO: MA: check that all radii are the same!!
 
         mFlexParameters.viscosity = 0.0f;
-        mFlexParameters.dynamicFriction = 0.25f;
-        mFlexParameters.staticFriction = 0.25f;
-        mFlexParameters.particleFriction = 0.25f;
+        mFlexParameters.dynamicFriction = 0.5f; //0.25f;
+        mFlexParameters.staticFriction = 0.5f; //0.25f;
+        mFlexParameters.particleFriction = 0.5f; //0.25f;
         mFlexParameters.freeSurfaceDrag = 0.0f;
         mFlexParameters.drag = 0.0f;
         mFlexParameters.lift = 0.0f;
-        mFlexParameters.numIterations = 30; //3;
+        mFlexParameters.numIterations = 5; //30; //3;
         mFlexParameters.fluidRestDistance = 0.9 * mFlexParameters.radius; //0.0f;
         //mFlexParameters.solidRestDistance = 0.0f;
         mFlexParameters.solidRestDistance = 0.9 * mFlexParameters.radius;
@@ -259,14 +259,14 @@ namespace Kratos {
         mFlexParameters.anisotropyMax = 2.0f;
         mFlexParameters.smoothing = 0.0f;
 
-        mFlexParameters.dissipation = 2.0f; //0.0f;
-        mFlexParameters.damping = 1.0f; //0.0f;
-        mFlexParameters.particleCollisionMargin = mFlexParameters.radius * 0.5f; //0.05f;
+        mFlexParameters.dissipation = 0.0f; //2.0f; //0.0f;
+        mFlexParameters.damping = 0.0f; //1.0f; //0.0f;
+        mFlexParameters.particleCollisionMargin = mFlexParameters.radius * 0.05f; //0.5f; //0.05f;
         mFlexParameters.collisionDistance = mFlexParameters.radius * 0.5f;
-        mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance; // * 0.05f;
-        mFlexParameters.sleepThreshold = 0.0f;
+        mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance * 0.05f; //1,0f; // * 0.05f;
+        mFlexParameters.sleepThreshold = 0.002f; //0.0f;
         mFlexParameters.shockPropagation = 0.0f;
-        mFlexParameters.restitution = 0.2f; //0.5f;
+        mFlexParameters.restitution = 0.05f; //0.0f; //0.5f;
 
         mFlexParameters.maxSpeed = 100.0f; //FLT_MAX;
         mFlexParameters.maxAcceleration = 100.0f;	// approximately 10x gravity
@@ -275,7 +275,7 @@ namespace Kratos {
         mFlexParameters.relaxationFactor = 1.0f;
         mFlexParameters.solidPressure = 1.0f;
         mFlexParameters.adhesion = 0.0f;
-        mFlexParameters.cohesion = 0.0f; //0.025f;
+        mFlexParameters.cohesion = 0.0f; //0.025f; //0.0f; //0.025f;
         mFlexParameters.surfaceTension = 0.0f;
         mFlexParameters.vorticityConfinement = 0.0f;
         mFlexParameters.buoyancy = 1.0f;
@@ -317,8 +317,7 @@ namespace Kratos {
 
     void FlexWrapper::SolveTimeSteps(double dt, int number_of_substeps) {
         
-        SetGravity();
-        
+        //SetGravity();
         
         NvFlexUpdateSolver(mFlexSolver, (float)dt, number_of_substeps, false);
     }
