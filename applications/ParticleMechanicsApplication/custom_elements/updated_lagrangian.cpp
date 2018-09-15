@@ -284,22 +284,6 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
 }
 
 //************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangian::UpdateGeneralVariables(GeneralVariables& rVariables,
-        ConstitutiveLaw::Parameters& rValues)
-{
-    // The following updates are performed specifically for non-isochoric return mapping
-    // Update total deformation gradient after return mapping
-    rVariables.FT = rValues.GetDeformationGradientF();
-    rVariables.F  = prod( rVariables.FT, rVariables.F0Inverse );
-
-    // Update the total determinant of deformation gradient after return mapping
-    rVariables.detFT = rValues.GetDeterminantF();
-    rVariables.detF  = rVariables.detFT / rVariables.detF0;
-}
-
-//************************************************************************************
 //*****************check size of LHS and RHS matrices*********************************
 
 void UpdatedLagrangian::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
@@ -365,9 +349,6 @@ void UpdatedLagrangian::CalculateElementalSystem( LocalSystemComponents& rLocalS
     The function below will call CalculateMaterialResponseCauchy() by default and then (may)
     call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
     mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
-
-    // Update general variables after material response is calculated - this will update necessary information
-    this->UpdateGeneralVariables(Variables,Values);
 
     /* NOTE:
     The material points will have constant mass as defined at the beginning.
