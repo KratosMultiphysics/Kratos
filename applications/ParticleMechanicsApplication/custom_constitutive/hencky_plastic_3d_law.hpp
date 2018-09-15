@@ -10,9 +10,9 @@
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
+
 #if !defined (KRATOS_HENCKY_PLASTIC_3D_LAW_H_INCLUDED)
 #define KRATOS_HENCKY_PLASTIC_3D_LAW_H_INCLUDED
-
 
 // System includes
 

@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/linear_plane_strain.h"
 
 namespace Kratos
 {
@@ -29,6 +29,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // The size type definition
+    typedef std::size_t SizeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -41,26 +44,40 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class GenericConstitutiveLawIntegrator
+ * @class GenericSmallStrainIsotropicDamage
  * @ingroup StructuralMechanicsApplication
- * @brief
- * @details
+ * @brief This class is the base class which define all the constitutive laws for damage in small deformation
+ * @details This class considers a constitutive law integrator as an intermediate utility to compute the damage
+ * @tparam TConstLawIntegratorType The constitutive law integrator considered
  * @author Alejandro Cornejo & Lucia Barbu
  */
-template <class ConstLawIntegratorType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicDamage3D
-    : public ElasticIsotropic3D
+template <class TConstLawIntegratorType>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainIsotropicDamage
+    : public std::conditional<TConstLawIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    /// The define the working dimension size, already defined in the integrator
+    static constexpr SizeType Dimension = TConstLawIntegratorType::Dimension;
+
+    /// The define the Voigt size, already defined in the  integrator
+    static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
+    
     /// Definition of the base class
-    typedef ElasticIsotropic3D BaseType;
+    typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
     /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicDamage3D);
+    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicDamage);
 
+    /// The node definition
+    typedef Node<3> NodeType;
+    
+    /// The geometry definition
+    typedef Geometry<NodeType> GeometryType;
+    
+    /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
@@ -70,7 +87,7 @@ public:
     /**
     * Default constructor.
     */
-    GenericSmallStrainIsotropicDamage3D()
+    GenericSmallStrainIsotropicDamage()
     {
     }
 
@@ -79,13 +96,13 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericSmallStrainIsotropicDamage3D<ConstLawIntegratorType>>(*this);
+        return Kratos::make_shared<GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>>(*this);
     }
 
     /**
     * Copy constructor.
     */
-    GenericSmallStrainIsotropicDamage3D(const GenericSmallStrainIsotropicDamage3D &rOther)
+    GenericSmallStrainIsotropicDamage(const GenericSmallStrainIsotropicDamage &rOther)
         : BaseType(rOther),
           mDamage(rOther.mDamage),
           mThreshold(rOther.mThreshold),
@@ -97,7 +114,7 @@ public:
     /**
     * Destructor.
     */
-    ~GenericSmallStrainIsotropicDamage3D() override
+    ~GenericSmallStrainIsotropicDamage() override
     {
     }
 
@@ -110,25 +127,25 @@ public:
     ///@{
 
     /**
-     * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
+     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
     void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
-     * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+     * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
     void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
-     * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
+     * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
     void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
-     * Computes the material response in terms of Cauchy stresses and constitutive tensor
+     * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
@@ -147,33 +164,34 @@ public:
         ) override;
 
     /**
-     * to be called at the end of each solution step
-     * (e.g. from Element::FinalizeSolutionStep)
+     * @brief To be called at the end of each solution step
+     * @details (e.g. from Element::FinalizeSolutionStep)
      * @param rMaterialProperties the Properties instance of the current element
      * @param rElementGeometry the geometry of the current element
      * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
+     * @param rCurrentProcessInfo the current ProcessInfo instance
      */
     void FinalizeSolutionStep(
         const Properties &rMaterialProperties,
         const GeometryType &rElementGeometry,
-        const Vector &rShapeFunctionsValues,
-        const ProcessInfo &rCurrentProcessInfo) override;
+        const Vector& rShapeFunctionsValues,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     /**
-     * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
     void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
-     * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
     void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
-     * Finalize the material response in terms of Kirchhoff stresses
+     * @brief Finalize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
     void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters &rValues) override;
@@ -188,7 +206,21 @@ public:
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    bool Has(const Variable<double>& rThisVariable) override;
+    bool Has(const Variable<double> &rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (Vector)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<Vector> &rThisVariable) override;
+    
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (Matrix)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<Matrix> &rThisVariable) override;
 
     /**
      * @brief Sets the value of a specified variable (double)
@@ -209,23 +241,57 @@ public:
      * @return rValue output: the value of the specified variable
      */
     double& GetValue(
-        const Variable<double>& rThisVariable,
+        const Variable<double> &rThisVariable,
         double& rValue
         ) override;
 
     /**
-     * returns the value of a specified variable (double)
+     * @brief Returns the value of a specified variable (Vector)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    Vector& GetValue(
+        const Variable<Vector> &rThisVariable,
+        Vector& rValue
+        ) override;
+
+    /**
+     * @brief Returns the value of a specified variable (matrix)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    Matrix& GetValue(
+        const Variable<Matrix>& rThisVariable,
+        Matrix& rValue
+        ) override;
+
+    /**
+     * @brief Returns the value of a specified variable (double)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
     double& CalculateValue(
-        Parameters &rParameterValues,
+        ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<double>& rThisVariable,
-        double& rValue
-        ) override;
+        double& rValue) override;
 
+    /**
+     * @brief Returns the value of a specified variable (vector)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    Vector& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue
+        ) override;
+        
     /**
      * @brief Returns the value of a specified variable (matrix)
      * @param rParameterValues the needed parameters for the CL calculation

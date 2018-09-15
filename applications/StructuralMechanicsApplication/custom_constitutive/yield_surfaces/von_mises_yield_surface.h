@@ -27,6 +27,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // The size type definition
+    typedef std::size_t SizeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -43,9 +46,12 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a yield surface according to Von-Mises theory
  * @details The von Mises yield criterion (also known as the maximum distortion energy criterion) suggests that yielding of a ductile material begins when the second deviatoric stress invariant J2 reaches a critical value. It is part of plasticity theory that applies best to ductile materials, such as some metals. Prior to yield, material response can be assumed to be of a nonlinear elastic, viscoelastic, or linear elastic behavior. 
+ * The yield surface requires the definition of the following properties:
+ * - FRACTURE_ENERGY: A fracture energy-based function is used to describe strength degradation in post-peak regime
+ * - YOUNG_MODULUS: It defines the relationship between stress (force per unit area) and strain (proportional deformation) in a material in the linear elasticity regime of a uniaxial deformation.
+ * - YIELD_STRESS: Yield stress is the amount of stress that an object needs to experience for it to be permanently deformed. Does not require to be defined simmetrically, one YIELD_STRESS_COMPRESSION and other YIELD_STRESS_TENSION can be defined for not symmetric cases
  * @see https://en.wikipedia.org/wiki/Von_Mises_yield_criterion
  * @tparam TPlasticPotentialType The plastic potential considered
- * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
@@ -58,9 +64,16 @@ public:
     /// The type of potential plasticity
     typedef TPlasticPotentialType PlasticPotentialType;
 
+    /// The Plastic potential already defines the working simension size
+    static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
+    
+    /// The Plastic potential already defines the Voigt size
+    static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
+    
     /// Counted pointer of VonMisesYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(VonMisesYieldSurface);
 
+    /// The machine precision zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
     
     ///@}
@@ -96,22 +109,22 @@ public:
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param rStressVector The stress vector
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The StrainVector vector
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
-        const Vector& rStressVector,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues
         )
     {
         double I1, J2;
-        Vector Deviator = ZeroVector(6);
+        array_1d<double, VoigtSize> Deviator(6, 0.0);
 
-        ConstitutiveLawUtilities::CalculateI1Invariant(rStressVector, I1);
-        ConstitutiveLawUtilities::CalculateJ2Invariant(rStressVector, I1, Deviator, J2);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, Deviator, J2);
 
         rEquivalentStress = std::sqrt(3.0 * J2);
     }
@@ -128,33 +141,33 @@ public:
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        const double sigma_t = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        rThreshold = std::abs(sigma_t);
+        const double yield_tension = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+        rThreshold = std::abs(yield_tension);
     }
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
-     * @param AParameter The damage parameter
+     * @param rAParameter The damage parameter
      * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
         ConstitutiveLaw::Parameters& rValues,
-        double& AParameter,
+        double& rAParameter,
         const double CharacteristicLength
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
-        const double Gf = r_material_properties[FRACTURE_ENERGY];
-        const double E = r_material_properties[YOUNG_MODULUS];
-        const double sigma_c = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+        const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
+        const double young_modulus = r_material_properties[YOUNG_MODULUS];
+        const double yield_compression = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
 
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
-            AParameter = 1.00 / (Gf * E / (CharacteristicLength * std::pow(sigma_c, 2)) - 0.5);
-            KRATOS_ERROR_IF(AParameter < 0.0) << "Fracture enerDerivativePlasticPotentialy is too low, increase FRACTURE_ENERGY..." << std::endl;
+            rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
+            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture enerDerivativePlasticPotentialy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
-            AParameter = -std::pow(sigma_c, 2) / (2.0 * E * Gf / CharacteristicLength);
+            rAParameter = -std::pow(yield_compression, 2) / (2.0 * young_modulus * fracture_energy / CharacteristicLength);
         }
     }
 
@@ -167,14 +180,14 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& rStressVector,
-        const Vector& rDeviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        Vector& rDerivativePlasticPotential,
+        array_1d<double, VoigtSize>& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -182,25 +195,25 @@ public:
     according   to   NAYAK-ZIENKIEWICZ   paper International
     journal for numerical methods in engineering vol 113-135 1972.
      As:            DF/DS = c1*V1 + c2*V2 + c3*V3
-     * @param rStressVector The stress vector
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
      * @param rFFlux The derivative of the yield surface
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector& rStressVector,
-        const Vector& rDeviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double J2,
-        Vector& rFFlux,
+        array_1d<double, VoigtSize>& rFFlux,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        Vector first_vector, second_vector, third_vector;
+        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities::CalculateThirdVector(rDeviator, J2, third_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         const double c1 = 0.0;
         const double c2 = std::sqrt(3.0);

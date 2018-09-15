@@ -32,6 +32,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    // The size type definition
+    typedef std::size_t SizeType;
+    
 ///@}
 ///@name  Enum's
 ///@{
@@ -62,6 +65,12 @@ public:
     /// The type of potential plasticity
     typedef TPlasticPotentialType PlasticPotentialType;
 
+    /// The Plastic potential already defines the working simension size
+    static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
+    
+    /// The Plastic potential already defines the Voigt size
+    static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
+    
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericYieldSurface);
 
@@ -102,12 +111,14 @@ public:
 
     /**
      * @brief This method the uniaxial equivalent stress
-     * @param rStressVector The stress vector
-     * @param rEquivalentStress The equivalent stress
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rStrainVector The StrainVector vector
+     * @param rEquivalentStress The effective stress or equivalent uniaxial stress is a scalar. It is an invariant value which measures the “intensity” of a 3D stress state.
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
-        const Vector& rStressVector,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues
         )
@@ -128,13 +139,13 @@ public:
 
     /**
      * @brief This method returns the damage parameter needed in the exp/linear expressions of damage
-     * @param AParameter The damage parameter
+     * @param rAParameter The damage parameter
      * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
      */
     static void CalculateDamageParameter(
         ConstitutiveLaw::Parameters& rValues,
-        double& AParameter,
+        double& rAParameter,
         const double CharacteristicLength
         )
     {
@@ -149,14 +160,14 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const Vector& rStressVector,
-        const Vector& rDeviator,
+        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const array_1d<double, VoigtSize>& rDeviator,
         const double& J2,
-        Vector& rDerivativePlasticPotential,
+        array_1d<double, VoigtSize>& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
+        TPlasticPotentialType::CalculatePlasticPotentialDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -171,10 +182,10 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const Vector& StressVector,
-        const Vector& Deviator,
+        const array_1d<double, VoigtSize>& StressVector,
+        const array_1d<double, VoigtSize>& Deviator,
         const double J2,
-        Vector& rFFlux,
+        array_1d<double, VoigtSize>& rFFlux,
         ConstitutiveLaw::Parameters& rValues)
     {
     }

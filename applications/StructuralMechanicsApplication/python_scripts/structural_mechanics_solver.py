@@ -49,7 +49,6 @@ class MechanicalSolver(PythonSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "",
-            "add_model_part_to_model_before_reading" : false,
             "domain_size" : -1,
             "echo_level": 0,
             "buffer_size": 2,
@@ -121,16 +120,12 @@ class MechanicalSolver(PythonSolver):
         # This will be changed once the Model is fully supported!
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model[model_part_name]
-            self.solver_imports_model_part = False
         else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name) # Model.CreateodelPart()
-            if self.settings["add_model_part_to_model_before_reading"].GetBool(): # this will be the default behavior once the Model is finished
-                self.model.AddModelPart(self.main_model_part)
+            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name) # Model.CreateModelPart()
             domain_size = self.settings["domain_size"].GetInt()
             if domain_size < 0:
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-            self.solver_imports_model_part = True
 
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Construction finished")
 
@@ -204,8 +199,7 @@ class MechanicalSolver(PythonSolver):
     def ImportModelPart(self):
         """This function imports the ModelPart
         """
-        if self.solver_imports_model_part:
-            self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
+        self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
         if not self.is_restarted():
