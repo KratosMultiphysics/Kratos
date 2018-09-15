@@ -114,7 +114,6 @@ protected:
         Matrix  F;
         Matrix  FT;
         Matrix  F0;
-        Matrix  F0Inverse;
         Matrix  DN_DX;
         Matrix  DN_De;
         Matrix  ConstitutiveMatrix;
@@ -608,9 +607,6 @@ protected:
      * Container for the total deformation gradient determinants
      */
     double mDeterminantF0;
-    /* Container for inverse of total deformation gradient
-     */
-    Matrix mInverseDeformationGradientF0;
     /**
      * Container for historical inverse of Jacobian at reference configuration invJ0
      */

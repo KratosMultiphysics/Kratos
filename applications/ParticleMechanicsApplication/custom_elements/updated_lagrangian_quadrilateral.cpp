@@ -68,7 +68,6 @@ UpdatedLagrangianQuadrilateral::UpdatedLagrangianQuadrilateral( UpdatedLagrangia
     :Element(rOther)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
-    ,mInverseDeformationGradientF0(rOther.mInverseDeformationGradientF0)
     ,mInverseJ0(rOther.mInverseJ0)
     ,mInverseJ(rOther.mInverseJ)
     ,mDeterminantJ0(rOther.mDeterminantJ0)
@@ -86,8 +85,6 @@ UpdatedLagrangianQuadrilateral&  UpdatedLagrangianQuadrilateral::operator=(Updat
 
     mDeformationGradientF0.clear();
     mDeformationGradientF0 = rOther.mDeformationGradientF0;
-    mInverseDeformationGradientF0.clear();
-    mInverseDeformationGradientF0 = rOther.mInverseDeformationGradientF0;
 
     mInverseJ0.clear();
     mInverseJ0 = rOther.mInverseJ0;
@@ -120,7 +117,6 @@ Element::Pointer UpdatedLagrangianQuadrilateral::Clone( IndexType NewId, NodesAr
     NewElement.mConstitutiveLawVector = mConstitutiveLawVector->Clone();
 
     NewElement.mDeformationGradientF0 = mDeformationGradientF0;
-    NewElement.mInverseDeformationGradientF0 = mInverseDeformationGradientF0;
 
     NewElement.mInverseJ0 = mInverseJ0;
     NewElement.mInverseJ = mInverseJ;
@@ -152,7 +148,6 @@ void UpdatedLagrangianQuadrilateral::Initialize()
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
     mDeterminantF0 = 1;
     mDeformationGradientF0 = identity_matrix<double> (dim);
-    mInverseDeformationGradientF0 = identity_matrix<double> (dim);
 
     // Compute initial jacobian matrix and inverses
     Matrix J0 = ZeroMatrix(dim, dim);
@@ -213,8 +208,6 @@ void UpdatedLagrangianQuadrilateral::InitializeGeneralVariables (GeneralVariable
     rVariables.F.resize( dimension, dimension );
 
     rVariables.F0.resize( dimension, dimension );
-
-    rVariables.F0Inverse.resize( dimension, dimension );
 
     rVariables.FT.resize( dimension, dimension );
 
@@ -449,7 +442,6 @@ void UpdatedLagrangianQuadrilateral::CalculateKinematics(GeneralVariables& rVari
     // Determinant of the previous Deformation Gradient F_n
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
-    rVariables.F0Inverse = mInverseDeformationGradientF0;
 
     // Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
@@ -997,7 +989,6 @@ void UpdatedLagrangianQuadrilateral::FinalizeStepVariables( GeneralVariables & r
     // Update internal (historical) variables
     mDeterminantF0         = rVariables.detF* rVariables.detF0;
     mDeformationGradientF0 = prod(rVariables.F, rVariables.F0);
-    MathUtils<double>::InvertMatrix( mDeformationGradientF0, mInverseDeformationGradientF0, mDeterminantF0 );
 
     this->SetValue(MP_CAUCHY_STRESS_VECTOR, rVariables.StressVector);
     this->SetValue(MP_ALMANSI_STRAIN_VECTOR, rVariables.StrainVector);
@@ -1771,7 +1762,6 @@ void UpdatedLagrangianQuadrilateral::GetHistoricalVariables( GeneralVariables& r
 
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
-    rVariables.F0Inverse = mInverseDeformationGradientF0;
 }
 
 //*************************DECIMAL CORRECTION OF STRAINS******************************
@@ -1869,7 +1859,6 @@ void UpdatedLagrangianQuadrilateral::save( Serializer& rSerializer ) const
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
-    rSerializer.save("InverseDeformationGradientF0",mInverseDeformationGradientF0);
     rSerializer.save("InverseJ0",mInverseJ0);
     rSerializer.save("DeterminantJ0",mDeterminantJ0);
 
@@ -1881,7 +1870,6 @@ void UpdatedLagrangianQuadrilateral::load( Serializer& rSerializer )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
-    rSerializer.load("InverseDeformationGradientF0",mInverseDeformationGradientF0);
     rSerializer.load("InverseJ0",mInverseJ0);
     rSerializer.load("DeterminantJ0",mDeterminantJ0);
 }

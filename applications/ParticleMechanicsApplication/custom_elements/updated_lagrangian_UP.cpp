@@ -98,7 +98,6 @@ Element::Pointer UpdatedLagrangianUP::Clone( IndexType NewId, NodesArrayType con
     NewElement.mConstitutiveLawVector = mConstitutiveLawVector->Clone();
 
     NewElement.mDeformationGradientF0 = mDeformationGradientF0;
-    NewElement.mInverseDeformationGradientF0 = mInverseDeformationGradientF0;
 
     NewElement.mDeterminantF0 = mDeterminantF0;
 
@@ -125,7 +124,6 @@ void UpdatedLagrangianUP::Initialize()
     const unsigned int dim = GetGeometry().WorkingSpaceDimension();
     mDeterminantF0 = 1;
     mDeformationGradientF0 = identity_matrix<double> (dim);
-    mInverseDeformationGradientF0 = identity_matrix<double> (dim);
     
     // Compute initial jacobian matrix and inverses
     Matrix J0 = ZeroMatrix(dim, dim);
@@ -305,7 +303,6 @@ void UpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, Proc
     // Determinant of the previous Deformation Gradient F_n
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
-    rVariables.F0Inverse = mInverseDeformationGradientF0;
 
     // Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
@@ -1235,7 +1232,6 @@ void UpdatedLagrangianUP::save( Serializer& rSerializer ) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
-    rSerializer.save("InverseDeformationGradientF0",mInverseDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
 
 
@@ -1246,7 +1242,6 @@ void UpdatedLagrangianUP::load( Serializer& rSerializer )
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
-    rSerializer.load("InverseDeformationGradientF0",mInverseDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
 }
 
