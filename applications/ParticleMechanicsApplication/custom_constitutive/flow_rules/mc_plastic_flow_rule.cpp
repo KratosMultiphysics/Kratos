@@ -9,9 +9,11 @@
 //
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
+
+
 // System includes
 #include <iostream>
-#include<cmath>
+#include <cmath>
 
 // External includes
 #include "includes/ublas_interface.h"
@@ -195,7 +197,7 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     // Necessary coefficients
     const double FrictionCoefficient  = (1 + std::sin(FrictionAngle))/(1 - std::sin(FrictionAngle));
     const double DilatancyCoefficient = (1 + std::sin(DilatancyAngle))/(1 - std::sin(DilatancyAngle));
-    const double CohesionCoefficient  = 2 * Cohesion * sqrt(FrictionCoefficient);
+    const double CohesionCoefficient  = 2 * Cohesion * std::sqrt(FrictionCoefficient);
 
     // Stress coordinate of the criterions apex
     const double apex = CohesionCoefficient/(FrictionCoefficient-1);
@@ -741,7 +743,7 @@ bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnM
     Vector DeviatoricPlasticPrincipalStrain = mPlasticPrincipalStrain;
     for (unsigned int i = 0; i<3; ++i)
         DeviatoricPlasticPrincipalStrain(i) -= 1.0/3.0 * VolumetricPlasticPrincipalStrain;
-    double DeltaAccumulatedPlasticDeviatoricStrain = sqrt(2.0/3.0) * norm_2(DeviatoricPlasticPrincipalStrain);
+    double DeltaAccumulatedPlasticDeviatoricStrain = std::sqrt(2.0/3.0) * norm_2(DeviatoricPlasticPrincipalStrain);
 
     const double FrictionAngle  = mMaterialParameters.FrictionAngle; 
     const double DilatancyAngle = mMaterialParameters.DilatancyAngle;
@@ -754,11 +756,11 @@ bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnM
     // Calculate the norm of state function (or potential) derivative
     if(FrictionAngle == DilatancyAngle) // I am using an associative flow rule
     {
-        NormStateFunctionDerivative = sqrt(1 + FrictionCoefficient * FrictionCoefficient);
+        NormStateFunctionDerivative = std::sqrt(1 + FrictionCoefficient * FrictionCoefficient);
     }
     else //I am using a non-associative flow rule
     {
-        NormStateFunctionDerivative = sqrt(1 + DilatancyCoefficient * DilatancyCoefficient);
+        NormStateFunctionDerivative = std::sqrt(1 + DilatancyCoefficient * DilatancyCoefficient);
     }
 
     // Update Equivalent Plastic Strain
@@ -770,11 +772,6 @@ bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnM
     mInternalVariables.AccumulatedPlasticDeviatoricStrain += DeltaAccumulatedPlasticDeviatoricStrain;
 
     return true;
-}
-
-double MCPlasticFlowRule::GetSmoothingLodeAngle()
-{
-    return 29.0*GetPI()/180.0;
 }
 
 

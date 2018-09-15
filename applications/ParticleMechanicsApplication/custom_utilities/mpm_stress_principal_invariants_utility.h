@@ -10,16 +10,15 @@
 //  Main authors:    Bodhinanda Chandra
 //
 
+
 #ifndef KRATOS_MPM_STRESS_PRINCIPAL_INVARIANTS_UTILITY
 #define KRATOS_MPM_STRESS_PRINCIPAL_INVARIANTS_UTILITY
-
 
 // System includes
 #include <cmath>
 #include <set>
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"

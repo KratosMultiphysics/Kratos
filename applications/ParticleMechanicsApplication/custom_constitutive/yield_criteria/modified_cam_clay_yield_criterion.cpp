@@ -10,6 +10,7 @@
 //  Main authors:    Bodhinanda Chandra
 //
 
+
 // System includes
 #include <string>
 #include <iostream>
@@ -80,7 +81,7 @@ double& ModifiedCamClayYieldCriterion::CalculateYieldCondition(double& rStateFun
 {
     double MeanStressP, DeviatoricQ;
     MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( rStressVector, MeanStressP, DeviatoricQ);
-    DeviatoricQ *= sqrt(3.0); //Q = sqrt(3) * J2
+    DeviatoricQ *= std::sqrt(3.0); //Q = sqrt(3) * J2
 
     const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
 
@@ -102,7 +103,7 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vecto
     double MeanStressP, DeviatoricQ;
 
     MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( rStressVector, MeanStressP, DeviatoricQ);
-    DeviatoricQ *= sqrt(3.0); //Q = sqrt(3) * J2
+    DeviatoricQ *= std::sqrt(3.0); //Q = sqrt(3) * J2
 
     const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
 
@@ -129,11 +130,6 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionSecondDerivative(const
     rSecondDerivative(4) = 0.0 ;                  // (df²/dQdP_c)  
     rSecondDerivative(5) =-1.0 ;                  // (df²/dPdP_c)
 
-}
-
-double ModifiedCamClayYieldCriterion::GetSmoothingLodeAngle()
-{
-    return 27.0*GetPI()/180.0;
 }
 
 double ModifiedCamClayYieldCriterion::GetPI()

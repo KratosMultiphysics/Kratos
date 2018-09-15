@@ -1,10 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:                 ilaria $
-//   Date:                $Date:                July 2015 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
+
 
 #if !defined(KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED )
 #define  KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED
@@ -20,8 +25,6 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-//#include "custom_utilities/comparison_utilities.hpp"
-
 
 namespace Kratos
 {
