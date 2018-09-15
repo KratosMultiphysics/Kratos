@@ -238,15 +238,14 @@ private:
          * @param itValue The iterator to adapt
          * @param pRoot The root Parameter pointer
          */
-
-        const_iterator_adaptor(value_iterator it,  Kratos::shared_ptr<nlohmann::json> proot) :mValueIterator(it), mpParameters(new Parameters(const_cast<nlohmann::json*>(&(*it)), proot)) {}
+        const_iterator_adaptor(value_iterator itValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpParameters(new Parameters(const_cast<nlohmann::json*>(&(*itValue)), pRoot)) {}
 
         /**
          * @brief Default constructor (just constant iterator)
          * @param itValue The iterator to adapt
          * @todo Use copy constructor in the following method
          */
-        const_iterator_adaptor(const const_iterator_adaptor& it) : mValueIterator(it.mValueIterator), mpParameters(new Parameters(*(it.mpParameters))) {}
+        const_iterator_adaptor(const const_iterator_adaptor& itValue) : mValueIterator(itValue.mValueIterator), mpParameters(new Parameters(*(itValue.mpParameters))) {}
 
         ///@}
         ///@name Operators
@@ -390,9 +389,9 @@ public:
      * @brief String constructor. It takes a string as input, which parses into a nlohmann::json class
      * @param rJsonString The string to be parsed into a nlohmann::json class
      */
-    Parameters(const std::string& json_string)
+    Parameters(const std::string& rJsonString)
     {
-        mpRoot = Kratos::shared_ptr<nlohmann::json>(new nlohmann::json( nlohmann::json::parse( json_string )));
+        mpRoot = Kratos::shared_ptr<nlohmann::json>(new nlohmann::json( nlohmann::json::parse( rJsonString )));
         mpValue = mpRoot.get();
     }
 
@@ -407,6 +406,8 @@ public:
     /// Destructor.
     virtual ~Parameters()
     {
+//         delete[] mpValue;
+//         mpRoot = nullptr;
     }
 
     ///@}
@@ -1401,7 +1402,9 @@ private:
      * @param pRoot A shared pointer to a nlohmann::json class
      * @warning Please DO NOT use this constructor. It assumes nlohmann::json and hence it should be considered as an implementation detail
      */
-    Parameters(nlohmann::json* pvalue, Kratos::shared_ptr<nlohmann::json> proot): mpValue(pvalue), mpRoot(proot)
+    Parameters(nlohmann::json* pValue, Kratos::shared_ptr<nlohmann::json> pRoot)
+        : mpValue(pValue),
+          mpRoot(pRoot)
     {}
 
     //ATTENTION: please DO NOT use this constructor. It assumes nlohmann::json and hence it should be considered as an implementation detail
