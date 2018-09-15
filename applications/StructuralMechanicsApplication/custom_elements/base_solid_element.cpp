@@ -86,7 +86,13 @@ void BaseSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo 
 
 void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-    // TODO: Add somethig if necessary
+    for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+        mConstitutiveLawVector[point_number]->InitializeNonLinearIteration( GetProperties(),
+        GetGeometry(),
+        row( GetGeometry().ShapeFunctionsValues(  ), point_number ),
+        rCurrentProcessInfo
+        );
+    }
 }
 
 /***********************************************************************************/
@@ -94,7 +100,13 @@ void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProces
 
 void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-    // TODO: Add somethig if necessary
+    for ( IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number ) {
+        mConstitutiveLawVector[point_number]->FinalizeNonLinearIteration( GetProperties(),
+        GetGeometry(),
+        row( GetGeometry().ShapeFunctionsValues(  ), point_number ),
+        rCurrentProcessInfo
+        );
+    }
 }
 
 /***********************************************************************************/
