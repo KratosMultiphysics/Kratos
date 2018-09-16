@@ -323,35 +323,35 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertTrue(kp.Has("new_double"))
         self.assertEqual(kp["new_double"].GetDouble(), 1.0)
 
-    #def test_iterators(self):
-        #kp = Parameters(json_string)
+    def test_iterators(self):
+        kp = Parameters(json_string)
 
-        ##iteration by range
-        #nitems = 0
-        #for iterator in kp:
-            #nitems = nitems + 1
-        #self.assertEqual(nitems, 5)
+        #iteration by range
+        nitems = 0
+        for iterator in kp:
+            nitems = nitems + 1
+        self.assertEqual(nitems, 5)
 
-        ##iteration by items
-        #for key,value in kp.items():
-            ##print(value.PrettyPrintJsonString())
-            #self.assertEqual(kp[key].PrettyPrintJsonString(), value.PrettyPrintJsonString())
-            ##print(key,value)
+        #iteration by items
+        for key,value in kp.items():
+            #print(value.PrettyPrintJsonString())
+            self.assertEqual(kp[key].PrettyPrintJsonString(), value.PrettyPrintJsonString())
+            #print(key,value)
 
-        ##testing values
-        #expected_values = ['10', '2.0', 'true', '"hello"', '{"list_value":[3,"hi",false],"tmp":5.0}']
-        #counter = 0
+        #testing values
+        expected_values = ['true', '2.0', '10', '{"list_value":[3,"hi",false],"tmp":5.0}','"hello"']
+        counter = 0
 
-        #for value in kp.values():
-            #self.assertEqual(value.WriteJsonString(), expected_values[counter])
-            #counter += 1
+        for value in kp.values():
+            self.assertEqual(value.WriteJsonString(), expected_values[counter])
+            counter += 1
 
-        ##testing values
-        #expected_keys = ['int_value', 'double_value', 'bool_value', 'string_value', 'level1']
-        #counter = 0
-        #for key in kp.keys():
-            #self.assertEqual(key, expected_keys[counter])
-            #counter += 1
+        #testing values
+        expected_keys = ['bool_value', 'double_value', 'int_value', 'level1', 'string_value']
+        counter = 0
+        for key in kp.keys():
+            self.assertEqual(key, expected_keys[counter])
+            counter += 1
 
     def test_remove_value(self):
         kp = Parameters(json_string)
