@@ -101,10 +101,37 @@ protected:
      */
     struct ElementVariables
     {
-        //section properties
-        RigidBodyProperties RigidBody;
+     private:
 
-        Matrix DeltaPosition;
+      //variables including all integration points
+      const ProcessInfo* pProcessInfo;
+
+     public:
+      
+      //section properties
+      RigidBodyProperties RigidBody;
+      Vector VolumeForce;
+      Matrix DeltaPosition;
+      
+      void SetProcessInfo(const ProcessInfo& rProcessInfo)
+      {
+        pProcessInfo=&rProcessInfo;
+      }
+
+      const ProcessInfo& GetProcessInfo()
+      {
+        return *pProcessInfo;
+      }
+      
+      void Initialize(const unsigned int& dimension, const ProcessInfo& rProcessInfo)
+      {
+        VolumeForce.resize(dimension);
+        noalias(VolumeForce) = ZeroVector(dimension);
+        DeltaPosition.resize(1,dimension,false);
+        noalias(DeltaPosition) = ZeroMatrix(1, dimension);
+        pProcessInfo=&rProcessInfo;
+      }
+      
     };
 
 
@@ -440,39 +467,40 @@ protected:
 
 
     /**
-     * Initialize Element General Variables
-     */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
      * Calculation of the Rigid Body Properties
      */
     void CalculateRigidBodyProperties(RigidBodyProperties & rRigidBody);
 
 
+    /**
+      * Calculation of the Tangent Matrix
+      */
+    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+                                    ElementVariables& rVariables);
 
+    /**
+      * Calculation of the Force Vector
+      */
+    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                                    ElementVariables& rVariables);
+    
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-					       ElementVariables& rVariables,
-					       Vector& rVolumeForce);
-
+					       ElementVariables& rVariables);
 
     /**
       * Calculation of the Tangent Intertia Matrix
       */
     virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-					   ElementVariables& rVariables,
-					   ProcessInfo& rCurrentProcessInfo);
+					   ElementVariables& rVariables);
 
     /**
       * Calculation of the Inertial Forces Vector
       */
     virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-					   ElementVariables& rVariables,
-					   ProcessInfo& rCurrentProcessInfo);
+					   ElementVariables& rVariables);
 
 
     /**

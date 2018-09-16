@@ -280,21 +280,17 @@ void TranslatoryRigidBodyElement::InitializeSystemMatrices(MatrixType& rLeftHand
     }
 }
 
-
-//************* COMPUTING  METHODS
-//************************************************************************************
-//************************************************************************************
-
-
 //************************************************************************************
 //************************************************************************************
 
 //Inertia in the SPATIAL configuration
-void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
 
     KRATOS_TRY
 
+    const ProcessInfo& rCurrentProcessInfo = rVariables.GetProcessInfo();
+    
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension );
@@ -354,10 +350,12 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
 //************************************************************************************
 
 //Inertia in the SPATIAL configuration
-void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
     KRATOS_TRY
 
+    const ProcessInfo& rCurrentProcessInfo = rVariables.GetProcessInfo();
+    
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension );

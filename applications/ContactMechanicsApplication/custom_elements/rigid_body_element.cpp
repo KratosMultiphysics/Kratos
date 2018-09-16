@@ -335,9 +335,6 @@ void RigidBodyElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 						Flags& rCalculationFlags)
 
 {
-    const SizeType number_of_nodes = GetGeometry().size();
-    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
-
     //resizing as needed the LHS
     SizeType MatSize               = this->GetDofsSize();
 
@@ -409,17 +406,6 @@ Vector& RigidBodyElement::GetNodalPreviousValue(const Variable<array_1d<double,3
     KRATOS_CATCH("")
 }
 
-
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodyElement::InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    KRATOS_CATCH("")
-}
 
 //************************************************************************************
 //************************************************************************************
@@ -521,13 +507,15 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
 {
     KRATOS_TRY
 
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+       
     //create and initialize element variables:
     ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+    Variables.Initialize(dimension,rCurrentProcessInfo);
 
-    std::cout<<" ID "<<this->Id()<<std::endl;
-    std::cout<<" Displacement "<<GetGeometry()[0].FastGetSolutionStepValue( DISPLACEMENT )<<std::endl;
-    std::cout<<" Rotation     "<<GetGeometry()[0].FastGetSolutionStepValue( ROTATION )<<std::endl;
+    std::cout<<" RigidBodyElement "<<this->Id()<<std::endl;
+    std::cout<<" [Displacement "<<GetGeometry()[0].FastGetSolutionStepValue( DISPLACEMENT )<<"]"<<std::endl;
+    std::cout<<" [Rotation     "<<GetGeometry()[0].FastGetSolutionStepValue( ROTATION )<<"]"<<std::endl;
 
     //Compute Rigid Body Properties:
     this->CalculateRigidBodyProperties(Variables.RigidBody);
@@ -538,24 +526,14 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
       {
 	MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
-	this->CalculateAndAddInertiaLHS( rLeftHandSideMatrix, Variables, rCurrentProcessInfo); // (R_N+1, R_N)
-
-	//std::cout<<" LeftHandSide "<<rLeftHandSideMatrix<<std::endl;
+	this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
       }
 
     if ( rLocalSystem.CalculationFlags.Is(RigidBodyElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
       {
 	VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
-	this->CalculateAndAddInertiaRHS( rRightHandSideVector, Variables, rCurrentProcessInfo);
-
-	Vector VolumeForce(3);
-	noalias(VolumeForce) = ZeroVector(3);
-	VolumeForce = CalculateVolumeForce(VolumeForce);
-	this->CalculateAndAddExternalForces( rRightHandSideVector, Variables, VolumeForce);
-
-	//std::cout<<" VolumeForce "<<VolumeForce<<std::endl;
-	//std::cout<<" RightHandSide "<<rRightHandSideVector<<std::endl;
+	this->CalculateAndAddRHS(rRightHandSideVector, Variables);
       }
 
 
@@ -610,15 +588,16 @@ Vector& RigidBodyElement::MapToInitialLocalFrame(Vector& rVariable)
 //************************************************************************************
 
 void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						     ElementVariables& rVariables,
-						     Vector& rVolumeForce)
+						     ElementVariables& rVariables)
 {
     KRATOS_TRY
 
-    SizeType number_of_nodes   = GetGeometry().PointsNumber();
-    SizeType dimension         = GetGeometry().WorkingSpaceDimension();
-    const SizeType dofs_size   = dimension * (dimension + 1) * 0.5;
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size = dimension * (dimension + 1) * 0.5;
 
+    rVariables.VolumeForce = CalculateVolumeForce(rVariables.VolumeForce);
+    
     double DomainSize = rVariables.RigidBody.Mass;
 
     //gravity load
@@ -632,7 +611,7 @@ void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideV
 
       for ( SizeType j = 0; j < dimension; j++ )
       {
-        GravityLoad[j] = rVolumeForce[j] * DomainSize;
+        GravityLoad[j] = rVariables.VolumeForce[j] * DomainSize;
       }
 
       //substract because is added as a component of the InertiaRHS and is substracted again later in the scheme
@@ -900,17 +879,40 @@ void RigidBodyElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideV
     KRATOS_CATCH("")
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void RigidBodyElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+                                          ElementVariables& rVariables)
+{
+  // add inertia RHS
+  this->CalculateAndAddInertiaLHS(rLeftHandSideMatrix, rVariables);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void RigidBodyElement::CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                                          ElementVariables& rVariables)
+{
+  // calculate and add external forces
+  this->CalculateAndAddExternalForces(rRightHandSideVector, rVariables);
+
+  // add inertia RHS
+  this->CalculateAndAddInertiaRHS(rRightHandSideVector, rVariables);
+}
 
 //************************************************************************************
 //************************************************************************************
 
 //Inertia in the SPATIAL configuration
 void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-                                                 ElementVariables& rVariables,
-                                                 ProcessInfo& rCurrentProcessInfo)
+                                                 ElementVariables& rVariables)
 {
     KRATOS_TRY
-
+        
+    const ProcessInfo& rCurrentProcessInfo = rVariables.GetProcessInfo();
+        
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
     const SizeType dofs_size       = dimension * (dimension + 1) * 0.5;
@@ -1242,16 +1244,18 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
 
 }
 
+
 //************************************************************************************
 //************************************************************************************
 
 //Inertia in the SPATIAL configuration
 void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-                                                 ElementVariables& rVariables,
-                                                 ProcessInfo& rCurrentProcessInfo)
+                                                 ElementVariables& rVariables)
 {
     KRATOS_TRY
 
+    const ProcessInfo& rCurrentProcessInfo = rVariables.GetProcessInfo();
+    
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
     const SizeType dofs_size       = dimension * (dimension + 1) * 0.5;

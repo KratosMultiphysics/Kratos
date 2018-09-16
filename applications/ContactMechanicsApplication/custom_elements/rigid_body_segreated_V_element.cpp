@@ -364,7 +364,6 @@ void RigidBodySegregatedVElement::FinalizeNonLinearIteration( ProcessInfo& rCurr
   KRATOS_TRY
 
   this->SetProcessInformation(rCurrentProcessInfo);
-  this->SetProcessInformation(rCurrentProcessInfo);
 
   switch(mStepVariable)
   {
@@ -466,98 +465,6 @@ void RigidBodySegregatedVElement::CalculateLocalSystem(MatrixType& rLeftHandSide
   KRATOS_CATCH("")
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodySegregatedVElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
-                                                          ProcessInfo& rCurrentProcessInfo )
-{
-  KRATOS_TRY
-
-  //create and initialize element variables:
-  ElementVariables Variables;
-  this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-  std::cout<<" ID "<<this->Id()<<std::endl;
-  std::cout<<" Displacement "<<GetGeometry()[0].FastGetSolutionStepValue( DISPLACEMENT )<<std::endl;
-  std::cout<<" Rotation     "<<GetGeometry()[0].FastGetSolutionStepValue( ROTATION )<<std::endl;
-
-  //Compute Rigid Body Properties:
-  this->CalculateRigidBodyProperties(Variables.RigidBody);
-
-  // initialize variables short version:
-  if ( rLocalSystem.CalculationFlags.Is(RigidBodySegregatedVElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-  {
-    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
-
-    this->CalculateAndAddInertiaLHS( rLeftHandSideMatrix, Variables, rCurrentProcessInfo); // (R_N+1, R_N)
-
-    //std::cout<<" LeftHandSide "<<rLeftHandSideMatrix<<std::endl;
-  }
-
-  if ( rLocalSystem.CalculationFlags.Is(RigidBodySegregatedVElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
-  {
-    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-
-    this->CalculateAndAddInertiaRHS( rRightHandSideVector, Variables, rCurrentProcessInfo);
-
-    Vector VolumeForce(3);
-    noalias(VolumeForce) = ZeroVector(3);
-    VolumeForce = CalculateVolumeForce(VolumeForce);
-    this->CalculateAndAddExternalForces( rRightHandSideVector, Variables, VolumeForce);
-
-    //std::cout<<" VolumeForce "<<VolumeForce<<std::endl;
-    //std::cout<<" RightHandSide "<<rRightHandSideVector<<std::endl;
-  }
-
-
-  // Note:
-  // That means that the standard rotation K = Q·K'·QT and F = Q·F' is the correct transformation
-
-  Matrix InitialLocalMatrix = ZeroMatrix(3,3);
-  mInitialLocalQuaternion.ToRotationMatrix(InitialLocalMatrix);
-
-  // Transform Local to Global LHSMatrix:
-  if ( rLocalSystem.CalculationFlags.Is(RigidBodySegregatedVElement::COMPUTE_LHS_MATRIX) ){
-
-    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
-
-    // works for 2D and 3D case
-    BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rLeftHandSideMatrix);
-
-    //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
-  }
-
-  // Transform Local to Global RHSVector:
-  if ( rLocalSystem.CalculationFlags.Is(RigidBodySegregatedVElement::COMPUTE_RHS_VECTOR) ){
-
-    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-
-    //std::cout<<"["<<this->Id()<<"] RB Dynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
-
-    // works for 2D and 3D case
-    BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rRightHandSideVector);
-
-    //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
-  }
-
-  KRATOS_CATCH("")
-}
-
-//************************************************************************************
-//************************************************************************************
-
-Vector& RigidBodySegregatedVElement::MapToInitialLocalFrame(Vector& rVariable)
-{
-  KRATOS_TRY
-
-  BeamMathUtilsType::MapToCurrentLocalFrame(mInitialLocalQuaternion, rVariable);
-
-  return rVariable;
-
-  KRATOS_CATCH("")
-}
-
 
 //************************************************************************************
 //************************************************************************************
@@ -615,8 +522,7 @@ void RigidBodySegregatedVElement::CalculateSecondDerivativesRHS(VectorType& rRig
 
 //Inertia in the SPATIAL configuration
 void RigidBodySegregatedVElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-                                                            ElementVariables& rVariables,
-                                                            ProcessInfo& rCurrentProcessInfo)
+                                                            ElementVariables& rVariables)
 {
   KRATOS_TRY
 
@@ -637,14 +543,12 @@ void RigidBodySegregatedVElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
   double Newmark2 = ( DeltaTime * rCurrentProcessInfo[NEWMARK_GAMMA] );
 
   //block m(1,1) of the mass matrix
-
   MatrixType m11 = ZeroMatrix(3,3);
 
   double TotalMass = 0;
   TotalMass = rVariables.RigidBody.Mass;
 
   //block m(2,2) of the mass matrix
-
   MatrixType m22 = ZeroMatrix(3,3);
 
   Vector CurrentCompoundRotationVector(3);
@@ -956,8 +860,7 @@ void RigidBodySegregatedVElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
 
 //Inertia in the SPATIAL configuration
 void RigidBodySegregatedVElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-                                                            ElementVariables& rVariables,
-                                                            ProcessInfo& rCurrentProcessInfo)
+                                                            ElementVariables& rVariables)
 {
   KRATOS_TRY
 
