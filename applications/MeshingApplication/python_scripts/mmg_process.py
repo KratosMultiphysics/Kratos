@@ -53,7 +53,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 },
                 "set_target_number_of_elements"       : false,
                 "target_number_of_elements"           : 1000,
-                "perform_nodal_h_averaging"           : false
+                "perform_nodal_h_averaging"           : false,
                 "max_iterations"                      : 3
             },
             "framework"                            : "Eulerian",
