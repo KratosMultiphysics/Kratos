@@ -303,9 +303,8 @@ private:
          */
         const Parameters& operator*() const
         {
-            //mpParameters->mpValue = &(*mValueIterator);
+            mpParameters->mpValue = const_cast<nlohmann::json*>(&(*mValueIterator));
             return *mpParameters;
-
         }
 
         /**
