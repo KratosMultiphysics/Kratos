@@ -1,14 +1,18 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: iiaconeta $
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ilaria Iaconeta
 //
 
 
 #if !defined(KRATOS_PARTICLE_ERASE_PROCESS_INCLUDED )
 #define  KRATOS_PARTICLE_ERASE_PROCESS_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -17,7 +21,6 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
@@ -25,12 +28,9 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
-
 #include "utilities/math_utils.h"
 
 #include "particle_mechanics_application.h"
-//#include "custom_utilities/compute_mls_shape_functions_utility.h"
-//#include "custom_processes/compute_shape_functions_process.h"
 
 namespace Kratos
 {

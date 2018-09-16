@@ -10,10 +10,9 @@
 //  Main authors:    Bodhinanda Chandra
 //
 
+
 #if !defined(KRATOS_EXPONENTIAL_STRAIN_SOFTENING_LAW_H_INCLUDED )
 #define  KRATOS_EXPONENTIAL_STRAIN_SOFTENING_LAW_H_INCLUDED
-
-
 
 // System includes
 

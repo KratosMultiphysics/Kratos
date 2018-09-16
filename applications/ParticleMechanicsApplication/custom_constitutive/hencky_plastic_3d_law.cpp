@@ -10,11 +10,12 @@
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
+
 // System includes
 #include <iostream>
+#include <cmath>
 
 // External includes
-#include<cmath>
 
 // Project includes
 #include "includes/properties.h"
