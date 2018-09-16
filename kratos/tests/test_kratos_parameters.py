@@ -11,12 +11,13 @@ import sys
 # input string with ugly formatting
 json_string = """
 {
-   "int_value" : 10,   "double_value": 2.0,   "bool_value" : true,   "string_value" : "hello",
+   "bool_value" : true, "double_value": 2.0, "int_value" : 10,
    "level1":
    {
      "list_value":[ 3, "hi", false],
      "tmp" : 5.0
-   }
+   },
+   "string_value" : "hello"
 }
 """
 
@@ -52,61 +53,60 @@ pretty_out_after_change = """{
 
 # here the level1 var is set to a double so that a validation error should be thrown
 wrong_type = """{
-    "int_value": 10,
-    "double_value": 2.0,
     "bool_value": true,
-    "string_value": "hello",
-    "level1": 0.0
+    "double_value": 2.0,
+    "int_value": 10,
+    "level1": 0.0,
+    "string_value": "hello"
 }"""
 
 # int value is badly spelt
 wrong_spelling = """{
-    "int_values": 10,
-    "double_value": 2.0,
     "bool_value": true,
-    "string_value": "hello",
-    "level1": 0.0
+    "double_value": 2.0,
+    "int_values": 10,
+    "level1": 0.0,
+    "string_value": "hello"
 }"""
 
 # wrong on the first level
 # error shall be only detective by recursive validation
 wrong_lev2 = """{
-    "int_value": 10,
-    "double_value": 2.0,
     "bool_value": true,
-    "string_value": "hello",
-    "level1": { "a":0.0 }
+    "double_value": 2.0,
+    "int_value": 10,
+    "level1": { "a":0.0 },
+    "string_value": "hello"
 }"""
 
 defaults = """
 {
-	"int_value": 10,
-	"double_value": 2.0,
-	"bool_value": false,
-	"string_value": "hello",
-	"level1": {
-		"list_value": [
-			3,
-			"hi",
-			false
-		],
-		"tmp": "here we expect a string"
-	},
-	"new_default_value": -123.0,
-	"new_default_obj": {
-		"aaa": "string",
-		"bbb": false,
-		"ccc": 22
-	}
+    "bool_value": false,
+    "double_value": 2.0,
+    "int_value": 10,
+    "level1": {
+        "list_value": [
+            3,
+            "hi",
+            false
+        ],
+        "tmp": "here we expect a string"
+    },
+    "new_default_obj": {
+        "aaa": "string",
+        "bbb": false,
+        "ccc": 22
+    },
+    "new_default_value": -123.0,
+    "string_value": "hello"
 }
 """
 
 
 expected_validation_output = """{
-    "int_value": 10,
-    "double_value": 2.0,
     "bool_value": true,
-    "string_value": "hello",
+    "double_value": 2.0,
+    "int_value": 10,
     "level1": {
         "list_value": [
             3,
@@ -115,19 +115,19 @@ expected_validation_output = """{
         ],
         "tmp": 5.0
     },
-    "new_default_value": -123.0,
     "new_default_obj": {
         "aaa": "string",
         "bbb": false,
         "ccc": 22
-    }
+    },
+    "new_default_value": -123.0,
+    "string_value": "hello"
 }"""
 
 four_levels = """{
-    "int_value": 10,
-    "double_value": 2.0,
     "bool_value": true,
-    "string_value": "hello",
+    "double_value": 2.0,
+    "int_value": 10,
     "level1": {
         "level2": {
             "level3": {
@@ -135,14 +135,14 @@ four_levels = """{
                 }
             }
         }
-    }
+    },
+    "string_value": "hello"
 }"""
 
 four_levels_variation = """{
-    "int_value": 10,
-    "double_value": 2.0,
     "bool_value": true,
-    "string_value": "hello",
+    "double_value": 2.0,
+    "int_value": 10,
     "level1": {
         "a":11.0,
         "level2": {
@@ -151,7 +151,8 @@ four_levels_variation = """{
                 }
             }
         }
-    }
+    },
+    "string_value": "hello"
 }"""
 
 four_levels_wrong_variation = """{
@@ -171,10 +172,9 @@ four_levels_wrong_variation = """{
 }"""
 
 four_levels_defaults = """{
-    "int_value": 10,
-    "double_value": 2.0,
     "bool_value": true,
-    "string_value": "hello",
+    "double_value": 2.0,
+    "int_value": 10,
     "level1": {
         "a":1.0,
         "level2": {
@@ -186,33 +186,34 @@ four_levels_defaults = """{
                 }
             }
         }
-    }
+    },
+    "string_value": "hello"
 }"""
 
 class TestParameters(KratosUnittest.TestCase):
 
     def setUp(self):
         self.kp = Parameters(json_string)
-        self.compact_expected_output = """{"int_value":10,"double_value":2.0,"bool_value":true,"string_value":"hello","level1":{"list_value":[3,"hi",false],"tmp":5.0}}"""
+        self.compact_expected_output = """{"bool_value":true,"double_value":2.0,"int_value":10,"level1":{"list_value":[3,"hi",false],"tmp":5.0},"string_value":"hello"}"""
 
         if (sys.version_info < (3, 2)):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
-    #def test_kratos_parameters(self):
-        #self.assertEqual(
-            #self.kp.WriteJsonString(),
-            #self.compact_expected_output
-        #)
+    def test_kratos_parameters(self):
+        self.assertEqual(
+            self.kp.WriteJsonString(),
+            self.compact_expected_output
+        )
 
-        #self.assertTrue(self.kp.Has("int_value"))
-        #self.assertFalse(self.kp.Has("unextisting_value"))
+        self.assertTrue(self.kp.Has("int_value"))
+        self.assertFalse(self.kp.Has("unextisting_value"))
 
-        #self.assertEqual(self.kp["int_value"].GetInt(), 10)
-        #self.assertEqual(self.kp["double_value"].GetDouble(), 2.0)
-        #self.assertEqual(self.kp["bool_value"].GetBool(), True)
-        #self.assertEqual(self.kp["string_value"].GetString(), "hello")
+        self.assertEqual(self.kp["int_value"].GetInt(), 10)
+        self.assertEqual(self.kp["double_value"].GetDouble(), 2.0)
+        self.assertEqual(self.kp["bool_value"].GetBool(), True)
+        self.assertEqual(self.kp["string_value"].GetString(), "hello")
 
-        #self.assertEqual(self.kp.PrettyPrintJsonString(), pretty_out)
+        self.assertEqual(self.kp.PrettyPrintJsonString(), pretty_out)
 
     def test_kratos_change_parameters(self):
         # now change one item in the sublist
@@ -306,15 +307,15 @@ class TestParameters(KratosUnittest.TestCase):
         # here no error shall be thrown since validation is only done on level0
         kp.ValidateAndAssignDefaults(defaults_params)
 
-    #def test_validation_succeeds(self):
-        #kp = Parameters(json_string)
-        #defaults_params = Parameters(defaults)
-        #defaults_params["level1"]["tmp"].SetDouble(2.0)  # this does not coincide with the value in kp, but is of the same type
+    def test_validation_succeeds(self):
+        kp = Parameters(json_string)
+        defaults_params = Parameters(defaults)
+        defaults_params["level1"]["tmp"].SetDouble(2.0)  # this does not coincide with the value in kp, but is of the same type
 
-        #kp.ValidateAndAssignDefaults(defaults_params)
-        #self.assertEqual(kp.PrettyPrintJsonString(), expected_validation_output)
+        kp.ValidateAndAssignDefaults(defaults_params)
+        self.assertEqual(kp.PrettyPrintJsonString(), expected_validation_output)
 
-        #self.assertEqual(kp["level1"]["tmp"].GetDouble(), 5.0)  # not 2, since kp overwrites the defaults
+        self.assertEqual(kp["level1"]["tmp"].GetDouble(), 5.0)  # not 2, since kp overwrites the defaults
 
     def test_add_value(self):
         kp = Parameters("{}")
