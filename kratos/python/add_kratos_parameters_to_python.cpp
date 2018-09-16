@@ -17,7 +17,6 @@
 // Project includes
 #include "includes/define_python.h"
 #include "includes/kratos_parameters.h"
-
 #include "add_kratos_parameters_to_python.h"
 
 namespace Kratos {
@@ -75,7 +74,7 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("ValidateAndAssignDefaults",&Parameters::ValidateAndAssignDefaults)
     .def("RecursivelyValidateAndAssignDefaults",&Parameters::RecursivelyValidateAndAssignDefaults)
     .def("IsEquivalentTo",&Parameters::IsEquivalentTo)
-    .def("HasSameKeysAndTypeOfValuesAs",&Parameters::HasSameKeysAndTypeOfValuesAs)    
+    .def("HasSameKeysAndTypeOfValuesAs",&Parameters::HasSameKeysAndTypeOfValuesAs)
     //.def("GetValue", &Parameters::GetValue) //Do not export this method. users shall adopt the operator [] syntax
     .def("IsNull", &Parameters::IsNull)
     .def("IsNumber", &Parameters::IsNumber)
@@ -105,7 +104,7 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("__getitem__", &Parameters::GetValue)
     .def("__setitem__", &Parameters::SetArrayItem)
     .def("__getitem__", &Parameters::GetArrayItem)
-    .def("__iter__", [](Parameters& self){ return make_iterator(self.begin(), self.end()); } , keep_alive<0,1>()) 
+    .def("__iter__", [](Parameters& self){ return make_iterator(self.begin(), self.end()); } , keep_alive<0,1>())
     .def("items", &items )
     .def("keys", &keys )
     .def("values", &values )

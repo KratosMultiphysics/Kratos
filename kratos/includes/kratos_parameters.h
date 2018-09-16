@@ -556,14 +556,14 @@ public:
         return mpValue->items();
     }
 
-//     /**
-//      * @brief This method returns the items of the current parameter (const)
-//      * @return The items of the current Parameter (const)
-//      */
-//     json_const_iteration_proxy items() noexcept
-//     {
-//         return mpValue->items();
-//     }
+    /**
+     * @brief This method returns the items of the current parameter (const)
+     * @return The items of the current Parameter (const)
+     */
+    json_const_iteration_proxy items() const noexcept
+    {
+        return json_const_iteration_proxy(*mpValue);
+    }
 
     /**
      * @brief This method checks if the Parameter contains a certain entry
