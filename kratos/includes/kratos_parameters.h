@@ -250,7 +250,7 @@ private:
         ///@}
         ///@name Operators
         ///@{
-        
+
         /**
          * @brief operator ++
          * @details This adds one to the current iterator
@@ -262,7 +262,7 @@ private:
             mpParameters->mpValue = const_cast<nlohmann::json*>( &(*mValueIterator) );
             return *this;
         }
-        
+
         /**
          * @brief operator ++int
          * @details This adds N to the current iterator
@@ -330,7 +330,7 @@ private:
         {
             return mValueIterator;
         }
-        
+
         /**
          * @brief This method returns the base iterator (const)
          * @return The base iterator (const)
@@ -370,6 +370,12 @@ public:
     /// Definiton of the iterators
     using iterator = iterator_adaptor;
     using const_iterator = const_iterator_adaptor;
+
+    /// Iterators from nlohmann::json
+    typedef nlohmann::json::iterator json_iterator;
+    typedef nlohmann::json::const_iterator json_const_iterator;
+    typedef nlohmann::detail::iteration_proxy<json_iterator> json_iteration_proxy;
+    typedef nlohmann::detail::iteration_proxy<json_const_iterator> json_const_iteration_proxy;
 
     ///@}
     ///@name Life Cycle
@@ -540,6 +546,24 @@ public:
     {
         return static_cast<bool>(mpValue->erase(rEntry));
     }
+
+    /**
+     * @brief This method returns the items of the current parameter
+     * @return The items of the current Parameter
+     */
+    json_iteration_proxy items() noexcept
+    {
+        return mpValue->items();
+    }
+
+//     /**
+//      * @brief This method returns the items of the current parameter (const)
+//      * @return The items of the current Parameter (const)
+//      */
+//     json_const_iteration_proxy items() noexcept
+//     {
+//         return mpValue->items();
+//     }
 
     /**
      * @brief This method checks if the Parameter contains a certain entry
