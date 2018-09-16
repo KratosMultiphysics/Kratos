@@ -408,67 +408,67 @@ class TestParameters(KratosUnittest.TestCase):
             else:
                 self.assertFalse(tmp[key].IsMatrix())
 
-    #def test_get_methods(self):
-        ## This method checks all the "GetXXX" Methods if they throw an error
-        #tmp = Parameters("""{
-            #"int_value" : 10,
-            #"double_value": 2.0,
-            #"bool_value" : true,
-            #"string_value" : "hello",
-            #"vector_value" : [5.2,-3.1,4.33],
-            #"matrix_value" : [[1,2],[3,4],[5,6]]
-        #}""") # if you add more values to this, make sure to add the corresponding in the loop
+    def test_get_methods(self):
+        # This method checks all the "GetXXX" Methods if they throw an error
+        tmp = Parameters("""{
+            "int_value" : 10,
+            "double_value": 2.0,
+            "bool_value" : true,
+            "string_value" : "hello",
+            "vector_value" : [5.2,-3.1,4.33],
+            "matrix_value" : [[1,2],[3,4],[5,6]]
+        }""") # if you add more values to this, make sure to add the corresponding in the loop
 
-        #for key in tmp.keys():
-            #val_type = key[:-6] # removing "_value"
+        for key in tmp.keys():
+            val_type = key[:-6] # removing "_value"
 
-            ## Int and Double are checked tgth bcs both internally call "IsNumber"
-            #if val_type == "int" or val_type == "double":
-                #if val_type == "int":
-                    #self.assertEqual(tmp[key].GetInt(),10)
-            #else:
-                #with self.assertRaises(RuntimeError):
-                    #tmp[key].GetInt()
+            # Int and Double are checked tgth bcs both internally call "IsNumber"
+            if val_type == "int" or val_type == "double":
+                if val_type == "int":
+                    self.assertEqual(tmp[key].GetInt(),10)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetInt()
 
-            #if val_type == "double" or val_type == "int":
-                #if val_type == "double":
-                    #self.assertEqual(tmp[key].GetDouble(),2.0)
-            #else:
-                #with self.assertRaises(RuntimeError):
-                    #tmp[key].GetDouble()
+            if val_type == "double" or val_type == "int":
+                if val_type == "double":
+                    self.assertEqual(tmp[key].GetDouble(),2.0)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetDouble()
 
-            #if val_type == "bool":
-                #self.assertEqual(tmp[key].GetBool(),True)
-            #else:
-                #with self.assertRaises(RuntimeError):
-                    #tmp[key].GetBool()
+            if val_type == "bool":
+                self.assertEqual(tmp[key].GetBool(),True)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetBool()
 
-            #if val_type == "string":
-                #self.assertEqual(tmp[key].GetString(),"hello")
-            #else:
-                #with self.assertRaises(RuntimeError):
-                    #tmp[key].GetString()
+            if val_type == "string":
+                self.assertEqual(tmp[key].GetString(),"hello")
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetString()
 
-            #if val_type == "vector":
-                #V = tmp[key].GetVector()
-                #self.assertEqual(V[0],5.2)
-                #self.assertEqual(V[1],-3.1)
-                #self.assertEqual(V[2],4.33)
-            #else:
-                #with self.assertRaises(RuntimeError):
-                    #tmp[key].GetVector()
+            if val_type == "vector":
+                V = tmp[key].GetVector()
+                self.assertEqual(V[0],5.2)
+                self.assertEqual(V[1],-3.1)
+                self.assertEqual(V[2],4.33)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetVector()
 
-            #if val_type == "matrix":
-                #A = tmp[key].GetMatrix()
-                #self.assertEqual(A[0,0],1.0)
-                #self.assertEqual(A[0,1],2.0)
-                #self.assertEqual(A[1,0],3.0)
-                #self.assertEqual(A[1,1],4.0)
-                #self.assertEqual(A[2,0],5.0)
-                #self.assertEqual(A[2,1],6.0)
-            #else:
-                #with self.assertRaises(RuntimeError):
-                    #tmp[key].GetMatrix()
+            if val_type == "matrix":
+                A = tmp[key].GetMatrix()
+                self.assertEqual(A[0,0],1.0)
+                self.assertEqual(A[0,1],2.0)
+                self.assertEqual(A[1,0],3.0)
+                self.assertEqual(A[1,1],4.0)
+                self.assertEqual(A[2,0],5.0)
+                self.assertEqual(A[2,1],6.0)
+            else:
+                with self.assertRaises(RuntimeError):
+                    tmp[key].GetMatrix()
 
     #def test_vector_interface(self):
         ## Read and check Vectors from a Parameters-Object
