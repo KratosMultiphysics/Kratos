@@ -21,10 +21,9 @@ json_string = """
 """
 
 pretty_out = """{
-    "int_value": 10,
-    "double_value": 2.0,
     "bool_value": true,
-    "string_value": "hello",
+    "double_value": 2.0,
+    "int_value": 10,
     "level1": {
         "list_value": [
             3,
@@ -32,14 +31,14 @@ pretty_out = """{
             false
         ],
         "tmp": 5.0
-    }
+    },
+    "string_value": "hello"
 }"""
 
 pretty_out_after_change = """{
-    "int_value": 10,
-    "double_value": 2.0,
     "bool_value": true,
-    "string_value": "hello",
+    "double_value": 2.0,
+    "int_value": 10,
     "level1": {
         "list_value": [
             "changed",
@@ -47,7 +46,8 @@ pretty_out_after_change = """{
             false
         ],
         "tmp": 5.0
-    }
+    },
+    "string_value": "hello"
 }"""
 
 # here the level1 var is set to a double so that a validation error should be thrown
@@ -214,23 +214,23 @@ class TestParameters(KratosUnittest.TestCase):
 
         #self.assertEqual(self.kp.PrettyPrintJsonString(), pretty_out)
 
-    #def test_kratos_change_parameters(self):
-        ## now change one item in the sublist
-        #subparams = self.kp["level1"]
+    def test_kratos_change_parameters(self):
+        # now change one item in the sublist
+        subparams = self.kp["level1"]
 
-        #my_list = subparams["list_value"]
+        my_list = subparams["list_value"]
 
-        #for i in range(my_list.size()):
-            #if my_list[i].IsBool():
-                #self.assertEqual(my_list[i].GetBool(), False)
+        for i in range(my_list.size()):
+            if my_list[i].IsBool():
+                self.assertEqual(my_list[i].GetBool(), False)
 
-        ## my_list = subparams["list_value"]
-        #subparams["list_value"][0].SetString("changed")
+        # my_list = subparams["list_value"]
+        subparams["list_value"][0].SetString("changed")
 
-        #self.assertEqual(
-            #self.kp.PrettyPrintJsonString(),
-            #pretty_out_after_change
-        #)
+        self.assertEqual(
+            self.kp.PrettyPrintJsonString(),
+            pretty_out_after_change
+        )
 
     def test_kratos_copy_parameters(self):
         # try to make a copy
