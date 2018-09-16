@@ -5301,7 +5301,7 @@ class iter_impl
         {
             case value_t::object:
             {
-                assert(m_it.object_iterator != m_object->m_value.object->end());
+//                 assert(m_it.object_iterator != m_object->m_value.object->end()); // WARNING: Commenting assert to use end() operators. If updated the library change this too
                 return m_it.object_iterator->second;
             }
 
