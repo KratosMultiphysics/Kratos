@@ -787,6 +787,20 @@ void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<double>&
 			}
 		}
 	}
+
+    if(this->Has(rVariable))
+    {
+        SizeType num_gps = 4;
+        if (rValues.size() != num_gps)
+            rValues.resize(num_gps, false);
+        // Get result value for output
+        const auto& output_value = this->GetValue(rVariable);
+
+        // Write the same result on all Gauss-Points
+        for(IndexType i = 0; i < num_gps; ++i)
+            rValues[i] = output_value;
+    }
+
 }
 
 void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
@@ -882,7 +896,6 @@ void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<Matrix>&
     // The membrane formulation needs to iterate to find the correct
     // mid-surface strain values.
     // Check if we are doing a non-linear analysis type. If not, print warning
-
     if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
     {
         KRATOS_WARNING_ONCE("ShellThickElement3D4N") << "Warning: Gauss point results have "
@@ -891,8 +904,21 @@ void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<Matrix>&
             << "quantities (strain, stress, etc...)." << std::endl;
     }
 
-
     if(TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
+
+    if(this->Has(rVariable))
+    {
+        SizeType num_gps = 4;
+        if (rValues.size() != num_gps)
+            rValues.resize(num_gps);
+        // Get result value for output
+        const auto& output_value = this->GetValue(rVariable);
+
+        // Write the same result on all Gauss-Points
+        for(IndexType i = 0; i < num_gps; ++i)
+            rValues[i] = output_value;
+    }
+
 }
 
 void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,

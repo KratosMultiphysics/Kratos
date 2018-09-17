@@ -607,6 +607,19 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
         }
     }
 
+    if(this->Has(rVariable))
+    {
+        SizeType num_gps = 4;
+        if (rValues.size() != num_gps)
+            rValues.resize(num_gps, false);
+        // Get result value for output
+        const auto& output_value = this->GetValue(rVariable);
+
+        // Write the same result on all Gauss-Points
+        for(IndexType i = 0; i < num_gps; ++i)
+            rValues[i] = output_value;
+    }
+
     KRATOS_CATCH("");
 }
 

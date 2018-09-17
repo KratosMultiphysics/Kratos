@@ -352,6 +352,16 @@ void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& 
 			mSections[i]->GetValue(rVariable, GetProperties(), rValues[i]);
 	}
 
+    if(this->Has(rVariable))
+    {
+        // Get result value for output
+        const auto& output_value = this->GetValue(rVariable);
+
+        // Write the same result on all Gauss-Points
+        for(IndexType i = 0; i < num_gps; ++i)
+            rValues[i] = output_value;
+    }
+
     OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rValues);
 }
 
