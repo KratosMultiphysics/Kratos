@@ -120,7 +120,7 @@ Element::Pointer GeometricalElement::Clone (
 {
     KRATOS_TRY
 
-    Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties()); 
+    Element::Pointer p_new_elem = Kratos::make_shared<GeometricalElement>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this)); 
     return p_new_elem; 

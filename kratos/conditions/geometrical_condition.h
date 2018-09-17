@@ -38,9 +38,9 @@ namespace Kratos
 ///@{
 /**
  * @class GeometricalCondition
- * @ingroup KratocCore
- * @brief This is pure geometric condition. The only pourpose for this definition is to create dummy conditions
- * @details Herits all method from base condition, and overrides the Clone() method
+ * @ingroup KratosCore
+ * @brief This is pure geometric condition. The only purpose for this definition is to create dummy conditions
+ * @details Inherits all method from base condition, and overrides the Clone() and Create() methods
  * @author Vicente Mataix Ferrandiz
  */
 class GeometricalCondition
@@ -91,7 +91,7 @@ public:
     /**
      * @brief Constructor using an array of nodes
      * @param NewId The Id of the new created condition
-     * @param rThisNodes The array of nodes taht will define the geometry that will define the condition
+     * @param rThisNodes The array of nodes that will define the geometry that will define the condition
      */
     GeometricalCondition(
         IndexType NewId, 
@@ -176,12 +176,6 @@ public:
         ) const override;
 
     ///@}
-    ///@name Access
-    ///@{
-    ///@}
-    ///@name Inquiry
-    ///@{
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -206,72 +200,16 @@ public:
         pGetGeometry()->PrintData(rOStream);
     }
     
-    ///@}
-    ///@name Friends
-    ///@{
-    ///@}
-
-protected:
-    
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-    
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
 
 private:
 
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-    ///@}
-    ///@name Private Operators
-    ///@{
-    ///@}
-    ///@name Private Operations
-    ///@{
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-    ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
-    // A private default constructor necessary for serialization
-
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    ///@}
 
 }; // Class GeometricalCondition
 
