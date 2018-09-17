@@ -11,11 +11,11 @@
 //
 //
 
+
 #if !defined(KRATOS_MPM_RESIDUAL_BASED_NEWTON_RAPHSON_STRATEGY )
 #define  KRATOS_MPM_RESIDUAL_BASED_NEWTON_RAPHSON_STRATEGY
 
 /* System includes */
-
 
 /* External includes */
 
@@ -385,8 +385,7 @@ public:
         if (mInitializeWasPerformed == false)
         {
             KRATOS_INFO_IF("MPM_Strategy",this->GetEchoLevel() >1) << "Initializing solving strategy" << std::endl;
-            if(mInitializeWasPerformed == true)
-                KRATOS_THROW_ERROR( std::logic_error, " Initialization was already performed ", mInitializeWasPerformed );
+            KRATOS_ERROR_IF(mInitializeWasPerformed == true) << "Initialization was already performed " << mInitializeWasPerformed << std::endl;
 
             // Pointers needed in the solution
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
@@ -1167,9 +1166,9 @@ protected:
 
     void MaxIterationsExceeded()
     {
-        std::cout << "***************************************************" << std::endl;
-        std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
-        std::cout << "***************************************************" << std::endl;
+        KRATOS_INFO("MPMStrategy") << "***************************************************" << std::endl;
+        KRATOS_INFO("MPM_Strategy") << "******* ATTENTION: max iterations exceeded ********" << std::endl;
+        KRATOS_INFO("MPM_Strategy") << "***************************************************" << std::endl;
 
     }
 

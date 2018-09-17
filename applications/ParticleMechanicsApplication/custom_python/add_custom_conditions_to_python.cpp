@@ -11,6 +11,7 @@
 //
 //
 
+
 // System includes
 #include <cstring>
 
@@ -29,7 +30,7 @@
 #include "python/pointer_vector_set_python_interface.h"
 #include "python/variable_indexing_python.h"
 
-//Application includes
+// Application includes
 #include "custom_python/add_custom_conditions_to_python.h"
 
 

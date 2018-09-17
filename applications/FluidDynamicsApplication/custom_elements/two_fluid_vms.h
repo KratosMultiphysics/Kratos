@@ -429,11 +429,12 @@ KRATOS_WATCH(Ngauss);  */
                         //momentum term
                         for (unsigned int k = 0; k < TDim; k++)
                         {
-                            double ConvTerm = wGauss * TauOne * enriched_grad(enriched_id,k)* Density * AGradN[inode];
+                            double convection_stab = wGauss * TauOne * enriched_grad(enriched_id,k)* Density * AGradN[inode];
+                            double darcy_stab = wGauss * TauOne * enriched_grad(enriched_id,k) * DarcyTerm * N[enriched_id];
 
-                            //                      enrichment_terms_vertical[base_index + k] += ConvTerm + wGauss*N[inode]*enriched_grad(0, k);
-                            enrichment_terms_vertical(base_index + k,enriched_id) += ConvTerm - wGauss * DN_DX(inode, k) * Nenriched(igauss, enriched_id);
-                            enrichment_terms_horizontal(enriched_id,base_index + k) += ConvTerm + wGauss * DN_DX(inode, k) * Nenriched(igauss, enriched_id);
+                            //                      enrichment_terms_vertical[base_index + k] += velocity_stab + wGauss*N[inode]*enriched_grad(0, k);
+                            enrichment_terms_vertical(base_index + k,enriched_id) += convection_stab - darcy_stab - wGauss * DN_DX(inode, k) * Nenriched(igauss, enriched_id);
+                            enrichment_terms_horizontal(enriched_id,base_index + k) += convection_stab + darcy_stab + wGauss * DN_DX(inode, k) * Nenriched(igauss, enriched_id);
     //                             enrichment_terms_vertical[base_index + k] +=wGauss*N[inode]*enriched_grad(0, k); //-= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
     //                            enrichment_terms_horizontal[base_index + k] -=Density*wGauss*N[inode]*enriched_grad(0, k); //   += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
                         }

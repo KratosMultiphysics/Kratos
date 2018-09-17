@@ -11,6 +11,7 @@
 //
 //
 
+
 #if !defined(KRATOS_MPM_RESIDUAL_BASED_BOSSAK_SCHEME )
 #define  KRATOS_MPM_RESIDUAL_BASED_BOSSAK_SCHEME
 
@@ -28,7 +29,6 @@
 
 #include "particle_mechanics_application.h"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
-
 
 namespace Kratos
 {
@@ -367,10 +367,9 @@ public:
     {
         KRATOS_TRY
 
-        if(this->mElementsAreInitialized==false)
-            KRATOS_THROW_ERROR( std::logic_error, "Before initilizing Conditions, initialize Elements FIRST", "" )
+        KRATOS_ERROR_IF(this->mElementsAreInitialized==false) << "Before initilizing Conditions, initialize Elements FIRST" << std::endl;
 
-            int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ConditionPartition;
         OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), NumThreads, ConditionPartition);
 
@@ -553,21 +552,19 @@ public:
                 }
             }
 
-            NormVel = sqrt(NormVel);
-            NormAcc = sqrt(NormAcc);
-            NormPres = sqrt(NormPres);
+            NormVel = std::sqrt(NormVel);
+            NormAcc = std::sqrt(NormAcc);
+            NormPres = std::sqrt(NormPres);
 
-            NormDeltaVel = sqrt(NormDeltaVel);
-            NormDeltaAcc = sqrt(NormDeltaAcc);
-            NormDeltaPres = sqrt(NormDeltaPres);
+            NormDeltaVel = std::sqrt(NormDeltaVel);
+            NormDeltaAcc = std::sqrt(NormDeltaAcc);
+            NormDeltaPres = std::sqrt(NormDeltaPres);
             
             ++ItNum;
         }
 
         double DeltaTime = CurrentProcessInfo[DELTA_TIME];
-
-        if (DeltaTime == 0)
-            KRATOS_THROW_ERROR( std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
+        KRATOS_ERROR_IF(DeltaTime == 0) << "Detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part" << std::endl;
 
         //initializing Newmark constants
         mNewmark.c0 = ( 1.0 / (mNewmark.beta * DeltaTime * DeltaTime) );
@@ -900,51 +897,36 @@ public:
         int err = Scheme<TSparseSpace, TDenseSpace>::Check(r_model_part);
         if(err!=0) return err;
 
-        //check for variables keys
-        //verify that the variables are correctly initialized
-        if(DISPLACEMENT.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
-            if(VELOCITY.Key() == 0)
-                KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
-                if(ACCELERATION.Key() == 0)
-                    KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-
-                    //check that variables are correctly allocated
-                    for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin();
-                            it!=r_model_part.NodesEnd(); it++)
-                    {
-                        if (it->SolutionStepsDataHas(DISPLACEMENT) == false)
-                            KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
-                            if (it->SolutionStepsDataHas(VELOCITY) == false)
-                                KRATOS_THROW_ERROR( std::logic_error, "VELOCITY variable is not allocated for node ", it->Id() )
-                                if (it->SolutionStepsDataHas(ACCELERATION) == false)
-                                    KRATOS_THROW_ERROR( std::logic_error, "ACCELERATION variable is not allocated for node ", it->Id() )
-                                }
+        //check that the variables are correctly initialized
+        KRATOS_ERROR_IF(DISPLACEMENT.Key() == 0) <<"DISPLACEMENT has Key zero! (check if the application is correctly registered"<<std::endl;
+        KRATOS_ERROR_IF(VELOCITY.Key() == 0) <<"VELOCITY has Key zero! (check if the application is correctly registered"<<std::endl;
+        KRATOS_ERROR_IF(ACCELERATION.Key() == 0) <<"ACCELERATION has Key zero! (check if the application is correctly registered"<<std::endl;
+        
+        //check that variables are correctly allocated
+        for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin();
+                it!=r_model_part.NodesEnd(); it++)
+        {
+            KRATOS_ERROR_IF(it->SolutionStepsDataHas(DISPLACEMENT) == false) << "DISPLACEMENT variable is not allocated for node "<< it->Id() <<std::endl;
+            KRATOS_ERROR_IF(it->SolutionStepsDataHas(VELOCITY) == false) << "VELOCITY variable is not allocated for node "<< it->Id() <<std::endl;
+            KRATOS_ERROR_IF(it->SolutionStepsDataHas(ACCELERATION) == false) << "ACCELERATION variable is not allocated for node " << it->Id() <<std::endl;
+        }
 
         //check that dofs exist
         for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin();
                 it!=r_model_part.NodesEnd(); it++)
         {
-            if(it->HasDofFor(DISPLACEMENT_X) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_X dof on node ",it->Id() )
-                if(it->HasDofFor(DISPLACEMENT_Y) == false)
-                    KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_Y dof on node ",it->Id() )
-                    if(it->HasDofFor(DISPLACEMENT_Z) == false)
-                        KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_Z dof on node ",it->Id() )
-                    }
-
+            KRATOS_ERROR_IF(it->HasDofFor(DISPLACEMENT_X) == false) <<"Missing DISPLACEMENT_X dof on node "<<it->Id() <<std::endl;
+            KRATOS_ERROR_IF(it->HasDofFor(DISPLACEMENT_Y) == false) <<"Missing DISPLACEMENT_Y dof on node "<<it->Id() <<std::endl;
+            KRATOS_ERROR_IF(it->HasDofFor(DISPLACEMENT_Z) == false) <<"Missing DISPLACEMENT_Z dof on node "<<it->Id() <<std::endl;
+        }
 
         //check for admissible value of the AlphaBossak
-        if(mAlpha.m > 0.0 || mAlpha.m < -0.3)
-            KRATOS_THROW_ERROR( std::logic_error,"Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is ", mAlpha.m )
+        KRATOS_ERROR_IF(mAlpha.m > 0.0 || mAlpha.m < -0.3) << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is "<< mAlpha.m << std::endl;
 
-            //check for minimum value of the buffer index
-            //verify buffer size
-            if (r_model_part.GetBufferSize() < 2)
-                KRATOS_THROW_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
+        //check for minimum value of the buffer index
+        KRATOS_ERROR_IF(r_model_part.GetBufferSize() < 2) << "Insufficient buffer size. Buffer size should be greater than 2. Current size is" << r_model_part.GetBufferSize() <<std::endl;
 
-
-                return 0;
+        return 0;
         KRATOS_CATCH( "" )
     }
 

@@ -1,16 +1,21 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:            Duan Wenjie $
-//   Date:                $Date:                March 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Duan Wenjie
 //
+
 
 // System includes
 #include <iostream>
+#include <cmath>
 
 // External includes
-#include<cmath>
 
 // Project includes
 #include "includes/properties.h"
@@ -404,11 +409,10 @@ void HyperElasticViscoplastic3DLaw::CalculateMaterialResponseKirchhoff (Paramete
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
 
-        if( ReturnMappingVariables.Options.Is(FlowRule::NOT_RETURN_MAPPING_COMPUTED) )
-            KRATOS_THROW_ERROR( std::logic_error, " ReturnMappingCall was not performed  ...error in the constitutive calculation...", "" )
+        KRATOS_ERROR_IF(ReturnMappingVariables.Options.Is(FlowRule::NOT_RETURN_MAPPING_COMPUTED)) << "ReturnMappingCall was not performed  ...error in the constitutive calculation..." <<  std::endl;
 
-            //initialize constitutive tensors
-            ConstitutiveMatrix.clear();
+        //initialize constitutive tensors
+        ConstitutiveMatrix.clear();
         SplitConstitutiveMatrix.Isochoric  = ConstitutiveMatrix;
         SplitConstitutiveMatrix.Volumetric = ConstitutiveMatrix;
         SplitConstitutiveMatrix.Plastic    = ConstitutiveMatrix;
@@ -614,22 +618,16 @@ int HyperElasticViscoplastic3DLaw::Check(const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_ERROR_IF(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00) << "YOUNG_MODULUS has Key zero or invalid value" <<  std::endl;
 
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
-        KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ", "" )
-
-        const double& nu = rMaterialProperties[POISSON_RATIO];
+    const double& nu = rMaterialProperties[POISSON_RATIO];
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
 
-    if(POISSON_RATIO.Key() == 0 || check==true)
-        KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero invalid value ", "" )
+    KRATOS_ERROR_IF(POISSON_RATIO.Key() == 0 || check==true) << "POISSON_RATIO has Key zero or invalid value" <<  std::endl;
+    
+    KRATOS_ERROR_IF(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00) << "DENSITY has Key zero or invalid value" <<  std::endl;
 
-
-        if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00)
-            KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero or invalid value ", "" )
-
-
-            return 0;
+    return 0;
 
 }
 

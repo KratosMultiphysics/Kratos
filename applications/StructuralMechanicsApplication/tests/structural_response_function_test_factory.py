@@ -47,14 +47,9 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
             self.problem_name = parameters["problem_data"]["problem_name"].GetString()
-            model_part = KratosMultiphysics.ModelPart(self.problem_name)
 
-            self.response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model_part)
-
-            # import model part
-            model_part_io = KratosMultiphysics.ModelPartIO(parameters["problem_data"]["problem_name"].GetString())
-            model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
-            model_part_io.ReadModelPart(model_part)
+            model = KratosMultiphysics.Model()
+            self.response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model)
 
             # call response function
             self.response_function.Initialize()

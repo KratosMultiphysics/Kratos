@@ -11,13 +11,13 @@
 //
 //
 
+
 #if !defined(KRATOS_MPM_STRATEGY )
 #define  KRATOS_MPM_STRATEGY
 
-
 /* System includes */
 #include <set>
-//#include <chrono>
+
 /* External includes */
 
 /* Project includes */
@@ -53,7 +53,6 @@
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "linear_solvers/linear_solver.h"
 #include "utilities/binbased_fast_point_locator.h"
-
 
 namespace Kratos
 {

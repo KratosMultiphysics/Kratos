@@ -23,6 +23,7 @@
 #include "custom_strategies/strategies/two_step_v_p_strategy.h"
 #include "custom_strategies/strategies/gauss_seidel_linear_strategy.h"
 #include "custom_strategies/strategies/explicit_two_step_v_p_strategy.hpp"
+#include "custom_strategies/strategies/nodal_two_step_v_p_strategy.h"
 
 //schemes
 #include "custom_strategies/schemes/first_order_forward_euler_scheme.hpp" 
@@ -59,9 +60,9 @@ namespace Kratos
       typedef FirstOrderForwardEulerScheme< SparseSpaceType, LocalSpaceType >  FirstOrderForwardEulerSchemeType;
 
       //custom strategy types
-      typedef ExplicitTwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
-
       typedef TwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > TwoStepVPStrategyType;
+      typedef ExplicitTwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
+      typedef NodalTwoStepVPStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > NodalTwoStepVPStrategyType;
       typedef GaussSeidelLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GaussSeidelLinearStrategyType;
       //********************************************************************
       //*************************SHCHEME CLASSES****************************
@@ -75,18 +76,24 @@ namespace Kratos
       	// .def("InitializeStressStrain",&TwoStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::InitializeStressStrain)
       	    ;
 
-      class_< GaussSeidelLinearStrategyType,GaussSeidelLinearStrategyType::Pointer, BaseSolvingStrategyType >(m,"GaussSeidelLinearStrategy")
-	      .def(init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool  >())
-        .def("GetResidualNorm", &GaussSeidelLinearStrategyType::GetResidualNorm)
-        .def("SetBuilderAndSolver", &GaussSeidelLinearStrategyType::SetBuilderAndSolver)
-      ;
-
       class_< ExplicitStrategyType, ExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m,"ExplicitStrategyType")
 	.def(init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool >())    
 	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
 	.def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
 	.def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag)
 	;
+
+      class_< NodalTwoStepVPStrategyType, NodalTwoStepVPStrategyType::Pointer, BaseSolvingStrategyType >(m,"NodalTwoStepVPStrategy")
+      	.def(init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,double,double,int,unsigned int,unsigned int>())
+        .def("CalculateAccelerations",&NodalTwoStepVPStrategyType::CalculateAccelerations)
+        .def("CalculateDisplacements",&NodalTwoStepVPStrategyType::CalculateDisplacements)
+	;
+      
+      class_< GaussSeidelLinearStrategyType,GaussSeidelLinearStrategyType::Pointer, BaseSolvingStrategyType >(m,"GaussSeidelLinearStrategy")
+	      .def(init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool  >())
+        .def("GetResidualNorm", &GaussSeidelLinearStrategyType::GetResidualNorm)
+        .def("SetBuilderAndSolver", &GaussSeidelLinearStrategyType::SetBuilderAndSolver)
+      ;
 
       // Explicit scheme: Central differences 
       class_< FirstOrderForwardEulerSchemeType,FirstOrderForwardEulerSchemeType::Pointer, BaseSchemeType > (m,"FirstOrderForwardEulerSchemeType")
