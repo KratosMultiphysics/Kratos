@@ -68,7 +68,7 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
                 self.rigid_model_part = self.model_part.CreateSubModelPart(new_model_part_name)
         else:
             settings["new_model_part_name"].SetString(settings["model_part_name"].GetString())
-            
+            self.rigid_model_part = self.model_part
 
         # Create the process
         rigid_parameters = KratosMultiphysics.Parameters("""{}""")
