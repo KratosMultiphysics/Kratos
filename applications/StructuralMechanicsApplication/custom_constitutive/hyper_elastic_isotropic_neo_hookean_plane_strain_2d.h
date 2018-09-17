@@ -40,39 +40,61 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicNeoHookeanPlaneStrain2D : public HyperElasticIsotropicNeoHookean3D
+/**
+ * @class HyperElasticIsotropicNeoHookeanPlaneStrain2D
+ * @ingroup StructuralMechanicsApplication
+ * @brief This law defines an hyperelastic material according to the NeoHookean formulation for 2D-plane strain cases
+ * @details A neo-Hookean solid is a hyperelastic material model, similar to Hooke's law, that can be used for predicting the nonlinear stress-strain behavior of materials undergoing large deformations. The model was proposed by Ronald Rivlin in 1948. In contrast to linear elastic materials, the stress-strain curve of a neo-Hookean material is not linear. Instead, the relationship between applied stress and strain is initially linear, but at a certain point the stress-strain curve will plateau. The neo-Hookean model does not account for the dissipative release of energy as heat while straining the material and perfect elasticity is assumed at all stages of deformation. he neo-Hookean model is based on the statistical thermodynamics of cross-linked polymer chains and is usable for plastics and rubber-like substances.
+ * More info https://en.wikipedia.org/wiki/Neo-Hookean_solid
+ * @author Vicente Mataix Ferrandiz
+ */
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicNeoHookeanPlaneStrain2D 
+    : public HyperElasticIsotropicNeoHookean3D
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    typedef ProcessInfo      ProcessInfoType;
-    typedef ConstitutiveLaw         BaseType;
-    typedef std::size_t             SizeType;
-    /**
-     * Counted pointer of HyperElasticIsotropicNeoHookeanPlaneStrain2D
-     */
+    /// The definition of the process info
+    typedef ProcessInfo               ProcessInfoType;
+    
+    /// The definition of the CL base  class
+    typedef ConstitutiveLaw                CLBaseType;
+    
+    /// The definition of the base class
+    typedef HyperElasticIsotropicNeoHookean3D BaseType;
+    
+    /// The definition of the size type
+    typedef std::size_t                      SizeType;
+    
+    /// The definition of the index type
+    typedef std::size_t                      IndexType;
 
+    /// Static definition of the dimension
+    static constexpr SizeType Dimension = 2;
+    
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 3;
+    
+    /// Pointer definition of HyperElasticIsotropicNeoHookeanPlaneStrain2D
     KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicNeoHookeanPlaneStrain2D );
 
     ///@name Lyfe Cycle
     ///@{
 
     /**
-     * Default constructor.
+     * @brief Default constructor.
      */
     HyperElasticIsotropicNeoHookeanPlaneStrain2D();
 
-    ConstitutiveLaw::Pointer Clone() const override;
-
     /**
-     * Copy constructor.
+     * @brief Copy constructor.
      */
     HyperElasticIsotropicNeoHookeanPlaneStrain2D (const HyperElasticIsotropicNeoHookeanPlaneStrain2D& rOther);
 
     /**
-     * Destructor.
+     * @brief Destructor.
      */
     ~HyperElasticIsotropicNeoHookeanPlaneStrain2D() override;
 
@@ -85,25 +107,30 @@ public:
     ///@{
 
     /**
-     * This function is designed to be called once to check compatibility with element
-     * @param rFeatures: The Features of the law
+     * @brief Clone operation
+     */
+    ConstitutiveLaw::Pointer Clone() const override;
+    
+    /**
+     * @brief This function is designed to be called once to check compatibility with element
+     * @param rFeatures The Features of the law
      */
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-     * Dimension of the law:
+     * @brief Dimension of the law:
      */
     SizeType WorkingSpaceDimension() override
     {
-        return 2;
+        return Dimension;
     };
 
     /**
-     * Voigt tensor size:
+     * @brief Voigt tensor size:
      */
     SizeType GetStrainSize() override
     {
-        return 3;
+        return VoigtSize;
     };
 
 protected:
@@ -123,6 +150,56 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief It calculates the constitutive matrix C (PK2)
+     * @param rConstitutiveMatrix The constitutive matrix
+     * @param InverseCTensor The inverse right Cauchy-Green tensor
+     * @param DeterminantF The determinant of the deformation gradient
+     * @param LameLambda First Lame parameter
+     * @param LameMu Second Lame parameter
+     */
+    void CalculateConstitutiveMatrixPK2(
+        Matrix& rConstitutiveMatrix,
+        const Matrix& InverseCTensor,
+        const double DeterminantF,
+        const double LameLambda,
+        const double LameMu
+        ) override;
+
+    /**
+     * @brief It calculates the constitutive matrix C (Kirchoff)
+     * @param rConstitutiveMatrix The constitutive matrix
+     * @param DeterminantF The determinant of the deformation gradient
+     * @param LameLambda First Lame parameter
+     * @param LameMu Second Lame parameter
+     */
+    void CalculateConstitutiveMatrixKirchhoff(
+        Matrix& rConstitutiveMatrix,
+        const double DeterminantF,
+        const double LameLambda,
+        const double LameMu
+        ) override;
+
+    /**
+     * @brief It calculates the strain vector
+     * @param rValues The Internalvalues of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
+    void CalculateCauchyGreenStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector& rStrainVector
+        ) override;
+
+    /**
+     * @brief Calculates the Almansi strains
+     * @param @param rValues: The Internalvalues of the law
+     * @param rStrainVector: The strain vector in Voigt notation
+     */
+    void CalculateAlmansiStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        Vector& rStrainVector
+        ) override;
+    
     ///@}
 
 private:
@@ -137,56 +214,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
-    /**
-     * It calculates the constitutive matrix C (PK2)
-     * @param ConstitutiveMatrix: The constitutive matrix
-     * @param InverseCTensor: The inverse right Cauchy-Green tensor
-     * @param DeterminantF: The determinant of the deformation gradient
-     * @param LameLambda: First Lame parameter
-     * @param LameMu: Second Lame parameter
-     */
-    void CalculateConstitutiveMatrixPK2(
-        Matrix& ConstitutiveMatrix,
-        const Matrix& InverseCTensor,
-        const double& DeterminantF,
-        const double& LameLambda,
-        const double& LameMu
-        ) override;
-
-    /**
-     * It calculates the constitutive matrix C (Kirchoff)
-     * @param ConstitutiveMatrix: The constitutive matrix
-     * @param DeterminantF: The determinant of the deformation gradient
-     * @param LameLambda: First Lame parameter
-     * @param LameMu: Second Lame parameter
-     */
-    void CalculateConstitutiveMatrixKirchhoff(
-        Matrix& ConstitutiveMatrix,
-        const double& DeterminantF,
-        const double& LameLambda,
-        const double& LameMu
-        ) override;
-
-    /**
-     * It calculates the strain vector
-     * @param rValues: The Internalvalues of the law
-     * @param rStrainVector: The strain vector in Voigt notation
-     */
-    void CalculateCauchyGreenStrain(
-        ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
-        ) override;
-
-    /**
-     * Calculates the Almansi strains
-     * @param @param rValues: The Internalvalues of the law
-     * @param rStrainVector: The strain vector in Voigt notation
-     */
-    void CalculateAlmansiStrain(
-        ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
-        ) override;
 
     ///@}
     ///@name Private Operations
@@ -205,12 +232,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType)
     }
 
 

@@ -314,6 +314,7 @@ public:
             std::cout << "solution obtained = " << mDx << std::endl;
             std::cout << "RHS  = " << mb << std::endl;
         }
+
         if (this->GetEchoLevel() == 4) //print to matrix market file
         {
             std::stringstream matrix_market_name;

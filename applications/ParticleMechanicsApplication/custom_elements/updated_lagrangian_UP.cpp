@@ -12,9 +12,10 @@
 
 
 // System includes
+#include <omp.h>
+#include <sstream>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -22,10 +23,6 @@
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "particle_mechanics_application.h"
-
-
-#include <omp.h>
-#include <sstream>
 
 namespace Kratos
 {
@@ -361,7 +358,7 @@ void UpdatedLagrangianUP::CalculateDeformationMatrix(Matrix& rB,
     }
     else
     {
-        KRATOS_THROW_ERROR( std::invalid_argument, "Dimension given is wrong", "Something is wrong with the given dimension in function: CalculateDeformationMatrix" )
+        KRATOS_ERROR << "Dimension given is wrong: Something is wrong with the given dimension in function: CalculateDeformationMatrix" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -419,7 +416,6 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
 
         AUX_MP_Pressure += Variables.N[j] * NodalPressure;
 
-        //std::cout<<"NodalVelocity "<< GetGeometry()[j].Id()<<std::endl;
         for (unsigned int k = 0; k < dimension; k++)
         {
             AUX_MP_Velocity[k] += Variables.N[j] * NodalVelocity[k];
@@ -1224,14 +1220,12 @@ int UpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo )
     ConstitutiveLaw::Features LawFeatures;
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
-    if(LawFeatures.mOptions.IsNot(ConstitutiveLaw::U_P_LAW))
-        KRATOS_THROW_ERROR( std::logic_error, "Constitutive law is not compatible with the U-P element type ", " Large Displacements U_P" )
+    KRATOS_ERROR_IF(LawFeatures.mOptions.IsNot(ConstitutiveLaw::U_P_LAW)) << "Constitutive law is not compatible with the U-P element type: Large Displacements U_P" << std::endl;
 
-        // Verify that the variables are correctly initialized
-        if ( PRESSURE.Key() == 0 )
-            KRATOS_THROW_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" )
+    // Verify that the variables are correctly initialized
+    KRATOS_ERROR_IF( PRESSURE.Key() == 0 ) <<  "PRESSURE has Key zero! (check if the application is correctly registered" << std::endl;
 
-            return correct;
+    return correct;
 
     KRATOS_CATCH( "" );
 }
