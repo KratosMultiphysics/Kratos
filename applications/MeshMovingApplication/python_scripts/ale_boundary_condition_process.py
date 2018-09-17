@@ -43,7 +43,9 @@ class ALEBoundaryConditionProcess(KratosMultiphysics.Process):
 
         for i in range(3):
             is_constrained = self.settings["constrained"][i].GetBool()
-            KratosMultiphysics.VariableUtils().ApplyFixity(mesh_vel_components[i], True, self.model_part.Nodes)
+            KratosMultiphysics.VariableUtils().ApplyFixity(mesh_vel_components[i],
+                                                           is_constrained,
+                                                           self.model_part.Nodes)
 
     def ExecuteBeforeSolutionLoop(self):
         pass
