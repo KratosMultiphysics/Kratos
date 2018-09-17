@@ -1,0 +1,159 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "cylinder_2d",
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0
+    },
+    "solver_settings"                 : {
+        "solver_type"                 : "Monolithic",
+        "model_part_name"             : "MainModelPart",
+        "domain_size"                 : 2,
+        "model_import_settings"       : {
+            "input_type"     : "mdpa",
+            "input_filename" : "cylinder_2d"
+        },
+        "echo_level"                  : 0,
+        "compute_reactions"           : true,
+        "dynamic_tau"                 : 1.0,
+        "oss_switch"                  : 0,
+        "maximum_iterations"          : 10,
+        "relative_velocity_tolerance" : 0.001,
+        "absolute_velocity_tolerance" : 1e-5,
+        "relative_pressure_tolerance" : 0.001,
+        "absolute_pressure_tolerance" : 1e-5,
+        "linear_solver_settings"      : {
+            "solver_type"         : "AMGCL",
+            "max_iteration"       : 200,
+            "tolerance"           : 1e-7,
+            "provide_coordinates" : false,
+            "smoother_type"       : "ilu0",
+            "krylov_type"         : "gmres",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : false
+        },
+        "volume_model_part_name"      : "Parts_fluid",
+        "skin_parts"                  : ["NoSlip2D_cylinder"],
+        "no_skin_parts"               : ["VelocityConstraints2D_inlet","VelocityConstraints2D_walls"],
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.1
+        }
+    },
+    "processes" :
+    {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyNoSlipProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.NoSlip2D_cylinder"
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.VelocityConstraints2D_walls",
+                "variable_name"   : "VELOCITY",
+                "constrained"     : [false,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.VelocityConstraints2D_inlet",
+                "variable_name"   : "VELOCITY",
+                "constrained"     : [true,true,true],
+                "value"           : [1.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "auxiliar_process_list"            : [{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "point_output_process",
+            "help"            : "",
+            "process_name"    : "PointOutputProcess",
+            "Parameters" : {
+                "position"         : [3.150768, 4.043068, 0.0],
+                "model_part_name"  : "MainModelPart.Parts_fluid",
+                "output_file_settings": {
+                    "file_name"  : "cylinder_test_probe1.dat"
+                },
+                "output_variables" : [
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE"]
+            }
+        },{
+            "kratos_module"   : "KratosMultiphysics",
+            "python_module"   : "point_output_process",
+            "help"            : "",
+            "process_name"    : "MainModelPart.PointOutputProcess",
+            "Parameters" : {
+                "position"         : [4.849232,4.043068, 0.0],
+                "model_part_name"  : "Parts_fluid",
+                "output_file_settings": {
+                    "file_name"  : "cylinder_test_probe2.dat"
+                },
+                "output_variables" : [
+                    "VELOCITY_X",
+                    "VELOCITY_Y",
+                    "PRESSURE"]
+            }
+        },{
+            "python_module" : "compute_body_fitted_drag_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ComputeBodyFittedDragProcess",
+            "Parameters"    : {
+                "model_part_name"        : "MainModelPart.NoSlip2D_cylinder",
+                "write_drag_output_file" : true,
+                "print_drag_to_screen"   : true,
+                "interval"               : [0.0,"End"]
+            }
+        },{
+            "python_module"   : "compare_two_files_check_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "help"            : "",
+            "process_name"    : "CompareTwoFilesCheckProcess",
+            "Parameters" :{
+                "output_file_name"    : "cylinder_test_probe1.dat",
+                "reference_file_name" : "cylinder_test_probe1_ref.dat",
+                "comparison_type"     : "dat_file",
+                "remove_output_file"    : true,
+                "decimal_places"      : 5
+            }
+        },{
+            "python_module"   : "compare_two_files_check_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "help"            : "",
+            "process_name"    : "CompareTwoFilesCheckProcess",
+            "Parameters" :{
+                "output_file_name"    : "cylinder_test_probe2.dat",
+                "reference_file_name" : "cylinder_test_probe2_ref.dat",
+                "comparison_type"     : "dat_file",
+                "remove_output_file"    : true,
+                "decimal_places"      : 5
+            }
+        },{
+            "python_module"   : "compare_two_files_check_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "help"            : "",
+            "process_name"    : "CompareTwoFilesCheckProcess",
+            "Parameters" :{
+                "output_file_name"    : "NoSlip2D_cylinder_drag.dat",
+                "reference_file_name" : "NoSlip2D_cylinder_drag_ref.dat",
+                "comparison_type"     : "dat_file",
+                "remove_output_file"    : true,
+                "decimal_places"      : 5
+            }
+        }]
+    }
+}
