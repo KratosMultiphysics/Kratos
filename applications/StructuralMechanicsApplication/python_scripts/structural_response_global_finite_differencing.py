@@ -2,7 +2,7 @@
 from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
-from KratosMultiphysics import *
+import KratosMultiphysics
 import structural_mechanics_analysis
 import structural_response
 import structural_response_function_factory
@@ -22,7 +22,7 @@ class GlobalFiniteDifferencingResponseFunction(structural_response.ResponseFunct
         model_part_name = response_settings["model_import_settings"]["input_filename"].GetString()
         model_part_name = model_part_name.split("/")[-1]
         if input_type == "mdpa":
-            self.model_part = ModelPart(model_part_name)
+            self.model_part = KratosMultiphysics.ModelPart(model_part_name)
             self.model.AddModelPart(self.model_part)
         elif input_type == "use_input_model_part":
             self.model_part = self.model.GetModelPart(model_part_name)
@@ -79,7 +79,7 @@ class GlobalFiniteDifferencingResponseFunction(structural_response.ResponseFunct
 
         for node in sensitivity_model_part.Nodes:
             for dir in range(3):
-                perturbed_model = Model()
+                perturbed_model = KratosMultiphysics.Model()
                 identifier = "Node_{}_dir_{}".format(node.Id, dir)
                 perturbed_response = self._CreateNewTmpResponse(identifier, perturbed_model)
                 perturbed_response.Initialize()
@@ -100,9 +100,9 @@ class GlobalFiniteDifferencingResponseFunction(structural_response.ResponseFunct
                 perturbed_response.CalculateValue()
                 perturbed_value = perturbed_response.GetValue()
 
-                sensitivity = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
+                sensitivity = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
                 sensitivity[dir] = (perturbed_value - unperturbed_value) / perturbation
-                node.SetSolutionStepValue(SHAPE_SENSITIVITY, sensitivity)
+                node.SetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY, sensitivity)
 
                 perturbed_response.FinalizeSolutionStep()
                 perturbed_response.Finalize()
@@ -122,5 +122,5 @@ class GlobalFiniteDifferencingResponseFunction(structural_response.ResponseFunct
     def GetShapeGradient(self):
         gradient = {}
         for node in self.model_part.Nodes:
-            gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
+            gradient[node.Id] = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
         return gradient
