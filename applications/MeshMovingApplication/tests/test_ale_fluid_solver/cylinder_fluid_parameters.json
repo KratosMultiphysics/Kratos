@@ -148,20 +148,11 @@
             "help"            : "",
             "process_name"    : "CompareTwoFilesCheckProcess",
             "Parameters" :{
-                "output_file_name"    : "NoSlip2D_cylinder_drag.dat",
+                "output_file_name"    : "MainModelPart.NoSlip2D_cylinder_drag.dat",
                 "reference_file_name" : "NoSlip2D_cylinder_drag_ref.dat",
                 "comparison_type"     : "dat_file",
                 "remove_output_file"    : true,
                 "decimal_places"      : 5
-            }
-        }],
-        "ale_boundary_conditions" : [{
-            "python_module" : "ale_boundary_condition_process",
-            "kratos_module" : "KratosMultiphysics.MeshMovingApplication",
-            "process_name"  : "ALEBoundaryConditionProcess",
-            "Parameters"    : {
-                "model_part_name" : "MainModelPart.NoSlip2D_cylinder",
-                "constrained"     : [true,true,true]
             }
         }]
     }

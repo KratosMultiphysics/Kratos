@@ -30,10 +30,10 @@ class ALEFluidSolverTest(UnitTest.TestCase):
 
     def setUp(self):
         # Set to true to get post-process files for the test
-        self.print_output = True
+        self.print_output = False
 
     def testALEFluidSolver(self):
-        work_folder = "test_ale_solver_and_analysis"
+        work_folder = "test_ale_fluid_solver"
         settings_file_name = "cylinder_fluid_parameters.json"
 
         with WorkFolderScope(work_folder):

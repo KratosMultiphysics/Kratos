@@ -124,7 +124,7 @@ class ALEFluidSolver(PythonSolver):
 
     def PrepareModelPart(self):
         # Doing it ONLY for the fluid solver (since this contains filling the buffer)
-        return self.fluid_solver.PrepareModelPart()
+        self.fluid_solver.PrepareModelPart()
 
     def AdvanceInTime(self, current_time):
         # Doing it ONLY for the fluid solver
