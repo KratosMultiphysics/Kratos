@@ -3,9 +3,9 @@ from __future__ import print_function, absolute_import, division
 import os
 import KratosMultiphysics
 
-import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
+import KratosMultiphysics.EigenSolversApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from eigen_solver_factory import ConstructSolver
+import eigen_solver_factory
 
 class TestEigensystemSolver(KratosUnittest.TestCase):
     def test_mass_normalization(self):
@@ -20,8 +20,6 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
             "normalize_eigenvectors": true,
             "echo_level": 0
          }''')
-
-        solver = ConstructSolver(settings)
 
         K = KratosMultiphysics.CompressedMatrix()
 
