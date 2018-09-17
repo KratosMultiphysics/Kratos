@@ -100,6 +100,7 @@ namespace Kratos {
     }
 
     void FlexWrapper::UpdateFlex() {
+        mrParticleCreatorDestructor.DestroyParticlesOutsideBoundingBox(mrSpheresModelPart);
         SetNvFlexCopyDescParams(mFlexCopyDescriptor);
         SetNvFlexParams(mFlexParameters);
         TransferDataFromKratosToFlex();
@@ -233,14 +234,32 @@ namespace Kratos {
         mFlexParameters.wind[1] = 0.0f;
         mFlexParameters.wind[2] = 0.0f;
 
-        mFlexParameters.radius = 0.01f; // Check this, this is the diameter value. Using the radius (0.005f) the balls intersect a lot. Would they still do it if iter and/or substeps get increased?
-        /*const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
+        //mFlexParameters.radius = 0.15f;
+        const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
         for (size_t i=0; i< number_of_nodes; i++) {
             const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
-            mFlexParameters.radius = node_it->FastGetSolutionStepValue(RADIUS);
+            mFlexParameters.radius = (float) 2.0 * node_it->FastGetSolutionStepValue(RADIUS);
             break;
-        }*/
-        //TODO: MA: check that all radii are the same!!
+        }
+        if (mFlexParameters.radius == 0.0) {
+            KRATOS_ERROR<<"The radius of the particles can not be 0.0!"<<std::endl;
+        }
+
+        //check that all radii are the same!!
+        const double tolerance = 1.0e-6;
+        for (size_t i=0; i< number_of_nodes; i++) {
+            const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
+            double reference_radius = 0.0;
+            if (i == 0) {
+                reference_radius = node_it->FastGetSolutionStepValue(RADIUS);
+            }
+            else {
+                const double& radius_i = node_it->FastGetSolutionStepValue(RADIUS);
+                if (std::abs(radius_i - reference_radius) > tolerance) {
+                    KRATOS_ERROR<<"The radii of the particles are not equal! Nvidia Flex only works with particles of the same size!"<<std::endl;
+                }
+            }
+        }
 
         mFlexParameters.viscosity = 0.0f;
         mFlexParameters.dynamicFriction = 0.75f; //0.5f; //0.25f;

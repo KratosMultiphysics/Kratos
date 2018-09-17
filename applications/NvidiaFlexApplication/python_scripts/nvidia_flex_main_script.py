@@ -26,7 +26,8 @@ class Solution(main_script.Solution):
         ## SIEMENS PROJECT
 
     def SolverSolve(self):
-        if self.step < 2:
+        number_of_steps_until_flex_update = 10
+        if self.step < 2 or not self.step % number_of_steps_until_flex_update:
             self._CheckNvidiaParameters()
             self.nvidia_flex_wrapper.UpdateFlex()
 
