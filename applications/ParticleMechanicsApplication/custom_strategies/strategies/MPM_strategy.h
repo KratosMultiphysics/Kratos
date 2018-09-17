@@ -11,16 +11,14 @@
 //
 //
 
+
 #if !defined(KRATOS_MPM_STRATEGY )
 #define  KRATOS_MPM_STRATEGY
 
-
 /* System includes */
 #include <set>
-//#include <chrono>
-/* External includes */
-#include "boost/smart_ptr.hpp"
 
+/* External includes */
 
 /* Project includes */
 #include "spaces/ublas_space.h"
@@ -30,40 +28,31 @@
 #include "includes/kratos_flags.h"
 #include "geometries/geometry.h"
 #include "includes/element.h"
-#include "solid_mechanics_application.h"
-//geometry utilities
-#include "utilities/geometry_utilities.h"
 
+// Application includes
+#include "solid_mechanics_application.h"
 #include "particle_mechanics_application.h"
 
+// Geometry utilities
+#include "utilities/geometry_utilities.h"
+
+// Custom includes
+#include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
+#include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
 #include "custom_elements/updated_lagrangian.hpp"
 
-
-#include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
-
+// Core includes
+#include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-
-
+#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-
-//convergence criterias
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
-
-#include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
-//#include "custom_strategies/strategies/MPM_strategy.h"
-
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
 #include "linear_solvers/linear_solver.h"
-
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-
 #include "utilities/binbased_fast_point_locator.h"
-
 
 namespace Kratos
 {
@@ -94,24 +83,6 @@ namespace Kratos
 /** Short class definition.
 Detail class definition.
 
-  \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-        \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-          \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-                \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-                        \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-                          \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-                                \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-                                  \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
  */
 template<class TSparseSpace,
          class TDenseSpace,
@@ -125,9 +96,10 @@ public:
     /*@{ */
     //		typedef std::set<Dof::Pointer,ComparePDof> DofSetType;
 
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
 
     typedef typename TSparseSpace::DataType TDataType;
     typedef typename TSparseSpace::MatrixType TSystemMatrixType;
@@ -139,7 +111,6 @@ public:
     typedef Node < 3 > NodeType;
     typedef Geometry<NodeType> GeometryType;
 
-
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
@@ -149,7 +120,7 @@ public:
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > SolvingStrategyType;
 
-    /** Counted pointer of ClassName */
+    // Counted pointer of ClassName 
     KRATOS_CLASS_POINTER_DEFINITION(MPMStrategy);
 
     typedef typename ModelPart::DofType TDofType;
@@ -186,7 +157,7 @@ public:
         : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part), mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
     {
 
-        //assigning the nodes to the new model part
+        // Assigning the nodes to the new model part
         mpm_model_part.Nodes() = grid_model_part.Nodes();
 
         mpm_model_part.SetProcessInfo(grid_model_part.pGetProcessInfo());
@@ -197,12 +168,6 @@ public:
         array_1d<double,3> xg = ZeroVector(3);
         array_1d<double,3> MP_Displacement = ZeroVector(3);
         array_1d<double,3> MP_Velocity = ZeroVector(3);
-        
-        //double MP_KineticEnergy = 0.0;
-        //double MP_StrainEnergy = 0.0;
-        //Vector MP_CauchyVector = ZeroVector(3);
-        //Vector MP_AlmansiVector = ZeroVector(3);
-        //Matrix MP_ConstitutiveMatrix = ZeroMatrix(6,6);
 
         double MP_Mass;
         double MP_Volume;
@@ -278,16 +243,16 @@ public:
                         }
                     }
 
-                    //INITIAL NUMBER OF MATERIAL POINTS PER ELEMENT
-                    unsigned int integration_point_per_elements = shape_functions_values.size1();
+                    // Number of MP per elements
+                    const unsigned int integration_point_per_elements = shape_functions_values.size1();
 
-                    //evaluation of element area/volume
-                    double area = rGeom.Area();
+                    // Evaluation of element area/volume
+                    const double area = rGeom.Area();
 
                     MP_Mass = area * Density / integration_point_per_elements;
                     MP_Volume = area / integration_point_per_elements;
 
-                    //loop over the material points that fall in each grid element
+                    // Loop over the material points that fall in each grid element
                     for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++ )
                     {
                         if(number_elements > number_nodes)
@@ -304,12 +269,11 @@ public:
 
                         xg.clear();
 
-                        //loop over the nodes of the grid element
+                        // Loop over the nodes of the grid element
                         for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++)
                         {
                             for ( unsigned int j = 0; j < rGeom.size(); j ++)
                             {
-
                                 xg[dim] = xg[dim] + shape_functions_values(PointNumber, j) * rGeom[j].Coordinates()[dim];
                             }
                         }
@@ -323,13 +287,7 @@ public:
                         p_element -> SetValue(MP_DISPLACEMENT, MP_Displacement);
                         p_element -> SetValue(MP_VELOCITY, MP_Velocity);
 
-                        //p_element -> SetValue(MP_CAUCHY_STRESS_VECTOR, MP_CauchyVector);
-                        //p_element -> SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_AlmansiVector);
-                        //p_element -> SetValue(MP_CONSTITUTIVE_MATRIX, MP_ConstitutiveMatrix);
-                        //p_element -> SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);
-                        //p_element -> SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
-
-                        //Add the MP Element to the model part
+                        // Add the MP Element to the model part
                         mpm_model_part.GetSubModelPart(submodelpart_name).AddElement(p_element);
                     }
 
@@ -342,7 +300,7 @@ public:
 
         }
 
-        //define a standard static strategy to be used in the calculation
+        // Define a standard static strategy to be used in the calculation
         if(SolutionType == "StaticSolver" || SolutionType == "Static")
         {
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
@@ -357,8 +315,8 @@ public:
                 pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             }
 
-            double ratio_tolerance = 1e-04;
-            double always_converged_norm = 1e-09;
+            const double ratio_tolerance = 1e-04;
+            const double always_converged_norm = 1e-09;
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
 
             int MaxIterations = 20;
@@ -369,7 +327,7 @@ public:
             mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofAtEachIteration,MoveMeshFlags) );
         }
 
-        //define a dynamic strategy to be used in the calculation
+        // Define a dynamic strategy to be used in the calculation
         else if(SolutionType == "DynamicSolver" || SolutionType == "Dynamic")
         {
             double Alpham;
@@ -398,7 +356,7 @@ public:
             mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofAtEachIteration,MoveMeshFlags) );
         }
 
-        //define a quasi-static strategy to be used in the calculation
+        // Define a quasi-static strategy to be used in the calculation
         else if(SolutionType == "QuasiStaticSolver" || SolutionType == "Quasi-static")
         {
             double Alpham;
@@ -427,6 +385,7 @@ public:
             mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofAtEachIteration,MoveMeshFlags) );
         }
     }
+
     /*@} */
 
     /** Destructor.
@@ -437,6 +396,23 @@ public:
     {
     }
     /*@} */
+
+    /**
+     * @brief This sets the level of echo for the solution strategy
+     * @param Level of echo for the solution strategy
+     * @details
+     * {
+     * 0 -> Mute... no echo at all
+     * 1 -> Printing time and basic informations
+     * 2 -> Printing linear solver data
+     * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * }
+     */
+    void SetEchoLevel(const int Level) override
+    {
+        BaseType::mEchoLevel = Level;
+        mp_solving_strategy->SetEchoLevel(Level);
+    }
 
     //*********************************************************************************
     /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
@@ -462,19 +438,20 @@ public:
      */
     double Solve() override
     {
-        //check which nodes and elements are ACTIVE and populate the MPM model part
+        // Check which nodes and elements are ACTIVE and populate the MPM model part
         this->SearchElement(mr_grid_model_part, mr_mpm_model_part);
 
         mp_solving_strategy->Initialize();
 
-        //the nodal initial conditions are computed
+        // The nodal initial conditions are computed
         mp_solving_strategy->InitializeSolutionStep();
 
         mp_solving_strategy->Predict();
-        //do solution iterations
+        
+        // Do solution iterations
         mp_solving_strategy->SolveSolutionStep();
     
-        //the nodal solution are mapped on MP
+        // The nodal solution are mapped from mesh to MP
         mp_solving_strategy->FinalizeSolutionStep();
         mp_solving_strategy->Clear();
 
@@ -733,7 +710,6 @@ public:
         MP_ShapeFunctions(32,1) = Nh2;
         MP_ShapeFunctions(32,2) = Nh1;
 
-
         return MP_ShapeFunctions;
 
     }
@@ -786,7 +762,6 @@ public:
 		}
 
         //******************SEARCH FOR TRIANGLES************************
-        
         // Initialize shape function vector to be passed to PointLocator function
         Vector N;
 
@@ -848,7 +823,7 @@ public:
 			{
                 typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
-                //loop over the material points
+                // Loop over the material points
                 #pragma omp for
                 for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
 
@@ -896,7 +871,7 @@ public:
 
 
     /**
-     * function to perform expensive checks.
+     * Function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
     int Check() override

@@ -20,7 +20,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/static_condensation_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/formfinding_io_utility.cpp
-
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp
 
   ## RESPONSE UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/adjoint_structural_response_function.cpp
@@ -35,12 +35,11 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/prism_neighbours_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shell_to_solid_shell_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/solid_shell_thickness_compute_process.cpp
-
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/spr_error_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/impose_rigid_movement_process.cpp
 
+  ## RESPONSE FUNCTIONS
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.cpp
-
-
 
   ##CONSTITUTIVE LAW
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_constitutive_law.cpp
@@ -59,13 +58,15 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_orthotropic_2D_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_j2_plasticity_plane_strain_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_j2_plasticity_3d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_plane_strain_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_3D_law.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_isotropic_damage_3d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_isotropic_plasticity_3d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_damage_factory.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_plasticity_factory.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_isotropic_damage.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_isotropic_plasticity.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_viscoplasticity_3d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/viscous_generalized_kelvin_3d.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/viscous_generalized_maxwell_3d.cpp
-
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/viscous_generalized_kelvin.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/viscous_generalized_maxwell.cpp
 
   ## ELEMENTS
 
