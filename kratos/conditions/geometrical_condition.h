@@ -200,6 +200,7 @@ public:
         pGetGeometry()->PrintData(rOStream);
     }
     
+    ///@}   
 
 private:
 
@@ -210,6 +211,8 @@ private:
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
+    
+    ///@}
 
 }; // Class GeometricalCondition
 
