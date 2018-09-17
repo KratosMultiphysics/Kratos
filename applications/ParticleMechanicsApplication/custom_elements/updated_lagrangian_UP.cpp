@@ -400,7 +400,6 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
     array_1d<double,3> MP_Inertia;
     array_1d<double,3> nodal_momentum;
     array_1d<double,3> nodal_inertia;
-    double nodal_mpressure;
 
     for (unsigned int j=0; j<number_of_nodes; j++)
     {
@@ -423,7 +422,7 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
     // Here MP contribution in terms of momentum, inertia, mass-pressure and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        nodal_mpressure =  Variables.N[i] * (MP_Pressure - AUX_MP_Pressure) * MP_Mass;
+        double nodal_mpressure =  Variables.N[i] * (MP_Pressure - AUX_MP_Pressure) * MP_Mass;
 
         for (unsigned int j = 0; j < dimension; j++)
         {

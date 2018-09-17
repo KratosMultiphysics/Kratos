@@ -501,7 +501,6 @@ public:
             norm_delta_acceleration = 0.0;
             norm_delta_pressure = 0.0;
 
-            int node_counter = 0;
             Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(r_model_part,A,Dx,b);
 
 			#pragma omp parallel for reduction(+:norm_velocity,norm_acceleration,norm_pressure,norm_delta_velocity,norm_delta_acceleration,norm_delta_pressure)
@@ -511,8 +510,6 @@ public:
 			    auto i = mr_grid_model_part.NodesBegin() + iter;
 			    double & nodal_mass     = (i)->FastGetSolutionStepValue(NODAL_MASS);
                 
-                double delta_nodal_pressure = 0.0;
-
                 if (nodal_mass > 1.0e-16 )
                 {
                     array_1d<double, 3 > & delta_nodal_velocity     = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
@@ -524,6 +521,8 @@ public:
                     array_1d<double, 3 > & nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
                     array_1d<double, 3 > & nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
                     double & nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
+
+                    double delta_nodal_pressure = 0.0;
                     
                     if (i->HasDofFor(PRESSURE) && i->SolutionStepsDataHas(NODAL_MPRESSURE))
                     {
@@ -546,8 +545,6 @@ public:
                     norm_velocity += (nodal_velocity[0]*nodal_velocity[0]+nodal_velocity[1]*nodal_velocity[1]+nodal_velocity[2]*nodal_velocity[2]);
                     norm_acceleration += (nodal_acceleration[0]*nodal_acceleration[0]+nodal_acceleration[1]*nodal_acceleration[1]+nodal_acceleration[2]*nodal_acceleration[2]);
                     norm_pressure += (nodal_pressure * nodal_pressure);
-                    
-                    ++node_counter;
                 }
             }
 
