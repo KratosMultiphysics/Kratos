@@ -1,5 +1,5 @@
 # Body fitted drag for model part MainModelPart.NoSlip2D_cylinder
-# Time Fx Fy Fz 
+# Time Fx Fy Fz
 0.10000000 30.04549810 0.00501344 -0.00000000
 0.20000000 -10.70469556 -0.00782229 -0.00000000
 0.30000000 2.38068179 0.00307104 -0.00000000
