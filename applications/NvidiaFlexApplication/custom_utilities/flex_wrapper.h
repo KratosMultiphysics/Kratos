@@ -27,8 +27,8 @@ namespace Kratos {
 
             virtual ~FlexWrapper();
 
-            void TransferDataFromKratosToFlex();
-            void UpdateFlex();
+            void TransferDataFromKratosToFlex(const bool transfer_spheres, const bool transfer_walls);
+            void UpdateFlex(const bool transfer_spheres, const bool transfer_walls);
             void SolveTimeSteps(double dt, int number_of_substeps);
             void SetNvFlexSolverDescParams(NvFlexSolverDesc& g_solverDesc);
             void SetNvFlexParams(NvFlexParams& g_params);

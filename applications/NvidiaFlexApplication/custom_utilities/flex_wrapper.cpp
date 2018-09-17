@@ -68,7 +68,7 @@ namespace Kratos {
         mSolverDescriptor.maxParticles = mMaxparticles;
         mSolverDescriptor.maxDiffuseParticles = 0;
         mFlexSolver = NvFlexCreateSolver(mFlexLibrary, &mSolverDescriptor);
-        
+
         mTimeToChangeGravityValue = true;
     }
 
@@ -99,127 +99,139 @@ namespace Kratos {
         //mFlexCopyDescriptor.elementCount = mMaxparticles;
     }
 
-    void FlexWrapper::UpdateFlex() {
+    void FlexWrapper::UpdateFlex(const bool transfer_spheres, const bool transfer_walls) {
         mrParticleCreatorDestructor.DestroyParticlesOutsideBoundingBox(mrSpheresModelPart);
         SetNvFlexCopyDescParams(mFlexCopyDescriptor);
         SetNvFlexParams(mFlexParameters);
-        TransferDataFromKratosToFlex();
+        TransferDataFromKratosToFlex(transfer_spheres, transfer_walls);
     }
 
-    void FlexWrapper::TransferDataFromKratosToFlex() {
+    void FlexWrapper::TransferDataFromKratosToFlex(const bool transfer_spheres, const bool transfer_walls) {
 
         NvFlexSetParams(mFlexSolver, &mFlexParameters);
 
-        const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
-        mFlexPositions->resize(number_of_nodes);
-        mFlexVelocities->resize(number_of_nodes);
-        mFlexPhases->resize(number_of_nodes);
-        mActiveIndices->resize(number_of_nodes);
+        if(transfer_spheres) {
+            mFlexPositions->map();
+            mFlexVelocities->map();
+            mFlexPhases->map();
+            mActiveIndices->map();
 
-        int phase = NvFlexMakePhase(0, eNvFlexPhaseSelfCollide);
+            const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
+            mFlexPositions->resize(number_of_nodes);
+            mFlexVelocities->resize(number_of_nodes);
+            mFlexPhases->resize(number_of_nodes);
+            mActiveIndices->resize(number_of_nodes);
 
-        for (size_t i=0; i< number_of_nodes; i++) {
-            const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
-            const auto& coords = node_it->Coordinates();
-            (*mFlexPositions)[i] = Vec4((float)coords[0], (float)coords[1], (float)coords[2], (float)(1.0 / node_it->FastGetSolutionStepValue(NODAL_MASS)));
-            const auto& vel = node_it->FastGetSolutionStepValue(VELOCITY);
-            (*mFlexVelocities)[i] = Vec3((float)vel[0], (float)vel[1], (float)vel[2]);
-            (*mFlexPhases)[i] = phase;
-            (*mActiveIndices)[i] = i; //node_it->Id();
+            int phase = NvFlexMakePhase(0, eNvFlexPhaseSelfCollide);
+
+            for (size_t i=0; i< number_of_nodes; i++) {
+                const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
+                const auto& coords = node_it->Coordinates();
+                (*mFlexPositions)[i] = Vec4((float)coords[0], (float)coords[1], (float)coords[2], (float)(1.0 / node_it->FastGetSolutionStepValue(NODAL_MASS)));
+                const auto& vel = node_it->FastGetSolutionStepValue(VELOCITY);
+                (*mFlexVelocities)[i] = Vec3((float)vel[0], (float)vel[1], (float)vel[2]);
+                (*mFlexPhases)[i] = phase;
+                (*mActiveIndices)[i] = i; //node_it->Id();
+            }
+
+            mFlexPositions->unmap();
+            mFlexVelocities->unmap();
+            mFlexPhases->unmap();
+            mActiveIndices->unmap();
+
+            // send any particle updates to the solver
+            NvFlexSetParticles(mFlexSolver, mFlexPositions->buffer, &mFlexCopyDescriptor);
+            NvFlexSetVelocities(mFlexSolver, mFlexVelocities->buffer, &mFlexCopyDescriptor);
+            NvFlexSetPhases(mFlexSolver, mFlexPhases->buffer, &mFlexCopyDescriptor);
+            NvFlexSetActive(mFlexSolver, mActiveIndices->buffer, &mFlexCopyDescriptor);
+            NvFlexSetActiveCount(mFlexSolver, mActiveIndices->size());
         }
 
-        const size_t number_of_fem_nodes = mrFemModelPart.Nodes().size();
-        mFlexFemPositions->resize(number_of_fem_nodes);
-        const size_t number_of_fem_conditions = mrFemModelPart.Conditions().size();
-        mFlexFemConnectivities->resize(3*number_of_fem_conditions);
-        std::map<int,int> id2index;
-        array_1d<double, 3> min, max;
-        max[0] = max[1] = max[2] = -std::numeric_limits<double>::max();
-        min[0] = min[1] = min[2] =  std::numeric_limits<double>::max();
+        if(transfer_walls) {
+            mFlexFemPositions->map();
+            mFlexFemConnectivities->map();
 
-        for (size_t i=0; i< number_of_fem_nodes; i++) {
-            const auto node_it = mrFemModelPart.Nodes().begin() + i;
-            const auto& coords = node_it->Coordinates();
-            (*mFlexFemPositions)[i] = Vec4( (float)coords[0], (float)coords[1], (float)coords[2], 0.0f );
-            id2index[node_it->Id()] = i;
-            if(coords[0]>max[0]) max[0] = coords[0];
-            if(coords[1]>max[1]) max[1] = coords[1];
-            if(coords[2]>max[2]) max[2] = coords[2];
-            if(coords[0]<min[0]) min[0] = coords[0];
-            if(coords[1]<min[1]) min[1] = coords[1];
-            if(coords[2]<min[2]) min[2] = coords[2];
-        }
-        for (size_t i = 0; i < number_of_fem_conditions; i++) {
-            const auto cond_it = mrFemModelPart.Conditions().begin() + i;
-            const auto& nodes = cond_it->GetGeometry();
-            (*mFlexFemConnectivities)[i * 3    ] = id2index[nodes[0].Id()];
-            (*mFlexFemConnectivities)[i * 3 + 1] = id2index[nodes[1].Id()];
-            (*mFlexFemConnectivities)[i * 3 + 2] = id2index[nodes[2].Id()];
-        }
+            const size_t number_of_fem_nodes = mrFemModelPart.Nodes().size();
+            mFlexFemPositions->resize(number_of_fem_nodes);
+            const size_t number_of_fem_conditions = mrFemModelPart.Conditions().size();
+            mFlexFemConnectivities->resize(3*number_of_fem_conditions);
+            std::map<int,int> id2index;
+            array_1d<double, 3> min, max;
+            max[0] = max[1] = max[2] = -std::numeric_limits<double>::max();
+            min[0] = min[1] = min[2] =  std::numeric_limits<double>::max();
 
-        mFlexPositions->unmap();
-        mFlexVelocities->unmap();
-        mFlexPhases->unmap();
-        mActiveIndices->unmap();
+            for (size_t i=0; i< number_of_fem_nodes; i++) {
+                const auto node_it = mrFemModelPart.Nodes().begin() + i;
+                const auto& coords = node_it->Coordinates();
+                (*mFlexFemPositions)[i] = Vec4( (float)coords[0], (float)coords[1], (float)coords[2], 0.0f );
+                id2index[node_it->Id()] = i;
+                if(coords[0]>max[0]) max[0] = coords[0];
+                if(coords[1]>max[1]) max[1] = coords[1];
+                if(coords[2]>max[2]) max[2] = coords[2];
+                if(coords[0]<min[0]) min[0] = coords[0];
+                if(coords[1]<min[1]) min[1] = coords[1];
+                if(coords[2]<min[2]) min[2] = coords[2];
+            }
+            for (size_t i = 0; i < number_of_fem_conditions; i++) {
+                const auto cond_it = mrFemModelPart.Conditions().begin() + i;
+                const auto& nodes = cond_it->GetGeometry();
+                (*mFlexFemConnectivities)[i * 3    ] = id2index[nodes[0].Id()];
+                (*mFlexFemConnectivities)[i * 3 + 1] = id2index[nodes[1].Id()];
+                (*mFlexFemConnectivities)[i * 3 + 2] = id2index[nodes[2].Id()];
+            }
 
-        mFlexFemPositions->unmap();
-        mFlexFemConnectivities->unmap();
+            mFlexFemPositions->unmap();
+            mFlexFemConnectivities->unmap();
 
-        // send any particle updates to the solver
-        NvFlexSetParticles(mFlexSolver, mFlexPositions->buffer, &mFlexCopyDescriptor);
-        NvFlexSetVelocities(mFlexSolver, mFlexVelocities->buffer, &mFlexCopyDescriptor);
-        NvFlexSetPhases(mFlexSolver, mFlexPhases->buffer, &mFlexCopyDescriptor);
-        NvFlexSetActive(mFlexSolver, mActiveIndices->buffer, &mFlexCopyDescriptor);
-        NvFlexSetActiveCount(mFlexSolver, mActiveIndices->size());
+            if (number_of_fem_nodes) {
+                mFlexTriangleMesh = NvFlexCreateTriangleMesh(mFlexLibrary);
+                Vec3 lower, upper;
+                lower[0] = (float)min[0];
+                lower[1] = (float)min[1];
+                lower[2] = (float)min[2];
+                upper[0] = (float)max[0];
+                upper[1] = (float)max[1];
+                upper[2] = (float)max[2];
 
-        if (number_of_fem_nodes) {
-            mFlexTriangleMesh = NvFlexCreateTriangleMesh(mFlexLibrary);
-            Vec3 lower, upper;
-            lower[0] = (float)min[0];
-            lower[1] = (float)min[1];
-            lower[2] = (float)min[2];
-            upper[0] = (float)max[0];
-            upper[1] = (float)max[1];
-            upper[2] = (float)max[2];
+                NvFlexUpdateTriangleMesh(mFlexLibrary, mFlexTriangleMesh, mFlexFemPositions->buffer, mFlexFemConnectivities->buffer, number_of_fem_nodes, number_of_fem_conditions, (float*)&lower, (float*)&upper);
 
-            NvFlexUpdateTriangleMesh(mFlexLibrary, mFlexTriangleMesh, mFlexFemPositions->buffer, mFlexFemConnectivities->buffer, number_of_fem_nodes, number_of_fem_conditions, (float*)&lower, (float*)&upper);
+                NvFlexCollisionGeometry geo;
+                geo.triMesh.mesh = mFlexTriangleMesh;
+                geo.triMesh.scale[0] = 1.0;
+                geo.triMesh.scale[1] = 1.0;
+                geo.triMesh.scale[2] = 1.0;
 
-            NvFlexCollisionGeometry geo;
-            geo.triMesh.mesh = mFlexTriangleMesh;
-            geo.triMesh.scale[0] = 1.0;
-            geo.triMesh.scale[1] = 1.0;
-            geo.triMesh.scale[2] = 1.0;
+                mShapeGeometry->resize(0);
+                mShapePositions->resize(0);
+                mShapeRotations->resize(0);
+                mShapePrevPositions->resize(0);
+                mShapePrevRotations->resize(0);
+                mShapeFlags->resize(0);
 
-            mShapeGeometry->resize(0);
-            mShapePositions->resize(0);
-            mShapeRotations->resize(0);
-            mShapePrevPositions->resize(0);
-            mShapePrevRotations->resize(0);
-            mShapeFlags->resize(0);
+                mShapeGeometry->push_back((NvFlexCollisionGeometry&)geo);
+                mShapePositions->push_back(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                mShapeRotations->push_back(Quat());
+                mShapePrevPositions->push_back(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
+                mShapePrevRotations->push_back(Quat());
+                mShapeFlags->push_back(NvFlexMakeShapeFlags(eNvFlexShapeTriangleMesh, false));
 
-            mShapeGeometry->push_back((NvFlexCollisionGeometry&)geo);
-            mShapePositions->push_back(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
-            mShapeRotations->push_back(Quat());
-            mShapePrevPositions->push_back(Vec4(0.0f, 0.0f, 0.0f, 0.0f));
-            mShapePrevRotations->push_back(Quat());
-            mShapeFlags->push_back(NvFlexMakeShapeFlags(eNvFlexShapeTriangleMesh, false));
+                mShapeGeometry->unmap();
+                mShapePositions->unmap();
+                mShapeRotations->unmap();
+                mShapePrevPositions->unmap();
+                mShapePrevRotations->unmap();
+                mShapeFlags->unmap();
 
-            mShapeGeometry->unmap();
-            mShapePositions->unmap();
-            mShapeRotations->unmap();
-            mShapePrevPositions->unmap();
-            mShapePrevRotations->unmap();
-            mShapeFlags->unmap();
-
-            NvFlexSetShapes(
-                mFlexSolver,
-                mShapeGeometry->buffer,
-                mShapePositions->buffer,
-                mShapeRotations->buffer,
-                mShapePrevPositions->buffer,
-                mShapePrevRotations->buffer,
-                mShapeFlags->buffer,
-                int(mShapeFlags->size()));
+                NvFlexSetShapes(
+                    mFlexSolver,
+                    mShapeGeometry->buffer,
+                    mShapePositions->buffer,
+                    mShapeRotations->buffer,
+                    mShapePrevPositions->buffer,
+                    mShapePrevRotations->buffer,
+                    mShapeFlags->buffer,
+                    int(mShapeFlags->size()));
+            }
         }
     }
 
@@ -247,16 +259,16 @@ namespace Kratos {
 
         //check that all radii are the same!!
         const double tolerance = 1.0e-6;
+        double reference_radius = 0.0;
         for (size_t i=0; i< number_of_nodes; i++) {
             const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
-            double reference_radius = 0.0;
             if (i == 0) {
                 reference_radius = node_it->FastGetSolutionStepValue(RADIUS);
             }
             else {
                 const double& radius_i = node_it->FastGetSolutionStepValue(RADIUS);
                 if (std::abs(radius_i - reference_radius) > tolerance) {
-                    KRATOS_ERROR<<"The radii of the particles are not equal! Nvidia Flex only works with particles of the same size!"<<std::endl;
+                    KRATOS_ERROR<<"The radii of the particles are not equal! Nvidia Flex only works with particles of the same size! "<<radius_i<<" is different from "<<reference_radius<<std::endl;
                 }
             }
         }
@@ -305,19 +317,19 @@ namespace Kratos {
         mFlexParameters.diffuseLifetime = 0.0f;
 
         // planes created after particles
-        //MAC: ALL of this can be done a lot simpler if high node and low node are in some Kratos processinfo.
+        //MAC: TODO: ALL of this can be done a lot simpler if high node and low node are in some Kratos processinfo.
         const array_1d<double, 3 >& low_point = mrParticleCreatorDestructor.GetLowNode();
         const array_1d<double, 3 >& high_point = mrParticleCreatorDestructor.GetHighNode();
 
         mFlexParameters.numPlanes = 6;
-        (Vec4&)mFlexParameters.planes[0] = Vec4(0.0f, 1.0f, 0.0f, (float)-low_point[1]);
-        (Vec4&)mFlexParameters.planes[1] = Vec4(0.0f, 0.0f, 1.0f, (float)-low_point[2]);
-        (Vec4&)mFlexParameters.planes[2] = Vec4(1.0f, 0.0f, 0.0f, (float)-low_point[0]);
-        (Vec4&)mFlexParameters.planes[3] = Vec4(-1.0f, 0.0f, 0.0f, (float)high_point[0]);
-        (Vec4&)mFlexParameters.planes[4] = Vec4(0.0f, 0.0f, -1.0f, (float)high_point[2]);
-        (Vec4&)mFlexParameters.planes[5] = Vec4(0.0f, -1.0f, 0.0f, (float)high_point[1]);
-        (Vec4&)mFlexParameters.planes[6] = Vec4(0.0f, -1.0f, 0.0f, (float)high_point[1]);
-        (Vec4&)mFlexParameters.planes[7] = Vec4(0.0f, -1.0f, 0.0f, (float)high_point[1]);
+        (Vec4&)mFlexParameters.planes[0] = Vec4(0.0f, 1.0f, 0.0f, (float)10*-low_point[1]);
+        (Vec4&)mFlexParameters.planes[1] = Vec4(0.0f, 0.0f, 1.0f, (float)10*-low_point[2]);
+        (Vec4&)mFlexParameters.planes[2] = Vec4(1.0f, 0.0f, 0.0f, (float)10*-low_point[0]);
+        (Vec4&)mFlexParameters.planes[3] = Vec4(-1.0f, 0.0f, 0.0f, (float)10*high_point[0]);
+        (Vec4&)mFlexParameters.planes[4] = Vec4(0.0f, 0.0f, -1.0f, (float)10*high_point[2]);
+        (Vec4&)mFlexParameters.planes[5] = Vec4(0.0f, -1.0f, 0.0f, (float)10*high_point[1]);
+        (Vec4&)mFlexParameters.planes[6] = Vec4(0.0f, -1.0f, 0.0f, (float)10*high_point[1]);
+        (Vec4&)mFlexParameters.planes[7] = Vec4(0.0f, -1.0f, 0.0f, (float)10*high_point[1]);
 
         if (mFlexParameters.solidRestDistance == 0.0f) mFlexParameters.solidRestDistance = mFlexParameters.radius;
 
@@ -335,9 +347,9 @@ namespace Kratos {
     }
 
     void FlexWrapper::SolveTimeSteps(double dt, int number_of_substeps) {
-        
+
         //SetGravity();
-        
+
         NvFlexUpdateSolver(mFlexSolver, (float)dt, number_of_substeps, false);
     }
 
@@ -373,69 +385,69 @@ namespace Kratos {
         mFlexPositions->unmap();
         mFlexVelocities->unmap();
     }
-    
+
     void FlexWrapper::SetGravity() {
-        
+
         static std::ifstream input_file("TimeAngle.csv");
         std::string line;
-        
+
         static float current_reference_time = mrSpheresModelPart.GetProcessInfo()[TIME];
-        
+
         float elapsed_time = mrSpheresModelPart.GetProcessInfo()[TIME] - current_reference_time;
-        
+
         const float delta_security_time = 2.0f;
-        
+
         const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
-        
+
         const float maximum_squared_velocity_module = 0.7f * 0.7f; // square of 0.7 m/s
         //const float total_maximum_squared_velocity_module = number_of_nodes * maximum_squared_velocity_module;
         //float sum_of_partial_squared_maximum_velocity_modules = 0.0;
         mTimeToChangeGravityValue = true;
-        
+
         NvFlexGetVelocities(mFlexSolver, mFlexVelocities->buffer, &mFlexCopyDescriptor);
         mFlexVelocities->map();
 
         for (size_t i = 0; i < number_of_nodes; i++) {
-            
+
             float velocity_x = (*mFlexVelocities)[i][0];
             float velocity_y = (*mFlexVelocities)[i][1];
             float velocity_z = (*mFlexVelocities)[i][2];
-            
+
             float node_i_squared_velocity_module = velocity_x * velocity_x + velocity_y * velocity_y + velocity_z * velocity_z;
-            
+
             if (node_i_squared_velocity_module > maximum_squared_velocity_module) {
-            
+
                 mTimeToChangeGravityValue = false;
                 break;
             }
-           
+
             //sum_of_partial_squared_maximum_velocity_modules += node_i_squared_velocity_module;
         }
 
         mFlexVelocities->unmap();
-        
+
         //if (sum_of_partial_squared_maximum_velocity_modules <= total_maximum_squared_velocity_module) mTimeToChangeGravityValue = true;
 
         if (mTimeToChangeGravityValue and (elapsed_time > delta_security_time)) {
-            
+
             std::getline(input_file, line);
             std::istringstream iss{line};
             std::vector<std::string> tokens;
             std::string token;
-                        
+
             while (std::getline(iss, token, ',')) tokens.push_back(token);
 
             const float gravity_x = std::stof(tokens[3]);
-            const float gravity_y = std::stof(tokens[4]); 
+            const float gravity_y = std::stof(tokens[4]);
             const float gravity_z = std::stof(tokens[5]);
-            
+
             mFlexParameters.gravity[0] = gravity_x;
             mFlexParameters.gravity[1] = gravity_y;
             mFlexParameters.gravity[2] = gravity_z;
 
             mTimeToChangeGravityValue = false;
             current_reference_time = mrSpheresModelPart.GetProcessInfo()[TIME];
-            
+
             NvFlexSetParams(mFlexSolver, &mFlexParameters);
         }
     }
