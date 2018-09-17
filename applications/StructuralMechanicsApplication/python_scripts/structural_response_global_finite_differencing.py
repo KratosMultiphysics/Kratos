@@ -7,8 +7,6 @@ import structural_mechanics_analysis
 import structural_response
 import structural_response_function_factory
 
-import time as timer
-
 # ==============================================================================
 class GlobalFiniteDifferencingResponseFunction(structural_response.ResponseFunctionBase):
 
@@ -60,12 +58,12 @@ class GlobalFiniteDifferencingResponseFunction(structural_response.ResponseFunct
         # element_sensitivity_variables
         for i in range(self.response_settings["element_sensitivity_variables"].size()):
             element_variable = self.response_settings["element_sensitivity_variables"][i].GetString()
-            raise NotImplementedError("FD for element_sensitivity_variables not implemented!")
+            raise NotImplementedError("FD for element_sensitivity_variables '{}' not implemented!".format(element_variable))
 
         # condition_sensitivity_variables
         for i in range(self.response_settings["condition_sensitivity_variables"].size()):
             condition_variable = self.response_settings["condition_sensitivity_variables"][i].GetString()
-            raise NotImplementedError("FD for element_sensitivity_variables not implemented!")
+            raise NotImplementedError("FD for condition_sensitivity_variables '{}' not implemented!".format(condition_variable))
 
     def _CalculateShapeSensitivities(self):
         if self.response_settings["sensitivity_model_part_name"].GetString() == self.model_part.Name:
@@ -78,21 +76,21 @@ class GlobalFiniteDifferencingResponseFunction(structural_response.ResponseFunct
         unperturbed_value = self.GetValue()
 
         for node in sensitivity_model_part.Nodes:
-            for dir in range(3):
+            for direction in range(3):
                 perturbed_model = KratosMultiphysics.Model()
-                identifier = "Node_{}_dir_{}".format(node.Id, dir)
+                identifier = "Node_{}_direction_{}".format(node.Id, direction)
                 perturbed_response = self._CreateNewTmpResponse(identifier, perturbed_model)
                 perturbed_response.Initialize()
                 # perturb
                 model_part = perturbed_response.primal_model_part #TODO find a better way to get the model part
                 tmp_node = model_part.Nodes[node.Id]
-                if dir == 0:
+                if direction == 0:
                     tmp_node.X += perturbation
                     tmp_node.X0 += perturbation
-                if dir == 1:
+                if direction == 1:
                     tmp_node.Y += perturbation
                     tmp_node.Y0 += perturbation
-                if dir == 2:
+                if direction == 2:
                     tmp_node.Z += perturbation
                     tmp_node.Z0 += perturbation
 
@@ -101,7 +99,7 @@ class GlobalFiniteDifferencingResponseFunction(structural_response.ResponseFunct
                 perturbed_value = perturbed_response.GetValue()
 
                 sensitivity = node.GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY)
-                sensitivity[dir] = (perturbed_value - unperturbed_value) / perturbation
+                sensitivity[direction] = (perturbed_value - unperturbed_value) / perturbation
                 node.SetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY, sensitivity)
 
                 perturbed_response.FinalizeSolutionStep()
