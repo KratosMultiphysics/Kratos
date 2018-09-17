@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include <custom_constitutive/linear_isotropic_damage_plane_strain_2d.h>
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 // Elastic laws
@@ -138,6 +139,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     class_< LinearJ2Plasticity3D, typename LinearJ2Plasticity3D::Pointer,  ConstitutiveLaw >
     (m,"LinearJ2Plasticity3DLaw").def( init<>())
+    ;
+
+    class_< LinearIsotropicDamagePlaneStrain2D, typename LinearIsotropicDamagePlaneStrain2D::Pointer,  ConstitutiveLaw  >
+    (m,"LinearIsotropicDamagePlaneStrain2DLaw").def( init<>())
     ;
 
     class_< LinearIsotropicDamage3D, typename LinearIsotropicDamage3D::Pointer,  ConstitutiveLaw  >

@@ -10,6 +10,7 @@
 //  Main authors:    Bodhinanda Chandra
 //
 
+
 // System includes
 #include <string>
 #include <iostream>
@@ -73,10 +74,10 @@ CamClayHardeningLaw::~CamClayHardeningLaw()
 */
 double& CamClayHardeningLaw::CalculateHardening(double &rHardening, const double &rAlpha, const double rOldPreconsolidationPressure)
 {
-    const double SwellingSlope = GetProperties()[SWELLING_SLOPE];
-    const double OtherSlope    = GetProperties()[NORMAL_COMPRESSION_SLOPE];
+    const double swelling_slope = GetProperties()[SWELLING_SLOPE];
+    const double other_slope    = GetProperties()[NORMAL_COMPRESSION_SLOPE];
 
-    rHardening = rOldPreconsolidationPressure * (std::exp (- rAlpha / (OtherSlope-SwellingSlope) ) ) ;
+    rHardening = rOldPreconsolidationPressure * (std::exp (- rAlpha / (other_slope-swelling_slope) ) ) ;
     return rHardening;
 }
   

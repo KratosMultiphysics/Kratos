@@ -9,15 +9,16 @@
 //
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
+
+
 #if !defined(KRATOS_MC_PLASTIC_FLOW_RULE_H_INCLUDED )
 #define      KRATOS_MC_PLASTIC_FLOW_RULE_H_INCLUDED
 
-
 // System includes
+#include <cmath>
 
 // External includes
 
-#include<cmath>
 // Project includes
 #include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
 
@@ -86,9 +87,9 @@ public:
     public:
         void PrintInfo()
         {
-            std::cout << "Cohesion       = " << Cohesion       << std::endl;
-            std::cout << "FrictionAngle  = " << FrictionAngle  << std::endl;
-            std::cout << "DilatancyAngle = " << DilatancyAngle << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "Cohesion       = " << Cohesion       << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "FrictionAngle  = " << FrictionAngle  << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "DilatancyAngle = " << DilatancyAngle << std::endl;
         }
 
     };
@@ -123,7 +124,6 @@ public:
 
     unsigned int GetPlasticRegion() override;
 
-    //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     void ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& alfa, Matrix& rConsistMatrix) override;
     
     void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix) override;
@@ -218,17 +218,16 @@ protected:
 
 
     void CalculateInverseElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rInverseElasticMatrix);
+    
     void CalculateElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix);
+    
     void CalculateModificationMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rAuxT, Matrix& rInvAuxT);
 
     void CalculateTransformationMatrix(const Matrix& rMainDirection, Matrix& rA);
-    
-    double GetSmoothingLodeAngle();
+
 
     double GetPI();
-
-    double GetSmoothingHiperbolic();
-    
+   
     //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     ///@}
     ///@name Protected  Access

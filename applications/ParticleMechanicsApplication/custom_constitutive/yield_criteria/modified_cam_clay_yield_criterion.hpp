@@ -10,10 +10,9 @@
 //  Main authors:    Bodhinanda Chandra
 //
 
+
 #if !defined(KRATOS_MODIFIED_CAM_CLAY_YIELD_CRITERION_H_INCLUDED )
 #define      KRATOS_MODIFIED_CAM_CLAY_YIELD_CRITERION_H_INCLUDED
-
-
 
 // System includes
 
@@ -22,6 +21,7 @@
 // Project includes
 #include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
+
 namespace Kratos
 {
 ///@addtogroup ApplicationNameApplication
@@ -182,8 +182,6 @@ class ModifiedCamClayYieldCriterion
         ///@{
 
         double GetPI();
-
-        double GetSmoothingLodeAngle();
 
         ///@}
         ///@name Private  Access
