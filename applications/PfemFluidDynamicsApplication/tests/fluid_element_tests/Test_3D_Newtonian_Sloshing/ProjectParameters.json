@@ -20,7 +20,7 @@
         "maximum_pressure_iterations"        : 5,
         "velocity_tolerance"                 : 1e-5,
         "pressure_tolerance"                 : 1e-5,
-        "echo_level"                         : 1,
+        "echo_level"                         : 0,
         "velocity_linear_solver_settings"    : {
             "solver_type"         : "BICGSTABSolver",
             "max_iteration"       : 5000,
