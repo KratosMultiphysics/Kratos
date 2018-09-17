@@ -280,6 +280,7 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
                             elem.SetValue(StructuralMechanicsApplication.FORCE_NL_SENSITIVITY_FIRST_ORDER, sen_first_array)
                             elem.SetValue(StructuralMechanicsApplication.FORCE_NL_SENSITIVITY_SECOND_ORDER, sen_second_array)
                         elif variable_name == "SHELL_MOMENT_GLOBAL":
+                            #print("I was here")
                             elem.SetValue(StructuralMechanicsApplication.SHELL_MOMENT_GLOBAL_NL_SENSITIVITY, curvature_matrix)
                             elem.SetValue(StructuralMechanicsApplication.SHELL_MOMENT_GLOBAL_NL_SENSITIVITY_FIRST_ORDER, sen_first_matrix)
                             elem.SetValue(StructuralMechanicsApplication.SHELL_MOMENT_GLOBAL_NL_SENSITIVITY_SECOND_ORDER, sen_second_matrix)
@@ -383,8 +384,8 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
         lambda_1 = load_factor_array[1]
         lambda_2 = load_factor_array[2]
         delta_10 = lambda_1 - lambda_0
-        delta_21 = lambda_2 - lambda_1
-        if (delta_10 < 1e-10) or (delta_21 < 1e-10):
+        delta_20 = lambda_2 - lambda_0
+        if (delta_10 < 1e-10) or (delta_20 < 1e-10):
             raise Exception("Pseudo-time steps are not valid!")
 
         response_0 = response_value_array[0]
@@ -395,10 +396,10 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
 
 
         slope_10 = (response_1 - response_0) / delta_10
-        slope_21 = (response_2 - response_1) / delta_21
+        slope_20 = (response_2 - response_0) / delta_20
 
         if abs(slope_10) > 1e-10:
-            sensitivity_second_order = slope_21 / slope_10
+            sensitivity_second_order = slope_20 / slope_10
 
         return sensitivity_second_order
 
