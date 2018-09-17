@@ -68,6 +68,6 @@ def CreateSolver(model, custom_settings):
     if solver_settings.Has("ale_settings"):
         from KratosMultiphysics import MeshMovingApplication
         import ale_fluid_solver
-        return ale_fluid_solver.CreateSolver(model, custom_settings)
+        return ale_fluid_solver.CreateSolver(model, solver_settings, parallelism)
 
     return CreateSolverByParameters(model, solver_settings, parallelism)

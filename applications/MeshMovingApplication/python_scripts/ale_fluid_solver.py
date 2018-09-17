@@ -2,49 +2,36 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication")
+import KratosMultiphysics.MeshMovingApplication
 
 # Other imports
 from python_solver import PythonSolver
+import python_solvers_wrapper_mesh_motion
 
 
-def CreateSolver(model, custom_settings):
-    '''This function creates the requested solver
-    If no "ale_settings" are specified a regular fluid-solver is created
-    '''
-    parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
-    if custom_settings["solver_settings"].Has("ale_settings"):
-        return ALEFluidSolver(model, custom_settings, parallelism)
-    else:
-        KratosMultiphysics.Logger.PrintInfo("ALEFluidSolver", "No ale settings found, creating a pure fluid solver")
-        KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-        import python_solvers_wrapper_fluid
-        return python_solvers_wrapper_fluid.CreateSolver(model, custom_settings)
+def CreateSolver(model, solver_settings, parallelism):
+    return ALEFluidSolver(model, solver_settings, parallelism)
 
 
 class ALEFluidSolver(PythonSolver):
-    def __init__(self, model, custom_settings, parallelism):
-        super(ALEFluidSolver, self).__init__(model, custom_settings["solver_settings"])
+    def __init__(self, model, solver_settings, parallelism):
+        super(ALEFluidSolver, self).__init__(model, solver_settings)
+        mesh_motion_solver_settings = solver_settings["ale_settings"].Clone()
+        solver_settings.RemoveValue("ale_settings")
 
-        fluid_model_part_name = custom_settings["solver_settings"]["model_part_name"].GetString()
+        fluid_model_part_name = solver_settings["model_part_name"].GetString()
         if not self.model.HasModelPart(fluid_model_part_name):
             fluid_mesh_model_part = KratosMultiphysics.ModelPart(fluid_model_part_name)
             self.model.AddModelPart(fluid_mesh_model_part)
 
         ## Creating the fluid solver
-        self.fluid_solver = self._CreateFluidSolver(custom_settings)
+        self.fluid_solver = self._CreateFluidSolver(solver_settings, parallelism)
 
         ## Creating the mesh-motion solver
-        KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication")
-        mesh_motion_settings = custom_settings.Clone()
-        # delete the (fluid) solver settings
-        mesh_motion_settings.RemoveValue("solver_settings")
-        # add the ale solver settings as solver settings
-        mesh_motion_settings.AddValue("solver_settings", custom_settings["solver_settings"]["ale_settings"])
-        mesh_motion_solver_settings = mesh_motion_settings["solver_settings"]
-
         if not mesh_motion_solver_settings.Has("echo_level"):
             mesh_motion_solver_settings.AddEmptyValue("echo_level")
-            fluid_echo_lvl = custom_settings["solver_settings"]["echo_level"].GetInt()
+            fluid_echo_lvl = solver_settings["echo_level"].GetInt()
             mesh_motion_solver_settings["echo_level"].SetInt(fluid_echo_lvl)
 
         if mesh_motion_solver_settings.Has("model_part_name"):
@@ -52,17 +39,17 @@ class ALEFluidSolver(PythonSolver):
                 raise Exception('Fluid- and Mesh-Solver have to use the same "model_part_name"!')
         else:
             mesh_motion_solver_settings.AddEmptyValue("model_part_name")
-            fluid_model_part_name = custom_settings["solver_settings"]["model_part_name"].GetString()
+            fluid_model_part_name = solver_settings["model_part_name"].GetString()
             mesh_motion_solver_settings["model_part_name"].SetString(fluid_model_part_name)
 
         if mesh_motion_solver_settings.Has("domain_size"):
-            fluid_domain_size = custom_settings["solver_settings"]["domain_size"].GetInt()
+            fluid_domain_size = solver_settings["domain_size"].GetInt()
             mesh_motion_domain_size = mesh_motion_solver_settings["domain_size"].GetInt()
             if not fluid_domain_size == mesh_motion_domain_size:
                 raise Exception('Fluid- and Mesh-Solver have to use the same "domain_size"!')
         else:
             mesh_motion_solver_settings.AddEmptyValue("domain_size")
-            fluid_domain_size = custom_settings["solver_settings"]["domain_size"].GetInt()
+            fluid_domain_size = solver_settings["domain_size"].GetInt()
             mesh_motion_solver_settings["domain_size"].SetInt(fluid_domain_size)
 
         # Get the names of the interface-parts for which the MESH_VELOCITY should be
@@ -76,8 +63,8 @@ class ALEFluidSolver(PythonSolver):
                     self.ale_interface_parts_by_components[i_comp].append(model[model_part_name])
             mesh_motion_solver_settings.RemoveValue("ale_interface_parts")
 
-        import python_solvers_wrapper_mesh_motion
-        self.mesh_motion_solver = python_solvers_wrapper_mesh_motion.CreateSolver(model, mesh_motion_settings)
+        self.mesh_motion_solver = python_solvers_wrapper_mesh_motion.CreateSolverByParameters(
+            model, mesh_motion_solver_settings, parallelism)
 
         # Getting the min_buffer_size from both solvers
         # and assigning it to the fluid_solver, bcs this one handles the model_part
@@ -191,14 +178,11 @@ class ALEFluidSolver(PythonSolver):
         self.GetMeshMotionSolver().MoveMesh()
 
 
-    def _CreateFluidSolver(self, custom_settings, parallelism):
+    def _CreateFluidSolver(self, solver_settings, parallelism):
         '''This function creates the fluid solver.
         It can be overridden to create different fluid solvers
         '''
         KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
         import python_solvers_wrapper_fluid
-        fluid_solver_settings = custom_settings.Clone()
-        # remove the ale_settings so we can use the fluid_solver_wrapper constructor
-        fluid_solver_settings.RemoveValue("ale_settings")
         return python_solvers_wrapper_fluid.CreateSolverByParameters(
-            self.model, fluid_solver_settings, parallelism)
+            self.model, solver_settings, parallelism)

@@ -7,6 +7,9 @@
         "end_time"        : 1.0
     },
     "solver_settings"                 : {
+        "ale_settings"                : {
+            "solver_type" : "mesh_solver_structural_similarity"
+        },
         "solver_type"                 : "Monolithic",
         "model_part_name"             : "MainModelPart",
         "domain_size"                 : 2,
@@ -96,10 +99,10 @@
             "kratos_module"   : "KratosMultiphysics",
             "python_module"   : "point_output_process",
             "help"            : "",
-            "process_name"    : "MainModelPart.PointOutputProcess",
+            "process_name"    : "PointOutputProcess",
             "Parameters" : {
                 "position"         : [4.849232,4.043068, 0.0],
-                "model_part_name"  : "Parts_fluid",
+                "model_part_name"  : "MainModelPart.Parts_fluid",
                 "output_file_settings": {
                     "file_name"  : "cylinder_test_probe2.dat"
                 },
