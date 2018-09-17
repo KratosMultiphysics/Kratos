@@ -90,9 +90,9 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         timer = Timer()
         timer.StartTimer()
 
-        for self.optimizationIteration in range(1,self.maxIterations):
+        for self.optimization_iteration in range(1,self.maxIterations):
             print("\n>===================================================================")
-            print("> ",timer.GetTimeStamp(),": Starting optimization iteration ", self.optimizationIteration)
+            print("> ",timer.GetTimeStamp(),": Starting optimization iteration ", self.optimization_iteration)
             print(">===================================================================\n")
 
             timer.StartNewLap()
@@ -131,7 +131,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.Communicator.requestValueOf(self.only_con["identifier"].GetString())
         self.Communicator.requestGradientOf(self.only_con["identifier"].GetString())
 
-        self.Analyzer.AnalyzeDesignAndReportToCommunicator(self.DesignSurface, self.optimizationIteration, self.Communicator)
+        self.Analyzer.AnalyzeDesignAndReportToCommunicator(self.DesignSurface, self.optimization_iteration, self.Communicator)
 
         objGradientDict = self.Communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
         conGradientDict = self.Communicator.getStandardizedGradient(self.only_con["identifier"].GetString())
@@ -190,20 +190,21 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.algorithm_settings["line_search"]["step_size"].GetDouble()
         additional_values_to_log["correction_scaling"] = self.algorithm_settings["correction_scaling"].GetDouble()
-        self.DataLogger.LogCurrentValues(self.optimizationIteration, additional_values_to_log)
+        self.DataLogger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
+        self.DataLogger.LogCurrentDesign(self.opt_iteration)
 
     # --------------------------------------------------------------------------
     def __isAlgorithmConverged(self):
 
-        if self.optimizationIteration > 1 :
+        if self.optimization_iteration > 1 :
 
             # Check if maximum iterations were reached
-            if self.optimizationIteration == self.maxIterations:
+            if self.optimization_iteration == self.maxIterations:
                 print("\n> Maximal iterations of optimization problem reached!")
                 return True
 
             # Check for relative tolerance
-            relativeChangeOfObjectiveValue = self.DataLogger.GetValue("rel_change_obj", self.optimizationIteration)
+            relativeChangeOfObjectiveValue = self.DataLogger.GetValue("rel_change_obj", self.optimization_iteration)
             if abs(relativeChangeOfObjectiveValue) < self.relativeTolerance:
                 print("\n> Optimization problem converged within a relative objective tolerance of ",self.relativeTolerance,"%.")
                 return True
