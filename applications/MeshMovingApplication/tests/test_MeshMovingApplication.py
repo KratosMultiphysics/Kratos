@@ -13,7 +13,7 @@ from test_structural_mesh_motion_3d import TestCase as TTestCaseStructural3D
 from test_laplacian_mesh_motion_2d import TestCase as TTestCaseLaplacian2D
 from test_laplacian_mesh_motion_3d import TestCase as TTestCaseLaplacian3D
 
-from ale_fluid_analysis_test import ALEFluidAnalysisTest
+from test_ale_fluid_solver import ALEFluidSolverTest
 
 
 ## NIGTHLY TESTS
@@ -44,7 +44,7 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ALEFluidAnalysisTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ALEFluidSolverTest]))
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']

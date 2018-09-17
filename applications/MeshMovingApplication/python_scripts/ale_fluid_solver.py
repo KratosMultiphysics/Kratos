@@ -11,8 +11,9 @@ def CreateSolver(model, custom_settings):
     '''This function creates the requested solver
     If no "ale_settings" are specified a regular fluid-solver is created
     '''
+    parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
     if custom_settings["solver_settings"].Has("ale_settings"):
-        return ALEFluidSolver(model, custom_settings)
+        return ALEFluidSolver(model, custom_settings, parallelism)
     else:
         KratosMultiphysics.Logger.PrintInfo("ALEFluidSolver", "No ale settings found, creating a pure fluid solver")
         KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
@@ -21,7 +22,7 @@ def CreateSolver(model, custom_settings):
 
 
 class ALEFluidSolver(PythonSolver):
-    def __init__(self, model, custom_settings):
+    def __init__(self, model, custom_settings, parallelism):
         super(ALEFluidSolver, self).__init__(model, custom_settings["solver_settings"])
 
         fluid_model_part_name = custom_settings["solver_settings"]["model_part_name"].GetString()
@@ -190,13 +191,14 @@ class ALEFluidSolver(PythonSolver):
         self.GetMeshMotionSolver().MoveMesh()
 
 
-    def _CreateFluidSolver(self, custom_settings):
+    def _CreateFluidSolver(self, custom_settings, parallelism):
         '''This function creates the fluid solver.
         It can be overridden to create different fluid solvers
         '''
         KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
         import python_solvers_wrapper_fluid
-        fluid_settings = custom_settings.Clone()
+        fluid_solver_settings = custom_settings.Clone()
         # remove the ale_settings so we can use the fluid_solver_wrapper constructor
-        fluid_settings["solver_settings"].RemoveValue("ale_settings")
-        return python_solvers_wrapper_fluid.CreateSolver(self.model, fluid_settings)
+        fluid_solver_settings.RemoveValue("ale_settings")
+        return python_solvers_wrapper_fluid.CreateSolverByParameters(
+            self.model, fluid_solver_settings, parallelism)

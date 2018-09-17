@@ -7,7 +7,7 @@ try:
 except ImportError:
     have_external_solvers = False
 
-from ale_fluid_analysis import ALEFluidAnalysis
+from fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -26,13 +26,13 @@ class WorkFolderScope:
         os.chdir(self.currentPath)
 
 @UnitTest.skipUnless(have_external_solvers,"Missing required application: ExternalSolversApplication")
-class ALEFluidAnalysisTest(UnitTest.TestCase):
+class ALEFluidSolverTest(UnitTest.TestCase):
 
     def setUp(self):
         # Set to true to get post-process files for the test
         self.print_output = True
 
-    def testALEFluidAnalysis(self):
+    def testALEFluidSolver(self):
         work_folder = "test_ale_solver_and_analysis"
         settings_file_name = "cylinder_fluid_parameters.json"
 
@@ -69,7 +69,7 @@ class ALEFluidAnalysisTest(UnitTest.TestCase):
                 "point_data_configuration"  : []
             }'''))
 
-        analysis = ALEFluidAnalysis(model,settings)
+        analysis = FluidDynamicsAnalysis(model,settings)
         analysis.Run()
 
 if __name__ == '__main__':
