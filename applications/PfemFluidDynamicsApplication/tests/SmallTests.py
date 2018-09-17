@@ -18,9 +18,13 @@ class Water_Sloshing_2D_Test_Mu_Rheology(TF.TestFactory):
     file_name = "fluid_element_tests/Water_sloshing_2D/Mu_Rhelogy/Water_sloshing_2D"
     file_parameters = "fluid_element_tests/Water_sloshing_2D/Mu_Rheology/ProjectParameters.json"
 
-class Bingham_Dam_Break_2D_Test(TF.TestFactory):
-    file_name = "fluid_element_tests/Test_2D_Bingham/Test_2D_Bingham"
-    file_parameters = "fluid_element_tests/Test_2D_Bingham/ProjectParameters.json"
+class MuIrheology_Dam_Break_2D_Test(TF.TestFactory):
+    file_name = "fluid_element_tests/Test_2D_muIrheology/Test_2D_muIrheology"
+    file_parameters = "fluid_element_tests/Test_2D_muIrheology/ProjectParameters.json"
+
+class Water_Sloshing_2D_Test(TF.TestFactory):
+    file_name = "fluid_element_tests/Test_2D_Newtonian_Sloshing/Test_2D_Newtonian_Sloshing"
+    file_parameters = "fluid_element_tests/Test_2D_Newtonian_Sloshing/ProjectParameters.json"
 
 
 def SetTestSuite(suites):
@@ -31,7 +35,8 @@ def SetTestSuite(suites):
            # Water_Sloshing_2D_Test_Newtonian,
            # Water_Sloshing_2D_Test_Non_Newtonian,
            # Water_Sloshing_2D_Test_Mu_Rheology,
-           Bingham_Dam_Break_2D_Test
+           MuIrheology_Dam_Break_2D_Test,
+           Water_Sloshing_2D_Test
         ])
     )
 
