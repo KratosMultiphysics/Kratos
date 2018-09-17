@@ -76,6 +76,21 @@ bool LinearIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
 //************************************************************************************
 //************************************************************************************
 
+bool& LinearIsotropicDamage3D::GetValue(
+    const Variable<bool>& rThisVariable,
+    bool& rValue
+    )
+{
+    if(rThisVariable == INELASTIC_FLAG){
+        rValue = mInelasticFlag;
+    }
+
+    return rValue;
+}
+
+//************************************************************************************
+//************************************************************************************
+
 void LinearIsotropicDamage3D::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
@@ -175,21 +190,6 @@ void LinearIsotropicDamage3D::CalculateMaterialResponseCauchy(Parameters& rValue
             stress_vector *= (1. - damage_variable);
         }
     }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-bool& LinearIsotropicDamage3D::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<bool>& rThisVariable,
-    bool& rValue
-    )
-{
-    if(rThisVariable == INELASTIC_FLAG){
-        rValue = mInelasticFlag;
-    }
-    return(rValue);
 }
 
 //************************************************************************************

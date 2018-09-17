@@ -93,6 +93,21 @@ void LinearJ2Plasticity3D::SetValue(
 //************************************************************************************
 //************************************************************************************
 
+bool& LinearJ2Plasticity3D::GetValue(
+    const Variable<bool>& rThisVariable,
+    bool& rValue
+    )
+{
+    if(rThisVariable == INELASTIC_FLAG){
+        rValue = mInelasticFlag;
+    }
+
+    return rValue;
+}
+
+//************************************************************************************
+//************************************************************************************
+
 double& LinearJ2Plasticity3D::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
@@ -261,21 +276,6 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
                                    rMaterialProperties, tangent_tensor);
         }
     }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-bool& LinearJ2Plasticity3D::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<bool>& rThisVariable,
-    bool& rValue
-    )
-{
-    if(rThisVariable == INELASTIC_FLAG){
-        rValue = mInelasticFlag;
-    }
-    return(rValue);
 }
 
 //************************************************************************************
