@@ -211,6 +211,8 @@ private:
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
+        
+    ///@}
 
 }; // Class GeometricalElement
 
