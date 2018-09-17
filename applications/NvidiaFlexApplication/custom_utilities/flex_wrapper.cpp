@@ -233,7 +233,7 @@ namespace Kratos {
         mFlexParameters.wind[1] = 0.0f;
         mFlexParameters.wind[2] = 0.0f;
 
-        mFlexParameters.radius = 0.01f;
+        mFlexParameters.radius = 0.01f; // Check this, this is the diameter value. Using the radius (0.005f) the balls intersect a lot. Would they still do it if iter and/or substeps get increased?
         /*const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
         for (size_t i=0; i< number_of_nodes; i++) {
             const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
@@ -243,13 +243,13 @@ namespace Kratos {
         //TODO: MA: check that all radii are the same!!
 
         mFlexParameters.viscosity = 0.0f;
-        mFlexParameters.dynamicFriction = 0.5f; //0.25f;
-        mFlexParameters.staticFriction = 0.5f; //0.25f;
-        mFlexParameters.particleFriction = 0.5f; //0.25f;
+        mFlexParameters.dynamicFriction = 0.75f; //0.5f; //0.25f;
+        mFlexParameters.staticFriction = 0.75f; //0.5f; //0.25f;
+        mFlexParameters.particleFriction = 0.75f; //0.5f; //0.25f;
         mFlexParameters.freeSurfaceDrag = 0.0f;
         mFlexParameters.drag = 0.0f;
         mFlexParameters.lift = 0.0f;
-        mFlexParameters.numIterations = 5; //30; //3;
+        mFlexParameters.numIterations = 3; //5; //30; //3;
         mFlexParameters.fluidRestDistance = 0.9 * mFlexParameters.radius; //0.0f;
         //mFlexParameters.solidRestDistance = 0.0f;
         mFlexParameters.solidRestDistance = 0.9 * mFlexParameters.radius;
@@ -264,7 +264,7 @@ namespace Kratos {
         mFlexParameters.particleCollisionMargin = mFlexParameters.radius * 0.05f; //0.5f; //0.05f;
         mFlexParameters.collisionDistance = mFlexParameters.radius * 0.5f;
         mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance * 0.05f; //1,0f; // * 0.05f;
-        mFlexParameters.sleepThreshold = 0.002f; //0.0f;
+        mFlexParameters.sleepThreshold = 0.0f;
         mFlexParameters.shockPropagation = 0.0f;
         mFlexParameters.restitution = 0.05f; //0.0f; //0.5f;
 

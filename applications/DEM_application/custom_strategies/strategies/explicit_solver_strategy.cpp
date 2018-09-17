@@ -175,16 +175,8 @@ namespace Kratos {
         ComputeNewRigidFaceNeighboursHistoricalData();
         
         // SIEMENS PROJECT
-        //
-        const bool using_cuda = true; //false; //when running standard DEM simulation
-        
+        //       
         MarkToDeleteAllSpheresInitiallyIndentedWithFEM(*mpDem_model_part);
-        
-        if (using_cuda) {
-            mpParticleCreatorDestructor->DestroyParticles(*mpDem_model_part);
-            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
-            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-        }
         //
         // SIEMENS PROJECT
 
@@ -743,7 +735,6 @@ namespace Kratos {
             mListOfSphericParticles[i]->Initialize(r_process_info);
             total_mass += mListOfSphericParticles[i]->GetMass();
         }
-
 
         KRATOS_CATCH("")
     }
