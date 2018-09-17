@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division
 # importing the Kratos Library
 from KratosMultiphysics import *
 import structural_response
+import structural_response_global_fd
 
 def CreateResponseFunction(response_id, response_settings, model):
     response_type = response_settings["response_type"].GetString()
@@ -24,6 +25,9 @@ def CreateResponseFunction(response_id, response_settings, model):
 
     elif response_type == "adjoint_local_stress":
         return structural_response.AdjointResponseFunction(response_id, response_settings, model)
+
+    elif response_type == "global_finite_differencing":
+        return structural_response_global_fd.GlobalFiniteDifferencingResponseFunction(response_id, response_settings, model)
 
     else:
         raise NameError("The type of the following response function is not specified: "+ response_id +
