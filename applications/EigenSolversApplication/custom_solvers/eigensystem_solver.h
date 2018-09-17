@@ -280,7 +280,7 @@ class EigensystemSolver
             for (int i = 0; i != nroot; ++i)
             {
                 const double tmp = eigvecs.row(i) * b * eigvecs.row(i).transpose();
-                const double factor = std::sqrt(1/tmp);
+                const double factor = 1.0 / std::sqrt(tmp);
                 eigvecs.row(i) *=  factor;
             }
         }
