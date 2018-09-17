@@ -499,12 +499,15 @@ void FIC<TElementData>::CalculateTau(
         Hvel = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(r_geometry,Velocity);
     }
 
-    double InvTau = rData.Density * ( c1 * rData.EffectiveViscosity / (Havg*Havg) + c2 * velocity_norm / Havg );
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
+
+    double InvTau = c1 * viscosity / (Havg*Havg) + density * c2 * velocity_norm / Havg;
     TauIncompr = 1.0/InvTau;
-    TauMomentum = (Hvel / (rData.Density * c2 * velocity_norm) );
+    TauMomentum = (Hvel / (density * c2 * velocity_norm) );
 
     // TAU limiter for momentum equation: tau = min{ h/2u, dt }
-    double TimeTerm = rData.DeltaTime/rData.Density;
+    double TimeTerm = rData.DeltaTime/density;
     if (TauMomentum > TimeTerm)
     {
         TauMomentum = TimeTerm;
@@ -514,7 +517,7 @@ void FIC<TElementData>::CalculateTau(
 
     // Coefficients for FIC shock-capturing term
     this->CalculateTauGrad(rData,TauGrad);
-    TauGrad /= rData.Density;
+    TauGrad /= density;
     for (unsigned int d = 0; d < Dim; d++)
         if (TauGrad[d] > Havg*TimeTerm)
             TauGrad[d] = Havg*TimeTerm;
