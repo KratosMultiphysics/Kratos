@@ -237,7 +237,10 @@ public:
     virtual Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                PropertiesType::Pointer pProperties) const
     {
+        KRATOS_TRY
+        KRATOS_ERROR << "Please implement the First Create method in your derived Condition" << Info() << std::endl;
         return Kratos::make_shared<Condition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        KRATOS_CATCH("");
     }
 
     /**
@@ -251,7 +254,10 @@ public:
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const
     {
+        KRATOS_TRY
+        KRATOS_ERROR << "Please implement the Second Create method in your derived Condition" << Info() << std::endl;
         return Kratos::make_shared<Condition>(NewId, pGeom, pProperties);
+        KRATOS_CATCH("");
     }
 
     /**

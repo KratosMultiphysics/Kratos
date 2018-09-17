@@ -232,6 +232,7 @@ public:
                            PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
+        KRATOS_ERROR << "Please implement the First Create method in your derived Element" << Info() << std::endl;
         return Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
@@ -248,6 +249,7 @@ public:
                            PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
+        KRATOS_ERROR << "Please implement the Second Create method in your derived Element" << Info() << std::endl;
         return Kratos::make_shared<Element>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
