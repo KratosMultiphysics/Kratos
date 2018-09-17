@@ -33,7 +33,7 @@ class ALEFluidAnalysisTest(UnitTest.TestCase):
         self.print_output = True
 
     def testALEFluidAnalysis(self):
-        work_folder = "CylinderTest"
+        work_folder = "test_ale_solver_and_analysis"
         settings_file_name = "cylinder_fluid_parameters.json"
 
         with WorkFolderScope(work_folder):

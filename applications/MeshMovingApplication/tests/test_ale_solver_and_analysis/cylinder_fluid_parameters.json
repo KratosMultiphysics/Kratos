@@ -154,6 +154,15 @@
                 "remove_output_file"    : true,
                 "decimal_places"      : 5
             }
+        }],
+        "ale_boundary_conditions" : [{
+            "python_module" : "ale_boundary_condition_process",
+            "kratos_module" : "KratosMultiphysics.MeshMovingApplication",
+            "process_name"  : "ALEBoundaryConditionProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.NoSlip2D_cylinder",
+                "constrained"     : [true,true,true]
+            }
         }]
     }
 }
