@@ -483,6 +483,76 @@ void RigidBodySegregatedVElement::CalculateSecondDerivativesContributions(Matrix
   KRATOS_CATCH("")
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void RigidBodyElement::CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
+                                                ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+
+    //create and initialize element variables:
+    ElementVariables Variables;
+    Variables.Initialize(dimension,rCurrentProcessInfo);
+
+    // std::cout<<" RigidBodyElement "<<this->Id()<<std::endl;
+    // std::cout<<" [Displacement "<<GetGeometry()[0].FastGetSolutionStepValue( DISPLACEMENT )<<"]"<<std::endl;
+    // std::cout<<" [Rotation     "<<GetGeometry()[0].FastGetSolutionStepValue( ROTATION )<<"]"<<std::endl;
+
+    //Compute Rigid Body Properties:
+    this->CalculateRigidBodyProperties(Variables.RigidBody);
+
+    // initialize variables short version;
+
+    if ( rLocalSystem.CalculationFlags.Is(RigidBodyElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+      {
+	MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+
+	this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
+      }
+
+    if ( rLocalSystem.CalculationFlags.Is(RigidBodyElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+      {
+	VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+
+	this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+      }
+
+
+    // Note:
+    // That means that the standard rotation K = Q·K'·QT and F = Q·F' is the correct transformation
+
+    Matrix InitialLocalMatrix = ZeroMatrix(3,3);
+    mInitialLocalQuaternion.ToRotationMatrix(InitialLocalMatrix);
+
+    // Transform Local to Global LHSMatrix:
+    if ( rLocalSystem.CalculationFlags.Is(RigidBodyElement::COMPUTE_LHS_MATRIX) ){
+
+      MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+
+      // works for 2D and 3D case
+      BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rLeftHandSideMatrix);
+
+      //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
+    }
+
+    // Transform Local to Global RHSVector:
+    if ( rLocalSystem.CalculationFlags.Is(RigidBodyElement::COMPUTE_RHS_VECTOR) ){
+
+      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+
+      //std::cout<<"["<<this->Id()<<"] RB Dynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+
+      // works for 2D and 3D case
+      BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rRightHandSideVector);
+
+      //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+    }
+
+    KRATOS_CATCH("")
+}
 
 //************************************************************************************
 //************************************************************************************

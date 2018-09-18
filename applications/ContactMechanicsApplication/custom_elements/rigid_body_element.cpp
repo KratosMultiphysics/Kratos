@@ -21,8 +21,8 @@ namespace Kratos
 /**
  * Flags related to the element computation
  */
-KRATOS_CREATE_LOCAL_FLAG( RigidBodyElement, COMPUTE_RHS_VECTOR,                 0 );
-KRATOS_CREATE_LOCAL_FLAG( RigidBodyElement, COMPUTE_LHS_MATRIX,                 1 );
+KRATOS_CREATE_LOCAL_FLAG( RigidBodyElement, COMPUTE_RHS_VECTOR, 0 );
+KRATOS_CREATE_LOCAL_FLAG( RigidBodyElement, COMPUTE_LHS_MATRIX, 1 );
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
@@ -450,6 +450,9 @@ void RigidBodyElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
     //Initialize sizes for the system components:
     this->InitializeSystemMatrices(LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags);
 
+    //Calculate elemental system
+    this->CalculateElementalSystem(LocalSystem, rCurrentProcessInfo);
+
     KRATOS_CATCH("")
 }
 
@@ -472,6 +475,9 @@ void RigidBodyElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
     //Initialize sizes for the system components:
     this->InitializeSystemMatrices(rLeftHandSideMatrix, RightHandSideVector,  LocalSystem.CalculationFlags);
+
+    //Calculate elemental system
+    this->CalculateElementalSystem(LocalSystem, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
@@ -496,19 +502,35 @@ void RigidBodyElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     //Initialize sizes for the system components:
     this->InitializeSystemMatrices(rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags);
 
+    //Calculate elemental system
+    this->CalculateElementalSystem(LocalSystem, rCurrentProcessInfo);
+
     KRATOS_CATCH("")
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
-					       ProcessInfo& rCurrentProcessInfo )
+void RigidBodyElement::CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
+                                                ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+        
+    KRATOS_ERROR << " calling the default method CalculateElementalSystem for a rigid body element " << std::endl;
+    
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void RigidBodyElement::CalculateDynamicSystem(LocalSystemComponents& rLocalSystem,
+                                              ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-       
+
     //create and initialize element variables:
     ElementVariables Variables;
     Variables.Initialize(dimension,rCurrentProcessInfo);
@@ -597,7 +619,7 @@ void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideV
     const SizeType dofs_size = dimension * (dimension + 1) * 0.5;
 
     rVariables.VolumeForce = CalculateVolumeForce(rVariables.VolumeForce);
-    
+
     double DomainSize = rVariables.RigidBody.Mass;
 
     //gravity load
@@ -910,9 +932,9 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
                                                  ElementVariables& rVariables)
 {
     KRATOS_TRY
-        
+
     const ProcessInfo& rCurrentProcessInfo = rVariables.GetProcessInfo();
-        
+
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
     const SizeType dofs_size       = dimension * (dimension + 1) * 0.5;
@@ -1255,7 +1277,7 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
     KRATOS_TRY
 
     const ProcessInfo& rCurrentProcessInfo = rVariables.GetProcessInfo();
-    
+
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
     const SizeType dofs_size       = dimension * (dimension + 1) * 0.5;

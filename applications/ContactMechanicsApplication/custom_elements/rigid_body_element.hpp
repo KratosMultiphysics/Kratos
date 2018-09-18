@@ -434,13 +434,17 @@ protected:
     ///@{
 
 
-
+    /**
+     * Calculates the elemental contributions
+     */
+    virtual void CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
+                                          ProcessInfo& rCurrentProcessInfo);
+    
     /**
      * Calculates the elemental dynamic contributions
-      */
-    void CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
-				 ProcessInfo& rCurrentProcessInfo );
-
+     */
+    void CalculateDynamicSystem(LocalSystemComponents& rLocalSystem,
+                                ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Initialize System Matrices
