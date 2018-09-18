@@ -6,7 +6,7 @@ import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
 from __init__ import *
 from co_simulation_analysis import CoSimulationAnalysis
 
-filename = '/home/aditya/work/Kratos/applications/CoSimulationApplication/test_examples/test_one/test_json.json'
+filename = 'test_json.json'
 
 #Read JSON data into the datastore variable
 if filename:

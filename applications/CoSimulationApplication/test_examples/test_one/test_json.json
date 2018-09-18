@@ -12,20 +12,22 @@
         "echo_level" : 1,
         "max_coupling_iterations" : 12,
         "start_coupling_time" : 0.3,
-        "convergence_accelerator_settings" :
-        {
-            "type"          : "aitken",
-            "data_list" :
-            [
-                {
-                    "solver"   : "dummy_one",
-                    "data_name"     : "disp"
+        "convergence_accelerators" :
+        [
+            {
+                "type"          : "aitken",
+                "data_list" :
+                [
+                    {
+                        "solver"   : "dummy_one",
+                        "data_name"     : "disp"
+                    }
+                ],
+                "settings":{
+                    "initial_alpha" : 0.2
                 }
-            ],
-            "settings":{
-                "initial_alpha" : 0.2
             }
-        },
+        ],
         "convergence_criteria_settings" :
         {
             "data_list" :
