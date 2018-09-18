@@ -336,64 +336,68 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >
     // to a single sector (otherwise we would start by determining in which of the eight sectors
     // given by +-x, +-y, +-z we have to look for the intersection).
     array_1d<double,3> U = rVelocity;
-    //Normalize U
-    U /= std::sqrt(U[0]*U[0] + U[1]*U[1] + U[2]*U[2]);
-
-    array_1d<double,3> v10 = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
-    array_1d<double,3> v30 = rGeometry[3].Coordinates() - rGeometry[0].Coordinates();
-    array_1d<double,3> v40 = rGeometry[4].Coordinates() - rGeometry[0].Coordinates();
-
-    // Express U in the coordinate system defined by {v10,v30,v40}
-    Matrix Q = ZeroMatrix(3,3);
-    for (unsigned int i = 0; i < 3; i++)
+    double u_norm = std::sqrt(U[0]*U[0] + U[1]*U[1] + U[2]*U[2]);
+    if (u_norm > 1e-12)
     {
-        Q(i,0) = v10[i];
-        Q(i,1) = v30[i];
-        Q(i,2) = v40[i];
-    }
+        //Normalize U
+        U /= std::sqrt(U[0]*U[0] + U[1]*U[1] + U[2]*U[2]);
 
-    // Invert Matrix Q
-    Matrix QInv;
-    double det;
-    MathUtils<double>::InvertMatrix(Q,QInv,det);
+        array_1d<double,3> v10 = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
+        array_1d<double,3> v30 = rGeometry[3].Coordinates() - rGeometry[0].Coordinates();
+        array_1d<double,3> v40 = rGeometry[4].Coordinates() - rGeometry[0].Coordinates();
 
-    array_1d<double,3> Uq = ZeroVector(3);
-    for (unsigned int i = 0; i < 3; i++)
-    {
-        for (unsigned int j = 0; j < 3; j++)
+        // Express U in the coordinate system defined by {v10,v30,v40}
+        Matrix Q = ZeroMatrix(3,3);
+        for (unsigned int i = 0; i < 3; i++)
         {
-            Uq[i] += QInv(i,j)*U[j];
+            Q(i,0) = v10[i];
+            Q(i,1) = v30[i];
+            Q(i,2) = v40[i];
         }
 
-        // Work in absolute values
-        Uq[i] = std::fabs(Uq[i]);
-    }
+        // Invert Matrix Q
+        Matrix QInv;
+        double det;
+        MathUtils<double>::InvertMatrix(Q,QInv,det);
 
-    double max_v = Uq[0];
-    for (unsigned int d = 1; d < 3; d++)
-        if (Uq[d] > max_v)
-            max_v = Uq[d];
-
-    double scale = 1.0/max_v;
-    Uq *= scale;
-
-    // Undo the transform
-    for (unsigned int i = 0; i < 3; i++)
-    {
-        U[i] = 0.0;
-        for (unsigned int j = 0; j < 3; j++)
+        array_1d<double,3> Uq = ZeroVector(3);
+        for (unsigned int i = 0; i < 3; i++)
         {
-            U[i] += Q(i,j)*Uq[j];
+            for (unsigned int j = 0; j < 3; j++)
+            {
+                Uq[i] += QInv(i,j)*U[j];
+            }
+
+            // Work in absolute values
+            Uq[i] = std::fabs(Uq[i]);
         }
-    }
 
-    // Module
-    Hvel = std::sqrt(U[0]*U[0] + U[1]*U[1] + U[2]*U[2]);
+        double max_v = Uq[0];
+        for (unsigned int d = 1; d < 3; d++)
+            if (Uq[d] > max_v)
+                max_v = Uq[d];
 
-    if (Hvel > 0.0)
-    {
-        double VelNorm = std::sqrt(rVelocity[0]*rVelocity[0] + rVelocity[1]*rVelocity[1] + rVelocity[2]*rVelocity[2]);
-        Hvel /= VelNorm;
+        double scale = 1.0/max_v;
+        Uq *= scale;
+
+        // Undo the transform
+        for (unsigned int i = 0; i < 3; i++)
+        {
+            U[i] = 0.0;
+            for (unsigned int j = 0; j < 3; j++)
+            {
+                U[i] += Q(i,j)*Uq[j];
+            }
+        }
+
+        // Module
+        Hvel = std::sqrt(U[0]*U[0] + U[1]*U[1] + U[2]*U[2]);
+
+        if (Hvel > 0.0)
+        {
+            double VelNorm = std::sqrt(rVelocity[0]*rVelocity[0] + rVelocity[1]*rVelocity[1] + rVelocity[2]*rVelocity[2]);
+            Hvel /= VelNorm;
+        }
     }
 
     return Hvel;

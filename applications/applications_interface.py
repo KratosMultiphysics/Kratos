@@ -479,7 +479,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/ContactStructuralMechanics/python_scripts')
         sys.path.append(applications_path + '/ContactStructuralMechanics/Linux')
         from KratosContactStructuralMechanicsApplication import *
-        contact_mechanics_application = KratosContactStructuralMechanicsApplication()
+        contact_structural_mechanics_application = KratosContactStructuralMechanicsApplication()
         kernel.ImportApplication(contact_structural_mechanics_application)
         print("KratosContactStructuralMechanicsApplication Succesfully imported")
 

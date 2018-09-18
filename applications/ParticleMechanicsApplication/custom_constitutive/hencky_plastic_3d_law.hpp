@@ -270,8 +270,6 @@ protected:
 
     virtual void CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables& rElasticVariables);
 
-    virtual void CorrectKinematics(const PlasticMaterialResponseVariables& rPlasticVariables, Parameters & rValues, const MPMFlowRule::RadialReturnVariables rReturnMappingVariables, double& rDeterminantF, Matrix& rDeformationGradientF );
-
     virtual void CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticMatrix, const MaterialResponseVariables& rElasticVariables);
 
     //virtual void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
@@ -355,8 +353,6 @@ protected:
 
     virtual void CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables,Parameters & rValues, const MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
             Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix);
-
-    virtual void CalculateLeftStretchTensor(Matrix& rLeftStretchTensor, const Matrix& rCauchyGreenMatrix);
 
     /**
      * This function is designed to be called when before the material response

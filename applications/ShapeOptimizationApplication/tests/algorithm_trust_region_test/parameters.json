@@ -19,6 +19,11 @@
                 "material_import_settings" :{
                     "materials_filename": "materials.json"
                 },
+                "model_import_settings"    : {
+                    "input_type"       : "use_input_model_part",
+                    "input_filename"   : "3D_Shell",
+                    "input_file_label" : 0
+                },
                 "gradient_mode"          : "finite_differencing",
                 "step_size"              : 1e-6,
                 "consider_discretization": false
