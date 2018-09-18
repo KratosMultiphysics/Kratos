@@ -14,6 +14,11 @@ import co_simulation_tools as tools
 from copy import deepcopy
 from collections import deque
 
+def Create(settings):
+    accelerator = AitkenAccelerator(settings)
+    return accelerator
+
+
 ## Class Aitken.
 # This class contains the implementation of Aitken relaxation and helper functions.
 # Reference: Ulrich Küttler et al., "Fixed-point fluid–structure interaction solvers with dynamic relaxation"
@@ -28,8 +33,8 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
         default_settings["settings"] = dict    #MANDATORY
         self.settings = tools.ValidateAndAssignInputParameters(default_settings, self.settings, False)
         self.R = deque( maxlen = 2 )
-        self.init_alpha_max = init_alpha_max
-        self.alpha_old = init_alpha
+        self.init_alpha_max = 0.4
+        self.alpha_old = self.init_alpha_max
 
     ## ComputeUpdate(r, x)
     # @param r residual r_k
