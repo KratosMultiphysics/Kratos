@@ -1,14 +1,12 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import KratosMultiphysics
-
-import os
-import process_factory
+from co_simulation_base_solver import CoSimulationBaseSolver
+import co_simulation_tools as tools
 
 def Create(settings):
     return KratosDummyCoSimulationSolver(settings)
 
-class KratosDummyCoSimulationSolver:
+class KratosDummyCoSimulationSolver(CoSimulationBaseSolver):
 
     def __init__(self, custom_settings):
         default_settings = KratosMultiphysics.Parameters("""
@@ -16,7 +14,7 @@ class KratosDummyCoSimulationSolver:
             "name": "dummy",
             "type": "",
             "geometry_list": [],
-            "io_type": "kratos_io",            
+            "io_type": "kratos_io",
             "settings":{
                 "input_file":""
             }

@@ -2,8 +2,12 @@
 # This module contains the class Aitken
 # Author: Wei He
 # Date: Feb. 20, 2017
+try :
+    import numpy as np
+except ModuleNotFoundError:
+    print(tools.bcolors.FAIL + 'Numpy is not available ! '+ tools.bcolors.ENDC)
+    exit()
 
-import numpy as np 
 from copy import deepcopy
 from collections import deque
 
@@ -21,13 +25,13 @@ class Aitken:
             print("Quasi-Newton method: Aitken relaxation")
 
     ## ComputeUpdate(r, x)
-    # @param r residual r_k 
+    # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
     def ComputeUpdate( self, r, x ):
             self.R.appendleft( deepcopy(r) )
             k = len( self.R ) - 1
-            ## For the first iteration, do relaxation only            
+            ## For the first iteration, do relaxation only
             if k == 0:
                 alpha = min( self.alpha_old, self.init_alpha_max )
                 print( "Aitken: Doing relaxation in the first iteration with initial factor = ", alpha )
@@ -46,10 +50,10 @@ class Aitken:
                    print( "WARNING: dynamic relaxation factor reaches lower bound: -2" )
                 delta_x = alpha * self.R[0]
             self.alpha_old = alpha
-            
+
             return delta_x
 
     ## AdvanceTimeStep()
     # Finalizes the current time step and initializes the next time step.
     def AdvanceTimeStep( self ):
-            print( "" )   # Do nothing for Aitken relaxation         
+            print( "" )   # Do nothing for Aitken relaxation
