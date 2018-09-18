@@ -324,13 +324,13 @@ protected:
     }
 
     // --------------------------------------------------------------------------
-    double GetEigenvalue(const int& eigenfrequency_id)
+    double GetEigenvalue(const int eigenfrequency_id)
     {
         return (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR])[eigenfrequency_id-1];
     }
 
     // --------------------------------------------------------------------------
-    void DetermineEigenvectorOfElement(ModelPart::ElementType& rElement, const int& eigenfrequency_id, Vector& rEigenvectorOfElement, ProcessInfo& CurrentProcessInfo)
+    void DetermineEigenvectorOfElement(ModelPart::ElementType& rElement, const int eigenfrequency_id, Vector& rEigenvectorOfElement, ProcessInfo& CurrentProcessInfo)
     {
         std::vector<std::size_t> eq_ids;
         rElement.EquationIdVector(eq_ids, CurrentProcessInfo);
@@ -340,16 +340,17 @@ protected:
             rEigenvectorOfElement.resize(eq_ids.size(), false);
         }
 
+        // sort the values of the eigenvector into the rEigenvectorOfElement according to the dof ordering at the element
         for (auto& r_node_i : rElement.GetGeometry())
         {
-            const ModelPart::NodeType::DofsContainerType& r_node_dofs = r_node_i.GetDofs();
+            const auto& r_node_dofs = r_node_i.GetDofs();
 
             const Matrix& rNodeEigenvectors = r_node_i.GetValue(EIGENVECTOR_MATRIX);
             for (std::size_t dof_index = 0; dof_index < r_node_dofs.size(); dof_index++)
             {
-                auto it_dof = std::begin(r_node_dofs) + dof_index;
-                const std::size_t elem_dof_index = std::distance(eq_ids.begin(), std::find(eq_ids.begin(), eq_ids.end(), it_dof->EquationId()));
-                rEigenvectorOfElement(elem_dof_index) = rNodeEigenvectors((eigenfrequency_id-1), dof_index);
+                const auto& current_dof = std::begin(r_node_dofs) + dof_index;
+                const std::size_t dof_index_at_element = std::distance(eq_ids.begin(), std::find(eq_ids.begin(), eq_ids.end(), current_dof->EquationId()));
+                rEigenvectorOfElement(dof_index_at_element) = rNodeEigenvectors((eigenfrequency_id-1), dof_index);
             }
         }
     }
