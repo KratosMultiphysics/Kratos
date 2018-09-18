@@ -52,15 +52,9 @@ class ALEFluidSolver(PythonSolver):
             fluid_domain_size = solver_settings["domain_size"].GetInt()
             mesh_motion_solver_settings["domain_size"].SetInt(fluid_domain_size)
 
-        # Get the names of the interface-parts for which the MESH_VELOCITY should be
-        # applied to the Fluid-VELOCITY
-        self.ale_interface_parts_by_components = [ [] , [] , [] ]
+        self.ale_interface_parts_params = None
         if mesh_motion_solver_settings.Has("ale_interface_parts"):
-            ale_parts = mesh_motion_solver_settings["ale_interface_parts"]
-            for i_comp in range(3):
-                for i_name in range(ale_parts[i_comp].size()):
-                    model_part_name = ale_parts[i_comp][i_name].GetString()
-                    self.ale_interface_parts_by_components[i_comp].append(model[model_part_name])
+            self.ale_interface_parts_params = mesh_motion_solver_settings["ale_interface_parts"].Clone()
             mesh_motion_solver_settings.RemoveValue("ale_interface_parts")
 
         self.mesh_motion_solver = python_solvers_wrapper_mesh_motion.CreateSolverByParameters(
@@ -101,8 +95,33 @@ class ALEFluidSolver(PythonSolver):
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", "DOFs Added")
 
     def Initialize(self):
+        # Get the interface-parts for which the MESH_VELOCITY should be
+        # applied to the Fluid-VELOCITY
+        # this has to be done AFTER reading the ModelPart
+        self.ale_interface_parts_by_components = [ [] , [] , [] ]
+        if self.ale_interface_parts_params is not None:
+            ale_parts = self.ale_interface_parts_params
+            if not ale_parts.IsArray():
+                raise Exception('"ale_interface_parts" has to be provided as a list!')
+            if ale_parts.size() != 3:
+                raise Exception('"ale_interface_parts" has to have 3 components!')
+
+            mesh_disp_components = [
+                KratosMultiphysics.MESH_DISPLACEMENT_X,
+                KratosMultiphysics.MESH_DISPLACEMENT_Y,
+                KratosMultiphysics.MESH_DISPLACEMENT_Z ]
+
+            for i_comp in range(3):
+                for i_name in range(ale_parts[i_comp].size()):
+                    model_part_name = ale_parts[i_comp][i_name].GetString()
+                    print(model_part_name)
+                    self.ale_interface_parts_by_components[i_comp].append(self.model[model_part_name])
+                    KratosMultiphysics.VariableUtils().ApplyFixity(
+                        mesh_disp_components[i_comp], True, self.model[model_part_name].Nodes)
+
         self.mesh_motion_solver.Initialize()
         self.fluid_solver.Initialize()
+
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", "Finished initialization")
 
@@ -150,10 +169,12 @@ class ALEFluidSolver(PythonSolver):
 
         for i in range(3):
             for mp in self.ale_interface_parts_by_components[i]:
-                KratosMultiphysics.VariableUtils().CopyScalarVar(
-                    mesh_vel_components[i],
-                    vel_components[i],
-                    mp.Nodes)
+                for node in mp.Nodes:
+                    node.SetSolutionStepValue(vel_components[i], node.GetSolutionStepValue(mesh_vel_components[i]))
+                # KratosMultiphysics.VariableUtils().CopyScalarVar(
+                #     mesh_vel_components[i],
+                #     vel_components[i],
+                #     mp.Nodes)
 
         self.fluid_solver.SolveSolutionStep()
 
