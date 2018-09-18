@@ -181,9 +181,9 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     def _GetSolvers(self, SolversDataList):
         solvers_map = {}
         num_solvers = len(SolversDataList)
+        import co_simulation_solver_factory as factory
 
         for i in range(0,num_solvers):
-            import co_simulation_solver_factory as factory
             solver = factory.CreateSolverInterface(SolversDataList[i])
             solver_name = SolversDataList[i]["name"]
             solvers_map[solver_name] = solver
@@ -206,3 +206,16 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         # - if the same data is defined multiple times
         # - check if data format has been specified
         return solver_cosim_details
+
+    ## _GetSolvers : Private Function to make convergence accelerator objects list
+    #
+    #  @param self            The object pointer.
+    #  @param conv_acc_settings dict: setting of the convergence accelerator to be make
+    def _GetConvergenceAccelerators(self, conv_acc_settings):
+        conv_accelerators = []
+        import co_simulation_convergence_accelerator_factory as factory
+        for accelerator_settings in conv_acc_settings:
+            accelerator = factory.CreateConvergenceAccelerator(accelerator_settings)
+            conv_accelerators.append(accelerator)
+
+        return conv_accelerators
