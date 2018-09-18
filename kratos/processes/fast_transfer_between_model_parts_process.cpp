@@ -99,6 +99,11 @@ void FastTransferBetweenModelPartsProcess::TransferWithoutFlags()
 
     if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))
         mrDestinationModelPart.AddConditions(mrOriginModelPart.ConditionsBegin(),mrOriginModelPart.ConditionsEnd());
+
+    const SizeType num_constraints = mrOriginModelPart.MasterSlaveConstraints().size();
+
+    if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
+        mrDestinationModelPart.AddMasterSlaveConstraints(mrOriginModelPart.MasterSlaveConstraintsBegin(),mrOriginModelPart.MasterSlaveConstraintsEnd());
 }
 
 /***********************************************************************************/
@@ -111,11 +116,13 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
     std::vector<NodesArrayType> nodes_buffer(num_threads);
     std::vector<ElementsArrayType> elements_buffer(num_threads);
     std::vector<ConditionsArrayType> conditions_buffer(num_threads);
+    std::vector<MasterSlaveConstraintArrayType> constraints_buffer(num_threads);
 
     // Auxiliar sizes
     const int num_nodes = static_cast<int>(mrOriginModelPart.Nodes().size());
     const int num_elements = static_cast<int>(mrOriginModelPart.Elements().size());
     const int num_conditions = static_cast<int>(mrOriginModelPart.Conditions().size());
+    const int num_constraints = static_cast<int>(mrOriginModelPart.Conditions().size());
 
     #pragma omp parallel
     {
@@ -151,6 +158,16 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
             }
         }
 
+        if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
+            #pragma omp for
+            for(int i = 0; i < num_constraints; ++i) {
+                auto it_const = mrOriginModelPart.MasterSlaveConstraintsBegin() + i;
+                if (it_const->Is(mFlag)) {
+                    (constraints_buffer[id]).insert((constraints_buffer[id]).begin(), *(it_const.base()));
+                }
+            }
+        }
+
         // We transfer
         #pragma omp single
         {
@@ -172,6 +189,13 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
                 for( auto& condition_buffer : conditions_buffer)
                     mrDestinationModelPart.AddConditions(condition_buffer.begin(),condition_buffer.end());
         }
+
+        #pragma omp single
+        {
+            if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
+                for( auto& constraint_buffer : constraints_buffer)
+                    mrDestinationModelPart.AddMasterSlaveConstraints(constraint_buffer.begin(),constraint_buffer.end());
+        }
     }
 }
 
@@ -184,13 +208,17 @@ void FastTransferBetweenModelPartsProcess::ReorderAllIds(ModelPart& rThisModelPa
     for(SizeType i = 0; i < nodes_array.size(); ++i)
         (nodes_array.begin() + i)->SetId(i + 1);
 
+    ElementsArrayType& element_array = rThisModelPart.Elements();
+    for(SizeType i = 0; i < element_array.size(); ++i)
+        (element_array.begin() + i)->SetId(i + 1);
+
     ConditionsArrayType& condition_array = rThisModelPart.Conditions();
     for(SizeType i = 0; i < condition_array.size(); ++i)
         (condition_array.begin() + i)->SetId(i + 1);
 
-    ElementsArrayType& element_array = rThisModelPart.Elements();
-    for(SizeType i = 0; i < element_array.size(); ++i)
-        (element_array.begin() + i)->SetId(i + 1);
+    MasterSlaveConstraintArrayType& constraint_array = rThisModelPart.MasterSlaveConstraints();
+    for(SizeType i = 0; i < constraint_array.size(); ++i)
+        (constraint_array.begin() + i)->SetId(i + 1);
 }
 
 /***********************************************************************************/
@@ -203,6 +231,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
     std::vector<NodesArrayType> nodes_buffer(num_threads);
     std::vector<ElementsArrayType> elements_buffer(num_threads);
     std::vector<ConditionsArrayType> conditions_buffer(num_threads);
+    std::vector<MasterSlaveConstraintArrayType> constraints_buffer(num_threads);
 
     // Reordering ids (necessary for consistency)
     ModelPart& root_model_part = mrOriginModelPart.GetRootModelPart();
@@ -215,6 +244,8 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
     const int num_elements = static_cast<int>(mrOriginModelPart.Elements().size());
     const SizeType total_num_conditions = root_model_part.Conditions().size();
     const int num_conditions = static_cast<int>(mrOriginModelPart.Conditions().size());
+    const SizeType total_num_constraints = root_model_part.MasterSlaveConstraints().size();
+    const int num_constraints = static_cast<int>(mrOriginModelPart.MasterSlaveConstraints().size());
 
     #pragma omp parallel
     {
@@ -248,6 +279,15 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
             }
         }
 
+        if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
+            #pragma omp for
+            for(int i = 0; i < num_constraints; ++i) {
+                auto it_const = mrOriginModelPart.MasterSlaveConstraintsBegin() + i;
+                MasterSlaveConstraint::Pointer p_new_const = it_const->Clone(total_num_constraints + i + 1);
+                (constraints_buffer[id]).insert((constraints_buffer[id]).begin(), p_new_const);
+            }
+        }
+
         // We add to the model part
         #pragma omp single
         {
@@ -269,6 +309,13 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
                 for( auto& condition_buffer : conditions_buffer)
                     mrDestinationModelPart.AddConditions(condition_buffer.begin(),condition_buffer.end());
         }
+
+        #pragma omp single
+        {
+            if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
+                for( auto& constraint_buffer : constraints_buffer)
+                    mrDestinationModelPart.AddMasterSlaveConstraints(constraint_buffer.begin(),constraint_buffer.end());
+        }
     }
 }
 
@@ -282,6 +329,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
     std::vector<NodesArrayType> nodes_buffer(num_threads);
     std::vector<ElementsArrayType> elements_buffer(num_threads);
     std::vector<ConditionsArrayType> conditions_buffer(num_threads);
+    std::vector<MasterSlaveConstraintArrayType> constraints_buffer(num_threads);
 
     // Reordering ids (necessary for consistency)
     ModelPart& root_model_part = mrOriginModelPart.GetRootModelPart();
@@ -294,6 +342,8 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
     const int num_elements = static_cast<int>(mrOriginModelPart.Elements().size());
     const SizeType total_num_conditions = root_model_part.Conditions().size();
     const int num_conditions = static_cast<int>(mrOriginModelPart.Conditions().size());
+    const SizeType total_num_constraints = root_model_part.MasterSlaveConstraints().size();
+    const int num_constraints = static_cast<int>(mrOriginModelPart.MasterSlaveConstraints().size());
 
     #pragma omp parallel
     {
@@ -333,6 +383,17 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
             }
         }
 
+        if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
+            #pragma omp for
+            for(int i = 0; i < num_constraints; ++i) {
+                auto it_const = mrOriginModelPart.MasterSlaveConstraintsBegin() + i;
+                if (it_const->Is(mFlag)) {
+                    MasterSlaveConstraint::Pointer p_new_const = it_const->Clone(total_num_constraints + i + 1);
+                    (constraints_buffer[id]).insert((constraints_buffer[id]).begin(), p_new_const);
+                }
+            }
+        }
+
         // We add to the model part
         #pragma omp single
         {
@@ -353,6 +414,13 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
             if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))
                 for( auto& condition_buffer : conditions_buffer)
                     mrDestinationModelPart.AddConditions(condition_buffer.begin(),condition_buffer.end());
+        }
+
+        #pragma omp single
+        {
+            if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
+                for( auto& constraint_buffer : constraints_buffer)
+                    mrDestinationModelPart.AddMasterSlaveConstraints(constraint_buffer.begin(),constraint_buffer.end());
         }
     }
 }
