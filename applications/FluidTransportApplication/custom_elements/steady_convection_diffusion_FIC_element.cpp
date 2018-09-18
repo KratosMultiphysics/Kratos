@@ -1207,8 +1207,8 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegration
     array_1d<double,TNumNodes> NodalPhi0;
     array_1d<double,TNumNodes> PrevNodalPhi;
 
-    double sum_phi = -1e15;
-    double sustr_phi = -1e15;
+    double sum_phi = 0.0;
+    double sustr_phi = 0.0;
 
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
