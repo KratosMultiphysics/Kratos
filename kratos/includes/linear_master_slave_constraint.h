@@ -313,6 +313,22 @@ public:
     }
 
     /**
+     * @brief It creates a new constraint pointer and clones the previous constraint data
+     * @param NewId the ID of the new constraint
+     * @return a Pointer to the new constraint
+     */
+    MasterSlaveConstraint::Pointer Clone (IndexType NewId) const override
+    {
+        KRATOS_TRY
+
+        MasterSlaveConstraint::Pointer p_constraint = Kratos::make_shared<LinearMasterSlaveConstraint>(*this);
+        p_constraint->SetData(this->GetData());
+        return p_constraint;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
      * @brief Determines the constrant's slvae and master list of DOFs
      * @param rSlaveDofList The list of slave DOFs
      * @param rMasterDofList The list of slave DOFs

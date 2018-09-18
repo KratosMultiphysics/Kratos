@@ -238,6 +238,19 @@ public:
     }
 
     /**
+     * @brief It creates a new constraint pointer and clones the previous constraint data
+     * @param NewId the ID of the new constraint
+     * @return a Pointer to the new constraint
+     */
+    virtual Pointer Clone (IndexType NewId) const
+    {
+        KRATOS_TRY
+        KRATOS_ERROR << "Clone not implemented in MasterSlaveConstraintBaseClass" << std::endl;
+        return nullptr;
+        KRATOS_CATCH("");
+    }
+
+    /**
      * @brief Clears the maps contents
      */
     virtual void Clear()
@@ -370,6 +383,33 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    /**
+     * @brief This method returns the data container of the constraint
+     * @return The data container mData
+     */
+    DataValueContainer& Data()
+    {
+        return mData;
+    }
+
+    /**
+     * @brief This method returns the data container of the constraint (constant)
+     * @return The data container mData
+     */
+    DataValueContainer const& GetData() const
+    {
+        return mData;
+    }
+
+    /**
+     * @brief This method sets the data container of the constraint
+     * @param rThisData The data container to set on mData
+     */
+    void SetData(DataValueContainer const& rThisData)
+    {
+        mData = rThisData;
+    }
 
     /**
      * @brief Check if the Data exists with Has(..) methods:
