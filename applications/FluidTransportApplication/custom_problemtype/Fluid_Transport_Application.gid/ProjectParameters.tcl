@@ -33,7 +33,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \"input_filename\":   \"$basename\","
     puts $FileVar "            \"input_file_label\": 0"
     puts $FileVar "        \},"
-    puts $FileVar "        \"buffer_size\":                        2,"
+    puts $FileVar "        \"buffer_size\":                        3,"
     puts $FileVar "        \"echo_level\":                         [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"clear_storage\":                      false,"
     puts $FileVar "        \"compute_reactions\":                  [GiD_AccessValue get gendata Write_Reactions],"

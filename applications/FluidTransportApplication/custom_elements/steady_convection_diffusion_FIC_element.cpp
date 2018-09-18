@@ -127,7 +127,7 @@ int SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::Check( const ProcessInf
 template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetIntegrationMethod() const
 {
-    // return GeometryData::GI_GAUSS_2;
+    //return GeometryData::GI_GAUSS_2;
     return this->GetGeometry().GetDefaultIntegrationMethod();
 }
 

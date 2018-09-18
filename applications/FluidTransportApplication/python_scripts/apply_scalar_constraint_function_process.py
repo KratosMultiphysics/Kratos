@@ -17,16 +17,16 @@ class ApplyScalarConstraintFunctionProcess(KratosMultiphysics.Process):
 
         self.components_process_list = []
 
-        # for node in model_part.Nodes:
-        #     temperature = -5.0 / 8.0 * node.X + 8.0
-        #     node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,temperature)
-
         for node in model_part.Nodes:
-            if((node.X >= 0.1 and node.X <= 0.2) or (node.X >= 0.3 and node.X <= 0.4)):
-                node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,1.0)
+            temperature = 5.0 / 8.0 * node.X + 3.0
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,temperature)
 
-            else:
-                node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,0.0)
+        # for node in model_part.Nodes:
+        #     if((node.X >= 0.1 and node.X <= 0.2) or (node.X >= 0.3 and node.X <= 0.4)):
+        #         node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,1.0)
+
+        #     else:
+        #         node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,0.0)
 
 
     # def ExecuteInitialize(self):
