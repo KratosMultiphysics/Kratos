@@ -68,7 +68,7 @@ class ALEFluidSolver(PythonSolver):
 
         # Getting the min_buffer_size from both solvers
         # and assigning it to the fluid_solver, bcs this one handles the model_part
-        ## TODO check and reenable
+        ## TODO uncomment after selection of mesh-velocity-computation is implemented
         # self.fluid_solver.min_buffer_size = max(self.fluid_solver.GetMinimumBufferSize(),
         #                                         self.mesh_motion_solver.GetMinimumBufferSize())
 
@@ -166,7 +166,7 @@ class ALEFluidSolver(PythonSolver):
         self.fluid_solver.Clear()
 
     def GetComputingModelPart(self):
-        return self.mesh_motion_solver.GetComputingModelPart() # this is the same as the one used in Fluid
+        return self.fluid_solver.GetComputingModelPart() # this is the same as the one used in Fluid
 
     def GetFluidSolver(self):
         return self.fluid_solver
