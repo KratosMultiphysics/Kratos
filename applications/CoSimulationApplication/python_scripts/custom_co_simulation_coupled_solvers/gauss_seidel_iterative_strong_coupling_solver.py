@@ -62,7 +62,8 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
                                     tools.bcolors.MEGENTA + "Coupling iteration: ", tools.bcolors.BOLD + str(iteration+1) +
                                     " / " + tools.bcolors.BLUE + str(self.max_num_coupling_iterations) + tools.bcolors.ENDC)
 
-            #self.convergence_accelerator.InitializeNonLinearIteration()
+            for accelerator in self.convergence_accelerators:
+                accelerator.InitializeNonLinearIteration()
             #self.convergence_criteria.InitializeNonLinearIteration()
 
             for solver_name, solver in self.participating_solvers.items():
@@ -70,7 +71,8 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
                 solver.SolveSolutionStep()
                 self._SynchronizeOutputData(solver_name)
 
-            #self.convergence_accelerator.FinalizeNonLinearIteration()
+            for accelerator in self.convergence_accelerators:
+                accelerator.FinalizeNonLinearIteration()
             #self.convergence_criteria.FinalizeNonLinearIteration()
 
             """if self.convergence_criteria.IsConverged():
@@ -86,3 +88,8 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
     def _Name(self):
         return self.settings['name']
 
+
+    def PrintInfo(self):
+        super(GaussSeidelIterativeStrongCouplingSolver, self).PrintInfo()
+        for accelerator in self.convergence_accelerators:
+            accelerator.PrintInfo()
