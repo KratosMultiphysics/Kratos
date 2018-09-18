@@ -332,8 +332,6 @@ protected:
     // --------------------------------------------------------------------------
     void DetermineEigenvectorOfElement(ModelPart::ElementType& rElement, const int& eigenfrequency_id, Vector& rEigenvectorOfElement, ProcessInfo& CurrentProcessInfo)
     {
-        const std::size_t num_nodes = rElement.GetGeometry().size();
-
         std::vector<std::size_t> eq_ids;
         rElement.EquationIdVector(eq_ids, CurrentProcessInfo);
 
