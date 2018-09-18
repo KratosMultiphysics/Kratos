@@ -195,8 +195,8 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     array_1d<double,TNumNodes> NodalPhi0;
     array_1d<double,TNumNodes> PrevNodalPhi;
 
-    double sum_phi = 0.0;
-    double sustr_phi = 0.0;
+    double sum_phi = -1e15;
+    double sustr_phi = -1e15;
     double theta = CurrentProcessInfo.GetValue(THETA);
 
     for (unsigned int i = 0; i < TNumNodes; i++)
@@ -242,23 +242,31 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     // 2.626 = 2 / tanh(1)
 
     double fk = 2.626 * tanh(1.0 * (sustr_phi) / (sum_phi));
+
     double st = rVariables.rho_dot_c / (theta * delta_time) * fk;
 
     rVariables.TransientAbsorption = rVariables.absorption + st;
 
     if (std::abs(st) > 0.1 * std::abs(previous_absorption))
     {
-        rVariables.TransientAbsorption = rVariables.absorption + 0.1 * st;
+        rVariables.TransientAbsorption = previous_absorption + 0.1 * previous_absorption * st / std::abs(st);
     }
 
     // If absorption = 0; no transient absorption is added
-    if (std::abs(rVariables.absorption) < rVariables.LowTolerance)
+    if (std::abs(previous_absorption) < rVariables.LowTolerance)
     {
-        rVariables.TransientAbsorption = rVariables.absorption;
+        rVariables.TransientAbsorption = previous_absorption;
     }
 
-    // rVariables.absorption = rVariables.TransientAbsorption;
-    // rVariables.TransientAbsorption = rVariables.absorption;
+    //TODO
+    if (rVariables.IterationNumber == 2 && this->Id() == 86)
+    {
+        KRATOS_WATCH (fk)
+        KRATOS_WATCH (NodalPhi0)
+        KRATOS_WATCH (PrevNodalPhi)
+    }
+
+     rVariables.TransientAbsorption = previous_absorption;
 
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
@@ -367,7 +375,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
         rVariables.AlphaV = 2.0 / rVariables.SigmaV * (1.0 - (rVariables.SigmaV * tanh (rVariables.Peclet)) / (rVariables.XiV - 1.0));
     }
 
-    if (rVariables.absorption < rVariables.HighTolerance)
+    if (std::abs(rVariables.absorption) < rVariables.HighTolerance)
     {
         rVariables.AlphaV = 1.0 / tanh(rVariables.Peclet) - 1.0 / rVariables.Peclet;
     }
