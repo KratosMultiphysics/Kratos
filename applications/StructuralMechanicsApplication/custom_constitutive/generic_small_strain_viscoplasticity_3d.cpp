@@ -68,17 +68,16 @@ void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseCauchy(Consti
     plaw->GetValue(PLASTIC_STRAIN_VECTOR, plastic_strain);
 
     mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, plastic_strain);
-    //KRATOS_WATCH(plastic_strain)
 
-    //Vector& strain_vector = rValues.GetStrainVector();
-    //const Vector strain_for_visco = strain_vector - plastic_strain;
-    //const Vector initial_strain_vector = strain_vector;
+    Vector& strain_vector = rValues.GetStrainVector();
+    const Vector strain_for_visco = strain_vector - plastic_strain;
+    const Vector initial_strain_vector = strain_vector;
 
-    // strain_vector = strain_for_visco;
-    // rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-    // mpViscousConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // Relaxes the Stress...
+    strain_vector = strain_for_visco;
+    rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    mpViscousConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // Relaxes the Stress...
 
-    //strain_vector = initial_strain_vector;
+    strain_vector = initial_strain_vector;
     rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     mpPlasticityConstitutiveLaw->CalculateMaterialResponseCauchy(rValues); // Plastification occurs...
 
@@ -97,8 +96,8 @@ void GenericSmallStrainViscoplasticity3D::FinalizeSolutionStep(
     mpPlasticityConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry,
                                                       rShapeFunctionsValues, rCurrentProcessInfo);
 
-    // mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry,
-    //                                                rShapeFunctionsValues, rCurrentProcessInfo);
+    mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry,
+                                                   rShapeFunctionsValues, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
