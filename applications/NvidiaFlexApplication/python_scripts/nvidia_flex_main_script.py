@@ -26,6 +26,7 @@ class Solution(main_script.Solution):
         ## SIEMENS PROJECT
 
     def SolverSolve(self):
+        
         number_of_steps_until_flex_update = 100
         if self.step < 2:
             self._CheckNvidiaParameters()
@@ -49,6 +50,9 @@ class Solution(main_script.Solution):
     def PreSearchStrategyOperations(self):
         #NvidiaFlexPreUtilities().RemoveSpheresInitiallyIndentedWithFEM(self.spheres_model_part)
         #ParticleCreatorDestructor().DestroyParticles(self.spheres_model_part)
+        pass
+    
+    def InitializeTimeStep(self):
         pass
 
 if __name__=="__main__":

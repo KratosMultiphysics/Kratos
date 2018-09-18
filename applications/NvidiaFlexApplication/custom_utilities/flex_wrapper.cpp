@@ -249,7 +249,7 @@ namespace Kratos {
             break;
         }
         if (mFlexParameters.radius == 0.0) {
-            KRATOS_ERROR<<"The radius of the particles can not be 0.0!"<<std::endl;
+            KRATOS_ERROR << "The radius of the particles cannot be 0.0!"<<std::endl;
         }
 
         //check that all radii are the same!!
@@ -269,9 +269,9 @@ namespace Kratos {
         }
 
         mFlexParameters.viscosity = 0.0f;
-        mFlexParameters.dynamicFriction = 0.75f; //0.5f; //0.25f;
-        mFlexParameters.staticFriction = 0.75f; //0.5f; //0.25f;
-        mFlexParameters.particleFriction = 0.75f; //0.5f; //0.25f;
+        mFlexParameters.dynamicFriction = 0.25f; //0.5f; //0.25f;
+        mFlexParameters.staticFriction = 0.25f; //0.5f; //0.25f;
+        mFlexParameters.particleFriction = 0.25f; //0.5f; //0.25f;
         mFlexParameters.freeSurfaceDrag = 0.0f;
         mFlexParameters.drag = 0.0f;
         mFlexParameters.lift = 0.0f;
@@ -403,17 +403,19 @@ namespace Kratos {
         
         static std::ifstream input_file(gravities_filename);
         std::string line;
-        static unsigned int gravity_number = 0;
+        static size_t gravity_number = 0;
         float elapsed_time = mrSpheresModelPart.GetProcessInfo()[TIME] - current_reference_time;
+        // Minimum time span to wait between gravity shifts to ensure that the powder realocates
         const float delta_security_time = 1.0f;
         const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
-        const float maximum_squared_velocity_module = 0.1f * 0.1f; // square of 0.1 m/s
+        // We choose the maximum velocity admissible in order to change the gravity vector
+        const float maximum_squared_velocity_module = 0.05f * 0.05f; // squares will be compared
         mTimeToChangeGravityValue = true;
         float node_i_squared_velocity_module = 0.0f;
         NvFlexGetVelocities(mFlexSolver, mFlexVelocities->buffer, &mFlexCopyDescriptor);
         mFlexVelocities->map();
         // There are 113 different gravities in TimeAngle.csv
-        const unsigned int total_number_of_gravities = 113;
+        const size_t total_number_of_gravities = 113;
 
         for (size_t i = 0; i < number_of_nodes; i++) {
 

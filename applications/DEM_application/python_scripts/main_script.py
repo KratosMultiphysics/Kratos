@@ -417,8 +417,6 @@ class Solution(object):
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
 
-
-
     def RunMainTemporalLoop(self):
 
         self.step = 0
@@ -499,7 +497,8 @@ class Solution(object):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.rigid_face_model_part)
 
     def InitializeTimeStep(self):
-        pass
+        
+        SphericElementGlobalPhysicsCalculator(self.spheres_model_part).SetGravity(self.spheres_model_part)
 
     def BeforeSolveOperations(self, time):
         if self.post_normal_impact_velocity_option:
