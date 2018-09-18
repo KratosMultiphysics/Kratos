@@ -1425,17 +1425,25 @@ class DEMIo(object):
         #Analytic
         if not "PostNormalImpactVelocity" in self.DEM_parameters.keys():
             self.PostNormalImpactVelocity = 0
-            self.PostTangentialImpactVelocity = 0
-            self.PostFaceTangentialImpactVelocity = 0
-            self.PostFaceNormalImpactVelocity = 0
         else:
             self.PostNormalImpactVelocity = self.DEM_parameters["PostNormalImpactVelocity"].GetBool()
+        
+        if not "PostTangentialImpactVelocity" in self.DEM_parameters.keys():
+            self.PostTangentialImpactVelocity = 0
+        else:
             self.PostTangentialImpactVelocity = self.DEM_parameters["PostTangentialImpactVelocity"].GetBool()
-            self.PostFaceTangentialImpactVelocity = 1
-            self.PostFaceNormalImpactVelocity = 1
+        
+        if not "PostFaceNormalImpactVelocity" in self.DEM_parameters.keys():
+            self.PostFaceNormalImpactVelocity = 0
+        else:
+            self.PostFaceNormalImpactVelocity = self.DEM_parameters["PostFaceNormalImpactVelocity"].GetBool()
+            
+        if not "PostFaceTangentialImpactVelocity" in self.DEM_parameters.keys():
+            self.PostFaceTangentialImpactVelocity = 0
+        else:
+            self.PostFaceTangentialImpactVelocity = self.DEM_parameters["PostFaceTangentialImpactVelocity"].GetBool()
 
         # Ice
-
         self.sea_settings = self.DEM_parameters["virtual_sea_surface_settings"]
 
         if self.sea_settings["print_sea_surface"].GetBool():
