@@ -179,36 +179,27 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStresses(
     const array_1d<double, VoigtSize>& rStressVector
     )
 {
-    double I1, I2, I3, phi, numerator, denominator, II1;
+    double I1, I2, I3;
     CalculateI1Invariant(rStressVector, I1);
     CalculateI2Invariant(rStressVector, I2);
     CalculateI3Invariant(rStressVector, I3);
-    II1 = I1 * I1;
+    const double II1 = std::pow(I1, 2);
 
-    numerator = (2.0 * II1 - 9.0 * I2) * I1 + 27.0 * I3;
-    denominator = (II1 - 3.0 * I2);
+    const double R = (2.0 * II1 - 9.0 * I2 * I1 + 27.0 * I3)/54.0;
+    const double Q = (3.0 * I2 - II1)/9.0;
 
-    if (std::abs(denominator) > tolerance) {
-        phi = numerator / (2.0 * denominator * std::sqrt(denominator));
+    if (std::abs(Q) > tolerance) {
+        const double phi = std::acos(R / (std::sqrt(-std::pow(Q, 3))));
+        const double phi_3 = phi/3.0;
 
-        if (std::abs(phi) > 1.0) {
-            if (phi > 0.0)
-                phi = 1.0;
-            else
-                phi = -1.0;
-        }
-
-        const double acosphi = std::acos(phi);
-        phi = acosphi / 3.0;
-
-        const double aux1 = 2.0 / 3.0 * std::sqrt(II1 - 3.0 * I2);
+        const double aux1 = 2.0 * std::sqrt(-Q);
         const double aux2 = I1 / 3.0;
         const double deg_120 = 2.0/3.0 * Globals::Pi;
         const double deg_240 = 2 * deg_120;
 
-        rPrincipalStressVector[0] = aux2 + aux1 * std::cos(phi);
-        rPrincipalStressVector[1] = aux2 + aux1 * std::cos(phi - deg_120);
-        rPrincipalStressVector[2] = aux2 + aux1 * std::cos(phi - deg_240);
+        rPrincipalStressVector[0] = aux2 + aux1 * std::cos(phi_3);
+        rPrincipalStressVector[1] = aux2 + aux1 * std::cos(phi_3 + deg_120);
+        rPrincipalStressVector[2] = aux2 + aux1 * std::cos(phi_3 + deg_240);
     } else {
         for (IndexType i = 0; i < Dimension; ++i) {
             rPrincipalStressVector[i] = rStressVector[i];

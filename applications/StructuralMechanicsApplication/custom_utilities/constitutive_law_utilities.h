@@ -184,6 +184,7 @@ class ConstitutiveLawUtilities
 
     /**
      * @brief This method computes the principal stresses vector
+     * @details http://www.continuummechanics.org/principalstress.html
      * @param rPrincipalStressVector The vector of principal stresses
      * @param rStressVector The vector of stresses
      * @todo Adapt for 2D dimension
