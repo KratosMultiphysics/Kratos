@@ -156,7 +156,7 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertAlmostEqual(self.gradient[nodeId][2], -1.5466215093998671e-07, 9)
 
 @KratosUnittest.skipUnless(has_eigensolvers_application,"Missing required application: EigenSolversApplication")
-class TestAdjointEigenfrequencyResponseFunction(StructuralResponseFunctionTestFactory):
+class TestEigenfrequencyResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "eigenfrequency_response"
 
     def test_execution(self):
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointStressResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStrainEnergyResponseFunction]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointEigenfrequencyResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenfrequencyResponseFunction]))
     allSuite = suites['all']
     allSuite.addTests(smallSuite)
     KratosUnittest.runTests(suites)

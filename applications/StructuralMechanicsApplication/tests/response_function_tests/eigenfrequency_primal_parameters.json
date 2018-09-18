@@ -24,7 +24,8 @@
         },
         "eigensolver_settings":{
             "solver_type": "eigen_eigensystem",
-            "number_of_eigenvalues": 2,
+            "number_of_eigenvalues": 1,
+            "normalize_eigenvectors": true,
             "max_iteration": 1000,
             "tolerance": 1e-8,
             "echo_level": 1
