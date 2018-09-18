@@ -69,3 +69,41 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
     # Finalizes the current time step and initializes the next time step.
     def AdvanceTimeStep( self ):
         print( "" )   # Do nothing for Aitken relaxation
+
+    ## FinalizeNonLinearIteration : Function initializes the non linear iteration (coupling iteration)
+    #                               Called at the beginning of the nonlinear iteration (coupling iteration)
+    #
+    #  @param self            The object pointer.
+    def InitializeNonLinearIteration(self):
+        pass
+
+    ## FinalizeNonLinearIteration : Function finalizes the non linear iteration (coupling iteration)
+    #                               Called at the end of the nonlinear iteration (coupling iteration)
+    #
+    #  @param self            The object pointer.
+    def FinalizeNonLinearIteration(self):
+        pass
+
+    ## ComputeUpdate : Function to compute the update for the fields. Should be called during the nonlinear (coupling iteration).
+    #
+    #  @param self            The object pointer.
+    def ComputeUpdate(self):
+        pass
+
+    ## PrintInfo : Function to print the information of the convergence accelerator
+    #
+    #  @param self            The object pointer.
+    def PrintInfo(self):
+        print(tools.bcolors.HEADER + "This is an object of Aitken relaxation accelerator. Initial alpha is ", self.init_alpha_max, ", current alpha is : ", self.alpha_old,""+tools.bcolors.ENDC )
+
+    ## Check : Function to Check the setup of the convergence accelerator
+    #
+    #  @param self            The object pointer.
+    def Check(self):
+        pass
+
+    ## _Name : Function to get the name of the convergence accelerator
+    #
+    #  @param self            The object pointer.
+    def _Name(self):
+        return "aitken"
