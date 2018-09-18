@@ -227,12 +227,6 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
         }
     }
 
-    if(this->Id() == 86)
-    {
-        KRATOS_WATCH (NodalPhi0)
-        KRATOS_WATCH (PrevNodalPhi)
-    }
-
     double delta_time = CurrentProcessInfo.GetValue(DELTA_TIME);
 
     //TODO
@@ -249,7 +243,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
 
     if (std::abs(st) > 0.1 * std::abs(previous_absorption))
     {
-        rVariables.TransientAbsorption = previous_absorption + 0.1 * previous_absorption * st / std::abs(st);
+        rVariables.TransientAbsorption = previous_absorption + 0.1 * previous_absorption;
     }
 
     // If absorption = 0; no transient absorption is added
@@ -261,9 +255,9 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     //TODO
     if (rVariables.IterationNumber == 2 && this->Id() == 86)
     {
-        KRATOS_WATCH (fk)
-        KRATOS_WATCH (NodalPhi0)
-        KRATOS_WATCH (PrevNodalPhi)
+        // KRATOS_WATCH (fk)
+        // KRATOS_WATCH (NodalPhi0)
+        // KRATOS_WATCH (PrevNodalPhi)
     }
 
     // rVariables.TransientAbsorption = previous_absorption;
@@ -349,16 +343,6 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.Peclet);
 
         rVariables.AlphaVBar = 1.0 / tanh(rVariables.Peclet) - 1.0 / rVariables.Peclet;
-
-
-        //TODO
-        if (rVariables.IterationNumber == 2 && this->Id() == 86)
-        {
-            KRATOS_WATCH (this->Id())
-            KRATOS_WATCH (fk)
-            KRATOS_WATCH (rVariables.TransientAbsorption)
-
-        }
 
     }
 
