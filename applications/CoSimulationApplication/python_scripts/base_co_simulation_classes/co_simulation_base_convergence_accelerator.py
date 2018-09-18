@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 # Other imports
 import numpy as np
-import co_simulation_tools as cs_tools
+import co_simulation_tools as tools
 
 
 ##
@@ -12,12 +12,16 @@ import co_simulation_tools as cs_tools
 # This Class servers as a base class for all the Convergence accelerator techniques
 # used in co simualation.
 class CoSimulationBaseConvergenceAccelerator(object):
-    def __init__(self, settings, solver, level):
+    def __init__(self, settings):
         self.settings = settings
-        self.solver = solver
+        default_settings = {}
+        default_settings["data_list"] = list # MANDATORY
+        default_settings["settings"] = {}
+        self.settings = tools.ValidateAndAssignInputParameters(default_settings, self.settings, False)
+
         self.echo_level = 0
 
-    ## Initialize : Initialize function for the aceelerator class. Necessary
+    ## Initialize : Initialize function for the accelerator class. Necessary
     #               initialization of the variables and objects to be done here.
     #  @param self                      The object pointer.
     def Initialize(self):

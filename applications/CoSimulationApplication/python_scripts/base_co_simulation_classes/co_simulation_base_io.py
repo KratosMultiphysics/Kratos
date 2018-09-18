@@ -33,10 +33,10 @@ class CoSimulationBaseIO(object):
     #                Follow EXAMPLE implementation below.
     #
     #  @param self            The object pointer.
-    #  @param mesh_conig      python dictionary : configuration of the mesh to be imported.
+    #  @param mesh_config      python dictionary : configuration of the mesh to be imported.
     #                                             mesh will be imported into this dictionary.
     #  @param from_solver     python object : The solver from which mesh is to be imported.
-    def ImportMesh(self, mesh_conig, from_solver):
+    def ImportMesh(self, mesh_config, from_solver):
         """
         if(from_client not None):
             # exchange mesh from python cosim solver
@@ -54,7 +54,7 @@ class CoSimulationBaseIO(object):
     #  @param to_solver       python object : The solver to which mesh is to be exported.
     def ExportData(self, data_config, to_solver):
         """
-        if(to_client not None): # IMPORTANT : exchangig data between python cosim solvers should be avoided here.
+        if(to_client not None): # IMPORTANT : exchanging data between python cosim solvers should be avoided here.
             # put data on to python cosim solver.
         else:
             # export the given data to the remote solver
@@ -70,7 +70,7 @@ class CoSimulationBaseIO(object):
     #  @param to_solver       python object : The solver to which mesh is to be exported.
     def ExportMesh(self, mesh_conig, to_solver):
         """
-        if(to_client not None): # IMPORTANT : exchangig mesh between python cosim solvers should be avoided here.
+        if(to_client not None): # IMPORTANT : exchanging mesh between python cosim solvers should be avoided here.
             # put mesh on to python cosim solver.
         else:
             # export the given mesh to the remote solver
