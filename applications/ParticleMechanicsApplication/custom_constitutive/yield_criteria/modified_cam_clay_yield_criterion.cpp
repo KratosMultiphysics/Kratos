@@ -89,7 +89,7 @@ double& ModifiedCamClayYieldCriterion::CalculateYieldCondition(double& rStateFun
     preconsolidation_stress = mpHardeningLaw->CalculateHardening(preconsolidation_stress, rAlpha, rOldPreconsolidationPressure);
     
     // f = (Q/M)² + P (P - P_c)
-    rStateFunction = pow(deviatoric_q/shear_M, 2);
+    rStateFunction = std::pow(deviatoric_q/shear_M, 2);
     rStateFunction += (mean_stress_p * (mean_stress_p - preconsolidation_stress) );
 
     return rStateFunction;
@@ -112,7 +112,7 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vecto
 
     rFirstDerivative.resize(3, false);
     rFirstDerivative(0) = 2.0 * mean_stress_p - preconsolidation_stress; // (df/dP)
-    rFirstDerivative(1) = 2.0 * deviatoric_q / pow(shear_M, 2);         // (df/dQ)
+    rFirstDerivative(1) = 2.0 * deviatoric_q / std::pow(shear_M, 2);         // (df/dQ)
     rFirstDerivative(2) = - mean_stress_p;                              // (df/dP_c)
 }
 
@@ -123,12 +123,12 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionSecondDerivative(const
     const double shear_M = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
 
     rSecondDerivative.resize(6, false);
-    rSecondDerivative(0) = 2.0 ;                  // (df²/dP²)  
-    rSecondDerivative(1) = 2.0 / pow(shear_M, 2) ; // (df²/dQ²)  
-    rSecondDerivative(2) = 0.0 ;                  // (df²/dP_c²)
-    rSecondDerivative(3) = 0.0 ;                  // (df²/dPdQ)  
-    rSecondDerivative(4) = 0.0 ;                  // (df²/dQdP_c)  
-    rSecondDerivative(5) =-1.0 ;                  // (df²/dPdP_c)
+    rSecondDerivative(0) = 2.0 ;                        // (df²/dP²)  
+    rSecondDerivative(1) = 2.0 / std::pow(shear_M, 2) ; // (df²/dQ²)  
+    rSecondDerivative(2) = 0.0 ;                        // (df²/dP_c²)
+    rSecondDerivative(3) = 0.0 ;                        // (df²/dPdQ)  
+    rSecondDerivative(4) = 0.0 ;                        // (df²/dQdP_c)  
+    rSecondDerivative(5) =-1.0 ;                        // (df²/dPdP_c)
 
 }
 

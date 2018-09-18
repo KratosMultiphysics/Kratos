@@ -336,7 +336,7 @@ void HyperElasticViscoplastic3DLaw::CalculateMaterialResponseKirchhoff (Paramete
     //3.-Compute Incremental DeformationGradientF_bar
     double detF = DeterminantF / mDeterminantF0;
 
-    ElasticVariables.J_pow13 = pow(detF,1.0/3.0);
+    ElasticVariables.J_pow13 = std::pow(detF,1.0/3.0);
 
     ElasticVariables.DeformationGradientF = DeformationGradientF;
 
@@ -365,7 +365,7 @@ void HyperElasticViscoplastic3DLaw::CalculateMaterialResponseKirchhoff (Paramete
         // e= 0.5*(1-invbT*invb)
         this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix,StrainVector);
         // correct b_bar to b
-        double J_pow23 = pow(ElasticVariables.DeterminantF,2.0/3.0);
+        double J_pow23 = std::pow(ElasticVariables.DeterminantF,2.0/3.0);
         StrainVector /= (J_pow23*J_pow23);
     }
 

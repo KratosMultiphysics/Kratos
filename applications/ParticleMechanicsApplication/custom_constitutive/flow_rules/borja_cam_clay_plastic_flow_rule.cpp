@@ -332,7 +332,7 @@ void BorjaCamClayPlasticFlowRule::CalculateHessianMatrix_2x2(Matrix& rHessianMat
 
     // Assemble matrix
     rHessianMatrix(0,0) = 2.0;
-    rHessianMatrix(1,1) = 2.0 / pow(shear_M, 2.0);
+    rHessianMatrix(1,1) = 2.0 / std::pow(shear_M, 2);
     rHessianMatrix(0,1) = 0.0;
     rHessianMatrix(1,0) = 0.0;
 
@@ -472,7 +472,7 @@ void BorjaCamClayPlasticFlowRule::CalculateMeanStress(const double& rVolumetricS
     const double ocr = mpYieldCriterion->GetHardeningLaw().GetProperties()[OVER_CONSOLIDATION_RATIO];
     ref_pressure /= ocr;
 
-    rMeanStress = ref_pressure * std::exp( -(rVolumetricStrain - mInitialVolumetricStrain) / swelling_slope) * (1.0 + 1.5 * alpha_shear * pow(rDeviatoricStrain, 2) / swelling_slope);
+    rMeanStress = ref_pressure * std::exp( -(rVolumetricStrain - mInitialVolumetricStrain) / swelling_slope) * (1.0 + 1.5 * alpha_shear * std::pow(rDeviatoricStrain, 2) / swelling_slope);
 
 }
 
