@@ -44,12 +44,10 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
         eigenvectors = KratosMultiphysics.Matrix(n, 1)
 
         # Construct the solver
-        import eigen_solver_factory
         eigen_solver = eigen_solver_factory.ConstructSolver(settings)
 
         # Solve
         eigen_solver.Solve(K, M, eigenvalues, eigenvectors)
-        eigenvalue = eigenvalues[0]
 
         self.assertAlmostEqual(eigenvalues[0], 0.061463, 4)
         self.assertAlmostEqual(eigenvalues[1], 0.15318431112733275, 7)
