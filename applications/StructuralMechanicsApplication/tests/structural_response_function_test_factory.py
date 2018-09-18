@@ -158,6 +158,18 @@ class TestFDStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertAlmostEqual(self.gradient[nodeId][1],  0.0017745756664132117, 5)
         self.assertAlmostEqual(self.gradient[nodeId][2], -1.5466215093998671e-07, 5)
 
+class TestFDStressResponseFunction(StructuralResponseFunctionTestFactory):
+    file_name = "FD_stress_response"
+
+    def test_execution(self):
+        self._calculate_response_and_gradient()
+        self.assertAlmostEqual(self.value, -0.8233392989483471)
+
+        nodeId = 4
+        self.assertAlmostEqual(self.gradient[nodeId][0], 0.35275363552411676)
+        self.assertAlmostEqual(self.gradient[nodeId][1], -0.6917253843052862)
+        self.assertAlmostEqual(self.gradient[nodeId][2], 1.7361001525273423e-05)
+
 
 if __name__ == "__main__":
     suites = KratosUnittest.KratosSuites
@@ -168,6 +180,7 @@ if __name__ == "__main__":
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStrainEnergyResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFDStrainEnergyResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFDStressResponseFunction]))
     allSuite = suites['all']
     allSuite.addTests(smallSuite)
     KratosUnittest.runTests(suites)

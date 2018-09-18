@@ -18,7 +18,7 @@ class GlobalFiniteDifferencingResponseFunction(structural_response.ResponseFunct
 
         input_type = response_settings["model_import_settings"]["input_type"].GetString()
         model_part_name = response_settings["model_import_settings"]["input_filename"].GetString()
-        model_part_name = model_part_name.split("/")[-1]
+        model_part_name = model_part_name.split("/")[-1] # to extract the name from the path
         if input_type == "mdpa":
             self.model_part = KratosMultiphysics.ModelPart(model_part_name)
             self.model.AddModelPart(self.model_part)
@@ -29,6 +29,7 @@ class GlobalFiniteDifferencingResponseFunction(structural_response.ResponseFunct
 
         # this one works with the model/model part of this class
         self.unperturbed_response_function = structural_response_function_factory.CreateResponseFunction(identifier+"_unperturbed", self.sub_response_settings, self.model)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
 
     def Initialize(self):
         self.unperturbed_response_function.Initialize()
@@ -104,6 +105,7 @@ class GlobalFiniteDifferencingResponseFunction(structural_response.ResponseFunct
 
                 perturbed_response.FinalizeSolutionStep()
                 perturbed_response.Finalize()
+
 
     def _CreateNewTmpResponse(self, identifier, model):
         return structural_response_function_factory.CreateResponseFunction(identifier, self.sub_response_settings, model)
