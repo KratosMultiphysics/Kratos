@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
 import KratosMultiphysics
-import structural_mechanics_analysis
 import structural_response
 import structural_response_function_factory
 
