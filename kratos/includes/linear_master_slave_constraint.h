@@ -223,10 +223,10 @@ public:
     LinearMasterSlaveConstraint& operator=(const LinearMasterSlaveConstraint& rOther)
     {
         BaseType::operator=( rOther );
-        mSlaveDofsVector = mSlaveDofsVector;
-        mMasterDofsVector = mMasterDofsVector;
-        mRelationMatrix = mRelationMatrix;
-        mConstantVector = mConstantVector;
+        mSlaveDofsVector = rOther.mSlaveDofsVector;
+        mMasterDofsVector = rOther.mMasterDofsVector;
+        mRelationMatrix = rOther.mRelationMatrix;
+        mConstantVector = rOther.mConstantVector;
         return *this;
     }
 

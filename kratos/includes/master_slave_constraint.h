@@ -146,6 +146,7 @@ public:
     MasterSlaveConstraint& operator=(const MasterSlaveConstraint& rOther)
     {
         BaseType::operator=( rOther );
+        mData = rOther.mData;
         return *this;
     }
 
