@@ -416,7 +416,10 @@ void BorjaCamClayPlasticFlowRule::ComputePlasticMatrix_2X2(const Vector& rPrinci
     rPlasticMatrix(0,1) = b(0,1) * (-1.0 + std::sqrt(3.0/2.0) * a(1) * mStateFunctionFirstDerivative(1)) - std::sqrt(3.0/2.0) * b(1,1) * a(1) * mStateFunctionFirstDerivative(0);
     rPlasticMatrix(1,0) = b(0,0) * (c(1) - a(0) * mStateFunctionFirstDerivative(1)) - b(1,0) * (c(0) - a(0) * mStateFunctionFirstDerivative(0));
     rPlasticMatrix(1,1) = b(0,0) * (1.0  - std::sqrt(3.0/2.0) * a(1) * mStateFunctionFirstDerivative(1)) + std::sqrt(3.0/2.0) * b(1,0) * a(1) * mStateFunctionFirstDerivative(0);
-    rPlasticMatrix     *= 1.0 / det_b; 
+    
+    // Check if det_b == 0
+    if (std::abs(det_b) < 1.e-9){ rPlasticMatrix *= 1.0 / 1.e-9; }
+    else{ rPlasticMatrix *= 1.0 / det_b; }
 
 }
 

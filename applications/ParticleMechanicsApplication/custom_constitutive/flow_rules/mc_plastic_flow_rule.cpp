@@ -289,7 +289,7 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     else if(pI_III <= 0)
     {
         rRegion = 1;
-        double state_function     = rReturnMappingVariables.TrialStateFunction;
+        const double state_function     = rReturnMappingVariables.TrialStateFunction;
         rPrincipalStressUpdated(0) = rPrincipalStress(0) -  state_function * R_p(0);
         rPrincipalStressUpdated(1) = rPrincipalStress(1) -  state_function * R_p(1);
         rPrincipalStressUpdated(2) = rPrincipalStress(2) -  state_function * R_p(2);
@@ -399,9 +399,9 @@ void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariable
 
     // Calculate the elastic matrix
     Matrix ElasticMatrix = ZeroMatrix(3,3);
-    const double& young_modulus     = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double& poisson_ratio        = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
-    const double diagonal   = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
+    const double& young_modulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    const double& poisson_ratio = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    const double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
     const double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
 
     for (unsigned int i = 0; i<3; ++i)
@@ -434,8 +434,8 @@ void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariable
 void MCPlasticFlowRule::ReturnStressFromPrincipalAxis(const Matrix& rEigenVectors, const Vector& rPrincipalStress, Matrix& rStressMatrix)
 {
     rStressMatrix = ZeroMatrix(3,3); 
-    Vector aux_N = ZeroVector(3);
-    Matrix aux_M = ZeroMatrix(3,3);
+    Vector aux_N  = ZeroVector(3);
+    Matrix aux_M  = ZeroMatrix(3,3);
     for (unsigned int i = 0; i<3; ++i)
     {
         for (unsigned int j = 0; j<3; ++j)
@@ -616,103 +616,114 @@ void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables
 
     const double friction_coefficient = (1 + std::sin(friction_angle))/(1 - std::sin(friction_angle));
     const double dilatancy_coefficient = (1 + std::sin(dilatancy_angle))/(1 - std::sin(dilatancy_angle));
-
-    // Return mapping on yield surface
-    if(rRegion == 1) 
+    
+    switch(rRegion)
     {
-        // Yield plane normal
-        Vector F_norm = ZeroVector(3);
-        F_norm(0) = friction_coefficient;
-        F_norm(1) = 0;
-        F_norm(2) = -1;
-
-        // Potential plane normal
-        Vector G_norm = ZeroVector(3);
-        G_norm(0) = dilatancy_coefficient;
-        G_norm(1) = 0;
-        G_norm(2) = -1;
-        Matrix aux_D_ep = ZeroMatrix(3,3);
-
-        // Compute elastic matrix which takes account only for normal stresses
-        Matrix D = ZeroMatrix(3,3);
-        this->ComputeElasticMatrix_3X3(rReturnMappingVariables, D); 
-
-        this->CalculateDepSurface(D, F_norm, G_norm, aux_D_ep);
-
-        // Shear components of consistent constitutive matrix in principal stress space
-        for (unsigned int j = 3; j<6; ++j)
-            rDep(j,j) = shear_contribution;
-
-        for (unsigned int i = 0; i<3 ; ++i)
+        // Return mapping on yield surface
+        case 1:
         {
-            for (unsigned int k = 0; k<3 ; ++k)
+            // Yield plane normal
+            Vector F_norm = ZeroVector(3);
+            F_norm(0) = friction_coefficient;
+            F_norm(1) = 0;
+            F_norm(2) = -1;
+
+            // Potential plane normal
+            Vector G_norm = ZeroVector(3);
+            G_norm(0) = dilatancy_coefficient;
+            G_norm(1) = 0;
+            G_norm(2) = -1;
+            Matrix aux_D_ep = ZeroMatrix(3,3);
+
+            // Compute elastic matrix which takes account only for normal stresses
+            Matrix D = ZeroMatrix(3,3);
+            this->ComputeElasticMatrix_3X3(rReturnMappingVariables, D); 
+
+            this->CalculateDepSurface(D, F_norm, G_norm, aux_D_ep);
+
+            // Shear components of consistent constitutive matrix in principal stress space
+            for (unsigned int j = 3; j<6; ++j)
+                rDep(j,j) = shear_contribution;
+
+            for (unsigned int i = 0; i<3 ; ++i)
             {
-                rDep(i,k) = aux_D_ep(i,k);
+                for (unsigned int k = 0; k<3 ; ++k)
+                {
+                    rDep(i,k) = aux_D_ep(i,k);
+                }
             }
+
+            break;
         }
-    }
-    // Return to a line 1, triaxial compression, sigp1 = sigp2
-    else if(rRegion == 2) 
-    {
-        // Edge line direction
-        Vector L_F_dir = ZeroVector(3);
-        L_F_dir(0) = 1;
-        L_F_dir(1) = 1;
-        L_F_dir(2) = friction_coefficient;
-
-        // Potential edge line direction
-        Vector L_G_dir = ZeroVector(3);
-        L_G_dir(0) = 1;
-        L_G_dir(1) = 1;
-        L_G_dir(2) = dilatancy_coefficient;
-
-        Matrix inv_elastic_matrix = ZeroMatrix(3,3);
-        this->CalculateInverseElasticMatrix(rReturnMappingVariables, inv_elastic_matrix);
-        Matrix aux_D_ep = ZeroMatrix(3,3);
-
-        this->CalculateDepLine(inv_elastic_matrix, L_F_dir, L_G_dir, aux_D_ep);
-
-        for (unsigned int j = 3; j<6; ++j)
-            rDep(j,j) = shear_contribution;
-
-        for (unsigned int i = 0; i<3 ; ++i)
+        
+        // Return to a line 1, triaxial compression, sigp1 = sigp2        
+        case 2:
         {
-            for (unsigned int k = 0; k<3 ; ++k)
+            // Edge line direction
+            Vector L_F_dir = ZeroVector(3);
+            L_F_dir(0) = 1;
+            L_F_dir(1) = 1;
+            L_F_dir(2) = friction_coefficient;
+
+            // Potential edge line direction
+            Vector L_G_dir = ZeroVector(3);
+            L_G_dir(0) = 1;
+            L_G_dir(1) = 1;
+            L_G_dir(2) = dilatancy_coefficient;
+
+            Matrix inv_elastic_matrix = ZeroMatrix(3,3);
+            this->CalculateInverseElasticMatrix(rReturnMappingVariables, inv_elastic_matrix);
+            Matrix aux_D_ep = ZeroMatrix(3,3);
+
+            this->CalculateDepLine(inv_elastic_matrix, L_F_dir, L_G_dir, aux_D_ep);
+
+            for (unsigned int j = 3; j<6; ++j)
+                rDep(j,j) = shear_contribution;
+
+            for (unsigned int i = 0; i<3 ; ++i)
             {
-                rDep(i,k) = aux_D_ep(i,k);
+                for (unsigned int k = 0; k<3 ; ++k)
+                {
+                    rDep(i,k) = aux_D_ep(i,k);
+                }
             }
+
+            break;
         }
-    }
-    // Return to a line 2, triaxial extension, sigp2 = sigp3
-    else if(rRegion == 3) 
-    {
-        //Edge line direction
-        Vector L_F_dir = ZeroVector(3);
-        L_F_dir(0) = 1;
-        L_F_dir(1) = friction_coefficient;
-        L_F_dir(2) = friction_coefficient;
 
-        //Potential edge line direction
-        Vector L_G_dir = ZeroVector(3);
-        L_G_dir(0) = 1;
-        L_G_dir(1) = dilatancy_coefficient;
-        L_G_dir(2) = dilatancy_coefficient;
-
-        Matrix inv_elastic_matrix = ZeroMatrix(3,3);
-        this->CalculateInverseElasticMatrix(rReturnMappingVariables, inv_elastic_matrix);
-        Matrix aux_D_ep = ZeroMatrix(3,3);
-
-        this->CalculateDepLine(inv_elastic_matrix, L_F_dir, L_G_dir, aux_D_ep);
-
-        for (unsigned int j = 3; j<6; ++j)
-            rDep(j,j) = shear_contribution;
-
-        for (unsigned int i = 0; i<3 ; ++i)
+        // Return to a line 2, triaxial extension, sigp2 = sigp3
+        case 3:
         {
-            for (unsigned int k = 0; k<3 ; ++k)
+            //Edge line direction
+            Vector L_F_dir = ZeroVector(3);
+            L_F_dir(0) = 1;
+            L_F_dir(1) = friction_coefficient;
+            L_F_dir(2) = friction_coefficient;
+
+            //Potential edge line direction
+            Vector L_G_dir = ZeroVector(3);
+            L_G_dir(0) = 1;
+            L_G_dir(1) = dilatancy_coefficient;
+            L_G_dir(2) = dilatancy_coefficient;
+
+            Matrix inv_elastic_matrix = ZeroMatrix(3,3);
+            this->CalculateInverseElasticMatrix(rReturnMappingVariables, inv_elastic_matrix);
+            Matrix aux_D_ep = ZeroMatrix(3,3);
+
+            this->CalculateDepLine(inv_elastic_matrix, L_F_dir, L_G_dir, aux_D_ep);
+
+            for (unsigned int j = 3; j<6; ++j)
+                rDep(j,j) = shear_contribution;
+
+            for (unsigned int i = 0; i<3 ; ++i)
             {
-                rDep(i,k) = aux_D_ep(i,k);
+                for (unsigned int k = 0; k<3 ; ++k)
+                {
+                    rDep(i,k) = aux_D_ep(i,k);
+                }
             }
+
+            break;
         }
     }
 }
