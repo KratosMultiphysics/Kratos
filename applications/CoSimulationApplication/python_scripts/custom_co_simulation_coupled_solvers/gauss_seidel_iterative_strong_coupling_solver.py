@@ -12,7 +12,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
     def __init__(self, custom_settings):
         default_settings = {}
         super(GaussSeidelIterativeStrongCouplingSolver, self).__init__(custom_settings)
-        default_settings["convergence_accelerator_settings"] = dict    #MANDATORY
+        default_settings["convergence_accelerators"] = list    #MANDATORY
         default_settings["convergence_criteria_settings"] = dict    #MANDATORY
         self.settings = tools.ValidateAndAssignInputParameters(default_settings, self.settings, False)
         self.number_of_participants = len( self.settings['participants'] )
@@ -29,7 +29,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
             self.participating_solver_names.append(self.participants_setting_dict[p]['name'])
 
         ### Making the convergence accelerator for this strategy
-        self.convergence_accelerator = None
+        self.convergence_accelerators = self._GetConvergenceAccelerators(self.settings["convergence_accelerators"])
 
         ### Creating the convergence criterion
         #self.convergence_criteria = CoSimApp.CoSimulationBaseConvergenceCriterion(self.settings['residual_relative_tolerance'].GetDouble(), self.settings['residual_relative_tolerance'].GetDouble())
