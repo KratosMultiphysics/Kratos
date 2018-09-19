@@ -122,7 +122,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
     const int num_nodes = static_cast<int>(mrOriginModelPart.Nodes().size());
     const int num_elements = static_cast<int>(mrOriginModelPart.Elements().size());
     const int num_conditions = static_cast<int>(mrOriginModelPart.Conditions().size());
-    const int num_constraints = static_cast<int>(mrOriginModelPart.Conditions().size());
+    const int num_constraints = static_cast<int>(mrOriginModelPart.MasterSlaveConstraints().size());
 
     #pragma omp parallel
     {
