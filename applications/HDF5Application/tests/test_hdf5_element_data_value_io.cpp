@@ -53,12 +53,17 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
         r_element.SetValue(DISPLACEMENT, array_1d<double, 3>(3, r_element.Id() + 0.2345));
         r_element.SetValue(PRESSURE, r_element.Id() + 0.2345);
         r_element.SetValue(REFINEMENT_LEVEL, r_element.Id() + 4);
+        Matrix test_matrix(4,4);
+        for (int i=0; i < static_cast<int>(test_matrix.size1()) ; ++i)
+            for (int j=0; j < static_cast<int>(test_matrix.size2()); ++j)
+                test_matrix(i,j) = (double)r_element.Id() + (double)(i+1)/(double)(j+1);
+        r_element.SetValue(GREEN_LAGRANGE_STRAIN_TENSOR, test_matrix);
     }
 
     Parameters io_params(R"(
         {
             "prefix": "/Step",
-            "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL"]
+            "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL", "GREEN_LAGRANGE_STRAIN_TENSOR"]
         })");
 
     HDF5::ElementDataValueIO data_io(io_params, p_test_file);
@@ -79,6 +84,12 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
                      r_write_element.GetValue(PRESSURE));
         KRATOS_CHECK(r_read_element.GetValue(REFINEMENT_LEVEL) ==
                      r_write_element.GetValue(REFINEMENT_LEVEL));
+        auto const& read_matrix = r_read_element.GetValue(GREEN_LAGRANGE_STRAIN_TENSOR);
+        auto const& write_matrix = r_write_element.GetValue(GREEN_LAGRANGE_STRAIN_TENSOR);
+        for (int i=0; i < static_cast<int>(read_matrix.size1()); ++i)
+            for (int j=0; j < static_cast<int>(read_matrix.size2()); ++j)
+                KRATOS_CHECK(read_matrix(i,j) == write_matrix(i,j));
+
     }
 }
 
