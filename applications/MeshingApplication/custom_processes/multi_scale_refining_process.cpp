@@ -125,6 +125,7 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
     int divisions = mrRefinedModelPart.GetValue(SUBSCALE_INDEX) * mDivisionsAtSubscale;
     auto uniform_refining = UniformRefineUtility<2>(mrRefinedModelPart, divisions);
     uniform_refining.Refine(node_id, elem_id, cond_id);
+    uniform_refining.GetLastCreatedIds(node_id, elem_id, cond_id);
 
     // Update the visualization model part
     UpdateVisualizationAfterRefinement();
@@ -224,11 +225,6 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
 
     // Create a model part to store the interface boundary conditions
     mrRefinedModelPart.CreateSubModelPart(mRefinedInterfaceName);
-
-    const int subscale_digit = 1000000;
-    mMinNodeId = (subscale_index) * subscale_digit;
-    mMinElemId = (subscale_index) * subscale_digit;
-    mMinCondId = (subscale_index) * subscale_digit;
 }
 
 
@@ -387,6 +383,7 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
                 NodeType::Pointer new_node = mrRefinedModelPart.CreateNewNode(++rNodeId, *coarse_node);
                 mCoarseToRefinedNodesMap[coarse_node->Id()] = new_node;
                 mRefinedToCoarseNodesMap[rNodeId] = *coarse_node.base();
+                new_node->Set(NEW_ENTITY, true);
                 coarse_node->Set(NEW_ENTITY, true);
                 coarse_node->Set(MeshingFlags::REFINED, true);
             }
@@ -746,12 +743,12 @@ void MultiScaleRefiningProcess::GetLastId(
     IndexType& rCondsId)
 {
     // Initialize the output
-    rNodesId = mMinNodeId;
-    rElemsId = mMinElemId;
-    rCondsId = mMinCondId;
+    rNodesId = 0;
+    rElemsId = 0;
+    rCondsId = 0;
 
     // Get the absolute root model part
-    ModelPart& root_model_part = mrRefinedModelPart.GetRootModelPart();
+    ModelPart& root_model_part = mrVisualizationModelPart.GetRootModelPart();
 
     // Get the maximum node id
     const IndexType nnodes = root_model_part.Nodes().size();

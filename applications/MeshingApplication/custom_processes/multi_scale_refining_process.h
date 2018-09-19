@@ -243,10 +243,6 @@ public:
 
     IndexStringMapType mCollections;  /// For AssignUniqueModelCollectionTagUtility
 
-    IndexType mMinNodeId;
-    IndexType mMinElemId;
-    IndexType mMinCondId;
-
     ///@}
     ///@name Private Operators
     ///@{

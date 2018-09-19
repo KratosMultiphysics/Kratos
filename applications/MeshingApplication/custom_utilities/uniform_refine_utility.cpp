@@ -139,6 +139,17 @@ void UniformRefineUtility<TDim>::Refine(IndexType& rNodeId, IndexType& rElemId, 
 }
 
 
+/// Get the last id of the created nodes, elements and conditions
+template<unsigned int TDim>
+void UniformRefineUtility<TDim>::GetLastCreatedIds(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId)
+{
+    // Get the id
+    rNodeId = mLastNodeId;
+    rElemId = mLastElemId;
+    rCondId = mLastCondId;
+}
+
+
 /// Execute the refinement once
 template< unsigned int TDim>
 void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)

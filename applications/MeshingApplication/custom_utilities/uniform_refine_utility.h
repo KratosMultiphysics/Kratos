@@ -134,6 +134,14 @@ public:
      */
     void Refine(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId);
 
+    /**
+     * @brief Get the las id of the created nodes, elements and conditions
+     * @param rNodeId
+     * @param rElemId
+     * @param rCondId
+     */
+    void GetLastCreatedIds(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId);
+
     ///@}
     ///@name Access
     ///@{
