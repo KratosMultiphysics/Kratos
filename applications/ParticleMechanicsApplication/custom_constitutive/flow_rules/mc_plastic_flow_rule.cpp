@@ -113,13 +113,13 @@ bool MCPlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMa
     for(unsigned int i=0; i<3; i++)
     {
         // the rStressMatrix is the precomputed principal stress
-        principal_stress(i) = rStressMatrix(i,i);
+        principal_stress[i] = rStressMatrix(i,i);
     }
 
     // Sorting Principal Stress and Strain - "0" is the largest one and "2" is the lowest one
     MPMStressPrincipalInvariantsUtility::SortPrincipalStress(principal_stress, main_strain, rReturnMappingVariables.MainDirections);
 
-    mPrincipalStressTrial = principal_stress;
+    mPrincipalStressTrial   = principal_stress;
     mElasticPrincipalStrain = main_strain;
     mElasticPreviousPrincipalStrain = main_strain;
 
@@ -171,8 +171,8 @@ bool MCPlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMa
     // consistent tangent matrix
     for (unsigned int i=0; i<3; i++)
     {
-        rReturnMappingVariables.StrainMatrix(i,i) = mElasticPrincipalStrain(i);
-        rReturnMappingVariables.TrialIsoStressMatrix(i,i) = mPrincipalStressUpdated(i);
+        rReturnMappingVariables.StrainMatrix(i,i) = mElasticPrincipalStrain[i];
+        rReturnMappingVariables.TrialIsoStressMatrix(i,i) = mPrincipalStressUpdated[i];
     }
 
     rReturnMappingVariables.Options.Set(RETURN_MAPPING_COMPUTED,true);
@@ -209,61 +209,61 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     // Compute the direction of the plastic return stress R_p
     Vector R_p = ZeroVector(3);
     double den_p = friction_coefficient *(D(0,0)*dilatancy_coefficient - D(0,2)) - D(2,0) * dilatancy_coefficient + D(2,2);
-    R_p(0) = (D(0,0)*dilatancy_coefficient - D(0,2) )/den_p;
-    R_p(1) = (D(1,0)*dilatancy_coefficient - D(1,2) )/den_p;
-    R_p(2) = (D(2,0)*dilatancy_coefficient - D(2,2) )/den_p;
+    R_p[0] = (D(0,0)*dilatancy_coefficient - D(0,2) )/den_p;
+    R_p[1] = (D(1,0)*dilatancy_coefficient - D(1,2) )/den_p;
+    R_p[2] = (D(2,0)*dilatancy_coefficient - D(2,2) )/den_p;
 
     // Vector from predictor stress to the apex
     Vector sigma_P_apex = ZeroVector(3);
-    sigma_P_apex(0) = rPrincipalStress(0) - apex;
-    sigma_P_apex(1) = rPrincipalStress(1) - apex;
-    sigma_P_apex(2) = rPrincipalStress(2) - apex;
+    sigma_P_apex[0] = rPrincipalStress[0] - apex;
+    sigma_P_apex[1] = rPrincipalStress[1] - apex;
+    sigma_P_apex[2] = rPrincipalStress[2] - apex;
 
     // Boundary plane between region I and II: evaluated as the cross product between R_p and R1, the direction of line 1
     Vector NI_II = ZeroVector(3);
-    NI_II(0) = R_p(1) * friction_coefficient - R_p(2);
-    NI_II(1) = R_p(2) - R_p(0) * friction_coefficient;
-    NI_II(2) = R_p(0) - R_p(1);
-    const double pI_II = NI_II(0) * sigma_P_apex(0) + NI_II(1) * sigma_P_apex(1) + NI_II(2) * sigma_P_apex(2);
+    NI_II[0] = R_p[1] * friction_coefficient - R_p[2];
+    NI_II[1] = R_p[2] - R_p[0] * friction_coefficient;
+    NI_II[2] = R_p[0] - R_p[1];
+    const double pI_II = NI_II[0] * sigma_P_apex[0] + NI_II[1] * sigma_P_apex[1] + NI_II[2] * sigma_P_apex[2];
 
     // Boundary plane between region I and III: evaluated as the cross product between R_p and R2, the direction of line 2
     Vector NI_III = ZeroVector(3);
-    NI_III(0) = R_p(1) * friction_coefficient - R_p(2) * friction_coefficient;
-    NI_III(1) = R_p(2) - R_p(0) * friction_coefficient;
-    NI_III(2) = R_p(0) * friction_coefficient - R_p(1);
-    const double pI_III = NI_III(0) * sigma_P_apex(0) + NI_III(1) * sigma_P_apex(1) + NI_III(2) * sigma_P_apex(2);
+    NI_III[0] = R_p[1] * friction_coefficient - R_p[2] * friction_coefficient;
+    NI_III[1] = R_p[2] - R_p[0] * friction_coefficient;
+    NI_III[2] = R_p[0] * friction_coefficient - R_p[1];
+    const double pI_III = NI_III[0] * sigma_P_apex[0] + NI_III[1] * sigma_P_apex[1] + NI_III[2] * sigma_P_apex[2];
 
     // t-parameters for region determination
     // Secondary surface in region II a = [0 k -1], b  = [0 m -1] -- needed to calculate t1
     double den_p2 = friction_coefficient * (D(1,1) * dilatancy_coefficient - D(1,2)) - D(1,2) * dilatancy_coefficient + D(2,2);
     Vector R_p2 = ZeroVector(3);
-    R_p2(0) = (D(0,1) * dilatancy_coefficient - D(0,2))/den_p2;
-    R_p2(1) = (D(1,1) * dilatancy_coefficient - D(1,2))/den_p2;
-    R_p2(2) = (D(2,1) * dilatancy_coefficient - D(2,2))/den_p2;
+    R_p2[0] = (D(0,1) * dilatancy_coefficient - D(0,2))/den_p2;
+    R_p2[1] = (D(1,1) * dilatancy_coefficient - D(1,2))/den_p2;
+    R_p2[2] = (D(2,1) * dilatancy_coefficient - D(2,2))/den_p2;
 
     Vector N2 = ZeroVector(3);
-    N2(0) = R_p(1)*R_p2(2) - R_p(2)*R_p2(1);
-    N2(1) = R_p(2)*R_p2(0) - R_p(0)*R_p2(2);
-    N2(2) = R_p(0)*R_p2(1) - R_p(1)*R_p2(0);
+    N2[0] = R_p[1]*R_p2[2] - R_p[2]*R_p2[1];
+    N2[1] = R_p[2]*R_p2[0] - R_p[0]*R_p2[2];
+    N2[2] = R_p[0]*R_p2[1] - R_p[1]*R_p2[0];
 
-    double num1 = N2(0) * sigma_P_apex(0) + N2(1) * sigma_P_apex(1) + N2(2) * sigma_P_apex(2);
-    double den_1 = N2(0) + N2(1) + friction_coefficient * N2(2);
+    double num1 = N2[0] * sigma_P_apex[0] + N2[1] * sigma_P_apex[1] + N2[2] * sigma_P_apex[2];
+    double den_1 = N2[0] + N2[1] + friction_coefficient * N2[2];
     const double t1 = num1 / den_1 ;
 
     // Secondary surface in region III a = [k -1 0], b  = [m -1 0] -- needed to calculate t2
     double den = friction_coefficient * (D(0,0) * dilatancy_coefficient - D(0,1)) - D(1,0) * dilatancy_coefficient + D(1,1);
     Vector R_p3 = ZeroVector(3);
-    R_p3(0) = (D(0,0) * dilatancy_coefficient - D(0,1))/den;
-    R_p3(1) = (D(1,0) * dilatancy_coefficient - D(1,1))/den;
-    R_p3(2) = (D(2,0) * dilatancy_coefficient - D(2,1))/den;
+    R_p3[0] = (D(0,0) * dilatancy_coefficient - D(0,1))/den;
+    R_p3[1] = (D(1,0) * dilatancy_coefficient - D(1,1))/den;
+    R_p3[2] = (D(2,0) * dilatancy_coefficient - D(2,1))/den;
 
     Vector N3 = ZeroVector(3);
-    N3(0) = R_p(1)*R_p3(2) - R_p(2)*R_p3(1);
-    N3(1) = R_p(2)*R_p3(0) - R_p(0)*R_p3(2);
-    N3(2) = R_p(0)*R_p3(1) - R_p(1)*R_p3(0);
+    N3[0] = R_p[1]*R_p3[2] - R_p[2]*R_p3[1];
+    N3[1] = R_p[2]*R_p3[0] - R_p[0]*R_p3[2];
+    N3[2] = R_p[0]*R_p3[1] - R_p[1]*R_p3[0];
 
-    double num2 = N3(0) * sigma_P_apex(0) + N3(1) * sigma_P_apex(1) + N3(2) * sigma_P_apex(2);
-    double den2 = N3(0) + friction_coefficient * N3(1) + friction_coefficient * N3(2);
+    double num2 = N3[0] * sigma_P_apex[0] + N3[1] * sigma_P_apex[1] + N3[2] * sigma_P_apex[2];
+    double den2 = N3[0] + friction_coefficient * N3[1] + friction_coefficient * N3[2];
     const double t2 = num2 / den2 ;
 
     // rRegion detection and return determination
@@ -271,18 +271,18 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     if(t1 > 0 || t2 > 0) //check: both the conditions have to be satisfied
     {
         rRegion = 4;
-        rPrincipalStressUpdated(0) = apex;
-        rPrincipalStressUpdated(1) = apex;
-        rPrincipalStressUpdated(2) = apex;
+        rPrincipalStressUpdated[0] = apex;
+        rPrincipalStressUpdated[1] = apex;
+        rPrincipalStressUpdated[2] = apex;
     }
     
     // Return mapping to line 1     
     else if(pI_II < 0)
     {
         rRegion = 2;
-        rPrincipalStressUpdated(0) = t1 + apex;
-        rPrincipalStressUpdated(1) = t1 + apex;
-        rPrincipalStressUpdated(2) = t1 * friction_coefficient + apex;
+        rPrincipalStressUpdated[0] = t1 + apex;
+        rPrincipalStressUpdated[1] = t1 + apex;
+        rPrincipalStressUpdated[2] = t1 * friction_coefficient + apex;
     }
 
     // Return mapping to the yield surface
@@ -290,18 +290,18 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     {
         rRegion = 1;
         const double state_function     = rReturnMappingVariables.TrialStateFunction;
-        rPrincipalStressUpdated(0) = rPrincipalStress(0) -  state_function * R_p(0);
-        rPrincipalStressUpdated(1) = rPrincipalStress(1) -  state_function * R_p(1);
-        rPrincipalStressUpdated(2) = rPrincipalStress(2) -  state_function * R_p(2);
+        rPrincipalStressUpdated[0] = rPrincipalStress[0] -  state_function * R_p[0];
+        rPrincipalStressUpdated[1] = rPrincipalStress[1] -  state_function * R_p[1];
+        rPrincipalStressUpdated[2] = rPrincipalStress[2] -  state_function * R_p[2];
     }
 
     // Return mapping to line 2
     else
     {
         rRegion = 3;
-        rPrincipalStressUpdated(0) = t2 + apex;
-        rPrincipalStressUpdated(1) = t2 * friction_coefficient + apex;
-        rPrincipalStressUpdated(2) = t2 * friction_coefficient + apex;
+        rPrincipalStressUpdated[0] = t2 + apex;
+        rPrincipalStressUpdated[1] = t2 * friction_coefficient + apex;
+        rPrincipalStressUpdated[2] = t2 * friction_coefficient + apex;
     }
 
     return true;
@@ -310,10 +310,10 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
 void MCPlasticFlowRule::ComputeElasticMatrix_3X3(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix)
 {
 
-    const double young_modulus        = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    const double young_modulus  = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
     const double poisson_ratio  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
 
-    const double diagonal   = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
+    const double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
     const double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
 
     for (unsigned int i = 0; i<3; ++i)
@@ -334,11 +334,11 @@ void MCPlasticFlowRule::ComputeElasticMatrix_3X3(const RadialReturnVariables& rR
 
 void MCPlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rInverseElasticMatrix)
 {
-    const double young_modulus        = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    const double young_modulus  = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
     const double poisson_ratio  = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
 
-    const double lame_lambda         = (young_modulus*poisson_ratio)/((1+poisson_ratio)*(1-2*poisson_ratio));
-    const double lame_mu             =  young_modulus/(2*(1+poisson_ratio));
+    const double lame_lambda  = (young_modulus*poisson_ratio)/((1+poisson_ratio)*(1-2*poisson_ratio));
+    const double lame_mu      =  young_modulus/(2*(1+poisson_ratio));
 
     const double diagonal    = (lame_lambda + lame_mu)/(lame_mu*(3.0*lame_lambda+2.0*lame_mu));
     const double nondiagonal = (-lame_lambda)/( 2.0*lame_mu*(3.0*lame_lambda + 2.0*lame_mu));
@@ -361,12 +361,12 @@ void MCPlasticFlowRule::CalculateInverseElasticMatrix(const RadialReturnVariable
 
 void MCPlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rElasticMatrix)
 {
-    const double young_modulus      = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double poisson_ratio         = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    const double young_modulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    const double poisson_ratio = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
     
-    const double diagonal   = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
+    const double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
     const double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
-    const double corte      = young_modulus/(1.0+poisson_ratio)/2.0;
+    const double corte       = young_modulus/(1.0+poisson_ratio)/2.0;
 
     for (unsigned int i = 0; i<3; ++i)
     {
@@ -390,7 +390,7 @@ void MCPlasticFlowRule::CalculateElasticMatrix(const RadialReturnVariables& rRet
 
 void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
 {
-    Vector main_strain      = ZeroVector(3);
+    Vector main_strain = ZeroVector(3);
 
     for (unsigned int i = 0; i<3; ++i)
     {
@@ -426,7 +426,7 @@ void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariable
 
     for(unsigned int i=0; i<3; i++)
     {
-        rStressMatrix(i,i) = principal_stress(i);
+        rStressMatrix(i,i) = principal_stress[i];
     }
 }
     
@@ -439,9 +439,9 @@ void MCPlasticFlowRule::ReturnStressFromPrincipalAxis(const Matrix& rEigenVector
     for (unsigned int i = 0; i<3; ++i)
     {
         for (unsigned int j = 0; j<3; ++j)
-            aux_N(j) = rEigenVectors(j,i);
+            aux_N[j] = rEigenVectors(j,i);
         aux_M = MathUtils<double>::TensorProduct3(aux_N, aux_N);
-        rStressMatrix += rPrincipalStress(i)*aux_M;
+        rStressMatrix += rPrincipalStress[i]*aux_M;
     }
 }
 
@@ -449,19 +449,19 @@ void MCPlasticFlowRule::ReturnStressFromPrincipalAxis(const Matrix& rEigenVector
 // the principal stresses are in descending order
 void MCPlasticFlowRule::CalculateModificationMatrix(const RadialReturnVariables& rReturnMappingVariables, Matrix& rAuxT, Matrix& rInvAuxT)
 {
-    if(mPrincipalStressUpdated(0) - mPrincipalStressUpdated(1) > 0)
+    if(mPrincipalStressUpdated[0] - mPrincipalStressUpdated[1] > 0)
     {
-        rAuxT(0,0) = (mPrincipalStressUpdated(0) - mPrincipalStressUpdated(1))/(mPrincipalStressTrial(0) - mPrincipalStressTrial(1));
+        rAuxT(0,0) = (mPrincipalStressUpdated[0] - mPrincipalStressUpdated[1])/(mPrincipalStressTrial[0] - mPrincipalStressTrial[1]);
         rInvAuxT(0,0) = 1/rAuxT(0,0);
     }
-    if(mPrincipalStressUpdated(0) - mPrincipalStressUpdated(2) > 0)
+    if(mPrincipalStressUpdated[0] - mPrincipalStressUpdated[2] > 0)
     {
-        rAuxT(1,1) = (mPrincipalStressUpdated(0) - mPrincipalStressUpdated(2))/(mPrincipalStressTrial(0) - mPrincipalStressTrial(2));
+        rAuxT(1,1) = (mPrincipalStressUpdated[0] - mPrincipalStressUpdated[2])/(mPrincipalStressTrial[0] - mPrincipalStressTrial[2]);
         rInvAuxT(1,1) = 1/rAuxT(1,1);
     }
-    if(mPrincipalStressUpdated(1) - mPrincipalStressUpdated(2) > 0)
+    if(mPrincipalStressUpdated[1] - mPrincipalStressUpdated[2] > 0)
     {
-        rAuxT(2,2) = (mPrincipalStressUpdated(1) - mPrincipalStressUpdated(2))/(mPrincipalStressTrial(1) - mPrincipalStressTrial(2));
+        rAuxT(2,2) = (mPrincipalStressUpdated[1] - mPrincipalStressUpdated[2])/(mPrincipalStressTrial[1] - mPrincipalStressTrial[2]);
         rInvAuxT(2,2) = 1/rAuxT(2,2);
     }
 }
@@ -479,7 +479,7 @@ void MCPlasticFlowRule::CalculateDepSurface(Matrix& rElasticMatrix, Vector& rFNo
     {
         for(unsigned int j = 0; j<3; j++)
         {
-            num(i,j) = a(i) * b(j);
+            num(i,j) = a[i] * b[j];
         }
     }
 
@@ -496,7 +496,7 @@ void MCPlasticFlowRule::CalculateDepLine(Matrix& rInvD, Vector& rFNorm, Vector& 
     {
         for(unsigned int j = 0; j<3; j++)
         {
-            num(i,j) = rFNorm(i) * rGNorm(j);
+            num(i,j) = rFNorm[i] * rGNorm[j];
         }
     }
 
@@ -522,22 +522,22 @@ void MCPlasticFlowRule::CalculateTransformationMatrix(const Matrix& rMainDirecti
         }
     }
     Vector Hj1 = ZeroVector(3);
-    Hj1(0) = 0;
-    Hj1(1) = 2;
-    Hj1(2) = 1;
+    Hj1[0] = 0;
+    Hj1[1] = 2;
+    Hj1[2] = 1;
 
     Vector Hj2 = ZeroVector(3);
-    Hj2(0) = 1;
-    Hj2(1) = 0;
-    Hj2(2) = 2;
+    Hj2[0] = 1;
+    Hj2[1] = 0;
+    Hj2[2] = 2;
 
     for(unsigned int k = 0; k<3; k++)
     {
         for(unsigned int l = 0; l<3; l++)
         {
-            A2(k,l) = rMainDirection(k,Hj1(l)) * rMainDirection(k,Hj2(l));
-            A3(k,l) = rMainDirection(Hj1(k),l) * rMainDirection(Hj2(k),l);
-            A4(k,l) = rMainDirection(Hj1(k),Hj1(l)) * rMainDirection(Hj2(k),Hj2(l)) + rMainDirection(Hj2(k),Hj1(l)) * rMainDirection(Hj1(k),Hj2(l));
+            A2(k,l) = rMainDirection(k,Hj1[l]) * rMainDirection(k,Hj2[l]);
+            A3(k,l) = rMainDirection(Hj1[k],l) * rMainDirection(Hj2[k],l);
+            A4(k,l) = rMainDirection(Hj1[k],Hj1[l]) * rMainDirection(Hj2[k],Hj2[l]) + rMainDirection(Hj2[k],Hj1[l]) * rMainDirection(Hj1[k],Hj2[l]);
         }
     }
 
@@ -608,7 +608,7 @@ void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables
 {
     
     const double young_modulus      = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double poisson_ratio         = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    const double poisson_ratio      = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
     const double shear_contribution = young_modulus/(1.0+poisson_ratio)/2.0;
 
     const double friction_angle  = mMaterialParameters.FrictionAngle; 
@@ -624,15 +624,15 @@ void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables
         {
             // Yield plane normal
             Vector F_norm = ZeroVector(3);
-            F_norm(0) = friction_coefficient;
-            F_norm(1) = 0;
-            F_norm(2) = -1;
+            F_norm[0] = friction_coefficient;
+            F_norm[1] = 0;
+            F_norm[2] = -1;
 
             // Potential plane normal
             Vector G_norm = ZeroVector(3);
-            G_norm(0) = dilatancy_coefficient;
-            G_norm(1) = 0;
-            G_norm(2) = -1;
+            G_norm[0] = dilatancy_coefficient;
+            G_norm[1] = 0;
+            G_norm[2] = -1;
             Matrix aux_D_ep = ZeroMatrix(3,3);
 
             // Compute elastic matrix which takes account only for normal stresses
@@ -661,15 +661,15 @@ void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables
         {
             // Edge line direction
             Vector L_F_dir = ZeroVector(3);
-            L_F_dir(0) = 1;
-            L_F_dir(1) = 1;
-            L_F_dir(2) = friction_coefficient;
+            L_F_dir[0] = 1;
+            L_F_dir[1] = 1;
+            L_F_dir[2] = friction_coefficient;
 
             // Potential edge line direction
             Vector L_G_dir = ZeroVector(3);
-            L_G_dir(0) = 1;
-            L_G_dir(1) = 1;
-            L_G_dir(2) = dilatancy_coefficient;
+            L_G_dir[0] = 1;
+            L_G_dir[1] = 1;
+            L_G_dir[2] = dilatancy_coefficient;
 
             Matrix inv_elastic_matrix = ZeroMatrix(3,3);
             this->CalculateInverseElasticMatrix(rReturnMappingVariables, inv_elastic_matrix);
@@ -696,15 +696,15 @@ void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables
         {
             //Edge line direction
             Vector L_F_dir = ZeroVector(3);
-            L_F_dir(0) = 1;
-            L_F_dir(1) = friction_coefficient;
-            L_F_dir(2) = friction_coefficient;
+            L_F_dir[0] = 1;
+            L_F_dir[1] = friction_coefficient;
+            L_F_dir[2] = friction_coefficient;
 
             //Potential edge line direction
             Vector L_G_dir = ZeroVector(3);
-            L_G_dir(0) = 1;
-            L_G_dir(1) = dilatancy_coefficient;
-            L_G_dir(2) = dilatancy_coefficient;
+            L_G_dir[0] = 1;
+            L_G_dir[1] = dilatancy_coefficient;
+            L_G_dir[2] = dilatancy_coefficient;
 
             Matrix inv_elastic_matrix = ZeroMatrix(3,3);
             this->CalculateInverseElasticMatrix(rReturnMappingVariables, inv_elastic_matrix);
@@ -735,7 +735,7 @@ Matrix MCPlasticFlowRule::GetElasticLeftCauchyGreen(RadialReturnVariables& rRetu
     Vector lambda_2 = ZeroVector(3);
 
     for (unsigned int i = 0; i<3; ++i)
-        lambda_2(i) = std::exp(2.0*mElasticPrincipalStrain(i));
+        lambda_2[i] = std::exp(2.0*mElasticPrincipalStrain[i]);
 
     Matrix output = ZeroMatrix(3,3);
     this->ReturnStressFromPrincipalAxis(rReturnMappingVariables.MainDirections, lambda_2, output);
@@ -753,7 +753,7 @@ bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnM
     double volumetric_plastic_principal_strain = sum(mPlasticPrincipalStrain);
     Vector deviatoric_plastic_principal_strain = mPlasticPrincipalStrain;
     for (unsigned int i = 0; i<3; ++i)
-        deviatoric_plastic_principal_strain(i) -= 1.0/3.0 * volumetric_plastic_principal_strain;
+        deviatoric_plastic_principal_strain[i] -= 1.0/3.0 * volumetric_plastic_principal_strain;
     double plastic_deviatoric_strain = std::sqrt(2.0/3.0) * norm_2(deviatoric_plastic_principal_strain);
 
     const double friction_angle  = mMaterialParameters.FrictionAngle; 
