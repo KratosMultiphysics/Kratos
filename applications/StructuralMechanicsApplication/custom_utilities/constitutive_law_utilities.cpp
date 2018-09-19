@@ -180,9 +180,13 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStresses(
     )
 {
     double I1, I2, I3;
-    CalculateI1Invariant(rStressVector, I1);
-    CalculateI2Invariant(rStressVector, I2);
-    CalculateI3Invariant(rStressVector, I3);
+    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils<double>::VectorToSymmetricTensor<array_1d<double, VoigtSize>, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
+    double norm = norm_frobenius(tensor);
+    if (norm < tolerance) norm = 1.0;
+    const array_1d<double, VoigtSize> norm_stress_vector = rStressVector/norm;
+    CalculateI1Invariant(norm_stress_vector, I1);
+    CalculateI2Invariant(norm_stress_vector, I2);
+    CalculateI3Invariant(norm_stress_vector, I3);
     const double II1 = std::pow(I1, 2);
 
     const double R = (2.0 * II1 * I1 - 9.0 * I2 * I1 + 27.0 * I3)/54.0;
@@ -195,11 +199,10 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStresses(
         const double aux1 = 2.0 * std::sqrt(-Q);
         const double aux2 = I1 / 3.0;
         const double deg_120 = 2.0/3.0 * Globals::Pi;
-        const double deg_240 = 2 * deg_120;
 
-        rPrincipalStressVector[0] = aux2 + aux1 * std::cos(phi_3);
-        rPrincipalStressVector[1] = aux2 + aux1 * std::cos(phi_3 + deg_120);
-        rPrincipalStressVector[2] = aux2 + aux1 * std::cos(phi_3 + deg_240);
+        for (IndexType i = 0; i < 3; ++i) {
+            rPrincipalStressVector[i] = norm * (aux2 + aux1 * std::cos(phi_3 + deg_120 * i));
+        }
     } else {
         for (IndexType i = 0; i < Dimension; ++i) {
             rPrincipalStressVector[i] = rStressVector[i];
