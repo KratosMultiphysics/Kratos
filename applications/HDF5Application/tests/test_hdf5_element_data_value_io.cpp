@@ -73,23 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     for (auto& r_write_element : write_model_part.Elements())
     {
         HDF5::ElementType& r_read_element = read_model_part.Elements()[r_write_element.Id()];
-
-        KRATOS_CHECK(r_read_element.GetValue(DISPLACEMENT_X) ==
-                     r_write_element.GetValue(DISPLACEMENT_X));
-        KRATOS_CHECK(r_read_element.GetValue(DISPLACEMENT_Y) ==
-                     r_write_element.GetValue(DISPLACEMENT_Y));
-        KRATOS_CHECK(r_read_element.GetValue(DISPLACEMENT_Z) ==
-                     r_write_element.GetValue(DISPLACEMENT_Z));
-        KRATOS_CHECK(r_read_element.GetValue(PRESSURE) ==
-                     r_write_element.GetValue(PRESSURE));
-        KRATOS_CHECK(r_read_element.GetValue(REFINEMENT_LEVEL) ==
-                     r_write_element.GetValue(REFINEMENT_LEVEL));
-        auto const& read_matrix = r_read_element.GetValue(GREEN_LAGRANGE_STRAIN_TENSOR);
-        auto const& write_matrix = r_write_element.GetValue(GREEN_LAGRANGE_STRAIN_TENSOR);
-        for (int i=0; i < static_cast<int>(read_matrix.size1()); ++i)
-            for (int j=0; j < static_cast<int>(read_matrix.size2()); ++j)
-                KRATOS_CHECK(read_matrix(i,j) == write_matrix(i,j));
-
+        CompareDataValueContainers(r_read_element.Data(), r_write_element.Data());
     }
 }
 
