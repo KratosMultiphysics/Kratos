@@ -217,9 +217,13 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano
     )
 {
     double a, b, c;
-    CalculateI1Invariant(rStressVector, a);
-    CalculateI2Invariant(rStressVector, b);
-    CalculateI3Invariant(rStressVector, c);
+    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils<double>::VectorToSymmetricTensor<array_1d<double, VoigtSize>, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
+    double norm = norm_frobenius(tensor);
+    if (norm < tolerance) norm = 1.0;
+    const array_1d<double, VoigtSize> norm_stress_vector = rStressVector/norm;
+    CalculateI1Invariant(norm_stress_vector, a);
+    CalculateI2Invariant(norm_stress_vector, b);
+    CalculateI3Invariant(norm_stress_vector, c);
 
     const double p = b - std::pow(a, 2)/3.0;
     const double q = 2.0 * std::pow(a, 3)/27.0 - (a * b)/3.0 + c;
@@ -233,7 +237,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano
             const double base_sol = a / 3.0;
             const double phi_3 = 1.0/3.0 * std::acos(-3.0*q/(p * 2.0) * std::sqrt(-3.0/p));
             for (IndexType i = 0; i < 3; ++i) {
-                rPrincipalStressVector[i] = base_sol + aux * std::cos(phi_3 - 2.0/3.0 * Globals::Pi * i);
+                rPrincipalStressVector[i] = (base_sol + aux * std::cos(phi_3 - 2.0/3.0 * Globals::Pi * i)) * norm;
             }
         } else { // Equal to zero
             rPrincipalStressVector[0] = 3.0 * q/p;
