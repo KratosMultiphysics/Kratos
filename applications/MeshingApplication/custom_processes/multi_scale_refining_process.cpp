@@ -39,10 +39,8 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
 {
     Parameters DefaultParameters = Parameters(R"(
     {
-        "element_name"                        : "Element2D3N",
-        "condition_name"                      : "Condition2D2N",
-        "echo_level"                          : 0,
         "number_of_divisions_at_subscale"     : 2,
+        "echo_level"                          : 0,
         "origin_interface_name"               : "coarse_interface",
         "subscale_interface_name"             : "refined_interface",
         "subscale_boundary_condition"         : "Condition2D2N"
@@ -51,11 +49,8 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
 
     mParameters.ValidateAndAssignDefaults(DefaultParameters);
 
-    mEchoLevel = mParameters["echo_level"].GetInt();
     mDivisionsAtSubscale = mParameters["number_of_divisions_at_subscale"].GetInt();
-
-    mElementName = mParameters["element_name"].GetString();
-    mConditionName = mParameters["condition_name"].GetString();
+    mEchoLevel = mParameters["echo_level"].GetInt();
 
     mCoarseInterfaceName = mParameters["origin_interface_name"].GetString();
     mRefinedInterfaceName = mParameters["subscale_interface_name"].GetString();
@@ -85,8 +80,6 @@ void MultiScaleRefiningProcess::Check()
 {
     KRATOS_TRY
 
-    KRATOS_CHECK(KratosComponents<Element>::Has(mElementName));
-    KRATOS_CHECK(KratosComponents<Condition>::Has(mConditionName));
     KRATOS_CHECK(KratosComponents<Condition>::Has(mInterfaceConditionName));
 
     KRATOS_CHECK_NOT_EQUAL(mDivisionsAtSubscale, 0);

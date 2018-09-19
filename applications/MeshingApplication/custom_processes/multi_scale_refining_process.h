@@ -226,13 +226,8 @@ public:
     ModelPart& mrVisualizationModelPart;
     Parameters mParameters;
 
-    std::string mElementName;
-    std::string mConditionName;
-
     unsigned int mEchoLevel;
     unsigned int mDivisionsAtSubscale;
-
-    StringVectorType mModelPartsNames;  /// The names of the sub model parts hierarchy
 
     IndexNodeMapType mCoarseToRefinedNodesMap; /// Mapping from coarse to refined
     IndexNodeMapType mRefinedToCoarseNodesMap; /// Mapping from refined to coarse
