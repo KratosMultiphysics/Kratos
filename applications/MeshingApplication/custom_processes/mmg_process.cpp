@@ -398,6 +398,24 @@ void MmgProcess<TDim>::InitializeMeshData()
         SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], i + 1);
     }
 
+    // Create auxiliar colors maps
+    ColorsMapType aux_ref_cond;
+    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)  {
+        auto it_cond = conditions_array.begin() + i;
+        const IndexType cond_id = it_cond->Id();
+        const IndexType color = cond_colors[cond_id];
+        if (!(aux_ref_cond.find(color) != aux_ref_cond.end()))
+            aux_ref_cond.insert (IndexPairType(color,cond_id));
+    }
+    ColorsMapType aux_ref_elem;
+    for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
+        auto it_elem = elements_array.begin() + i;
+        const IndexType elem_id = it_elem->Id();
+        const IndexType color = elem_colors[elem_id];
+        if (!(aux_ref_elem.find(color) != aux_ref_elem.end()))
+            aux_ref_elem.insert (IndexPairType(color,elem_id));
+    }
+
     /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
     // First we add the main model part
     bool to_check_cond = false, to_check_elem = false;
@@ -412,38 +430,15 @@ void MmgProcess<TDim>::InitializeMeshData()
         mpRefElement[0] = elements_array.begin()->Create(0, elements_array.begin()->GetGeometry(), elements_array.begin()->pGetProperties());
         to_check_elem = true;
     }
-    // Now we iterate over the model parts
-    for (auto & color_list : mColors) {
-        const IndexType key = color_list.first;
 
-        if (((to_check_cond == false) && (to_check_elem == false))) break;
-
-        if (key != 0) { // NOTE: key == 0 is the MainModelPart
-            bool cond_added = false, elem_added = false;
-
-            for (auto sub_model_part_name : color_list.second) {
-                ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
-
-                if (to_check_cond) {
-                    ConditionsArrayType& conditions_array_sub_model_part = r_sub_model_part.Conditions();
-
-                    if (conditions_array_sub_model_part.size() > 0) {
-                        mpRefCondition[key] = conditions_array_sub_model_part.begin()->Create(0, conditions_array_sub_model_part.begin()->GetGeometry(), conditions_array_sub_model_part.begin()->pGetProperties());
-                        cond_added = true;
-                    }
-                }
-                if (to_check_elem) {
-                    ElementsArrayType& elements_array_sub_model_part = r_sub_model_part.Elements();
-
-                    if (elements_array_sub_model_part.size() > 0) {
-                        mpRefElement[key] = elements_array_sub_model_part.begin()->Create(0, elements_array_sub_model_part.begin()->GetGeometry(), elements_array_sub_model_part.begin()->pGetProperties());
-                        elem_added = true;
-                    }
-                }
-
-                if ((cond_added && elem_added)) break;
-            }
-        }
+    // Now we add the reference elements and conditions
+    for (auto& ref_cond : aux_ref_cond) {
+        Condition::Pointer p_cond = mrThisModelPart.pGetCondition(ref_cond.second);
+        mpRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry(), p_cond->pGetProperties());
+    }
+    for (auto& ref_elem : aux_ref_elem) {
+        Element::Pointer p_elem = mrThisModelPart.pGetElement(ref_elem.second);
+        mpRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
     }
 }
 
