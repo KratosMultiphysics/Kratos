@@ -184,8 +184,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def( "__repr__", &Variable<array_1d<double, 3> >::Info )
     ;
 
-    class_<Variable<array_1d<double, 4> >,Vari    .def(init<const std::string&>())
-ableData>(m, "Array1DVariable4")
+    class_<Variable<array_1d<double, 4> >,VariableData>(m, "Array1DVariable4")
     .def(init<const std::string&>())
     .def( "__repr__", &Variable<array_1d<double, 4> >::Info )
     ;
@@ -226,31 +225,26 @@ ableData>(m, "Array1DVariable4")
     ;
 
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >,VariableData>(m, "Array1DComponentVariable")
-    .def(init<const std::string&>())
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::Info )
     .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::GetSourceVariable )
     ;
 
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >,VariableData>(m, "Array1D4ComponentVariable")
-    .def(init<const std::string&>())
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >::Info )
     .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >::GetSourceVariable )
     ;
 
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >,VariableData>(m, "Array1D6ComponentVariable")
-    .def(init<const std::string&>())
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >::Info )
     .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >::GetSourceVariable )
     ;
 
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >,VariableData>(m, "Array1D9ComponentVariable")
-    .def(init<const std::string&>())
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >::Info )
     .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >::GetSourceVariable )
     ;
 
     class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
-    .def(init<const std::string&>())
     .def( "__repr__", &Variable<Quaternion<double> >::Info )
     ;
 
@@ -528,8 +522,7 @@ ableData>(m, "Array1DVariable4")
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, LAGRANGE_DISPLACEMENT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_AIR_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_WATER_PRESSURE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_    .def(init<const std::string&>())
-TEMPERATURE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_TEMPERATURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTERNAL_FRICTION_ANGLE )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_DISPLACEMENT )
