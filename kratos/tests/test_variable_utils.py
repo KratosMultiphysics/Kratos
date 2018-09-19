@@ -75,7 +75,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         for element in destination_model_part.Elements:
             self.assertEqual(element.GetValue(DENSITY), element.Id*100)
             self.assertEqual(element.GetValue(VOLUME_ACCELERATION)[0], element.Id*100)
-        
+
 
     def test_set_variable(self):
         ##set the model part
@@ -101,7 +101,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 2.0)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 3.0)
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), viscosity)
-            
+
     def test_set_nonhistorical_variable(self):
         ##set the model part
         model_part = ModelPart("Main")
@@ -118,7 +118,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         displacement[2] = 3.0
 
         # First for nodes
-        VariableUtils().SetNonHistoricalScalarVar(VISCOSITY, viscosity, model_part.Nodes)
+        VariableUtils().SetNonHistoricalVariable(VISCOSITY, viscosity, model_part.Nodes)
         VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Nodes)
 
         ##verify the result
@@ -127,7 +127,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetValue(DISPLACEMENT_Y), 2.0)
             self.assertEqual(node.GetValue(DISPLACEMENT_Z), 3.0)
             self.assertEqual(node.GetValue(VISCOSITY), viscosity)
-            
+
         # Now for conditions (it will work for elements too)
         VariableUtils().SetNonHistoricalVariable(VISCOSITY, viscosity, model_part.Conditions)
         VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Conditions)
@@ -156,7 +156,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         displacement[2] = 3.0
 
         # First for nodes
-        VariableUtils().SetNonHistoricalScalarVar(VISCOSITY, viscosity, model_part.Nodes)
+        VariableUtils().SetNonHistoricalVariable(VISCOSITY, viscosity, model_part.Nodes)
         VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Nodes)
 
         ##verify the result
@@ -410,4 +410,5 @@ class TestVariableUtils(KratosUnittest.TestCase):
 
 
 if __name__ == '__main__':
+    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
     KratosUnittest.main()
