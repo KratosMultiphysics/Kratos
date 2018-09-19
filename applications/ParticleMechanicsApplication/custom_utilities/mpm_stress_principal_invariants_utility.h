@@ -62,28 +62,28 @@ namespace Kratos
                   }
 
                   // Reorder and swap
-                  if(rPrincipalStress(0)<rPrincipalStress(1))
+                  if(rPrincipalStress[0]<rPrincipalStress[1])
                   {
-                        std::swap(rPrincipalStress(0),rPrincipalStress(1));
-                        std::swap(rMainStrain(0),rMainStrain(1));
+                        std::swap(rPrincipalStress[0],rPrincipalStress[1]);
+                        std::swap(rMainStrain[0],rMainStrain[1]);
                         Matrix TempMatrix = PrincipalDirection1;
                         PrincipalDirection1 = PrincipalDirection2;
                         PrincipalDirection2 = TempMatrix;
                   }
 
-                  if(rPrincipalStress(1)<rPrincipalStress(2))
+                  if(rPrincipalStress[1]<rPrincipalStress[2])
                   {
-                        std::swap(rPrincipalStress(1),rPrincipalStress(2));
-                        std::swap(rMainStrain(1),rMainStrain(2));
+                        std::swap(rPrincipalStress[1],rPrincipalStress[2]);
+                        std::swap(rMainStrain[1],rMainStrain[2]);
                         Matrix TempMatrix = PrincipalDirection2;
                         PrincipalDirection2 = PrincipalDirection3;
                         PrincipalDirection3 = TempMatrix;
                   }
 
-                  if(rPrincipalStress(0)<rPrincipalStress(1))
+                  if(rPrincipalStress[0]<rPrincipalStress[1])
                   {
-                        std::swap(rPrincipalStress(0),rPrincipalStress(1));
-                        std::swap(rMainStrain(0),rMainStrain(1));
+                        std::swap(rPrincipalStress[0],rPrincipalStress[1]);
+                        std::swap(rMainStrain[0],rMainStrain[1]);
                         Matrix TempMatrix = PrincipalDirection1;
                         PrincipalDirection1 = PrincipalDirection2;
                         PrincipalDirection2 = TempMatrix;
@@ -109,18 +109,18 @@ namespace Kratos
                   // Volumetric Equivalent
                   I1 = 0;
                   for (unsigned int i = 0; i < 3; ++i)
-                        I1 += rStress(i);
+                        I1 += rStress[i];
                   I1 /= 3.0;
 
                   // Deviatoric Equivalent
                   J2 = 0;
                   for (unsigned int i = 0; i < 3; i++)
-                        J2 += std::pow( rStress(i) - I1, 2);
+                        J2 += std::pow( rStress[i] - I1, 2);
 
                   if ( rStress.size() == 6 )
                   {
                         for (unsigned int i = 3; i < 6; i++)
-                              J2 += 2.0 * std::pow( rStress(i), 2);
+                              J2 += 2.0 * std::pow( rStress[i], 2);
                   }
 
                   J2 = std::sqrt( J2/2.0 );
