@@ -99,7 +99,17 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         Vector& r_plastic_strain = this->GetPlasticStrain();
 
         // S0 = r_constitutive_matrix:(E-Ep)
-        array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
+        // array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
+
+
+        // AUX to be discussed and removed
+        array_1d<double, VoigtSize> predictive_stress_vector;
+        if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
+            predictive_stress_vector = rValues.GetStressVector();
+        } else {
+            predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
+        }
+        //***************************
 
         // Initialize Plastic Parameters
         double uniaxial_stress = 0.0, plastic_denominator = 0.0;
