@@ -1,0 +1,98 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "rectangular_plate_structure",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "eigen_value",
+        "scheme_type"                        : "dynamic",
+        "echo_level"                         : 0,
+        "model_part_name" : "rectangular_plate_structure",
+        "domain_size"     : 3,
+        "time_stepping" : {
+            "time_step"       : 1.1
+        },
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "eigenfrequency_structure"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "StructuralMaterials.json"
+        },
+        "eigensolver_settings":{
+            "solver_type": "eigen_eigensystem",
+            "number_of_eigenvalues": 1,
+            "normalize_eigenvectors": true,
+            "max_iteration": 1000,
+            "tolerance": 1e-8,
+            "echo_level": 0
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
+        "processes_sub_model_part_list"      : ["support"],
+        "rotation_dofs"                      : true
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "rectangular_plate_structure.support",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "rectangular_plate_structure.support",
+            "variable_name"   : "ROTATION",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "contact_process_list"     : [],
+    "loads_process_list"       : [],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","SHAPE_SENSITIVITY"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "list_other_processes": [
+    ],
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}

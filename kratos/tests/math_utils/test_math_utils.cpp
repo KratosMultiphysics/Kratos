@@ -550,7 +550,7 @@ namespace Kratos
             }
 
             // We check the Right inverse
-            mat.resize(j_dim, i_dim);
+            mat.resize(j_dim, i_dim, false);
             mat = ZeroMatrix(j_dim, i_dim);
 
             mat(0,0) = 0.786075;

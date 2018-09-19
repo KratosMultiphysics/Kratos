@@ -150,7 +150,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_X, CSMA.WEIGHTED_VECTOR_RESIDUAL_X, self.main_model_part)
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, CSMA.WEIGHTED_VECTOR_RESIDUAL_Y, self.main_model_part)
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Z, CSMA.WEIGHTED_VECTOR_RESIDUAL_Z, self.main_model_part)
-            
+
         self.print_on_rank_zero("::[Contact Mechanical Implicit Dynamic Solver]:: ", "DOF's ADDED")
 
     def Initialize(self):
@@ -274,7 +274,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
             linear_solver = self.get_linear_solver()
             if self.settings["block_builder"].GetBool():
                 if self.settings["multi_point_constraints_used"].GetBool():
-                    raise Exception("MPCs not compatible with contact")
+                    builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolverWithConstraints(linear_solver)
                 else:
                     builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:

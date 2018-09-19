@@ -40,7 +40,7 @@ namespace Python
 void  AddAMGCLSolverToPython(pybind11::module& m)
 {
 #ifndef KRATOS_DISABLE_AMGCL
-    typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+	typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
 

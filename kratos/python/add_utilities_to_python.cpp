@@ -52,6 +52,7 @@
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/sub_model_parts_list_utility.h"
+#include "utilities/merge_variable_lists_utility.h"
 #include "utilities/variable_redistribution_utility.h"
 
 namespace Kratos
@@ -77,7 +78,7 @@ void AddUtilitiesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
@@ -108,7 +109,6 @@ void AddUtilitiesToPython(pybind11::module& m)
     ;
 
     // This is required to recognize the different overloads of ConditionNumberUtility::GetConditionNumber
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef double (ConditionNumberUtility::*InputGetConditionNumber)(SparseSpaceType::MatrixType&, LinearSolverType::Pointer, LinearSolverType::Pointer);
     typedef double (ConditionNumberUtility::*DirectGetConditionNumber)(SparseSpaceType::MatrixType&);
 
@@ -565,6 +565,10 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
     ;
 
+    class_<MergeVariableListsUtility, typename MergeVariableListsUtility::Pointer>(m, "MergeVariableListsUtility")
+    .def(init<>())
+    .def("Merge",&MergeVariableListsUtility::Merge)
+    ;
     // VariableRedistributionUtility
     typedef void (*DistributePointDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&, double, unsigned int);
     typedef void (*DistributePointArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&,double, unsigned int);

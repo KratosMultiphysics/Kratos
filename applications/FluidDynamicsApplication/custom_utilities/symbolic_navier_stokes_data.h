@@ -38,6 +38,8 @@ public:
 
 using NodalScalarData = typename FluidElementData<TDim,TNumNodes, true>::NodalScalarData;
 using NodalVectorData = typename FluidElementData<TDim,TNumNodes, true>::NodalVectorData;
+using ShapeFunctionsType = typename FluidElementData<TDim,TNumNodes, true>::ShapeFunctionsType;
+using MatrixRowType = typename FluidElementData<TDim,TNumNodes, true>::MatrixRowType;
 
 ///@}
 ///@name Public Members
@@ -106,7 +108,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 void UpdateGeometryValues(
     const unsigned int IntegrationPointIndex,
     double NewWeight,
-    const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
+    const MatrixRowType& rN,
     const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX) override
 {
     FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex,NewWeight,rN,rDN_DX);
