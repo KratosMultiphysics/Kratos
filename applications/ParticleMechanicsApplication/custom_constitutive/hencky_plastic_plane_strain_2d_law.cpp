@@ -106,17 +106,6 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix 
 
 }
 
-Matrix HenckyElasticPlasticPlaneStrain2DLaw::SetMatrixToAppropriateDimension(Matrix& rMatrix){
-    if(rMatrix.size1() == 3){
-        rMatrix.resize( 2, 2, true);
-        return rMatrix;
-    }
-    else if (rMatrix.size1() == 2) { 
-        return rMatrix;
-    }
-    else KRATOS_ERROR << "Wrong size of input matrix:: Conversion is unknown!" << std::endl;
-}
-
 Vector HenckyElasticPlasticPlaneStrain2DLaw::SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix)
 {
     rStressVector = MathUtils<double>::StressTensorToVector( rStressMatrix, rStressVector.size() );
