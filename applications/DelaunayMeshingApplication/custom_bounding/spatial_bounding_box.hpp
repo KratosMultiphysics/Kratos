@@ -828,6 +828,15 @@ public:
        return mBox.Center;
     }
 
+    //**************************************************************************
+    //**************************************************************************
+
+    virtual PointType GetCenter(const PointType& rPoint)
+    {
+      KRATOS_WARNING("") << "Calling spatial bounding box base class method "<<std::endl;
+      BeamMathUtilsType::MapToReferenceLocalFrame(mBox.InitialLocalQuaternion, mBox.Center);
+      return mBox.Center;
+    }
 
     //**************************************************************************
     //**************************************************************************
