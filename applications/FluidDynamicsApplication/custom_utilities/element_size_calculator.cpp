@@ -255,7 +255,7 @@ double ElementSizeCalculator<2,3>::ProjectedElementSize(const Geometry<Node<3> >
     const unsigned int NumNodes = 3;
 
     // Loop over edges looking for maximum 'projected' length
-    array_1d<double,3> Edge(3,0.0);
+    array_1d<double,3> Edge;
     for(unsigned int i = 0; i < NumNodes; ++i)
     {
         unsigned int j = (i+1) % NumNodes;
@@ -296,7 +296,7 @@ double ElementSizeCalculator<3,4>::ProjectedElementSize(const Geometry<Node<3> >
     const unsigned int NumNodes = 4;
 
     // Loop over edges looking for maximum 'projected' length
-    array_1d<double,3> Edge(3,0.0);
+    array_1d<double,3> Edge;
     for(unsigned int i = 0; i < NumNodes; ++i)
     {
         for(unsigned int j = i+1; j < NumNodes; ++j)
@@ -360,7 +360,7 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >
         double det;
         MathUtils<double>::InvertMatrix(Q,QInv,det);
 
-        array_1d<double,3> Uq(3,0.0);
+        array_1d<double,3> Uq = ZeroVector(3);
         for (unsigned int i = 0; i < 3; i++)
         {
             for (unsigned int j = 0; j < 3; j++)

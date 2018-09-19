@@ -59,7 +59,7 @@ std::string NewtonianTwoFluid3DLaw::Info() const {
 double NewtonianTwoFluid3DLaw::ComputeEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
 
     double viscosity;
-    EvaluateInPoint(viscosity, DYNAMIC_VISCOSITY, rParameters); 
+    EvaluateInPoint(viscosity, DYNAMIC_VISCOSITY, rParameters);
     const Properties& prop = rParameters.GetMaterialProperties();
 
     if (prop.Has(C_SMAGORINSKY)) {
@@ -82,7 +82,7 @@ double NewtonianTwoFluid3DLaw::ComputeEffectiveViscosity(ConstitutiveLaw::Parame
 void NewtonianTwoFluid3DLaw::EvaluateInPoint(double& rResult,
     const Variable<double>& rVariable,
     ConstitutiveLaw::Parameters& rParameters) const {
-    
+
     const SizeType nnodes = 4;
     const GeometryType& geom = rParameters.GetElementGeometry();
     const array_1d<double,nnodes>& N = rParameters.GetShapeFunctionsValues();
@@ -91,7 +91,7 @@ void NewtonianTwoFluid3DLaw::EvaluateInPoint(double& rResult,
     double dist = 0.0;
     for (unsigned int i = 0; i < nnodes; i++)
         dist += N[i] * geom[i].FastGetSolutionStepValue(DISTANCE);
-    
+
     SizeType navg = 0; //number of nodes on the same side as the gauss point
     double value = 0.0;
     for (unsigned int i = 0; i < nnodes; i++) {
@@ -110,7 +110,7 @@ double NewtonianTwoFluid3DLaw::EquivalentStrainRate(ConstitutiveLaw::Parameters&
     const GeometryType& geom = rParameters.GetElementGeometry();
     const Matrix& DN_DX = rParameters.GetShapeFunctionsDerivatives();
 
-    array_1d<double,6> S(6,0.0);
+    array_1d<double,6> S = ZeroVector(6);
     for (unsigned int n = 0; n < nnodes; ++n)
     {
         const array_1d<double,3>& rVel = geom[n].FastGetSolutionStepValue(VELOCITY);
