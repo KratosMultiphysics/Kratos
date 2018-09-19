@@ -60,5 +60,27 @@ namespace Kratos {
             KRATOS_CHECK(model_part.HasNodalSolutionStepVariable(VELOCITY));
             KRATOS_CHECK_IS_FALSE(model_part.HasNodalSolutionStepVariable(PRESSURE));
         }
+
+        KRATOS_TEST_CASE_IN_SUITE(ModelPartEmptyName, KratosCoreFastSuite)
+        {
+            // Constructor with name
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(ModelPart model_part(""),
+                "Error: Please don't use empty names (\"\") when creating a ModelPart");
+
+            // Constructor with name and bufferSize
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(ModelPart model_part("", 2),
+                "Error: Please don't use empty names (\"\") when creating a ModelPart");
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(ModelPartNameContainingPoint, KratosCoreFastSuite)
+        {
+            // Constructor with name
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(ModelPart model_part("name.other"),
+                "Error: Please don't use names containing (\".\") when creating a ModelPart");
+
+            // Constructor with name and bufferSize
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(ModelPart model_part("name.other", 2),
+                "Error: Please don't use names containing (\".\") when creating a ModelPart");
+        }
     }
 }  // namespace Kratos.
