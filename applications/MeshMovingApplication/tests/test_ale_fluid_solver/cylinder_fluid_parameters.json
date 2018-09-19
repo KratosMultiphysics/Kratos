@@ -174,13 +174,6 @@
                 "remove_output_file"    : true,
                 "decimal_places"      : 5
             }
-        },{
-            "python_module" : "impose_ale_rectangle_test_motion_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "ImposeALERectangleTestMotionProcess",
-            "Parameters"    : {
-                "model_part_name" : "MainModelPart.NoSlip2D_cylinder"
-            }
         }]
     }
 }
