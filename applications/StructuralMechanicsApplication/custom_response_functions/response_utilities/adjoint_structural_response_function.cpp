@@ -29,20 +29,22 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        mSensitivityModelPartName = ResponseSettings["sensitivity_model_part_name"].GetString();
+        mResponseSettings = ResponseSettings;
 
-        this->ReadDesignVariables(mNodalSensitivityScalarVariables, mNodalSensitivityVectorVariables, ResponseSettings["nodal_sensitivity_variables"]);
-        this->ReadDesignVariables(mElementSensitivityScalarVariables, mElementSensitivityVectorVariables, ResponseSettings["element_sensitivity_variables"]);
-        this->ReadDesignVariables(mConditionSensitivityScalarVariables, mConditionSensitivityVectorVariables, ResponseSettings["condition_sensitivity_variables"]);
+        mSensitivityModelPartName = mResponseSettings["sensitivity_model_part_name"].GetString();
+
+        this->ReadDesignVariables(mNodalSensitivityScalarVariables, mNodalSensitivityVectorVariables, mResponseSettings["nodal_sensitivity_variables"]);
+        this->ReadDesignVariables(mElementSensitivityScalarVariables, mElementSensitivityVectorVariables, mResponseSettings["element_sensitivity_variables"]);
+        this->ReadDesignVariables(mConditionSensitivityScalarVariables, mConditionSensitivityVectorVariables, mResponseSettings["condition_sensitivity_variables"]);
 
         // Set gradient mode
-        const std::string& gradient_mode = ResponseSettings["gradient_mode"].GetString();
+        const std::string& gradient_mode = mResponseSettings["gradient_mode"].GetString();
 
         // Mode 1: semi-analytic sensitivities
         if (gradient_mode == "semi_analytic")
         {
             mGradientMode = 1;
-            double delta = ResponseSettings["step_size"].GetDouble();
+            double delta = mResponseSettings["step_size"].GetDouble();
             mDelta = delta;
         }
         else
