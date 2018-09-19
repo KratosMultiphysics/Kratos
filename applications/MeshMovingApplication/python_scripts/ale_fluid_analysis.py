@@ -14,8 +14,8 @@ class ALEFluidAnalysis(FluidDynamicsAnalysis):
 
     def __init__(self, model, project_parameters):
 
-        solver_settings = project_parameters["solver_settings"]
-        if solver_settings.Has("ale_interface_parts"):
+        ale_solver_settings = project_parameters["solver_settings"]["ale_settings"]
+        if ale_solver_settings.Has("ale_interface_parts"):
             print("Info, not automatized! ....")
         else:
             # Here the ale-boundary-conditions are extracted from the processes
@@ -27,13 +27,14 @@ class ALEFluidAnalysis(FluidDynamicsAnalysis):
             ale_interface_parts = KratosMultiphysics.Parameters(""" [ [] , [] , [] ] """)
 
             for i_proc in range(ale_bc_settings.size()):
+                process_name
                 model_part_name = ale_bc_settings[i_proc]["Parameters"]["model_part_name"].GetString()
                 for i_comp in range(3):
                     is_constrained = ale_bc_settings[i_proc]["Parameters"] ["constrained"][i_comp].GetBool()
                     if is_constrained:
                         ale_interface_parts[i_comp].Append(model_part_name)
 
-            solver_settings.AddValue("ale_interface_parts", ale_interface_parts)
+            ale_solver_settings.AddValue("ale_interface_parts", ale_interface_parts)
             print(solver_settings.PrettyPrintJsonString())
             errrrr
 
@@ -41,7 +42,7 @@ class ALEFluidAnalysis(FluidDynamicsAnalysis):
 
     def _CreateSolver(self):
         import ale_fluid_solver
-        return ale_fluid_solver.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        return ale_fluid_solver.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
         return "ALE Fluid Analysis"
