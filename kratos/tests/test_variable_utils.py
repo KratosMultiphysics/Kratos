@@ -82,7 +82,6 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -92,10 +91,8 @@ class TestVariableUtils(KratosUnittest.TestCase):
         displacement[0] = 1.0
         displacement[1] = 2.0
         displacement[2] = 3.0
-        velocity_x = 5.3
 
         VariableUtils().SetScalarVar(VISCOSITY, viscosity, model_part.Nodes)
-        VariableUtils().SetComponentVar(VELOCITY_X, velocity_x, model_part.Nodes)
         VariableUtils().SetVectorVar(DISPLACEMENT, displacement, model_part.Nodes)
 
         ##verify the result
@@ -104,7 +101,6 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 2.0)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 3.0)
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), viscosity)
-            self.assertEqual(node.GetSolutionStepValue(VELOCITY_X), velocity_x)
 
     def test_set_nonhistorical_variable(self):
         ##set the model part
@@ -221,11 +217,26 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(FORCE)
+        model_part.AddNodalSolutionStepVariable(REACTION)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
+        ##set the variable values
+        viscosity = 0.1
+        displacement = Vector(3)
+        displacement[0] = 1.3
+        displacement[1] = 2.2
+        displacement[2] = 3.1
+
+        VariableUtils().SetScalarVar(VISCOSITY, viscosity, model_part.Nodes)
+        VariableUtils().SetVectorVar(DISPLACEMENT, displacement, model_part.Nodes)
+        VariableUtils().SetVectorVar(FORCE, displacement, model_part.Nodes)
+
         ##save the variable values
         VariableUtils().CopyScalarVar(VISCOSITY, DENSITY, model_part.Nodes)
+        VariableUtils().CopyComponentVar(FORCE_X, REACTION_Y, model_part.Nodes)
+        VariableUtils().CopyComponentVar(FORCE_X, FORCE_Y, model_part.Nodes)
         VariableUtils().CopyVectorVar(DISPLACEMENT, VELOCITY, model_part.Nodes)
 
         ##verify the result
@@ -233,6 +244,8 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), node.GetSolutionStepValue(VELOCITY_X))
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), node.GetSolutionStepValue(VELOCITY_Y))
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), node.GetSolutionStepValue(VELOCITY_Z))
+            self.assertEqual(node.GetSolutionStepValue(FORCE_X), node.GetSolutionStepValue(REACTION_Y))
+            self.assertEqual(node.GetSolutionStepValue(FORCE_X), node.GetSolutionStepValue(FORCE_Y))
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), node.GetSolutionStepValue(DENSITY))
 
     def test_save_var(self):
