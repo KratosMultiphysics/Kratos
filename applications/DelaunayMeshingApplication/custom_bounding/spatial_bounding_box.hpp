@@ -824,20 +824,10 @@ public:
 
     virtual PointType GetCenter()
     {
-       PointType Center = mBox.Center;
-       BeamMathUtilsType::MapToReferenceLocalFrame(mBox.InitialLocalQuaternion, Center);
-       return Center;
-    }
-
-    //**************************************************************************
-    //**************************************************************************
-
-    virtual PointType GetCenter(const PointType& rPoint)
-    {
-       PointType Center = mBox.Center;
        BeamMathUtilsType::MapToReferenceLocalFrame(mBox.InitialLocalQuaternion, mBox.Center);
        return mBox.Center;
     }
+
 
     //**************************************************************************
     //**************************************************************************

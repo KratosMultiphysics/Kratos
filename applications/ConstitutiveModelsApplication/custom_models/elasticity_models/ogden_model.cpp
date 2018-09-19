@@ -150,7 +150,7 @@ namespace Kratos
 	  array_1d<double,3> EigenVector;
 	  for(unsigned int i=0; i<3; i++)
 	  {
-	      noalias(EigenVector) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
+	      noalias(EigenVector) = row(rVariables.Strain.Eigen.Vectors,i);
 	      EigenVector /= rVariables.Strain.Eigen.Values[i];
 	      noalias(rStressMatrix) += MainStresses[i] * outer_prod(EigenVector,EigenVector);
 	  }
@@ -161,7 +161,7 @@ namespace Kratos
 	  array_1d<double,3> EigenVector;
 	  for(unsigned int i=0; i<3; i++)
 	  {
-	      noalias(EigenVector) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
+	      noalias(EigenVector) = row(rVariables.Strain.Eigen.Vectors,i);
 	      noalias(rStressMatrix) += MainStresses[i] * outer_prod(EigenVector,EigenVector);
 	  }
 
@@ -621,7 +621,7 @@ namespace Kratos
     {
 	for(SizeType j=0; j<rVoigtSize; j++)
 	{
-	    noalias(VectorDerivatives) = matrix_row<const Matrix>(TensorDerivative,t);
+	    noalias(VectorDerivatives) = row(TensorDerivative,t);
 	    rConstitutiveMatrix(i,j) = this->AddConstitutiveComponent(rVariables,rConstitutiveMatrix(i,j),VectorDerivatives,
 								      rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1],
 								      rIndexVoigtTensor[j][0],rIndexVoigtTensor[j][1]);
@@ -712,10 +712,10 @@ namespace Kratos
 	double Dabcd = 0;
 	for(unsigned int i=0; i<3; i++)
 	{
-	    noalias(EigenVectorA) = matrix_row<const MatrixType>(rStrainEigenVectors,i);
+	    noalias(EigenVectorA) = row(rStrainEigenVectors,i);
 	    for(unsigned int j=0; j<3; j++)
 	    {
-		noalias(EigenVectorB) = matrix_row<const MatrixType>(rStrainEigenVectors,j);
+		noalias(EigenVectorB) = row(rStrainEigenVectors,j);
 		Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorB,Dabcd,a,b,c,d);
 
 		rCabcd += rStressDerivatives(i,j) * Dabcd;
@@ -740,13 +740,13 @@ namespace Kratos
 	    Cabcd  = Dabcd;
 	    Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderUnitTensor(this->msIdentityMatrix,Dabcd,a,b,c,d);
 	    Cabcd -= (rStrainEigenValues[j]+rStrainEigenValues[k]) * Dabcd;
-	    noalias(EigenVectorA) = matrix_row<const MatrixType>(rStrainEigenVectors,i);
+	    noalias(EigenVectorA) = row(rStrainEigenVectors,i);
 	    Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorA,Dabcd,a,b,c,d);
 	    Cabcd -= ((rStrainEigenValues[i]-rStrainEigenValues[j])+(rStrainEigenValues[i]-rStrainEigenValues[k])) * Dabcd;
-	    noalias(EigenVectorA) = matrix_row<const MatrixType>(rStrainEigenVectors,j);
+	    noalias(EigenVectorA) = row(rStrainEigenVectors,j);
 	    Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorA,Dabcd,a,b,c,d);
 	    Cabcd -= (rStrainEigenValues[j]-rStrainEigenValues[k]) * Dabcd;
-	    noalias(EigenVectorA) = matrix_row<const MatrixType>(rStrainEigenVectors,k);
+	    noalias(EigenVectorA) = row(rStrainEigenVectors,k);
 	    Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorA,Dabcd,a,b,c,d);
 	    Cabcd += (rStrainEigenValues[j]-rStrainEigenValues[k]) * Dabcd;
 	    rCabcd += Cabcd * alpha;
