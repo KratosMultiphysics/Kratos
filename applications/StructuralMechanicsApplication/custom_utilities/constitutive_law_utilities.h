@@ -64,7 +64,7 @@ class ConstitutiveLawUtilities
 
     /// We define the dimension
     static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
-    
+
     /// We define the Voigt size
     static constexpr SizeType VoigtSize = TVoigtSize;
 
@@ -190,6 +190,18 @@ class ConstitutiveLawUtilities
      * @todo Adapt for 2D dimension
      */
     static void CalculatePrincipalStresses(
+        array_1d<double, Dimension>& rPrincipalStressVector,
+        const array_1d<double, VoigtSize>& rStressVector
+        );
+
+    /**
+     * @brief This method computes the principal stresses vector
+     * @details Using Cardano formula and renormalizing (TODO)
+     * @param rPrincipalStressVector The vector of principal stresses
+     * @param rStressVector The vector of stresses
+     * @todo Adapt for 2D dimension
+     */
+    static void CalculatePrincipalStressesWithCardano(
         array_1d<double, Dimension>& rPrincipalStressVector,
         const array_1d<double, VoigtSize>& rStressVector
         );

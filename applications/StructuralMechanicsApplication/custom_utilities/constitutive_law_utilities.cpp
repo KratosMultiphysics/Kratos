@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz 
+//  Main authors:    Vicente Mataix Ferrandiz
 //                   Alejandro Cornejo
 //
 
@@ -28,7 +28,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(
     )
 {
     rI1 = rStressVector[0];
-    for (IndexType i = 1; i < Dimension; ++i) 
+    for (IndexType i = 1; i < Dimension; ++i)
         rI1 += rStressVector[i];
 }
 
@@ -73,7 +73,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateJ2Invariant(
     rDeviator = rStressVector;
     const double p_mean = I1 / static_cast<double>(Dimension);
 
-    for (IndexType i = 0; i < Dimension; ++i) 
+    for (IndexType i = 0; i < Dimension; ++i)
         rDeviator[i] -= p_mean;
 
     rJ2 = 0.0;
@@ -104,7 +104,7 @@ template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(array_1d<double, VoigtSize>& rFirstVector)
 {
     rFirstVector = ZeroVector(TVoigtSize);
-    for (IndexType i = 0; i < Dimension; ++i) 
+    for (IndexType i = 0; i < Dimension; ++i)
         rFirstVector[i] = 1.0;
 }
 
@@ -200,6 +200,46 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStresses(
         rPrincipalStressVector[0] = aux2 + aux1 * std::cos(phi_3);
         rPrincipalStressVector[1] = aux2 + aux1 * std::cos(phi_3 + deg_120);
         rPrincipalStressVector[2] = aux2 + aux1 * std::cos(phi_3 + deg_240);
+    } else {
+        for (IndexType i = 0; i < Dimension; ++i) {
+            rPrincipalStressVector[i] = rStressVector[i];
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano(
+    array_1d<double, Dimension>& rPrincipalStressVector,
+    const array_1d<double, VoigtSize>& rStressVector
+    )
+{
+    double a, b, c;
+    CalculateI1Invariant(rStressVector, a);
+    CalculateI2Invariant(rStressVector, b);
+    CalculateI3Invariant(rStressVector, c);
+
+    const double p = b - std::pow(a, 2)/3.0;
+    const double q = 2.0 * std::pow(a, 3)/27.0 - (a * b)/3.0 + c;
+    const double discriminant = std::pow(q, 2) + 4.0/27.0 * std::pow(p, 3);
+
+    if (std::abs(p) > tolerance) {
+        if (discriminant > tolerance) { // This is bad news (complex numbers)
+            KRATOS_ERROR << "Complex conjugated solutions" << std::endl;
+        } else if (discriminant < - tolerance) {
+            const double aux = 2.0 * std::sqrt(-p/3.0);
+            const double base_sol = a / 3.0;
+            const double phi_3 = 1.0/3.0 * std::acos(-3.0*q/(p * 2.0) * std::sqrt(-3.0/p));
+            for (IndexType i = 0; i < 3; ++i) {
+                rPrincipalStressVector[i] = base_sol + aux * std::cos(phi_3 - 2.0/3.0 * Globals::Pi * i);
+            }
+        } else { // Equal to zero
+            rPrincipalStressVector[0] = 3.0 * q/p;
+            rPrincipalStressVector[1] = -3.0/2.0 * q/p;
+            rPrincipalStressVector[2] = rPrincipalStressVector[1];
+        }
     } else {
         for (IndexType i = 0; i < Dimension; ++i) {
             rPrincipalStressVector[i] = rStressVector[i];

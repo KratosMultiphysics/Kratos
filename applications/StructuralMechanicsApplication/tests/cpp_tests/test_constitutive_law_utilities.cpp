@@ -61,6 +61,15 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPrincipalStresses, KratosStruc
     KRATOS_CHECK_LESS_EQUAL((1.16178e+07 - principal_stress_vector[0])/principal_stress_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-2.53163e+07 - principal_stress_vector[1])/principal_stress_vector[1], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-9.00151e+06 - principal_stress_vector[2])/principal_stress_vector[2], tolerance);
+
+    ConstitutiveLawUtilities<6>::CalculatePrincipalStressesWithCardano(principal_stress_vector, stress_vector);
+
+//     // DEBUG
+//     KRATOS_WATCH(principal_stress_vector)
+
+    KRATOS_CHECK_LESS_EQUAL((1.16178e+07 - principal_stress_vector[0])/principal_stress_vector[0], tolerance);
+    KRATOS_CHECK_LESS_EQUAL((-9.00151e+06 - principal_stress_vector[1])/principal_stress_vector[1], tolerance);
+    KRATOS_CHECK_LESS_EQUAL((-2.53163e+07 - principal_stress_vector[2])/principal_stress_vector[2], tolerance);
 }
 } // namespace Testing
 } // namespace Kratos
