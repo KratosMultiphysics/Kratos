@@ -62,7 +62,7 @@ void ImposeRigidMovementProcess::ExecuteInitialize()
     ModelPart& root_model_part = mrThisModelPart.GetRootModelPart();
     ModelPart& model_part = root_model_part.GetSubModelPart(mThisParameters["model_part_name"].GetString());
     const std::string& new_model_part_name = mThisParameters["new_model_part_name"].GetString();
-    ModelPart& rigid_model_part = model_part.HasSubModelPart(new_model_part_name) ? model_part.GetSubModelPart(new_model_part_name) : model_part.CreateSubModelPart(new_model_part_name);
+    ModelPart& rigid_model_part = new_model_part_name != model_part.Name() ? model_part.HasSubModelPart(new_model_part_name) ? model_part.GetSubModelPart(new_model_part_name) : model_part.CreateSubModelPart(new_model_part_name) : model_part;
 
     // Reorder constrains
     IndexType constraint_id = 1;

@@ -1,41 +1,37 @@
 {
     "problem_data"             : {
-        "problem_name"    : "3D_Shell_diagonal",
+        "problem_name"    : "rectangular_plate_structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "static",
+        "solver_type"                        : "eigen_value",
+        "scheme_type"                        : "dynamic",
         "echo_level"                         : 0,
-        "analysis_type"                      : "non_linear",
-        "model_part_name" : "3D_Shell_diagonal",
+        "model_part_name" : "rectangular_plate_structure",
         "domain_size"     : 3,
         "time_stepping" : {
-            "time_step"       : 1.0
+            "time_step"       : 1.1
         },
         "model_import_settings"              : {
-            "input_type"     : "use_input_model_part",
-            "input_filename" : "3D_Shell_diagonal"
+            "input_type"     : "mdpa",
+            "input_filename" : "eigenfrequency_structure"
         },
-            "material_import_settings" :{
-            "materials_filename": "materials_2D.json"
+        "material_import_settings"           : {
+            "materials_filename" : "StructuralMaterials.json"
         },
-        "line_search"                        : false,
-        "convergence_criterion"              : "residual_criterion",
-        "displacement_relative_tolerance"    : 0.0001,
-        "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 0.0001,
-        "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
-        "linear_solver_settings"             : {
-            "solver_type" : "Super_LU",
-            "scaling"     : false,
-            "verbosity"   : 0
+        "eigensolver_settings":{
+            "solver_type": "eigen_eigensystem",
+            "number_of_eigenvalues": 1,
+            "normalize_eigenvectors": true,
+            "max_iteration": 1000,
+            "tolerance": 1e-8,
+            "echo_level": 0
         },
-        "problem_domain_sub_model_part_list" : ["Parts_solid"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_disp_fix","DISPLACEMENT_disp_slide","PointLoad3D_load"],
+        "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
+        "processes_sub_model_part_list"      : ["support"],
         "rotation_dofs"                      : true
     },
     "constraints_process_list" : [{
@@ -45,9 +41,11 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "3D_Shell_diagonal.DISPLACEMENT_disp_fix",
+            "model_part_name" : "rectangular_plate_structure.support",
             "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,0.0]
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
         }
     },{
         "python_module" : "assign_vector_variable_process",
@@ -56,25 +54,15 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "3D_Shell_diagonal.DISPLACEMENT_disp_slide",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [false,true,true],
-            "value"           : [0.0,0.0,0.0]
+            "model_part_name" : "rectangular_plate_structure.support",
+            "variable_name"   : "ROTATION",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
         }
     }],
-    "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorByDirectionProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "3D_Shell_diagonal.PointLoad3D_load",
-            "variable_name"   : "POINT_LOAD",
-            "modulus"         : 100000.0,
-            "constrained"     : false,
-            "direction"       : [0.0,-1,0.0]
-        }
-    }],
+    "contact_process_list"     : [],
+    "loads_process_list"       : [],
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -85,16 +73,18 @@
             },
             "file_label"          : "step",
             "output_control_type" : "step",
-            "output_frequency"    : 1.0,
+            "output_frequency"    : 1,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","POINT_LOAD"],
+            "nodal_results"       : ["DISPLACEMENT","SHAPE_SENSITIVITY"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
     },
+    "list_other_processes": [
+    ],
     "restart_options"          : {
         "SaveRestart"      : false,
         "RestartFrequency" : 0,
