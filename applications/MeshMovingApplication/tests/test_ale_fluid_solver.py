@@ -34,12 +34,13 @@ class ALEFluidSolverTest(UnitTest.TestCase):
 
     def testALEFluidSolver(self):
         work_folder = "test_ale_fluid_solver"
-        settings_file_name = "cylinder_fluid_parameters.json"
+        settings_file_name = "ProjectParameters.json"
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
-            kratos_utilities.DeleteFileIfExisting("cylinder_2d.time")
+            kratos_utilities.DeleteFileIfExisting("ale_fluid_test.time")
+            kratos_utilities.DeleteFileIfExisting("test_ale_fluid_solver.post.lst")
 
     def _runTest(self,settings_file_name):
         model = km.Model()
@@ -48,30 +49,34 @@ class ALEFluidSolverTest(UnitTest.TestCase):
 
         # to check the results: add output settings block if needed
         if self.print_output:
-            settings.AddValue("output_configuration", km.Parameters(r'''{
-                "result_file_configuration" : {
-                    "gidpost_flags"       : {
-                        "GiDPostMode"           : "GiD_PostBinary",
-                        "WriteDeformedMeshFlag" : "WriteDeformed",
-                        "WriteConditionsFlag"   : "WriteConditions",
-                        "MultiFileFlag"         : "SingleFile"
-                    },
-                    "file_label"          : "time",
-                    "output_control_type" : "step",
-                    "output_frequency"    : 1,
-                    "body_output"         : true,
-                    "node_output"         : false,
-                    "skin_output"         : false,
-                    "plane_output"        : [],
-                    "nodal_results"       : ["VELOCITY","PRESSURE","MESH_DISPLACEMENT","MESH_VELOCITY"],
-                    "gauss_point_results" : []
-                },
-                "point_data_configuration"  : []
-            }'''))
+            settings["output_processes"].AddValue("gid_output", km.Parameters(R'''[{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "FluidModelPart.fluid_computational_model_part",
+                "output_name"            : "ale_fluid_test",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "time",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1.0,
+                        "body_output"         : true,
+                        "nodal_results"       : ["VELOCITY","PRESSURE","MESH_DISPLACEMENT","MESH_VELOCITY"]
+                    }
+                }
+            }
+            }]'''))
 
         analysis = FluidDynamicsAnalysis(model,settings)
         analysis.Run()
 
 if __name__ == '__main__':
     UnitTest.main()
-
