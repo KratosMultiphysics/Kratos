@@ -75,13 +75,14 @@ class TestVariableUtils(KratosUnittest.TestCase):
         for element in destination_model_part.Elements:
             self.assertEqual(element.GetValue(DENSITY), element.Id*100)
             self.assertEqual(element.GetValue(VOLUME_ACCELERATION)[0], element.Id*100)
-        
+
 
     def test_set_variable(self):
         ##set the model part
         model_part = ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -91,8 +92,10 @@ class TestVariableUtils(KratosUnittest.TestCase):
         displacement[0] = 1.0
         displacement[1] = 2.0
         displacement[2] = 3.0
+        velocity_x = 5.3
 
         VariableUtils().SetScalarVar(VISCOSITY, viscosity, model_part.Nodes)
+        VariableUtils().SetComponentVar(VELOCITY_X, velocity_x, model_part.Nodes)
         VariableUtils().SetVectorVar(DISPLACEMENT, displacement, model_part.Nodes)
 
         ##verify the result
@@ -101,7 +104,8 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 2.0)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 3.0)
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), viscosity)
-            
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_X), velocity_x)
+
     def test_set_nonhistorical_variable(self):
         ##set the model part
         model_part = ModelPart("Main")
@@ -127,7 +131,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetValue(DISPLACEMENT_Y), 2.0)
             self.assertEqual(node.GetValue(DISPLACEMENT_Z), 3.0)
             self.assertEqual(node.GetValue(VISCOSITY), viscosity)
-            
+
         # Now for conditions (it will work for elements too)
         VariableUtils().SetNonHistoricalVariable(VISCOSITY, viscosity, model_part.Conditions)
         VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Conditions)
