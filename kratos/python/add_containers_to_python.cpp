@@ -150,86 +150,107 @@ void  AddContainersToPython(pybind11::module& m)
     ;
 
     class_<Variable<std::string>, VariableData>(m, "StringVariable" )
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<std::string>::Info )
     ;
 
     class_<Variable<bool>, VariableData>(m, "BoolVariable" )
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<bool>::Info )
     ;
 
     class_<Variable<int>,VariableData>(m, "IntegerVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<int>::Info )
     ;
 
     class_<Variable<DenseVector<int> >,VariableData>(m, "IntegerVectorVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<DenseVector<int>>::Info )
     ;
 
     class_<Variable<double>,VariableData>(m, "DoubleVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<double>::Info )
     ;
 
     class_<Variable<Vector >,VariableData>(m, "VectorVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<Vector >::Info )
     ;
 
     class_<Variable<array_1d<double, 3> >,VariableData>(m, "Array1DVariable3")
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<array_1d<double, 3> >::Info )
     ;
 
-    class_<Variable<array_1d<double, 4> >,VariableData>(m, "Array1DVariable4")
+    class_<Variable<array_1d<double, 4> >,Vari    .def(init<const std::string&>())
+ableData>(m, "Array1DVariable4")
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<array_1d<double, 4> >::Info )
     ;
 
     class_<Variable<array_1d<double, 6> >,VariableData>(m, "Array1DVariable6")
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<array_1d<double, 6> >::Info )
     ;
 
     class_<Variable<array_1d<double, 9> >,VariableData>(m, "Array1DVariable9")
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<array_1d<double, 9> >::Info )
     ;
 
     class_<Variable<DenseMatrix<double> >,VariableData>(m, "MatrixVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<DenseMatrix<double> >::Info )
     ;
 
     class_<Variable<ConstitutiveLaw::Pointer>,VariableData>(m, "ConstitutuveLawVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<ConstitutiveLaw::Pointer>::Info )
     ;
 
     class_<Variable<ConvectionDiffusionSettings::Pointer > ,VariableData>(m,"ConvectionDiffusionSettingsVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<ConvectionDiffusionSettings::Pointer >::Info )
     ;
 
     class_<Variable<RadiationSettings::Pointer > ,VariableData>(m,"RadiationSettingsVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<RadiationSettings::Pointer >::Info )
     ;
     class_<VariableComponent<VectorComponentAdaptor<Vector > >,VariableData>(m, "VectorComponentVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<Vector > >::Info )
     // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<Vector > >::GetSourceVariable ) // components for vector are not yet fully supported
     ;
 
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >,VariableData>(m, "Array1DComponentVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::Info )
     .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::GetSourceVariable )
     ;
 
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >,VariableData>(m, "Array1D4ComponentVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >::Info )
     .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >::GetSourceVariable )
     ;
 
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >,VariableData>(m, "Array1D6ComponentVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >::Info )
     .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >::GetSourceVariable )
     ;
 
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >,VariableData>(m, "Array1D9ComponentVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >::Info )
     .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >::GetSourceVariable )
     ;
 
     class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
+    .def(init<const std::string&>())
     .def( "__repr__", &Variable<Quaternion<double> >::Info )
     ;
 
@@ -507,7 +528,8 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, LAGRANGE_DISPLACEMENT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_AIR_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_WATER_PRESSURE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_TEMPERATURE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_    .def(init<const std::string&>())
+TEMPERATURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTERNAL_FRICTION_ANGLE )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LAGRANGE_DISPLACEMENT )
