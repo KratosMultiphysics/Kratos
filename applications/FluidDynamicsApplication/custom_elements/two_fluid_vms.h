@@ -283,9 +283,9 @@ public:
         Matrix enrichment_terms_vertical   = ZeroMatrix(LocalSize,nenrichments);
         Matrix enrichment_terms_horizontal = ZeroMatrix(nenrichments,LocalSize);
 
-        Matrix enrichment_diagonal(nenrichments,nenrichments,0.0);
+        Matrix enrichment_diagonal = ScalarMatrix(nenrichments,nenrichments,0.0);
         Vector enriched_rhs(nenrichments,0.0);
-        array_1d<double,3> bf(3,0.0);
+        array_1d<double,3> bf = ZeroVector(3);
 
         double positive_volume = 0.0;
         double negative_volume = 0.0;
@@ -424,7 +424,7 @@ KRATOS_WATCH(Ngauss);  */
                     for (unsigned int inode = 0; inode < TNumNodes; inode++)
                     {
                         int base_index = (TDim + 1) * inode;
-                        array_1d<double,TNumNodes> AGradN(TNumNodes,0.0);
+                        array_1d<double,TNumNodes> AGradN = ZeroVector(TNumNodes);
                         this->GetConvectionOperator(AGradN,AdvVel,DN_DX);
                         //momentum term
                         for (unsigned int k = 0; k < TDim; k++)
@@ -903,7 +903,7 @@ protected:
                                       const array_1d< double, TNumNodes>& rShapeFunc,
                                       const double Weight = 1.0)
     {
-        array_1d<double, 3 > temp(3, 0.0);
+        array_1d<double, 3 > temp = ZeroVector(3);
         this->EvaluateInPoint(temp, rVariable, rShapeFunc);
         rResult += Weight*temp;
     }
@@ -926,7 +926,7 @@ protected:
         for (unsigned int i = 0; i < TNumNodes; i++)
             dist += rShapeFunc[i] * this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         double navg = 0.0;
-        array_1d< double, 3 > value(3, 0.0);
+        array_1d< double, 3 > value = ZeroVector(3);
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
             if (dist * this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE) > 0.0)
@@ -966,7 +966,7 @@ protected:
         unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
         double K, PDivV, L, qF; // Temporary results
 
-        array_1d<double,3> BodyForce(3,0.0);
+        array_1d<double,3> BodyForce = ZeroVector(3);
         this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
         BodyForce *= Density;
 
