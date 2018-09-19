@@ -209,6 +209,7 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     // Compute the direction of the plastic return stress R_p
     Vector R_p = ZeroVector(3);
     double den_p = friction_coefficient *(D(0,0)*dilatancy_coefficient - D(0,2)) - D(2,0) * dilatancy_coefficient + D(2,2);
+    if (std::abs(den_p) < 1.e-9) den_p = 1.e-9;
     R_p[0] = (D(0,0)*dilatancy_coefficient - D(0,2) )/den_p;
     R_p[1] = (D(1,0)*dilatancy_coefficient - D(1,2) )/den_p;
     R_p[2] = (D(2,0)*dilatancy_coefficient - D(2,2) )/den_p;
@@ -236,6 +237,7 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     // t-parameters for region determination
     // Secondary surface in region II a = [0 k -1], b  = [0 m -1] -- needed to calculate t1
     double den_p2 = friction_coefficient * (D(1,1) * dilatancy_coefficient - D(1,2)) - D(1,2) * dilatancy_coefficient + D(2,2);
+    if (std::abs(den_p2) < 1.e-9) den_p2 = 1.e-9;
     Vector R_p2 = ZeroVector(3);
     R_p2[0] = (D(0,1) * dilatancy_coefficient - D(0,2))/den_p2;
     R_p2[1] = (D(1,1) * dilatancy_coefficient - D(1,2))/den_p2;
@@ -246,12 +248,14 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     N2[1] = R_p[2]*R_p2[0] - R_p[0]*R_p2[2];
     N2[2] = R_p[0]*R_p2[1] - R_p[1]*R_p2[0];
 
-    double num1 = N2[0] * sigma_P_apex[0] + N2[1] * sigma_P_apex[1] + N2[2] * sigma_P_apex[2];
+    const double num1 = N2[0] * sigma_P_apex[0] + N2[1] * sigma_P_apex[1] + N2[2] * sigma_P_apex[2];
     double den_1 = N2[0] + N2[1] + friction_coefficient * N2[2];
+    if (std::abs(den_1) < 1.e-9) den_1 = 1.e-9;
     const double t1 = num1 / den_1 ;
 
     // Secondary surface in region III a = [k -1 0], b  = [m -1 0] -- needed to calculate t2
     double den = friction_coefficient * (D(0,0) * dilatancy_coefficient - D(0,1)) - D(1,0) * dilatancy_coefficient + D(1,1);
+    if (std::abs(den) < 1.e-9) den = 1.e-9;
     Vector R_p3 = ZeroVector(3);
     R_p3[0] = (D(0,0) * dilatancy_coefficient - D(0,1))/den;
     R_p3[1] = (D(1,0) * dilatancy_coefficient - D(1,1))/den;
@@ -262,9 +266,10 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     N3[1] = R_p[2]*R_p3[0] - R_p[0]*R_p3[2];
     N3[2] = R_p[0]*R_p3[1] - R_p[1]*R_p3[0];
 
-    double num2 = N3[0] * sigma_P_apex[0] + N3[1] * sigma_P_apex[1] + N3[2] * sigma_P_apex[2];
-    double den2 = N3[0] + friction_coefficient * N3[1] + friction_coefficient * N3[2];
-    const double t2 = num2 / den2 ;
+    const double num2 = N3[0] * sigma_P_apex[0] + N3[1] * sigma_P_apex[1] + N3[2] * sigma_P_apex[2];
+    double den_2 = N3[0] + friction_coefficient * N3[1] + friction_coefficient * N3[2];
+    if (std::abs(den_2) < 1.e-9) den_2 = 1.e-9;
+    const double t2 = num2 / den_2 ;
 
     // rRegion detection and return determination
     // Return mapping to the apex
@@ -399,8 +404,8 @@ void MCPlasticFlowRule::CalculatePrincipalStressTrial(const RadialReturnVariable
 
     // Calculate the elastic matrix
     Matrix ElasticMatrix = ZeroMatrix(3,3);
-    const double& young_modulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    const double& poisson_ratio = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    const double young_modulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    const double poisson_ratio = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
     const double diagonal    = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * (1.0-poisson_ratio);
     const double nondiagonal = young_modulus/(1.0+poisson_ratio)/(1.0-2.0*poisson_ratio) * ( poisson_ratio);
 
