@@ -335,9 +335,9 @@ public:
      * @param Value Value to be set
      * @param rContainer reference
      */
-    template< class TType, class TContainerType >
+    template< class TType, class TContainerType, class TVarType =  Variable< TType >>
     void SetNonHistoricalVariable(
-        Variable< TType >& rVariable,
+        TVarType& rVariable,
         const TType& Value,
         TContainerType& rContainer
         )
