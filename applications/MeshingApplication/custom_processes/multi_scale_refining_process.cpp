@@ -19,6 +19,7 @@
 
 // Project includes
 #include "custom_processes/multi_scale_refining_process.h"
+#include "geometries/point.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "utilities/sub_model_parts_list_utility.h"
 #include "custom_utilities/uniform_refine_utility.h"
@@ -41,8 +42,7 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
     {
         "number_of_divisions_at_subscale"     : 2,
         "echo_level"                          : 0,
-        "origin_interface_name"               : "coarse_interface",
-        "subscale_interface_name"             : "refined_interface",
+        "subscale_interface_base_name"        : "refined_interface",
         "subscale_boundary_condition"         : "Condition2D2N"
     }
     )");
@@ -52,21 +52,21 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
     mDivisionsAtSubscale = mParameters["number_of_divisions_at_subscale"].GetInt();
     mEchoLevel = mParameters["echo_level"].GetInt();
 
-    mCoarseInterfaceName = mParameters["origin_interface_name"].GetString();
-    mRefinedInterfaceName = mParameters["subscale_interface_name"].GetString();
+    std::string interface_base_name = mParameters["subscale_interface_base_name"].GetString();
+    mRefinedInterfaceName = interface_base_name + "_" + std::to_string(mrCoarseModelPart.GetValue(SUBSCALE_INDEX) + 1);
     mInterfaceConditionName = mParameters["subscale_boundary_condition"].GetString();
 
     if (mEchoLevel > 1) KRATOS_WATCH(mParameters);
+
+    Check();
+
+    // Initialize the coarse model part
+    InitializeCoarseModelPart();
 
     // Get the model part hierarchy
     StringVectorType sub_model_parts_names;
     sub_model_parts_names = mrCoarseModelPart.GetSubModelPartNames();
     // sub_model_parts_names = RecursiveGetSubModelPartNames(mrCoarseModelPart);
-
-    Check();
-
-    // Initialize the coarse model part
-    InitializeCoarseModelPart(sub_model_parts_names);
 
     // Initialize the refined model part
     InitializeRefinedModelPart(sub_model_parts_names);
@@ -108,11 +108,12 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
     MarkElementsFromNodalFlag();
     MarkConditionsFromNodalFlag();
 
+    // Check and prepare the interface
+    IdentifyRefiningInterface(cond_id);
+
     // Create the auxiliary entities
     CreateElementsToRefine(elem_id, elem_tag);
     CreateConditionsToRefine(elem_id, cond_tag);
-
-    IdentifyRefiningInterface();
 
     // Execute the refinement
     int divisions = mrRefinedModelPart.GetValue(SUBSCALE_INDEX) * mDivisionsAtSubscale;
@@ -203,8 +204,18 @@ void MultiScaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceMode
 }
 
 
-void MultiScaleRefiningProcess::InitializeCoarseModelPart(const StringVectorType& rNames)
-{}
+void MultiScaleRefiningProcess::InitializeCoarseModelPart()
+{
+    // Create a model part to store the interface boundary conditions
+    if (mrCoarseModelPart.HasSubModelPart(mRefinedInterfaceName))
+    {
+        mrCoarseModelPart.RemoveNodesFromAllLevels();
+        mrCoarseModelPart.RemoveElementsFromAllLevels();
+        mrCoarseModelPart.RemoveConditionsFromAllLevels();
+    }
+    else
+        mrCoarseModelPart.CreateSubModelPart(mRefinedInterfaceName);
+}
 
 
 void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorType& rNames)
@@ -217,12 +228,22 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
     AddVariablesToRefinedModelPart();
 
     // Create a model part to store the interface boundary conditions
-    mrRefinedModelPart.CreateSubModelPart(mRefinedInterfaceName);
+    if (mrRefinedModelPart.HasSubModelPart(mRefinedInterfaceName))
+    {
+        mrRefinedModelPart.RemoveNodesFromAllLevels();
+        mrRefinedModelPart.RemoveElementsFromAllLevels();
+        mrRefinedModelPart.RemoveConditionsFromAllLevels();
+    }
+    else
+        mrRefinedModelPart.CreateSubModelPart(mRefinedInterfaceName);
 }
 
 
 void MultiScaleRefiningProcess::InitializeVisualizationModelPart(const StringVectorType& rNames)
 {
+    // Create a model part to store the interface boundary conditions
+    mrVisualizationModelPart.CreateSubModelPart(mRefinedInterfaceName);
+
     // Add the entities to the root model part
     FastTransferBetweenModelPartsProcess(mrVisualizationModelPart, mrCoarseModelPart)();
 
@@ -232,7 +253,7 @@ void MultiScaleRefiningProcess::InitializeVisualizationModelPart(const StringVec
         ModelPart& destination = mrVisualizationModelPart.GetSubModelPart(name);
         ModelPart& origin = mrCoarseModelPart.GetSubModelPart(name);
         FastTransferBetweenModelPartsProcess(destination, origin)();
-    }
+    }        
 }
 
 
@@ -658,8 +679,11 @@ void MultiScaleRefiningProcess::FinalizeRefinement()
 }
 
 
-void MultiScaleRefiningProcess::IdentifyRefiningInterface()
+void MultiScaleRefiningProcess::IdentifyRefiningInterface(IndexType& rCondId)
 {
+    ModelPart& coarse_interface = mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName);
+    ModelPart& refined_interface = mrRefinedModelPart.GetSubModelPart(mRefinedInterfaceName);
+    Properties::Pointer property = mrCoarseModelPart.ElementsBegin()->pGetProperties();
     // 0. Reset the flags
     
     // 1. Identify the nodes which define the boundary
@@ -669,20 +693,65 @@ void MultiScaleRefiningProcess::IdentifyRefiningInterface()
     // The number of nodes of the elements
     const IndexType element_nodes = elem_begin->GetGeometry().size();
 
+    // The number of edges or faces
+    IndexType cond_nodes;
+    const IndexType dimension = elem_begin->GetGeometry().Dimension();
+    if (dimension == 2)
+        cond_nodes = elem_begin->GetGeometry().Edges()[0].PointsNumber();
+    else
+        cond_nodes = elem_begin->GetGeometry().Faces()[0].PointsNumber();
+
+    // Identify the current interface: set the nodes and create the base conditions
     // Look for the elements which are not to refine and have some nodes to refine
     for (int i = 0; i < nelems; i++)
     {
         auto elem = elem_begin + i;
-        if (elem->IsNot(MeshingFlags::REFINED))
+        if (elem->IsNot(MeshingFlags::REFINED))  // TODO: set the flag off before coarsening the element
         {
+            // set the nodal flags
             for (IndexType node = 0; node < element_nodes; node++)
             {
                 if (elem->GetGeometry()[node].Is(MeshingFlags::REFINED))
                     elem->GetGeometry()[node].Set(INTERFACE, true);
             }
-            // TODO: create the condition interface if needed
+            
+            // Create the condition if needed
+            for (auto edge : elem->GetGeometry().Edges())
+            {
+                bool is_interface = true;
+                IndexVectorType interface_key(cond_nodes);
+                for (IndexType i = 0; i < cond_nodes; i++)
+                {
+                    if (edge[i].IsNot(INTERFACE))
+                        is_interface = false;
+                    interface_key[i] = edge[i].Id();
+                }
+                if (is_interface)
+                {
+                    // Create the condition if it does not exist
+                    std::sort(interface_key.begin(), interface_key.end());
+                    auto search = mCoarseInterfacesSet.find(interface_key);
+                    if (search == mCoarseInterfacesSet.end())
+                    {                        
+                        // Condition creation
+                        auto aux_cond = coarse_interface.CreateNewCondition(
+                            mInterfaceConditionName,
+                            ++rCondId,
+                            edge,
+                            property);
+                        aux_cond->Set(TO_REFINE, true);
+
+                        // Storing the condition key
+                        mCoarseInterfacesSet.insert(interface_key);
+                    }
+                }
+            }
         }
     }
+
+    // Identify the old interface and delete it
+    /* do some stuff here */
+    //IndexType nconds 
 }
 //     // TODO: here I need to tranfer the INTERFACE flag from the father nodes to the middle nodes
 //     /* do some stuff */

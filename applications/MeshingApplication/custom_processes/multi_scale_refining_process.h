@@ -94,6 +94,11 @@ public:
     typedef std::unordered_map<IndexType, std::vector<std::string>> IndexStringMapType;
     typedef std::unordered_map<IndexType, std::vector<IndexType>> IndexVectorMapType;
 
+    /**
+     * Map type to locate created refining interface conditions
+     */
+    typedef std::set<IndexVectorType> IndexVectorSetType;
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of MultiScaleRefiningProcess
@@ -232,9 +237,9 @@ public:
     IndexNodeMapType mCoarseToRefinedNodesMap; /// Mapping from coarse to refined
     IndexNodeMapType mRefinedToCoarseNodesMap; /// Mapping from refined to coarse
 
-    std::string mCoarseInterfaceName;
     std::string mRefinedInterfaceName;
     std::string mInterfaceConditionName;
+    IndexVectorSetType mCoarseInterfacesSet;
 
     IndexStringMapType mCollections;  /// For AssignUniqueModelCollectionTagUtility
 
@@ -272,7 +277,7 @@ public:
      * @brief InitializeCoarseModelPart
      * @param rNames Is the vector containing the sub model part names
      */
-    void InitializeCoarseModelPart(const StringVectorType& rNames);
+    void InitializeCoarseModelPart();
 
     /**
      * @brief InitializeRefinedModelPart creates the refined sub model part
@@ -385,7 +390,7 @@ public:
      * @brief IdentifyRefiningInterface
      * TODO: define how it works
      */
-    void IdentifyRefiningInterface();
+    void IdentifyRefiningInterface(IndexType& rCondId);
 
     /**
      * @brief GetLastId gets the absolute root model part and looks for the maximum id's
