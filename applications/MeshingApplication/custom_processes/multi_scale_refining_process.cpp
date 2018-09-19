@@ -22,6 +22,7 @@
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "utilities/sub_model_parts_list_utility.h"
 #include "custom_utilities/uniform_refine_utility.h"
+#include "custom_utilities/meshing_flags.h"
 
 namespace Kratos
 {
@@ -548,6 +549,8 @@ void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, Index
 
             IndexType tag = rElemTag[coarse_elem->Id()];
             tag_elems_map[tag].push_back(rElemId);
+
+            coarse_elem->Set(MeshingFlags::REFINED, true);
         }
     }
 
@@ -603,6 +606,8 @@ void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, Ind
 
             IndexType tag = rCondTag[coarse_cond->Id()];
             tag_conds_map[tag].push_back(rCondId);
+
+            coarse_cond->Set(MeshingFlags::REFINED, true);
         }
     }
 
