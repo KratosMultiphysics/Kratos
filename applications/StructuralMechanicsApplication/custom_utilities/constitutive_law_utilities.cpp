@@ -185,7 +185,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStresses(
     CalculateI3Invariant(rStressVector, I3);
     const double II1 = std::pow(I1, 2);
 
-    const double R = (2.0 * II1 - 9.0 * I2 * I1 + 27.0 * I3)/54.0;
+    const double R = (2.0 * II1 * I1 - 9.0 * I2 * I1 + 27.0 * I3)/54.0;
     const double Q = (3.0 * I2 - II1)/9.0;
 
     if (std::abs(Q) > tolerance) {
