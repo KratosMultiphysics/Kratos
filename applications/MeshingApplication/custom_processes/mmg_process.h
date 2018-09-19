@@ -152,6 +152,9 @@ public:
     /// Colors map
     typedef std::unordered_map<IndexType,IndexType> ColorsMapType;
 
+    /// Index pair
+    typedef std::pair<IndexType,IndexType> IndexPairType;
+
     ///@}
     ///@name  Enum's
     ///@{
