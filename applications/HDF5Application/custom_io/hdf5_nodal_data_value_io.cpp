@@ -49,8 +49,11 @@ void NodalDataValueIO::WriteNodalResults(NodesContainerType const& rNodes)
 
     // Write each variable.
     for (const std::string& r_variable_name : mVariableNames)
-        RegisteredVariableLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
-                                 Variable<Vector<double>>, Variable<Matrix<double>>>(r_variable_name)
+        RegisteredVariableLookup<Variable<array_1d<double, 3>>,
+                                 Variable<double>,
+                                 Variable<int>,
+                                 Variable<Vector<double>>,
+                                 Variable<Matrix<double>>>(r_variable_name)
             .Execute<WriteNonHistoricalVariableFunctor>(local_nodes, *mpFile, mPrefix, info);
 
     // Write block partition.
