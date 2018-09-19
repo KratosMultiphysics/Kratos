@@ -48,16 +48,14 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     read_model_part.SetBufferSize(2);
     write_model_part.SetBufferSize(2);
 
+    std::vector<std::string> variables_list = {{"DISPLACEMENT"},
+                                               {"PRESSURE"},
+                                               {"REFINEMENT_LEVEL"},
+                                               {"GREEN_LAGRANGE_STRAIN_TENSOR"}};
+
     for (auto& r_element : write_model_part.Elements())
     {
-        r_element.SetValue(DISPLACEMENT, array_1d<double, 3>(3, r_element.Id() + 0.2345));
-        r_element.SetValue(PRESSURE, r_element.Id() + 0.2345);
-        r_element.SetValue(REFINEMENT_LEVEL, r_element.Id() + 4);
-        Matrix test_matrix(4,4);
-        for (int i=0; i < static_cast<int>(test_matrix.size1()) ; ++i)
-            for (int j=0; j < static_cast<int>(test_matrix.size2()); ++j)
-                test_matrix(i,j) = (double)r_element.Id() + (double)(i+1)/(double)(j+1);
-        r_element.SetValue(GREEN_LAGRANGE_STRAIN_TENSOR, test_matrix);
+        TestModelPartFactory::AssignDataValueContainer(r_element.Data(), variables_list);
     }
 
     Parameters io_params(R"(
