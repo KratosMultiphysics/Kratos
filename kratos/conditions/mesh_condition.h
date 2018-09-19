@@ -37,13 +37,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class GeometricalCondition
+ * @class MeshCondition
  * @ingroup KratosCore
  * @brief This is pure geometric condition. The only purpose for this definition is to create dummy conditions
  * @details Inherits all method from base condition, and overrides the Clone() and Create() methods
  * @author Vicente Mataix Ferrandiz
  */
-class GeometricalCondition
+class MeshCondition
     : public Condition
 {
 public:
@@ -72,8 +72,8 @@ public:
     /// Definition of nodes container type, redefined from GeometryType
     typedef BaseType::NodesArrayType NodesArrayType;
     
-    /// Counted pointer of GeometricalCondition
-    KRATOS_CLASS_POINTER_DEFINITION( GeometricalCondition);
+    /// Counted pointer of MeshCondition
+    KRATOS_CLASS_POINTER_DEFINITION( MeshCondition);
     
     ///@}
 
@@ -86,14 +86,14 @@ public:
      * @brief Constructor.
      * @param NewId The Id of the new created condition
      */
-    GeometricalCondition(IndexType NewId = 0);
+    MeshCondition(IndexType NewId = 0);
 
     /**
      * @brief Constructor using an array of nodes
      * @param NewId The Id of the new created condition
      * @param rThisNodes The array of nodes that will define the geometry that will define the condition
      */
-    GeometricalCondition(
+    MeshCondition(
         IndexType NewId, 
         const NodesArrayType& rThisNodes
         );
@@ -103,7 +103,7 @@ public:
      * @param NewId The Id of the new created condition
      * @param pGeometry The pointer to the geometry that will define the condition
      */
-    GeometricalCondition(
+    MeshCondition(
         IndexType NewId, 
         GeometryType::Pointer pGeometry
         );
@@ -114,24 +114,24 @@ public:
      * @param pGeometry The pointer to the geometry that will define the condition
      * @param pProperties The pointer to the properties that will define the behaviour of the condition
      */
-    GeometricalCondition(
+    MeshCondition(
         IndexType NewId, 
         GeometryType::Pointer pGeometry, 
         PropertiesType::Pointer pProperties
         );
 
     ///Copy constructor
-    GeometricalCondition(GeometricalCondition const& rOther);
+    MeshCondition(MeshCondition const& rOther);
 
     /// Destructor.
-    ~GeometricalCondition() override;
+    ~MeshCondition() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    GeometricalCondition& operator=(GeometricalCondition const& rOther);
+    MeshCondition& operator=(MeshCondition const& rOther);
 
     ///@}
     ///@name Operations
@@ -214,7 +214,7 @@ private:
     
     ///@}
 
-}; // Class GeometricalCondition
+}; // Class MeshCondition
 
 ///@}
 ///@name Type Definitions

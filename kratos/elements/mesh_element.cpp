@@ -15,11 +15,11 @@
 // External includes
 
 // Project includes
-#include "elements/geometrical_element.h"
+#include "elements/mesh_element.h"
 
 namespace Kratos
 {
-GeometricalElement::GeometricalElement(IndexType NewId)
+MeshElement::MeshElement(IndexType NewId)
     : BaseType(NewId)
 {
 }
@@ -27,7 +27,7 @@ GeometricalElement::GeometricalElement(IndexType NewId)
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalElement::GeometricalElement(
+MeshElement::MeshElement(
     IndexType NewId, 
     const NodesArrayType& rThisNodes
     ) : BaseType(NewId, rThisNodes)
@@ -37,7 +37,7 @@ GeometricalElement::GeometricalElement(
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalElement::GeometricalElement(
+MeshElement::MeshElement(
     IndexType NewId, 
     GeometryType::Pointer pGeometry
     ) : BaseType(NewId, pGeometry)
@@ -47,7 +47,7 @@ GeometricalElement::GeometricalElement(
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalElement::GeometricalElement(
+MeshElement::MeshElement(
     IndexType NewId, 
     GeometryType::Pointer pGeometry, 
     PropertiesType::Pointer pProperties
@@ -58,7 +58,7 @@ GeometricalElement::GeometricalElement(
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalElement::GeometricalElement(GeometricalElement const& rOther)
+MeshElement::MeshElement(MeshElement const& rOther)
     : BaseType(rOther)
 {
 }
@@ -66,14 +66,14 @@ GeometricalElement::GeometricalElement(GeometricalElement const& rOther)
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalElement::~GeometricalElement()
+MeshElement::~MeshElement()
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalElement& GeometricalElement::operator=(GeometricalElement const& rOther)
+MeshElement& MeshElement::operator=(MeshElement const& rOther)
 {
     //ALL MEMBER VARIABLES THAT MUST BE KEPT IN AN "=" OPERATION NEEDS TO BE COPIED HERE
 
@@ -85,42 +85,42 @@ GeometricalElement& GeometricalElement::operator=(GeometricalElement const& rOth
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer GeometricalElement::Create(
+Element::Pointer MeshElement::Create(
     IndexType NewId, 
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<GeometricalElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_shared<MeshElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer GeometricalElement::Create(
+Element::Pointer MeshElement::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<GeometricalElement>(NewId, pGeom, pProperties);
+    return Kratos::make_shared<MeshElement>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer GeometricalElement::Clone (
+Element::Pointer MeshElement::Clone (
     IndexType NewId, 
     NodesArrayType const& ThisNodes
     ) const
 {
     KRATOS_TRY
 
-    Element::Pointer p_new_elem = Kratos::make_shared<GeometricalElement>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Element::Pointer p_new_elem = Kratos::make_shared<MeshElement>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
     p_new_elem->Set(Flags(*this)); 
     return p_new_elem; 
@@ -131,12 +131,12 @@ Element::Pointer GeometricalElement::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GeometricalElement::save( Serializer& rSerializer ) const
+void MeshElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
 }
 
-void GeometricalElement::load( Serializer& rSerializer )
+void MeshElement::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
 }

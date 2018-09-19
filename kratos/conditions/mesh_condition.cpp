@@ -15,11 +15,11 @@
 // External includes
 
 // Project includes
-#include "conditions/geometrical_condition.h"
+#include "conditions/mesh_condition.h"
 
 namespace Kratos
 {
-GeometricalCondition::GeometricalCondition(IndexType NewId)
+MeshCondition::MeshCondition(IndexType NewId)
     : BaseType(NewId)
 {
 }
@@ -27,7 +27,7 @@ GeometricalCondition::GeometricalCondition(IndexType NewId)
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalCondition::GeometricalCondition(
+MeshCondition::MeshCondition(
     IndexType NewId, 
     const NodesArrayType& rThisNodes
     ) : BaseType(NewId, rThisNodes)
@@ -37,7 +37,7 @@ GeometricalCondition::GeometricalCondition(
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalCondition::GeometricalCondition(
+MeshCondition::MeshCondition(
     IndexType NewId, 
     GeometryType::Pointer pGeometry
     ) : BaseType(NewId, pGeometry)
@@ -47,7 +47,7 @@ GeometricalCondition::GeometricalCondition(
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalCondition::GeometricalCondition(
+MeshCondition::MeshCondition(
     IndexType NewId, 
     GeometryType::Pointer pGeometry, 
     PropertiesType::Pointer pProperties
@@ -58,7 +58,7 @@ GeometricalCondition::GeometricalCondition(
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalCondition::GeometricalCondition(GeometricalCondition const& rOther)
+MeshCondition::MeshCondition(MeshCondition const& rOther)
     : BaseType(rOther)
 {
 }
@@ -66,14 +66,14 @@ GeometricalCondition::GeometricalCondition(GeometricalCondition const& rOther)
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalCondition::~GeometricalCondition()
+MeshCondition::~MeshCondition()
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-GeometricalCondition& GeometricalCondition::operator=(GeometricalCondition const& rOther)
+MeshCondition& MeshCondition::operator=(MeshCondition const& rOther)
 {
     //ALL MEMBER VARIABLES THAT MUST BE KEPT IN AN "=" OPERATION NEEDS TO BE COPIED HERE
 
@@ -85,42 +85,42 @@ GeometricalCondition& GeometricalCondition::operator=(GeometricalCondition const
 /***********************************************************************************/
 /***********************************************************************************/
 
-Condition::Pointer GeometricalCondition::Create(
+Condition::Pointer MeshCondition::Create(
     IndexType NewId, 
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<GeometricalCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_shared<MeshCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Condition::Pointer GeometricalCondition::Create(
+Condition::Pointer MeshCondition::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_shared<GeometricalCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_shared<MeshCondition>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Condition::Pointer GeometricalCondition::Clone (
+Condition::Pointer MeshCondition::Clone (
     IndexType NewId, 
     NodesArrayType const& ThisNodes
     ) const
 {
     KRATOS_TRY
 
-    Condition::Pointer p_new_cond = Kratos::make_shared<GeometricalCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Condition::Pointer p_new_cond = Kratos::make_shared<MeshCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_cond->SetData(this->GetData());
     p_new_cond->Set(Flags(*this));
     return p_new_cond;
@@ -131,12 +131,12 @@ Condition::Pointer GeometricalCondition::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GeometricalCondition::save( Serializer& rSerializer ) const
+void MeshCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
 }
 
-void GeometricalCondition::load( Serializer& rSerializer )
+void MeshCondition::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
 }

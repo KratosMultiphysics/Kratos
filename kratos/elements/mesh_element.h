@@ -37,13 +37,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class GeometricalElement
+ * @class MeshElement
  * @ingroup KratosCore
  * @brief This is pure geometric element. The only purpose for this definition is to create dummy elements
  * @details Inherits all method from base element, and overrides the Clone() and Create() methods
  * @author Vicente Mataix Ferrandiz
  */
-class GeometricalElement
+class MeshElement
     : public Element
 {
 public:
@@ -72,8 +72,8 @@ public:
     /// Definition of nodes container type, redefined from GeometryType
     typedef BaseType::NodesArrayType NodesArrayType;
     
-    /// Counted pointer of GeometricalElement
-    KRATOS_CLASS_POINTER_DEFINITION( GeometricalElement);
+    /// Counted pointer of MeshElement
+    KRATOS_CLASS_POINTER_DEFINITION( MeshElement);
     
     ///@}
 
@@ -86,14 +86,14 @@ public:
      * @brief Constructor.
      * @param NewId The Id of the new created element
      */
-    GeometricalElement(IndexType NewId = 0);
+    MeshElement(IndexType NewId = 0);
 
     /**
      * @brief Constructor using an array of nodes
      * @param NewId The Id of the new created element
      * @param rThisNodes The array of nodes that will define the geometry that will define the element
      */
-    GeometricalElement(
+    MeshElement(
         IndexType NewId, 
         const NodesArrayType& rThisNodes
         );
@@ -103,7 +103,7 @@ public:
      * @param NewId The Id of the new created element
      * @param pGeometry The pointer to the geometry that will define the element
      */
-    GeometricalElement(
+    MeshElement(
         IndexType NewId, 
         GeometryType::Pointer pGeometry
         );
@@ -114,24 +114,24 @@ public:
      * @param pGeometry The pointer to the geometry that will define the element
      * @param pProperties The pointer to the properties that will define the behaviour of the element
      */
-    GeometricalElement(
+    MeshElement(
         IndexType NewId, 
         GeometryType::Pointer pGeometry, 
         PropertiesType::Pointer pProperties
         );
 
     ///Copy constructor
-    GeometricalElement(GeometricalElement const& rOther);
+    MeshElement(MeshElement const& rOther);
 
     /// Destructor.
-    ~GeometricalElement() override;
+    ~MeshElement() override;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    GeometricalElement& operator=(GeometricalElement const& rOther);
+    MeshElement& operator=(MeshElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -214,7 +214,7 @@ private:
         
     ///@}
 
-}; // Class GeometricalElement
+}; // Class MeshElement
 
 ///@}
 ///@name Type Definitions

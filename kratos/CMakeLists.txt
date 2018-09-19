@@ -71,8 +71,8 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/elements/geometrical_element.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/conditions/geometrical_condition.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/elements/mesh_element.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/conditions/mesh_condition.cpp;
 
 )
 
