@@ -77,7 +77,7 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
             else:
                 #mesher_flags = "rQYYCCJF"
                 #mesher_flags = "nQMu0"
-                mesher_flags ="nJFu0";
+                mesher_flags ="nJQF";
                 #mesher_flags ="VJFu0"; #PSOLID
                 #mesher_flags ="rMfjYYaq2.5nQ";
                 #mesher_flags = "nJFMQO4/4"
@@ -145,8 +145,16 @@ class PreRefiningMesher(fluid_mesher.FluidMesher):
         rebuild_mesh_elements = KratosDelaunay.GenerateNewElements(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(rebuild_mesh_elements)
 
-        #rebuild boundary
-        rebuild_mesh_boundary = KratosDelaunay.GenerateNewConditions(self.model_part, self.MeshingParameters, self.echo_level)
+        ### rebuild boundary
+        ############ choose just one of the following two options: ############        
+        ## use this if you want conditions
+        ## ATTENTION: this is slow, and must be used together with ModelMeshingWithConditionsForFluids and BuildModelPartBoundary
+        #rebuild_mesh_boundary = KratosPfemFluid.GenerateNewConditionsForFluids(self.model_part, self.MeshingParameters, self.echo_level)
+        
+        ## if you use the following, you will not use/build/compute conditions
+        ## ATTENTION: it must be used together with ModelMeshingForFluids and BuildModelPartBoundaryForFluids
+        rebuild_mesh_boundary = KratosPfemFluid.BuildMeshBoundaryForFluids(self.model_part, self.MeshingParameters, self.echo_level)
+        #######################################################################
         self.mesher.SetPostMeshingProcess(rebuild_mesh_boundary)
 
 

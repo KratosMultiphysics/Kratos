@@ -1,13 +1,13 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:		 BSD License
 //                                       Kratos default license: kratos/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_LOCAL_REFINE_PRISM_MESH)
@@ -62,15 +62,15 @@ public:
     /// Destructor
     ~LocalRefinePrismMesh()
     = default;
-    
+
     ///@}
     ///@name Operators
     ///@{
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
     * Computes the coordinate of the baricenter node of the element (mean of the faces's baricenter)
     * Insert the news nodes in the center of elements and interopolate the variables.
@@ -83,21 +83,21 @@ public:
         array_1d<double, 3 > Coord_Node_1;
         array_1d<double, 3 > Coord_Node_2;
         array_1d<double, 3 > Coord_Node_3;
-	
+
         // Upper face
         array_1d<double, 3 > Coord_Node_4;
         array_1d<double, 3 > Coord_Node_5;
         array_1d<double, 3 > Coord_Node_6;
-	
+
         // Center
         array_1d<double, 3 > Coordinate_center_node;
-	
+
         std::vector<int> node_center;
         NodesArrayType& pNodes = this_model_part.Nodes();
         int Id_Center = pNodes.size() + 1;
         ElementsArrayType& rElements = this_model_part.Elements();
-        ElementsArrayType::iterator it_begin = rElements.ptr_begin(); 
-        ElementsArrayType::iterator it_end = rElements.ptr_end(); 
+        ElementsArrayType::iterator it_begin = rElements.ptr_begin();
+        ElementsArrayType::iterator it_end = rElements.ptr_end();
         for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
         {
             Element::GeometryType& geom = it->GetGeometry();
@@ -120,12 +120,12 @@ public:
             pnode->X0() = 0.16666666666666666 * (geom[0].X0() + geom[1].X0() + geom[2].X0() + geom[3].X0() + geom[4].X0() + geom[5].X0());
             pnode->Y0() = 0.16666666666666666 * (geom[0].Y0() + geom[1].Y0() + geom[2].Y0() + geom[3].Y0() + geom[4].Y0() + geom[5].Y0());
             pnode->Z0() = 0.16666666666666666 * (geom[0].Z0() + geom[1].Z0() + geom[2].Z0() + geom[3].Z0() + geom[4].Z0() + geom[5].Z0());
-            
+
             for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
             {
                 Node < 3 > ::DofType& rDof = *iii;
                 Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
-                if (geom[0].IsFixed(iii->GetVariable()) == true && geom[1].IsFixed(iii->GetVariable()) == true && geom[2].IsFixed(iii->GetVariable()) == true && geom[3].IsFixed(iii->GetVariable()) == true 
+                if (geom[0].IsFixed(iii->GetVariable()) == true && geom[1].IsFixed(iii->GetVariable()) == true && geom[2].IsFixed(iii->GetVariable()) == true && geom[3].IsFixed(iii->GetVariable()) == true
                  && geom[4].IsFixed(iii->GetVariable()) == true && geom[5].IsFixed(iii->GetVariable()) == true)
                 {
                     (p_new_dof)->FixDof();
@@ -141,17 +141,17 @@ public:
             for (unsigned int step = 0; step < buffer_size; step++)
             {
                 double* new_step_data = pnode->SolutionStepData().Data(step);
-		
+
                 // Lower face
                 double* step_data1 = geom[0].SolutionStepData().Data(step);
                 double* step_data2 = geom[1].SolutionStepData().Data(step);
                 double* step_data3 = geom[2].SolutionStepData().Data(step);
-		
+
                 // Upper face
                 double* step_data4 = geom[3].SolutionStepData().Data(step);
                 double* step_data5 = geom[4].SolutionStepData().Data(step);
                 double* step_data6 = geom[5].SolutionStepData().Data(step);
-		
+
                 // Copying this data in the position of the vector we are interested in
                 for (unsigned int j = 0; j < step_data_size; j++)
                 {
@@ -163,10 +163,10 @@ public:
             Id_Center++;
         }
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     /**
     * It erases the old elements and it creates the new ones
     * @param Coord: The coordinates of the element
@@ -174,7 +174,7 @@ public:
     * @param interpolate_internal_variables: A boolean that defines if it is necessary to interpolate the internal variables
     * @return this_model_part: The model part of the model (it is the input too)
     */
-    
+
     void EraseOldElementAndCreateNewElement(
             ModelPart& this_model_part,
             const compressed_matrix<int>& Coord,
@@ -207,7 +207,7 @@ public:
             {
                 i = -1;
             }
-            
+
             Element::GeometryType& geom = it->GetGeometry();
             CalculateEdges(geom, Coord, edge_ids, aux);
 
@@ -278,20 +278,20 @@ public:
 
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     /**
     * Remove the old conditions and creates new ones
     * @param Coord: The coordinates of the nodes of the geometry
     * @return this_model_part: The model part of the model (it is the input too)
     */
-    
+
     void EraseOldConditionsAndCreateNew(
 	ModelPart& this_model_part,
 	const compressed_matrix<int>& Coord
 	 ) override
     {
         KRATOS_TRY;
-	
+
         PointerVector< Condition > New_Conditions;
 
         ConditionsArrayType& rConditions = this_model_part.Conditions();
@@ -306,11 +306,11 @@ public:
             ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 
             unsigned int current_id = (rConditions.end() - 1)->Id() + 1;
-	    
+
 	    for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
 	    {
                 Condition::GeometryType& geom = it->GetGeometry();
-		
+
                 if (geom.size() == 2)
                 {
                     int index_0 = geom[0].Id() - 1;
@@ -384,19 +384,19 @@ public:
 
         KRATOS_CATCH("");
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     /**
-    * It calculates the new edges of the new prisms, 
+    * It calculates the new edges of the new prisms,
     * first it calculates the new edges correspondign to the lower face (as a triangle),
     * later it added to the upper face
     * @param geom: The prism element geometry
     * @param edge_ids: The ids of the edges
     * @return aux: The vector that includes the index of the new edges
     */
-    
+
     void CalculateEdges(
             Element::GeometryType& geom,
             const compressed_matrix<int>& Coord,
@@ -405,16 +405,16 @@ public:
             ) override
     {
         aux.resize(12, false);
-        
+
         // Lower face
         int index_0 = geom[0].Id() - 1;
         int index_1 = geom[1].Id() - 1;
         int index_2 = geom[2].Id() - 1;
-	
+
         aux[0] = geom[0].Id();
         aux[1] = geom[1].Id();
         aux[2] = geom[2].Id();
-	
+
         // Upper face
         int index_3 = geom[3].Id() - 1;
         int index_4 = geom[4].Id() - 1;
@@ -423,9 +423,9 @@ public:
         aux[3] = geom[3].Id();
         aux[4] = geom[4].Id();
         aux[5] = geom[5].Id();
-	
+
         //-------------------------------------------------------------------------
-	
+
         // First node of the triangle face
         if (index_0 > index_1)
         {
@@ -461,7 +461,7 @@ public:
             aux[8]  = Coord(index_2, index_0);
             aux[11] = Coord(index_5, index_3);
         }
-	
+
         //-------------------------------------------------------------------------
 
         // Edge 01
@@ -532,7 +532,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-   
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -540,7 +540,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-   
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -553,7 +553,7 @@ protected:
     ///@name Protected LifeCycle
     ///@{
     ///@}
-    
+
 private:
     ///@name Private static Member Variables
     ///@{
@@ -561,7 +561,7 @@ private:
     ///@}
     ///@name Private member Variables
     ///@{
-   
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -582,7 +582,7 @@ private:
     ///@name Private LifeCycle
     ///@{
     ///@}
- 
+
 };
 
 } // namespace Kratos.

@@ -129,7 +129,7 @@ class SearchBaseProcess(KM.Process):
         self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
         self.find_nodal_h.Execute()
 
-        ## We recompute the serach factor and the check in function of the relative size of the mesh
+        ## We recompute the search factor and the check in function of the relative size of the mesh
         if (self.settings["search_parameters"]["adapt_search"].GetBool() is True):
             factor = CSMA.ContactUtilities.CalculateRelativeSizeMesh(self.computing_model_part)
             KM.Logger.PrintWarning("SEARCH ADAPT FACTOR: ", "{:.2e}".format(factor))
@@ -266,13 +266,14 @@ class SearchBaseProcess(KM.Process):
 
         return ""
 
-    def _get_final_string(self):
+    def _get_final_string(self, key = "0"):
         """ This method returns the final string of the condition name
 
         Keyword arguments:
         self -- It signifies an instance of a class.
+        key -- The key to identify the current pair
         """
-
+        self.__assume_master_slave(key)
         return ""
 
     def _get_problem_name(self):
@@ -404,16 +405,25 @@ class SearchBaseProcess(KM.Process):
         search_parameters["id_name"].SetString(key)
 
         # We compute the number of nodes of the geometry
-        number_nodes = len(self.computing_model_part.Conditions[1].GetNodes())
+        number_nodes, number_nodes_master = self._compute_number_nodes()
 
         # We create the search process
         if (self.dimension == 2):
             self.search_search[key] = CSMA.TreeContactSearch2D2N(self.computing_model_part, search_parameters)
         else:
             if (number_nodes == 3):
-                self.search_search[key] = CSMA.TreeContactSearch3D3N(self.computing_model_part, search_parameters)
+                if (number_nodes_master == 3):
+                    self.search_search[key] = CSMA.TreeContactSearch3D3N(self.computing_model_part, search_parameters)
+                else:
+                    self.search_search[key] = CSMA.TreeContactSearch3D3N4N(self.computing_model_part, search_parameters)
+
+            elif (number_nodes == 4):
+                if (number_nodes_master == 3):
+                    self.search_search[key] = CSMA.TreeContactSearch3D4N3N(self.computing_model_part, search_parameters)
+                else:
+                    self.search_search[key] = CSMA.TreeContactSearch3D4N(self.computing_model_part, search_parameters)
             else:
-                self.search_search[key] = CSMA.TreeContactSearch3D4N(self.computing_model_part, search_parameters)
+                raise Exception("Geometries not compatible. Check all the geometries are linear")
 
     def _get_enum_flag(self, param, label, dictionary):
         """ Parse enums settings using an auxiliary dictionary of acceptable values.
@@ -504,6 +514,26 @@ class SearchBaseProcess(KM.Process):
         else:
             return False
 
+    def _compute_number_nodes(self):
+        # We compute the number of nodes of the geometry
+        if (self.predefined_master_slave is True and self.dimension == 3):
+            slave_defined = False
+            master_defined = False
+            for cond in self.computing_model_part.Conditions:
+                if (cond.Is(KM.SLAVE)):
+                    number_nodes = len(cond.GetNodes())
+                    slave_defined = True
+                if (cond.Is(KM.MASTER)):
+                    number_nodes_master = len(cond.GetNodes())
+                    master_defined = True
+                if (slave_defined and master_defined):
+                    break
+        else:
+            number_nodes = len(self.computing_model_part.Conditions[1].GetNodes())
+            number_nodes_master = number_nodes
+
+        return number_nodes, number_nodes_master
+
     def __get_integration_area(self):
         """ Computes auxiliarly the current integration area
 
@@ -515,14 +545,17 @@ class SearchBaseProcess(KM.Process):
         if (self.dimension == 2):
             exact_integration = KM.ExactMortarIntegrationUtility2D2N(3)
         else:
-            #num_nodes = len(self._get_process_model_part().Conditions[1].GetNodes())
-            for cond in self._get_process_model_part().Conditions:
-                num_nodes = len(cond.GetNodes())
-                break
-            if (num_nodes == 3):
-                exact_integration = KM.ExactMortarIntegrationUtility3D3N(3)
+            number_nodes, number_nodes_master = self._compute_number_nodes()
+            if (number_nodes == 3):
+                if (number_nodes_master == 3):
+                    exact_integration = KM.ExactMortarIntegrationUtility3D3N(3)
+                else:
+                    exact_integration = KM.ExactMortarIntegrationUtility3D3N4N(3)
             else:
-                exact_integration = KM.ExactMortarIntegrationUtility3D4N(3)
+                if (number_nodes_master == 3):
+                    exact_integration = KM.ExactMortarIntegrationUtility3D4N3N(3)
+                else:
+                    exact_integration = KM.ExactMortarIntegrationUtility3D4N(3)
 
         # We iterate over the conditions
         for cond in self._get_process_model_part().Conditions:
@@ -601,11 +634,14 @@ class SearchBaseProcess(KM.Process):
         sub_search_model_part_name = "ContactSub"+key
         self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
         detect_skin_parameters["name_auxiliar_model_part"].SetString(sub_search_model_part_name)
-        detect_skin = KM.SkinDetectionProcess3D(model_part, detect_skin_parameters)
+        if (self.dimension == 2):
+            detect_skin = KM.SkinDetectionProcess2D(model_part, detect_skin_parameters)
+        else:
+            detect_skin = KM.SkinDetectionProcess3D(model_part, detect_skin_parameters)
         detect_skin.Execute()
         self.settings["search_model_part"][key].Append(sub_search_model_part_name)
         # Assigning master and slave sides
-        self.__assume_master_slave()
+        self.__assume_master_slave(key)
         self._assign_master_flags(self._get_process_model_part())
         self._assign_slave_flags(key)
 
