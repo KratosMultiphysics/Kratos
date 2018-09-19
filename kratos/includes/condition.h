@@ -228,7 +228,8 @@ public:
      */
 
     /**
-     * creates a new condition pointer
+     * @brief It creates a new condition pointer
+     * @todo This implementation is pure virtual
      * @param NewId the ID of the new condition
      * @param ThisNodes the nodes of the new condition
      * @param pProperties the properties assigned to the new condition
@@ -244,7 +245,8 @@ public:
     }
 
     /**
-     * creates a new condition pointer
+     * @brief It creates a new condition pointer
+     * @todo This implementation is pure virtual
      * @param NewId the ID of the new condition
      * @param pGeom the geometry to be employed
      * @param pProperties the properties assigned to the new condition

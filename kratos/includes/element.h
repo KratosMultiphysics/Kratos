@@ -222,7 +222,8 @@ public:
      */
 
     /**
-     * creates a new element pointer
+     * @brief It creates a new element pointer
+     * @todo This implementation is pure virtual
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -238,7 +239,8 @@ public:
     }
 
     /**
-     * creates a new element pointer
+     * @brief It creates a new element pointer
+     * @todo This implementation is pure virtual
      * @param NewId the ID of the new element
      * @param pGeom the geometry to be employed
      * @param pProperties the properties assigned to the new element
