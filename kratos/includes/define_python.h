@@ -95,16 +95,9 @@
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(module,flag);   \
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(module,NOT_##flag)
 
-#define KRATOS_DEF_REPR(ObjectType, PythonClass) \
-    PythonClass.def("__repr__", [](const ObjectType& self) -> \
-    const std::string { std::stringstream ss;  ss << self; return ss.str(); })
 
-// template <class TClassType>
-// const std::string ObjectToString(const TClassType& rObject)
-// {
-//     std::stringstream ss;
-//     ss << rObject;
-//     return ss.str();
-// }
+#define KRATOS_DEF_STR(ObjectType, PythonClass) \
+    PythonClass.def("__str__", [](const ObjectType& self) -> \
+    const std::string { std::stringstream ss;  ss << self; return ss.str(); })
 
 #endif /* KRATOS_DEFINE_H_INCLUDED  defined */
