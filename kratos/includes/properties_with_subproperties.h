@@ -61,6 +61,8 @@ public:
 
     typedef Properties BaseType;
 
+    typedef BaseType::IndexType IndexType;
+
     typedef BaseType::SubPropertiesListType SubPropertiesListType;
 
     ///@}
@@ -76,6 +78,12 @@ public:
 
     PropertiesWithSubProperties(Properties::Pointer pProperties, SubPropertiesListType& rSubPropetiesList)
         : BaseType(*pProperties), mSubPropetiesList(rSubPropetiesList) {}
+
+    PropertiesWithSubProperties(Properties& rProperties)
+        : BaseType(rProperties), mSubPropetiesList(SubPropertiesListType(0)) {}
+
+    PropertiesWithSubProperties(Properties& rProperties, SubPropertiesListType& rSubPropetiesList)
+        : BaseType(rProperties), mSubPropetiesList(rSubPropetiesList) {}
 
     /// Copy constructor.
     PropertiesWithSubProperties(const PropertiesWithSubProperties& rOther) : BaseType(rOther), mSubPropetiesList(rOther.mSubPropetiesList) {}
@@ -103,7 +111,7 @@ public:
 
     void AddSubProperty(Properties::Pointer pNewSubProperty) override
     {
-        mSubPropetiesList.push_back(pNewSubProperty);
+        mSubPropetiesList.insert(std::pair<IndexType, Properties::Pointer>(pNewSubProperty->Id(), pNewSubProperty));
     }
 
     Properties::Pointer GetSubProperty(const IndexType SubPropertyIndex) override
@@ -162,10 +170,10 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        BaseType.PrintData(rOStream);
+        BaseType::PrintData(rOStream);
         rOStream << "This properties contains the following subproperties" << mSubPropetiesList.size() << " subproperties";
         for (auto& subprop : mSubPropetiesList) {
-            subprop.PrintData(rOStream);
+            (subprop.second)->PrintData(rOStream);
         }
     }
 

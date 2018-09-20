@@ -17,6 +17,7 @@
 
 // Project includes
 #include "utilities/read_materials_utility.h"
+#include "includes/properties_with_subproperties.h"
 
 namespace Kratos
 {
@@ -222,10 +223,8 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 
     // If the property has subproperties block we allocate this properties first
     if (Data["Material"].Has("sub_properties")) {
-        const std::size_t number_of_subproperties = Data["Material"]["sub_properties"].size();
-        std::vector<Properties::Pointer> list_sub_properties(number_of_subproperties);
+        std::unordered_map<IndexType, Properties::Pointer> list_sub_properties;
 
-        std::size_t counter = 0;
         for (auto sub_prop : Data["Material"]["sub_properties"]) {
             const int sub_property_id = sub_prop["properties_id"].GetInt();
             Properties::Pointer p_new_sub_prop = r_model_part.pGetProperties(sub_property_id, mesh_id);
@@ -233,11 +232,11 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
             // We create the new sub property
             CreateProperty(sub_prop["Material"], p_new_sub_prop);
 
-            list_sub_properties[counter] = p_new_sub_prop;
-            ++counter;
+            list_sub_properties.insert(std::pair<IndexType, Properties::Pointer>({sub_property_id, p_new_sub_prop}));
         }
 
-        p_prop->SetValue(SUB_PROPERTIES_LIST, list_sub_properties);
+        auto& current_properties = *p_prop;
+        p_prop = Kratos::make_shared<PropertiesWithSubProperties>(current_properties, list_sub_properties);
     }
 
     // We create the new property

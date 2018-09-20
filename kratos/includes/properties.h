@@ -91,7 +91,7 @@ public:
 
     typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
 
-    typedef std::vector<Properties::Pointer> SubPropertiesListType;
+    typedef std::unordered_map<IndexType, Properties::Pointer> SubPropertiesListType;
 
     ///@}
     ///@name Life Cycle
