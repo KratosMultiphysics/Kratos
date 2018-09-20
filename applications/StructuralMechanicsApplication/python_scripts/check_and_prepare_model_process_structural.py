@@ -23,8 +23,9 @@ class CheckAndPrepareModelProcess(KM.Process):
     Conditions are added from the processes sub model parts.
     """
     def __init__(self, Model, Parameters):
-        model_part_name = Parameters["model_part_name"].GetString()
-        self.main_model_part = Model[model_part_name]
+        self.model_part_name = Parameters["model_part_name"].GetString()
+        self.main_model_part = Model[self.model_part_name]
+        self.model = Model
 
         self.computing_model_part_name  = Parameters["computing_model_part_name"].GetString()
         self.structural_model_part_names = Parameters["problem_domain_sub_model_part_list"]
@@ -34,11 +35,17 @@ class CheckAndPrepareModelProcess(KM.Process):
 
         structural_parts = []
         for i in range(self.structural_model_part_names.size()):
-            structural_parts.append(self.main_model_part.GetSubModelPart(self.structural_model_part_names[i].GetString()))
+            # only submodelparts of the MainModelPart can be used!
+            sub_model_part_name = self.structural_model_part_names[i].GetString()
+            full_model_part_name = self.model_part_name + "." + sub_model_part_name
+            structural_parts.append(self.model[full_model_part_name])
 
         processes_parts = []
         for i in range(self.processes_model_part_names.size()):
-            processes_parts.append(self.main_model_part.GetSubModelPart(self.processes_model_part_names[i].GetString()))
+            # only submodelparts of the MainModelPart can be used!
+            sub_model_part_name = self.processes_model_part_names[i].GetString()
+            full_model_part_name = self.model_part_name + "." + sub_model_part_name
+            processes_parts.append(self.model[full_model_part_name])
 
         # Construct a model part which contains both the skin and the volume
         if (self.main_model_part.HasSubModelPart(self.computing_model_part_name)):
