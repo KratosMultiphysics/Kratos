@@ -47,7 +47,7 @@ namespace Kratos
  * More info https://en.wikipedia.org/wiki/Neo-Hookean_solid
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicNeoHookean3D 
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HyperElasticIsotropicNeoHookean3D
     : public ConstitutiveLaw
 {
 public:
@@ -57,22 +57,22 @@ public:
 
     /// The definition of the process info
     typedef ProcessInfo ProcessInfoType;
-    
+
     /// The definition of the CL base  class
     typedef ConstitutiveLaw    BaseType;
-    
+
     /// The definition of the size type
     typedef std::size_t        SizeType;
-    
+
     /// The definition of the index type
     typedef std::size_t       IndexType;
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 3;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 6;
-    
+
     /// Pointer definition of HyperElasticIsotropicNeoHookean3D
     KRATOS_CLASS_POINTER_DEFINITION( HyperElasticIsotropicNeoHookean3D );
 
@@ -106,7 +106,7 @@ public:
      * @brief Clone operation
      */
     ConstitutiveLaw::Pointer Clone() const override;
-    
+
     /**
      * @brief This function is designed to be called once to check compatibility with element
      * @param rFeatures The Features of the law
@@ -146,7 +146,7 @@ public:
     {
         return StressMeasure_PK2;
     }
-    
+
     /**
      * @brief Computes the material response: PK1 stresses and algorithmic ConstitutiveMatrix
      * @param rValues The Internalvalues of the law
@@ -212,7 +212,7 @@ public:
      */
     double& CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<double>& rThisVariable, 
+        const Variable<double>& rThisVariable,
         double& rValue
         ) override;
 
@@ -225,7 +225,7 @@ public:
      */
     Vector& CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Vector>& rThisVariable, 
+        const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
 
@@ -238,7 +238,7 @@ public:
      */
     Matrix& CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Matrix>& rThisVariable, 
+        const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
 
@@ -356,7 +356,7 @@ private:
      * @param rValues The Internalvalues of the law
      * @param rStrainVector The strain vector in Voigt notation
      */
-    virtual void CalculateCauchyGreenStrain(
+    virtual void CalculateGreenLagrangianStrain(
         ConstitutiveLaw::Parameters& rValues,
         Vector& rStrainVector
         );
