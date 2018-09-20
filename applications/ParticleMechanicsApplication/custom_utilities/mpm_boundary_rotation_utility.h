@@ -169,7 +169,7 @@ public:
 						rLocalMatrix(j,i) = 0.0;
 					}
 
-					rLocalVector(j) = inner_prod(rN,Displacement);
+					rLocalVector[j] = inner_prod(rN,Displacement);
 					rLocalMatrix(j,j) = 1.0;
 				}
 			}

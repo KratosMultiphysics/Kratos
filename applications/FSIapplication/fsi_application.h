@@ -42,7 +42,7 @@ class KratosFSIApplication : public KratosApplication {
     KratosFSIApplication() : KratosApplication("FSIApplication") {}
 
     /// Destructor.
-    virtual ~KratosFSIApplication() {}
+    ~KratosFSIApplication() override {}
 
     ///@}
     ///@name Operators

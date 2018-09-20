@@ -12,7 +12,6 @@
 //
 
 
-
 // System includes
 
 // External includes
@@ -22,8 +21,6 @@
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/particle_erase_process.h"
-
-
 #include "includes/node.h"
 
 namespace Kratos

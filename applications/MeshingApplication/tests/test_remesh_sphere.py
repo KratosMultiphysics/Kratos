@@ -11,6 +11,8 @@ import os
 class TestRemeshMMG(KratosUnittest.TestCase):
 
     def test_remesh_sphere(self):
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
         # We create the model part
         main_model_part = KratosMultiphysics.ModelPart("MainModelPart")
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
@@ -44,7 +46,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         ZeroVector[5] = 0.0
 
         for node in main_model_part.Nodes:
-            node.SetValue(MeshingApplication.MMG_METRIC, ZeroVector)
+            node.SetValue(MeshingApplication.METRIC_TENSOR_3D, ZeroVector)
 
         # We define a metric using the ComputeLevelSetSolMetricProcess
         MetricParameters = KratosMultiphysics.Parameters("""
@@ -105,7 +107,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         #gid_output.ExecuteFinalize()
 
         from compare_two_files_check_process import CompareTwoFilesCheckProcess
-        check_files = CompareTwoFilesCheckProcess(main_model_part, KratosMultiphysics.Parameters("""
+        check_parameters = KratosMultiphysics.Parameters("""
                             {
                                 "reference_file_name"   : "mmg_eulerian_test/coarse_sphere_test_result.sol",
                                 "output_file_name"      : "mmg_eulerian_test/coarse_sphere_test_step=0.sol",
@@ -113,7 +115,9 @@ class TestRemeshMMG(KratosUnittest.TestCase):
                                 "comparison_type"       : "sol_file"
                             }
                             """)
-                            )
+        check_parameters["reference_file_name"].SetString(file_path + "/" + check_parameters["reference_file_name"].GetString())
+        check_parameters["output_file_name"].SetString(file_path + "/" + check_parameters["output_file_name"].GetString())
+        check_files = CompareTwoFilesCheckProcess(main_model_part, check_parameters)
 
         check_files.ExecuteInitialize()
         check_files.ExecuteBeforeSolutionLoop()

@@ -43,7 +43,7 @@ void NodalSolutionStepBossakIO::WriteNodalResults(NodesContainerType const& rNod
                                            mAlphaBossak, info);
 
     // Write block partition.
-    WritePartitionTable(GetFile(), prefix + "/NodalResults", info);
+    WritePartitionTable(GetFile(), prefix + "/NodalSolutionStepData", info);
 
     KRATOS_CATCH("");
 }
@@ -66,7 +66,7 @@ public:
     {
         Vector<typename TVariable::Type> data;
         SetDataBuffer(rVariable, rNodes, AlphaBossak, data);
-        rFile.WriteDataSet(rPrefix + "/NodalResults/" + rVariable.Name(), data, rInfo);
+        rFile.WriteDataSet(rPrefix + "/NodalSolutionStepData/" + rVariable.Name(), data, rInfo);
     }
 };
 

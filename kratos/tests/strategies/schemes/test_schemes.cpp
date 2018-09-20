@@ -14,6 +14,7 @@
 #include <limits>
 
 // External includes
+#include <boost/numeric/ublas/matrix.hpp>
 
 
 // Project includes
@@ -85,7 +86,7 @@ namespace Kratos
             }
             Doftemp.Sort();
             
-            CompressedMatrix A = ZeroMatrix(3, 3);
+			CompressedMatrix A(boost::numeric::ublas::zero_matrix<double>(3, 3));
             Vector Dx = ZeroVector(3);
             Vector b = ZeroVector(3);
             
@@ -112,7 +113,7 @@ namespace Kratos
             std::vector< Dof<double>::Pointer > DoF;
             DofsArrayType Doftemp = BasicTestSchemeDisplacement(model_part, pscheme, DoF, delta_time);
             
-            CompressedMatrix A = ZeroMatrix(3, 3);
+            CompressedMatrix A = boost::numeric::ublas::zero_matrix<double>(3, 3);
             Vector Dx = ZeroVector(3);
             Vector b = ZeroVector(3);
             
@@ -175,7 +176,7 @@ namespace Kratos
             std::vector< Dof<double>::Pointer > DoF;
             DofsArrayType Doftemp = BasicTestSchemeDisplacement(model_part, pscheme, DoF, delta_time);
             
-            CompressedMatrix A = ZeroMatrix(3, 3);
+            CompressedMatrix A = boost::numeric::ublas::zero_matrix<double>(3, 3);
             Vector Dx = ZeroVector(3);
             Vector b = ZeroVector(3);
             
@@ -238,7 +239,7 @@ namespace Kratos
             std::vector< Dof<double>::Pointer > DoF;
             DofsArrayType Doftemp = BasicTestSchemeDisplacement(model_part, pscheme, DoF, delta_time);
             
-            CompressedMatrix A = ZeroMatrix(3, 3);
+            CompressedMatrix A = boost::numeric::ublas::zero_matrix<double>(3, 3);
             Vector Dx = ZeroVector(3);
             Vector b = ZeroVector(3);
             

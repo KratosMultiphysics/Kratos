@@ -348,6 +348,8 @@ class Algorithm(object):
 
         self.TransferGravityFromDisperseToFluid()
 
+        self.AssignKinematicViscosityFromDynamicViscosity()
+
         # coarse-graining: applying changes to the physical properties of the model to adjust for
         # the similarity transformation if required (fluid effects only).
         SDP.ApplySimilarityTransformations(
@@ -1042,6 +1044,10 @@ class Algorithm(object):
                 node.SetSolutionStepValue(BODY_FORCE_X, 0, self.pp.CFD_DEM["GravityX"].GetDouble())
                 node.SetSolutionStepValue(BODY_FORCE_Y, 0, self.pp.CFD_DEM["GravityY"].GetDouble())
                 node.SetSolutionStepValue(BODY_FORCE_Z, 0, self.pp.CFD_DEM["GravityZ"].GetDouble())
+
+    def AssignKinematicViscosityFromDynamicViscosity(self):
+        # Eulerian fluid already works with kinematic viscosity
+        pass
 
     def yield_DEM_time(self, current_time, current_time_plus_increment, delta_time):
         current_time += delta_time

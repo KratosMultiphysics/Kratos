@@ -45,10 +45,10 @@ namespace Kratos
 ///@{
 
 /**
- * @class TotalLagrangian
+ * @class UpdatedLagrangian
  * @ingroup StructuralMechanicsApplication
  * @brief Updated Lagrangian element for 2D and 3D geometries.
- * @details Implements a total Lagrangian definition for structural analysis. This works for arbitrary geometries in 2D and 3D
+ * @details Implements an Updated Lagrangian definition for structural analysis. This works for arbitrary geometries in 2D and 3D
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
@@ -199,6 +199,11 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    // GetValueOnIntegrationPoints are TEMPORARY until they are removed!!!
+    // They will be removed from the derived elements; i.e. the implementation
+    // should be in CalculateOnIntegrationPoints!
+    // Adding these functions here is bcs GiD calls GetValueOnIntegrationPoints
+
     /**
      * @brief Get on rVariable a double Value from the Element Constitutive Law
      * @param rVariable The variable we want to get
@@ -314,6 +319,7 @@ protected:
      * @brief This functions updates the kinematics variables
      * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param PointNumber The integration point considered
+     * @param rIntegrationMethod The integration method considered
      */
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
@@ -369,7 +375,6 @@ private:
      * @param rB The deformation matrix
      * @param rDN_DX The gradient derivative of the shape function
      * @param StrainSize The size of the Voigt notation stress vector
-     * @param IntegrationPoints The array containing the integration points
      * @param PointNumber The integration point considered
      */
     void CalculateB(
