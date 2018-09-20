@@ -88,6 +88,97 @@ void ReadMaterialsUtility::TrimComponentName(std::string& rLine){
 /***********************************************************************************/
 /***********************************************************************************/
 
+void ReadMaterialsUtility::CreateProperty(
+    Parameters Data,
+    Properties::Pointer pNewProperty
+    )
+{
+    // Set the CONSTITUTIVE_LAW for the current pNewPropertyerties.
+    if (Data.Has("constitutive_law")) {
+        Parameters cl_parameters = Data["constitutive_law"];
+        std::string constitutive_law_name = cl_parameters["name"].GetString();
+        TrimComponentName(constitutive_law_name);
+        cl_parameters["name"].SetString(constitutive_law_name);
+
+        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(constitutive_law_name).Create(cl_parameters);
+        pNewProperty->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+    } else {
+        KRATOS_INFO("Read materials") << "No constitutive law defined for material ID: " << pNewProperty->Id() << std::endl;
+    }
+
+    // Add / override the values of material parameters in the pNewPropertyerties
+    Parameters variables = Data["Variables"];
+    for(auto iter = variables.begin(); iter != variables.end(); ++iter) {
+        const Parameters value = variables.GetValue(iter.name());
+
+        std::string variable_name = iter.name();
+        TrimComponentName(variable_name);
+
+        // We don't just copy the values, we do some tyransformation depending of the destination variable
+        if(KratosComponents<Variable<double> >::Has(variable_name)) {
+            const Variable<double>& variable = KratosComponents<Variable<double>>().Get(variable_name);
+            pNewProperty->SetValue(variable, value.GetDouble());
+        } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
+            const Variable<bool>& variable = KratosComponents<Variable<bool>>().Get(variable_name);
+            pNewProperty->SetValue(variable, value.GetBool());
+        } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
+            const Variable<int>& variable = KratosComponents<Variable<int>>().Get(variable_name);
+            pNewProperty->SetValue(variable, value.GetInt());
+        } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
+            const Variable<array_1d<double, 3>>& variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(variable_name);
+            array_1d<double, 3> temp(3, 0.0);
+            const Vector& value_variable = value.GetVector();
+            KRATOS_ERROR_IF(value_variable.size() != 3) << "The vector of variable " << variable_name << " has size " << value_variable.size() << " and it is supposed to be 3" << std::endl;
+            for (IndexType index = 0; index < 3; ++index)
+                temp[index] = value_variable[index];
+            pNewProperty->SetValue(variable, temp);
+        } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
+            const Variable<array_1d<double, 6>>& variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(variable_name);
+            array_1d<double, 6> temp(6, 0.0);
+            const Vector& value_variable = value.GetVector();
+            KRATOS_ERROR_IF(value_variable.size() != 6) << "The vector of variable " << variable_name << " has size " << value_variable.size() << " and it is supposed to be 6" << std::endl;
+            for (IndexType index = 0; index < 6; ++index)
+                temp[index] = value_variable[index];
+            pNewProperty->SetValue(variable, temp);
+        } else if(KratosComponents<Variable<Vector > >::Has(variable_name)) {
+            const Variable<Vector>& variable = KratosComponents<Variable<Vector>>().Get(variable_name);
+            pNewProperty->SetValue(variable, value.GetVector());
+        } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
+            const Variable<Matrix>& variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
+            pNewProperty->SetValue(variable, value.GetMatrix());
+        } else if(KratosComponents<Variable<std::string> >::Has(variable_name)) {
+            const Variable<std::string>& variable = KratosComponents<Variable<std::string>>().Get(variable_name);
+            pNewProperty->SetValue(variable, value.GetString());
+        } else {
+            KRATOS_ERROR << "Value type not defined";
+        }
+    }
+
+    // Add / override tables in the pNewPropertyerties
+    Parameters tables = Data["Tables"];
+    for(auto iter = tables.begin(); iter != tables.end(); ++iter) {
+        auto table_param = tables.GetValue(iter.name());
+        // Case table is double, double. TODO(marandra): Does it make sense to consider other cases?
+        Table<double> table;
+
+        std::string input_var_name = table_param["input_variable"].GetString();
+        TrimComponentName(input_var_name);
+        std::string output_var_name = table_param["output_variable"].GetString();
+        TrimComponentName(output_var_name);
+
+        const auto input_var = KratosComponents<Variable<double>>().Get(input_var_name);
+        const auto output_var = KratosComponents<Variable<double>>().Get(output_var_name);
+        for (IndexType i = 0; i < table_param["data"].size(); ++i) {
+            table.insert(table_param["data"][i][0].GetDouble(),
+                         table_param["data"][i][1].GetDouble());
+        }
+        pNewProperty->SetTable(input_var, output_var, table);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
 {
     // Get the properties for the specified model part.
@@ -129,87 +220,28 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
         it_cond->SetProperties(p_prop);
     }
 
-    //Set the CONSTITUTIVE_LAW for the current p_properties.
-    if (Data["Material"].Has("constitutive_law")) {
-        Parameters cl_parameters = Data["Material"]["constitutive_law"];
-        std::string constitutive_law_name = cl_parameters["name"].GetString();
-        TrimComponentName(constitutive_law_name);
-        cl_parameters["name"].SetString(constitutive_law_name);
+    // If the property has subproperties block we allocate this properties first
+    if (Data["Material"].Has("sub_properties")) {
+        const std::size_t number_of_subproperties = Data["Material"]["sub_properties"].size();
+        std::vector<Properties::Pointer> list_sub_properties(number_of_subproperties);
 
-        auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(constitutive_law_name).Create(cl_parameters);
-        p_prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
-    } else {
-        KRATOS_INFO("Read materials") << "No constitutive law defined for material ID: " << property_id << std::endl;
-    }
+        std::size_t counter = 0;
+        for (auto sub_prop : Data["Material"]["sub_properties"]) {
+            const int sub_property_id = sub_prop["properties_id"].GetInt();
+            Properties::Pointer p_new_sub_prop = r_model_part.pGetProperties(sub_property_id, mesh_id);
 
-    // Add / override the values of material parameters in the p_properties
-    Parameters variables = Data["Material"]["Variables"];
-    for(auto iter = variables.begin(); iter != variables.end(); ++iter) {
-        const Parameters value = variables.GetValue(iter.name());
+            // We create the new sub property
+            CreateProperty(sub_prop["Material"], p_new_sub_prop);
 
-        std::string variable_name = iter.name();
-        TrimComponentName(variable_name);
-
-        // We don't just copy the values, we do some tyransformation depending of the destination variable
-        if(KratosComponents<Variable<double> >::Has(variable_name)) {
-            const Variable<double>& variable = KratosComponents<Variable<double>>().Get(variable_name);
-            p_prop->SetValue(variable, value.GetDouble());
-        } else if(KratosComponents<Variable<bool> >::Has(variable_name)) {
-            const Variable<bool>& variable = KratosComponents<Variable<bool>>().Get(variable_name);
-            p_prop->SetValue(variable, value.GetBool());
-        } else if(KratosComponents<Variable<int> >::Has(variable_name)) {
-            const Variable<int>& variable = KratosComponents<Variable<int>>().Get(variable_name);
-            p_prop->SetValue(variable, value.GetInt());
-        } else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name)) {
-            const Variable<array_1d<double, 3>>& variable = KratosComponents<Variable<array_1d<double, 3>>>().Get(variable_name);
-            array_1d<double, 3> temp(3, 0.0);
-            const Vector& value_variable = value.GetVector();
-            KRATOS_ERROR_IF(value_variable.size() != 3) << "The vector of variable " << variable_name << " has size " << value_variable.size() << " and it is supposed to be 3" << std::endl;
-            for (IndexType index = 0; index < 3; ++index)
-                temp[index] = value_variable[index];
-            p_prop->SetValue(variable, temp);
-        } else if(KratosComponents<Variable<array_1d<double, 6> > >::Has(variable_name)) {
-            const Variable<array_1d<double, 6>>& variable = KratosComponents<Variable<array_1d<double, 6>>>().Get(variable_name);
-            array_1d<double, 6> temp(6, 0.0);
-            const Vector& value_variable = value.GetVector();
-            KRATOS_ERROR_IF(value_variable.size() != 6) << "The vector of variable " << variable_name << " has size " << value_variable.size() << " and it is supposed to be 6" << std::endl;
-            for (IndexType index = 0; index < 6; ++index)
-                temp[index] = value_variable[index];
-            p_prop->SetValue(variable, temp);
-        } else if(KratosComponents<Variable<Vector > >::Has(variable_name)) {
-            const Variable<Vector>& variable = KratosComponents<Variable<Vector>>().Get(variable_name);
-            p_prop->SetValue(variable, value.GetVector());
-        } else if(KratosComponents<Variable<Matrix> >::Has(variable_name)) {
-            const Variable<Matrix>& variable = KratosComponents<Variable<Matrix>>().Get(variable_name);
-            p_prop->SetValue(variable, value.GetMatrix());
-        } else if(KratosComponents<Variable<std::string> >::Has(variable_name)) {
-            const Variable<std::string>& variable = KratosComponents<Variable<std::string>>().Get(variable_name);
-            p_prop->SetValue(variable, value.GetString());
-        } else {
-            KRATOS_ERROR << "Value type not defined";
+            list_sub_properties[counter] = p_new_sub_prop;
+            ++counter;
         }
+
+        p_prop->SetValue(SUB_PROPERTIES_LIST, list_sub_properties);
     }
 
-    // Add / override tables in the p_properties
-    Parameters tables = Data["Material"]["Tables"];
-    for(auto iter = tables.begin(); iter != tables.end(); ++iter) {
-        auto table_param = tables.GetValue(iter.name());
-        // Case table is double, double. TODO(marandra): Does it make sense to consider other cases?
-        Table<double> table;
-
-        std::string input_var_name = table_param["input_variable"].GetString();
-        TrimComponentName(input_var_name);
-        std::string output_var_name = table_param["output_variable"].GetString();
-        TrimComponentName(output_var_name);
-
-        const auto input_var = KratosComponents<Variable<double>>().Get(input_var_name);
-        const auto output_var = KratosComponents<Variable<double>>().Get(output_var_name);
-        for (IndexType i = 0; i < table_param["data"].size(); ++i) {
-            table.insert(table_param["data"][i][0].GetDouble(),
-                         table_param["data"][i][1].GetDouble());
-        }
-        p_prop->SetTable(input_var, output_var, table);
-    }
+    // We create the new property
+    CreateProperty(Data["Material"], p_prop);
 }
 
 }  // namespace Kratos.

@@ -171,6 +171,16 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@{
     
     /**
+     * @brief This method creates a property from configuration parameters
+     * @param Data The parameters containing all the configurations of the materials
+     * @param pNewProperty The pointer to the new property created
+     */
+    void CreateProperty(
+        Parameters Data,
+        Properties::Pointer pNewProperty
+        );
+
+    /**
      * @brief This method assigns the properties to the model parts
      * @param Data The parameters containing all the configurations of the materials
      */
