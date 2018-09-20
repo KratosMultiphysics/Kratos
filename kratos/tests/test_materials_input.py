@@ -23,7 +23,7 @@ def GetFilePath(fileName):
 
 class TestMaterialsInput(KratosUnittest.TestCase):
 
-    def _prepare_test(self):
+    def _prepare_test(self, input_file = "materials.json"):
         self.model_part = KratosMultiphysics.ModelPart("Main")
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
@@ -43,7 +43,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         """)
 
         #assign the real path
-        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("materials.json"))
+        self.test_settings["Parameters"]["materials_filename"].SetString(GetFilePath(input_file))
 
     def _check_results(self):
         #test if the element properties are assigned correctly to the elements and conditions
@@ -87,6 +87,10 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.assertAlmostEqual(table.GetNearestValue(1.1),10.0)
         self.assertAlmostEqual(table.GetDerivative(1.2),2.0)
 
+    def _check_results_with_subproperties(self):
+        prop1 = self.model_part.GetProperties()[1]
+        self.assertEqual(prop1.NumberOfSubproperties(), 3)
+
     def test_input_python(self):
 
         if (missing_external_dependencies is True):
@@ -103,6 +107,14 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self._prepare_test()
         KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.Model)
         self._check_results()
+
+    def test_input_with_subproperties_cpp(self):
+
+        if (missing_external_dependencies is True):
+            self.skipTest("{} is not available".format(missing_application))
+        self._prepare_test("materials_with_subproperties.json")
+        KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.Model)
+        self._check_results_with_subproperties()
 
 if __name__ == '__main__':
     KratosUnittest.main()

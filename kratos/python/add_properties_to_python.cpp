@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -24,6 +24,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/properties.h"
+#include "includes/properties_with_subproperties.h"
 #include "includes/constitutive_law.h"
 #include "python/add_mesh_to_python.h"
 #include "python/containers_interface.h"
@@ -93,7 +94,7 @@ template< class TContainerType, class XVariableType, class YVariableType> void S
     TContainerType& el,
     const XVariableType& XVar,
     const YVariableType& YVar,
-	const typename Properties::TableType& Data)
+    const typename Properties::TableType& Data)
 {
     el.SetTable(XVar, YVar, Data);
 }
@@ -168,7 +169,7 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
 
-	.def("GetTable", GetTableHelperFunction1< Properties, Variable< double > , Variable<double> >, return_value_policy::reference_internal)
+    .def("GetTable", GetTableHelperFunction1< Properties, Variable< double > , Variable<double> >, return_value_policy::reference_internal)
     .def("GetTable", GetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , Variable<double> >, return_value_policy::reference_internal)
     .def("GetTable", GetTableHelperFunction1< Properties, Variable<double>, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >, return_value_policy::reference_internal)
     .def("GetTable", GetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >, return_value_policy::reference_internal)
@@ -176,15 +177,21 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , Variable<double> >)
     .def("SetTable", SetTableHelperFunction1< Properties, Variable<double>, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
     .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
-	.def("__repr__", &Properties::Info) //self_ns::str(self))
+    .def("__repr__", &Properties::Info) //self_ns::str(self))
     .def("HasVariables", &Properties::HasVariables)
     .def("HasTables", &Properties::HasTables)
     .def("IsEmpty", &Properties::IsEmpty)
     .def("NumberOfSubproperties", &Properties::NumberOfSubproperties)
     .def("AddSubProperty", &Properties::AddSubProperty)
     .def("GetSubProperty", &Properties::GetSubProperty)
-//     .def("GetSubProperties", &Properties::GetSubProperties)
-//     .def("SetSubProperties", &Properties::SetSubProperties)
+    .def("GetSubProperties", &Properties::GetSubProperties)
+    .def("SetSubProperties", &Properties::SetSubProperties)
+    ;
+
+    class_<PropertiesWithSubProperties, PropertiesWithSubProperties::Pointer, Properties >(m,"PropertiesWithSubProperties")
+    .def(init<std::size_t>())
+    .def(init<Properties::Pointer>())
+    .def(init<Properties&>())
     ;
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
