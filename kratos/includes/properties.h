@@ -278,26 +278,52 @@ public:
         return result_key;
     }
 
+    /**
+     * @brief This method returns the number of subproperties
+     * @return The current number of subproperties
+     * @warning Must be defined on derived class
+     */
     virtual std::size_t NumberOfSubproperties()
     {
         return 0;
     }
 
+    /**
+     * @brief This method insert a new property into the list of subproperties
+     * @param pNewSubProperty The new property to be added
+     * @warning Must be defined on derived class
+     */
     virtual void AddSubProperty(Properties::Pointer pNewSubProperty)
     {
         KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
     }
 
+    /**
+     * @brief This method gets the subproperty from the index corresponding to the property id
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The pointer to the subproperty of interest
+     * @warning Must be defined on derived class
+     */
     virtual Properties::Pointer GetSubProperty(IndexType SubPropertyIndex)
     {
         KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
     }
 
+    /**
+     * @brief This method returns the whole list of subproperties
+     * @return The whole lis of subproperties
+     * @warning Must be defined on derived class
+     */
     virtual SubPropertiesListType& GetSubProperties()
     {
         KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
     }
 
+    /**
+     * @brief This method set the whole list of subproperties
+     * @param rSubPropetiesList The list of subproperties
+     * @warning Must be defined on derived class
+     */
     virtual void SetSubProperties(SubPropertiesListType& rSubPropetiesList)
     {
         KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
@@ -307,21 +333,37 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief This method returns the whole data container
+     * @return Data container
+     */
     ContainerType& Data()
     {
         return mData;
     }
 
+    /**
+     * @brief This method returns the whole data container (constant)
+     * @return Data container
+     */
     ContainerType const& Data() const
     {
         return mData;
     }
 
+    /**
+     * @brief This method returns the whole list of subproperties (constant)
+     * @return The whole lis of subproperties
+     */
     virtual SubPropertiesListType& SubPropetiesList()
     {
         KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
     }
 
+    /**
+     * @brief This method returns the whole list of subproperties (constant)
+     * @return The whole lis of subproperties
+     */
     virtual SubPropertiesListType const& SubPropetiesList() const
     {
         KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;

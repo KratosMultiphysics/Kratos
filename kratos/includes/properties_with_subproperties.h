@@ -25,7 +25,6 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -48,6 +47,10 @@ namespace Kratos
 /**
  * @class PropertiesWithSubProperties
  * @ingroup KratosCore
+ * @brief This is a property which contains at the same time other subproperties
+ * @details This class derives from the base Properties and it has all the methods. This class overrides the methods related with Subproperties from the base class
+ * @author Vicente Mataix Ferrandiz
+ * @author Fernando Rastellini
  */
 class PropertiesWithSubProperties
     : public Properties
@@ -59,34 +62,75 @@ public:
     /// Pointer definition of PropertiesWithSubProperties
     KRATOS_CLASS_POINTER_DEFINITION(PropertiesWithSubProperties);
 
+    /// The Properties base class
     typedef Properties BaseType;
 
+    /// The index type
     typedef BaseType::IndexType IndexType;
 
+    /// The list of subproperties type
     typedef BaseType::SubPropertiesListType SubPropertiesListType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /**
+     * @brief Default constructor.
+     * @param NewId The Id of the new properties
+     */
     PropertiesWithSubProperties(IndexType NewId = 0)
-        : BaseType(NewId), mSubPropetiesList(SubPropertiesListType(0)) {}
+        : BaseType(NewId),
+          mSubPropetiesList(SubPropertiesListType(0))
+        {}
 
+    /**
+     * @brief Constructor with pointer to properties
+     * @param pProperties A pointer to properties
+     */
     PropertiesWithSubProperties(Properties::Pointer pProperties)
-        : BaseType(*pProperties), mSubPropetiesList(SubPropertiesListType(0)) {}
+        : BaseType(*pProperties),
+          mSubPropetiesList(SubPropertiesListType(0))
+        {}
 
-    PropertiesWithSubProperties(Properties::Pointer pProperties, SubPropertiesListType& rSubPropetiesList)
-        : BaseType(*pProperties), mSubPropetiesList(rSubPropetiesList) {}
+    /**
+     * @brief Constructor with pointer and list of subproperties
+     * @param pProperties A pointer to properties
+     * @param rSubPropetiesList The map containing the subproperties
+     */
+    PropertiesWithSubProperties(
+        Properties::Pointer pProperties,
+        SubPropertiesListType& rSubPropetiesList
+        ) : BaseType(*pProperties),
+            mSubPropetiesList(rSubPropetiesList)
+        {}
 
+    /**
+     * @brief Constructor with reference to properties
+     * @param rProperties A reference to properties
+     */
     PropertiesWithSubProperties(Properties& rProperties)
-        : BaseType(rProperties), mSubPropetiesList(SubPropertiesListType(0)) {}
+        : BaseType(rProperties),
+          mSubPropetiesList(SubPropertiesListType(0))
+        {}
 
-    PropertiesWithSubProperties(Properties& rProperties, SubPropertiesListType& rSubPropetiesList)
-        : BaseType(rProperties), mSubPropetiesList(rSubPropetiesList) {}
+    /**
+     * @brief Constructor with reference to properties and list of subproperties
+     * @param rProperties A reference to properties
+     * @param rSubPropetiesList The map containing the subproperties
+     */
+    PropertiesWithSubProperties(
+        Properties& rProperties,
+        SubPropertiesListType& rSubPropetiesList
+        ) : BaseType(rProperties),
+            mSubPropetiesList(rSubPropetiesList)
+        {}
 
     /// Copy constructor.
-    PropertiesWithSubProperties(const PropertiesWithSubProperties& rOther) : BaseType(rOther), mSubPropetiesList(rOther.mSubPropetiesList) {}
+    PropertiesWithSubProperties(const PropertiesWithSubProperties& rOther)
+        : BaseType(rOther),
+          mSubPropetiesList(rOther.mSubPropetiesList)
+        {}
 
     /// Destructor.
     ~PropertiesWithSubProperties() override {}
@@ -104,26 +148,47 @@ public:
         return *this;
     }
 
+    /**
+     * @brief This method returns the number of subproperties
+     * @return The current number of subproperties
+     */
     std::size_t NumberOfSubproperties() override
     {
         return mSubPropetiesList.size();
     }
 
+    /**
+     * @brief This method insert a new property into the list of subproperties
+     * @param pNewSubProperty The new property to be added
+     */
     void AddSubProperty(Properties::Pointer pNewSubProperty) override
     {
         mSubPropetiesList.insert(std::pair<IndexType, Properties::Pointer>(pNewSubProperty->Id(), pNewSubProperty));
     }
 
+    /**
+     * @brief This method gets the subproperty from the index corresponding to the property id
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The pointer to the subproperty of interest
+     */
     Properties::Pointer GetSubProperty(const IndexType SubPropertyIndex) override
     {
         return mSubPropetiesList[SubPropertyIndex];
     }
 
+    /**
+     * @brief This method returns the whole list of subproperties
+     * @return The whole lis of subproperties
+     */
     SubPropertiesListType& GetSubProperties() override
     {
         return SubPropetiesList();
     }
 
+    /**
+     * @brief This method set the whole list of subproperties
+     * @param rSubPropetiesList The list of subproperties
+     */
     void SetSubProperties(SubPropertiesListType& rSubPropetiesList) override
     {
         mSubPropetiesList = rSubPropetiesList;
@@ -137,11 +202,19 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief This method returns the whole list of subproperties
+     * @return The whole lis of subproperties
+     */
     SubPropertiesListType& SubPropetiesList() override
     {
         return mSubPropetiesList;
     }
 
+    /**
+     * @brief This method returns the whole list of subproperties (constant)
+     * @return The whole lis of subproperties
+     */
     SubPropertiesListType const& SubPropetiesList() const override
     {
         return mSubPropetiesList;
