@@ -86,6 +86,75 @@ HydrostaticLoadCondition::~HydrostaticLoadCondition()
 //***********************************************************************************
 //***********************************************************************************
 
+void HydrostaticLoadCondition::CalculateAndSubKpSym(
+    Matrix &K,
+    const array_1d<double, 3> &ge,
+    const array_1d<double, 3> &gn,
+    const Matrix &DN_De,
+    const Vector &N,
+    const array_1d<double, 3> &Normal,
+    const double Pressure,
+    const double Weight)
+{
+    KRATOS_TRY;
+
+    Matrix Kij(3, 3);
+    Matrix W_ge(3, 3);
+    Matrix W_ge_(3, 3);
+
+    Matrix W_gn(3, 3);
+    Matrix W_gn_(3, 3);
+
+    double coeff;
+    const SizeType number_of_nodes = GetGeometry().size();
+
+    DyadicProduct(W_ge, Normal, ge);
+    DyadicProduct(W_ge_, ge, Normal);
+
+    W_ge -= W_ge_;
+
+    DyadicProduct(W_gn, Normal, gn);
+    DyadicProduct(W_gn_, gn, Normal);
+
+    W_gn -= W_gn_;
+
+    for (IndexType m = 0; m < number_of_nodes; m++)
+    {
+        const IndexType RowIndex = m * 3;
+
+        for (IndexType n = 0; n < number_of_nodes; n++)
+        {
+            const IndexType ColIndex = n * 3;
+
+            coeff = Pressure * DN_De(m, 0) * N[n] * Weight;
+
+            noalias(Kij) = coeff * trans(W_ge);
+
+            coeff = Pressure * DN_De(m, 1) * N[n] * Weight;
+
+            noalias(Kij) += coeff * trans(W_gn);
+
+            coeff = Pressure * N[m] * DN_De(n, 0) * Weight;
+
+            noalias(Kij) += coeff * W_ge;
+
+            coeff = Pressure * N[m] * DN_De(n, 1) * Weight;
+
+            noalias(Kij) += coeff * W_gn;
+
+            Kij = -0.5 * Kij;
+
+            //TAKE CARE: the load correction matrix should be SUBTRACTED not added
+            MathUtils<double>::SubtractMatrix(K, Kij, RowIndex, ColIndex);
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
 void HydrostaticLoadCondition::CalculateAndSubKpHydrostatic(
     Matrix &K,
     const Vector &N,
@@ -112,6 +181,47 @@ void HydrostaticLoadCondition::CalculateAndSubKpHydrostatic(
 
             coeff = -rSpecificWeight * N[m] * N[n] * Weight;
             DyadicProduct(Kij, Normal, rW);
+            Kij *= -coeff; // because normal is flipped in the implementation following surface_load_condition
+
+            MathUtils<double>::SubtractMatrix(K, Kij, RowIndex, ColIndex);
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
+void HydrostaticLoadCondition::CalculateAndSubKpHydrostaticSym(
+    Matrix &K,
+    const Vector &N,
+    const array_1d<double, 3> &Normal,
+    const double &rSpecificWeight,
+    const array_1d<double, 3> &rW,
+    const double &Weight)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().size();
+    Matrix Kij(3, 3);
+    Matrix Kij_(3, 3);
+    double coeff;
+
+    /// Tangent stiffness accounting for change in pressure due to deformation.
+
+    for (unsigned int m = 0; m < number_of_nodes; m++)
+    {
+        const unsigned int RowIndex = m * 3;
+
+        for (unsigned int n = 0; n < number_of_nodes; n++)
+        {
+            const unsigned int ColIndex = n * 3;
+
+            coeff = -0.5 * rSpecificWeight * N[m] * N[n] * Weight;
+            DyadicProduct(Kij, Normal, rW);
+            DyadicProduct(Kij_, rW, Normal);
+            Kij += Kij_;
             Kij *= -coeff; // because normal is flipped in the implementation following surface_load_condition
 
             MathUtils<double>::SubtractMatrix(K, Kij, RowIndex, ColIndex);
@@ -163,6 +273,8 @@ void HydrostaticLoadCondition::CalculateAndSubKpVolume(
             coeff = -rSpecificWeight / rIntersectedArea;
 
             number_of_common_elements = NumberOfCommonElements(geom[m], geom[n]);
+
+            //std::cout << "Neighbhor elements between " << geom[m].Id() << ", " << geom[n].Id() << " :: " << number_of_common_elements<<std::endl;
 
             coeff /= number_of_common_elements;
 
@@ -237,53 +349,6 @@ unsigned int HydrostaticLoadCondition::NumberOfCommonElements(NodeType &rNodeM, 
 
 //***********************************************************************************
 //***********************************************************************************
-
-/* void HydrostaticLoadCondition::IsNegativeOrSplit(GeometryType &rGeom, bool &rIsSplit, bool &rIsNegative)
-{
-
-    SizeType n_pos = 0, n_neg = 0, n_zero = 0;
-    double nodal_distance = 0.0;
-    const double tol = std::numeric_limits<double>::epsilon();
-    const double max_limit = pow(10, std::numeric_limits<double>::digits10); 
-    for (IndexType i = 0; i < rGeom.size(); ++i)
-    {
-        nodal_distance = rGeom[i].FastGetSolutionStepValue(DISTANCE);
-
-        if (nodal_distance < 0.0 - tol)
-        {
-            n_neg++;
-        }
-       else if ((nodal_distance > 0.0 + std::numeric_limits<double>::epsilon()) && (nodal_distance < max_limit))
-            {
-                n_pos++;
-            }
-
-            else if (nodal_distance > max_limit)
-            {
-                n_zero++;
-            }
-            else
-            {
-                n_zero++;
-                n_neg++;
-            }
-    }
-
-    if ((n_pos > 0) && (n_neg > 0))
-        rIsSplit = true;
-
-    else
-        rIsSplit = false;
-
-    if (n_zero > 0)
-        rIsSplit = false;
-
-    if (n_neg == rGeom.size())
-        rIsNegative = true;
-
-    else
-        rIsNegative = false;
-}  */
 
 //***********************************************************************************
 //***********************************************************************************
@@ -478,6 +543,7 @@ void HydrostaticLoadCondition::CalculateAllInSplitAndNegativeDistanceConditions(
         {
             if (fabs(pressure) > std::numeric_limits<double>::epsilon())
             {
+                //CalculateAndSubKpSym(rLeftHandSideMatrix, rGe, rGn, DN_De, N, rNormal, pressure, integration_weight);
                 CalculateAndSubKp(rLeftHandSideMatrix, rGe, rGn, DN_De, N, pressure, integration_weight);
             }
 

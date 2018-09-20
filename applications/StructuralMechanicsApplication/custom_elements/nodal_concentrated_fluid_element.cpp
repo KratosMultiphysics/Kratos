@@ -396,7 +396,6 @@ void NodalConcentratedFluidElement::CalculateRightHandSide(VectorType &rRightHan
         {
             if (dim != mNormalDirection) // adding forces other than the normal direction
                 rRightHandSideVector[dim] -= force_vector[dim];
-                
         }
     }
     else

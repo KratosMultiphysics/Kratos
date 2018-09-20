@@ -150,7 +150,25 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) HydrostaticLoadCondition
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag) override;
 
+    void CalculateAndSubKpSym(
+        Matrix &K,
+        const array_1d<double, 3> &ge,
+        const array_1d<double, 3> &gn,
+        const Matrix &DN_De,
+        const Vector &N,
+        const array_1d<double, 3> &Normal,
+        const double Pressure,
+        const double Weight);
+
     void CalculateAndSubKpHydrostatic(
+        Matrix &K,
+        const Vector &N,
+        const array_1d<double, 3> &Normal,
+        const double &rSpecificWeight,
+        const array_1d<double, 3> &rW,
+        const double &Weight);
+
+    void CalculateAndSubKpHydrostaticSym(
         Matrix &K,
         const Vector &N,
         const array_1d<double, 3> &Normal,

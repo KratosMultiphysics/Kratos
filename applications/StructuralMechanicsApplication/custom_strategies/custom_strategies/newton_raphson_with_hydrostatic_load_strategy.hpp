@@ -11,6 +11,7 @@
 
 #if !defined(KRATOS_NEWTON_RAPHSON_WITH_HYDROSTATIC_STRATEGY)
 #define KRATOS_NEWTON_RAPHSON_WITH_HYDROSTATIC_STRATEGY
+
 // System includes
 
 // External includes
@@ -18,6 +19,7 @@
 // Project includes
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "custom_utilities/volume_calculation_under_plane_utility.h"
+#include "includes/gid_io.h"
 
 namespace Kratos
 {
@@ -95,7 +97,8 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
         int MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false)
+        bool MoveMeshFlag = false,
+        bool PrintIterations = false)
 
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part,
                                                                                        pScheme,
@@ -104,9 +107,15 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
                                                                                        MaxIterations,
                                                                                        CalculateReactions,
                                                                                        ReformDofSetAtEachStep,
-                                                                                       MoveMeshFlag)
+                                                                                       MoveMeshFlag),
+          mPrintIterations(PrintIterations)
 
     {
+        if (PrintIterations)
+        {
+            mPrintIterations = true;
+            InitializeIterationIO();
+        }
     }
 
     // constructor with Builder and Solver
@@ -119,7 +128,8 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
         int MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false)
+        bool MoveMeshFlag = false,
+        bool PrintIterations = false)
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part,
                                                                                        pScheme,
                                                                                        pNewLinearSolver,
@@ -128,9 +138,16 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
                                                                                        MaxIterations,
                                                                                        CalculateReactions,
                                                                                        ReformDofSetAtEachStep,
-                                                                                       MoveMeshFlag)
+                                                                                       MoveMeshFlag),
+          mPrintIterations(PrintIterations)
 
     {
+
+        if (PrintIterations)
+        {
+            mPrintIterations = true;
+            InitializeIterationIO();
+        }
     }
 
     /**
@@ -178,6 +195,22 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
         KRATOS_CATCH("");
     }
 
+    bool SolveSolutionStep() override
+    {
+        if (mPrintIterations)
+        {
+            KRATOS_ERROR_IF_NOT(mpIterationIO) << " IterationIO is uninitialized!" << std::endl;
+            mpIterationIO->InitializeResults(0.0, BaseType::GetModelPart().GetMesh());
+        }
+
+        BaseType::SolveSolutionStep();
+
+        if (mPrintIterations)
+            mpIterationIO->FinalizeResults();
+
+        return true;
+    }
+
     ///@}
     ///@name Operators
 
@@ -212,17 +245,42 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
         const bool MoveMesh) override
     {
 
+        // Predict the position based on the old geometry
+
+        /* for (IndexType i = 0; i < mVectorOfPlaneUpdaters.size(); ++i)
+        {
+
+            ModelPart::PropertiesIterator i_prop = BaseType::GetModelPart().GetMesh(0).Properties().find(mListOfPropertiesId[i]);
+
+            mVectorOfPlaneUpdaters[i].CalculateVolume(BaseType::GetModelPart());
+
+            double displacement_value = mVectorOfPlaneUpdaters[i].GetPredictedDisplacement();
+            array_1d<double, 3> displacement_vector = mVectorOfPlaneUpdaters[i].GetPlaneNormal() * displacement_value;
+            mVectorOfPlaneUpdaters[i].UpdatePlaneCentre(displacement_vector);
+
+            double vol = mVectorOfPlaneUpdaters[i].CalculateVolume(BaseType::GetModelPart());
+
+            std::cout << "Volume after prediction step:: " << vol << std::endl;
+            std::cout << "Movement after predction step:: " << displacement_value;
+
+            i_prop->GetValue(FREE_SURFACE_CENTRE) = mVectorOfPlaneUpdaters[i].GetPlaneCentre();
+
+            i_prop->GetValue(FREE_SURFACE_AREA) = mVectorOfPlaneUpdaters[i].GetIntersectedArea();
+        } */
+
         BaseType::UpdateDatabase(A, Dx, b, MoveMesh);
 
         for (IndexType i = 0; i < mVectorOfPlaneUpdaters.size(); ++i)
         {
+
+            ModelPart::PropertiesIterator i_prop = BaseType::GetModelPart().GetMesh(0).Properties().find(mListOfPropertiesId[i]);
             std::cout << "Target Volume :: " << mVectorOfVolumes[i] << std::endl;
             std::cout << "Property Id :: " << mListOfPropertiesId[i] << std::endl;
             mVectorOfPlaneUpdaters[i].UpdatePositionOfPlaneBasedOnTargetVolume(BaseType::GetModelPart(), mVectorOfVolumes[i]);
 
-            BaseType::GetModelPart().GetMesh(0).Properties().find(mListOfPropertiesId[i])->GetValue(FREE_SURFACE_AREA) = mVectorOfPlaneUpdaters[i].GetIntersectedArea();
+            i_prop->GetValue(FREE_SURFACE_CENTRE) = mVectorOfPlaneUpdaters[i].GetPlaneCentre();
 
-            BaseType::GetModelPart().GetMesh(0).Properties().find(mListOfPropertiesId[i])->GetValue(FREE_SURFACE_CENTRE) = mVectorOfPlaneUpdaters[i].GetPlaneCentre();
+            i_prop->GetValue(FREE_SURFACE_AREA) = mVectorOfPlaneUpdaters[i].GetIntersectedArea();
         }
     }
 
@@ -251,13 +309,43 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
     ///@}
     ///@name Member Variables
     ///@{
+    bool mPrintIterations;
     std::vector<VolumeCalculationUnderPlaneUtility> mVectorOfPlaneUpdaters;
     std::vector<double> mVectorOfVolumes;
     std::vector<IndexType> mListOfPropertiesId;
+    IterationIOPointerType mpIterationIO;
 
     ///@}
     ///@name Private Operators
     ///@{
+
+    void EchoInfo(const unsigned int IterationNumber) override
+    {
+        BaseType::EchoInfo(IterationNumber);
+
+        if (mPrintIterations)
+        {
+            KRATOS_ERROR_IF_NOT(mpIterationIO) << " IterationIO is uninitialized!" << std::endl;
+            mpIterationIO->WriteNodalResults(DISPLACEMENT, BaseType::GetModelPart().Nodes(), IterationNumber, 0);
+            mpIterationIO->WriteNodalResults(DISTANCE, BaseType::GetModelPart().Nodes(), IterationNumber, 0);
+            mpIterationIO->WriteNodalResults(NORMAL, BaseType::GetModelPart().Nodes(), IterationNumber, 0);
+        }
+    }
+
+    void InitializeIterationIO()
+    {
+        mpIterationIO = Kratos::make_unique<IterationIOType>(
+            "Non-linear_Iterations",
+            GiD_PostAscii, // GiD_PostAscii // for debugging GiD_PostBinary
+            MultiFileFlag::SingleFile,
+            WriteDeformedMeshFlag::WriteUndeformed,
+            WriteConditionsFlag::WriteConditions);
+
+        mpIterationIO->InitializeMesh(0.0);
+        mpIterationIO->WriteMesh(BaseType::GetModelPart().GetMesh());
+        mpIterationIO->WriteNodeMesh(BaseType::GetModelPart().GetMesh());
+        mpIterationIO->FinalizeMesh();
+    }
 
     /**
         * Copy constructor.
