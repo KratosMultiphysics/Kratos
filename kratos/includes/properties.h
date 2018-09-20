@@ -91,6 +91,7 @@ public:
 
     typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
 
+    typedef std::vector<Properties::Pointer> SubPropertiesListType;
 
     ///@}
     ///@name Life Cycle
@@ -277,6 +278,31 @@ public:
         return result_key;
     }
 
+    virtual std::size_t NumberOfSubproperties()
+    {
+        return 0;
+    }
+
+    virtual void AddSubProperty(Properties::Pointer pNewSubProperty)
+    {
+        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+    }
+
+    virtual Properties::Pointer GetSubProperty(IndexType SubPropertyIndex)
+    {
+        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+    }
+
+    virtual SubPropertiesListType& GetSubProperties()
+    {
+        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+    }
+
+    virtual void SetSubProperties(SubPropertiesListType& rSubPropetiesList)
+    {
+        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -291,7 +317,15 @@ public:
         return mData;
     }
 
+    virtual SubPropertiesListType& SubPropetiesList()
+    {
+        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+    }
 
+    virtual SubPropertiesListType const& SubPropetiesList() const
+    {
+        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+    }
 
     ///@}
     ///@name Inquiry

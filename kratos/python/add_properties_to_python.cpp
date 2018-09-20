@@ -180,6 +180,11 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("HasVariables", &Properties::HasVariables)
     .def("HasTables", &Properties::HasTables)
     .def("IsEmpty", &Properties::IsEmpty)
+    .def("NumberOfSubproperties", &Properties::NumberOfSubproperties)
+    .def("AddSubProperty", &Properties::AddSubProperty)
+    .def("GetSubProperty", &Properties::GetSubProperty)
+//     .def("GetSubProperties", &Properties::GetSubProperties)
+//     .def("SetSubProperties", &Properties::SetSubProperties)
     ;
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
