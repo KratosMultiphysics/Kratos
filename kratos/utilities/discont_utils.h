@@ -1052,7 +1052,7 @@ private:
         return 0.5 * ((x1 - x0)*(y2 - y0)- (y1 - y0)*(x2 - x0));
     }
 
-    static inline void CalculateGeometryData(const BoundedMatrix<double, 3, 3 > & rCoordinates,
+    static inline void CalculateGeometryData(const BoundedMatrix<double, 3, 2 > & rCoordinates,
                                              BoundedMatrix<double,3,2>& rDN_DX,
                                              double& rArea)
     {
@@ -1081,7 +1081,7 @@ private:
         rArea = 0.5*detJ;
     }
 
-    static inline void CalculateGeometryData(BoundedMatrix<double, 4, 3 > & rCoordinates,
+    static inline void CalculateGeometryData(const BoundedMatrix<double, 4, 3 > & rCoordinates,
                                              BoundedMatrix<double,4,3>& rDN_DX,
                                              double& rVolume)
     {
