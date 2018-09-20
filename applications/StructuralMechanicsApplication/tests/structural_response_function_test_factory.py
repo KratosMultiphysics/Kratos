@@ -16,6 +16,12 @@ try:
 except ImportError:
     has_hdf5_application = False
 
+try:
+    from KratosMultiphysics.EigenSolversApplication import *
+    has_eigensolvers_application = True
+except ImportError:
+    has_eigensolvers_application = False
+
 # This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
 
@@ -146,6 +152,19 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertAlmostEqual(self.gradient[nodeId][1],  0.0017745756664132117, 9)
         self.assertAlmostEqual(self.gradient[nodeId][2], -1.5466215093998671e-07, 9)
 
+@KratosUnittest.skipUnless(has_eigensolvers_application,"Missing required application: EigenSolversApplication")
+class TestEigenfrequencyResponseFunction(StructuralResponseFunctionTestFactory):
+    file_name = "eigenfrequency_response"
+
+    def test_execution(self):
+        self._calculate_response_and_gradient()
+
+        self.assertAlmostEqual(self.value, 0.014123803835107267)
+
+        self.assertAlmostEqual(self.gradient[19][0], -2.629125898327006e-09)
+        self.assertAlmostEqual(self.gradient[19][1], -0.0070165270383214864)
+        self.assertAlmostEqual(self.gradient[19][2], 1.0549911195848093e-08)
+
 class TestFDStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "FD_strain_energy_response"
 
@@ -179,6 +198,7 @@ if __name__ == "__main__":
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointStressResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStrainEnergyResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenfrequencyResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFDStrainEnergyResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFDStressResponseFunction]))
     allSuite = suites['all']

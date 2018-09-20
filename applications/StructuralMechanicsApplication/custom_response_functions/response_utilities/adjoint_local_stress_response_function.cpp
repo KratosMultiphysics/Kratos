@@ -26,8 +26,8 @@ namespace Kratos
         mpTracedElement = rModelPart.pGetElement(id_of_traced_element);
 
         // Tell traced element the stress type
-        TracedStressType traced_stress_type = StressResponseDefinitions::ConvertStringToTracedStressType(ResponseSettings["stress_type"].GetString());
-        mpTracedElement->SetValue(TRACED_STRESS_TYPE, static_cast<int>(traced_stress_type) );
+        mTracedStressType = StressResponseDefinitions::ConvertStringToTracedStressType(ResponseSettings["stress_type"].GetString());
+        mpTracedElement->SetValue(TRACED_STRESS_TYPE, static_cast<int>(mTracedStressType) );
 
         // Get info how and where to treat the stress
         mStressTreatment = StressResponseDefinitions::ConvertStringToStressTreatment( ResponseSettings["stress_treatment"].GetString() );
@@ -178,7 +178,9 @@ namespace Kratos
         double stress_value = 0.0;
 
         Vector element_stress;
-        mpTracedElement->Calculate(STRESS_ON_GP, element_stress, rModelPart.GetProcessInfo());
+
+        Element& r_element = rModelPart.GetElement(mpTracedElement->Id());
+        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
 
         const SizeType stress_vec_size = element_stress.size();
 
@@ -193,7 +195,9 @@ namespace Kratos
     double AdjointLocalStressResponseFunction::CalculateGaussPointStress(ModelPart& rModelPart)
     {
         Vector element_stress;
-        mpTracedElement->Calculate(STRESS_ON_GP, element_stress, rModelPart.GetProcessInfo());
+
+        Element& r_element = rModelPart.GetElement(mpTracedElement->Id());
+        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
 
         const SizeType stress_vec_size = element_stress.size();
 
@@ -207,7 +211,9 @@ namespace Kratos
     double AdjointLocalStressResponseFunction::CalculateNodeStress(ModelPart& rModelPart)
     {
         Vector element_stress;
-        mpTracedElement->Calculate(STRESS_ON_GP, element_stress, rModelPart.GetProcessInfo());
+
+        Element& r_element = rModelPart.GetElement(mpTracedElement->Id());
+        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
 
         const SizeType num_ele_nodes = mpTracedElement->GetGeometry().PointsNumber();
 

@@ -79,18 +79,18 @@ ModifiedCamClayYieldCriterion::~ModifiedCamClayYieldCriterion()
 // Compute Yield Condition according to two-invariant Cam-Clay yield criterion 
 double& ModifiedCamClayYieldCriterion::CalculateYieldCondition(double& rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rOldPreconsolidationPressure)
 {
-    double MeanStressP, DeviatoricQ;
-    MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( rStressVector, MeanStressP, DeviatoricQ);
-    DeviatoricQ *= std::sqrt(3.0); //Q = sqrt(3) * J2
+    double mean_stress_p, deviatoric_q;
+    MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( rStressVector, mean_stress_p, deviatoric_q);
+    deviatoric_q *= std::sqrt(3.0); //Q = sqrt(3) * J2
 
-    const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
+    const double shear_M = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
 
-    double PreconsolidationStress = 0.0;
-    PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha, rOldPreconsolidationPressure);
+    double preconsolidation_stress = 0.0;
+    preconsolidation_stress = mpHardeningLaw->CalculateHardening(preconsolidation_stress, rAlpha, rOldPreconsolidationPressure);
     
     // f = (Q/M)² + P (P - P_c)
-    rStateFunction = pow(DeviatoricQ/ShearM, 2);
-    rStateFunction += (MeanStressP * (MeanStressP - PreconsolidationStress) );
+    rStateFunction = std::pow(deviatoric_q/shear_M, 2);
+    rStateFunction += (mean_stress_p * (mean_stress_p - preconsolidation_stress) );
 
     return rStateFunction;
 }
@@ -100,35 +100,35 @@ double& ModifiedCamClayYieldCriterion::CalculateYieldCondition(double& rStateFun
 //************************************************************************************
 void ModifiedCamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVector, Vector& rFirstDerivative, const double& rAlpha, const double& rOldPreconsolidationPressure)
 {
-    double MeanStressP, DeviatoricQ;
+    double mean_stress_p, deviatoric_q;
 
-    MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( rStressVector, MeanStressP, DeviatoricQ);
-    DeviatoricQ *= std::sqrt(3.0); //Q = sqrt(3) * J2
+    MPMStressPrincipalInvariantsUtility::CalculateStressInvariants( rStressVector, mean_stress_p, deviatoric_q);
+    deviatoric_q *= std::sqrt(3.0); //Q = sqrt(3) * J2
 
-    const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
+    const double shear_M = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
 
-    double PreconsolidationStress = 0.0;
-    PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha, rOldPreconsolidationPressure);
+    double preconsolidation_stress = 0.0;
+    preconsolidation_stress = mpHardeningLaw->CalculateHardening(preconsolidation_stress, rAlpha, rOldPreconsolidationPressure);
 
     rFirstDerivative.resize(3, false);
-    rFirstDerivative(0) = 2.0 * MeanStressP - PreconsolidationStress; // (df/dP)
-    rFirstDerivative(1) = 2.0 * DeviatoricQ / pow(ShearM, 2);         // (df/dQ)
-    rFirstDerivative(2) = - MeanStressP;                              // (df/dP_c)
+    rFirstDerivative[0] = 2.0 * mean_stress_p - preconsolidation_stress; // (df/dP)
+    rFirstDerivative[1] = 2.0 * deviatoric_q / std::pow(shear_M, 2);         // (df/dQ)
+    rFirstDerivative[2] = - mean_stress_p;                              // (df/dP_c)
 }
 
 //*******************************CALCULATE SECOND YIELD FUNCTION DERIVATIVE *****************
 //************************************************************************************
 void ModifiedCamClayYieldCriterion::CalculateYieldFunctionSecondDerivative(const Vector& rStressVector, Vector& rSecondDerivative)
 {
-    const double ShearM = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
+    const double shear_M = this->GetHardeningLaw().GetProperties()[CRITICAL_STATE_LINE];
 
     rSecondDerivative.resize(6, false);
-    rSecondDerivative(0) = 2.0 ;                  // (df²/dP²)  
-    rSecondDerivative(1) = 2.0 / pow(ShearM, 2) ; // (df²/dQ²)  
-    rSecondDerivative(2) = 0.0 ;                  // (df²/dP_c²)
-    rSecondDerivative(3) = 0.0 ;                  // (df²/dPdQ)  
-    rSecondDerivative(4) = 0.0 ;                  // (df²/dQdP_c)  
-    rSecondDerivative(5) =-1.0 ;                  // (df²/dPdP_c)
+    rSecondDerivative[0] = 2.0 ;                        // (df²/dP²)  
+    rSecondDerivative[1] = 2.0 / std::pow(shear_M, 2) ; // (df²/dQ²)  
+    rSecondDerivative[2] = 0.0 ;                        // (df²/dP_c²)
+    rSecondDerivative[3] = 0.0 ;                        // (df²/dPdQ)  
+    rSecondDerivative[4] = 0.0 ;                        // (df²/dQdP_c)  
+    rSecondDerivative[5] =-1.0 ;                        // (df²/dPdP_c)
 
 }
 

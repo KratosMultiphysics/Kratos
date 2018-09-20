@@ -183,6 +183,7 @@ from structural_response_function_test_factory import TestAdjointDisplacementRes
 from structural_response_function_test_factory import TestAdjointStressResponseFunction as TTestAdjointStressResponseFunction
 from structural_response_function_test_factory import TestMassResponseFunction as TTestMassResponseFunction
 from structural_response_function_test_factory import TestStrainEnergyResponseFunction as TTestStrainEnergyResponseFunction
+from structural_response_function_test_factory import TestEigenfrequencyResponseFunction as TTestEigenfrequencyResponseFunction
 from structural_response_function_test_factory import TestFDStrainEnergyResponseFunction as TTestFDStrainEnergyResponseFunction
 from structural_response_function_test_factory import TestFDStressResponseFunction as TTestFDStressResponseFunction
 
@@ -330,6 +331,7 @@ def AssembleTestSuites():
 
     nightSuite.addTest(TTestMassResponseFunction('test_execution'))
     nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
+    nightSuite.addTest(TTestEigenfrequencyResponseFunction('test_execution'))
     nightSuite.addTest(TTestFDStrainEnergyResponseFunction('test_execution'))
     nightSuite.addTest(TTestFDStressResponseFunction('test_execution'))
     nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
