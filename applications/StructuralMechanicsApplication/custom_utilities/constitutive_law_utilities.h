@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -68,6 +69,18 @@ class ConstitutiveLawUtilities
     /// We define the Voigt size
     static constexpr SizeType VoigtSize = TVoigtSize;
 
+    /// The matrix type definition
+    typedef Matrix MatrixType;
+
+    /// the vector type definition
+    typedef Vector VectorType;
+
+    /// The definition of the bounded matrix type
+    typedef array_1d<double, VoigtSize> BoundedVectorType;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+
     /// The zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -89,7 +102,7 @@ class ConstitutiveLawUtilities
      * @param rI1 The first invariant
      */
     static void CalculateI1Invariant(
-        const array_1d<double, VoigtSize>& rStressVector,
+        const BoundedVectorType& rStressVector,
         double& rI1
         );
 
@@ -100,7 +113,7 @@ class ConstitutiveLawUtilities
      * @todo Adapt for 2D dimension
      */
     static void CalculateI2Invariant(
-        const array_1d<double, VoigtSize>& rStressVector,
+        const BoundedVectorType& rStressVector,
         double& rI2
         );
 
@@ -111,7 +124,7 @@ class ConstitutiveLawUtilities
      * @todo Adapt for 2D dimension
      */
     static void CalculateI3Invariant(
-        const array_1d<double, VoigtSize>& rStressVector,
+        const BoundedVectorType& rStressVector,
         double& rI3
         );
 
@@ -123,9 +136,9 @@ class ConstitutiveLawUtilities
      * @param rJ2 The second invariant of J
      */
     static void CalculateJ2Invariant(
-        const array_1d<double, VoigtSize>& rStressVector,
+        const BoundedVectorType& rStressVector,
         const double I1,
-        array_1d<double, VoigtSize>& rDeviator,
+        BoundedVectorType& rDeviator,
         double& rJ2
         );
 
@@ -135,7 +148,7 @@ class ConstitutiveLawUtilities
      * @param rJ3 The third invariant of J
      */
     static void CalculateJ3Invariant(
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedVectorType& rDeviator,
         double& rJ3
         );
 
@@ -143,7 +156,7 @@ class ConstitutiveLawUtilities
      * @brief This method computes the first vector
      * @param rFirstVector The first vector
      */
-    static void CalculateFirstVector(array_1d<double, VoigtSize>& rFirstVector);
+    static void CalculateFirstVector(BoundedVectorType& rFirstVector);
 
     /**
      * @brief This method computes the second vector
@@ -152,9 +165,9 @@ class ConstitutiveLawUtilities
      * @param rSecondVector The second vector
      */
     static void CalculateSecondVector(
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedVectorType& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rSecondVector
+        BoundedVectorType& rSecondVector
         );
 
     /**
@@ -165,9 +178,9 @@ class ConstitutiveLawUtilities
      * @todo Adapt for 2D dimension
      */
     static void CalculateThirdVector(
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedVectorType& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rThirdVector
+        BoundedVectorType& rThirdVector
         );
 
     /**
@@ -183,6 +196,28 @@ class ConstitutiveLawUtilities
         );
 
     /**
+     * @brief Calculation of the Hencky strain tensor (true strain, natural strain, logarithmic strain)
+     * @param rCauchyTensor The right Cauchy tensor
+     * @param rStrainVector The Hencky strain tensor
+     * @todo Adapt for 2D dimension
+     */
+    static void CalculateHenckyStrain(
+        const MatrixType& rCauchyTensor,
+        VectorType& rStrainVector
+        );
+
+    /**
+     * @brief Calculation of the Biot strain tensor
+     * @param rCauchyTensor The right Cauchy tensor
+     * @param rStrainVector The Biot strain tensor
+     * @todo Adapt for 2D dimension
+     */
+    static void CalculateBiotStrain(
+        const MatrixType& rCauchyTensor,
+        VectorType& rStrainVector
+        );
+
+    /**
      * @brief This method computes the principal stresses vector
      * @details http://www.continuummechanics.org/principalstress.html
      * @param rPrincipalStressVector The vector of principal stresses
@@ -191,7 +226,7 @@ class ConstitutiveLawUtilities
      */
     static void CalculatePrincipalStresses(
         array_1d<double, Dimension>& rPrincipalStressVector,
-        const array_1d<double, VoigtSize>& rStressVector
+        const BoundedVectorType& rStressVector
         );
 
     /**
@@ -203,7 +238,7 @@ class ConstitutiveLawUtilities
      */
     static void CalculatePrincipalStressesWithCardano(
         array_1d<double, Dimension>& rPrincipalStressVector,
-        const array_1d<double, VoigtSize>& rStressVector
+        const BoundedVectorType& rStressVector
         );
 
   private:
