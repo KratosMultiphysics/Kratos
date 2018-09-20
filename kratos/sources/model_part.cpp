@@ -1504,7 +1504,7 @@ void ModelPart::PrintData(std::ostream& rOStream) const
     rOStream << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++)
     {
-        rOStream << "    Mesh " << i << " : " << std::endl;
+        rOStream << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, "    ");
     }
     rOStream << std::endl;
