@@ -176,13 +176,11 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , Variable<double> >)
     .def("SetTable", SetTableHelperFunction1< Properties, Variable<double>, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
     .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
-	// .def("__repr__", &Properties::Info) //self_ns::str(self))
-    // .def("__repr__", [](const Properties& self) -> const std::string { return ObjectToString(self); })
     .def("HasVariables", &Properties::HasVariables)
     .def("HasTables", &Properties::HasTables)
     .def("IsEmpty", &Properties::IsEmpty)
     ;
-    KRATOS_DEF_REPR(Properties, py_class);
+    KRATOS_DEF_STR(Properties, py_class);
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
 }
