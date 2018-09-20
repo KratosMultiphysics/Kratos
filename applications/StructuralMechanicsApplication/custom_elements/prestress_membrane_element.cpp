@@ -740,21 +740,7 @@ void PrestressMembraneElement::CalculateAll(
 void PrestressMembraneElement::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
-    {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-
-    if (rVariable == PK2_STRESS_TENSOR)
-    {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-    // VM
-    if (rVariable == CAUCHY_STRESS_TENSOR)
-    {
-        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-    }
-    // VM
+    CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 //***********************************************************************************
 //***********************************************************************************

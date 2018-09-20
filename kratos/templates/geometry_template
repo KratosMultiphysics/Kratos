@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author1 Fullname
-//                   Author2 Fullname 
+//                   Author2 Fullname
 //
 
 
@@ -21,7 +21,6 @@
 
 
 // External includes
-#include <boost/array.hpp> 
 
 
 // Project includes
@@ -33,26 +32,26 @@ namespace Kratos
 {
 
   ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
+  ///@{
+
+  ///@}
   ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
+  ///@{
+
+  ///@}
   ///@name  Enum's
   ///@{
-      
+
   ///@}
-  ///@name  Functions 
+  ///@name  Functions
   ///@{
-      
+
   ///@}
   ///@name Kratos Classes
   ///@{
-  
-  /** 
-  */ 
+
+  /**
+  */
   template<class TPointType>
   class ClassName : public Geometry<TPointType>
     {
@@ -60,14 +59,14 @@ namespace Kratos
       ///@}
       ///@name Type Definitions
       ///@{
-      
+
       /// Geometry as base class.
       typedef Geometry<TPointType> BaseType;
 
       /// Pointer definition of ClassName
       KRATOS_CLASS_POINTER_DEFINITION(ClassName);
-  
-      /** Integration methods implemented in geometry. 
+
+      /** Integration methods implemented in geometry.
       */
       typedef GeometryData::IntegrationMethod IntegrationMethod;
 
@@ -75,79 +74,79 @@ namespace Kratos
 	  returning edges of the geometry.
       */
       typedef BaseType::GeometryArrayType GeometryArrayType;
-      
+
       /** Redefinition of template parameter TPointType.
        */
       typedef TPointType PointType;
-      
+
       /** Type used for indexing in geometry class.std::size_t used for indexing
 	  point or integration point access methods and also all other
 	  methods which need point or integration point index.
       */
       typedef BaseType::IndexType IndexType;
-      
-      
+
+
       /** This typed used to return size or dimension in
 	  geometry. Dimension, WorkingDimension, PointsNumber and
 	  ... return this type as their results.
       */
       typedef BaseType::SizeType SizeType;
-      
+
       /** Array of counted pointers to point. This type used to hold
 	  geometry's points.
       */
       typedef  BaseType::PointsArrayType PointsArrayType;
-      
+
       /** This type used for representing an integration point in
 	  geometry. This integration point is a point with an
 	  additional weight component.
       */
       typedef BaseType::IntegrationPointType IntegrationPointType;
-      
+
       /** A Vector of IntegrationPointType which used to hold
 	  integration points related to an integration
 	  method. IntegrationPoints functions used this type to return
 	  their results.
       */
       typedef BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
-      
+
       /** A Vector of IntegrationPointsArrayType which used to hold
 	  integration points related to different integration method
 	  implemented in geometry.
       */
       typedef BaseType::IntegrationPointsContainerType IntegrationPointsContainerType;
-      
+
       /** A third order tensor used as shape functions' values
 	  continer.
       */
       typedef BaseType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
-      
+
       /** A fourth order tensor used as shape functions' local
 	  gradients container in geometry.
       */
       typedef BaseType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
-      
+
       /** A third order tensor to hold jacobian matrices evaluated at
 	  integration points. Jacobian and InverseOfJacobian functions
 	  return this type as their result.
       */
       typedef BaseType::JacobiansType JacobiansType;
-      
+
       /** A third order tensor to hold shape functions' local
 	  gradients. ShapefunctionsLocalGradients function return this
 	  type as its result.
       */
       typedef BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
-      
+
       /** Type of the normal vector used for normal to edges in geomety.
        */
       typedef BaseType::NormalType NormalType;
-      
+
       ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      ClassName(const PointsArrayType& ThisPoints) 
+      ///@name Life Cycle
+      ///@{
+
+      ClassName(const PointsArrayType& ThisPoints)
 	: BaseType(ThisPoints, msGeometryData)
 	{
 	}
@@ -184,19 +183,19 @@ namespace Kratos
 
       /// Destructor. Do nothing!!!
       virtual ~ClassName(){}
-      
+
 
       ///@}
-      ///@name Operators 
+      ///@name Operators
       ///@{
-      
+
       /** Assignment operator.
 
       @note This operator don't copy the points and this
       geometry shares points with given source geometry. It's
       obvious that any change to this geometry's point affect
       source geometry's points too.
-      
+
       @see Clone
       @see ClonePoints
       */
@@ -213,22 +212,22 @@ namespace Kratos
       geometry shares points with given source geometry. It's
       obvious that any change to this geometry's point affect
       source geometry's points too.
-      
+
       @see Clone
       @see ClonePoints
       */
-      template<class TOtherPointType> 
+      template<class TOtherPointType>
 	ClassName& operator=(ClassName<TOtherPointType> const & rOther)
 	{
 	  BaseType::operator=(rOther);
 
 	  return *this;
 	}
-      
+
       ///@}
       ///@name Operations
       ///@{
-      
+
       virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
 	{
 	  Geometry< Point >::PointsArrayType NewPoints;
@@ -243,11 +242,11 @@ namespace Kratos
 
 	  return p_clone;
 	}
-      
+
       //lumping factors for the calculation of the lumped mass matrix
-      virtual void LumpingFactors(Vector& Result) 
-	{ 
-	  KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for LumpingFactors" , *this); 
+      virtual void LumpingFactors(Vector& Result)
+	{
+	  KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for LumpingFactors" , *this);
 	}
 
       ///@}
@@ -331,13 +330,13 @@ namespace Kratos
 
       ///@}
       ///@name Access
-      ///@{ 
-      
+      ///@{
+
 
       ///@}
       ///@name Inquiry
       ///@{
-      
+
       /** This method is to know if this geometry is symmetric or
 	  not.
 
@@ -352,8 +351,8 @@ namespace Kratos
 	}
 
 
-      ///@}      
-      ///@name Jacobian 
+      ///@}
+      ///@name Jacobian
       ///@{
 
 
@@ -546,7 +545,7 @@ namespace Kratos
 
       ///@}
       ///@name Shape Function
-      ///@{ 
+      ///@{
 
       /** This method gives value of given shape function evaluated in given
 	  point.
@@ -562,7 +561,7 @@ namespace Kratos
 	  @see ShapeFunctionsValues
 	  @see ShapeFunctionsLocalGradients
 	  @see ShapeFunctionLocalGradient
-      */ 
+      */
       virtual double ShapeFunctionValue(IndexType ShapeFunctionIndex, const PointType& rPoint)
 	{
 	  KRATOS_THROW_ERROR(std::logic_error,
@@ -584,8 +583,8 @@ namespace Kratos
 		       "Calling base class ShapeFunctionsGaussPointsGradients method instead of derived class one. Please check the definition of derived class." , *this);
 	}
 
-      
-      ///@}      
+
+      ///@}
       ///@name Input and output
       ///@{
 
@@ -619,128 +618,128 @@ namespace Kratos
       */
       virtual void PrintData(std::ostream& rOStream) const
 	{
-	}      
-      
-            
-      ///@}      
+	}
+
+
+      ///@}
       ///@name Friends
       ///@{
-      
-            
+
+
       ///@}
-      
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
+      ///@name Protected static Member Variables
+      ///@{
+
 
       ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-      static const GeometryData msGeometryData;
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
+      ///@name Protected member Variables
+      ///@{
 
-      ///@} 
+
+      ///@}
+      ///@name Protected Operators
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operations
+      ///@{
+
+
+      ///@}
+      ///@name Protected  Access
+      ///@{
+
+
+      ///@}
+      ///@name Protected Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Protected LifeCycle
+      ///@{
+
+
+      ///@}
+
+    private:
+      ///@name Static Member Variables
+      ///@{
+
+      static const GeometryData msGeometryData;
+
+      ///@}
+      ///@name Member Variables
+      ///@{
+
+
+      ///@}
       ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
+      ///@{
+
+
+      ///@}
       ///@name Private Operations
       ///@{
 
       static ShapeFunctionsValuesContainerType CalculateShapeFunctionsIntegrationPointsValues()
       {
       }
-        
+
       static ShapeFunctionsLocalGradientsContainerType CalculateShapeFunctionsIntegrationPointsLocalGradients()
       {
       }
 
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
+      ///@}
+      ///@name Private  Access
+      ///@{
+
+
+      ///@}
+      ///@name Private Inquiry
+      ///@{
+
+
+      ///@}
       ///@name Private Friends
       ///@{
-      
+
       template<class TOtherPointType> friend class ClassName;
 
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
+      ///@}
+      ///@name Un accessible methods
+      ///@{
+
       ClassName();
 
-            
-        
-      ///@}    
-        
-    }; // Class Geometry 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
+
+      ///@}
+
+    }; // Class Geometry
+
+  ///@}
+
+  ///@name Type Definitions
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
+
       /// input stream function
       template<class TPointType>
-	inline std::istream& operator >> (std::istream& rIStream, 
+	inline std::istream& operator >> (std::istream& rIStream,
 					  ClassName<TPointType>& rThis);
 
       /// output stream function
       template<class TPointType>
-	inline std::ostream& operator << (std::ostream& rOStream, 
+	inline std::ostream& operator << (std::ostream& rOStream,
 					  const ClassName<TPointType>& rThis)
 	{
 	  rThis.PrintInfo(rOStream);
@@ -749,58 +748,58 @@ namespace Kratos
 
 	  return rOStream;
 	}
-      ///@} 
+      ///@}
 
-  template<class TPointType>  
+  template<class TPointType>
   typename Triangle2D<TPointType>::IntegrationPointsContainerType Triangle2D<TPointType>::msIntegrationPoints = {
 	  Quadrature<TriangleGaussLegendreIntegrationPoints<1>, 2, IntegrationPoint<3> >::IntegrationPoints(),
 	  Quadrature<TriangleGaussLegendreIntegrationPoints<2>, 2, IntegrationPoint<3> >::IntegrationPoints()
   };
-	
 
-  template<class TPointType> 
-  typename Triangle2D<TPointType>::ShapeFunctionsValuesContainerType 
+
+  template<class TPointType>
+  typename Triangle2D<TPointType>::ShapeFunctionsValuesContainerType
   Triangle2D<TPointType>::msShapeFunctionsValues = {
 	  Triangle2D<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryType::GI_GAUSS_1),
 	  Triangle2D<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryType::GI_GAUSS_2)
   };
 
-	
-  template<class TPointType> 
-  typename Triangle2D<TPointType>::ShapeFunctionsLocalGradientsContainerType 
+
+  template<class TPointType>
+  typename Triangle2D<TPointType>::ShapeFunctionsLocalGradientsContainerType
   Triangle2D<TPointType>::msShapeFunctionsLocalGradients = {
-	  Triangle2D<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryType::GI_GAUSS_1),  
+	  Triangle2D<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryType::GI_GAUSS_1),
 	  Triangle2D<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryType::GI_GAUSS_2)
   };
-  template<class TPointType>  
-  typename ClassName<TPointType>::IntegrationPointsContainerType ClassName<TPointType>::msIntegrationPoints = {}	
-	
+  template<class TPointType>
+  typename ClassName<TPointType>::IntegrationPointsContainerType ClassName<TPointType>::msIntegrationPoints = {}
 
-  template<class TPointType> 
-  typename ClassName<TPointType>::ShapeFunctionsValuesContainerType 
+
+  template<class TPointType>
+  typename ClassName<TPointType>::ShapeFunctionsValuesContainerType
   ClassName<TPointType>::msShapeFunctionsValues = {
 //	  ClassName<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryType::GI_GAUSS_1),
 //	  ClassName<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryType::GI_GAUSS_2)
   };
-	
-  template<class TPointType> 
-  typename ClassName<TPointType>::ShapeFunctionsLocalGradientsContainerType 
+
+  template<class TPointType>
+  typename ClassName<TPointType>::ShapeFunctionsLocalGradientsContainerType
   ClassName<TPointType>::msShapeFunctionsLocalGradients( = {
-//	  ClassName<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryType::GI_GAUSS_1),  
+//	  ClassName<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryType::GI_GAUSS_1),
 //	  ClassName<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryType::GI_GAUSS_2)
   };
-      
-  template<class TPointType>  
+
+  template<class TPointType>
   const GeometryData ClassName<TPointType>::msGeometryData(/*Dimension*/,
 							  /*WorkingSpaceDimension*/,
-							  /*LocalSpaceDimension*/, 
+							  /*LocalSpaceDimension*/,
 							  msIntegrationPoints,
 							  msShapeFunctionsValues,
 							  msShapeFunctionsLocalGradients);
 
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_FILENAME_H_INCLUDED  defined 
+#endif // KRATOS_FILENAME_H_INCLUDED  defined
 
 

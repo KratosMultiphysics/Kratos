@@ -632,6 +632,7 @@ CrBeamElement3D2N::CalculateInitialLocalCS() {
       direction_vector_x /= vector_norm;
 
     direction_vector_y = this->GetValue(LOCAL_AXIS_2);
+
     direction_vector_z[0] = direction_vector_x[1] * direction_vector_y[2] -
                             direction_vector_x[2] * direction_vector_y[1];
     direction_vector_z[1] = direction_vector_x[2] * direction_vector_y[0] -
@@ -1692,6 +1693,41 @@ int CrBeamElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
     KRATOS_ERROR << "I33 not provided for this element" << this->Id()
                  << std::endl;
   }
+
+  if (this->Has(LOCAL_AXIS_2)) {
+    array_1d<double, msDimension> direction_vector_x = ZeroVector(msDimension);
+    array_1d<double, msDimension> direction_vector_y = ZeroVector(msDimension);
+    array_1d<double, msLocalSize> reference_coordinates = ZeroVector(msLocalSize);
+
+    reference_coordinates[0] = this->GetGeometry()[0].X0();
+    reference_coordinates[1] = this->GetGeometry()[0].Y0();
+    reference_coordinates[2] = this->GetGeometry()[0].Z0();
+    reference_coordinates[3] = this->GetGeometry()[1].X0();
+    reference_coordinates[4] = this->GetGeometry()[1].Y0();
+    reference_coordinates[5] = this->GetGeometry()[1].Z0();
+
+    for (unsigned int i = 0; i < msDimension; ++i) {
+    direction_vector_x[i] =
+        (reference_coordinates[i + msDimension] - reference_coordinates[i]);
+    }
+
+    const double vector_norm = MathUtils<double>::Norm(direction_vector_x);
+    if (vector_norm > numerical_limit)
+      direction_vector_x /= vector_norm;
+
+    direction_vector_y = this->GetValue(LOCAL_AXIS_2);
+
+    KRATOS_ERROR_IF(MathUtils<double>::Norm(direction_vector_y)<numerical_limit)
+      << "Given LOCAL_AXIS_2 has length 0 for element " << this->Id() << std::endl;
+
+    // a tollerance of 1e-3 allows for a rough deviation of 0.06 degrees from 90.0 degrees
+    KRATOS_ERROR_IF(std::abs(MathUtils<double>::Dot(direction_vector_x,direction_vector_y))>1e-3)
+      << "LOCAL_AXIS_1 is not perpendicular to LOCAL_AXIS_2 for element " << this->Id() << std::endl;
+  }
+
+
+
+
   return 0;
 
   KRATOS_CATCH("")

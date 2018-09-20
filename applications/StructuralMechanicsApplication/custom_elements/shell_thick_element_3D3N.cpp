@@ -283,7 +283,7 @@ void ShellThickElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, Process
 //
 // =====================================================================================
 
-void ShellThickElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+void ShellThickElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -368,7 +368,7 @@ void ShellThickElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& 
         else
         {
             KRATOS_ERROR <<
-                "Error: ELEMENT ShellThinElement3D4N, METHOD GetValueOnIntegrationPoints(double)"
+                "Error: ELEMENT ShellThinElement3D4N, METHOD CalculateOnIntegrationPoints(double)"
                 << std::endl;
         }
 
@@ -472,7 +472,7 @@ void ShellThickElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& 
     OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rValues);
 }
 
-void ShellThickElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+void ShellThickElement3D3N::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
     std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -541,61 +541,18 @@ void ShellThickElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& 
     }
 }
 
-void ShellThickElement3D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    if (TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
-}
-
-void ShellThickElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable,
-    std::vector<array_1d<double, 3> >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    if (TryGetValueOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
-}
-
-void ShellThickElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double, 6> >& rVariable,
-    std::vector<array_1d<double, 6> >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-}
-
-void ShellThickElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo & rCurrentProcessInfo)
-{
-    GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-void ShellThickElement3D3N::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-    std::vector<Vector>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-
-    KRATOS_CATCH("");
-}
-
 void ShellThickElement3D3N::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    if (TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
 void ShellThickElement3D3N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable,
     std::vector<array_1d<double, 3> >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-void ShellThickElement3D3N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 6> >& rVariable,
-    std::vector<array_1d<double, 6> >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    if (TryCalculateOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
 void ShellThickElement3D3N::Calculate(const Variable<Matrix>& rVariable, Matrix & Output, const ProcessInfo & rCurrentProcessInfo)
@@ -1924,7 +1881,7 @@ void ShellThickElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     KRATOS_CATCH("")
 }
 
-bool ShellThickElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double, 3> >& rVariable,
+bool ShellThickElement3D3N::TryCalculateOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double, 3> >& rVariable,
     std::vector<array_1d<double, 3> >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1987,7 +1944,7 @@ bool ShellThickElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(c
     return true;
 }
 
-bool ShellThickElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
+bool ShellThickElement3D3N::TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {

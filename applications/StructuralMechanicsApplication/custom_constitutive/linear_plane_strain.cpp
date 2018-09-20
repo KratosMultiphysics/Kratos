@@ -22,7 +22,7 @@ namespace Kratos
 {
 
 //******************************CONSTRUCTOR*******************************************
-//************************************************************************************
+/***********************************************************************************/
 
 LinearPlaneStrain::LinearPlaneStrain()
     : ElasticIsotropic3D()
@@ -30,7 +30,7 @@ LinearPlaneStrain::LinearPlaneStrain()
 }
 
 //******************************COPY CONSTRUCTOR**************************************
-//************************************************************************************
+/***********************************************************************************/
 
 LinearPlaneStrain::LinearPlaneStrain(const LinearPlaneStrain& rOther)
     : ElasticIsotropic3D(rOther)
@@ -38,35 +38,35 @@ LinearPlaneStrain::LinearPlaneStrain(const LinearPlaneStrain& rOther)
 }
 
 //********************************CLONE***********************************************
-//************************************************************************************
+/***********************************************************************************/
 
 ConstitutiveLaw::Pointer LinearPlaneStrain::Clone() const
 {
-    LinearPlaneStrain::Pointer p_clone(new LinearPlaneStrain(*this));
-    return p_clone;
+    return Kratos::make_shared<LinearPlaneStrain>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
-//************************************************************************************
+/***********************************************************************************/
 
 LinearPlaneStrain::~LinearPlaneStrain()
 {
 }
 
-//************************************************************************************
-//************************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 bool& LinearPlaneStrain::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
 {
     // This Constitutive Law has been checked with Stenberg Stabilization
-    if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE)
+    if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE) {
         rValue = true;
+    }
 
     return rValue;
 }
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
-//************************************************************************************
+/***********************************************************************************/
 
 void LinearPlaneStrain::GetLawFeatures(Features& rFeatures)
 {
@@ -86,8 +86,8 @@ void LinearPlaneStrain::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = 2;
 }
 
-//************************************************************************************
-//************************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 void LinearPlaneStrain::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
@@ -109,14 +109,14 @@ void LinearPlaneStrain::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Param
     C(2, 2) = c3;
 }
 
-//************************************************************************************
-//************************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 void LinearPlaneStrain::CalculatePK2Stress(
     const Vector& rStrainVector,
     Vector& rStressVector,
     ConstitutiveLaw::Parameters& rValues
-)
+    )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E = r_material_properties[YOUNG_MODULUS];
@@ -132,8 +132,8 @@ void LinearPlaneStrain::CalculatePK2Stress(
     rStressVector[2] = c3 * rStrainVector[2];
 }
 
-//************************************************************************************
-//************************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
 {

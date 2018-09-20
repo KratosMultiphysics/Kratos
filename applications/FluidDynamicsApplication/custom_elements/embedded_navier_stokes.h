@@ -1342,7 +1342,11 @@ protected:
 
         // Fill the tangential projection matrix (I - nxn)
         if (TDim == 3) {
+            #ifdef KRATOS_USE_AMATRIX
+            BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(TDim);
+            #else
             BoundedMatrix<double,3,3> id_matrix = IdentityMatrix(TDim,TDim);
+            #endif
             noalias(rTangProjMatrix) = id_matrix - outer_prod(rUnitNormal, rUnitNormal);
         } else {
             rTangProjMatrix(0,0) = 1.0 - rUnitNormal(0)*rUnitNormal(0);

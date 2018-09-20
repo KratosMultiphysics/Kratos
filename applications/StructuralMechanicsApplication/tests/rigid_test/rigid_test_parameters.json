@@ -1,0 +1,97 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "rigid_test",
+        "model_part_name" : "Structure",
+        "domain_size"     : 2,
+        "parallel_type"   : "OpenMP",
+        "time_step"       : 1.1,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "Static",
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "rigid_test/rigid_test"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "rigid_test/rigid_test_materials.json"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","LOAD_PointLoad_Auto1","GENERIC_Add_SubModelPart_Auto1"],
+        "rotation_dofs"                      : false
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "Parameters"    : {
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "Parameters"    : {
+            "model_part_name" : "LOAD_PointLoad_Auto1",
+            "variable_name"   : "POINT_LOAD",
+            "value"           : [1.0e6,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "impose_rigid_movement_process",
+        "kratos_module" : "KratosMultiphysics.StructuralMechanicsApplication",
+        "Parameters"    : {
+            "model_part_name"   : "GENERIC_Add_SubModelPart_Auto1",
+            "master_node_id"    : 222,
+            "interval"          : [0.0,"End"]
+        }
+    }],
+    "loads_process_list"       : [],
+    "list_other_processes"     : [],
+    "check_analytic_results_process" : [
+    {
+        "python_module"   : "check_scalar_to_nodes_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "process_name"          : "CheckValueProcess",
+        "Parameters"            : {
+                "model_part_name" : "GENERIC_Add_SubModelPart_Auto1",
+                "variable_name"   : "DISPLACEMENT_X",
+                "interval"        : [0.0, "End"],
+                "value"           : 4.205191156013166e-6,
+                "tolerance_rank"  : 8
+        }
+    }],
+    "_output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION"],
+            "gauss_point_results" : ["VON_MISES_STRESS"]
+        },
+        "point_data_configuration"  : []
+    }
+}

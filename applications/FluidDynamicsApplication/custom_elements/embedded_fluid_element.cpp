@@ -340,7 +340,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
     // If there is embedded velocity, substract it to the previous iteration solution
     if (this->Has(EMBEDDED_VELOCITY)) {
         const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp(LocalSize, 0.0);
+        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
 
         for (unsigned int i = 0; i < NumNodes; ++i) {
             for (unsigned int comp = 0; comp < Dim; ++comp) {
@@ -371,8 +371,13 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
                     const unsigned int row = i * BlockSize + m;
                     for (unsigned int n = 0; n < Dim; ++n){
                         const unsigned int col = j * BlockSize + n;
-                        rLHS(row, col) += pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j);
-                        rRHS(row) -= pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j)*values(col);
+                        #ifdef KRATOS_USE_AMATRIX
+                        double lhs_ij = pen_coef*weight*aux_N[i]*aux_unit_normal(m)*aux_unit_normal(n)*aux_N[j];
+                        #else
+                        double lhs_ij = pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j);
+                        #endif
+                        rLHS(row, col) += lhs_ij;
+                        rRHS(row) -= lhs_ij*values(col);
                     }
                 }
             }
@@ -422,7 +427,11 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
         BoundedMatrix<double, LocalSize, Dim> trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(LocalSize, Dim);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
+                #ifdef KRATOS_USE_AMATRIX
+                trans_pres_to_voigt_matrix_normal_op(i*BlockSize + Dim, comp) = aux_N[i]*aux_unit_normal(comp);
+                #else
                 trans_pres_to_voigt_matrix_normal_op(i*BlockSize + Dim, comp) = aux_N(i)*aux_unit_normal(comp);
+                #endif
             }
         }
 
@@ -430,7 +439,11 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
+                #ifdef KRATOS_USE_AMATRIX
+                N_mat(comp, i*BlockSize + comp) = aux_N[i];
+                #else
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
+                #endif
             }
         }
 
@@ -497,7 +510,11 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialPenaltyContribution(
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
+                #ifdef KRATOS_USE_AMATRIX
+                N_mat(comp, i*BlockSize + comp) = aux_N[i];
+                #else
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
+                #endif
             }
         }
         BoundedMatrix<double, LocalSize, Dim> N_mat_trans = trans(N_mat);
@@ -584,7 +601,11 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartCo
         BoundedMatrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
         for (unsigned int i = 0; i < NumNodes; ++i){
             for (unsigned int comp = 0; comp < Dim; ++comp){
+                #ifdef KRATOS_USE_AMATRIX
+                N_mat(comp, i*BlockSize + comp) = aux_N[i];
+                #else
                 N_mat(comp, i*BlockSize + comp) = aux_N(i);
+                #endif
             }
         }
 
@@ -778,7 +799,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
     }
 
     // Compute the element average velocity value
-    array_1d<double, Dim> avg_vel(Dim,0.0);
+    array_1d<double, Dim> avg_vel = ZeroVector(Dim);
 
     for (unsigned int i = 0; i < NumNodes; ++i) {
         avg_vel += row(rData.Velocity, i);
@@ -852,12 +873,20 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
 
         for (unsigned int i_out = 0; i_out < rData.NumNegativeNodes; i_out++) {
             const unsigned int i_out_nodeid = rData.NegativeIndices[i_out];
+            #ifdef KRATOS_USE_AMATRIX
+            aux_out(i_out) = aux_cut[i_out_nodeid];
+            #else
             aux_out(i_out) = aux_cut(i_out_nodeid);
+            #endif
         }
 
         for (unsigned int i_int = 0; i_int < rData.NumPositiveNodes; ++i_int) {
             const unsigned int i_int_nodeid = rData.PositiveIndices[i_int];
+            #ifdef KRATOS_USE_AMATRIX
+            aux_int(i_int) = aux_cut[i_int_nodeid];
+            #else
             aux_int(i_int) = aux_cut(i_int_nodeid);
+            #endif
         }
 
         M_gamma += weight*outer_prod(aux_out,aux_out);
@@ -906,7 +935,7 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
         nitsche_lhs.clear();
 
         const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> aux_embedded_vel(LocalSize,0.0);
+        array_1d<double, LocalSize> aux_embedded_vel = ZeroVector(LocalSize);
 
         for (unsigned int i=0; i<NumNodes; i++) {
             aux_embedded_vel(i*BlockSize) = embedded_vel(0);

@@ -1,13 +1,11 @@
 /*
-//  KRATOS .___  ________    _____
-//         |   |/  _____/   /  _  \
-//         |   /   \  ___  /  /_\  \
-//         |   \    \_\  \/    |    \
-//         |___|\______  /\____|__  /
-//                     \/         \/  Application
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
-//  License: BSD License
-//           Kratos default license: kratos/license.txt
+//  Main authors:   Thomas Oberbichler
 */
 
 #if defined(KRATOS_PYTHON)
@@ -37,7 +35,7 @@ PYBIND11_MODULE(KratosIgaApplication, m)
 
     AddCustomUtilitiesToPython(m);
 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NURBS_CONTROLPOINT_WEIGHT)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NURBS_CONTROL_POINT_WEIGHT)
 }
 
 } // namespace Python

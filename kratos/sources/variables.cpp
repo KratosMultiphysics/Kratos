@@ -390,7 +390,7 @@ KRATOS_CREATE_VARIABLE(Vector, TANGENTIAL_STRESS)
 KRATOS_CREATE_VARIABLE(Vector, STRESSES)
 KRATOS_CREATE_VARIABLE(Vector, STRAIN)
 
-KRATOS_CREATE_VARIABLE(vector<int>, NEIGHBOURS_INDICES)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, NEIGHBOURS_INDICES)
 
 //ALE Application
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DETERMINANT)
@@ -537,10 +537,16 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mpUnsignedIntVariables(KratosComponents<Variable<unsigned int> >::pGetComponents()),
       mpDoubleVariables(KratosComponents<Variable<double> >::pGetComponents()),
       mpArray1DVariables(KratosComponents<Variable<array_1d<double, 3> > >::pGetComponents()),
+      mpArray1D4Variables(KratosComponents<Variable<array_1d<double, 4> > >::pGetComponents()),
+      mpArray1D6Variables(KratosComponents<Variable<array_1d<double, 6> > >::pGetComponents()),
+      mpArray1D9Variables(KratosComponents<Variable<array_1d<double, 9> > >::pGetComponents()),
       mpQuaternionVariables(KratosComponents<Variable<Quaternion<double> > >::pGetComponents()),
       mpVectorVariables(KratosComponents<Variable<Vector> >::pGetComponents()),
       mpMatrixVariables(KratosComponents<Variable<Matrix> >::pGetComponents()),
       mpArray1DVariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 3> > > >::pGetComponents()),
+      mpArray1D4VariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 4> > > >::pGetComponents()),
+      mpArray1D6VariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 6> > > >::pGetComponents()),
+      mpArray1D9VariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 9> > > >::pGetComponents()),
       mpElements(KratosComponents<Element>::pGetComponents()),
       mpConditions(KratosComponents<Condition>::pGetComponents()),
       mpRegisteredObjects(&(Serializer::GetRegisteredObjects())),

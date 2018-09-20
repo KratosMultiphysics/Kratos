@@ -20,7 +20,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 
 
 # Main Features
-**Kratos** is __multiplatform__ and available for __Windows, Linux__ (several distros) and can be compiled in __OSX__.
+**Kratos** is __multiplatform__ and available for __Windows, Linux__ (several distros) and __macOS__.
 
 **Kratos** is __OpenMP__ and __MPI__ parallel and scalable up to thousands of cores.
 

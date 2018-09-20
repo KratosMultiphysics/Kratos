@@ -173,7 +173,7 @@ void NormalizeVariable(const Variable<array_1d<double, 3 > >& rRHSVariable, cons
       int number_of_threads = 1;
       #endif
 
-      vector<unsigned int> node_partition;
+      DenseVector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
       #pragma omp parallel for 
@@ -208,7 +208,7 @@ void ExplicitUpdateLoop(const Variable<array_1d<double, 3 > >& rUpdateVariable, 
       int number_of_threads = 1;
       #endif
 
-      vector<unsigned int> node_partition;
+      DenseVector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
       #pragma omp parallel for 
@@ -229,7 +229,7 @@ void ExplicitUpdateLoop(const Variable<array_1d<double, 3 > >& rUpdateVariable, 
      KRATOS_CATCH("")
 }
 
-inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, DenseVector<unsigned int>& partitions)
     {
       partitions.resize(number_of_threads+1);
       int partition_size = number_of_rows / number_of_threads;

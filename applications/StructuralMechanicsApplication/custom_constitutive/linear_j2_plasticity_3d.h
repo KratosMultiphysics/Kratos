@@ -132,40 +132,21 @@ public:
     };
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @brief Returns whether this constitutive Law has specified variable (bool)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<bool>& rThisVariable) override;
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (double)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<double>& rThisVariable) override;
-
-    /**
-     * @brief Sets the value of a specified variable (double)
-     * @param rThisVariable The variable to be returned
-     * @param rValue New value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<double>& rThisVariable,
-        const double& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (double)
+     * @brief Returns the value of a specified variable (bool)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    double& GetValue(
-        const Variable<double>& rThisVariable,
-        double& rValue
+    bool& GetValue(
+        const Variable<bool>& rThisVariable,
+        bool& rValue
         ) override;
 
     /**
@@ -246,17 +227,6 @@ public:
      * @see Parameters
      */
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief calculates the value of a specified variable
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    bool& CalculateValue(Parameters& rParameterValues,
-                           const Variable<bool>& rThisVariable,
-                           bool& rValue) override;
 
     /**
      * @brief calculates the value of a specified variable
