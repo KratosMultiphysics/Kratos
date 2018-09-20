@@ -1,0 +1,165 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "Linear_Truss",
+        "time_step"       : 1.0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0
+    },
+    "solver_settings"                  : {
+        "solver_type"                  : "adjoint_static",
+        "analysis_type"                : "linear",
+        "model_part_name"              : "Structure",
+        "domain_size"                  : 3,
+        "compute_reactions"			   : false,
+        "move_mesh_flag"                    : false,
+        "scheme_settings" : {
+            "scheme_type"              : "adjoint_structural"
+            },
+        "response_function_settings" : {
+                "response_type"     : "adjoint_local_stress",
+                "use_kratos"        : true,
+                "gradient_mode"     : "semi_analytic",
+                "sensitivity_model_part_name" : "sensitivity_mp",
+                "nodal_sensitivity_variables"  : ["SHAPE"],
+                "element_sensitivity_variables"  : ["CROSS_AREA"],
+                "condition_sensitivity_variables"  : ["POINT_LOAD"],
+                "step_size"         : 1e-6,
+                "traced_element_id"    : 1,
+                "stress_type"       : "FX",
+                "stress_treatment"  : "GP",
+                "stress_location"   : 1
+            },
+        "echo_level"                   : 0,
+        "problem_domain_sub_model_part_list" : ["Parts_TRUSS_1","Parts_TRUSS_2"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad2D_BC_NEUMANN"],
+        "computing_model_part_name" : "computing_domain",
+        "rotation_dofs"                      : false,
+        "linear_solver_settings"       : {
+            "solver_type"         : "Super_LU"
+        },
+        "model_import_settings"        : {
+            "input_type"     : "mdpa",
+            "input_filename" : "linear_truss_structure"
+        },
+        "material_import_settings" :{
+            "materials_filename": "StructuralMaterials.json"
+        }
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.DISPLACEMENT_BC_DIRICHLET_X_Y_Z",
+            "variable_name"   : "ADJOINT_DISPLACEMENT",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },
+    {
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.DISPLACEMENT_BC_DIRICHLET_Z",
+            "variable_name"   : "ADJOINT_DISPLACEMENT",
+            "constrained"     : [false,false,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }
+    ],
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition according to a given modulus an direction",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignVectorByDirectionToConditionProcess",
+        "Parameters"    : {
+            "model_part_name" : "Structure.PointLoad2D_BC_NEUMANN",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : 10.0,
+            "direction"       : [0.0,-1.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "list_other_processes" :[{
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "single_mesh_temporal_input_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+	        "model_part_name" : "Structure",
+            "file_settings" : {
+                "file_access_mode" : "read_only"
+            },
+            "nodal_solution_step_data_settings" : {
+                "list_of_variables": ["DISPLACEMENT"]
+            }
+        }
+     },
+     {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"  : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
+            "gauss_points_check_variables" : ["CROSS_AREA_SENSITIVITY"],
+            "input_file_name"  : "linear_truss_test_local_stress_results.json",
+            "model_part_name"  : "Structure",
+            "tolerance"            : 1e-4,
+            "time_frequency"   : -2.0
+        }
+    }
+],
+    "_output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostAscii",
+                "WriteDeformedMeshFlag" : "WriteUndeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["ADJOINT_DISPLACEMENT", "DISPLACEMENT", "SHAPE_SENSITIVITY"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "_json_output_process" : [
+        {
+            "python_module" : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "",
+            "process_name"  : "JsonOutputProcess",
+            "Parameters"    : {
+                "output_variables" : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
+                "gauss_points_output_variables" : ["CROSS_AREA_SENSITIVITY"],
+                "output_file_name" : "linear_truss_test_local_stress_results.json",
+                "model_part_name"  : "Structure",
+                "time_frequency"   : -2.0
+            }
+        }],
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}
