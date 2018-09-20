@@ -95,6 +95,12 @@
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(module,flag);   \
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(module,NOT_##flag)
 
-
+template <class TClassType>
+const std::string ObjectToString(const TClassType& rObject)
+{
+    std::stringstream ss;
+    ss << rObject;
+    return ss.str();
+}
 
 #endif /* KRATOS_DEFINE_H_INCLUDED  defined */
