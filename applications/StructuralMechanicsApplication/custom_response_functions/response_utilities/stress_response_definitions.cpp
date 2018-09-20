@@ -100,13 +100,8 @@ void StressCalculation::CalculateStressOnNode(Element& rElement,
 {
     KRATOS_TRY;
 
-    KRATOS_WATCH(rElement)
-
     std::string name_current_element;
     CompareElementsAndConditionsUtility::GetRegisteredName(rElement, name_current_element);
-
-
-    KRATOS_WATCH(name_current_element)
 
     if(name_current_element == "CrLinearBeamElement3D2N")
         StressCalculation::CalculateStressOnNodeBeam(rElement, rTracedStressType, rOutput, rCurrentProcessInfo);
@@ -424,8 +419,6 @@ void StressCalculation::CalculateStressOnGPBeam(Element& rElement,
 {
     KRATOS_TRY;
 
-    KRATOS_WATCH(rElement)
-
     int direction_1;
     std::vector< array_1d<double, 3 > > stress_vector;
     StressCalculation::CalculateStressBeam(rElement, rTracedStressType,
@@ -450,21 +443,16 @@ void StressCalculation::CalculateStressOnNodeBeam(Element& rElement,
 {
     KRATOS_TRY;
 
-    KRATOS_WATCH(1)
-
     int direction_1;
     std::vector< array_1d<double, 3 > > stress_vector;
     StressCalculation::CalculateStressBeam(rElement, rTracedStressType,
                                             stress_vector, rCurrentProcessInfo,
                                             direction_1);
 
-    KRATOS_WATCH(2)
-    KRATOS_WATCH(direction_1)
     rOutput.resize(2);
     rOutput(0) = 2 * stress_vector[0][direction_1] - stress_vector[1][direction_1];
     rOutput(1) = 2 * stress_vector[2][direction_1] - stress_vector[1][direction_1];
 
-    KRATOS_WATCH(3)
     KRATOS_CATCH("")
 }
 
