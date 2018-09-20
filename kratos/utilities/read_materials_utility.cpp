@@ -235,10 +235,15 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     }
 
     // If the property has subproperties block we allocate this properties first
-    if (Data["Material"].Has("sub_properties")) {
+    if (Data.Has("sub_properties")) {
+
         std::unordered_map<IndexType, Properties::Pointer> list_sub_properties;
 
-        for (auto sub_prop : Data["Material"]["sub_properties"]) {
+        const std::size_t number_of_subproperties = Data["sub_properties"].size();
+        for(std::size_t i_sub_prop=0; i_sub_prop < number_of_subproperties; ++i_sub_prop) {
+            // Copy of the current parameters
+            Parameters sub_prop = Data["sub_properties"][i_sub_prop];
+
             const int sub_property_id = sub_prop["properties_id"].GetInt();
             Properties::Pointer p_new_sub_prop = r_model_part.pGetProperties(sub_property_id, mesh_id);
 

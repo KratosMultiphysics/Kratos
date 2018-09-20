@@ -171,7 +171,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         BaseType::PrintData(rOStream);
-        rOStream << "This properties contains the following subproperties" << mSubPropetiesList.size() << " subproperties";
+        rOStream << "\nThis properties contains the following subproperties " << mSubPropetiesList.size() << " subproperties" << std::endl;
         for (auto& subprop : mSubPropetiesList) {
             (subprop.second)->PrintData(rOStream);
         }
