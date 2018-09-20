@@ -91,6 +91,11 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         prop1 = self.model_part.GetProperties()[1]
         self.assertEqual(prop1.NumberOfSubproperties(), 3)
 
+        prop11 = prop1.GetSubProperty(11)
+        self.assertEqual(prop11.GetValue(KratosMultiphysics.YOUNG_MODULUS), 206900000000.0)
+        self.assertEqual(prop11.GetValue(KratosMultiphysics.POISSON_RATIO), 0.29)
+        self.assertEqual(prop11.GetValue(KratosMultiphysics.THICKNESS), 0.000889)
+
     def test_input_python(self):
 
         if (missing_external_dependencies is True):
