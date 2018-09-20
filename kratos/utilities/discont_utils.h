@@ -1117,7 +1117,7 @@ private:
         rVolume = detJ / 6.0;
     }
 
-    static inline void CalculatePosition(const BoundedMatrix<double, 3, 3 > & rCoordinates,
+    static inline void CalculatePosition(const BoundedMatrix<double, 3, 2 > & rCoordinates,
                                          const double xc,
                                          const double yc,
                                          const double zc,
