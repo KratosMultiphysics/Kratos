@@ -397,25 +397,14 @@ void HenckyElasticPlastic3DLaw::CalculateElastoPlasticTangentMatrix( const MPMFl
 //************************************************************************************
 //************************************************************************************
 
-Matrix HenckyElasticPlastic3DLaw::SetMatrixToAppropriateDimension(Matrix& rMatrix){
-    if(rMatrix.size1() == 3){
-        return rMatrix;
-    }
-    else if (rMatrix.size1() == 2) { 
-        rMatrix = Transform2DTo3D(rMatrix); 
-        return rMatrix;
-    }
-    else KRATOS_ERROR << "Wrong size of input matrix:: Conversion is unknown!" << std::endl;
-}
-
 Vector HenckyElasticPlastic3DLaw::SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix )
 {
-    rStressVector(0) = rStressMatrix(0,0);
-    rStressVector(1) = rStressMatrix(1,1);
-    rStressVector(2) = rStressMatrix(2,2);
-    rStressVector(3) = rStressMatrix(0,1);
-    rStressVector(4) = rStressMatrix(1,2);
-    rStressVector(5) = rStressMatrix(0,2);
+    rStressVector[0] = rStressMatrix(0,0);
+    rStressVector[1] = rStressMatrix(1,1);
+    rStressVector[2] = rStressMatrix(2,2);
+    rStressVector[3] = rStressMatrix(0,1);
+    rStressVector[4] = rStressMatrix(1,2);
+    rStressVector[5] = rStressMatrix(0,2);
     return rStressVector;
 }
 
@@ -437,9 +426,9 @@ Matrix HenckyElasticPlastic3DLaw::CalculateEigenbases(const MPMFlowRule::RadialR
     
     for (unsigned int i = 0; i<3; ++i)
     {
-        N1(i) = rReturnMappingVariables.MainDirections(i,0);
-        N2(i) = rReturnMappingVariables.MainDirections(i,1);
-        N3(i) = rReturnMappingVariables.MainDirections(i,2);
+        N1[i] = rReturnMappingVariables.MainDirections(i,0);
+        N2[i] = rReturnMappingVariables.MainDirections(i,1);
+        N3[i] = rReturnMappingVariables.MainDirections(i,2);
     }
 
     //2- compute the eigenbases matrix

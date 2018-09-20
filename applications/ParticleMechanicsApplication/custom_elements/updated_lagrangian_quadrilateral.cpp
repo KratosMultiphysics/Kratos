@@ -204,26 +204,26 @@ void UpdatedLagrangianQuadrilateral::InitializeGeneralVariables (GeneralVariable
 
     rVariables.detJ = 1;
 
-    rVariables.B.resize( voigtsize, number_of_nodes * dimension );
+    rVariables.B.resize( voigtsize, number_of_nodes * dimension, false );
 
-    rVariables.F.resize( dimension, dimension );
+    rVariables.F.resize( dimension, dimension, false );
 
-    rVariables.F0.resize( dimension, dimension );
+    rVariables.F0.resize( dimension, dimension, false );
 
-    rVariables.FT.resize( dimension, dimension );
+    rVariables.FT.resize( dimension, dimension, false );
 
-    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize );
+    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize, false );
 
-    rVariables.Normal.resize( voigtsize, voigtsize);
+    rVariables.Normal.resize( voigtsize, voigtsize, false );
 
-    rVariables.StrainVector.resize( voigtsize );
+    rVariables.StrainVector.resize( voigtsize, false );
 
-    rVariables.StressVector.resize( voigtsize );
+    rVariables.StressVector.resize( voigtsize, false );
 
-    rVariables.IsoStressVector.resize( voigtsize );
+    rVariables.IsoStressVector.resize( voigtsize, false );
 
-    rVariables.DN_DX.resize( number_of_nodes, dimension );
-    rVariables.DN_De.resize( number_of_nodes, dimension );
+    rVariables.DN_DX.resize( number_of_nodes, dimension, false );
+    rVariables.DN_De.resize( number_of_nodes, dimension, false );
 
     array_1d<double,3>& xg = this->GetValue(GAUSS_COORD);
 
@@ -1426,7 +1426,7 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobian( Matrix& rResult, array_1d<d
 
     if (dimension ==2)
     {
-        rResult.resize( 2, 2);
+        rResult.resize( 2, 2, false );
         rResult = ZeroMatrix(2,2);
 
         for ( unsigned int i = 0; i < number_nodes; i++ )
@@ -1439,7 +1439,7 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobian( Matrix& rResult, array_1d<d
     }
     else if(dimension ==3)
     {
-        rResult.resize( 3,3);
+        rResult.resize( 3, 3, false );
         rResult = ZeroMatrix(3,3);
 
         for ( unsigned int i = 0; i < number_nodes; i++ )
@@ -1486,7 +1486,7 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobianDelta( Matrix& rResult, array
 
     if (dimension ==2)
     {
-        rResult.resize( 2, 2);
+        rResult.resize( 2, 2, false );
         rResult = ZeroMatrix(2,2);
 
         for ( unsigned int i = 0; i < rGeom.size(); i++ )
@@ -1499,7 +1499,7 @@ Matrix& UpdatedLagrangianQuadrilateral::MPMJacobianDelta( Matrix& rResult, array
     }
     else if(dimension ==3)
     {
-        rResult.resize( 3,3);
+        rResult.resize( 3, 3, false );
         rResult = ZeroMatrix(3,3);
         for ( unsigned int i = 0; i < rGeom.size(); i++ )
         {
@@ -1543,7 +1543,7 @@ Vector& UpdatedLagrangianQuadrilateral::MPMShapeFunctionPointValues( Vector& rRe
 
     if (dimension == 2)
     {
-        rResult.resize(4, false);
+        rResult.resize( 4, false );
 
         // Shape Functions (if the first node of the connettivity is the node at the bottom left)
         rResult( 0 ) = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
