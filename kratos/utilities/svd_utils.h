@@ -65,8 +65,6 @@ public:
     typedef std::size_t SizeType;
     
     typedef unsigned int IndexType;
-
-    typedef UblasSpace<TDataType, CompressedMatrix, Vector> SparseSpaceType;
     
     typedef UblasSpace<TDataType, Matrix, Vector> LocalSpaceType;
 
@@ -163,7 +161,7 @@ public:
         }
         noalias(VMatrix) = IdentityMatrix(n);
         
-        const TDataType relative_tolerance = Tolerance * SparseSpaceType::TwoNorm(InputMatrix);
+        const TDataType relative_tolerance = Tolerance * LocalSpaceType::TwoNorm(InputMatrix);
         
         std::size_t iter = 0;
         
