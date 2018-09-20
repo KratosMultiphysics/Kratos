@@ -17,6 +17,8 @@
 
 // Project includes
 #include "stress_response_definitions.h"
+#include "utilities/compare_elements_and_conditions_utility.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
