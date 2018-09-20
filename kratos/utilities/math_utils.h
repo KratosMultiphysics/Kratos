@@ -242,7 +242,7 @@ public:
             if (k != j)
                 ia2(j_sub++) = k;
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
 		PermutationMatrix<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
 #else
 		boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
@@ -416,7 +416,7 @@ public:
         )
     {
         const SizeType size1 = A.size1();
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
 		AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
 		double determinant = lu_factorization.determinant();
 		KRATOS_ERROR_IF(std::abs(determinant) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << A << std::endl;
@@ -464,8 +464,8 @@ public:
             if(InvertedMatrix.size1() != size1 || InvertedMatrix.size2() != size2) {
                 InvertedMatrix.resize(size1, size2,false);
             }
-            
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
             Matrix temp(InputMatrix);
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
             InputMatrixDet = lu_factorization.determinant();
@@ -488,7 +488,7 @@ public:
                 IndexType ki = pm[i] == i ? 0 : 1;
                 InputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
-            
+
  #endif // ifdef KRATOS_USE_AMATRIX
        }
     }
@@ -648,7 +648,7 @@ public:
         }
         else
         {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
             Matrix temp(A);
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
             Det = lu_factorization.determinant();
@@ -1571,7 +1571,7 @@ public:
             )
     {
         bool is_converged = false;
-        eigen_values_matrix = ZeroMatrix(TDim);
+        eigen_values_matrix = ZeroMatrix(TDim,TDim);
         BoundedMatrix<TDataType, TDim, TDim> TempMat = A;
         BoundedMatrix<TDataType, TDim, TDim> AuxA;
 
