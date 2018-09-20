@@ -118,8 +118,8 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             lines_out = out_file.readlines()
 
         # removing trailing whitespaces than can mess with the comparison
-        [line.rstrip() for line in lines_ref]
-        [line.rstrip() for line in lines_out]
+        lines_ref = [line.rstrip() for line in lines_ref]
+        lines_out = [line.rstrip() for line in lines_out]
 
         num_lines_ref = len(lines_ref)
         num_lines_out = len(lines_out)
