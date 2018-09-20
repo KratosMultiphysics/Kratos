@@ -253,8 +253,11 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
             list_sub_properties.insert(std::pair<IndexType, Properties::Pointer>({sub_property_id, p_new_sub_prop}));
         }
 
-        auto& current_properties = *p_prop;
-        p_prop = Kratos::make_shared<PropertiesWithSubProperties>(current_properties, list_sub_properties);
+        Properties::Pointer p_prop_with_sub_properties = Kratos::make_shared<PropertiesWithSubProperties>(p_prop, list_sub_properties);
+
+        r_model_part.RemovePropertiesFromAllLevels(p_prop);
+        r_model_part.AddProperties(p_prop_with_sub_properties);
+        p_prop = p_prop_with_sub_properties;
     }
 
     // We create the new property
