@@ -476,6 +476,7 @@ KRATOS_CREATE_VARIABLE(double, SEARCH_RADIUS)
 KRATOS_CREATE_VARIABLE(double, INTEGRATION_WEIGHT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
 KRATOS_CREATE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
+KRATOS_CREATE_VARIABLE(std::vector<Properties::Pointer>, SUB_PROPERTIES_LIST )
 
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
@@ -986,6 +987,7 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
 
     KRATOS_REGISTER_VARIABLE(TABLE_UTILITY)
+    KRATOS_REGISTER_VARIABLE(SUB_PROPERTIES_LIST)
 
 
     //Register objects with general definition
