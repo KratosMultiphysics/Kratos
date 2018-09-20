@@ -56,9 +56,8 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
                     self.ChimeraProcess = KratosChimera.ApplyChimeraProcessFractionalStep3d(main_model_part,chimera_params)
 
             #list_of_processes.insert(0, ChimeraProcess)
-            print(list_of_processes)
+            #print(list_of_processes)
             #err
-
         return list_of_processes
 
     ''' def Initialize(self):
