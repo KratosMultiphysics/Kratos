@@ -12,23 +12,23 @@ namespace HDF5
 namespace
 {
 template <typename TDataType>
-void SetDataBuffer(Variable<TDataType> const& rVariable,
-                   std::vector<ElementType*> const& rElements,
-                   Vector<TDataType>& rData);
+void SetDataBuffer(Variable<TDataType> const&,
+                   std::vector<ElementType*> const&,
+                   Vector<TDataType>&);
 
-void SetDataBuffer(Variable<Vector<double>> const& rVariable,
-                   std::vector<ElementType*> const& rElements,
-                   Matrix<double>& rData);
+void SetDataBuffer(Variable<Vector<double>> const&,
+                   std::vector<ElementType*> const&,
+                   Matrix<double>&);
 
-void SetDataBuffer(Variable<Matrix<double>> const& rVariable,
-                   std::vector<ElementType*> const& rElements,
-                   Matrix<double>& rData);
+void SetDataBuffer(Variable<Matrix<double>> const&,
+                   std::vector<ElementType*> const&,
+                   Matrix<double>&);
 
 
 template <typename TDataType>
 void SetElementDataValues(Variable<TDataType> const&,
-                          Vector<TDataType> const& rData,
-                          std::vector<ElementType*>& rElements);
+                          Vector<TDataType> const&,
+                          std::vector<ElementType*>&);
 
 void SetElementDataValues(Variable<Vector<double>> const&,
                           Matrix<double> const&,
