@@ -76,11 +76,7 @@ void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseCauchy(Consti
 
     strain_vector = initial_strain_vector;
     rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-
-    // Auxiliar! to be discussed in the comittee -> Do not be afraid VICENTE
     rValues.GetOptions().Set(ConstitutiveLaw::U_P_LAW, true);
-    // ********************************************************************
-
 
     plaw->CalculateMaterialResponseCauchy(rValues); // Plastification occurs...
 
