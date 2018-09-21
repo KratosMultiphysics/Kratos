@@ -79,7 +79,7 @@ public:
      * @brief Default constructor.
      * @param NewId The Id of the new properties
      */
-    PropertiesWithSubProperties(IndexType NewId = 0)
+    explicit PropertiesWithSubProperties(IndexType NewId = 0)
         : BaseType(NewId),
           mSubPropetiesList(SubPropertiesListType(0))
         {}
@@ -88,7 +88,7 @@ public:
      * @brief Constructor with pointer to properties
      * @param pProperties A pointer to properties
      */
-    PropertiesWithSubProperties(Properties::Pointer pProperties)
+    explicit PropertiesWithSubProperties(Properties::Pointer pProperties)
         : BaseType(*pProperties),
           mSubPropetiesList(SubPropertiesListType(0))
         {}
@@ -98,7 +98,7 @@ public:
      * @param pProperties A pointer to properties
      * @param rSubPropetiesList The map containing the subproperties
      */
-    PropertiesWithSubProperties(
+    explicit PropertiesWithSubProperties(
         Properties::Pointer pProperties,
         SubPropertiesListType& rSubPropetiesList
         ) : BaseType(*pProperties),
@@ -109,7 +109,7 @@ public:
      * @brief Constructor with reference to properties
      * @param rProperties A reference to properties
      */
-    PropertiesWithSubProperties(Properties& rProperties)
+    explicit PropertiesWithSubProperties(Properties& rProperties)
         : BaseType(rProperties),
           mSubPropetiesList(SubPropertiesListType(0))
         {}
@@ -119,7 +119,7 @@ public:
      * @param rProperties A reference to properties
      * @param rSubPropetiesList The map containing the subproperties
      */
-    PropertiesWithSubProperties(
+    explicit PropertiesWithSubProperties(
         Properties& rProperties,
         SubPropertiesListType& rSubPropetiesList
         ) : BaseType(rProperties),
@@ -173,6 +173,8 @@ public:
      */
     Properties::Pointer GetSubProperty(const IndexType SubPropertyIndex) override
     {
+        KRATOS_WATCH(*mSubPropetiesList[SubPropertyIndex])
+
         return mSubPropetiesList[SubPropertyIndex];
     }
 
