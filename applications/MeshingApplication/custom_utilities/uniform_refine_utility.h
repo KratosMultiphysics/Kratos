@@ -406,7 +406,7 @@ private:
     //UniformRefineUtility& operator=(UniformRefineUtility const& rOther);
 
     /// Copy constructor.
-    //UniformRefineUtility(UniformRefineUtility const& rOther);
+    UniformRefineUtility(UniformRefineUtility const& rOther);
 
 
     ///@}

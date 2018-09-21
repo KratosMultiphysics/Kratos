@@ -25,6 +25,7 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "custom_utilities/uniform_refine_utility.h"
 
 
 namespace Kratos {
@@ -233,6 +234,8 @@ public:
 
     unsigned int mEchoLevel;
     unsigned int mDivisionsAtSubscale;
+
+    UniformRefineUtility<2> mUniformRefinement; /// The utility to perform the refinement
 
     IndexNodeMapType mCoarseToRefinedNodesMap; /// Mapping from coarse to refined
     IndexNodeMapType mRefinedToCoarseNodesMap; /// Mapping from refined to coarse

@@ -22,7 +22,6 @@
 #include "geometries/point.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "utilities/sub_model_parts_list_utility.h"
-#include "custom_utilities/uniform_refine_utility.h"
 #include "custom_utilities/meshing_flags.h"
 
 namespace Kratos
@@ -37,6 +36,7 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
     , mrRefinedModelPart(rThisRefinedModelPart)
     , mrVisualizationModelPart(rThisVisualizationModelPart)
     , mParameters(ThisParameters)
+    , mUniformRefinement(mrRefinedModelPart, 2)
 {
     Parameters DefaultParameters = Parameters(R"(
     {
@@ -117,9 +117,9 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
 
     // Execute the refinement
     int divisions = mrRefinedModelPart.GetValue(SUBSCALE_INDEX) * mDivisionsAtSubscale;
-    auto uniform_refining = UniformRefineUtility<2>(mrRefinedModelPart, divisions);
-    uniform_refining.Refine(node_id, elem_id, cond_id);
-    uniform_refining.GetLastCreatedIds(node_id, elem_id, cond_id);
+    // auto uniform_refining = UniformRefineUtility<2>(mrRefinedModelPart, divisions);
+    mUniformRefinement.Refine(node_id, elem_id, cond_id);
+    mUniformRefinement.GetLastCreatedIds(node_id, elem_id, cond_id);
 
     // Update the visualization model part
     UpdateVisualizationAfterRefinement();
