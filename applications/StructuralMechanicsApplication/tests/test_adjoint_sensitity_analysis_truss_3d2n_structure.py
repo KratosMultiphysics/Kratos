@@ -27,20 +27,8 @@ class controlledExecutionScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
-def solve_linear_primal_problem():
-    with open("linear_truss_test_parameters.json",'r') as parameter_file:
-        ProjectParametersPrimal = Parameters( parameter_file.read())
-
-    # To avoid many prints
-    if (ProjectParametersPrimal["problem_data"]["echo_level"].GetInt() == 0):
-        Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-
-    model_primal = Model()
-    primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
-    primal_analysis.Run()
-
-def solve_nonlinear_primal_problem():
-    with open("nonlinear_truss_test_parameters.json",'r') as parameter_file:
+def solve_primal_problem(file_name):
+    with open(file_name,'r') as parameter_file:
         ProjectParametersPrimal = Parameters( parameter_file.read())
 
     # To avoid many prints
@@ -62,8 +50,7 @@ class TestAdjointSensitivityAnalysisLinearTrussStructure(KratosUnittest.TestCase
     @classmethod
     def setUpClass(cls):
         with controlledExecutionScope(_get_test_working_dir()):
-            solve_linear_primal_problem()
-            print("I am here")
+            solve_primal_problem("linear_truss_test_parameters.json")
 
     def test_local_stress_response(self):
         #Create the adjoint solver
@@ -80,7 +67,7 @@ class TestAdjointSensitivityAnalysisLinearTrussStructure(KratosUnittest.TestCase
     @classmethod
     def tearDownClass(cls):
         with controlledExecutionScope(_get_test_working_dir()):
-            kratos_utilities.DeleteFileIfExisting("Truss_structure.time")
+            kratos_utilities.DeleteFileIfExisting("linear_truss_structure.time")
             for file_name in os.listdir():
                 if file_name.endswith(".h5"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
@@ -93,7 +80,7 @@ class TestAdjointSensitivityAnalysisNonLinearTrussStructure(KratosUnittest.TestC
     @classmethod
     def setUpClass(cls):
         with controlledExecutionScope(_get_test_working_dir()):
-            solve_nonlinear_primal_problem()
+            solve_primal_problem("nonlinear_truss_test_parameters.json")
 
     def test_local_stress_response(self):
         #Create the adjoint solver
@@ -110,7 +97,7 @@ class TestAdjointSensitivityAnalysisNonLinearTrussStructure(KratosUnittest.TestC
     @classmethod
     def tearDownClass(cls):
         with controlledExecutionScope(_get_test_working_dir()):
-            kratos_utilities.DeleteFileIfExisting("Non_Linear_Truss.time")
+            kratos_utilities.DeleteFileIfExisting("nonlinear_truss_structure.time")
             for file_name in os.listdir():
                 if file_name.endswith(".h5"):
                     kratos_utilities.DeleteFileIfExisting(file_name)

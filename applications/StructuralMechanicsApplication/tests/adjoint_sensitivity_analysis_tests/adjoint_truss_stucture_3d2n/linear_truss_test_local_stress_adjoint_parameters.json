@@ -32,7 +32,7 @@
                 "stress_location"   : 1
             },
         "echo_level"                   : 0,
-        "problem_domain_sub_model_part_list" : ["Parts_TRUSS_1","Parts_TRUSS_2"],
+        "problem_domain_sub_model_part_list" : ["Parts_TRUSS"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad2D_BC_NEUMANN"],
         "computing_model_part_name" : "computing_domain",
         "rotation_dofs"                      : false,
@@ -110,7 +110,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"  : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
-            "gauss_points_check_variables" : ["CROSS_AREA_SENSITIVITY"],
+            "gauss_points_check_variables" : [],
             "input_file_name"  : "linear_truss_test_local_stress_results.json",
             "model_part_name"  : "Structure",
             "tolerance"            : 1e-4,
@@ -146,7 +146,7 @@
             "process_name"  : "JsonOutputProcess",
             "Parameters"    : {
                 "output_variables" : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY", "POINT_LOAD_SENSITIVITY"],
-                "gauss_points_output_variables" : ["CROSS_AREA_SENSITIVITY"],
+                "gauss_points_output_variables" : [],
                 "output_file_name" : "linear_truss_test_local_stress_results.json",
                 "model_part_name"  : "Structure",
                 "time_frequency"   : -2.0

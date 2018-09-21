@@ -5,38 +5,29 @@ End ModelPartData
 Begin Properties 0
 End Properties
 Begin Nodes
-    1   0.50000000     1.0000000000   0.0000000000
+    1   0.5000000000   1.0000000000   0.0000000000
     2   0.0000000000   0.0000000000   0.0000000000
     3   1.0000000000   0.0000000000   0.0000000000
 End Nodes
 
 
 Begin Elements TrussElement3D2N// GUI group identifier: TRUSSES
-        1          0          2          1 
-        2          0          1          3 
+        1          0          2          1
+        2          0          1          3
 End Elements
 
 Begin Conditions PointLoadCondition3D1N// GUI group identifier: BC_NEUMANN
     1 0 1
 End Conditions
 
-Begin SubModelPart Parts_TRUSS_1 // Group TRUSSES // Subtree Parts
+Begin SubModelPart Parts_TRUSS // Group TRUSSES // Subtree Parts
     Begin SubModelPartNodes
             1
             2
-    End SubModelPartNodes
-    Begin SubModelPartElements
-            1
-    End SubModelPartElements
-    Begin SubModelPartConditions
-    End SubModelPartConditions
-End SubModelPart
-Begin SubModelPart Parts_TRUSS_2 // Group TRUSSES // Subtree Parts
-    Begin SubModelPartNodes
-            1
             3
     End SubModelPartNodes
     Begin SubModelPartElements
+            1
             2
     End SubModelPartElements
     Begin SubModelPartConditions
