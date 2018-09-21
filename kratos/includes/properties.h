@@ -406,7 +406,8 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         mData.PrintData(rOStream);
-        rOStream << "This properties contains " << mTables.size() << " tables";
+        rOStream << "Property ID: " << this->Id() << std::endl;
+        rOStream << "This properties contains " << mTables.size() << " tables" << std::endl;
     }
 
 
