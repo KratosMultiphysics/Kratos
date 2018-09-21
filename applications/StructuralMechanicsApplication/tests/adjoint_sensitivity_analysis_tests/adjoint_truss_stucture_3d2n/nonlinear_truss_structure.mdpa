@@ -52,7 +52,7 @@ Begin SubModelPart DISPLACEMENT_BC_DIRICHLET_Z // Group BC_DIRICHLET // Subtree 
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart PointLoad2D_BC_NEUMANN // Group BC_NEUMANN // Subtree PointLoad2D
+Begin SubModelPart PointLoad3D_BC_NEUMANN // Group BC_NEUMANN // Subtree PointLoad2D
     Begin SubModelPartNodes
             1
     End SubModelPartNodes

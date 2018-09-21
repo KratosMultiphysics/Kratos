@@ -28,7 +28,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_TRUSS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad2D_BC_NEUMANN"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad3D_BC_NEUMANN"],
         "rotation_dofs"                      : false
     },
     "constraints_process_list" : [{
@@ -65,7 +65,7 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignVectorByDirectionToConditionProcess",
         "Parameters"    : {
-            "model_part_name" : "Structure.PointLoad2D_BC_NEUMANN",
+            "model_part_name" : "Structure.PointLoad3D_BC_NEUMANN",
             "variable_name"   : "POINT_LOAD",
             "modulus"         : 10.0,
             "direction"       : [0.0,-1,0.0],
