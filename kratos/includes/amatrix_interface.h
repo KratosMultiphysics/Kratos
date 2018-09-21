@@ -1,10 +1,10 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
@@ -48,7 +48,7 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     using base_type::size1;
     using base_type::size2;
     using base_type::operator();
-    
+
     using iterator = AMatrix::RandomAccessIterator<TDataType>;
     using const_iterator = AMatrix::RandomAccessIterator<const TDataType>;
 
@@ -112,6 +112,12 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     TDataType const& operator()(std::size_t i) const { return at(i); }
 
     friend bool operator==(Matrix const& First, Matrix const& Second) {
+
+        if( First.size1() != Second.size1() ||
+            First.size2() != Second.size2()) {
+            return false;
+        }
+
         for (std::size_t i = 0; i < First.size(); i++)
             if (First._data[i] != Second._data[i])
                 return false;
@@ -121,6 +127,12 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     template <typename TExpressionType, std::size_t TCategory>
     Matrix& operator+=(
         AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other) {
+        KRATOS_DEBUG_ERROR_IF(
+            this->expression().size1() != Other.expression().size1() || this->expression().size2() != Other.expression().size2())
+            << "Size mismatch in Matrix operator+=" << std::endl
+            << "LHS has size (" << this->expression().size1() << "," << this->expression().size2() <<"), RHS has size ("
+            << Other.expression().size1() << "," << Other.expression().size2() << ")." << std::endl;
+
         for (std::size_t i = 0; i < size1(); i++)
             for (std::size_t j = 0; j < size2(); j++)
                 at(i, j) += Other.expression()(i, j);
@@ -131,6 +143,12 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     template <typename TExpressionType>
     Matrix& operator+=(
         AMatrix::MatrixExpression<TExpressionType, AMatrix::row_major_access> const& Other) {
+        KRATOS_DEBUG_ERROR_IF(
+            this->expression().size1() != Other.expression().size1() || this->expression().size2() != Other.expression().size2())
+            << "Size mismatch in Matrix operator+=" << std::endl
+            << "LHS has size (" << this->expression().size1() << "," << this->expression().size2() <<"), RHS has size ("
+            << Other.expression().size1() << "," << Other.expression().size2() << ")." << std::endl;
+
         for (std::size_t i = 0; i < size(); i++)
             at(i) += Other.expression()[i];
 
@@ -140,6 +158,12 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     template <typename TExpressionType, std::size_t TCategory>
     Matrix& operator-=(
         AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other) {
+        KRATOS_DEBUG_ERROR_IF(
+            this->expression().size1() != Other.expression().size1() || this->expression().size2() != Other.expression().size2())
+            << "Size mismatch in Matrix operator-=" << std::endl
+            << "LHS has size (" << this->expression().size1() << "," << this->expression().size2() <<"), RHS has size ("
+            << Other.expression().size1() << "," << Other.expression().size2() << ")." << std::endl;
+
         for (std::size_t i = 0; i < size1(); i++)
             for (std::size_t j = 0; j < size2(); j++)
                 at(i, j) -= Other.expression()(i, j);
@@ -150,6 +174,12 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     template <typename TExpressionType>
     Matrix& operator-=(
         AMatrix::MatrixExpression<TExpressionType, AMatrix::row_major_access> const& Other) {
+        KRATOS_DEBUG_ERROR_IF(
+            this->expression().size1() != Other.expression().size1() || this->expression().size2() != Other.expression().size2())
+            << "Size mismatch in Matrix operator-=" << std::endl
+            << "LHS has size (" << this->expression().size1() << "," << this->expression().size2() <<"), RHS has size ("
+            << Other.expression().size1() << "," << Other.expression().size2() << ")." << std::endl;
+
         for (std::size_t i = 0; i < size(); i++)
             at(i) -= Other.expression()[i];
 
@@ -253,7 +283,7 @@ bool operator!=(Matrix<TDataType, TSize1, TSize2> const& First,
 
 /// output stream function
 ///  format for a vector : [size](value1, value2, ...., valueN)
-///  format for a matrix : [size1, size2](()()...()) 
+///  format for a matrix : [size1, size2](()()...())
 template <typename TExpressionType, std::size_t TCategory = AMatrix::unordered_access>
 inline std::ostream& operator<<(std::ostream& rOStream,
 	AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheMatrix) {
@@ -296,7 +326,7 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 }
 
 /// input stream function for matrix using the ublas style for backward compatibility
-///  format for a matrix : [size1, size2](()()...()) 
+///  format for a matrix : [size1, size2](()()...())
 ///  NOTE: it deosnot support white spaces, tab, etc.
 template <typename TDataType, std::size_t TSize1, std::size_t TSize2>
 inline std::istream& operator>>(std::istream& rIStream,
@@ -418,9 +448,67 @@ template <typename T> AMatrix::TransposeMatrix<T> trans(T& TheMatrix){ return AM
 
 template <typename TExpressionType> using vector_expression = AMatrix::MatrixExpression<TExpressionType,AMatrix::row_major_access>;
 
-using ZeroMatrix = AMatrix::ZeroMatrix<double>;
 
-using ZeroVector = AMatrix::ZeroMatrix<double>;
+template <typename TDataType>
+class KratosZeroMatrix
+    : public AMatrix::MatrixExpression<KratosZeroMatrix<TDataType>, AMatrix::row_major_access> {
+    std::size_t _size1;
+    std::size_t _size2;
+
+   public:
+    using data_type = TDataType;
+
+    KratosZeroMatrix() = delete;
+
+    KratosZeroMatrix(std::size_t Size) = delete;
+
+    KratosZeroMatrix(std::size_t Size1, std::size_t Size2)
+        : _size1(Size1), _size2(Size2) {}
+
+    inline TDataType operator()(std::size_t i, std::size_t j) const {
+        return TDataType();
+    }
+
+    inline TDataType operator[](std::size_t i) const { return TDataType(); }
+
+    inline std::size_t size1() const { return _size1; }
+    inline std::size_t size2() const { return _size2; }
+
+    inline std::size_t size() const { return _size1 * _size2; }
+};
+
+
+template <typename TDataType>
+class KratosZeroVector
+    : public AMatrix::MatrixExpression<KratosZeroVector<TDataType>, AMatrix::row_major_access> {
+    std::size_t _size1;
+
+   public:
+    using data_type = TDataType;
+
+    KratosZeroVector() = delete;
+
+    KratosZeroVector(std::size_t Size)
+        : _size1(Size) {}
+
+    KratosZeroVector(std::size_t Size1, std::size_t Size2) = delete;
+
+    inline TDataType operator()(std::size_t i, std::size_t j) const {
+        return TDataType();
+    }
+
+    inline TDataType operator[](std::size_t i) const { return TDataType(); }
+
+    inline std::size_t size1() const { return _size1; }
+    inline std::size_t size2() const { return 1; }
+
+    inline std::size_t size() const { return _size1; }
+};
+
+using ZeroMatrix = KratosZeroMatrix<double>;
+
+using ZeroVector = KratosZeroVector<double>;
+
 
 using IdentityMatrix = AMatrix::IdentityMatrix<double>;
 
@@ -429,6 +517,11 @@ template <typename TExpression1Type, typename TExpression2Type,
 AMatrix::MatrixProductExpression<TExpression1Type, TExpression2Type> prod(
     AMatrix::MatrixExpression<TExpression1Type, TCategory1> const& First,
     AMatrix::MatrixExpression<TExpression2Type, TCategory2> const& Second) {
+    KRATOS_DEBUG_ERROR_IF(First.expression().size2() != Second.expression().size1())
+        << "Size mismatch in AMatrix prod."  << std::endl
+        << "Argument sizes are (" << First.expression().size1() << "," << First.expression().size2() << ") and ("
+        << Second.expression().size1() << "," << Second.expression().size2() << ")." << std::endl;
+
     return AMatrix::MatrixProductExpression<TExpression1Type, TExpression2Type>(
         First.expression(), Second.expression());
 }
@@ -438,6 +531,12 @@ template <typename TExpression1Type, typename TExpression2Type,
 AMatrix::VectorOuterProductExpression<TExpression1Type, TExpression2Type> outer_prod(
     AMatrix::MatrixExpression<TExpression1Type, TCategory1> const& First,
     AMatrix::MatrixExpression<TExpression2Type, TCategory2> const& Second) {
+    KRATOS_DEBUG_ERROR_IF(First.expression().size() != Second.expression().size())
+        << "Size mismatch in AMatrix outer_prod."  << std::endl
+        << "Argument sizes are " << First.expression().size() << " and "
+        << Second.expression().size() << "." << std::endl
+        << "Both vectors should have the same size." << std::endl;
+
     return AMatrix::VectorOuterProductExpression<TExpression1Type, TExpression2Type>(
         First.expression(), Second.expression());
 }
@@ -447,6 +546,11 @@ template <typename TExpression1Type, typename TExpression2Type,
 typename TExpression1Type::data_type inner_prod(
     AMatrix::MatrixExpression<TExpression1Type, TCategory1> const& First,
     AMatrix::MatrixExpression<TExpression2Type, TCategory2> const& Second) {
+    KRATOS_DEBUG_ERROR_IF(First.expression().size() != Second.expression().size())
+        << "Size mismatch in AMatrix inner_prod."  << std::endl
+        << "Argument sizes are " << First.expression().size() << " and "
+        << Second.expression().size() << "." << std::endl
+        << "Both vectors should have the same size." << std::endl;
 
         using data_type = typename TExpression1Type::data_type;
         auto& the_expression1 = First.expression();
@@ -459,7 +563,7 @@ typename TExpression1Type::data_type inner_prod(
 
 }
 
-template <typename TExpressionType, std::size_t TCategory> 
+template <typename TExpressionType, std::size_t TCategory>
     typename TExpressionType::data_type norm_2(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
         using data_type = typename TExpressionType::data_type;
@@ -483,7 +587,7 @@ template <typename TExpressionType, std::size_t TCategory>
 		return AMatrix::MatrixColumn<TExpressionType>(TheExpression.expression(), ColumnIndex);
 	}
 
-template <typename TExpressionType, std::size_t TCategory> 
+template <typename TExpressionType, std::size_t TCategory>
     AMatrix::MatrixRow<const TExpressionType> row(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression, std::size_t RowIndex) {
     return AMatrix::MatrixRow<const TExpressionType>(TheExpression.expression(), RowIndex);
@@ -496,19 +600,19 @@ template <typename TExpressionType, std::size_t TCategory>
 		return AMatrix::MatrixRow<TExpressionType>(TheExpression.expression(), RowIndex);
 	}
 
-template <typename TExpressionType, std::size_t TCategory> 
+template <typename TExpressionType, std::size_t TCategory>
     AMatrix::SubVector<const TExpressionType> subrange(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression, std::size_t From, std::size_t To) {
     return AMatrix::SubVector<const TExpressionType>(TheExpression.expression(), From,To - From);
 }
 
-template <typename TExpressionType, std::size_t TCategory> 
+template <typename TExpressionType, std::size_t TCategory>
     AMatrix::SubVector<TExpressionType> subrange(
     AMatrix::MatrixExpression<TExpressionType, TCategory>& TheExpression, std::size_t From, std::size_t To) {
     return AMatrix::SubVector<TExpressionType>(TheExpression.expression(), From,To - From);
 }
 
-template <typename TExpressionType, std::size_t TCategory> 
+template <typename TExpressionType, std::size_t TCategory>
     typename TExpressionType::data_type norm_frobenius(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
         using data_type = typename TExpressionType::data_type;
@@ -609,7 +713,7 @@ template <typename TExpressionType, std::size_t TCategory>
 
 }  // namespace Kratos.
 
-#endif // KRATOS_AMATRIX_INTERFACE_H_INCLUDED  defined 
+#endif // KRATOS_AMATRIX_INTERFACE_H_INCLUDED  defined
 
 
 
