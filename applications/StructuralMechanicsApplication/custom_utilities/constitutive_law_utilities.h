@@ -199,7 +199,6 @@ class ConstitutiveLawUtilities
      * @brief Calculation of the Green-Lagrange strain vector
      * @param rCauchyTensor The right Cauchy tensor
      * @param rStrainVector The Green-Lagrange strain vector
-     * @todo Adapt for 2D dimension
      */
     static void CalculateGreenLagrangianStrain(
         const MatrixType& rCauchyTensor,
@@ -210,7 +209,6 @@ class ConstitutiveLawUtilities
      * @brief Calculation of the Almansi strain vector
      * @param rLeftCauchyTensor The left Cauchy tensor
      * @param rStrainVector The Almansi strain vector
-     * @todo Adapt for 2D dimension
      */
     static void CalculateAlmansiStrain(
         const MatrixType& rLeftCauchyTensor,
@@ -221,7 +219,6 @@ class ConstitutiveLawUtilities
      * @brief Calculation of the Hencky strain vector (true strain, natural strain, logarithmic strain)
      * @param rCauchyTensor The right Cauchy tensor
      * @param rStrainVector The Hencky strain vector
-     * @todo Adapt for 2D dimension
      */
     static void CalculateHenckyStrain(
         const MatrixType& rCauchyTensor,
@@ -232,7 +229,6 @@ class ConstitutiveLawUtilities
      * @brief Calculation of the Biot strain vector
      * @param rCauchyTensor The right Cauchy tensor
      * @param rStrainVector The Biot strain vector
-     * @todo Adapt for 2D dimension
      */
     static void CalculateBiotStrain(
         const MatrixType& rCauchyTensor,
