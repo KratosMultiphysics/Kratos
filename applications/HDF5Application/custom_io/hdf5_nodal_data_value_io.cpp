@@ -209,8 +209,11 @@ void NodalDataValueIO::ReadNodalResults(NodesContainerType& rNodes, Communicator
 
     // Read local data for each variable.
     for (const std::string& r_variable_name : mVariableNames)
-        RegisteredVariableLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
-                                 Variable<Vector<double>>, Variable<Matrix<double>>>(r_variable_name)
+        RegisteredVariableLookup<Variable<array_1d<double, 3>>,
+                                 Variable<double>,
+                                 Variable<int>,
+                                 Variable<Vector<double>>,
+                                 Variable<Matrix<double>>>(r_variable_name)
             .Execute<ReadNonHistoricalVariableFunctor>(
                 local_nodes, ghost_nodes, rComm, *mpFile, mPrefix, start_index, block_size);
 
