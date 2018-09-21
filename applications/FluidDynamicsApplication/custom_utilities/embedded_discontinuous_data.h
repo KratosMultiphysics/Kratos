@@ -42,6 +42,9 @@ typedef std::vector< Vector > InterfaceNormalsType;
 ///@name Public Members
 ///@{
 
+double SlipLength;
+double PenaltyCoefficient;
+
 NodalScalarData ElementalDistances;
 
 Matrix PositiveSideN;
@@ -90,6 +93,18 @@ void Initialize(
 }
 
 /**
+ * @brief Fills the boundary condition data fields
+ * This method needs to be called in cut elements. It fills the data structure fields related to the boundary
+ * condition imposition (slip length and penalty coefficient) by retrieving their value from the ProcessInfo.
+ * @param rProcessInfo 
+ */
+void InitializeBoundaryConditionData(const ProcessInfo& rProcessInfo)
+{
+    this->FillFromProcessInfo(SlipLength, SLIP_LENGTH, rProcessInfo);
+    this->FillFromProcessInfo(PenaltyCoefficient, PENALTY_COEFFICIENT, rProcessInfo);
+}
+
+/**
  * @brief Discontinous embedded formulation data container check
  * Simple discontinuous embedded formulation data container check. The base formulation data container is 
  * checked as well. Returns 0 if the check process succeeds.
@@ -101,6 +116,8 @@ static int Check(
     const Element& rElement,
     const ProcessInfo& rProcessInfo)
 {
+    KRATOS_CHECK_VARIABLE_KEY(SLIP_LENGTH);
+    KRATOS_CHECK_VARIABLE_KEY(PENALTY_COEFFICIENT);
     KRATOS_CHECK_VARIABLE_KEY(ELEMENTAL_DISTANCES);
 
     int out = TFluidData::Check(rElement,rProcessInfo);

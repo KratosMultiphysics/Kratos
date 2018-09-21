@@ -139,6 +139,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
         rRightHandSideVector -= aux_RHS;
 
         // Add the Nitsche Navier boundary condition implementation (Winter, 2018)
+        data.InitializeBoundaryConditionData(rCurrentProcessInfo);
         AddNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
         AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
         AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
@@ -884,7 +885,7 @@ double EmbeddedFluidElementDiscontinuous<TBaseElement>::ComputeNormalPenaltyCoef
     const double h = rData.ElementSize;
     const double avg_rho = rData.Density;
     const double eff_mu = rData.EffectiveViscosity;
-    const double penalty = 1.0/10.0; // TODO: SHOULD WE EXPORT THIS TO THE USER SIDE
+    const double penalty = rData.PenaltyCoefficient;
     const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*h + avg_rho*h*h/rData.DeltaTime)/(h*penalty);
 
     return cons_coef;
@@ -893,9 +894,8 @@ double EmbeddedFluidElementDiscontinuous<TBaseElement>::ComputeNormalPenaltyCoef
 template <class TBaseElement>
 std::pair<const double, const double> EmbeddedFluidElementDiscontinuous<TBaseElement>::ComputeTangentialPenaltyCoefficients(const EmbeddedDiscontinuousElementData& rData) const
 {
-    //TODO: THESE TWO VALUES MUST BE SET FROM THE USER-SIDE
-    const double penalty = 1.0/10.0;
-    const double slip_length = 1.0e+08;
+    const double slip_length = rData.SlipLength;;
+    const double penalty = rData.PenaltyCoefficient;
 
     const double h = rData.ElementSize;
     const double eff_mu = rData.EffectiveViscosity;
@@ -910,9 +910,8 @@ std::pair<const double, const double> EmbeddedFluidElementDiscontinuous<TBaseEle
 template <class TBaseElement>
 std::pair<const double, const double> EmbeddedFluidElementDiscontinuous<TBaseElement>::ComputeTangentialNitscheCoefficients(const EmbeddedDiscontinuousElementData& rData) const
 {
-    //TODO: THESE TWO VALUES MUST BE SET FROM THE USER-SIDE
-    const double penalty = 1.0/10.0;
-    const double slip_length = 1.0e+08;
+    const double slip_length = rData.SlipLength;;
+    const double penalty = rData.PenaltyCoefficient;
 
     const double h = rData.ElementSize;
     const double eff_mu = rData.EffectiveViscosity;
