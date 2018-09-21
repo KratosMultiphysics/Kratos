@@ -114,8 +114,8 @@ void RuleOfMixturesLaw::InitializeMaterial(
 {
     // We create the inner constitutive laws
     for (auto& factors : mCombinationFactors) {
-        Properties::Pointer p_prop = rMaterialProperties.GetSubProperty(factors.first);
         const IndexType id = factors.first;
+        Properties::Pointer p_prop = rMaterialProperties.GetSubProperty(id);
 
         ConstitutiveLaw::Pointer p_inner_law = (*p_prop)[CONSTITUTIVE_LAW]->Clone();
         p_inner_law->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
@@ -300,14 +300,23 @@ double& RuleOfMixturesLaw::CalculateValue(
     const Properties& material_properties  = rParameterValues.GetMaterialProperties();
 
     // We combine the value of each layer
-    double value = 0.0;
+    rValue = 0.0;
     for (auto& factors : mCombinationFactors) {
-        Properties::Pointer p_prop = material_properties.GetSubProperty(factors.first);
+        const IndexType id = factors.first;
+        Properties::Pointer p_prop = material_properties.GetSubProperty(id);
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[id];
         const double factor = factors.second;
+
+        rParameterValues.SetMaterialProperties(*p_prop);
+        double aux_value;
+        p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
+        rValue += factor * aux_value;
     }
 
     // Reset properties
     rParameterValues.SetMaterialProperties(material_properties);
+
+    return rValue;
 }
 
 /***********************************************************************************/
