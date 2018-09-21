@@ -310,11 +310,32 @@ public:
     }
 
     /**
+     * @brief This method gets the subproperty from the index corresponding to the property id
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The pointer to the subproperty of interest
+     * @warning Must be defined on derived class
+     */
+    virtual Properties::Pointer const& GetSubProperty(IndexType SubPropertyIndex) const
+    {
+        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+    }
+
+    /**
      * @brief This method returns the whole list of subproperties
      * @return The whole lis of subproperties
      * @warning Must be defined on derived class
      */
     virtual SubPropertiesListType& GetSubProperties()
+    {
+        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+    }
+
+    /**
+     * @brief This method returns the whole list of subproperties
+     * @return The whole lis of subproperties
+     * @warning Must be defined on derived class
+     */
+    virtual SubPropertiesListType const& GetSubProperties() const
     {
         KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
     }

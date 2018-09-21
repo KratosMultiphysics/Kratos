@@ -177,10 +177,29 @@ public:
     }
 
     /**
+     * @brief This method gets the subproperty from the index corresponding to the property id
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The pointer to the subproperty of interest
+     */
+    Properties::Pointer const& GetSubProperty(const IndexType SubPropertyIndex) const override
+    {
+        return (mSubPropetiesList.find(SubPropertyIndex))->second;
+    }
+
+    /**
      * @brief This method returns the whole list of subproperties
      * @return The whole lis of subproperties
      */
     SubPropertiesListType& GetSubProperties() override
+    {
+        return SubPropetiesList();
+    }
+
+    /**
+     * @brief This method returns the whole list of subproperties
+     * @return The whole lis of subproperties
+     */
+    SubPropertiesListType const& GetSubProperties() const override
     {
         return SubPropetiesList();
     }
