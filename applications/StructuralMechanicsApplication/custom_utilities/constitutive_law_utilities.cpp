@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz 
+//  Main authors:    Vicente Mataix Ferrandiz
 //                   Alejandro Cornejo
 //
 
@@ -28,7 +28,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(
     )
 {
     rI1 = rStressVector[0];
-    for (IndexType i = 1; i < Dimension; ++i) 
+    for (IndexType i = 1; i < Dimension; ++i)
         rI1 += rStressVector[i];
 }
 
@@ -73,7 +73,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateJ2Invariant(
     rDeviator = rStressVector;
     const double p_mean = I1 / static_cast<double>(Dimension);
 
-    for (IndexType i = 0; i < Dimension; ++i) 
+    for (IndexType i = 0; i < Dimension; ++i)
         rDeviator[i] -= p_mean;
 
     rJ2 = 0.0;
@@ -104,7 +104,7 @@ template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(array_1d<double, VoigtSize>& rFirstVector)
 {
     rFirstVector = ZeroVector(TVoigtSize);
-    for (IndexType i = 0; i < Dimension; ++i) 
+    for (IndexType i = 0; i < Dimension; ++i)
         rFirstVector[i] = 1.0;
 }
 
@@ -165,7 +165,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
     double sint3 = (-3.0 * std::sqrt(3.0) * J3) / (2.0 * J2 * std::sqrt(J2));
     if (sint3 < -0.95)
         sint3 = -1.0;
-    if (sint3 > 0.95)
+    else if (sint3 > 0.95)
         sint3 = 1.0;
     rLodeAngle = std::asin(sint3) / 3.0;
 }
@@ -179,36 +179,74 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStresses(
     const array_1d<double, VoigtSize>& rStressVector
     )
 {
-    double I1, I2, I3, phi, numerator, denominator, II1;
-    CalculateI1Invariant(rStressVector, I1);
-    CalculateI2Invariant(rStressVector, I2);
-    CalculateI3Invariant(rStressVector, I3);
-    II1 = I1 * I1;
+    double I1, I2, I3;
+    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils<double>::VectorToSymmetricTensor<array_1d<double, VoigtSize>, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
+    double norm = norm_frobenius(tensor);
+    if (norm < tolerance) norm = 1.0;
+    const array_1d<double, VoigtSize> norm_stress_vector = rStressVector/norm;
+    CalculateI1Invariant(norm_stress_vector, I1);
+    CalculateI2Invariant(norm_stress_vector, I2);
+    CalculateI3Invariant(norm_stress_vector, I3);
+    const double II1 = std::pow(I1, 2);
 
-    numerator = (2.0 * II1 - 9.0 * I2) * I1 + 27.0 * I3;
-    denominator = (II1 - 3.0 * I2);
+    const double R = (2.0 * II1 * I1 - 9.0 * I2 * I1 + 27.0 * I3)/54.0;
+    const double Q = (3.0 * I2 - II1)/9.0;
 
-    if (std::abs(denominator) > tolerance) {
-        phi = numerator / (2.0 * denominator * std::sqrt(denominator));
+    if (std::abs(Q) > tolerance) {
+        const double phi = std::acos(R / (std::sqrt(-std::pow(Q, 3))));
+        const double phi_3 = phi/3.0;
 
-        if (std::abs(phi) > 1.0) {
-            if (phi > 0.0)
-                phi = 1.0;
-            else
-                phi = -1.0;
-        }
-
-        const double acosphi = std::acos(phi);
-        phi = acosphi / 3.0;
-
-        const double aux1 = 2.0 / 3.0 * std::sqrt(II1 - 3.0 * I2);
+        const double aux1 = 2.0 * std::sqrt(-Q);
         const double aux2 = I1 / 3.0;
         const double deg_120 = 2.0/3.0 * Globals::Pi;
-        const double deg_240 = 2 * deg_120;
 
-        rPrincipalStressVector[0] = aux2 + aux1 * std::cos(phi);
-        rPrincipalStressVector[1] = aux2 + aux1 * std::cos(phi - deg_120);
-        rPrincipalStressVector[2] = aux2 + aux1 * std::cos(phi - deg_240);
+        for (IndexType i = 0; i < 3; ++i) {
+            rPrincipalStressVector[i] = norm * (aux2 + aux1 * std::cos(phi_3 + deg_120 * i));
+        }
+    } else {
+        for (IndexType i = 0; i < Dimension; ++i) {
+            rPrincipalStressVector[i] = rStressVector[i];
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano(
+    array_1d<double, Dimension>& rPrincipalStressVector,
+    const array_1d<double, VoigtSize>& rStressVector
+    )
+{
+    double a, b, c;
+    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils<double>::VectorToSymmetricTensor<array_1d<double, VoigtSize>, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
+    double norm = norm_frobenius(tensor);
+    if (norm < tolerance) norm = 1.0;
+    const array_1d<double, VoigtSize> norm_stress_vector = rStressVector/norm;
+    CalculateI1Invariant(norm_stress_vector, a);
+    CalculateI2Invariant(norm_stress_vector, b);
+    CalculateI3Invariant(norm_stress_vector, c);
+
+    const double p = b - std::pow(a, 2)/3.0;
+    const double q = 2.0 * std::pow(a, 3)/27.0 - (a * b)/3.0 + c;
+    const double discriminant = std::pow(q, 2) + 4.0/27.0 * std::pow(p, 3);
+
+    if (std::abs(p) > tolerance) {
+        if (discriminant > tolerance) { // This is bad news (complex numbers)
+            KRATOS_ERROR << "Complex conjugated solutions" << std::endl;
+        } else if (discriminant < - tolerance) {
+            const double aux = 2.0 * std::sqrt(-p/3.0);
+            const double base_sol = a / 3.0;
+            const double phi_3 = 1.0/3.0 * std::acos(-3.0*q/(p * 2.0) * std::sqrt(-3.0/p));
+            for (IndexType i = 0; i < 3; ++i) {
+                rPrincipalStressVector[i] = (base_sol + aux * std::cos(phi_3 - 2.0/3.0 * Globals::Pi * i)) * norm;
+            }
+        } else { // Equal to zero
+            rPrincipalStressVector[0] = 3.0 * q/p;
+            rPrincipalStressVector[1] = -3.0/2.0 * q/p;
+            rPrincipalStressVector[2] = rPrincipalStressVector[1];
+        }
     } else {
         for (IndexType i = 0; i < Dimension; ++i) {
             rPrincipalStressVector[i] = rStressVector[i];

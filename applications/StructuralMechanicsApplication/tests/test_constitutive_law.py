@@ -172,8 +172,10 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
 
             stress = cl_params.GetStressVector()
 
+            tolerance = 1.0e-4
             for j in range(cl.GetStrainSize()):
-                self.assertAlmostEqual(reference_stress[j], stress[j], 2)
+                if (abs(stress[j]) > tolerance):
+                    self.assertAlmostEqual((reference_stress[j] - stress[j])/stress[j], 0.0, msg=("Error checking solution " + str(stress[j]) + " different from " + str(reference_stress[j]) + " with tolerance of " + str(tolerance)), delta=tolerance)
 
     def test_Uniaxial_KirchhoffSaintVenant_3D(self):
         # Define a model
