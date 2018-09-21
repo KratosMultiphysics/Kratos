@@ -66,6 +66,9 @@
 #include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
+// Rules of mixtures
+#include "custom_constitutive/rule_of_mixtures_law.h"
+
 namespace Kratos
 {
 namespace Python
@@ -371,6 +374,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     class_< GenericSmallStrainViscoplasticity3D, typename GenericSmallStrainViscoplasticity3D::Pointer,  ConstitutiveLaw  >
     (m,"GenericSmallStrainViscoplasticity3D").def( init<>())
+    ;
+
+    class_< RuleOfMixturesLaw, typename RuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >
+    (m,"RuleOfMixturesLaw").def( init<>())
     ;
 }
 
