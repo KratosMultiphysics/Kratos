@@ -212,6 +212,9 @@ void ReadMaterialsUtility::CreateSubProperties(
             const int sub_property_id = sub_prop["properties_id"].GetInt();
             Properties::Pointer p_new_sub_prop = rModelPart.pGetProperties(sub_property_id, MeshId);
 
+            // Read the recursively subproperties
+            CreateSubProperties(rModelPart, MeshId, sub_prop, p_new_sub_prop);
+
             // We create the new sub property
             CreateProperty(sub_prop["Material"], p_new_sub_prop);
 
