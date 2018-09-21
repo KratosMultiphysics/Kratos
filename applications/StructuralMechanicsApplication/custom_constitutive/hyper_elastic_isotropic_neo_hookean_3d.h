@@ -40,7 +40,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class HyperElasticIsotropicNeoHookeanPlaneStrain2D
+ * @class HyperElasticIsotropicNeoHookean3D
  * @ingroup StructuralMechanicsApplication
  * @brief This law defines an hyperelastic material according to the NeoHookean formulation for 3D  cases
  * @details A neo-Hookean solid is a hyperelastic material model, similar to Hooke's law, that can be used for predicting the nonlinear stress-strain behavior of materials undergoing large deformations. The model was proposed by Ronald Rivlin in 1948. In contrast to linear elastic materials, the stress-strain curve of a neo-Hookean material is not linear. Instead, the relationship between applied stress and strain is initially linear, but at a certain point the stress-strain curve will plateau. The neo-Hookean model does not account for the dissipative release of energy as heat while straining the material and perfect elasticity is assumed at all stages of deformation. he neo-Hookean model is based on the statistical thermodynamics of cross-linked polymer chains and is usable for plastics and rubber-like substances.
