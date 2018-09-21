@@ -179,12 +179,20 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
     Vector& rStrainVector
     )
 {
-    rStrainVector[0] = 0.5 * ( rCauchyTensor( 0, 0 ) - 1.00 ); // xx
-    rStrainVector[1] = 0.5 * ( rCauchyTensor( 1, 1 ) - 1.00 ); // yy
-    rStrainVector[2] = 0.5 * ( rCauchyTensor( 2, 2 ) - 1.00 ); // zz
-    rStrainVector[3] = rCauchyTensor( 0, 1 ); // xy
-    rStrainVector[4] = rCauchyTensor( 1, 2 ); // yz
-    rStrainVector[5] = rCauchyTensor( 0, 2 ); // xz
+    // Identity matrix
+    MatrixType identity_matrix(Dimension, Dimension);
+    for (IndexType i = 0; i < Dimension; ++i) {
+        for (IndexType i = 0; i < Dimension; ++i) {
+            if (i == j) identity_matrix(i, j) = 1.0;
+            else identity_matrix(i, j) = 0.0;
+        }
+    }
+    
+    // Calculate E matrix
+    const BoundedMatrixType E_matrix = 0.5 * (rCauchyTensor - identity_matrix);
+
+    // Green-Lagrangian Strain Calculation
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
 }
 
 /***********************************************************************************/
@@ -196,17 +204,25 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
     Vector& rStrainVector
     )
 {
+    // Identity matrix
+    MatrixType identity_matrix(Dimension, Dimension);
+    for (IndexType i = 0; i < Dimension; ++i) {
+        for (IndexType i = 0; i < Dimension; ++i) {
+            if (i == j) identity_matrix(i, j) = 1.0;
+            else identity_matrix(i, j) = 0.0;
+        }
+    }
+
    // Calculating the inverse of the left Cauchy tensor
     MatrixType inverse_B_tensor ( Dimension, Dimension );
     double aux_det_b = 0;
     MathUtils<double>::InvertMatrix( rLeftCauchyTensor, inverse_B_tensor, aux_det_b);
+    
+    // Calculate E matrix
+    const BoundedMatrixType E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
 
-    rStrainVector[0] = 0.5 * ( 1.00 - inverse_B_tensor( 0, 0 ) );
-    rStrainVector[1] = 0.5 * ( 1.00 - inverse_B_tensor( 1, 1 ) );
-    rStrainVector[2] = 0.5 * ( 1.00 - inverse_B_tensor( 2, 2 ) );
-    rStrainVector[3] = - inverse_B_tensor( 0, 1 ); // xy
-    rStrainVector[4] = - inverse_B_tensor( 1, 2 ); // yz
-    rStrainVector[5] = - inverse_B_tensor( 0, 2 ); // xz
+    // Almansi Strain Calculation
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
 }
 
 /***********************************************************************************/
