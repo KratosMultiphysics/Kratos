@@ -173,8 +173,6 @@ public:
      */
     Properties::Pointer GetSubProperty(const IndexType SubPropertyIndex) override
     {
-        KRATOS_WATCH(*mSubPropetiesList[SubPropertyIndex])
-
         return mSubPropetiesList[SubPropertyIndex];
     }
 
