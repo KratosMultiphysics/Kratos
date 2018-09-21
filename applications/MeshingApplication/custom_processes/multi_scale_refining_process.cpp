@@ -141,6 +141,8 @@ void MultiScaleRefiningProcess::ExecuteCoarsening()
     mrRefinedModelPart.RemoveNodesFromAllLevels(TO_ERASE);
     mrRefinedModelPart.RemoveElementsFromAllLevels(TO_ERASE);
     mrRefinedModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+
+    FinalizeCoarsening();
 }
 
 
@@ -667,6 +669,19 @@ void MultiScaleRefiningProcess::FinalizeRefinement()
         auto node = nodes_begin + i;
         node->Set(NEW_ENTITY, false);
         node->Set(INTERFACE, false);
+    }
+}
+
+void MultiScaleRefiningProcess::FinalizeCoarsening()
+{
+    // Resetting the nodes flags
+    int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
+    ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
+
+    #pragma omp parallel for
+    for (int i = 0; i < nnodes; i++)
+    {
+        auto node = nodes_begin + i;
         node->Set(MeshingFlags::TO_COARSE, false);
     }
 

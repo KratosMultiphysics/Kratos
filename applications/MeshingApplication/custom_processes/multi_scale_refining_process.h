@@ -380,11 +380,17 @@ public:
     void IdentifyRefinedNodesToErase();
 
     /**
-     * @brief FinalizeRefinement reset the flags on the nodes and elements
+     * @brief FinalizeRefinement resets the flags on the nodes and elements
      * @detail NEW_ENTITY is set to false
      * @see CloneNodesToRefine
      */
     void FinalizeRefinement();
+
+    /**
+     * @brief FinalizeCoarsening resets the flags on the nodes, elements and conditions
+     * @detail MeshingFlags::TO_COARSE
+     */
+    void FinalizeCoarsening();
 
     /**
      * @brief IdentifyRefiningInterface
