@@ -182,7 +182,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
     // Identity matrix
     MatrixType identity_matrix(Dimension, Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-        for (IndexType i = 0; i < Dimension; ++i) {
+        for (IndexType j = 0; j < Dimension; ++j) {
             if (i == j) identity_matrix(i, j) = 1.0;
             else identity_matrix(i, j) = 0.0;
         }
@@ -207,7 +207,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
     // Identity matrix
     MatrixType identity_matrix(Dimension, Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-        for (IndexType i = 0; i < Dimension; ++i) {
+        for (IndexType j = 0; j < Dimension; ++j) {
             if (i == j) identity_matrix(i, j) = 1.0;
             else identity_matrix(i, j) = 0.0;
         }
