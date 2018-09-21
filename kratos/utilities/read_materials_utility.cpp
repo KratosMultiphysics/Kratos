@@ -91,7 +91,7 @@ void ReadMaterialsUtility::TrimComponentName(std::string& rLine){
 
 void ReadMaterialsUtility::CreateProperty(
     Parameters Data,
-    Properties::Pointer pNewProperty
+    Properties::Pointer& pNewProperty
     )
 {
     // Set the CONSTITUTIVE_LAW for the current pNewPropertyerties.
@@ -197,7 +197,7 @@ void ReadMaterialsUtility::CreateSubProperties(
     ModelPart& rModelPart,
     const IndexType MeshId,
     Parameters Data,
-    Properties::Pointer pNewProperty
+    Properties::Pointer& pNewProperty
     )
 {
     if (Data.Has("sub_properties")) {

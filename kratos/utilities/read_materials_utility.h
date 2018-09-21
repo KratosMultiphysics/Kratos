@@ -177,7 +177,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      */
     void CreateProperty(
         Parameters Data,
-        Properties::Pointer pNewProperty
+        Properties::Pointer& pNewProperty
         );
 
     /**
@@ -191,7 +191,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
         ModelPart& rModelPart,
         const IndexType MeshId,
         Parameters Data,
-        Properties::Pointer pNewProperty
+        Properties::Pointer& pNewProperty
         );
 
     /**
