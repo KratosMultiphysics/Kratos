@@ -45,6 +45,7 @@ class InterfaceSU2():
                 "number_of_zones"             : 1,
                 "gradient_method"             : "DISCRETE_ADJOINT",
                 "write_frequency_adjoint_run" : 1000,
+                "use_restart_in_adjoint_run"  : "NO",
                 "mesh_file"                   : "None",
                 "mesh_motion_file"            : "mesh_motion.dat",
                 "design_surface_tag"          : "None"
@@ -159,19 +160,21 @@ class InterfaceSU2():
     # --------------------------------------------------------------------------
     def ComputeGradient(self, response_id, update_mesh, design_number):
         direct_solution_frequency = self.project.config["WRT_SOL_FREQ"]
+        direct_restart_option = self.project.config["RESTART_SOL"]
+
         self.project.config["WRT_SOL_FREQ"] = self.interface_parameters["su2_related"]["write_frequency_adjoint_run"].GetInt()
+        self.project.config["RESTART_SOL"] = self.interface_parameters["su2_related"]["use_restart_in_adjoint_run"].GetString()
 
         if self.interface_parameters["echo_level"].GetInt()==2:
-            su2_gradient = self.project.df(response_id, update_mesh, design_number)[0]
+            su2_gradient = self.project.df(response_id, update_mesh, design_number)
         else:
             with suppress_stdout():
-                su2_gradient = self.project.df(response_id, update_mesh, design_number)[0]
+                su2_gradient = self.project.df(response_id, update_mesh, design_number)
 
-        kratos_gradient = {}
-        for su2_node_id in su2_gradient.keys():
-            kratos_gradient[self.node_id_su2_to_kratos[su2_node_id]] = su2_gradient[su2_node_id]
+        kratos_gradient = self.__TranslateGradientToKratosFormat(su2_gradient)
 
         self.project.config["WRT_SOL_FREQ"] = direct_solution_frequency
+        self.project.config["RESTART_SOL"] = direct_restart_option
 
         return kratos_gradient
 
@@ -678,5 +681,21 @@ class InterfaceSU2():
             self.new_file.write("\n")
         self.new_file.write("\tEnd SubModelPartConditions\n")
         self.new_file.write("End SubModelPart\n\n")
+
+    # --------------------------------------------------------------------------
+    def __TranslateGradientToKratosFormat(self, su2_gradient):
+        # Translate IDs
+        kratos_gradient = []
+        for response_itr in range(len(su2_gradient)):
+            kratos_gradient.append({})
+            for su2_node_id in su2_gradient[response_itr].keys():
+                kratos_gradient[response_itr][self.node_id_su2_to_kratos[su2_node_id]] = su2_gradient[response_itr][su2_node_id]
+
+        # Add zeros if gradient from SU2 has only two dimensions
+        if self.su2_mesh_data["NDIME"] == 2:
+            for response_itr in range(len(su2_gradient)):
+                kratos_gradient[response_itr].update({key: [value[0],value[1],0.0] for key, value in kratos_gradient[response_itr].items()})
+
+        return kratos_gradient
 
 # ==============================================================================

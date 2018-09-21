@@ -35,16 +35,25 @@ class CustomSU2Analyzer(AnalyzerBaseClass):
             previos_iteration = optimization_iteration-1
             interface_su2.WriteNodesAsSU2MeshMotionFile(current_design.GetNodes(),"DESIGNS/DSN_"+str(previos_iteration).zfill(3))
 
-        if communicator.isRequestingValueOf("drag"):
+        if communicator.isRequestingValueOf("drag") or communicator.isRequestingValueOf("lift"):
             update_mesh = True
-            [value] = interface_su2.ComputeValues(["DRAG"], update_mesh, optimization_iteration)
-            communicator.reportValue("drag", value)
+            [drag,lift] = interface_su2.ComputeValues(["DRAG","LIFT"], update_mesh, optimization_iteration)
+
+            if communicator.isRequestingValueOf("drag"):
+                communicator.reportValue("drag", drag)
+
+            if communicator.isRequestingValueOf("lift"):
+                communicator.reportValue("lift", lift)
 
         if communicator.isRequestingGradientOf("drag"):
             update_mesh = False
-            gradient = interface_su2.ComputeGradient(["DRAG"], update_mesh, optimization_iteration)
-            communicator.reportGradient("drag", gradient)
+            [drag_gradient] = interface_su2.ComputeGradient(["DRAG"], update_mesh, optimization_iteration)
+            communicator.reportGradient("drag", drag_gradient)
 
+        if communicator.isRequestingGradientOf("lift"):
+            update_mesh = False
+            [lift_gradient] = interface_su2.ComputeGradient(["LIFT"], update_mesh, optimization_iteration)
+            communicator.reportGradient("lift", lift_gradient)
 
 # =======================================================================================================
 # Perform optimization
@@ -54,5 +63,5 @@ optimization_model_part = ModelPart(parameters["optimization_settings"]["design_
 optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, parameters["optimization_settings"]["design_variables"]["domain_size"].GetInt())
 
 import optimizer_factory
-optimizer = optimizer_factory.CreateOptimizer(parameters, optimization_model_part, CustomSU2Analyzer())
+optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], optimization_model_part, CustomSU2Analyzer())
 optimizer.Optimize()

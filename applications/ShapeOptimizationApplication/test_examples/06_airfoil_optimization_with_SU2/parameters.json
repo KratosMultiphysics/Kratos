@@ -3,9 +3,16 @@
         "objectives" : [{
                 "identifier" : "drag",
                 "type"       : "minimization",
-                "use_kratos" : false
+                "use_kratos" : false,
+                "project_gradient_on_surface_normals" : false
         }],
-        "constraints" : [],
+        "constraints" : [{
+            "identifier" : "lift",
+            "type"       : ">",
+            "reference"  : "initial_value",
+            "use_kratos" : false,
+            "project_gradient_on_surface_normals" : false
+        }],
         "design_variables" : {
             "type"                               : "vertex_morphing",
             "optimization_model_part_name"       : "mesh_NACA0012_inv",
@@ -16,6 +23,9 @@
                 "filter_radius"              : 0.3,
                 "max_nodes_in_filter_radius" : 1000,
                 "matrix_free_filtering"      : false
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
             },
             "damping" : {
                 "perform_damping" : true,
@@ -28,34 +38,24 @@
                         "damping_radius"        : 0.2
                     }
                 ]
-            },
-            "mesh_motion" : {
-                "apply_ale_mesh_solver" : false
             }
         },
         "optimization_algorithm" : {
-            "name"                                 : "steepest_descent",
-            "max_iterations"                       : 300,
-            "relative_tolerance"                   : 1e-2,
-            "project_gradients_on_surface_normals" : true
-        },
-        "line_search" : {
-            "line_search_type"           : "manual_stepping",
-            "normalize_search_direction" : true,
-            "step_size"                  : 0.001
+            "name"                    : "trust_region",
+            "max_iterations"          : 100,
+            "max_step_length"         : 0.001
         },
         "output" : {
             "output_directory"        : "Optimization_Results",
             "design_history_filename" : "design_history",
             "response_log_filename"   : "response_log",
             "design_output_mode"      : "WriteDesignSurface",
-            "nodal_results"           : [ "OBJECTIVE_SENSITIVITY",
-                                          "MAPPED_OBJECTIVE_SENSITIVITY",
-                                          "CONTROL_POINT_UPDATE",
-                                          "CONTROL_POINT_CHANGE",
+            "nodal_results"           : [ "DF1DX",
+                                          "DF1DX_MAPPED",
+                                          "DC1DX",
+                                          "DC1DX_MAPPED",
                                           "SHAPE_UPDATE",
-                                          "SHAPE_CHANGE",
-                                          "NORMALIZED_SURFACE_NORMAL" ],
+                                          "SHAPE_CHANGE" ],
             "output_format" : {
                 "name"              : "gid",
                 "gid_configuration" : {
@@ -71,9 +71,10 @@
     },
     "su2_interface_settings" : {
         "su2_related": {
-            "config_file"        : "inv_NACA0012.cfg",
-            "number_of_cores"    : 14,
-            "gradient_method"    : "DISCRETE_ADJOINT",
+            "config_file"                : "inv_NACA0012.cfg",
+            "number_of_cores"            : 14,
+            "gradient_method"            : "DISCRETE_ADJOINT",
+            "use_restart_in_adjoint_run" : "YES",
             "mesh_file"          : "mesh_NACA0012_inv.su2",
             "mesh_motion_file"   : "mesh_motion.dat",
             "design_surface_tag" : "airfoil"
@@ -82,6 +83,6 @@
             "mdpa_file"      : "mesh_NACA0012_inv.mdpa",
             "write_elements" : false
         },
-        "echo_level" : 1
+        "echo_level" : 2
     }
 }
