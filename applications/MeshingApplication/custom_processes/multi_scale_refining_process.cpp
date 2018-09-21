@@ -438,9 +438,13 @@ void MultiScaleRefiningProcess::IdentifyParentNodesToErase()
             auto search = mCoarseToRefinedNodesMap.find(coarse_node->Id());
             if (search != mCoarseToRefinedNodesMap.end())
             {
-                coarse_node->Set(OLD_ENTITY, true);
-                mCoarseToRefinedNodesMap.erase(search);
-                mRefinedToCoarseNodesMap.erase(search->second->Id());
+                // We need to ensure the refined mesh does not has dependencies
+                if (search->second->IsNot(MeshingFlags::REFINED))
+                {
+                    coarse_node->Set(MeshingFlags::TO_COARSE, true);
+                    mCoarseToRefinedNodesMap.erase(search);
+                    mRefinedToCoarseNodesMap.erase(search->second->Id());
+                }
             }
         }
     }
@@ -460,14 +464,14 @@ void MultiScaleRefiningProcess::IdentifyElementsToErase()
     for (int i = 0; i < nelems_coarse; i++)
     {
         auto coarse_elem = coarse_elem_begin + i;
-        bool old_entity = false;
+        bool to_coarse = false;
         for (IndexType inode = 0; inode < element_nodes; inode++)
         {
-            if (coarse_elem->GetGeometry()[inode].Is(OLD_ENTITY))
-                old_entity = true;
+            if (coarse_elem->GetGeometry()[inode].Is(MeshingFlags::TO_COARSE))
+                to_coarse = true;
         }
-        if (old_entity)
-            coarse_elem->Set(OLD_ENTITY, true);
+        if (to_coarse)
+            coarse_elem->Set(MeshingFlags::TO_COARSE, true);
     }
 
     // Identify the refined elements to remove
@@ -478,7 +482,7 @@ void MultiScaleRefiningProcess::IdentifyElementsToErase()
     for (int i = 0; i < nelems_ref; i++)
     {
         auto refined_elem = ref_elem_begin + i;
-        if ((refined_elem->GetValue(FATHER_ELEMENT))->Is(OLD_ENTITY))
+        if ((refined_elem->GetValue(FATHER_ELEMENT))->Is(MeshingFlags::TO_COARSE))
             refined_elem->Set(TO_ERASE, true);
     }
 }
@@ -497,14 +501,14 @@ void MultiScaleRefiningProcess::IdentifyConditionsToErase()
     for (int i = 0; i < nconds_coarse; i++)
     {
         auto coarse_cond = coarse_cond_begin + i;
-        bool old_entity = false;
+        bool to_coarse = false;
         for (IndexType inode = 0; inode < condition_nodes; inode++)
         {
-            if (coarse_cond->GetGeometry()[inode].Is(OLD_ENTITY))
-                old_entity = true;
+            if (coarse_cond->GetGeometry()[inode].Is(MeshingFlags::TO_COARSE))
+                to_coarse = true;
         }
-        if (old_entity)
-            coarse_cond->Set(OLD_ENTITY, true);
+        if (to_coarse)
+            coarse_cond->Set(MeshingFlags::TO_COARSE, true);
     }
 
     // Identify the refined conditions to remove
@@ -515,7 +519,7 @@ void MultiScaleRefiningProcess::IdentifyConditionsToErase()
     for (int i = 0; i < nconds_ref; i++)
     {
         auto refined_cond = ref_cond_begin + i;
-        if ((refined_cond->GetValue(FATHER_CONDITION))->Is(OLD_ENTITY))
+        if ((refined_cond->GetValue(FATHER_CONDITION))->Is(MeshingFlags::TO_COARSE))
             refined_cond->Set(TO_ERASE, true);
     }
 }
@@ -653,28 +657,39 @@ void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, Ind
 
 void MultiScaleRefiningProcess::FinalizeRefinement()
 {
+    // Resetting the nodes flags
     int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
 
-    // Reseting the flag
     #pragma omp parallel for
     for (int i = 0; i < nnodes; i++)
     {
         auto node = nodes_begin + i;
         node->Set(NEW_ENTITY, false);
         node->Set(INTERFACE, false);
-        node->Set(OLD_ENTITY, false);
+        node->Set(MeshingFlags::TO_COARSE, false);
     }
 
+    // Resetting the elements flags
     int nelems = static_cast<int>(mrCoarseModelPart.Elements().size());
     ModelPart::ElementsContainerType::iterator elements_begin = mrCoarseModelPart.ElementsBegin();
 
-    // Reseting the flag
     #pragma omp parallel for
     for (int i = 0; i < nelems; i++)
     {
         auto elem = elements_begin + i;
-        elem->Set(OLD_ENTITY, false);
+        elem->Set(MeshingFlags::TO_COARSE, false);
+    }
+
+    // Resetting the conditions flags
+    int nconds = static_cast<int>(mrCoarseModelPart.Conditions().size());
+    ModelPart::ConditionsContainerType::iterator conditions_begin = mrCoarseModelPart.ConditionsBegin();
+
+    #pragma omp parallel for
+    for (int i = 0; i < nconds; i++)
+    {
+        auto cond = conditions_begin + i;
+        cond->Set(MeshingFlags::TO_COARSE, false);
     }
 }
 
@@ -682,7 +697,6 @@ void MultiScaleRefiningProcess::FinalizeRefinement()
 void MultiScaleRefiningProcess::IdentifyRefiningInterface(IndexType& rCondId)
 {
     ModelPart& coarse_interface = mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName);
-    ModelPart& refined_interface = mrRefinedModelPart.GetSubModelPart(mRefinedInterfaceName);
     Properties::Pointer property = mrCoarseModelPart.ElementsBegin()->pGetProperties();
     // 0. Reset the flags
     
@@ -783,7 +797,7 @@ void MultiScaleRefiningProcess::IdentifyRefiningInterface(IndexType& rCondId)
 //         if (!to_erase)
 //         {
 //             for (IndexType node = 0; node < condition_nodes; node++)
-//                 cond->GetGeometry()[node].Set(OLD_ENTITY, true);
+//                 cond->GetGeometry()[node].Set(MeshingFlags::TO_COARSE, true);
 //         }
 //     }
 
@@ -793,7 +807,7 @@ void MultiScaleRefiningProcess::IdentifyRefiningInterface(IndexType& rCondId)
 //      *  loop elements
 //      *      loop edges
 //      *          loop nodes
-//      *              if (all nodes are INTERFACE and are not OLD_ENTITY)
+//      *              if (all nodes are INTERFACE and are not MeshingFlags::TO_COARSE)
 //      *                  Create condition
 //      **/
 // }
