@@ -36,7 +36,7 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
     , mrRefinedModelPart(rThisRefinedModelPart)
     , mrVisualizationModelPart(rThisVisualizationModelPart)
     , mParameters(ThisParameters)
-    , mUniformRefinement(mrRefinedModelPart, 2)
+    , mUniformRefinement(mrRefinedModelPart)
 {
     Parameters DefaultParameters = Parameters(R"(
     {
@@ -117,8 +117,8 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
 
     // Execute the refinement
     int divisions = mrRefinedModelPart.GetValue(SUBSCALE_INDEX) * mDivisionsAtSubscale;
-    // auto uniform_refining = UniformRefineUtility<2>(mrRefinedModelPart, divisions);
-    mUniformRefinement.Refine(node_id, elem_id, cond_id);
+    mUniformRefinement.SetCustomIds(node_id, elem_id, cond_id);
+    mUniformRefinement.Refine(divisions);
     mUniformRefinement.GetLastCreatedIds(node_id, elem_id, cond_id);
 
     // Update the visualization model part

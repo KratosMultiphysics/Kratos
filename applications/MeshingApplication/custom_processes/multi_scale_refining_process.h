@@ -233,7 +233,7 @@ public:
     Parameters mParameters;
 
     unsigned int mEchoLevel;
-    unsigned int mDivisionsAtSubscale;
+    int mDivisionsAtSubscale;
 
     UniformRefineUtility<2> mUniformRefinement; /// The utility to perform the refinement
 

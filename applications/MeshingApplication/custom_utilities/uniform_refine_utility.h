@@ -106,7 +106,7 @@ public:
     ///@{
 
     /// Default constructor.
-    UniformRefineUtility(ModelPart& rModelPart, int RefinementLevel);
+    UniformRefineUtility(ModelPart& rModelPart);
 
     /// Destructor.
     virtual ~UniformRefineUtility();
@@ -124,15 +124,15 @@ public:
     /**
      * @brief Execute the refinement until the final refinement is reached
      */
-    void Refine();
+    void Refine(int& rFinalRefinementLevel);
 
     /**
-     * @brief Execute the refinement until the final refinement is reached
+     * @brief Set the custom ids which will be used to create new entities
      * @param rNodeId
      * @param rElemId
      * @param rCondId
      */
-    void Refine(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId);
+    void SetCustomIds(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId);
 
     /**
      * @brief Get the las id of the created nodes, elements and conditions
@@ -220,7 +220,6 @@ private:
     ///@{
 
     ModelPart& mrModelPart;             /// The model part to refine
-    int mFinalRefinementLevel;          /// The model part will be refined to this level
 
     IndexType mLastNodeId;           /// The node Id
     IndexType mLastElemId;           /// The element Id

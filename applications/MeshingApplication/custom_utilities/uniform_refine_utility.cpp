@@ -28,9 +28,8 @@ namespace Kratos
 {
 /// Default constructor
 template< unsigned int TDim>
-UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart, int RefinementLevel) :
-    mrModelPart(rModelPart),
-    mFinalRefinementLevel(RefinementLevel)
+UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart) :
+    mrModelPart(rModelPart)
 {
     // Initialize the member variables storing the Id
     mLastNodeId = 0;
@@ -97,13 +96,12 @@ template< unsigned int TDim>
 void UniformRefineUtility<TDim>::PrintData(std::ostream& rOStream) const {
     rOStream << "Uniform refine utility constructed with:\n";
     rOStream << "   Model part: " << mrModelPart.Info() << "\n";
-    rOStream << "   Final refinement level: " << mFinalRefinementLevel << "\n";
 }
 
 
 /// Execute the refinement until the final number of divisions level is reached
 template< unsigned int TDim>
-void UniformRefineUtility<TDim>::Refine()
+void UniformRefineUtility<TDim>::Refine(int& rFinalRefinementLevel)
 {
     if (mrModelPart.Nodes().size() == 0)
         KRATOS_WARNING("UniformrefineUtility") << "Attempting to refine an empty model part" << std::endl;
@@ -119,23 +117,21 @@ void UniformRefineUtility<TDim>::Refine()
             minimum_divisions_level = ielement->GetValue(NUMBER_OF_DIVISIONS);
     }
 
-    for (int divisions = minimum_divisions_level; divisions < mFinalRefinementLevel; divisions++)
+    for (int divisions = minimum_divisions_level; divisions < rFinalRefinementLevel; divisions++)
     {
         ExecuteDivision(divisions);
     }
 }
 
 
-/// Execute the refinement until the final number of divisions is reached
+/// Set the custom ids which will be used to create new entities
 template<unsigned int TDim>
-void UniformRefineUtility<TDim>::Refine(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId)
+void UniformRefineUtility<TDim>::SetCustomIds(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId)
 {
     // Set the id
     mLastNodeId = rNodeId;
     mLastElemId = rElemId;
     mLastCondId = rCondId;
-
-    Refine();
 }
 
 

@@ -128,8 +128,8 @@ namespace Kratos
 
             // Execute the utility
             int refinement_level = 2;
-            UniformRefineUtility<2> uniform_refine_utility(this_model_part, refinement_level);
-            uniform_refine_utility.Refine();
+            UniformRefineUtility<2> uniform_refine_utility(this_model_part);
+            uniform_refine_utility.Refine(refinement_level);
 
             // Check the number of entities in the main model part
             unsigned int final_nodes = (std::pow(2,refinement_level)+1) * ((0.5*initial_nodes[0]-1)*std::pow(2,refinement_level)+1);
@@ -237,8 +237,8 @@ namespace Kratos
 
             // Execute the utility
             int refinement_level = 3;
-            UniformRefineUtility<2> uniform_refine_utility(this_model_part, refinement_level);
-            uniform_refine_utility.Refine();
+            UniformRefineUtility<2> uniform_refine_utility(this_model_part);
+            uniform_refine_utility.Refine(refinement_level);
 
             // Check the number of entities in the main model part
             unsigned int final_nodes = (std::pow(2,refinement_level)+1) * ((0.5*initial_nodes[0]-1)*std::pow(2,refinement_level)+1);
