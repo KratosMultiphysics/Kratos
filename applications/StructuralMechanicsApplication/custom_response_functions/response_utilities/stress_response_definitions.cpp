@@ -27,70 +27,68 @@ namespace StressResponseDefinitions
 {
     TracedStressType ConvertStringToTracedStressType(const std::string& Str)
     {
-        if(Str == "FX")
-            return TracedStressType::FX;
-        else if(Str == "FY")
-            return TracedStressType::FY;
-        else if(Str == "FZ")
-            return TracedStressType::FZ;
-        else if(Str == "MX")
-            return TracedStressType::MX;
-        else if(Str == "MY")
-            return TracedStressType::MY;
-        else if(Str == "MZ")
-            return TracedStressType::MZ;
-        else if(Str == "FXX")
-            return TracedStressType::FXX;
-        else if(Str == "FXY")
-            return TracedStressType::FXY;
-        else if(Str == "FXZ")
-            return TracedStressType::FXZ;
-        else if(Str == "FYX")
-            return TracedStressType::FYX;
-        else if(Str == "FYY")
-            return TracedStressType::FYY;
-        else if(Str == "FYZ")
-            return TracedStressType::FYZ;
-        else if(Str == "FZX")
-            return TracedStressType::FZX;
-        else if(Str == "FZY")
-            return TracedStressType::FZY;
-        else if(Str == "FZZ")
-            return TracedStressType::FZZ;
-        else if(Str == "MXX")
-            return TracedStressType::MXX;
-        else if(Str == "MXY")
-            return TracedStressType::MXY;
-        else if(Str == "MXZ")
-            return TracedStressType::MXZ;
-        else if(Str == "MYX")
-            return TracedStressType::MYX;
-        else if(Str == "MYY")
-            return TracedStressType::MYY;
-        else if(Str == "MYZ")
-            return TracedStressType::MYZ;
-        else if(Str == "MZX")
-            return TracedStressType::MZX;
-        else if(Str == "MZY")
-            return TracedStressType::MZY;
-        else if(Str == "MZZ")
-            return TracedStressType::MZZ;
-        else if(Str == "PK2")
-            return TracedStressType::PK2;
-        else
-            KRATOS_ERROR << "Chosen stress type \n" <<Str<<"\" is not available!" << std::endl;
+        const std::map<std::string, TracedStressType> traced_stress_type_map {
+            { "FX",  TracedStressType::FX },
+            { "FY",  TracedStressType::FY },
+            { "FZ",  TracedStressType::FZ },
+            { "MX",  TracedStressType::MX },
+            { "MY",  TracedStressType::MY },
+            { "MZ",  TracedStressType::MZ },
+            { "FXX", TracedStressType::FXX },
+            { "FXY", TracedStressType::FXY },
+            { "FXZ", TracedStressType::FXZ },
+            { "FYX", TracedStressType::FYX },
+            { "FYY", TracedStressType::FYY },
+            { "FYZ", TracedStressType::FYZ },
+            { "FZX", TracedStressType::FZX },
+            { "FZY", TracedStressType::FZY },
+            { "FZZ", TracedStressType::FZZ },
+            { "MXX", TracedStressType::MXX },
+            { "MXY", TracedStressType::MXY },
+            { "MXZ", TracedStressType::MXZ },
+            { "MYX", TracedStressType::MYX },
+            { "MYY", TracedStressType::MYY },
+            { "MYZ", TracedStressType::MYZ },
+            { "MZX", TracedStressType::MZX },
+            { "MZY", TracedStressType::MZY },
+            { "MZZ", TracedStressType::MZZ },
+            { "PK2", TracedStressType::PK2 },
+        };
+
+        auto stress_type_it = traced_stress_type_map.find(Str);
+        if (stress_type_it == traced_stress_type_map.end())
+        {
+            std::stringstream available_types;
+            for(auto& it : traced_stress_type_map)
+                available_types << it.first << ",\n";
+
+            KRATOS_ERROR << "Chosen stress type '" <<Str<<"' is not available!" <<
+                " Available types are: \n" << available_types.str() << std::endl;
+        }
+
+        return stress_type_it->second;
     }
 
     StressTreatment ConvertStringToStressTreatment(const std::string& Str)
     {
-        if(Str == "mean")
-            return StressTreatment::Mean;
-        else if(Str == "node")
-            return StressTreatment::Node;
-        else if(Str == "GP")
-            return StressTreatment::GaussPoint;
-        else
-            KRATOS_ERROR << "Chosen stress treatment \n" <<Str<<"\" is not available!" << std::endl;
+        const std::map<std::string, StressTreatment> stress_treatment_map {
+            { "mean", StressTreatment::Mean },
+            { "node", StressTreatment::Node },
+            { "GP", StressTreatment::GaussPoint }
+        };
+
+        auto stress_treatment_it = stress_treatment_map.find(Str);
+        if (stress_treatment_it == stress_treatment_map.end())
+        {
+            std::stringstream available_types;
+            for(auto& it : stress_treatment_map)
+                available_types << it.first << ",\n";
+
+            KRATOS_ERROR << "Chosen stress treatment '" <<Str<<"' is not available!" <<
+                " Available types are: \n" << available_types.str() << std::endl;
+        }
+
+        return stress_treatment_it->second;
     }
 
 }  // namespace StressResponseDefinitions.
