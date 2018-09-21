@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "KratosMultiphysics.StructuralMechanicsApplication.TrussConstitutiveLaw"
+                "name" : "TrussConstitutiveLaw"
             },
             "Variables"        : {
                 "DENSITY"             : 7850.0,
