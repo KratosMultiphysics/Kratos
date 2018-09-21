@@ -181,6 +181,20 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
         );
 
     /**
+     * @brief This method creates a list of subproperties and it assigns to the father property from configuration parameters
+     * @param rModelPart The currently computed model part
+     * @param MeshId The mesh id (0 by default, keep it for retrocompatibility)
+     * @param Data The parameters containing all the configurations of the materials
+     * @param pNewProperty The pointer to the new property created
+     */
+    void CreateSubProperties(
+        ModelPart& rModelPart,
+        const IndexType MeshId,
+        Parameters Data,
+        Properties::Pointer pNewProperty
+        );
+
+    /**
      * @brief This method assigns the properties to the model parts
      * @param Data The parameters containing all the configurations of the materials
      */
