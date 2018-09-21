@@ -19,5 +19,6 @@
 
 namespace Kratos
 {
-KRATOS_CREATE_LOCAL_FLAG( MeshingFlags, REFINED, 0 );
+KRATOS_CREATE_LOCAL_FLAG( MeshingFlags, REFINED,    0 );
+KRATOS_CREATE_LOCAL_FLAG( MeshingFlags, TO_COARSE , 1 );
 }  // namespace Kratos

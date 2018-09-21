@@ -60,6 +60,7 @@ public:
 
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG( REFINED );
+    KRATOS_DEFINE_LOCAL_FLAG( TO_COARSE );
 
     ///@}
     ///@name Life Cycle
