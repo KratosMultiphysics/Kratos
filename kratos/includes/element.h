@@ -223,7 +223,6 @@ public:
 
     /**
      * @brief It creates a new element pointer
-     * @todo This implementation is pure virtual
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -240,7 +239,6 @@ public:
 
     /**
      * @brief It creates a new element pointer
-     * @todo This implementation is pure virtual
      * @param NewId the ID of the new element
      * @param pGeom the geometry to be employed
      * @param pProperties the properties assigned to the new element
@@ -257,7 +255,7 @@ public:
     }
 
     /**
-     * creates a new element pointer and clones the previous element data
+     * @brief It creates a new element pointer and clones the previous element data
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -266,11 +264,11 @@ public:
     virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
     {
         KRATOS_TRY
-        KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl; 
-        Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties()); 
+        KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl;
+        Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
         p_new_elem->SetData(this->GetData());
-        p_new_elem->Set(Flags(*this)); 
-        return p_new_elem; 
+        p_new_elem->Set(Flags(*this));
+        return p_new_elem;
         KRATOS_CATCH("");
     }
 
