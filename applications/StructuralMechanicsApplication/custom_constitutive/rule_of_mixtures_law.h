@@ -125,19 +125,13 @@ public:
      * @brief Dimension of the law
      * @details This is not used, so 0 is returned
      */
-    SizeType WorkingSpaceDimension() override
-    {
-        return 0;
-    };
+    SizeType WorkingSpaceDimension() override;
 
     /**
      * @brief Voigt tensor size
      * @details This is not used, so 0 is returned
      */
-    SizeType GetStrainSize() override
-    {
-        return 0;
-    };
+    SizeType GetStrainSize() override;
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (boolean)

@@ -106,6 +106,54 @@ RuleOfMixturesLaw::~RuleOfMixturesLaw()
 /***********************************************************************************/
 /***********************************************************************************/
 
+std::size_t RuleOfMixturesLaw::WorkingSpaceDimension()
+{
+    SizeType counter = 0;
+    SizeType dimension = 0;
+    // We perform the check in each layer
+    for (auto& factors : mCombinationFactors) {
+        const IndexType id = factors.first;
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[id];
+
+        if (counter == 0) {
+            dimension = p_law->WorkingSpaceDimension();
+        } else {
+            KRATOS_ERROR_IF_NOT(dimension == p_law->WorkingSpaceDimension()) << "Combinig different size laws" << std::endl;
+        }
+
+        ++counter;
+    }
+
+    return dimension;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::size_t RuleOfMixturesLaw::GetStrainSize()
+{
+    SizeType counter = 0;
+    SizeType strain_size = 0;
+    // We perform the check in each layer
+    for (auto& factors : mCombinationFactors) {
+        const IndexType id = factors.first;
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[id];
+
+        if (counter == 0) {
+            strain_size = p_law->GetStrainSize();
+        } else {
+            KRATOS_ERROR_IF_NOT(strain_size == p_law->GetStrainSize()) << "Combinig different size laws" << std::endl;
+        }
+
+        ++counter;
+    }
+
+    return strain_size;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool RuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
 {
     // At least one layer should have the value
@@ -1016,11 +1064,11 @@ void RuleOfMixturesLaw::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameter
 {
     CalculateMaterialResponsePK2(rValues);
 
-    Vector& stress_vector                = rValues.GetStressVector();
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
-    const double determinant_f          = rValues.GetDeterminantF();
+    Vector& r_stress_vector              = rValues.GetStressVector();
+    const Matrix& r_deformation_gradient_f = rValues.GetDeformationGradientF();
+    const double determinant_f           = rValues.GetDeterminantF();
 
-    TransformStresses(stress_vector, deformation_gradient_f, determinant_f, StressMeasure_PK2, StressMeasure_PK1);
+    TransformStresses(r_stress_vector, r_deformation_gradient_f, determinant_f, StressMeasure_PK2, StressMeasure_PK1);
 }
 
 /***********************************************************************************/
@@ -1033,44 +1081,47 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
     // Get Values to compute the constitutive law:
     Flags& r_flags=rValues.GetOptions();
 
-    const SizeType dimension = WorkingSpaceDimension();
-
-    const Properties& material_properties  = rValues.GetMaterialProperties();
-    Vector& strain_vector                  = rValues.GetStrainVector();
-
-    // The material properties
-    const double young_modulus = material_properties[YOUNG_MODULUS];
-    const double poisson_coefficient = material_properties[POISSON_RATIO];
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // The deformation gradient
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
     const double determinant_f = rValues.GetDeterminantF();
     KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
 
-    // The LAME parameters
-    const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
-    const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
-
-    // We compute the right Cauchy-Green tensor (C):
-    const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
-
-    // Inverse of the right Cauchy-Green tensor (C):
-    double aux_det;
-    Matrix inverse_C_tensor(dimension, dimension);
-    MathUtils<double>::InvertMatrix( C_tensor, inverse_C_tensor, aux_det);
-
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-//         CalculateCauchyGreenStrain(rValues, strain_vector);
+        Vector& r_strain_vector = rValues.GetStrainVector();
+//         CalculateCauchyGreenStrain(rValues, r_strain_vector);
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
-        Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-//         CalculateConstitutiveMatrixPK2( constitutive_matrix, inverse_C_tensor, determinant_f, lame_lambda, lame_mu );
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        for (auto& factors : mCombinationFactors) {
+            const IndexType id = factors.first;
+            Properties::Pointer p_prop = r_material_properties.GetSubProperty(id);
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[id];
+            const double factor = factors.second;
+
+            rValues.SetMaterialProperties(*p_prop);
+            Matrix aux_value;
+            p_law->CalculateValue(rValues, CONSTITUTIVE_MATRIX_PK2, aux_value);
+            r_constitutive_matrix += factor * aux_value;
+        }
+        rValues.SetMaterialProperties(r_material_properties);
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-        Vector& stress_vector = rValues.GetStressVector();
-//         CalculatePK2Stress( inverse_C_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
+        Vector& r_stress_vector = rValues.GetStressVector();
+        for (auto& factors : mCombinationFactors) {
+            const IndexType id = factors.first;
+            Properties::Pointer p_prop = r_material_properties.GetSubProperty(id);
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[id];
+            const double factor = factors.second;
+
+            rValues.SetMaterialProperties(*p_prop);
+            Vector aux_value;
+            p_law->CalculateValue(rValues, PK2_STRESS_VECTOR, aux_value);
+            r_stress_vector += factor * aux_value;
+        }
+        rValues.SetMaterialProperties(r_material_properties);
     }
 
     KRATOS_CATCH("");
@@ -1084,37 +1135,47 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
     // Get Values to compute the constitutive law:
     Flags& r_flags=rValues.GetOptions();
 
-    const Properties& material_properties  = rValues.GetMaterialProperties();
-    Vector& strain_vector                  = rValues.GetStrainVector();
-    Vector& stress_vector                  = rValues.GetStressVector();
-
-    // The material properties
-    const double young_modulus = material_properties[YOUNG_MODULUS];
-    const double poisson_coefficient = material_properties[POISSON_RATIO];
+    const Properties& r_material_properties  = rValues.GetMaterialProperties();
 
     // The deformation gradient
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
     const double determinant_f = rValues.GetDeterminantF();
     KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
 
-    // The LAME parameters
-    const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
-    const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
-
-    // We compute the left Cauchy-Green tensor (B):
-    const Matrix B_tensor = prod(deformation_gradient_f, trans( deformation_gradient_f));
-
     if(r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-//         CalculateAlmansiStrain(rValues, strain_vector);
+        Vector& r_strain_vector = rValues.GetStrainVector();
+//         CalculateAlmansiStrain(rValues, r_strain_vector);
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-        Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-//         CalculateConstitutiveMatrixKirchhoff( constitutive_matrix, determinant_f, lame_lambda, lame_mu );
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        for (auto& factors : mCombinationFactors) {
+            const IndexType id = factors.first;
+            Properties::Pointer p_prop = r_material_properties.GetSubProperty(id);
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[id];
+            const double factor = factors.second;
+
+            rValues.SetMaterialProperties(*p_prop);
+            Matrix aux_value;
+            p_law->CalculateValue(rValues, CONSTITUTIVE_MATRIX_KIRCHHOFF, aux_value);
+            r_constitutive_matrix += factor * aux_value;
+        }
+        rValues.SetMaterialProperties(r_material_properties);
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-//         CalculateKirchhoffStress( B_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
+        Vector& r_stress_vector = rValues.GetStressVector();
+        for (auto& factors : mCombinationFactors) {
+            const IndexType id = factors.first;
+            Properties::Pointer p_prop = r_material_properties.GetSubProperty(id);
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[id];
+            const double factor = factors.second;
+
+            rValues.SetMaterialProperties(*p_prop);
+            Vector aux_value;
+            p_law->CalculateValue(rValues, KIRCHHOFF_STRESS_VECTOR, aux_value);
+            r_stress_vector += factor * aux_value;
+        }
+        rValues.SetMaterialProperties(r_material_properties);
     }
 }
 
@@ -1125,13 +1186,13 @@ void RuleOfMixturesLaw::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parame
 {
     CalculateMaterialResponseKirchhoff(rValues);
 
-    Vector& stress_vector       = rValues.GetStressVector();
-    Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-    const double determinant_f = rValues.GetDeterminantF();
+    Vector& r_stress_vector       = rValues.GetStressVector();
+    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+    const double determinant_f    = rValues.GetDeterminantF();
 
     // Set to Cauchy Stress:
-    stress_vector       /= determinant_f;
-    constitutive_matrix /= determinant_f;
+    r_stress_vector       /= determinant_f;
+    r_constitutive_matrix /= determinant_f;
 }
 
 /***********************************************************************************/
