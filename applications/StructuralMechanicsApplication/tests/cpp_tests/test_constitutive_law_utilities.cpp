@@ -96,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesHenckyAndBiot, KratosStructura
 
     KRATOS_CHECK_LESS_EQUAL((0.0454445 - strain_vector[0])/strain_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-0.0023557 - strain_vector[1])/strain_vector[1], tolerance);
-    KRATOS_CHECK_LESS_EQUAL((0.0 - strain_vector[2])/strain_vector[2], tolerance);
+    KRATOS_CHECK_LESS_EQUAL(strain_vector[2], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-0.0956005 - strain_vector[3])/strain_vector[3], tolerance);
 
     // Compute Biot
@@ -107,7 +107,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesHenckyAndBiot, KratosStructura
 
     KRATOS_CHECK_LESS_EQUAL((0.0476699 - strain_vector[0])/strain_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-0.00119458 - strain_vector[1])/strain_vector[1], tolerance);
-    KRATOS_CHECK_LESS_EQUAL((0.0 - strain_vector[2])/strain_vector[2], tolerance);
+    KRATOS_CHECK_LESS_EQUAL(strain_vector[2], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-0.097729 - strain_vector[3])/strain_vector[3], tolerance);
 }
 } // namespace Testing
