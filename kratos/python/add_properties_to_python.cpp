@@ -35,76 +35,104 @@ namespace Python
 {
 using namespace pybind11;
 
-typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+typedef Node<3> NodeType;
+typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
 typedef ConstitutiveLaw ConstitutiveLawBaseType;
-
+typedef std::size_t IndexType;
+typedef std::unordered_map<IndexType, Properties::Pointer> SubPropertiesListType;
 
 template< class TContainerType, class TVariableType >
-bool HasHelperFunction_Element(TContainerType& el, const TVariableType& rVar)
+bool HasHelperFunction_Element(TContainerType& rProperties, const TVariableType& rVar)
 {
-    return el.Has(rVar);
+    return rProperties.Has(rVar);
 }
 
 
-template< class TContainerType, class TVariableType > void SetValueHelperFunction1(
-    TContainerType& el,
+template< class TContainerType, class TVariableType >
+void SetValueHelperFunction1(
+    TContainerType& rProperties,
     const TVariableType& rVar,
     const typename TVariableType::Type& Data)
 {
-    el.SetValue(rVar,Data);
+    rProperties.SetValue(rVar,Data);
+}
+
+SubPropertiesListType& GetSubProperties1(Properties& rProperties)
+{
+    return rProperties.GetSubProperties();
+}
+
+SubPropertiesListType const& GetSubProperties2(const Properties& rProperties)
+{
+    return rProperties.GetSubProperties();
+}
+
+Properties::Pointer GetSubProperty1(
+    Properties& rProperties,
+    IndexType Index
+    )
+{
+    return rProperties.GetSubProperty(Index);
+}
+
+Properties::Pointer GetSubProperty2(
+    const Properties& rProperties,
+    IndexType Index
+    )
+{
+    return rProperties.GetSubProperty(Index);
 }
 
 void SetArrayValue(
-    Properties& el,
+    Properties& rProperties,
     const Variable<array_1d<double,3>>& rVar,
-    const std::vector<double> Data)
+    const std::vector<double>& rData)
 {
-    if(Data.size() != 3)
-        KRATOS_ERROR << "attempting to construct an array<double,3> by passing a list with wrong size. Input size is " << Data.size() << std::endl;
-    
+    if(rData.size() != 3)
+        KRATOS_ERROR << "Attempting to construct an array<double,3> by passing a list with wrong size. Input size is " << rData.size() << std::endl;
+
     array_1d<double,3> tmp;
-    for(unsigned int i=0;i<3; ++i)
-        tmp[i] = Data[i];
-    
-    el.SetValue(rVar,tmp);
+    for(IndexType i=0;i<3; ++i)
+        tmp[i] = rData[i];
+
+    rProperties.SetValue(rVar,tmp);
 }
 
 void SetVectorValue(
-    Properties& el,
+    Properties& rProperties,
     const Variable<Vector>& rVar,
-    const std::vector<double> Data)
+    const std::vector<double>& rData)
 {
-    Vector tmp(Data.size());
-    for(unsigned int i=0;i<tmp.size(); ++i)
-        tmp[i] = Data[i];
-    
-    el.SetValue(rVar,tmp);
+    Vector tmp(rData.size());
+    for(IndexType i=0;i<tmp.size(); ++i)
+        tmp[i] = rData[i];
+
+    rProperties.SetValue(rVar,tmp);
 }
 
 template< class TContainerType, class TVariableType >
-typename TVariableType::Type GetValueHelperFunction1( TContainerType& el,
+typename TVariableType::Type GetValueHelperFunction1( TContainerType& rContainer,
         const TVariableType& rVar )
 {
-    return el.GetValue(rVar);
+    return rContainer.GetValue(rVar);
 }
 
-
-
-template< class TContainerType, class XVariableType, class YVariableType> void SetTableHelperFunction1(
-    TContainerType& el,
+template< class TContainerType, class XVariableType, class YVariableType>
+void SetTableHelperFunction1(
+    TContainerType& rContainer,
     const XVariableType& XVar,
     const YVariableType& YVar,
     const typename Properties::TableType& Data)
 {
-    el.SetTable(XVar, YVar, Data);
+    rContainer.SetTable(XVar, YVar, Data);
 }
 
 template< class TContainerType, class XVariableType, class YVariableType>
-typename Properties::TableType& GetTableHelperFunction1( TContainerType& el,
+typename Properties::TableType& GetTableHelperFunction1( TContainerType& rContainer,
         const XVariableType& XVar,
     const YVariableType& YVar )
 {
-    return el.GetTable(XVar, YVar);
+    return rContainer.GetTable(XVar, YVar);
 }
 
 void  AddPropertiesToPython(pybind11::module& m)
@@ -183,13 +211,15 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("IsEmpty", &Properties::IsEmpty)
     .def("NumberOfSubproperties", &Properties::NumberOfSubproperties)
     .def("AddSubProperty", &Properties::AddSubProperty)
-    .def("GetSubProperty", &Properties::GetSubProperty)
-    .def("GetSubProperties", &Properties::GetSubProperties)
+    .def("GetSubProperty", GetSubProperty1)
+    .def("GetSubProperty", GetSubProperty2)
+    .def("GetSubProperties", GetSubProperties1)
+    .def("GetSubProperties", GetSubProperties2)
     .def("SetSubProperties", &Properties::SetSubProperties)
     ;
 
     class_<PropertiesWithSubProperties, PropertiesWithSubProperties::Pointer, Properties >(m,"PropertiesWithSubProperties")
-    .def(init<std::size_t>())
+    .def(init<IndexType>())
     .def(init<Properties::Pointer>())
     .def(init<Properties&>())
     ;
