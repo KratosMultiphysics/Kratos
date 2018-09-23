@@ -391,11 +391,11 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedDiscontinuousElement2D3N, FluidDynamicsApplica
     }
 
     std::vector< std::vector<double> > output_cut(6);
-    output_cut[0] = {3.77784112,-1592.753447,-0.4453264623,42.1943771,-1876.944984,0.3953264623,32.91666667,-7245.299638,-0.1}; // EmbeddedQSVMSDiscontinuous
-    output_cut[1] = {18.84222818,-1545.613012,-0.4453265312,49.82664608,-1836.628433,0.3953265312,32.91666667,-7245.299638,-0.1}; // EmbeddedSymbolicNavierStokesDiscontinuous
+    output_cut[0] = {3.777883122,12.07501514,-0.4453264623,42.1943351,129.0904999,0.3953264623,32.91666667,-23.57174638,-0.1}; // EmbeddedQSVMSDiscontinuous
+    output_cut[1] = {18.84227018,59.21544988,-0.4453265312,49.82660408,169.4070504,0.3953265312,32.91666667,-23.57174638,-0.1}; // EmbeddedSymbolicNavierStokesDiscontinuous
     counter = 0;
 
-    // Test Uncut element
+    // Test Cut element
     p_element->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
     p_element->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = -1.0;
     p_element->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = 0.5;
