@@ -683,7 +683,7 @@ Vector& RuleOfMixturesLaw::CalculateValue(
     Vector& rValue
     )
 {
-    // We do some special operation for strains and stresses TODO: Finish me
+    // We do some special operation for strains and stresses
     if (rThisVariable == STRAIN ||
         rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
         rThisVariable == ALMANSI_STRAIN_VECTOR) {
@@ -778,7 +778,7 @@ Matrix& RuleOfMixturesLaw::CalculateValue(
     Matrix& rValue
     )
 {
-    // We do some special operations for constitutive matrices TODO: Finish me
+    // We do some special operations for constitutive matrices
     if (rThisVariable == CONSTITUTIVE_MATRIX ||
         rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
         rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
@@ -1087,9 +1087,20 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
     const double determinant_f = rValues.GetDeterminantF();
     KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
 
+    // All the strains must be the same
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         Vector& r_strain_vector = rValues.GetStrainVector();
-//         CalculateCauchyGreenStrain(rValues, r_strain_vector);
+        for (auto& factors : mCombinationFactors) {
+            const IndexType id = factors.first;
+            Properties::Pointer p_prop = r_material_properties.GetSubProperty(id);
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[id];
+
+            rValues.SetMaterialProperties(*p_prop);
+            Vector aux_value;
+            p_law->CalculateValue(rValues, GREEN_LAGRANGE_STRAIN_VECTOR, aux_value);
+            r_strain_vector = aux_value; // TODO: Solve this
+        }
+        rValues.SetMaterialProperties(r_material_properties);
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
@@ -1143,7 +1154,17 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
 
     if(r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         Vector& r_strain_vector = rValues.GetStrainVector();
-//         CalculateAlmansiStrain(rValues, r_strain_vector);
+        for (auto& factors : mCombinationFactors) {
+            const IndexType id = factors.first;
+            Properties::Pointer p_prop = r_material_properties.GetSubProperty(id);
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[id];
+
+            rValues.SetMaterialProperties(*p_prop);
+            Vector aux_value;
+            p_law->CalculateValue(rValues, ALMANSI_STRAIN_VECTOR, aux_value);
+            r_strain_vector = aux_value; // TODO: Solve this
+        }
+        rValues.SetMaterialProperties(r_material_properties);
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
