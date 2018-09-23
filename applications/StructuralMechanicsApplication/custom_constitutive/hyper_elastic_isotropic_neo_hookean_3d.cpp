@@ -535,18 +535,12 @@ void HyperElasticIsotropicNeoHookean3D::CalculateGreenLagrangianStrain(
     Vector& rStrainVector
     )
 {
-    //1.-Compute total deformation gradient
+    // 1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
 
-    // e = 0.5*(inv(C) - I)
-    Matrix C_tensor = prod(trans(F),F);
-
-    rStrainVector[0] = 0.5 * ( C_tensor( 0, 0 ) - 1.00 );
-    rStrainVector[1] = 0.5 * ( C_tensor( 1, 1 ) - 1.00 );
-    rStrainVector[2] = 0.5 * ( C_tensor( 2, 2 ) - 1.00 );
-    rStrainVector[3] = C_tensor( 0, 1 ); // xy
-    rStrainVector[4] = C_tensor( 1, 2 ); // yz
-    rStrainVector[5] = C_tensor( 0, 2 ); // xz
+    // 2.-Compute e = 0.5*(inv(C) - I)
+    const Matrix C_tensor = prod(trans(F),F);
+    ConstitutiveLawUtilities<VoigtSize>::CalculateGreenLagrangianStrain(C_tensor, rStrainVector);
 }
 
 /***********************************************************************************/
@@ -557,23 +551,12 @@ void HyperElasticIsotropicNeoHookean3D::CalculateAlmansiStrain(
     Vector& rStrainVector
     )
 {
-    //1.-Compute total deformation gradient
+    // 1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
 
-    // e = 0.5*(1-inv(B))
-    Matrix B_tensor = prod(F,trans(F));
-
-    //Calculating the inverse of the jacobian
-    Matrix inverse_B_tensor ( 3, 3 );
-    double aux_det_b = 0;
-    MathUtils<double>::InvertMatrix( B_tensor, inverse_B_tensor, aux_det_b);
-
-    rStrainVector[0] = 0.5 * ( 1.00 - inverse_B_tensor( 0, 0 ) );
-    rStrainVector[1] = 0.5 * ( 1.00 - inverse_B_tensor( 1, 1 ) );
-    rStrainVector[2] = 0.5 * ( 1.00 - inverse_B_tensor( 2, 2 ) );
-    rStrainVector[3] = - inverse_B_tensor( 0, 1 ); // xy
-    rStrainVector[4] = - inverse_B_tensor( 1, 2 ); // yz
-    rStrainVector[5] = - inverse_B_tensor( 0, 2 ); // xz
+    // 2.-COmpute e = 0.5*(1-inv(B))
+    const Matrix B_tensor = prod(F,trans(F));
+    ConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rStrainVector);
 }
 
 } // Namespace Kratos
