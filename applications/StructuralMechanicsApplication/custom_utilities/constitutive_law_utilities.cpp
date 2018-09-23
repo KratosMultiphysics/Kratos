@@ -179,6 +179,10 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
     Vector& rStrainVector
     )
 {
+    // Doing resize in case is needed
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize);
+    
     // Identity matrix
     MatrixType identity_matrix(Dimension, Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -204,6 +208,10 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
     Vector& rStrainVector
     )
 {
+    // Doing resize in case is needed
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize);
+    
     // Identity matrix
     MatrixType identity_matrix(Dimension, Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -234,6 +242,10 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
     Vector& rStrainVector
     )
 {
+    // Doing resize in case is needed
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize);
+    
     // Declare the different matrix
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
 
@@ -261,6 +273,10 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
     Vector& rStrainVector
     )
 {
+    // Doing resize in case is needed
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize);
+    
     // Declare the different matrix
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
 
@@ -289,6 +305,12 @@ void ConstitutiveLawUtilities<TVoigtSize>::PolarDecomposition(
     MatrixType& rUMatrix
     )
 {
+    // Doing resize in case is needed
+    if (rRMatrix.size1() != Dimension || rRMatrix.size2() != Dimension)
+        rRMatrix.resize(Dimension, Dimension);
+    if (rUMatrix.size1() != Dimension || rUMatrix.size2() != Dimension)
+        rUMatrix.resize(Dimension, Dimension);
+        
     // We compute Right Cauchy tensor 
     const MatrixType C = prod( trans(rFDeformationGradient), rFDeformationGradient );
 
