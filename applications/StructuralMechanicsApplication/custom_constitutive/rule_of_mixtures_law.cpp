@@ -38,10 +38,16 @@ RuleOfMixturesLaw::RuleOfMixturesLaw(
     const std::vector<double>& rMaterialRotationAngles
     ) : ConstitutiveLaw()
 {
+    // We compute the proportion of the factors (must be over 1)
+    double aux_factor = 0.0;
+    for (IndexType i = 0; i < rSubPropertiesIDs.size(); ++i) {
+        aux_factor += rCombinationFactors[i];
+    }
+
     // We fill the maps
     for (IndexType i = 0; i < rSubPropertiesIDs.size(); ++i) {
         const IndexType id = rSubPropertiesIDs[i];
-        mCombinationFactors.insert(std::pair<IndexType, double>({id, rCombinationFactors[i]}));
+        mCombinationFactors.insert(std::pair<IndexType, double>({id, rCombinationFactors[i]/aux_factor}));
         mMaterialRotationAngles.insert(std::pair<IndexType, double>({id, rMaterialRotationAngles[i]}));
     }
 }
