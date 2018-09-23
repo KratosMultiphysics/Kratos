@@ -17,7 +17,6 @@
 #include "includes/checks.h"
 #include "input_output/logger.h"
 #include "utilities/geometry_utilities.h"
-#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_elements/solid_shell_element_sprism_3D6N.h"
 
 namespace Kratos
@@ -3719,8 +3718,20 @@ void SolidShellElementSprism3D6N::CbartoFbar(
         noalias(F) = prod( rVariables.j[rPointNumber], InvJ );
     }
 
-    Matrix R, U;
-    ConstitutiveLawUtilities<6>::PolarDecomposition(F, R, U);
+    const Matrix C = prod( trans(F), F );
+
+    // Decompose matrix C
+    MathUtils<double>::EigenSystem<3>(C, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
+
+    for (IndexType i = 0; i < 3; ++i)
+        eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
+
+    const Matrix U  = prod( eigen_values_matrix, eigen_vector_matrix );
+
+    double AuxDet;
+    Matrix invU(3, 3);
+    MathUtils<double>::InvertMatrix(U, invU, AuxDet);
+    const Matrix R  = prod( F, invU );
 
     /* Calculate F_bar */
     noalias(rVariables.F) = prod(R, U_bar);
