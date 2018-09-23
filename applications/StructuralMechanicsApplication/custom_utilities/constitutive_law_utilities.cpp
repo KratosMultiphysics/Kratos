@@ -213,7 +213,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
         }
     }
 
-   // Calculating the inverse of the left Cauchy tensor
+    // Calculating the inverse of the left Cauchy tensor
     MatrixType inverse_B_tensor ( Dimension, Dimension );
     double aux_det_b = 0;
     MathUtils<double>::InvertMatrix( rLeftCauchyTensor, inverse_B_tensor, aux_det_b);
@@ -277,6 +277,34 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
 
     // Biot Strain Calculation
     rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::PolarDecomposition(
+    const MatrixType& rFDeformationGradient,
+    MatrixType& rRMatrix,
+    MatrixType& rUMatrix
+    )
+{
+    // We compute Right Cauchy tensor 
+    const MatrixType C = prod( trans(rFDeformationGradient), rFDeformationGradient );
+
+    // Decompose matrix C
+    BoundedMatrix<double, Dimension, Dimension> eigen_vector_matrix,  eigen_values_matrix;
+    MathUtils<double>::EigenSystem<Dimension>(C, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
+
+    for (IndexType i = 0; i < Dimension; ++i)
+        eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
+
+    noalias(rUMatrix) = prod( eigen_values_matrix, eigen_vector_matrix );
+
+    double aux_det;
+    MatrixType invU(Dimension, Dimension);
+    MathUtils<double>::InvertMatrix(rUMatrix, invU, aux_det);
+    noalias(rRMatrix) = prod( rFDeformationGradient, invU );
 }
 
 /***********************************************************************************/

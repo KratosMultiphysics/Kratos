@@ -197,6 +197,7 @@ class ConstitutiveLawUtilities
 
     /**
      * @brief Calculation of the Green-Lagrange strain vector
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
      * @param rCauchyTensor The right Cauchy tensor
      * @param rStrainVector The Green-Lagrange strain vector
      */
@@ -207,6 +208,7 @@ class ConstitutiveLawUtilities
 
     /**
      * @brief Calculation of the Almansi strain vector
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
      * @param rLeftCauchyTensor The left Cauchy tensor
      * @param rStrainVector The Almansi strain vector
      */
@@ -217,6 +219,7 @@ class ConstitutiveLawUtilities
 
     /**
      * @brief Calculation of the Hencky strain vector (true strain, natural strain, logarithmic strain)
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
      * @param rCauchyTensor The right Cauchy tensor
      * @param rStrainVector The Hencky strain vector
      */
@@ -227,12 +230,26 @@ class ConstitutiveLawUtilities
 
     /**
      * @brief Calculation of the Biot strain vector
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
      * @param rCauchyTensor The right Cauchy tensor
      * @param rStrainVector The Biot strain vector
      */
     static void CalculateBiotStrain(
         const MatrixType& rCauchyTensor,
         VectorType& rStrainVector
+        );
+    
+    /**
+     * @brief The deformation gradient F, like any invertible second-order tensor, can be decomposed, using the polar decomposition theorem, into a product of two second-order tensors (Truesdell and Noll, 1965): an orthogonal tensor and a positive definite symmetric tensor, i.e F = R U
+     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Polar_decomposition_of_the_deformation_gradient_tensor
+     * @param rFDeformationGradient The deformation gradient
+     * @param rRMatrix The rotation component
+     * @param rUMatrix The pure displacement component
+     */
+    static void PolarDecomposition(
+        const MatrixType& rFDeformationGradient,
+        MatrixType& rRMatrix,
+        MatrixType& rUMatrix
         );
 
     /**
