@@ -114,7 +114,6 @@ void UpdateGeometryValues(
     const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX) override
 {
     FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex,NewWeight,rN,rDN_DX);
-    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
