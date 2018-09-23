@@ -296,8 +296,7 @@ protected:
     void AddSlipNormalPenaltyContribution(
         MatrixType& rLHS,
         VectorType& rRHS,
-        const EmbeddedElementData& rData,
-        const ProcessInfo &rCurrentProcessInfo) const;
+        const EmbeddedElementData& rData) const;
 
     /**
     * This functions adds the no-penetration condition adjoint term level set contribution.
@@ -319,8 +318,7 @@ protected:
     void AddSlipTangentialPenaltyContribution(
         MatrixType& rLHS,
         VectorType& rRHS,
-        const EmbeddedElementData& rData,
-        const ProcessInfo &rCurrentProcessInfo) const;
+        const EmbeddedElementData& rData) const;
 
     /**
     * This functions adds the tangential stress condition adjoint term level set contribution.
@@ -331,16 +329,14 @@ protected:
     void AddSlipTangentialSymmetricCounterpartContribution(
         MatrixType& rLHS,
         VectorType& rRHS,
-        const EmbeddedElementData& rData,
-        const ProcessInfo &rCurrentProcessInfo) const;
+        const EmbeddedElementData& rData) const;
 
     /**
      * This function computes the penalty coefficient for the Nitsche normal imposition
      * @param rData reference to element data structure
      */
     double ComputeSlipNormalPenaltyCoefficient(
-        const EmbeddedElementData& rData,
-        const ProcessInfo &rCurrentProcessInfo) const;
+        const EmbeddedElementData& rData) const;
 
     /**
      * This function computes the Nitsche coefficients for the Nitsche normal imposition
@@ -348,8 +344,7 @@ protected:
      * @return a pair of double containing the two coefficients
      */
     std::pair<const double, const double> ComputeSlipTangentialPenaltyCoefficients(
-        const EmbeddedElementData& rData,
-        const ProcessInfo &rCurrentProcessInfo) const;
+        const EmbeddedElementData& rData) const;
 
     /**
      * This function computes the Nitsche coefficients for the Nitsche tangential imposition
@@ -357,8 +352,7 @@ protected:
      * @return a pair of double containing the two coefficients
      */
     std::pair<const double, const double> ComputeSlipTangentialNitscheCoefficients(
-        const EmbeddedElementData& rData,
-        const ProcessInfo &rCurrentProcessInfo) const;
+        const EmbeddedElementData& rData) const;
 
     /**
     * This functions adds the penalty extra term level set contribution.
@@ -369,8 +363,7 @@ protected:
     void AddBoundaryConditionPenaltyContribution(
         MatrixType& rLHS,
         VectorType& rRHS,
-        const EmbeddedElementData& rData,
-        const ProcessInfo &rCurrentProcessInfo) const;
+        const EmbeddedElementData& rData) const;
     
     /**
      * This function computes the penalty coefficient for the level set BC imposition
@@ -378,8 +371,7 @@ protected:
      * @param rData reference to element data structure
      */
     double ComputePenaltyCoefficient(
-        const EmbeddedElementData& rData,
-        const ProcessInfo &rCurrentProcessInfo) const;
+        const EmbeddedElementData& rData) const;
 
     /**
     * This drops the outer nodes velocity constributions in both LHS and RHS matrices.
