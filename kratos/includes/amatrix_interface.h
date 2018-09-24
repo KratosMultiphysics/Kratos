@@ -531,11 +531,6 @@ template <typename TExpression1Type, typename TExpression2Type,
 AMatrix::VectorOuterProductExpression<TExpression1Type, TExpression2Type> outer_prod(
     AMatrix::MatrixExpression<TExpression1Type, TCategory1> const& First,
     AMatrix::MatrixExpression<TExpression2Type, TCategory2> const& Second) {
-    KRATOS_DEBUG_ERROR_IF(First.expression().size() != Second.expression().size())
-        << "Size mismatch in AMatrix outer_prod."  << std::endl
-        << "Argument sizes are " << First.expression().size() << " and "
-        << Second.expression().size() << "." << std::endl
-        << "Both vectors should have the same size." << std::endl;
 
     return AMatrix::VectorOuterProductExpression<TExpression1Type, TExpression2Type>(
         First.expression(), Second.expression());
