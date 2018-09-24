@@ -153,17 +153,17 @@ public:
         if(SMatrix.size1() != m || SMatrix.size2() != n) {
             SMatrix.resize(m, n, false);
         }
-        SMatrix = InputMatrix;
+        noalias(SMatrix) = InputMatrix;
 
         if(UMatrix.size1() != m || UMatrix.size2() != m) {
             UMatrix.resize(m, m, false);
         }
-        UMatrix = IdentityMatrix(m);
+        noalias(UMatrix) = IdentityMatrix(m);
 
         if(VMatrix.size1() != n || VMatrix.size2() != n) {
             VMatrix.resize(n, n, false);
         }
-        VMatrix = IdentityMatrix(n);
+        noalias(VMatrix) = IdentityMatrix(n);
 
         const TDataType relative_tolerance = Tolerance * LocalSpaceType::TwoNorm(InputMatrix);
 
@@ -184,11 +184,11 @@ public:
                     Jacobi(j1, j2, SMatrix, m, n, i, j);
 
                     const MatrixType aux_matrix = prod(SMatrix, j2);
-                    SMatrix = prod(j1, aux_matrix);
-                    auxiliar_matrix_m = prod(UMatrix, trans(j1));
-                    UMatrix = auxiliar_matrix_m;
-                    auxiliar_matrix_n = prod(trans(j2), VMatrix);
-                    VMatrix = auxiliar_matrix_n;
+                    noalias(SMatrix) = prod(j1, aux_matrix);
+                    noalias(auxiliar_matrix_m) = prod(UMatrix, trans(j1));
+                    noalias(UMatrix) = auxiliar_matrix_m;
+                    noalias(auxiliar_matrix_n) = prod(trans(j2), VMatrix);
+                    noalias(VMatrix) = auxiliar_matrix_n;
                 }
 
                 for (IndexType j = n; j < m; j++) {
@@ -196,10 +196,10 @@ public:
 
                     Jacobi(j1, SMatrix, m, i, j);
 
-                    auxiliar_matrix_mn = prod(j1, SMatrix);
-                    SMatrix = auxiliar_matrix_mn;
-                    auxiliar_matrix_m = prod(UMatrix, trans(j1));
-                    UMatrix = auxiliar_matrix_m;
+                    noalias(auxiliar_matrix_mn) = prod(j1, SMatrix);
+                    noalias(SMatrix) = auxiliar_matrix_mn;
+                    noalias(auxiliar_matrix_m) = prod(UMatrix, trans(j1));
+                    noalias(UMatrix) = auxiliar_matrix_m;
                 }
             }
 
@@ -239,8 +239,8 @@ public:
         SingularValueDecomposition2x2Symmetric(m_matrix, UMatrix, SMatrix, VMatrix);
 
         MatrixType auxiliar_matrix_m(UMatrix.size1(), UMatrix.size2());
-        auxiliar_matrix_m = prod(trans(r_matrix), UMatrix);
-        UMatrix = auxiliar_matrix_m;
+        noalias(auxiliar_matrix_m) = prod(trans(r_matrix), UMatrix);
+        noalias(UMatrix) = auxiliar_matrix_m;
     }
 
 	/**
@@ -270,9 +270,9 @@ public:
         }
 
         if (std::abs(InputMatrix(1, 0)) < ZeroTolerance) { // Already symmetric
-            SMatrix = InputMatrix;
-            UMatrix = IdentityMatrix(2);
-            VMatrix = UMatrix;
+            noalias(SMatrix) = InputMatrix;
+            noalias(UMatrix) = IdentityMatrix(2);
+            noalias(VMatrix) = UMatrix;
         } else {
             const TDataType w = InputMatrix(0, 0);
             const TDataType y = InputMatrix(1, 0);
@@ -286,9 +286,9 @@ public:
             UMatrix(0, 1) =  s;
             UMatrix(1, 0) = -s;
             UMatrix(1, 1) =  c;
-            VMatrix = trans(UMatrix);
+            noalias(VMatrix) = trans(UMatrix);
 
-            SMatrix = prod(trans(UMatrix), MatrixType(prod(InputMatrix, trans(VMatrix))));
+            noalias(SMatrix) = prod(trans(UMatrix), MatrixType(prod(InputMatrix, trans(VMatrix))));
         }
 
         MatrixType z_matrix(2, 2);
@@ -299,10 +299,10 @@ public:
 
         // Auxiliar matrix for alias operations
         MatrixType aux_2_2_matrix(2, 2);
-        aux_2_2_matrix = prod(UMatrix, z_matrix);
-        UMatrix = aux_2_2_matrix;
-        aux_2_2_matrix = prod(z_matrix, SMatrix);
-        SMatrix = aux_2_2_matrix;
+        noalias(aux_2_2_matrix) = prod(UMatrix, z_matrix);
+        noalias(UMatrix) = aux_2_2_matrix;
+        noalias(aux_2_2_matrix) = prod(z_matrix, SMatrix);
+        noalias(SMatrix) = aux_2_2_matrix;
 
         if (SMatrix(0, 0) < SMatrix(1, 1)) {
             MatrixType p_matrix(2, 2);
@@ -311,12 +311,12 @@ public:
             p_matrix(1, 0) = 1.0;
             p_matrix(1, 1) = 0.0;
 
-            aux_2_2_matrix = prod(UMatrix, p_matrix);
-            UMatrix = aux_2_2_matrix;
+            noalias(aux_2_2_matrix) = prod(UMatrix, p_matrix);
+            noalias(UMatrix) = aux_2_2_matrix;
             const MatrixType aux_matrix = prod(SMatrix, p_matrix);
-            SMatrix = prod(p_matrix, aux_matrix);
-            aux_2_2_matrix = prod(p_matrix, VMatrix);
-            VMatrix = aux_2_2_matrix;
+            noalias(SMatrix) = prod(p_matrix, aux_matrix);
+            noalias(aux_2_2_matrix) = prod(p_matrix, VMatrix);
+            noalias(VMatrix) = aux_2_2_matrix;
         }
     }
 
