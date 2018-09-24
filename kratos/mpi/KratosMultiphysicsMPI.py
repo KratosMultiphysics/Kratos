@@ -3,6 +3,6 @@ import sys
 import atexit
 
 Hello()
-MPIInitialize(sys.argv)
+MPIInitialize()
 
 atexit.register(MPIFinalize)

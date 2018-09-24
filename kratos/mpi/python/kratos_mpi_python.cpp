@@ -38,28 +38,7 @@ PYBIND11_MODULE(KratosMPI, m)
 
     m.def("Hello",module_greet);
 
-    m.def("MPIInitialize",[](py::list& rPythonArgv) {
-
-        // Converting python sys.argv to c-style argc, argv
-        int argc = py::len(rPythonArgv);
-        std::cout << argc;
-        char** argv = new char*[argc];
-        for (int i = 0; i < argc; i++)
-        {
-            pybind11::str arg_str = py::str(rPythonArgv[i]);
-            argv[i] = new char[len(arg_str)];
-            std::cout << argv[i];
-        }
-
-        MPIEnvironment::Initialize(argc,argv);
-
-        // Deallocating argv
-        for (int i = 0; i < argc; i++)
-        {
-            delete argv[i];
-        }
-        delete[] argv;
-    });
+    m.def("MPIInitialize",MPIEnvironment::Initialize);
 
     m.def("MPIFinalize",MPIEnvironment::Finalize);
 

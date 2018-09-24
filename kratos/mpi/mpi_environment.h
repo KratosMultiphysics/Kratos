@@ -16,11 +16,8 @@ namespace Kratos {
 namespace MPIEnvironment {
 
 /// Execute MPI initialization operations.
-/** No MPI operations should be called before this point.
- *  @param argc Count of command-line arguments (passed as argv)
- *  @param argv array of char* containing command-line arguments.
- */
-void Initialize(int argc, char* argv[]);
+/** No MPI operations should be called before this point. */
+void Initialize();
 
 /// Execute MPI finialization operations.
 /** No MPI operations should be called after this point. */

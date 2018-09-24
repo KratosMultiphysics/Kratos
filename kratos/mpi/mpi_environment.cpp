@@ -21,10 +21,16 @@
 
 namespace Kratos {
 
-void MPIEnvironment::Initialize(int argc, char* argv[])
+void MPIEnvironment::Initialize()
 {
     if (!MPIEnvironment::IsInitialized())
     {
+        // Note from openmpi docs: https://www.open-mpi.org/doc/v2.0/man3/MPI_Init.3.php
+        // "Open MPI accepts the C/C++ argc and argv arguments to main, but neither modifies, interprets, nor distributes them"
+        // I am passing empty arguments for simplicity.
+        int argc = 0;
+        char** argv = nullptr;
+
         #if MPI_VERSION < 2
         MPI_Init(&argc, &argv);
 
