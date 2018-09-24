@@ -472,7 +472,7 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues
-        );
+        ) override;
 
     /**
      * @brief This is to be called at the very beginning of the calculation  (this initializes in an specific integration point)
