@@ -4,8 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "HyperElastic3DLaw",
-                "todo_name" : "GeneralParallelConstitutiveLaw",
+                "name" : "RuleOfMixturesLaw",
                 "sub_properties_indexes"   : [ 11,  12,  13 ],
                 "combination_factors"      : [0.4, 0.3, 0.3 ],
                 "material_rotation_angles" : [ 0,   45,  90 ],
