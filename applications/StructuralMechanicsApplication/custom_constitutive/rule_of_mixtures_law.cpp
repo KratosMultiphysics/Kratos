@@ -1168,11 +1168,13 @@ void RuleOfMixturesLaw::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameter
 {
     CalculateMaterialResponsePK2(rValues);
 
-    Vector& r_stress_vector              = rValues.GetStressVector();
-    const Matrix& r_deformation_gradient_f = rValues.GetDeformationGradientF();
-    const double determinant_f           = rValues.GetDeterminantF();
+    if (rValues.IsSetDeterminantF()) {
+        Vector& r_stress_vector                = rValues.GetStressVector();
+        const Matrix& r_deformation_gradient_f = rValues.GetDeformationGradientF();
+        const double determinant_f             = rValues.GetDeterminantF();
 
-    TransformStresses(r_stress_vector, r_deformation_gradient_f, determinant_f, StressMeasure_PK2, StressMeasure_PK1);
+        TransformStresses(r_stress_vector, r_deformation_gradient_f, determinant_f, StressMeasure_PK2, StressMeasure_PK1);
+    }
 }
 
 /***********************************************************************************/
@@ -1188,8 +1190,10 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // The deformation gradient
-    const double determinant_f = rValues.GetDeterminantF();
-    KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
+    if (rValues.IsSetDeterminantF()) {
+        const double determinant_f = rValues.GetDeterminantF();
+        KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
+    }
 
     // All the strains must be the same
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
@@ -1265,8 +1269,10 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
     const Properties& r_material_properties  = rValues.GetMaterialProperties();
 
     // The deformation gradient
-    const double determinant_f = rValues.GetDeterminantF();
-    KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
+    if (rValues.IsSetDeterminantF()) {
+        const double determinant_f = rValues.GetDeterminantF();
+        KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
+    }
 
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         Vector& r_strain_vector = rValues.GetStrainVector();
@@ -1340,13 +1346,15 @@ void RuleOfMixturesLaw::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parame
 {
     CalculateMaterialResponseKirchhoff(rValues);
 
-    Vector& r_stress_vector       = rValues.GetStressVector();
-    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-    const double determinant_f    = rValues.GetDeterminantF();
-
     // Set to Cauchy Stress:
-    r_stress_vector       /= determinant_f;
-    r_constitutive_matrix /= determinant_f;
+    if (rValues.IsSetDeterminantF()) {
+        Vector& r_stress_vector       = rValues.GetStressVector();
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        const double determinant_f    = rValues.GetDeterminantF();
+
+        r_stress_vector       /= determinant_f;
+        r_constitutive_matrix /= determinant_f;
+    }
 }
 
 /***********************************************************************************/
