@@ -204,10 +204,14 @@ void Create3DGeometryHexahedra(ModelPart& rThisModelPart, std::size_t NumberOfLa
 
     // Now we create the "conditions"
     std::vector<NodeType::Pointer> element_nodes (8);
-    element_nodes[0] = p_node_1;
-    element_nodes[1] = p_node_2;
-    element_nodes[2] = p_node_3;
-    element_nodes[3] = p_node_4;
+    element_nodes[0] = p_node_5;
+    element_nodes[1] = p_node_8;
+    element_nodes[2] = p_node_6;
+    element_nodes[3] = p_node_2;
+    element_nodes[4] = p_node_3;
+    element_nodes[5] = p_node_7;
+    element_nodes[6] = p_node_4;
+    element_nodes[7] = p_node_1;
     Hexahedra3D8 <NodeType> hexahedra( PointerVector<NodeType>{element_nodes} );
 
     Element::Pointer p_elem_0 = rThisModelPart.CreateNewElement(ElementName, 1, hexahedra, p_elem_prop);
