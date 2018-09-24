@@ -1,5 +1,10 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+# Mpi
+if(${MPI_NEEDED} MATCHES ON )
+  add_subdirectory(mpi)
+endif(${MPI_NEEDED} MATCHES ON )
+
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
