@@ -22,6 +22,13 @@
 namespace Kratos
 {
 
+ReadMaterialsUtility::ReadMaterialsUtility(Model& rModel) : mrModel(rModel)
+{
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 ReadMaterialsUtility::ReadMaterialsUtility(
     Parameters Params,
     Model& rModel
@@ -60,6 +67,14 @@ ReadMaterialsUtility::ReadMaterialsUtility(
     Parameters materials(rParametersName);
 
     GetPropertyBlock(materials);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ReadMaterialsUtility::ReadMaterials(Parameters Params)
+{
+    GetPropertyBlock(Params);
 }
 
 /***********************************************************************************/
@@ -244,11 +259,11 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     std::size_t variables_size = 0;
     for(auto it=Data["Material"]["Variables"].begin(); it!=Data["Material"]["Variables"].end(); ++it)
         ++variables_size;
-    
+
     std::size_t tables_size = 0;
     for(auto it=Data["Material"]["Tables"].begin(); it!=Data["Material"]["Tables"].end(); ++it)
         ++tables_size;
-    
+
     KRATOS_WARNING_IF("Read materials", variables_size > 0 && p_prop->HasVariables())
         << "Property " << std::to_string(property_id) << " already has variables." << std::endl;
     KRATOS_WARNING_IF("Read materials", tables_size > 0 && p_prop->HasTables())
