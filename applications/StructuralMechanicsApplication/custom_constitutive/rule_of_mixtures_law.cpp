@@ -1184,6 +1184,10 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
 {
     KRATOS_TRY;
 
+    // Some auxiliar values
+    const SizeType dimension = WorkingSpaceDimension();
+    const SizeType voigt_size = GetStrainSize();
+
     // Get Values to compute the constitutive law:
     Flags& r_flags=rValues.GetOptions();
 
@@ -1199,8 +1203,6 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         Vector& r_strain_vector = rValues.GetStrainVector();
 
-        const SizeType dimension = this->WorkingSpaceDimension();
-        const SizeType voigt_size = this->GetStrainSize();
         Matrix F_deformation_gradient;
         this->CalculateValue(rValues, DEFORMATION_GRADIENT, F_deformation_gradient);
         const Matrix C_matrix = prod(trans(F_deformation_gradient),F_deformation_gradient);
@@ -1232,7 +1234,7 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
             const double factor = factors.second;
 
             rValues.SetMaterialProperties(*p_prop);
-            Matrix aux_value;
+            Matrix aux_value(voigt_size, voigt_size);
             p_law->CalculateValue(rValues, CONSTITUTIVE_MATRIX_PK2, aux_value);
             r_constitutive_matrix += factor * aux_value;
         }
@@ -1248,7 +1250,7 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
             const double factor = factors.second;
 
             rValues.SetMaterialProperties(*p_prop);
-            Vector aux_value;
+            Vector aux_value(voigt_size);
             p_law->CalculateValue(rValues, PK2_STRESS_VECTOR, aux_value);
             r_stress_vector += factor * aux_value;
         }
@@ -1263,6 +1265,10 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
 
 void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues)
 {
+    // Some auxiliar values
+    const SizeType dimension = WorkingSpaceDimension();
+    const SizeType voigt_size = GetStrainSize();
+
     // Get Values to compute the constitutive law:
     Flags& r_flags=rValues.GetOptions();
 
@@ -1277,8 +1283,6 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         Vector& r_strain_vector = rValues.GetStrainVector();
 
-        const SizeType dimension = this->WorkingSpaceDimension();
-        const SizeType voigt_size = this->GetStrainSize();
         Matrix F_deformation_gradient;
         this->CalculateValue(rValues, DEFORMATION_GRADIENT, F_deformation_gradient);
         const Matrix B_matrix = prod(F_deformation_gradient, trans(F_deformation_gradient));
@@ -1315,7 +1319,7 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
             const double factor = factors.second;
 
             rValues.SetMaterialProperties(*p_prop);
-            Matrix aux_value;
+            Matrix aux_value(voigt_size, voigt_size);
             p_law->CalculateValue(rValues, CONSTITUTIVE_MATRIX_KIRCHHOFF, aux_value);
             r_constitutive_matrix += factor * aux_value;
         }
@@ -1331,7 +1335,7 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
             const double factor = factors.second;
 
             rValues.SetMaterialProperties(*p_prop);
-            Vector aux_value;
+            Vector aux_value(voigt_size);
             p_law->CalculateValue(rValues, KIRCHHOFF_STRESS_VECTOR, aux_value);
             r_stress_vector += factor * aux_value;
         }
