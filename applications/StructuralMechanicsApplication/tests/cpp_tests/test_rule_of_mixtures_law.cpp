@@ -21,6 +21,7 @@
 #include "includes/gid_io.h"
 #include "utilities/read_materials_utility.h"
 #include "custom_constitutive/rule_of_mixtures_law.h"
+#include "includes/mat_variables.h"
 
 namespace Kratos
 {
@@ -43,6 +44,7 @@ void GiDIODebugRuleMixtures(ModelPart& ThisModelPart)
     gid_io.FinalizeMesh();
     gid_io.InitializeResults(label, ThisModelPart.GetMesh());
     gid_io.WriteNodalResults(DISPLACEMENT, ThisModelPart.Nodes(), label, 0);
+    gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_VECTOR, ThisModelPart, label);
     gid_io.PrintOnGaussPoints(PK2_STRESS_VECTOR, ThisModelPart, label);
     gid_io.WriteNodalFlags(ACTIVE, "ACTIVE", ThisModelPart.Nodes(), label);
 }
@@ -368,9 +370,9 @@ void Create3DGeometryTetrahedra(ModelPart& rThisModelPart, std::size_t NumberOfL
 }
 
 /**
-* Check the correct calculation of the CL utilities
+* Check the correct work of Rule of Mixtures (Hexahedron 2 layers)
 */
-KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTwoLayers, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, KratosStructuralMechanicsFastSuite)
 {
     ModelPart model_part("Main");
     Create3DGeometryHexahedra(model_part);
@@ -398,7 +400,46 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTwoLayers, KratosStructur
         std::vector<Vector> solution;
         elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
 
-        KRATOS_WATCH(solution[0])
+        for (auto& sol : solution) {
+            KRATOS_CHECK_LESS_EQUAL((sol[0] - 2.72487e+09)/2.72487e+09, tolerance);
+        }
+    }
+}
+
+/**
+* Check the correct work of Rule of Mixtures (Hexahedron 3 layers)
+*/
+KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, KratosStructuralMechanicsFastSuite)
+{
+    ModelPart model_part("Main");
+    Create3DGeometryHexahedra(model_part, 3);
+
+    const array_1d<double, 3> zero = ZeroVector(3);
+    array_1d<double, 3> delta = ZeroVector(3);
+    delta[0] = 1.0e-2;
+    for (auto& node : model_part.Nodes()) {
+        if (node.X() < 1.0e-3) {
+            node.Fix(DISPLACEMENT_X);
+            node.Fix(DISPLACEMENT_Y);
+            node.Fix(DISPLACEMENT_Z);
+            node.FastGetSolutionStepValue(DISPLACEMENT) = zero;
+        } else {
+            node.FastGetSolutionStepValue(DISPLACEMENT) = delta;
+            node.Coordinates() += delta;
+        }
+    }
+
+//     // DEBUG
+//     GiDIODebugRuleMixtures(model_part);
+
+    ProcessInfo& process_info = model_part.GetProcessInfo();
+    for (auto& elem : model_part.Elements()) {
+        std::vector<Vector> solution;
+        elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
+
+        for (auto& sol : solution) {
+            KRATOS_CHECK_LESS_EQUAL((sol[0] - 2.72487e+12)/2.72487e+12, tolerance);
+        }
     }
 }
 } // namespace Testing
