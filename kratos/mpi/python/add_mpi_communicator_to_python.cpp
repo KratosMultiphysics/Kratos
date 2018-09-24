@@ -7,38 +7,34 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela
-//                   Pooyan Dadvand
+//  Main author:     Jordi Cotela
 //
 
 // System includes
-#include "includes/define_python.h"
-#include "includes/kratos_version.h"
 
 // External includes
 #include <pybind11/pybind11.h>
 
-// Module includes
+// Project includes
 #include "add_mpi_communicator_to_python.h"
+#include "includes/mpi_communicator.h"
 
 namespace Kratos {
 namespace Python {
 
-void module_greet()
-{
-	std::stringstream header;
-	header << "Hello, I am the MPI extension of Kratos Multi-Physics " << KRATOS_VERSION <<" ;-)\n";
-    std::cout << header.str();
-}
-
-PYBIND11_MODULE(KratosMPI, m)
+void AddMPICommunicatorToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    m.def("Hello",module_greet);
-
-    AddMPICommunicatorToPython(m);
+    py::class_<MPICommunicator, Communicator>(m,"MPICommunicator")
+    .def("__repr__", [](const MPICommunicator& self){
+        std::stringstream ss;
+        self.PrintInfo(ss);
+        return ss.str();
+    })
+    ;
 }
 
-}
-}
+} // namespace Python
+} // namespace Kratos
+

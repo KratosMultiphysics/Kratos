@@ -9,6 +9,7 @@ set( KRATOS_MPI_SOURCES
 ## Kratos MPI extension Python interface
 set( KRATOS_MPI_PYTHON_SOURCES
     python/kratos_mpi_python.cpp
+    python/add_mpi_communicator_to_python.cpp
 )
 
 ## Define library for the C++ layer
@@ -19,7 +20,7 @@ target_link_libraries(KratosMPICore PUBLIC KratosCore ${MPI_LIBRARIES} )
 ## Define library for the Python interface layer
 pybind11_add_module(KratosMPI MODULE THIN_LTO ${KRATOS_MPI_PYTHON_SOURCES})
 # add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
-target_link_libraries(KratosMPI PRIVATE KratosMPICore )
+target_link_libraries(KratosMPI PRIVATE KratosMPICore KratosCore )
 # set_target_properties(KratosMPI PROPERTIES PREFIX "")
 
 # Install library
