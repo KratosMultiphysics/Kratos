@@ -70,13 +70,32 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
 
     /// Pointer definition of ReadMaterialProcess
     KRATOS_CLASS_POINTER_DEFINITION(ReadMaterialsUtility);
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    ReadMaterialsUtility(Parameters Params, Model& rModel);
+    /**
+     * @brief Default constructor
+     * @param rModel The model containing the problem to solve
+     */
+    ReadMaterialsUtility(Model& rModel);
 
+    /**
+     * @brief Constructor reading directly from file, via parameters
+     * @param Params The configuration parameters telling where the configuration file can be found
+     * @param rModel The model containing the problem to solve
+     */
+    ReadMaterialsUtility(
+        Parameters Params,
+        Model& rModel
+        );
+
+    /**
+     * @brief Constructor reading directly from file, via text
+     * @param Params The string telling where the configuration file can be found
+     * @param rModel The model containing the problem to solve
+     */
     ReadMaterialsUtility(const std::string& rParametersName, Model& rModel);
 
     ///@}
@@ -87,6 +106,12 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief This reads the properties from parameters
+     * @param Params The configuration parameters defining the properties
+     */
+    void ReadMaterials(Parameters Params);
 
     ///@}
     ///@name Access
@@ -169,7 +194,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
      * @brief This method creates a property from configuration parameters
      * @param Data The parameters containing all the configurations of the materials
