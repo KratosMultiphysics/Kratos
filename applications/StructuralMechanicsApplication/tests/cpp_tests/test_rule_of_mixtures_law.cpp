@@ -51,11 +51,53 @@ Parameters GetTwoLayersParameters()
 {
     Parameters two_layers = Parameters(R"(
     {
-        "Parameters" : {
-            "materials_filename" : "/home/vicente/src/Kratos/applications/StructuralMechanicsApplication/tests/cpp_tests/two_layers.json"
-        }
-    }
-    )" );
+    "properties" : [{
+        "model_part_name" : "Main",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "RuleOfMixturesLaw",
+                "sub_properties_indexes"   : [ 11,  13 ],
+                "combination_factors"      : [0.4, 0.6 ],
+                "material_rotation_angles" : [ 0,  90 ]
+            },
+            "Variables"        : {
+                "THICKNESS"     : null,
+                "DENSITY"       : null,
+                "YOUNG_MODULUS" : null,
+                "POISSON_RATIO" : null
+            },
+            "Tables"           : {}
+        },
+        "sub_properties" : [{
+            "properties_id"   : 11,
+            "Material"        : {
+                "constitutive_law" : {
+                    "name" : "LinearElastic3DLaw"
+                },
+                "Variables"        : {
+                    "DENSITY"       : 7850.0,
+                    "YOUNG_MODULUS" : 206900000000.0,
+                    "POISSON_RATIO" : 0.29
+                },
+                "Tables"           : {}
+            }
+        },{
+            "properties_id"   : 13,
+            "Material"        : {
+                "constitutive_law" : {
+                    "name" : "HyperElastic3DLaw"
+                },
+                "Variables"        : {
+                    "DENSITY"       : 2000.0,
+                    "YOUNG_MODULUS" : 30000000000000.0,
+                    "POISSON_RATIO" : 0.49
+                },
+                "Tables"           : {}
+            }
+        }]
+    }]
+    })" );
 
     return two_layers;
 }
@@ -64,11 +106,66 @@ Parameters GetThreeLayersParameters()
 {
     Parameters three_layers = Parameters(R"(
     {
-        "Parameters" : {
-            "materials_filename" : "/home/vicente/src/Kratos/applications/StructuralMechanicsApplication/tests/cpp_tests/three_layers.json"
-        }
-    }
-    )" );
+    "properties" : [{
+        "model_part_name" : "Main",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "RuleOfMixturesLaw",
+                "sub_properties_indexes"   : [ 11,  12,  13 ],
+                "combination_factors"      : [0.4, 0.3, 0.3 ],
+                "material_rotation_angles" : [ 0,   45,  90 ]
+            },
+            "Variables"        : {
+                "THICKNESS"     : null,
+                "DENSITY"       : null,
+                "YOUNG_MODULUS" : null,
+                "POISSON_RATIO" : null
+            },
+            "Tables"           : {}
+        },
+        "sub_properties" : [{
+            "properties_id"   : 11,
+            "Material"        : {
+                "constitutive_law" : {
+                    "name" : "LinearElastic3DLaw"
+                },
+                "Variables"        : {
+                    "DENSITY"       : 7850.0,
+                    "YOUNG_MODULUS" : 206900000000.0,
+                    "POISSON_RATIO" : 0.29
+                },
+                "Tables"           : {}
+            }
+        },{
+            "properties_id"   : 12,
+            "Material"        : {
+                "constitutive_law" : {
+                    "name" : "LinearElastic3DLaw"
+                },
+                "Variables"        : {
+                    "DENSITY"       : 7850.0,
+                    "YOUNG_MODULUS" : 206900000000000.0,
+                    "POISSON_RATIO" : 0.29
+                },
+                "Tables"           : {}
+            }
+        },{
+            "properties_id"   : 13,
+            "Material"        : {
+                "constitutive_law" : {
+                    "name" : "HyperElastic3DLaw"
+                },
+                "Variables"        : {
+                    "DENSITY"       : 2000.0,
+                    "YOUNG_MODULUS" : 30000000000000.0,
+                    "POISSON_RATIO" : 0.49
+                },
+                "Tables"           : {}
+            }
+        }]
+    }]
+    })" );
 
     return three_layers;
 }
@@ -89,7 +186,8 @@ void Create3DGeometryHexahedra(ModelPart& rThisModelPart, std::size_t NumberOfLa
     Parameters parameters = NumberOfLayers == 2 ? GetTwoLayersParameters() : GetThreeLayersParameters();
 
     // Read properties
-    ReadMaterialsUtility(parameters, this_model);
+    auto read_util = ReadMaterialsUtility(this_model);
+    read_util.ReadMaterials(parameters);
 
     // Create nodes and elements
     Properties::Pointer p_elem_prop = rThisModelPart.pGetProperties(1);
@@ -138,7 +236,8 @@ void Create3DGeometryTetrahedra(ModelPart& rThisModelPart, std::size_t NumberOfL
     Parameters parameters = NumberOfLayers == 2 ? GetTwoLayersParameters() : GetThreeLayersParameters();
 
     // Read properties
-    ReadMaterialsUtility(parameters, this_model);
+    auto read_util = ReadMaterialsUtility(this_model);
+    read_util.ReadMaterials(parameters);
 
     // Create nodes and elements
     Properties::Pointer p_elem_prop = rThisModelPart.pGetProperties(1);
