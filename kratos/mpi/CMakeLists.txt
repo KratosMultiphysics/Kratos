@@ -1,9 +1,11 @@
 
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## Kratos MPI extension sources
 set( KRATOS_MPI_SOURCES
-   dummy.cpp
+   mpi_environment.cpp
 )
 
 ## Kratos MPI extension Python interface

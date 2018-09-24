@@ -19,6 +19,7 @@
 #include <pybind11/pybind11.h>
 
 // Module includes
+#include "mpi_environment.h"
 #include "add_mpi_communicator_to_python.h"
 
 namespace Kratos {
@@ -36,6 +37,27 @@ PYBIND11_MODULE(KratosMPI, m)
     namespace py = pybind11;
 
     m.def("Hello",module_greet);
+
+    m.def("MPIInitialize",[](py::list& rPythonArgv) {
+        int argc = py::len(rPythonArgv);
+        char** argv = new char*[argc];
+        for (int i = 0; i < argc; i++)
+        {
+            pybind11::str arg_str = py::str(rPythonArgv[i]);
+            argv[i] = new char[len(arg_str)];
+            std::cout << argv[i];
+        }
+        MPIEnvironment::Initialize(argc,argv);
+        for (int i = 0; i < argc; i++)
+        {
+            delete argv[i];
+        }
+        delete[] argv;
+    });
+
+    m.def("MPIFinalize",[](){
+        MPIEnvironment::Finalize();
+    });
 
     AddMPICommunicatorToPython(m);
 }
