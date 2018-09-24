@@ -388,7 +388,7 @@ public:
         const Vector& N,
         const GeometryType& Geom
         ) {
-        array_1d<double,3> normal(3, 0.0);
+        array_1d<double,3> normal = ZeroVector(3);
         for( IndexType i_node = 0; i_node < Geom.PointsNumber(); ++i_node )
             normal += N[i_node] * Geom[i_node].FastGetSolutionStepValue(NORMAL);
 

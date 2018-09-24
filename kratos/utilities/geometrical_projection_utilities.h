@@ -128,25 +128,13 @@ public:
 
         if( norm_2( rVector ) < zero_tolerance && norm_2( rNormal ) > zero_tolerance ) {
             distance = inner_prod(vector_points, rNormal)/norm_2(rNormal);
-        #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            rPointProjected.Coordinates() = rPointDestiny.Coordinates() + rVector * distance;
-        #else
             noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates() + rVector * distance;
-        #endif // ifdef KRATOS_USE_AMATRIX
             KRATOS_WARNING("Warning: Zero projection vector.") << " Projection using the condition vector instead." << std::endl;
         } else if (std::abs(inner_prod(rVector, rNormal) ) > zero_tolerance) {
             distance = inner_prod(vector_points, rNormal)/inner_prod(rVector, rNormal);
-        #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            rPointProjected.Coordinates() = rPointDestiny.Coordinates() + rVector * distance;
-        #else
             noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates() + rVector * distance;
-        #endif // ifdef KRATOS_USE_AMATRIX
         } else {
-        #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            rPointProjected.Coordinates() = rPointDestiny.Coordinates();
-        #else
             noalias(rPointProjected.Coordinates()) = rPointDestiny.Coordinates();
-        #endif // ifdef KRATOS_USE_AMATRIX
             KRATOS_WARNING("Warning: The line and the plane are coplanar.")  << " Something wrong happened " << std::endl;
         }
 
