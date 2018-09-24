@@ -45,6 +45,8 @@ RuleOfMixturesLaw::RuleOfMixturesLaw(
         aux_factor += rCombinationFactors[i];
     }
 
+    KRATOS_ERROR_IF(aux_factor < std::numeric_limits<double>::epsilon()) << "Wrong factors in RuleOfMixturesLaw" << std::endl;
+
     // We fill the maps
     for (IndexType i = 0; i < rSubPropertiesIDs.size(); ++i) {
         const IndexType id = rSubPropertiesIDs[i];
@@ -1226,7 +1228,7 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        Matrix constitutive_matrix = ZeroMatrix(voigt_size, voigt_size);
         for (auto& factors : mCombinationFactors) {
             const IndexType id = factors.first;
             Properties::Pointer p_prop = r_material_properties.GetSubProperty(id);
@@ -1236,13 +1238,15 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
             rValues.SetMaterialProperties(*p_prop);
             Matrix aux_value(voigt_size, voigt_size);
             p_law->CalculateValue(rValues, CONSTITUTIVE_MATRIX_PK2, aux_value);
-            r_constitutive_matrix += factor * aux_value;
+            constitutive_matrix += factor * aux_value;
         }
+
+        rValues.SetConstitutiveMatrix(constitutive_matrix);
         rValues.SetMaterialProperties(r_material_properties);
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-        Vector& r_stress_vector = rValues.GetStressVector();
+        Vector stress_vector = ZeroVector(voigt_size);
         for (auto& factors : mCombinationFactors) {
             const IndexType id = factors.first;
             Properties::Pointer p_prop = r_material_properties.GetSubProperty(id);
@@ -1252,8 +1256,10 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
             rValues.SetMaterialProperties(*p_prop);
             Vector aux_value(voigt_size);
             p_law->CalculateValue(rValues, PK2_STRESS_VECTOR, aux_value);
-            r_stress_vector += factor * aux_value;
+            stress_vector += factor * aux_value;
         }
+
+        rValues.SetStressVector(stress_vector);
         rValues.SetMaterialProperties(r_material_properties);
     }
 
@@ -1270,7 +1276,7 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
     const SizeType voigt_size = GetStrainSize();
 
     // Get Values to compute the constitutive law:
-    Flags& r_flags=rValues.GetOptions();
+    Flags& r_flags = rValues.GetOptions();
 
     const Properties& r_material_properties  = rValues.GetMaterialProperties();
 
@@ -1311,7 +1317,7 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        Matrix constitutive_matrix = ZeroMatrix(voigt_size, voigt_size);
         for (auto& factors : mCombinationFactors) {
             const IndexType id = factors.first;
             Properties::Pointer p_prop = r_material_properties.GetSubProperty(id);
@@ -1321,13 +1327,15 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
             rValues.SetMaterialProperties(*p_prop);
             Matrix aux_value(voigt_size, voigt_size);
             p_law->CalculateValue(rValues, CONSTITUTIVE_MATRIX_KIRCHHOFF, aux_value);
-            r_constitutive_matrix += factor * aux_value;
+            constitutive_matrix += factor * aux_value;
         }
+
+        rValues.SetConstitutiveMatrix(constitutive_matrix);
         rValues.SetMaterialProperties(r_material_properties);
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-        Vector& r_stress_vector = rValues.GetStressVector();
+        Vector stress_vector = ZeroVector(voigt_size);
         for (auto& factors : mCombinationFactors) {
             const IndexType id = factors.first;
             Properties::Pointer p_prop = r_material_properties.GetSubProperty(id);
@@ -1337,8 +1345,10 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
             rValues.SetMaterialProperties(*p_prop);
             Vector aux_value(voigt_size);
             p_law->CalculateValue(rValues, KIRCHHOFF_STRESS_VECTOR, aux_value);
-            r_stress_vector += factor * aux_value;
+            stress_vector += factor * aux_value;
         }
+
+        rValues.SetStressVector(stress_vector);
         rValues.SetMaterialProperties(r_material_properties);
     }
 }
