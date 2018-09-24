@@ -1,0 +1,3 @@
+from KratosMPI import *
+
+Hello()
