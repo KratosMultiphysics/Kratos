@@ -178,7 +178,11 @@ public:
         Distance = inner_prod(vector_points, Normal);
 
         PointType point_projected;
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        point_projected.Coordinates() = PointDestiny.Coordinates() - Normal * Distance;
+#else
         noalias(point_projected.Coordinates()) = PointDestiny.Coordinates() - Normal * Distance;
+#endif // ifdef KRATOS_USE_AMATRIX
 
         return point_projected;
     }
@@ -242,12 +246,19 @@ public:
             // Derivatives of shape functions
             Matrix ShapeFunctionsGradients;
             ShapeFunctionsGradients = GeomOrigin.ShapeFunctionsLocalGradients(ShapeFunctionsGradients, ResultingPoint );
+
+        #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+            DN = prod(X,ShapeFunctionsGradients);
+
+            J = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
+        #else
             noalias(DN) = prod(X,ShapeFunctionsGradients);
 
             noalias(J) = prod(trans(DN),DN); // TODO: Add the non linearity concerning the normal
+        #endif // ifdef KRATOS_USE_AMATRIX
 
             const array_1d<double, 3>  temp = current_destiny_global_coords - current_global_coords;
-            Vector RHS = prod(trans(DN), subrange(temp,0,2));
+            const Vector RHS = prod(trans(DN), subrange(temp,0,2));
 
             old_delta_xi = DeltaXi;
             DeltaXi = RHS[0]/J(0, 0);
@@ -419,11 +430,15 @@ public:
         const int num_nodes = static_cast<int>(nodes_array.size());
 
         // Auxiliar zero array
-        const array_1d<double, 3> zero_array(3, 0.0);
+        const array_1d<double, 3> zero_array = ZeroVector(3);
 
         #pragma omp parallel for
         for(int i = 0; i < num_nodes; ++i)
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+            (nodes_array.begin() + i)->FastGetSolutionStepValue(NORMAL) = zero_array;
+#else
             noalias((nodes_array.begin() + i)->FastGetSolutionStepValue(NORMAL)) = zero_array;
+#endif // ifdef KRATOS_USE_AMATRIX
 
         // Sum all the nodes normals
         ConditionsArrayType& conditions_array = rModelPart.Conditions();
@@ -849,7 +864,7 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, NonHistor
         ModelPart& rThisModelPart,
         Variable<array_1d<double, 3>>& ThisVariable
         ) {
-    const array_1d<double, 3> zero_array(3, 0.0);
+    const array_1d<double, 3> zero_array = ZeroVector(3);
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
     VariableUtils().SetNonHistoricalVariable(ThisVariable, zero_array, nodes_array);
 }
@@ -862,7 +877,7 @@ inline void MortarUtilities::ResetAuxiliarValue<Variable<double>>(ModelPart& rTh
 
 template<>
 inline void MortarUtilities::ResetAuxiliarValue<Variable<array_1d<double, 3>>>(ModelPart& rThisModelPart) {
-    const array_1d<double, 3> zero_array(3, 0.0);
+    const array_1d<double, 3> zero_array = ZeroVector(3);
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
     VariableUtils().SetNonHistoricalVariable(NODAL_VAUX, zero_array, nodes_array);
 }
