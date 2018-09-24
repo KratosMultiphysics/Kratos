@@ -36,6 +36,6 @@ def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, m
                                     communicator,
                                     model_part_controller)
     else:
-        raise NameError("The following optimization algorithm is not supported by the algorithm factory: " + AlgorithmName)
+        raise NameError("The following optimization algorithm is not supported by the algorithm factory: " + algorithm_name)
 
  # ==============================================================================
