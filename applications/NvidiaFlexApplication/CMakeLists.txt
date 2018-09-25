@@ -7,6 +7,8 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
+include_directories( ${NVIDIA_FLEX_ROOT_DIR}/core )
+include_directories( ${NVIDIA_FLEX_ROOT_DIR}/include )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive  ")
 
@@ -22,9 +24,9 @@ set(KRATOS_NVIDIAFLEX_APPLICATION_PYTHON_INTERFACE
 )
 
 set(NVIDIA_FLEX_LIBRARY
-    ${NVIDIA_FLEX_DIR}/NvFlexReleaseCUDA_x64.a
-    ${NVIDIA_FLEX_DIR}/NvFlexExtReleaseCUDA_x64.a
-    ${NVIDIA_FLEX_DIR}/NvFlexDeviceRelease_x64.a
+    ${NVIDIA_FLEX_LIBRARY_DIR}/NvFlexReleaseCUDA_x64.a
+    ${NVIDIA_FLEX_LIBRARY_DIR}/NvFlexExtReleaseCUDA_x64.a
+    ${NVIDIA_FLEX_LIBRARY_DIR}/NvFlexDeviceRelease_x64.a
 )
 
 add_library(KratosNvidiaFlexCore SHARED ${KRATOS_NVIDIAFLEX_APPLICATION_CORE})
