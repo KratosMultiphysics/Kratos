@@ -27,9 +27,6 @@ namespace Kratos
 {
 namespace Testing
 {
-/// Tolerance
-static constexpr double tolerance = 1.0e-6;
-
 /// Nodetype definition
 typedef Node<3> NodeType;
 
@@ -395,6 +392,9 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, Krat
 //     // DEBUG
 //     GiDIODebugRuleMixtures(model_part);
 
+    /// Tolerance
+    const double tolerance = 1.0e-6;
+
     ProcessInfo& process_info = model_part.GetProcessInfo();
     for (auto& elem : model_part.Elements()) {
         std::vector<Vector> solution;
@@ -431,6 +431,9 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, Kr
 
 //     // DEBUG
 //     GiDIODebugRuleMixtures(model_part);
+
+    /// Tolerance
+    const double tolerance = 1.0e-6;
 
     ProcessInfo& process_info = model_part.GetProcessInfo();
     for (auto& elem : model_part.Elements()) {
@@ -469,6 +472,9 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, Kra
 //     // DEBUG
 //     GiDIODebugRuleMixtures(model_part);
 
+    /// Tolerance
+    const double tolerance = 1.0e-6;
+
     ProcessInfo& process_info = model_part.GetProcessInfo();
     for (auto& elem : model_part.Elements()) {
         std::vector<Vector> solution;
@@ -505,6 +511,9 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronThreeLayers, K
 
 //     // DEBUG
 //     GiDIODebugRuleMixtures(model_part);
+
+    /// Tolerance
+    const double tolerance = 1.0e-6;
 
     ProcessInfo& process_info = model_part.GetProcessInfo();
     for (auto& elem : model_part.Elements()) {
