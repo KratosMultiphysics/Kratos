@@ -108,7 +108,7 @@ typename Properties::TableType& GetTableHelperFunction1( TContainerType& el,
 
 void  AddPropertiesToPython(pybind11::module& m)
 {
-    auto py_class = class_<Properties, Properties::Pointer, Properties::BaseType >(m,"Properties")
+    class_<Properties, Properties::Pointer, Properties::BaseType >(m,"Properties")
     .def(init<Kratos::Properties::IndexType>())
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
@@ -179,7 +179,7 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("HasVariables", &Properties::HasVariables)
     .def("HasTables", &Properties::HasTables)
     .def("IsEmpty", &Properties::IsEmpty)
-    KRATOS_DEF_STR(Properties)
+    KRATOS_DEF_PYTHON_STR(Properties)
     ;
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");

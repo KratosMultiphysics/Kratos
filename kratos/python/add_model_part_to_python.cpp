@@ -725,7 +725,7 @@ void AddModelPartToPython(pybind11::module& m)
 
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
-    auto py_class = class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")
+    class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")
         .def(init<std::string const&>())
         .def(init<>())
         .def_property("Name", GetModelPartName, SetModelPartName)
@@ -880,9 +880,9 @@ void AddModelPartToPython(pybind11::module& m)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1, return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2, return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint3, return_value_policy::reference_internal)
-        KRATOS_DEF_STR(ModelPart)
+        KRATOS_DEF_PYTHON_STR(ModelPart)
         ;
-        //KRATOS_DEF_STR(ModelPart, py_class);
+        //KRATOS_DEF_PYTHON_STR(ModelPart, py_class);
 }
 
 } // namespace Python.
