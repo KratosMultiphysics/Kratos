@@ -42,31 +42,29 @@ public:
 
     static void CalculateRigthHandSideDerivative(Element& rElement,
                                                 const Variable<double>& rDesignVariable,
+                                                const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
 
     static void CalculateRigthHandSideDerivative(Element& rElement,
                                                 const Variable<array_1d<double,3>>& rDesignVariable,
+                                                const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
 
     static void CalculateLeftHandSideDerivative(Element& rElement,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
+                                                const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
 
     static void CalculateMassMatrixDerivative(Element& rElement,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
+                                                const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
-
-private:
-
-    static double GetPerturbationSize(const Variable<double>& rDesignVariable);
-
-    static double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable);
 
 }; // class DifferentiationUtility.
 

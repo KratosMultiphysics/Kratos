@@ -22,6 +22,7 @@ namespace Kratos
 {
     void DifferentiationUtility::CalculateRigthHandSideDerivative(Element& rElement,
                                                 const Variable<double>& rDesignVariable,
+                                                const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)
     {
@@ -35,9 +36,6 @@ namespace Kratos
             Vector RHS_perturbed;
 
             ProcessInfo copy_process_info = rCurrentProcessInfo;
-
-            // Get perturbation size
-            const double delta = DifferentiationUtility::GetPerturbationSize(rDesignVariable);
 
             // Compute RHS before perturbion
             rElement.CalculateRightHandSide(RHS_unperturbed, copy_process_info);
@@ -54,14 +52,14 @@ namespace Kratos
 
             // perturb the design variable
             const double current_property_value = rElement.GetProperties()[rDesignVariable];
-            p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
+            p_local_property->SetValue(rDesignVariable, (current_property_value + rPertubationSize));
 
             // Compute RHS after perturbation
             rElement.CalculateRightHandSide(RHS_perturbed, copy_process_info);
 
             // Compute derivative of RHS w.r.t. design variable with finite differences
             for(IndexType i = 0; i < RHS_perturbed.size(); ++i)
-                rOutput(0, i) = (RHS_perturbed[i] - RHS_unperturbed[i]) / delta;
+                rOutput(0, i) = (RHS_perturbed[i] - RHS_unperturbed[i]) / rPertubationSize;
 
             // Give element original properties back
             rElement.SetProperties(p_global_properties);
@@ -78,6 +76,7 @@ namespace Kratos
 
     void DifferentiationUtility::CalculateRigthHandSideDerivative(Element& rElement,
                                                 const Variable<array_1d<double,3>>& rDesignVariable,
+                                                const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)
     {
@@ -96,9 +95,6 @@ namespace Kratos
             Vector RHS_perturbed;
             ProcessInfo copy_process_info = rCurrentProcessInfo;
 
-            // Get perturbation size
-            const double delta = DifferentiationUtility::GetPerturbationSize(rDesignVariable);
-
             const SizeType number_of_nodes = rElement.GetGeometry().PointsNumber();
             const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
             const SizeType num_dofs_per_node = 6; //(mHasRotationDofs) ?  2 * dimension : dimension; TODO
@@ -116,22 +112,22 @@ namespace Kratos
                 for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i)
                 {
                     // perturb the design variable
-                    node_i.GetInitialPosition()[coord_dir_i] += delta;
-                    node_i[coord_dir_i] += delta;
+                    node_i.GetInitialPosition()[coord_dir_i] += rPertubationSize;
+                    node_i[coord_dir_i] += rPertubationSize;
 
                     // compute RHS after perturbation
                     rElement.CalculateRightHandSide(RHS_perturbed, copy_process_info);
 
                     //compute derivative of RHS w.r.t. design variable with finite differences
                     for(IndexType i = 0; i < RHS_perturbed.size(); ++i)
-                        rOutput( (coord_dir_i + index*dimension), i) = (RHS_perturbed[i]-RHS_unperturbed[i])/delta;
+                        rOutput( (coord_dir_i + index*dimension), i) = (RHS_perturbed[i]-RHS_unperturbed[i])/rPertubationSize;
 
                     // Reset perturbed vector
                     noalias(RHS_perturbed) = ZeroVector(RHS_perturbed.size());
 
                     // unperturb the design variable
-                    node_i.GetInitialPosition()[coord_dir_i] -= delta;
-                    node_i[coord_dir_i] -= delta;
+                    node_i.GetInitialPosition()[coord_dir_i] -= rPertubationSize;
+                    node_i[coord_dir_i] -= rPertubationSize;
 
                 }
                 index++;
@@ -155,6 +151,7 @@ namespace Kratos
     void DifferentiationUtility::CalculateLeftHandSideDerivative(Element& rElement,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
+                                                const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)
     {
@@ -182,9 +179,6 @@ namespace Kratos
             Vector dummy;
             ProcessInfo copy_process_info = rCurrentProcessInfo;
 
-            // Get perturbation size
-            const double delta = DifferentiationUtility::GetPerturbationSize(SHAPE);
-
             // compute LHS before perturbion
             rElement.CalculateLocalSystem(LHS_unperturbed, dummy ,copy_process_info);
 
@@ -192,18 +186,18 @@ namespace Kratos
                 rOutput.resize(LHS_unperturbed.size1(), LHS_unperturbed.size2());
 
             // perturb the design variable
-            rNode.GetInitialPosition()[coord_dir] += delta;
-            rNode.Coordinates()[coord_dir] += delta;
+            rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
+            rNode.Coordinates()[coord_dir] += rPertubationSize;
 
             // compute LHS after perturbation
             rElement.CalculateLocalSystem(LHS_perturbed, dummy ,copy_process_info);
 
             //compute derivative of RHS w.r.t. design variable with finite differences
-            noalias(rOutput) = (LHS_perturbed - LHS_unperturbed) / delta;
+            noalias(rOutput) = (LHS_perturbed - LHS_unperturbed) / rPertubationSize;
 
              // unperturb the design variable
-            rNode.GetInitialPosition()[coord_dir] -= delta;
-            rNode.Coordinates()[coord_dir] -= delta;
+            rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
+            rNode.Coordinates()[coord_dir] -= rPertubationSize;
 
             //call one last time to make sure everything is as it was before TODO improve this..
             rElement.CalculateLocalSystem(LHS_perturbed, dummy ,copy_process_info);
@@ -221,6 +215,7 @@ namespace Kratos
     void DifferentiationUtility::CalculateMassMatrixDerivative(Element& rElement,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
+                                                const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)
     {
@@ -247,9 +242,6 @@ namespace Kratos
             Matrix perturbed_mass_matrix;
             ProcessInfo copy_process_info = rCurrentProcessInfo;
 
-            // Get perturbation size
-            const double delta = DifferentiationUtility::GetPerturbationSize(SHAPE);
-
             // compute mass matrix before perturbion
             rElement.CalculateMassMatrix(unperturbed_mass_matrix, copy_process_info);
 
@@ -257,18 +249,18 @@ namespace Kratos
                 rOutput.resize(unperturbed_mass_matrix.size1(), unperturbed_mass_matrix.size2());
 
             // perturb the design variable
-            rNode.GetInitialPosition()[coord_dir] += delta;
-            rNode.Coordinates()[coord_dir] += delta;
+            rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
+            rNode.Coordinates()[coord_dir] += rPertubationSize;
 
             // compute LHS after perturbation
             rElement.CalculateMassMatrix(perturbed_mass_matrix, copy_process_info);
 
             //compute derivative of RHS w.r.t. design variable with finite differences
-            noalias(rOutput) = (perturbed_mass_matrix - unperturbed_mass_matrix) / delta;
+            noalias(rOutput) = (perturbed_mass_matrix - unperturbed_mass_matrix) / rPertubationSize;
 
              // unperturb the design variable
-            rNode.GetInitialPosition()[coord_dir] -= delta;
-            rNode.Coordinates()[coord_dir] -= delta;
+            rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
+            rNode.Coordinates()[coord_dir] -= rPertubationSize;
 
             //call one last time to make sure everything is as it was before TODO improve this..
             rElement.CalculateMassMatrix(perturbed_mass_matrix, copy_process_info);
@@ -281,18 +273,6 @@ namespace Kratos
         }
 
         KRATOS_CATCH("");
-    }
-
-    double DifferentiationUtility::GetPerturbationSize(const Variable<double>& rDesignVariable)
-    {
-        const double delta = 1.0e-8; //TODO modify this
-        return delta;
-    }
-
-    double DifferentiationUtility::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable)
-    {
-        const double delta =  1e-8; //TODO modify this
-        return delta;
     }
 
 }  // namespace Kratos.
