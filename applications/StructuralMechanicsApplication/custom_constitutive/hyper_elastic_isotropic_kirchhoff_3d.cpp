@@ -271,6 +271,8 @@ Vector& HyperElasticIsotropicKirchhoff3D::CalculateValue(
             this->CalculateMaterialResponseKirchhoff(rParameterValues);
         }
 
+        rValue = rParameterValues.GetStrainVector();
+
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
@@ -302,6 +304,8 @@ Vector& HyperElasticIsotropicKirchhoff3D::CalculateValue(
         } if (rThisVariable == PK2_STRESS_VECTOR) {
             this->CalculateMaterialResponsePK2(rParameterValues);
         }
+
+        rValue = rParameterValues.GetStressVector();
 
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
@@ -344,6 +348,8 @@ Matrix& HyperElasticIsotropicKirchhoff3D::CalculateValue(
         } else if (rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
             this->CalculateMaterialResponsePK2(rParameterValues);
         }
+
+        rValue = rParameterValues.GetConstitutiveMatrix();
 
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
