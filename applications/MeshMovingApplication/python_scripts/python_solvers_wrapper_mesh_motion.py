@@ -4,8 +4,6 @@ import KratosMultiphysics
 
 def CreateSolverByParameters(model, solver_settings, parallelism):
 
-    print(solver_settings.PrettyPrintJsonString())
-
     solver_type = solver_settings["solver_type"].GetString()
 
     # Solvers for OpenMP parallelism
