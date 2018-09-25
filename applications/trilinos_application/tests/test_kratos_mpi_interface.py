@@ -91,51 +91,6 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
         exp_value = (comm_size-1)*(comm_size)/2 + comm_size*0.5 # n(n+1)/2 + comm_size*0.5
         self.assertEqual(sum(gathered_values), exp_value)
 
-    def _test_scatter_int(self):
-        rank_to_scatter_from = 0
-        my_rank = mpi.rank
-        offset = 21
-        if my_rank == rank_to_scatter_from:
-            vals_to_scatter = list(range(offset, mpi.size+offset))
-            print(vals_to_scatter)
-        else:
-            vals_to_scatter = list()
-
-        scattered_val = mpi.scatter(mpi.world, vals_to_scatter, rank_to_scatter_from)
-
-        print("Rank", my_rank, "; Val", scattered_val)
-
-        self.assertEqual(scattered_val, my_rank+offset)
-
-    def test_scatter_double(self):
-        rank_to_scatter_from = 0
-        my_rank = mpi.rank
-        size = mpi.size
-        offset_1 = 21
-        offset_2 = 0
-
-        vals_to_scatter = list()
-        if my_rank == rank_to_scatter_from:
-            for i in range(size):
-                vals_to_scatter.append(offset_1 + offset_2 + i)
-            for valll in vals_to_scatter:
-                print(type(valll))
-
-        print(vals_to_scatter)
-
-        scattered_val = mpi.scatter(mpi.world, vals_to_scatter, rank_to_scatter_from)
-
-        print("Rank", my_rank, "; Val", scattered_val)
-
-        self.assertAlmostEqual(scattered_val, mpi.rank+offset_1+offset_2)
-
-    def test_scatterv_int(self):
-        pass
-
-    def test_scatterv_double(self):
-        pass
-
-
     def test_broadcast_int(self):
         val_to_broadcast = (mpi.rank+1)*5
         rank_to_broadcast_from = 0

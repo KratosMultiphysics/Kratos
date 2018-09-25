@@ -22,7 +22,6 @@
 // External includes
 
 // Project includes
-// #include "includes/exception.h"
 
 
 namespace Kratos {
@@ -216,6 +215,14 @@ public:
         this->barrier(mWorld);
     }
 
+	/// Perform a MPI_Bcast operation.
+	/**
+	 * Broadcasting a value to all ranks
+	 * @param rComm A communicator object.
+	 * @param LocalValue The local value to be sent in the gather.
+	 * @param Root The MPI rank of the process where the valued will be broadcasted from.
+	 * @return The broadcasted value on all ranks
+	 */
 	template<class TValueType>
 	TValueType broadcast(PythonMPIComm& rComm,
                          TValueType LocalValue,
@@ -233,6 +240,15 @@ public:
         return LocalValue;
     }
 
+	/// Perform a MPI_Reduce operation.
+	/**
+	 * Perform a reduction given an MPI_Op-Type
+	 * @param rComm A communicator object.
+	 * @param LocalValue The local value to be sent in the gather.
+	 * @param Root The MPI rank of the process where the valued will be gathered.
+	 * @param MPI_Operation The MPI_Op to be used for the reduction
+	 * @return The reduced value on the for the Root thread
+	 */
 	template<class TValueType>
     TValueType reduce(PythonMPIComm& rComm,
                       const TValueType LocalValue,
@@ -253,10 +269,18 @@ public:
         return result_val;
     }
 
+	/// Perform a MPI_Allreduce operation.
+	/**
+	 * Perform a allreduction given an MPI_Op-Type
+	 * @param rComm A communicator object.
+	 * @param LocalValue The local value to be sent in the gather.
+	 * @param MPI_Operation The MPI_Op to be used for the reduction
+	 * @return The reduced value on all ranks
+	 */
 	template<class TValueType>
     TValueType allreduce(PythonMPIComm& rComm,
-                          const TValueType LocalValue,
-                          const MPI_Operation MpiOp)
+                         const TValueType LocalValue,
+                         const MPI_Operation MpiOp)
 	{
 		// Determime data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
@@ -270,57 +294,6 @@ public:
                       GetMPIOpType(MpiOp), rComm.GetMPIComm());
 
         return result_val;
-    }
-
-    template<class TValueType>
-	TValueType scatter(PythonMPIComm& rComm,
-                       const std::vector<TValueType>& rLocalValues,
-                       const int Root)
-    {
-        // Determime data type
-        const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
-
-        int rank, size;
-        MPI_Comm_rank(rComm.GetMPIComm(), &rank);
-        MPI_Comm_size(rComm.GetMPIComm(), &size);
-
-        if (rank == Root && rLocalValues.size() != size)
-            throw std::runtime_error("Wrong number of values to Scatter!");
-
-        TValueType receive_val;
-
-        // Communicate
-        int err_code = MPI_Scatter(rLocalValues.data(), 1, DataType, &receive_val,
-                    1, DataType, Root, rComm.GetMPIComm());
-
-        std::cout << "RANK; " << rank << "; ERR_CODE: " << err_code << std::endl;
-        std::cout << "RANK; " << rank << "; is int: " << (DataType == MPI_INT) << std::endl;
-
-        return receive_val;
-    }
-
-    template<class TValueType>
-	std::vector<TValueType> scatterv(PythonMPIComm& rComm,
-                                     const std::vector<std::vector<TValueType>>& LocalValue,
-                                     const int Root)
-    {
-        // // Determime data type
-        // const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
-
-        // int rank, size;
-        // MPI_Comm_rank(rComm.GetMPIComm(), &rank);
-        // MPI_Comm_size(rComm.GetMPIComm(), &size);
-
-        // // Create recieve buffer
-        // std::vector<TValueType> global_values;
-        // if (rank == Root)
-        //     global_values.resize(size);
-
-        // // Communicate
-        // MPI_Gather(&LocalValue, 1, DataType, global_values.data(),
-        //            1, DataType, Root, rComm.GetMPIComm());
-
-        // return global_values;
     }
 
 	/// Perform a MPI_Gather operation.
@@ -456,6 +429,8 @@ private:
     template<class T>
     inline MPI_Datatype GetMPIDatatype(const T& Value);
 
+    /// An auxiliary function to determine the MPI_Op corresponding to a given Enum type
+    /// This is necessary bcs MPI_Op cannot be directly exposed to Python
     inline MPI_Op GetMPIOpType(const MPI_Operation MPIOpEnum)
     {
         switch(MPIOpEnum) {
