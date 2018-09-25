@@ -154,7 +154,7 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
             print(vals_to_scatter)
         else:
             vals_to_scatter = list(list())
-        scattered_list = mpi.scatterv_int(mpi.world, vals_to_scatter, rank_to_scatter_from)
+        scattered_list = mpi.scatterv(mpi.world, vals_to_scatter, rank_to_scatter_from)
 
         self.assertEqual(type(scattered_list), list)
         self.assertEqual(len(scattered_list), my_rank+min_list_size)
