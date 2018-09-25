@@ -138,12 +138,7 @@ class ALEFluidSolver(PythonSolver):
     def SolveSolutionStep(self):
         self.mesh_motion_solver.SolveSolutionStep()
 
-        # Copy the MESH_VELOCITY to the VELOCITY (ALE) on the ale-boundary
-        for mp in self.ale_boundary_parts:
-            KratosMultiphysics.VariableUtils().CopyVectorVar(
-                KratosMultiphysics.MESH_VELOCITY,
-                KratosMultiphysics.VELOCITY,
-                mp.Nodes)
+        self._ApplyALEBoundaryCondition()
 
         self.fluid_solver.SolveSolutionStep()
 
@@ -176,3 +171,12 @@ class ALEFluidSolver(PythonSolver):
         import python_solvers_wrapper_fluid
         return python_solvers_wrapper_fluid.CreateSolverByParameters(
             self.model, solver_settings, parallelism)
+
+    def _ApplyALEBoundaryCondition(self):
+        '''Copy the MESH_VELOCITY to the VELOCITY (ALE) on the ale-boundary
+        '''
+        for mp in self.ale_boundary_parts:
+            KratosMultiphysics.VariableUtils().CopyVectorVar(
+                KratosMultiphysics.MESH_VELOCITY,
+                KratosMultiphysics.VELOCITY,
+                mp.Nodes)
