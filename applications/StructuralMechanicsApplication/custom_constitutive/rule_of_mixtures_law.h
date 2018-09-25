@@ -45,6 +45,10 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This law defines a parallel rule of mixture (classic law of mixture)
  * @details The constitutive law show have defined a subproperties in order to work properly
+ * This law combines parallel CL considering the following principles:
+ *  - All layer have the same strain
+ *  - The total stress is the addition of the strain in each layer
+ *  - The constitutive tensor is the addition of the constitutive tensor of each layer
  * @author Vicente Mataix Ferrandiz
  * @author Fernando Rastellini
  */
