@@ -97,14 +97,12 @@ namespace Kratos
 
             const SizeType number_of_nodes = rElement.GetGeometry().PointsNumber();
             const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
-            const SizeType num_dofs_per_node = 6; //(mHasRotationDofs) ?  2 * dimension : dimension; TODO
-            const SizeType local_size = number_of_nodes * num_dofs_per_node;
-
-            if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) )
-                rOutput.resize(dimension * number_of_nodes, local_size);
 
             // compute RHS before perturbion
             rElement.CalculateRightHandSide(RHS_unperturbed, copy_process_info);
+
+            if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != RHS_unperturbed.size() ) )
+                rOutput.resize(dimension * number_of_nodes, RHS_unperturbed.size());
 
             IndexType index = 0;
             for(auto& node_i : rElement.GetGeometry())
