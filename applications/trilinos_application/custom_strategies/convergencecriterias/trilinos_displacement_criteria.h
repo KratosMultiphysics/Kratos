@@ -276,16 +276,16 @@ private:
     TDataType CalculateReferenceNorm(DofsArrayType& rDofSet, ModelPart& rModelPart)
     {
         TDataType local_ReferenceDispNorm = TDataType();
-        TDataType temp;
+        TDataType value;
 
         const double rank = rModelPart.GetCommunicator().MyPID(); // double because I want to compare with PARTITION_INDEX
 
-        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+        for(auto it_dof = rDofSet.begin() ; it_dof != rDofSet.end() ; ++it_dof)
         {
-            if(i_dof->IsFree() && (i_dof->GetSolutionStepValue(PARTITION_INDEX) == rank))
+            if(it_dof->IsFree() && (it_dof->GetSolutionStepValue(PARTITION_INDEX) == rank))
             {
-                temp = i_dof->GetSolutionStepValue();
-                local_ReferenceDispNorm += temp*temp;
+                value = it_dof->GetSolutionStepValue();
+                local_ReferenceDispNorm += value*value;
             }
         }
 
