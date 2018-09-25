@@ -270,11 +270,9 @@ protected:
         for (auto& elem_i : mrModelPart.Elements())
         {
             Matrix mass_matrix_org;
-            Matrix LHS_org;
             Vector dummy;
 
             elem_i.CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
-            elem_i.CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
 
             const std::size_t num_dofs_element = mass_matrix_org.size1();
             const std::size_t domain_size = CurrentProcessInfo.GetValue(DOMAIN_SIZE);
@@ -301,25 +299,16 @@ protected:
                         DifferentiationUtility::CalculateLeftHandSideDerivative(elem_i, SHAPE_X, node_i, mDelta, perturbed_LHS, CurrentProcessInfo);
                         DifferentiationUtility::CalculateMassMatrixDerivative(elem_i, SHAPE_X, node_i, mDelta, perturbed_mass_matrix, CurrentProcessInfo);
                     }
-                    else if( coord_dir_i == 1  )
+                    else if( coord_dir_i == 1 )
                     {
                         DifferentiationUtility::CalculateLeftHandSideDerivative(elem_i, SHAPE_Y, node_i, mDelta, perturbed_LHS, CurrentProcessInfo);
                         DifferentiationUtility::CalculateMassMatrixDerivative(elem_i, SHAPE_Y, node_i, mDelta, perturbed_mass_matrix, CurrentProcessInfo);
                     }
-                    else if( coord_dir_i == 2  )
+                    else if( coord_dir_i == 2 )
                     {
                         DifferentiationUtility::CalculateLeftHandSideDerivative(elem_i, SHAPE_Z, node_i, mDelta, perturbed_LHS, CurrentProcessInfo);
                         DifferentiationUtility::CalculateMassMatrixDerivative(elem_i, SHAPE_Z, node_i, mDelta, perturbed_mass_matrix, CurrentProcessInfo);
                     }
-
-                    /*node_i.GetInitialPosition()[coord_dir_i] += mDelta;
-                    node_i.Coordinates()[coord_dir_i] += mDelta;
-
-                    elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
-                    noalias(perturbed_mass_matrix) = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-
-                    elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
-                    noalias(perturbed_LHS) = (perturbed_LHS - LHS_org) / mDelta;*/
 
                     for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                     {
@@ -331,9 +320,6 @@ protected:
 
                         gradient_contribution[coord_dir_i] += gradient_prefactors[i] * inner_prod(eigenvectors_of_element[i] , aux_vector) * mWeightingFactors[i];
                     }
-
-                    //node_i.GetInitialPosition()[coord_dir_i] -= mDelta;
-                    //node_i.Coordinates()[coord_dir_i] -= mDelta;
                 }
                 noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
             }
