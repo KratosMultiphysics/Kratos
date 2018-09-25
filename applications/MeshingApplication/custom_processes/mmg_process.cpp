@@ -2245,6 +2245,13 @@ void MmgProcess<TDim>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
     }
 
     const SizeType auxiliar_number_of_nodes = auxiliar_model_part.Nodes().size();
+    NodesArrayType& auxiliar_nodes_array = auxiliar_model_part.Nodes();
+
+    for(IndexType i = 0; i < auxiliar_nodes_array.size(); ++i) {
+        auto it_node = auxiliar_nodes_array.begin() + i;
+        it_node->SetId(i + 1);
+    }
+
     NodesArrayType& copy_old_nodes_array = copy_old_model_part.Nodes();
 
     for(IndexType i = 0; i < copy_old_nodes_array.size(); ++i) {
