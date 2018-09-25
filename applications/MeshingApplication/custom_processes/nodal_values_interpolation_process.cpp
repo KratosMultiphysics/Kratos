@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -27,27 +27,22 @@ NodalValuesInterpolationProcess<TDim>::NodalValuesInterpolationProcess(
         ModelPart& rDestinationMainModelPart,
         Parameters ThisParameters
         ):mrOriginMainModelPart(rOriginMainModelPart),
-          mrDestinationMainModelPart(rDestinationMainModelPart)
+          mrDestinationMainModelPart(rDestinationMainModelPart),
+          mThisParameters(ThisParameters)
 {
-    Parameters DefaultParameters = Parameters(R"(
+    Parameters default_parameters = Parameters(R"(
     {
-    "echo_level"                 : 1,
-    "framework"                  : "Eulerian",
-    "max_number_of_searchs"      : 1000,
-    "interpolate_non_historical" : true,
-    "step_data_size"             : 0,
-    "buffer_size"                : 0
+        "echo_level"                 : 1,
+        "framework"                  : "Eulerian",
+        "max_number_of_searchs"      : 1000,
+        "interpolate_non_historical" : true,
+        "extrapolate_contour_values" : true,
+        "step_data_size"             : 0,
+        "buffer_size"                : 0
     })");
-    ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-    
-    mEchoLevel = ThisParameters["echo_level"].GetInt();
-    mFramework = ConvertFramework(ThisParameters["framework"].GetString());
-    mMaxNumberOfResults = ThisParameters["max_number_of_searchs"].GetInt();
-    mInterpolateNonHistorical = ThisParameters["interpolate_non_historical"].GetBool();
-    mStepDataSize = ThisParameters["step_data_size"].GetInt();
-    mBufferSize   = ThisParameters["buffer_size"].GetInt();
+    mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-    KRATOS_INFO_IF("NodalValuesInterpolationProcess", mEchoLevel > 0) << "Step data size: " << mStepDataSize << " Buffer size: " << mBufferSize << std::endl;
+    KRATOS_INFO_IF("NodalValuesInterpolationProcess", mThisParameters["echo_level"].GetInt() > 0) << "Step data size: " << mThisParameters["step_data_size"].GetInt() << " Buffer size: " << mThisParameters["buffer_size"].GetInt() << std::endl;
 }
 
 /***********************************************************************************/
@@ -59,34 +54,34 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
     // We create the locator
     BinBasedFastPointLocator<TDim> point_locator = BinBasedFastPointLocator<TDim>(mrOriginMainModelPart);
     point_locator.UpdateSearchDatabase();
-    
+
     // Iterate in the nodes
     NodesArrayType& nodes_array = mrDestinationMainModelPart.Nodes();
     const SizeType num_nodes = nodes_array.end() - nodes_array.begin();
-    
-    if (mInterpolateNonHistorical)
+
+    if (mThisParameters["interpolate_non_historical"].GetBool())
         GetListNonHistoricalVariables();
 
     /* Nodes */
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(num_nodes); ++i) {
         auto it_node = nodes_array.begin() + i;
-        
+
         Vector shape_functions;
         Element::Pointer p_element;
-        
+
         const array_1d<double, 3>& coordinates = it_node->Coordinates();
-        const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mMaxNumberOfResults, 5.0e-2);
-        
+        const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mThisParameters["max_number_of_searchs"].GetInt(), 5.0e-2);
+
         if (is_found == false) {
-            if (mEchoLevel > 0 || mFramework == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
+            if (mThisParameters["echo_level"].GetInt() > 0 || ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
                 KRATOS_WARNING("NodalValuesInterpolationProcess") << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
-                KRATOS_WARNING_IF("NodalValuesInterpolationProcess", mFramework == FrameworkEulerLagrange::LAGRANGIAN) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
+                KRATOS_WARNING_IF("NodalValuesInterpolationProcess", ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
             }
         } else {
-            if (mInterpolateNonHistorical)
+            if (mThisParameters["interpolate_non_historical"].GetBool())
                 CalculateData(*(it_node.base()), p_element, shape_functions);
-            for(IndexType i_step = 0; i_step < mBufferSize; ++i_step)
+            for(IndexType i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
                 CalculateStepData(*(it_node.base()), p_element, shape_functions, i_step);
         }
     }
@@ -227,7 +222,7 @@ void NodalValuesInterpolationProcess<TDim>::CalculateStepData(
 {
     // The nodal data (historical)
     double* step_data = pNode->SolutionStepData().Data(Step);
-    for (IndexType j = 0; j < mStepDataSize; ++j)
+    for (IndexType j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j)
         step_data[j] = 0;
 
     // The nodal data (historical) of each node of the original mesh
@@ -236,7 +231,7 @@ void NodalValuesInterpolationProcess<TDim>::CalculateStepData(
     for (IndexType i = 0; i < number_of_nodes; ++i) {
         const double* nodal_data = geom[i].SolutionStepData().Data(Step);
         // Now we interpolate the values of each node
-        for (IndexType j = 0; j < mStepDataSize; ++j) {
+        for (IndexType j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j) {
             step_data[j] += rShapeFunctions[i] * nodal_data[j];
         }
     }
