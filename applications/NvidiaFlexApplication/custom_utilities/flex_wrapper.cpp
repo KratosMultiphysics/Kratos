@@ -246,12 +246,13 @@ namespace Kratos {
         for (size_t i = 0; i < number_of_nodes; i++) {
             const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
             mFlexParameters.radius = (float) 2.0 * node_it->FastGetSolutionStepValue(RADIUS);
+            mFlexParameters.staticFriction = mFlexParameters.particleFriction = mFlexParameters.dynamicFriction = (float) mrSpheresModelPart.GetProcessInfo()[PARTICLE_FRICTION];
             break;
         }
         if (mFlexParameters.radius == 0.0) {
             KRATOS_ERROR << "The radius of the particles cannot be 0.0!"<<std::endl;
         }
-
+        
         //check that all radii are the same!!
         const double tolerance = 1.0e-6;
         double reference_radius = 0.0;
@@ -269,9 +270,9 @@ namespace Kratos {
         }
 
         mFlexParameters.viscosity = 0.0f;
-        mFlexParameters.dynamicFriction = 0.25f; //0.5f; //0.25f;
-        mFlexParameters.staticFriction = 0.25f; //0.5f; //0.25f;
-        mFlexParameters.particleFriction = 0.25f; //0.5f; //0.25f;
+        //mFlexParameters.dynamicFriction = 0.25f; //0.5f; //0.25f;
+        //mFlexParameters.staticFriction = 0.25f; //0.5f; //0.25f;
+        //mFlexParameters.particleFriction = 0.25f; //0.5f; //0.25f;
         mFlexParameters.freeSurfaceDrag = 0.0f;
         mFlexParameters.drag = 0.0f;
         mFlexParameters.lift = 0.0f;
@@ -298,16 +299,16 @@ namespace Kratos {
 
         mFlexParameters.relaxationMode = eNvFlexRelaxationLocal;
         mFlexParameters.relaxationFactor = 1.0f;
-        mFlexParameters.solidPressure = 1.0f;
+        mFlexParameters.solidPressure = 0.0f; //1.0f;
         mFlexParameters.adhesion = 0.0f;
         mFlexParameters.cohesion = 0.0f; //0.025f; //0.0f; //0.025f;
         mFlexParameters.surfaceTension = 0.0f;
         mFlexParameters.vorticityConfinement = 0.0f;
-        mFlexParameters.buoyancy = 1.0f;
-        mFlexParameters.diffuseThreshold = 1000.0f;
+        mFlexParameters.buoyancy = 0.0f; //1.0f;
+        mFlexParameters.diffuseThreshold = 0.0f; //1000.0f;
         mFlexParameters.diffuseBuoyancy = 0.0f;
         mFlexParameters.diffuseDrag = 0.0f;
-        mFlexParameters.diffuseBallistic = 16;
+        mFlexParameters.diffuseBallistic = 0; //16;
         mFlexParameters.diffuseLifetime = 0.0f;
 
         // planes created after particles
@@ -406,7 +407,7 @@ namespace Kratos {
         static size_t gravity_number = 0;
         float elapsed_time = mrSpheresModelPart.GetProcessInfo()[TIME] - current_reference_time;
         // Minimum time span to wait between gravity shifts to ensure that the powder realocates
-        const float delta_security_time = 1.0f;
+        const float delta_security_time = 0.5f;
         const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
         // We choose the maximum velocity admissible in order to change the gravity vector
         const float maximum_squared_velocity_module = 0.05f * 0.05f; // squares will be compared
@@ -428,6 +429,7 @@ namespace Kratos {
             if (node_i_squared_velocity_module > maximum_squared_velocity_module) {
 
                 mTimeToChangeGravityValue = false;
+                //current_reference_time = mrSpheresModelPart.GetProcessInfo()[TIME];
                 break;
             }
         }
@@ -440,7 +442,6 @@ namespace Kratos {
             
                 std::cout << "\n\nNo more gravity vectors left... Simulation should be stopped soon...\n\n";
                 mTimeToChangeGravityValue = false;
-                current_reference_time = mrSpheresModelPart.GetProcessInfo()[TIME];
                 return;
             }
 
