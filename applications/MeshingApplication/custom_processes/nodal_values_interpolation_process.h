@@ -21,10 +21,18 @@
 // Project includes
 #include "meshing_application.h"
 #include "processes/process.h"
+
+/* Several includes */
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
 #include "includes/kratos_parameters.h"
+
+/* Utilities */
 #include "utilities/binbased_fast_point_locator.h"
+
+/* Tree structures */
+// #include "spatial_containers/bounding_volume_tree.h" // k-DOP
+#include "spatial_containers/spatial_containers.h" // kd-tree
 
 namespace Kratos
 {
@@ -54,13 +62,12 @@ namespace Kratos
 /**
  * @class NodalValuesInterpolationProcess
  * @ingroup MeshingApplication
- * @brief NodalValuesInterpolationProcess
- * @details This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
- * The process employs the projection.h from MeshingApplication, which works internally using a kd-tree
+ * @brief This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
+ * @details The process employs the projection.h from MeshingApplication, which works internally using a kd-tree. Additionally if it can't found the node inside the reference mesh it will try to extrapolate from the skin (if the option is activated)
  * @author Vicente Mataix Ferrandiz
  */
 template<SizeType TDim>
-class NodalValuesInterpolationProcess
+class KRATOS_API(KRATOS_MESHING_APPLICATION) NodalValuesInterpolationProcess
     : public Process
 {
 public:
