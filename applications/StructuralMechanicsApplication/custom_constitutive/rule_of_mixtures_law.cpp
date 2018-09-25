@@ -940,6 +940,8 @@ ConstitutiveLaw::StrainMeasure RuleOfMixturesLaw::GetStrainMeasure()
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[id];
         return p_law->GetStrainMeasure();
     }
+
+    return StrainMeasure_Infinitesimal;
 }
 
 /***********************************************************************************/
@@ -953,6 +955,8 @@ ConstitutiveLaw::StressMeasure RuleOfMixturesLaw::GetStressMeasure()
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[id];
         return p_law->GetStressMeasure();
     }
+
+    return StressMeasure_Cauchy;
 }
 
 /***********************************************************************************/
