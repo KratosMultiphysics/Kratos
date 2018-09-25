@@ -17,7 +17,6 @@
 
 // Project includes
 #include "differentiation_utility.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -30,6 +29,7 @@ namespace Kratos
 
         if ( rElement.GetProperties().Has(rDesignVariable) )
         {
+
             // define working variables
             Vector RHS_unperturbed;
             Vector RHS_perturbed;
@@ -151,15 +151,147 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
+    //template <class TVarType>
+    void DifferentiationUtility::CalculateLeftHandSideDerivative(Element& rElement,
+                                                const array_1d_component_type& rDesignVariable,
+                                                Node<3>& rNode,
+                                                Matrix& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        #ifdef _OPENMP
+            KRATOS_ERROR_IF(omp_get_thread_num() > 0) <<
+                "DifferentiationUtility::CalculateRigthHandSideDerivative " <<
+                "is not thread safe for shape derivatives!" << omp_get_thread_num();
+        #endif
+
+        if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
+        {
+            IndexType coord_dir = 0;
+            if( rDesignVariable == SHAPE_X )
+                coord_dir = 0;
+            else if( rDesignVariable == SHAPE_Y )
+                coord_dir = 1;
+            else if( rDesignVariable == SHAPE_Z )
+                coord_dir = 2;
+
+            // define working variables
+            Matrix LHS_unperturbed;
+            Matrix LHS_perturbed;
+            Vector dummy;
+            ProcessInfo copy_process_info = rCurrentProcessInfo;
+
+            // Get perturbation size
+            const double delta = DifferentiationUtility::GetPerturbationSize(SHAPE);
+
+            // compute LHS before perturbion
+            rElement.CalculateLocalSystem(LHS_unperturbed, dummy ,copy_process_info);
+
+            if ( (rOutput.size1() != LHS_unperturbed.size1()) || (rOutput.size2() != LHS_unperturbed.size2() ) )
+                rOutput.resize(LHS_unperturbed.size1(), LHS_unperturbed.size2());
+
+            // perturb the design variable
+            rNode.GetInitialPosition()[coord_dir] += delta;
+            rNode.Coordinates()[coord_dir] += delta;
+
+            // compute LHS after perturbation
+            rElement.CalculateLocalSystem(LHS_perturbed, dummy ,copy_process_info);
+
+            //compute derivative of RHS w.r.t. design variable with finite differences
+            noalias(rOutput) = (LHS_perturbed - LHS_unperturbed) / delta;
+
+             // unperturb the design variable
+            rNode.GetInitialPosition()[coord_dir] -= delta;
+            rNode.Coordinates()[coord_dir] -= delta;
+
+            //call one last time to make sure everything is as it was before TODO improve this..
+            rElement.CalculateLocalSystem(LHS_perturbed, dummy ,copy_process_info);
+        }
+        else
+        {
+            KRATOS_WARNING("DifferentiationUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
+            if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
+                rOutput.resize(0,0,false);
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    void DifferentiationUtility::CalculateMassMatrixDerivative(Element& rElement,
+                                                const array_1d_component_type& rDesignVariable,
+                                                Node<3>& rNode,
+                                                Matrix& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        #ifdef _OPENMP
+            KRATOS_ERROR_IF(omp_get_thread_num() > 0) <<
+                "DifferentiationUtility::CalculateRigthHandSideDerivative " <<
+                "is not thread safe for shape derivatives!" << omp_get_thread_num();
+        #endif
+
+        if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
+        {
+            IndexType coord_dir = 0;
+            if( rDesignVariable == SHAPE_X )
+                coord_dir = 0;
+            else if( rDesignVariable == SHAPE_Y )
+                coord_dir = 1;
+            else if( rDesignVariable == SHAPE_Z )
+                coord_dir = 2;
+
+            // define working variables
+            Matrix unperturbed_mass_matrix;
+            Matrix perturbed_mass_matrix;
+            ProcessInfo copy_process_info = rCurrentProcessInfo;
+
+            // Get perturbation size
+            const double delta = DifferentiationUtility::GetPerturbationSize(SHAPE);
+
+            // compute mass matrix before perturbion
+            rElement.CalculateMassMatrix(unperturbed_mass_matrix, copy_process_info);
+
+            if ( (rOutput.size1() != unperturbed_mass_matrix.size1()) || (rOutput.size2() != unperturbed_mass_matrix.size2() ) )
+                rOutput.resize(unperturbed_mass_matrix.size1(), unperturbed_mass_matrix.size2());
+
+            // perturb the design variable
+            rNode.GetInitialPosition()[coord_dir] += delta;
+            rNode.Coordinates()[coord_dir] += delta;
+
+            // compute LHS after perturbation
+            rElement.CalculateMassMatrix(perturbed_mass_matrix, copy_process_info);
+
+            //compute derivative of RHS w.r.t. design variable with finite differences
+            noalias(rOutput) = (perturbed_mass_matrix - unperturbed_mass_matrix) / delta;
+
+             // unperturb the design variable
+            rNode.GetInitialPosition()[coord_dir] -= delta;
+            rNode.Coordinates()[coord_dir] -= delta;
+
+            //call one last time to make sure everything is as it was before TODO improve this..
+            rElement.CalculateMassMatrix(perturbed_mass_matrix, copy_process_info);
+        }
+        else
+        {
+            KRATOS_WARNING("DifferentiationUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
+            if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
+                rOutput.resize(0,0,false);
+        }
+
+        KRATOS_CATCH("");
+    }
+
     double DifferentiationUtility::GetPerturbationSize(const Variable<double>& rDesignVariable)
     {
-        const double delta = 1.0e-5; //TODO modify this
+        const double delta = 1.0e-8; //TODO modify this
         return delta;
     }
 
     double DifferentiationUtility::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable)
     {
-        const double delta = 1.0e-5; //TODO modify this
+        const double delta =  1e-8; //TODO modify this
         return delta;
     }
 

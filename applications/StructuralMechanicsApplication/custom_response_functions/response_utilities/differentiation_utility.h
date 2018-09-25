@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/condition.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -37,6 +38,7 @@ public:
 
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> array_1d_component_type;
 
     static void CalculateRigthHandSideDerivative(Element& rElement,
                                                 const Variable<double>& rDesignVariable,
@@ -45,6 +47,18 @@ public:
 
     static void CalculateRigthHandSideDerivative(Element& rElement,
                                                 const Variable<array_1d<double,3>>& rDesignVariable,
+                                                Matrix& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo);
+
+    static void CalculateLeftHandSideDerivative(Element& rElement,
+                                                const array_1d_component_type& rDesignVariable,
+                                                Node<3>& rNode,
+                                                Matrix& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo);
+
+    static void CalculateMassMatrixDerivative(Element& rElement,
+                                                const array_1d_component_type& rDesignVariable,
+                                                Node<3>& rNode,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
 
