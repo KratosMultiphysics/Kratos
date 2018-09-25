@@ -116,9 +116,54 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
         self.assertAlmostEqual(scattered_val, mpi.rank+offset_1+offset_2)
 
     def test_scatterv_int(self):
-        pass
+        rank_to_scatter_from = 0
+        my_rank = mpi.rank
+        min_list_size = 3
+        if my_rank == rank_to_scatter_from:
+            comm_size = mpi.size
+            vals_to_scatter = list()
+            for i in range(comm_size):
+                rank_list = list(range(i+min_list_size))
+                vals_to_scatter.append(rank_list)
+
+            print(vals_to_scatter)
+        else:
+            vals_to_scatter = list(list())
+        scattered_list = mpi.scatterv_int(mpi.world, vals_to_scatter, rank_to_scatter_from)
+
+        self.assertEqual(type(scattered_list), list)
+        self.assertEqual(len(scattered_list), my_rank+min_list_size)
+
+        my_rank_list = list(range(my_rank+min_list_size))
+
+        for recv_val, exp_val in zip(scattered_list, my_rank_list):
+            self.assertEqual(recv_val, exp_val+1)
+
     def test_scatterv_double(self):
-        pass
+        rank_to_scatter_from = 0
+        my_rank = mpi.rank
+        min_list_size = 3
+        if my_rank == rank_to_scatter_from:
+            comm_size = mpi.size
+            vals_to_scatter = list()
+            for i in range(comm_size):
+                range_list = list(range(i+min_list_size))
+                rank_list = [2.125**x for x in range_list]
+                vals_to_scatter.append(rank_list)
+
+            print(vals_to_scatter)
+        else:
+            vals_to_scatter = list(list())
+        scattered_list = mpi.scatterv_int(mpi.world, vals_to_scatter, rank_to_scatter_from)
+
+        self.assertEqual(type(scattered_list), list)
+        self.assertEqual(len(scattered_list), my_rank+min_list_size)
+
+        my_range_list = list(range(i+min_list_size))
+        my_rank_list = [2.125**x for x in my_range_list]
+
+        for recv_val, exp_val in zip(scattered_list, my_rank_list):
+            self.assertAlmostEqual(recv_val, exp_val+1)
 
     def test_broadcast_int(self):
         val_to_broadcast = (mpi.rank+1)*5

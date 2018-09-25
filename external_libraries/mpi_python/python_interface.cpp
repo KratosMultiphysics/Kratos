@@ -38,7 +38,6 @@ PYBIND11_MODULE(mpipython, m)
     RankFuncType FRank = &PythonMPI::rank;
     SizeFuncType FSize = &PythonMPI::size;
 
-
     // note that for the functions returning a vector the conversion to a python-list is automatically
     // done by pybind, see https://github.com/pybind/pybind11/blob/master/docs/advanced/cast/stl.rst
 
