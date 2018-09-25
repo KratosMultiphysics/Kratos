@@ -30,7 +30,7 @@ namespace Kratos
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRESS,               1 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_CONSTITUTIVE_TENSOR,  2 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN_ENERGY,        3 );
-  
+
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOCHORIC_TENSOR_ONLY,        4 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, VOLUMETRIC_TENSOR_ONLY,       5 );
 
@@ -40,7 +40,7 @@ namespace Kratos
 
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INITIALIZE_MATERIAL_RESPONSE, 9 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINALIZE_MATERIAL_RESPONSE,  10 );
-  
+
 
     /**
      * Flags related to the Features of the Constitutive Law
@@ -489,6 +489,25 @@ void ConstitutiveLaw::InitializeMaterial(const Properties& rMaterialProperties,
 }
 
 /**
+ * @brief This is to be called at the very beginning of the calculation (this initializes in an specific integration point)
+ * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
+ * @param rMaterialProperties the Properties instance of the current element
+ * @param rElementGeometry the geometry of the current element
+ * @param ThisIntegrationMethod The integration method considered
+ * @param IntegrationPointIndex The current integration point index
+ */
+void ConstitutiveLaw::InitializeMaterialOnIntegrationPoints(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const GeometryData::IntegrationMethod ThisIntegrationMethod,
+    const IndexType IntegrationPointIndex
+    )
+{
+    const Matrix& r_shape_functions = rElementGeometry.ShapeFunctionsValues(ThisIntegrationMethod);
+    this->InitializeMaterial(rMaterialProperties, rElementGeometry, row(r_shape_functions, IntegrationPointIndex));
+}
+
+/**
  * to be called at the beginning of each solution step
  * (e.g. from Element::InitializeSolutionStep)
  * @param rMaterialProperties the Properties instance of the current element
@@ -639,16 +658,16 @@ void ConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 	{
 	case StressMeasure_PK1:         InitializeMaterialResponsePK1(rValues);
 	  break;
-      
+
 	case StressMeasure_PK2:         InitializeMaterialResponsePK2(rValues);
 	  break;
-	  
+
 	case StressMeasure_Kirchhoff: 	InitializeMaterialResponseKirchhoff(rValues);
 	  break;
 
 	case StressMeasure_Cauchy:	InitializeMaterialResponseCauchy(rValues);
 	  break;
-	  
+
 	default:
 	  KRATOS_THROW_ERROR(std::logic_error, " Stress Measure not Defined ", "");
 	  break;
@@ -696,7 +715,7 @@ void ConstitutiveLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     {
       KRATOS_THROW_ERROR(std::logic_error, "Calling virtual function for InitializeMaterialResponseCauchy", "");
     }
-    
+
 
 /**
  * Updates the material response,  called by the element in FinalizeSolutionStep.
