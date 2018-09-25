@@ -60,6 +60,140 @@ namespace Kratos
 ///@{
 
 /**
+ * @ingroup MeshingApplication
+ * @class PointBoundary
+ * @brief Custom Point container to be used to look in the boundary skin
+ * @details The main difference with this point and the base one is that it contains the pointer to condition where the center of the points belongs
+ * @author Vicente Mataix Ferrandiz
+ */
+class PointBoundary
+    : public Point
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    typedef Point BaseType;
+
+    /// Counted pointer of PointBoundary
+    KRATOS_CLASS_POINTER_DEFINITION( PointBoundary );
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructors
+    PointBoundary():
+        BaseType(),
+        mpOriginCond(nullptr)
+    {}
+
+    PointBoundary(const array_1d<double, 3>& Coords)
+        :BaseType(Coords),
+         mpOriginCond(nullptr)
+    {}
+
+    PointBoundary(Condition::Pointer pCond):
+        mpOriginCond(pCond)
+    {
+        UpdatePoint();
+    }
+
+    PointBoundary(
+        const array_1d<double, 3>& Coords,
+        Condition::Pointer pCond
+    ):
+        BaseType(Coords),
+        mpOriginCond(pCond)
+    {}
+
+    ///Copy constructor  (not really required)
+    PointBoundary(const PointBoundary& rhs):
+        BaseType(rhs),
+        mpOriginCond(rhs.mpOriginCond)
+    {
+    }
+
+    /// Destructor.
+    ~PointBoundary() override= default;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Returns the point
+     * @return The point
+     */
+    BaseType GetPoint()
+    {
+        BaseType Point(this->Coordinates());
+        return Point;
+    }
+
+    /**
+     * @brief Set the point
+     * @param Point The point
+     */
+    void SetPoint(const BaseType Point)
+    {
+        this->Coordinates() = Point.Coordinates();
+    }
+
+    /**
+     * @brief Sets the condition associated to the point
+     * @param pCond The pointer to the condition
+     */
+    void SetCondition(Condition::Pointer pCond)
+    {
+        mpOriginCond = pCond;
+    }
+
+    /**
+     * @brief Returns the condition associated to the point
+     * @return mpOriginCond The pointer to the condition associated to the point
+     */
+    Condition::Pointer GetCondition()
+    {
+        KRATOS_DEBUG_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointBoundary class" << std::endl;
+        return mpOriginCond;
+    }
+
+    /**
+     * @brief This method checks everything is right
+     */
+    void Check()
+    {
+        KRATOS_TRY;
+
+        auto aux_coord = Kratos::make_shared<array_1d<double, 3>>(this->Coordinates());
+        KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointBoundary class" << std::endl;
+        KRATOS_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointBoundary class" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This function updates the database, using as base for the coordinates the condition center
+     */
+    void UpdatePoint()
+    {
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
+#else
+        noalias(this->Coordinates()) = mpOriginCond->GetGeometry().Center().Coordinates();
+#endif // ifdef KRATOS_USE_AMATRIX
+    }
+
+private:
+    ///@name Member Variables
+    ///@{
+    Condition::Pointer mpOriginCond; /// Condition pointer
+    ///@}
+
+}; // Class PointBoundary
+
+/**
  * @class NodalValuesInterpolationProcess
  * @ingroup MeshingApplication
  * @brief This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
@@ -80,6 +214,20 @@ public:
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
     typedef Node<3>                                                NodeType;
     typedef Geometry<NodeType>                                 GeometryType;
+    typedef Point                                                 PointType;
+    typedef PointType::CoordinatesArrayType            CoordinatesArrayType;
+
+    // Type definitions for the tree
+    typedef PointBoundary                                 PointBoundaryType;
+    typedef PointBoundaryType::Pointer                     PointTypePointer;
+    typedef std::vector<PointTypePointer>                       PointVector;
+    typedef PointVector::iterator                             PointIterator;
+    typedef std::vector<double>                              DistanceVector;
+    typedef DistanceVector::iterator                       DistanceIterator;
+
+    // KDtree definitions
+    typedef Bucket< 3ul, PointBoundaryType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
+    typedef Tree< KDTreePartition<BucketType> > KDTreeType;
 
     /// Pointer definition of NodalValuesInterpolationProcess
     KRATOS_CLASS_POINTER_DEFINITION( NodalValuesInterpolationProcess );
@@ -227,7 +375,6 @@ private:
      * @param Str The string
      * @return FrameworkEulerLagrange: The equivalent enum
      */
-
     static inline FrameworkEulerLagrange ConvertFramework(const std::string& Str)
     {
         if(Str == "Lagrangian" || Str == "LAGRANGIAN")
@@ -243,15 +390,86 @@ private:
     /**
      * @brief It calculates the data (DataContainer) interpolated to the node
      * @param pNode The node pointer
-     * @param pElement The element pointer
+     * @param pEntity The element pointer
      * @param rShapeFunctions The shape functions
      */
-
+    template<class TEntity>
     void CalculateData(
         NodeType::Pointer pNode,
-        const Element::Pointer& pElement,
+        const typename TEntity::Pointer& pEntity,
         const Vector& rShapeFunctions
-        );
+        )
+    {
+        // The nodal data (non-historical)
+        DataValueContainer& data = pNode->Data();
+
+        // The nodal data (non-historical) of each node of the original mesh
+        GeometryType& geom = pEntity->GetGeometry();
+        const SizeType number_of_nodes = geom.size();
+        std::vector<DataValueContainer> node_data(number_of_nodes);
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            node_data[i] = geom[i].Data();
+        }
+
+        // Now we interpolate the values of each node
+        double aux_coeff;
+        for (auto& var : mListDoublesVariables) {
+            aux_coeff = 0.0;
+            for (IndexType i = 0; i < number_of_nodes; ++i) {
+                if (node_data[i].Has(var)) aux_coeff += rShapeFunctions[i];
+            }
+            if (aux_coeff > 0.0) {
+                aux_coeff = 1.0/aux_coeff;
+                double aux_value = 0.0;
+                for (IndexType i = 0; i < number_of_nodes; ++i) {
+                    aux_value += rShapeFunctions[i] * node_data[i].GetValue(var);
+                }
+                data.SetValue(var, aux_coeff * aux_value);
+            }
+        }
+        for (auto& var : mListArraysVariables) {
+                aux_coeff = 0.0;
+                for (IndexType i = 0; i < number_of_nodes; ++i) {
+                    if (node_data[i].Has(var)) aux_coeff += rShapeFunctions[i];
+                }
+            if (aux_coeff > 0.0)  {
+                if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
+                array_1d<double, 3> aux_value(3, 0.0);
+                for (IndexType i = 0; i < number_of_nodes; ++i) {
+                    aux_value += rShapeFunctions[i] * node_data[i].GetValue(var);
+                }
+                data.SetValue<array_1d<double, 3>>(var, aux_coeff * aux_value);
+            }
+        }
+        for (auto& var : mListVectorVariables) {
+                aux_coeff = 0.0;
+                for (IndexType i = 0; i < number_of_nodes; ++i) {
+                    if (node_data[i].Has(var)) aux_coeff += rShapeFunctions[i];
+                }
+            if (aux_coeff > 0.0)  {
+                if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
+                Vector aux_value = ZeroVector(node_data[0].GetValue(var).size());
+                for (IndexType i = 0; i < number_of_nodes; ++i) {
+                    aux_value += rShapeFunctions[i] * node_data[i].GetValue(var);
+                }
+                data.SetValue<Vector>(var, aux_coeff * aux_value);
+            }
+        }
+        for (auto& var : mListMatrixVariables) {
+                aux_coeff = 0.0;
+                for (IndexType i = 0; i < number_of_nodes; ++i) {
+                    if (node_data[i].Has(var)) aux_coeff += rShapeFunctions[i];
+                }
+            if (aux_coeff > 0.0)  {
+                if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
+                Matrix aux_value = ZeroMatrix(node_data[0].GetValue(var).size1(), node_data[0].GetValue(var).size2());
+                for (IndexType i = 0; i < number_of_nodes; ++i) {
+                    aux_value += rShapeFunctions[i] * node_data[i].GetValue(var);
+                }
+                data.SetValue<Matrix>(var, aux_coeff * aux_value);
+            }
+        }
+    }
 
     /**
      * @brief This methoid creates the list of non-historical variables fro nodal interpolation
@@ -261,17 +479,50 @@ private:
     /**
      * @brief It calculates the Step data interpolated to the node
      * @param pNode The node pointer
-     * @param pElement The element pointer
+     * @param pEntity The element pointer
      * @param rShapeFunctions The shape functions
      * @param Step The current time step
      */
-
+    template<class TEntity>
     void CalculateStepData(
         NodeType::Pointer pNode,
-        const Element::Pointer& pElement,
+        const typename TEntity::Pointer& pEntity,
         const Vector& rShapeFunctions,
         const IndexType Step
-        );
+        )
+    {
+        // The nodal data (historical)
+        double* step_data = pNode->SolutionStepData().Data(Step);
+        for (IndexType j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j)
+            step_data[j] = 0;
+
+        // The nodal data (historical) of each node of the original mesh
+        GeometryType& geom = pEntity->GetGeometry();
+        const SizeType number_of_nodes = geom.size();
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            const double* nodal_data = geom[i].SolutionStepData().Data(Step);
+            // Now we interpolate the values of each node
+            for (IndexType j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j) {
+                step_data[j] += rShapeFunctions[i] * nodal_data[j];
+            }
+        }
+    }
+
+    /**
+     * @brief This methoid a boundary model part in the reference and target model part
+     */
+    void GenerateBoundary();
+
+    /**
+     * @brief This methoid a boundary model part in the reference and target model part
+     */
+    void ExtrapolateValues(std::vector<NodeType::Pointer>& rToExtrapolateNodes);
+
+    /**
+     * @brief This method computes the normal in a skin model part (saved in non historical variables)
+     * @param rModelPart The input model part with the skin
+     */
+    void ComputeNormalSkin(ModelPart& rModelPart);
 
     ///@}
     ///@name Private  Access
