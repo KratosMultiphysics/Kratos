@@ -25,6 +25,9 @@
 
 namespace Kratos
 {
+
+typedef std::size_t SizeType;
+
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
@@ -53,6 +56,9 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
 
     const bool is_inside = p_geom->IsInside(proj_point, local_coords);
 
+    const SizeType num_nodes = (*p_geom).PointsNumber();
+    Vector shape_function_values;
+
     // if it is closer, then we update the members to make this geometry the closest projection
     if (is_inside && proj_dist < mClosestProjectionDistance)
     {
@@ -60,11 +66,16 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
         mClosestProjectionDistance = proj_dist;
         mShapeFunctionValues.clear();
         mNodeIds.clear();
-        if (mShapeFunctionValues.size() != local_coords.size()) mShapeFunctionValues.resize(local_coords.size());
-        if (mNodeIds.size() != local_coords.size()) mNodeIds.resize(local_coords.size());
-        for (IndexType i=0; i<local_coords.size(); ++i)
+
+        p_geom->ShapeFunctionsValues(shape_function_values, local_coords);
+        KRATOS_DEBUG_ERROR_IF_NOT(shape_function_values.size() == num_nodes)
+            << "Number of SFs is different from number of nodes!" << std::endl;
+
+        if (mShapeFunctionValues.size() != num_nodes) mShapeFunctionValues.resize(num_nodes);
+        if (mNodeIds.size() != num_nodes)             mNodeIds.resize(num_nodes);
+        for (IndexType i=0; i<num_nodes; ++i)
         {
-            mShapeFunctionValues[i] = local_coords[i];
+            mShapeFunctionValues[i] = shape_function_values[i];
             KRATOS_DEBUG_ERROR_IF_NOT((*p_geom)[i].Has(INTERFACE_EQUATION_ID))
                 << "Node #" << (*p_geom)[i].Id() << " does not have an Interface Id!\n" << (*p_geom)<< "\n"
                 <<  (*p_geom)[i] << std::endl;

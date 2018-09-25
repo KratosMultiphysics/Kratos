@@ -100,8 +100,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_ValidProjectionExists, Kra
     nearest_element_info.GetValue(sf_values);
     KRATOS_CHECK_EQUAL(sf_values.size(), 3);
     KRATOS_CHECK_DOUBLE_EQUAL(sf_values[0], 0.3);
-    KRATOS_CHECK_DOUBLE_EQUAL(sf_values[1], 0.4);
-    KRATOS_CHECK_DOUBLE_EQUAL(sf_values[2], 0.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(sf_values[1], 0.3);
+    KRATOS_CHECK_DOUBLE_EQUAL(sf_values[2], 0.4);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Approximation, KratosMappingApplicationSerialTestSuite)
@@ -227,8 +227,8 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Serialization, KratosMappi
     nearest_element_info_new.GetValue(sf_values);
     KRATOS_CHECK_EQUAL(sf_values.size(), 3);
     KRATOS_CHECK_DOUBLE_EQUAL(sf_values[0], 0.3);
-    KRATOS_CHECK_DOUBLE_EQUAL(sf_values[1], 0.4);
-    KRATOS_CHECK_DOUBLE_EQUAL(sf_values[2], 0.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(sf_values[1], 0.3);
+    KRATOS_CHECK_DOUBLE_EQUAL(sf_values[2], 0.4);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApplicationSerialTestSuite)
