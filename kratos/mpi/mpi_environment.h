@@ -10,6 +10,9 @@
 //  Main author:     Jordi Cotela
 //
 
+#ifndef KRATOS_MPI_ENVIRONMENT_H_INCLUDED
+#define KRATOS_MPI_ENVIRONMENT_H_INCLUDED
+
 namespace Kratos {
 
 /// Helper utilities to manage the MPI lifecycle
@@ -33,3 +36,5 @@ bool IsFinalized();
 
 }
 }
+
+#endif // KRATOS_MPI_ENVIRONMENT_H_INCLUDED
