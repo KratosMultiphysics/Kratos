@@ -284,31 +284,37 @@ public:
         return result_val;
     }
 
+	/// Perform a MPI_Scatter operation.
+	/**
+	 * Provide a std::vector containing all local values to scatter from the RankToScatterFrom process.
+	 * @param rComm A communicator object.
+	 * @param rLocalValues The local values to be scattered.
+	 * @param RankToScatterFrom The MPI rank of the process where the valued will be scattered from.
+	 * @return The local value that was scattered
+	 */
     template<class TValueType>
 	TValueType scatter(PythonMPIComm& rComm,
                        const std::vector<TValueType>& rLocalValues,
-                       const int Root)
+                       const int RankToScatterFrom)
     {
         // Determime data type
         const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
         int rank, size;
         MPI_Comm_rank(rComm.GetMPIComm(), &rank);
         MPI_Comm_size(rComm.GetMPIComm(), &size);
-        if (rank == Root && rLocalValues.size() != size)
+        if (rank == RankToScatterFrom && rLocalValues.size() != size)
             throw std::runtime_error("Wrong number of values to Scatter!");
         TValueType receive_val;
         // Communicate
-        int err_code = MPI_Scatter(rLocalValues.data(), 1, DataType, &receive_val,
-                    1, DataType, Root, rComm.GetMPIComm());
-        std::cout << "RANK; " << rank << "; ERR_CODE: " << err_code << std::endl;
-        std::cout << "RANK; " << rank << "; is int: " << (DataType == MPI_INT) << std::endl;
+        MPI_Scatter(rLocalValues.data(), 1, DataType, &receive_val,
+                    1, DataType, RankToScatterFrom, rComm.GetMPIComm());
         return receive_val;
     }
 
     template<class TValueType>
 	std::vector<TValueType> scatterv(PythonMPIComm& rComm,
                                      const std::vector<std::vector<TValueType>>& LocalValue,
-                                     const int Root)
+                                     const int RankToScatterFrom)
     {
         // // Determime data type
         // const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
@@ -317,11 +323,11 @@ public:
         // MPI_Comm_size(rComm.GetMPIComm(), &size);
         // // Create recieve buffer
         // std::vector<TValueType> global_values;
-        // if (rank == Root)
+        // if (rank == RankToScatterFrom)
         //     global_values.resize(size);
         // // Communicate
         // MPI_Gather(&LocalValue, 1, DataType, global_values.data(),
-        //            1, DataType, Root, rComm.GetMPIComm());
+        //            1, DataType, RankToScatterFrom, rComm.GetMPIComm());
         // return global_values;
     }
 
