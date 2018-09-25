@@ -814,22 +814,6 @@ public:
                                     const Vector& rShapeFunctionsValues);
 
     /**
-     * @brief This is to be called at the very beginning of the calculation  (this initializes in an specific integration point)
-     * @details (e.g. from InitializeElement) in order to initialize all relevant
-     * attributes of the constitutive law
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param ThisIntegrationMethod The integration method considered
-     * @param IntegrationPointIndex The current integration point index
-     */
-    virtual void InitializeMaterialOnIntegrationPoints(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const GeometryData::IntegrationMethod ThisIntegrationMethod = GeometryData::GI_GAUSS_1,
-        const IndexType IntegrationPointIndex = 0
-        );
-
-    /**
      * to be called at the beginning of each solution step
      * (e.g. from Element::InitializeSolutionStep)
      * @param rMaterialProperties the Properties instance of the current element
