@@ -92,7 +92,7 @@ Parameters GetTwoLayersParameters()
                 },
                 "Variables"        : {
                     "DENSITY"       : 2000.0,
-                    "YOUNG_MODULUS" : 30000000000000.0,
+                    "YOUNG_MODULUS" : 30000000000.0,
                     "POISSON_RATIO" : 0.49
                 },
                 "Tables"           : {}
@@ -401,7 +401,7 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, Krat
         elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
 
         for (auto& sol : solution) {
-            KRATOS_CHECK_LESS_EQUAL((sol[0] - 2.72487e+09)/2.72487e+09, tolerance);
+            KRATOS_CHECK_LESS_EQUAL((sol[0] - 4.09597e+09)/4.09597e+09, tolerance);
         }
     }
 }
@@ -438,7 +438,81 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, Kr
         elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
 
         for (auto& sol : solution) {
-            KRATOS_CHECK_LESS_EQUAL((sol[0] - 2.72487e+12)/2.72487e+12, tolerance);
+            KRATOS_CHECK_LESS_EQUAL((sol[0] - 2.32156e+12)/2.32156e+12, tolerance);
+        }
+    }
+}
+
+/**
+* Check the correct work of Rule of Mixtures (Tetrahedron 2 layers)
+*/
+KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, KratosStructuralMechanicsFastSuite)
+{
+    ModelPart model_part("Main");
+    Create3DGeometryTetrahedra(model_part);
+
+    const array_1d<double, 3> zero = ZeroVector(3);
+    array_1d<double, 3> delta = ZeroVector(3);
+    delta[0] = 1.0e-2;
+    for (auto& node : model_part.Nodes()) {
+        if (node.X() < 1.0e-3) {
+            node.Fix(DISPLACEMENT_X);
+            node.Fix(DISPLACEMENT_Y);
+            node.Fix(DISPLACEMENT_Z);
+            node.FastGetSolutionStepValue(DISPLACEMENT) = zero;
+        } else {
+            node.FastGetSolutionStepValue(DISPLACEMENT) = delta;
+            node.Coordinates() += delta;
+        }
+    }
+
+//     // DEBUG
+//     GiDIODebugRuleMixtures(model_part);
+
+    ProcessInfo& process_info = model_part.GetProcessInfo();
+    for (auto& elem : model_part.Elements()) {
+        std::vector<Vector> solution;
+        elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
+
+        for (auto& sol : solution) {
+            KRATOS_CHECK_LESS_EQUAL((sol[0] - 4.09597e+09)/4.09597e+09, tolerance);
+        }
+    }
+}
+
+/**
+* Check the correct work of Rule of Mixtures (Tetrahedron 3 layers)
+*/
+KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronThreeLayers, KratosStructuralMechanicsFastSuite)
+{
+    ModelPart model_part("Main");
+    Create3DGeometryTetrahedra(model_part, 3);
+
+    const array_1d<double, 3> zero = ZeroVector(3);
+    array_1d<double, 3> delta = ZeroVector(3);
+    delta[0] = 1.0e-2;
+    for (auto& node : model_part.Nodes()) {
+        if (node.X() < 1.0e-3) {
+            node.Fix(DISPLACEMENT_X);
+            node.Fix(DISPLACEMENT_Y);
+            node.Fix(DISPLACEMENT_Z);
+            node.FastGetSolutionStepValue(DISPLACEMENT) = zero;
+        } else {
+            node.FastGetSolutionStepValue(DISPLACEMENT) = delta;
+            node.Coordinates() += delta;
+        }
+    }
+
+//     // DEBUG
+//     GiDIODebugRuleMixtures(model_part);
+
+    ProcessInfo& process_info = model_part.GetProcessInfo();
+    for (auto& elem : model_part.Elements()) {
+        std::vector<Vector> solution;
+        elem.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, solution, process_info);
+
+        for (auto& sol : solution) {
+            KRATOS_CHECK_LESS_EQUAL((sol[0] - 2.32156e+12)/2.32156e+12, tolerance);
         }
     }
 }
