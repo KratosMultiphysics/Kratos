@@ -41,7 +41,7 @@ NodalValuesInterpolationProcess<TDim>::NodalValuesInterpolationProcess(
         "search_parameters"          : {
             "allocation_size"           : 1000,
             "bucket_size"               : 4,
-            "search_factor"             : 3.5
+            "search_factor"             : 2.0
         },
         "step_data_size"             : 0,
         "buffer_size"                : 0
@@ -252,10 +252,14 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(std::vector<NodeTy
 
                 if (is_inside) {
                     // SHAPE FUNCTIONS
-                    Vector N;
-                    r_geom.ShapeFunctionsValues( N, projected_point_local );
+                    Vector shape_functions;
+                    r_geom.ShapeFunctionsValues( shape_functions, projected_point_local );
 
-                    // Interpolate here
+                    // Finally we interpolate
+                    if (mThisParameters["interpolate_non_historical"].GetBool())
+                        CalculateData<Condition>(p_node, p_cond_origin, shape_functions);
+                    for(IndexType i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
+                        CalculateStepData<Condition>(p_node, p_cond_origin, shape_functions, i_step);
 
                     break;
                 }

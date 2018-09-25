@@ -110,6 +110,13 @@ MmgProcess<TDim>::MmgProcess(
         "save_external_files"                  : false,
         "save_mdpa_file"                       : false,
         "max_number_of_searchs"                : 1000,
+        "interpolate_non_historical"           : true,
+        "extrapolate_contour_values"           : true,
+        "search_parameters"                    : {
+            "allocation_size"                     : 1000,
+            "bucket_size"                         : 4,
+            "search_factor"                       : 2.0
+        },
         "echo_level"                           : 3,
         "debug_result_mesh"                    : false,
         "step_data_size"                       : 0,
@@ -755,12 +762,15 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     }
 
     /* We interpolate all the values */
-    Parameters InterpolateParameters = Parameters(R"({"echo_level": 1, "framework": "Eulerian", "max_number_of_searchs": 1000, "step_data_size": 0, "buffer_size": 0})" );
-    InterpolateParameters["echo_level"].SetInt(mThisParameters["echo_level"].GetInt());
-    InterpolateParameters["framework"].SetString(mThisParameters["framework"].GetString());
-    InterpolateParameters["max_number_of_searchs"].SetInt(mThisParameters["max_number_of_searchs"].GetInt());
-    InterpolateParameters["step_data_size"].SetInt(mThisParameters["step_data_size"].GetInt());
-    InterpolateParameters["buffer_size"].SetInt(mThisParameters["buffer_size"].GetInt());
+    Parameters InterpolateParameters = Parameters(R"({})" );
+    InterpolateParameters.AddValue("echo_level", mThisParameters["echo_level"]);
+    InterpolateParameters.AddValue("framework", mThisParameters["framework"]);
+    InterpolateParameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
+    InterpolateParameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
+    InterpolateParameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
+    InterpolateParameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
+    InterpolateParameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
+    InterpolateParameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
     NodalValuesInterpolationProcess<TDim> InterpolateNodalValues = NodalValuesInterpolationProcess<TDim>(r_old_model_part, mrThisModelPart, InterpolateParameters);
     InterpolateNodalValues.Execute();
 
