@@ -12,7 +12,6 @@
 //
 
 
-
 // System includes
 
 // External includes
@@ -458,12 +457,12 @@ ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint(Mod
 }*/
 
 ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint1(ModelPart& rModelPart,
-                                                                                        std::string ConstraintName,
-                                                                                        ModelPart::IndexType Id,
-                                                                                        ModelPart::DofsVectorType& rMasterDofsVector,
-                                                                                        ModelPart::DofsVectorType& rSlaveDofsVector,
-                                                                                        ModelPart::MatrixType RelationMatrix,
-                                                                                        ModelPart::VectorType ConstantVector)
+                                                                              std::string ConstraintName,
+                                                                              ModelPart::IndexType Id,
+                                                                              ModelPart::DofsVectorType& rMasterDofsVector,
+                                                                              ModelPart::DofsVectorType& rSlaveDofsVector,
+                                                                              ModelPart::MatrixType RelationMatrix,
+                                                                              ModelPart::VectorType ConstantVector)
 {
     return rModelPart.CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterDofsVector, rSlaveDofsVector, RelationMatrix, ConstantVector);
 }
@@ -471,28 +470,28 @@ ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint1(Mo
 // Master slave constraints
 
 ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint2(ModelPart& rModelPart,
-                                                                                       std::string ConstraintName,
-                                                                                       ModelPart::IndexType Id,
-                                                                                       ModelPart::NodeType& rMasterNode,
-                                                                                       ModelPart::DoubleVariableType& rMasterVariable,
-                                                                                       ModelPart::NodeType& rSlaveNode,
-                                                                                       ModelPart::DoubleVariableType& rSlaveVariable,
-                                                                                       double Weight,
-                                                                                       double Constant)
+                                                                              std::string ConstraintName,
+                                                                              ModelPart::IndexType Id,
+                                                                              ModelPart::NodeType& rMasterNode,
+                                                                              ModelPart::DoubleVariableType& rMasterVariable,
+                                                                              ModelPart::NodeType& rSlaveNode,
+                                                                              ModelPart::DoubleVariableType& rSlaveVariable,
+                                                                              double Weight,
+                                                                              double Constant)
 {
     return rModelPart.CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
 }
 
 // Master slave constraints
 ModelPart::MasterSlaveConstraintType::Pointer CreateNewMasterSlaveConstraint3(ModelPart& rModelPart,
-                                                                                        std::string ConstraintName,
-                                                                                        ModelPart::IndexType Id,
-                                                                                        ModelPart::NodeType& rMasterNode,
-                                                                                        ModelPart::VariableComponentType& rMasterVariable,
-                                                                                        ModelPart::NodeType& rSlaveNode,
-                                                                                        ModelPart::VariableComponentType& rSlaveVariable,
-                                                                                        double Weight,
-                                                                                        double Constant)
+                                                                              std::string ConstraintName,
+                                                                              ModelPart::IndexType Id,
+                                                                              ModelPart::NodeType& rMasterNode,
+                                                                              ModelPart::VariableComponentType& rMasterVariable,
+                                                                              ModelPart::NodeType& rSlaveNode,
+                                                                              ModelPart::VariableComponentType& rSlaveVariable,
+                                                                              double Weight,
+                                                                              double Constant)
 {
     return rModelPart.CreateNewMasterSlaveConstraint(ConstraintName, Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
 }
@@ -515,7 +514,7 @@ const ModelPart::MasterSlaveConstraintContainerType& ModelPartGetMasterSlaveCons
 
 ModelPart::SizeType ModelPartNumberOfMasterSlaveConstraints1(ModelPart& rModelPart)
 {
-	return rModelPart.NumberOfMasterSlaveConstraints();
+    return rModelPart.NumberOfMasterSlaveConstraints();
 }
 
 ModelPart::MasterSlaveConstraintType::Pointer ModelPartGetMasterSlaveConstraint1(ModelPart& rModelPart, ModelPart::IndexType MasterSlaveConstraintId)
@@ -525,22 +524,22 @@ ModelPart::MasterSlaveConstraintType::Pointer ModelPartGetMasterSlaveConstraint1
 
 void ModelPartRemoveMasterSlaveConstraint1(ModelPart& rModelPart, ModelPart::IndexType MasterSlaveConstraintId)
 {
-	rModelPart.RemoveMasterSlaveConstraint(MasterSlaveConstraintId);
+    rModelPart.RemoveMasterSlaveConstraint(MasterSlaveConstraintId);
 }
 
 void ModelPartRemoveMasterSlaveConstraint2(ModelPart& rModelPart, ModelPart::MasterSlaveConstraintType& rOtherMasterSlaveConstraint)
 {
-	rModelPart.RemoveMasterSlaveConstraint(rOtherMasterSlaveConstraint);
+    rModelPart.RemoveMasterSlaveConstraint(rOtherMasterSlaveConstraint);
 }
 
 void ModelPartRemoveMasterSlaveConstraintFromAllLevels1(ModelPart& rModelPart, ModelPart::IndexType MasterSlaveConstraintId)
 {
-	rModelPart.RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintId);
+    rModelPart.RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintId);
 }
 
 void ModelPartRemoveMasterSlaveConstraintFromAllLevels2(ModelPart& rModelPart, ModelPart::MasterSlaveConstraintType& rMasterSlaveConstraint)
 {
-	rModelPart.RemoveMasterSlaveConstraintFromAllLevels(rMasterSlaveConstraint);
+    rModelPart.RemoveMasterSlaveConstraintFromAllLevels(rMasterSlaveConstraint);
 }
 
 
@@ -722,7 +721,6 @@ void AddModelPartToPython(pybind11::module& m)
 
         class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
         .def("__iter__", [](typename ModelPart::SubModelPartsContainerType& self){ return make_iterator(self.begin(), self.end());},  keep_alive<0,1>())
-
         ;
 
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
@@ -865,24 +863,27 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AddConditions",AddConditionsByIds)
         .def("AddElement", &ModelPart::AddElement)
         .def("AddElements",AddElementsByIds)
+        .def("GetParentModelPart", &ModelPart::GetParentModelPart, return_value_policy::reference_internal)
         .def("GetRootModelPart", &ModelPart::GetRootModelPart, return_value_policy::reference_internal)
         .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },
                                         [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; })
 
-		.def_property_readonly("MasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
-		.def("GetMasterSlaveConstraint", ModelPartGetMasterSlaveConstraint1)
-		.def("GetMasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
-		.def("RemoveMasterSlaveConstraint", ModelPartRemoveMasterSlaveConstraint1)
-		.def("RemoveMasterSlaveConstraint", ModelPartRemoveMasterSlaveConstraint2)
-		.def("RemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels1)
+        .def_property_readonly("MasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
+        .def("GetMasterSlaveConstraint", ModelPartGetMasterSlaveConstraint1)
+        .def("GetMasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
+        .def("RemoveMasterSlaveConstraint", ModelPartRemoveMasterSlaveConstraint1)
+        .def("RemoveMasterSlaveConstraint", ModelPartRemoveMasterSlaveConstraint2)
+        .def("RemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels1)
         .def("RemoveMasterSlaveConstraintFromAllLevels", ModelPartRemoveMasterSlaveConstraintFromAllLevels2)
+        .def("RemoveMasterSlaveConstraints", &ModelPart::RemoveMasterSlaveConstraints)
+        .def("RemoveMasterSlaveConstraintsFromAllLevels", &ModelPart::RemoveMasterSlaveConstraintsFromAllLevels)
         .def("AddMasterSlaveConstraint", ModelPartAddMasterSlaveConstraint)
         .def("AddMasterSlaveConstraints", AddMasterSlaveConstraintsByIds)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1, return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2, return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint3, return_value_policy::reference_internal)
 
-         .def("__repr__", [](const ModelPart& self) -> const std::string { std::stringstream ss;  ss << self; return ss.str(); })
+        .def("__repr__", [](const ModelPart& self) -> const std::string { std::stringstream ss;  ss << self; return ss.str(); })
         ;
 }
 

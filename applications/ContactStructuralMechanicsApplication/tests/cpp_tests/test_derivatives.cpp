@@ -100,7 +100,7 @@ namespace Kratos
             // Create and initialize condition variables
             MortarKinematicVariablesWithDerivatives<TDim, TNumNodes> rVariables0; // These are the kinematic variables for the initial configuration
             MortarKinematicVariablesWithDerivatives<TDim, TNumNodes> rVariables; // These are the kinematic variables for the current configuration
-            
+
             // Create the initial contact data
             DerivativeData<TDim, TNumNodes, true> rDerivativeData0;
             rDerivativeData0.Initialize(slave_geometry_0, ThisModelPart.GetProcessInfo());
@@ -125,7 +125,7 @@ namespace Kratos
                     // Finally we move the mesh
                     noalias(node_to_move->Coordinates()) = node_to_move->GetInitialPosition().Coordinates() + node_to_move->FastGetSolutionStepValue(DISPLACEMENT);
                 }
-                
+
                 if (consider_normal_variation != NO_DERIVATIVES_COMPUTATION) {
                     PointType aux_point;
                     aux_point.Coordinates() = ZeroVector(3);
@@ -152,7 +152,7 @@ namespace Kratos
                         current_normal = node_normal_master;
                     }
                 }
-                
+
                 // Create the current contact data
                 DerivativeData<TDim, TNumNodes, true> rDerivativeData;
                 rDerivativeData.Initialize(slave_geometry_1, ThisModelPart.GetProcessInfo());
@@ -160,9 +160,9 @@ namespace Kratos
                 // We compute the normal derivatives
                 if (consider_normal_variation == NODAL_ELEMENTAL_DERIVATIVES) {
                     // Compute the normal derivatives of the slave
-                    DerivativesUtilitiesType::CalculateDeltaNormal(rDerivativeData.DeltaNormalSlave, slave_geometry_1);
+                    DerivativesUtilitiesType::CalculateDeltaNormalSlave(rDerivativeData.DeltaNormalSlave, slave_geometry_1);
                     // Compute the normal derivatives of the master
-                    DerivativesUtilitiesType::CalculateDeltaNormal(rDerivativeData.DeltaNormalMaster, master_geometry_1);
+                    DerivativesUtilitiesType::CalculateDeltaNormalMaster(rDerivativeData.DeltaNormalMaster, master_geometry_1);
                 }
 
                 const array_1d<double, 3>& normal_slave_1 = SlaveCondition1->GetValue(NORMAL);
@@ -185,7 +185,7 @@ namespace Kratos
                     // Update slave element info
                     rDerivativeData.UpdateMasterPair(MasterCondition1->GetGeometry(), ThisModelPart.GetProcessInfo());
                     rDerivativeData0.UpdateMasterPair(MasterCondition0->GetGeometry(), ThisModelPart.GetProcessInfo());
-                    
+
                     if (conditions_points_slave.size() == conditions_points_slave0.size()) {// Just in case we have the "same configuration"
                         DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry_1, normal_slave_1, MasterCondition1->GetGeometry(), rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method);
                         DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry_0, normal_slave_0, MasterCondition0->GetGeometry(), rDerivativeData0, rVariables0, consider_normal_variation, conditions_points_slave0, this_integration_method);
@@ -203,7 +203,7 @@ namespace Kratos
                                 points_array0(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
                             }
 
-                            if (Check == LEVEL_DEBUG || Check == LEVEL_FULL_DEBUG) KRATOS_WATCH(belong_array);
+                            if (Check == LEVEL_DEBUG || Check == LEVEL_FULL_DEBUG) for (std::size_t i = 0; i < TDim; ++i) KRATOS_WATCH(static_cast<std::size_t>(belong_array[i]));
 
                             DecompositionType decomp_geom( points_array );
                             DecompositionType decomp_geom0( points_array0 );
@@ -275,16 +275,16 @@ namespace Kratos
                                     master_geometry_1.ShapeFunctionsLocalGradients( rVariables.DNDeMaster, projected_gp_local );
                                     rVariables.PhiLagrangeMultipliers = prod(rDerivativeData.Ae, rVariables.NSlave);
                                     rVariables.jMaster = master_geometry_1.Jacobian( rVariables.jMaster, projected_gp_local);
-                                    
+
                                     // Now we compute the derivatives
                                     if (TDim == 3) DerivativesUtilitiesType::CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, slave_geometry_1, master_geometry_1, normal_slave_1);
-                                    
+
                                     // Update the derivative of DetJ
                                     DerivativesUtilitiesType::CalculateDeltaDetjSlave(decomp_geom, rVariables, rDerivativeData);
-                                    
+
                                     // Update the derivatives of the shape functions and the gap
                                     DerivativesUtilitiesType::CalculateDeltaN(rVariables, rDerivativeData, slave_geometry_1, master_geometry_1, normal_slave_1, normal_master_1, decomp_geom, local_point_decomp, local_point_parent, consider_normal_variation, true);
-                                    
+
                                     if (Derivative == CHECK_SHAPE_FUNCTION) {
                                         // Now we compute the error of the delta N
                                         Vector aux_N_dx_slave  = rVariables0.NSlave;
