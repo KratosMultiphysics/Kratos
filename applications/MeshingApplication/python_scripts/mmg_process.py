@@ -112,6 +112,7 @@ class MmgProcess(KratosMultiphysics.Process):
             "save_external_files"              : false,
             "max_number_of_searchs"            : 1000,
             "debug_mode"                       : false,
+            "debug_result_mesh"                : false,
             "echo_level"                       : 3
         }
         """)
@@ -215,6 +216,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters["force_sizes"].AddValue("force_max",self.settings["force_max"])
         mmg_parameters["force_sizes"].AddValue("maximal_size",self.settings["maximal_size"])
         mmg_parameters.AddValue("advanced_parameters",self.settings["advanced_parameters"])
+        mmg_parameters.AddValue("debug_result_mesh",self.settings["debug_result_mesh"])
         mmg_parameters.AddValue("echo_level",self.settings["echo_level"])
         if (self.dim == 2):
             self.mmg_process = MeshingApplication.MmgProcess2D(self.model_part, mmg_parameters)
