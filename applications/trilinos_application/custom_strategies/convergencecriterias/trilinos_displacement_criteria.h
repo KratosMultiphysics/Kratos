@@ -278,9 +278,11 @@ private:
         TDataType local_ReferenceDispNorm = TDataType();
         TDataType temp;
 
+        const double rank = rModelPart.GetCommunicator().MyPID(); // double because I want to compare with PARTITION_INDEX
+
         for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
         {
-            if(i_dof->IsFree())
+            if(i_dof->IsFree() && (i_dof->GetSolutionStepValue(PARTITION_INDEX) == rank))
             {
                 temp = i_dof->GetSolutionStepValue();
                 local_ReferenceDispNorm += temp*temp;
