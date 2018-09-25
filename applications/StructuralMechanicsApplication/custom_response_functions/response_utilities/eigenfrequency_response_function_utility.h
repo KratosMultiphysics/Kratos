@@ -29,6 +29,7 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
+#include "differentiation_utility.h"
 
 // ==============================================================================
 
@@ -295,14 +296,30 @@ protected:
 
                 for(std::size_t coord_dir_i = 0; coord_dir_i < domain_size; coord_dir_i++)
                 {
-                    node_i.GetInitialPosition()[coord_dir_i] += mDelta;
+                    if( coord_dir_i == 0 )
+                    {
+                        DifferentiationUtility::CalculateLeftHandSideDerivative(elem_i, SHAPE_X, node_i, perturbed_LHS, CurrentProcessInfo);
+                        DifferentiationUtility::CalculateMassMatrixDerivative(elem_i, SHAPE_X, node_i, perturbed_mass_matrix, CurrentProcessInfo);
+                    }
+                    else if( coord_dir_i == 1  )
+                    {
+                        DifferentiationUtility::CalculateLeftHandSideDerivative(elem_i, SHAPE_Y, node_i, perturbed_LHS, CurrentProcessInfo);
+                        DifferentiationUtility::CalculateMassMatrixDerivative(elem_i, SHAPE_Y, node_i, perturbed_mass_matrix, CurrentProcessInfo);
+                    }
+                    else if( coord_dir_i == 2  )
+                    {
+                        DifferentiationUtility::CalculateLeftHandSideDerivative(elem_i, SHAPE_Z, node_i, perturbed_LHS, CurrentProcessInfo);
+                        DifferentiationUtility::CalculateMassMatrixDerivative(elem_i, SHAPE_Z, node_i, perturbed_mass_matrix, CurrentProcessInfo);
+                    }
+
+                    /*node_i.GetInitialPosition()[coord_dir_i] += mDelta;
                     node_i.Coordinates()[coord_dir_i] += mDelta;
 
                     elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
                     noalias(perturbed_mass_matrix) = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
 
                     elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
-                    noalias(perturbed_LHS) = (perturbed_LHS - LHS_org) / mDelta;
+                    noalias(perturbed_LHS) = (perturbed_LHS - LHS_org) / mDelta;*/
 
                     for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                     {
@@ -315,8 +332,8 @@ protected:
                         gradient_contribution[coord_dir_i] += gradient_prefactors[i] * inner_prod(eigenvectors_of_element[i] , aux_vector) * mWeightingFactors[i];
                     }
 
-                    node_i.GetInitialPosition()[coord_dir_i] -= mDelta;
-                    node_i.Coordinates()[coord_dir_i] -= mDelta;
+                    //node_i.GetInitialPosition()[coord_dir_i] -= mDelta;
+                    //node_i.Coordinates()[coord_dir_i] -= mDelta;
                 }
                 noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
             }
