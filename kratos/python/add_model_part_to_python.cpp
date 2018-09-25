@@ -880,8 +880,9 @@ void AddModelPartToPython(pybind11::module& m)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1, return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2, return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint3, return_value_policy::reference_internal)
+        KRATOS_DEF_STR(ModelPart)
         ;
-        KRATOS_DEF_STR(ModelPart, py_class);
+        //KRATOS_DEF_STR(ModelPart, py_class);
 }
 
 } // namespace Python.

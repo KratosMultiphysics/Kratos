@@ -96,8 +96,8 @@
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(module,NOT_##flag)
 
 
-#define KRATOS_DEF_STR(ObjectType, PythonClass) \
-    PythonClass.def("__str__", [](const ObjectType& self) -> \
+#define KRATOS_DEF_STR(ObjectType) \
+    .def("__str__", [](const ObjectType& self) -> \
     const std::string { std::stringstream ss;  ss << self; return ss.str(); })
 
 #endif /* KRATOS_DEFINE_H_INCLUDED  defined */
