@@ -220,22 +220,18 @@ public:
 	 * Broadcasting a value to all ranks
 	 * @param rComm A communicator object.
 	 * @param LocalValue The local value to be sent in the gather.
-	 * @param Root The MPI rank of the process where the valued will be broadcasted from.
+	 * @param RankToBroacastFrom The MPI rank of the process where the valued will be broadcasted from.
 	 * @return The broadcasted value on all ranks
 	 */
 	template<class TValueType>
 	TValueType broadcast(PythonMPIComm& rComm,
                          TValueType LocalValue,
-                         const int Root)
+                         const int RankToBroacastFrom)
 	{
         // Determime data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
-		int rank, size;
-		MPI_Comm_rank(rComm.GetMPIComm(), &rank);
-		MPI_Comm_size(rComm.GetMPIComm(), &size);
-
-        MPI_Bcast(&LocalValue, 1, DataType, Root, rComm.GetMPIComm());
+        MPI_Bcast(&LocalValue, 1, DataType, RankToBroacastFrom, rComm.GetMPIComm());
 
         return LocalValue;
     }
@@ -245,26 +241,22 @@ public:
 	 * Perform a reduction given an MPI_Op-Type
 	 * @param rComm A communicator object.
 	 * @param LocalValue The local value to be sent in the gather.
-	 * @param Root The MPI rank of the process where the valued will be gathered.
+	 * @param RankToReduceOn The MPI rank of the process where the valued will be gathered.
 	 * @param MPI_Operation The MPI_Op to be used for the reduction
-	 * @return The reduced value on the for the Root thread
+	 * @return The reduced value on the for the RankToReduceOn thread
 	 */
 	template<class TValueType>
     TValueType reduce(PythonMPIComm& rComm,
                       const TValueType LocalValue,
-                      const int Root,
+                      const int RankToReduceOn,
                       const MPI_Operation MpiOp)
 	{
 		// Determime data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
-		int rank, size;
-		MPI_Comm_rank(rComm.GetMPIComm(), &rank);
-		MPI_Comm_size(rComm.GetMPIComm(), &size);
-
         TValueType result_val;
         MPI_Reduce(&LocalValue, &result_val, 1, DataType,
-                   GetMPIOpType(MpiOp), Root, rComm.GetMPIComm());
+                   GetMPIOpType(MpiOp), RankToReduceOn, rComm.GetMPIComm());
 
         return result_val;
     }
@@ -285,10 +277,6 @@ public:
 		// Determime data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
-		int rank, size;
-		MPI_Comm_rank(rComm.GetMPIComm(), &rank);
-		MPI_Comm_size(rComm.GetMPIComm(), &size);
-
         TValueType result_val;
         MPI_Allreduce(&LocalValue, &result_val, 1, DataType,
                       GetMPIOpType(MpiOp), rComm.GetMPIComm());
@@ -298,16 +286,17 @@ public:
 
 	/// Perform a MPI_Gather operation.
 	/**
-	 * Provide a std::vector containing all local values to the Root process.
+	 * Provide a std::vector containing all local values to the RankToGatherOn process.
 	 * @param rComm A communicator object.
 	 * @param LocalValue The local value to be sent in the gather.
-	 * @param Root The MPI rank of the process where the valued will be gathered.
-	 * @return A std::vector containing the local values in all processes, sorted by rank, for the Root thread, an empty std::vector for other processes
+	 * @param RankToGatherOn The MPI rank of the process where the valued will be gathered.
+	 * @return A std::vector containing the local values in all processes, sorted by rank,
+     * for the RankToGatherOn thread, an empty std::vector for other processes
 	 */
 	template<class TValueType>
 	std::vector<TValueType> gather(PythonMPIComm& rComm,
                                    const TValueType LocalValue,
-                                   const int Root)
+                                   const int RankToGatherOn)
     {
         // Determime data type
         const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
@@ -318,28 +307,29 @@ public:
 
         // Create recieve buffer
         std::vector<TValueType> global_values;
-        if (rank == Root)
+        if (rank == RankToGatherOn)
             global_values.resize(size);
 
         // Communicate
         MPI_Gather(&LocalValue, 1, DataType, global_values.data(),
-                   1, DataType, Root, rComm.GetMPIComm());
+                   1, DataType, RankToGatherOn, rComm.GetMPIComm());
 
         return global_values;
     }
 
     /// Perform an MPI_Gather operation.
     /**
-     * Provide a std::vector containing all local values to the Root process.
+     * Provide a std::vector containing all local values to the RankToGatherOn process.
      * @param rComm A communicator object.
      * @param rLocalValues The std::vector of local values to be sent in the gather.
-     * @param Root The MPI rank of the process where the values will be gathered.
-     * @return A std::vector containing the local value lists in all processes, sorted by rank, for the Root thread, an empty std::vector for other processes
+     * @param RankToGatherOn The MPI rank of the process where the values will be gathered.
+     * @return A std::vector containing the local value lists in all processes, sorted by rank,
+     * for the RankToGatherOn thread, an empty std::vector for other processes
      */
     template<class TValueType>
     std::vector<std::vector<TValueType>> gatherv(PythonMPIComm& rComm,
                                    const std::vector<TValueType>& rLocalValues,
-                                   const int Root)
+                                   const int RankToGatherOn)
     {
         // Determime data type
         const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
@@ -354,10 +344,10 @@ public:
         std::vector<int> recv_sizes(size);
         std::vector<int> displs(size);
         MPI_Gather(&send_size, 1, MPI_INT, recv_sizes.data(),
-                   1, MPI_INT, Root, rComm.GetMPIComm());
+                   1, MPI_INT, RankToGatherOn, rComm.GetMPIComm());
 
         // calculate receive buffer block size for root
-        if (rank == Root)
+        if (rank == RankToGatherOn)
         {
             for (int i = 0; i < size; ++i)
                 recv_block_size = (recv_block_size < recv_sizes[i]) ? recv_sizes[i] : recv_block_size;
@@ -369,14 +359,14 @@ public:
 
         // gather local arrays at root
         MPI_Gatherv(rLocalValues.data(), send_size, DataType, recv_buffer.data(),
-                    recv_sizes.data(), displs.data(), DataType, Root, rComm.GetMPIComm());
+                    recv_sizes.data(), displs.data(), DataType, RankToGatherOn, rComm.GetMPIComm());
 
         std::vector<std::vector<TValueType>> condensed_vector;
 
         // now condensing the vector such that is has only the number of actual
         // elements that come from each rank (i.e. removing the buffering that is
         // needed for the mpi-call)
-        if (rank == Root)
+        if (rank == RankToGatherOn)
         {
             condensed_vector.resize(size);
             const auto buffer_begin = recv_buffer.begin();
