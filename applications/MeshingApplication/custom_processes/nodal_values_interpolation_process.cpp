@@ -92,7 +92,7 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
         } else {
             if (mThisParameters["interpolate_non_historical"].GetBool())
                 CalculateData<Element>(*(it_node.base()), p_element, shape_functions);
-            for(IndexType i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
+            for(int i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
                 CalculateStepData<Element>(*(it_node.base()), p_element, shape_functions, i_step);
         }
     }
@@ -179,7 +179,7 @@ template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(std::vector<NodeType::Pointer>& rToExtrapolateNodes)
 {
     // We compute the NODAL_H
-    FindNodalHProcess find_h_process = FindNodalHProcess(mrDestinationMainModelPart);
+    auto find_h_process = FindNodalHProcess<true>(mrDestinationMainModelPart);
     find_h_process.Execute();
 
     // We initialize some values
@@ -258,7 +258,7 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(std::vector<NodeTy
                     // Finally we interpolate
                     if (mThisParameters["interpolate_non_historical"].GetBool())
                         CalculateData<Condition>(p_node, p_cond_origin, shape_functions);
-                    for(IndexType i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
+                    for(int i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
                         CalculateStepData<Condition>(p_node, p_cond_origin, shape_functions, i_step);
 
                     break;

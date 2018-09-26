@@ -84,7 +84,13 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("__repr__", &Process::Info)
     ;
 
-    class_<FindNodalHProcess, FindNodalHProcess::Pointer, Process>(m,"FindNodalHProcess")
+    // Find NODAL_H (Historical variables stored)
+    class_<FindNodalHProcess<true>, FindNodalHProcess<true>::Pointer, Process>(m,"FindNodalHProcess")
+    .def(init<ModelPart&>())
+    ;
+    
+    // Find NODAL_H (Non-historical variables stored)
+    class_<FindNodalHProcess<false>, FindNodalHProcess<false>::Pointer, Process>(m,"FindNodalHNonHistoricalProcess")
     .def(init<ModelPart&>())
     ;
 

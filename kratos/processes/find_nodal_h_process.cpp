@@ -22,32 +22,37 @@
 
 namespace Kratos
 {
-void FindNodalHProcess::Execute()
+
+template<bool THistorical>
+void FindNodalHProcess<THistorical>::Execute()
 {
     KRATOS_TRY
     
     // Check if variables are available       
-    KRATOS_ERROR_IF_NOT(mrModelPart.NodesBegin()->SolutionStepsDataHas( NODAL_H )) << "Variable NODAL_H not in the model part!";
-    
-    #pragma omp parallel for 
-    for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-        auto it_node = mrModelPart.NodesBegin() + i;
-        it_node->GetSolutionStepValue(NODAL_H, 0) = std::numeric_limits<double>::max();
+    if (THistorical) {
+        KRATOS_ERROR_IF_NOT(mrModelPart.NodesBegin()->SolutionStepsDataHas( NODAL_H )) << "Variable NODAL_H not in the model part!" << std::endl;
     }
     
-    for(unsigned int i=0; i<mrModelPart.Elements().size(); ++i) {
+    #pragma omp parallel for 
+    for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
+        auto it_node = mrModelPart.NodesBegin() + i;
+        it_node->FastGetSolutionStepValue(NODAL_H) = std::numeric_limits<double>::max();
+    }
+    
+    for(IndexType i=0; i < mrModelPart.Elements().size(); ++i) {
         auto it_element = mrModelPart.ElementsBegin() + i;
-        auto& geom = it_element->GetGeometry();
+        auto& r_geom = it_element->GetGeometry();
+        const SizeType number_of_nodes = r_geom.size();
         
-        for(unsigned int k=0; k<geom.size()-1; ++k) {
-            double& h1 = geom[k].FastGetSolutionStepValue(NODAL_H);
-            for(unsigned int l=k+1; l<geom.size(); ++l) {
-                double hedge = norm_2(geom[l].Coordinates() - geom[k].Coordinates());
-                double& h2 = geom[l].FastGetSolutionStepValue(NODAL_H);
+        for(IndexType k = 0; k < number_of_nodes-1; ++k) {
+            const double h1 = GetValue(r_geom[k]);
+            for(IndexType l=k+1; l < number_of_nodes; ++l) {
+                double hedge = norm_2(r_geom[l].Coordinates() - r_geom[k].Coordinates());
+                const double h2 = GetValue(r_geom[l]);
                 
                 // Get minimum between the existent value and the considered edge length 
-                geom[k].FastGetSolutionStepValue(NODAL_H) = std::min(h1, hedge);
-                geom[l].FastGetSolutionStepValue(NODAL_H) = std::min(h2, hedge);
+                SetValue(r_geom[k], std::min(h1, hedge));
+                SetValue(r_geom[l], std::min(h2, hedge));
             }
         }
     }
@@ -55,5 +60,72 @@ void FindNodalHProcess::Execute()
     mrModelPart.GetCommunicator().SynchronizeCurrentDataToMin(NODAL_H);
 
     KRATOS_CATCH("")
-} // class FindNodalHProcess
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+double FindNodalHProcess<true>::GetValue(NodeType& rNode)
+{
+    return rNode.FastGetSolutionStepValue(NODAL_H);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+double FindNodalHProcess<false>::GetValue(NodeType& rNode)
+{
+    return rNode.GetValue(NODAL_H);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void FindNodalHProcess<true>::SetValue(
+    NodeType& rNode,
+    const double Value
+    )
+{
+    rNode.FastGetSolutionStepValue(NODAL_H) = Value;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void FindNodalHProcess<false>::SetValue(
+    NodeType& rNode,
+    const double Value
+    )
+{
+    rNode.SetValue(NODAL_H, Value);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void FindNodalHProcess<true>::SetInitialValue(NodeIterator itNode)
+{
+    itNode->FastGetSolutionStepValue(NODAL_H) = std::numeric_limits<double>::max();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void FindNodalHProcess<false>::SetInitialValue(NodeIterator itNode)
+{
+    itNode->SetValue(NODAL_H, std::numeric_limits<double>::max());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class FindNodalHProcess<true>;
+template class FindNodalHProcess<false>;
+
 } // namespace Kratos
