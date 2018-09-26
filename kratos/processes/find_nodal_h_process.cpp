@@ -45,14 +45,14 @@ void FindNodalHProcess<THistorical>::Execute()
         const SizeType number_of_nodes = r_geom.size();
         
         for(IndexType k = 0; k < number_of_nodes-1; ++k) {
-            const double h1 = GetValue(r_geom[k]);
+            double& r_h1 = GetValue(r_geom[k]);
             for(IndexType l=k+1; l < number_of_nodes; ++l) {
                 double hedge = norm_2(r_geom[l].Coordinates() - r_geom[k].Coordinates());
-                const double h2 = GetValue(r_geom[l]);
+                double& r_h2 = GetValue(r_geom[l]);
                 
                 // Get minimum between the existent value and the considered edge length 
-                SetValue(r_geom[k], std::min(h1, hedge));
-                SetValue(r_geom[l], std::min(h2, hedge));
+                SetValue(r_geom[k], std::min(r_h1, hedge));
+                SetValue(r_geom[l], std::min(r_h2, hedge));
             }
         }
     }
@@ -66,7 +66,7 @@ void FindNodalHProcess<THistorical>::Execute()
 /***********************************************************************************/
 
 template<>
-double FindNodalHProcess<true>::GetValue(NodeType& rNode)
+double& FindNodalHProcess<true>::GetValue(NodeType& rNode)
 {
     return rNode.FastGetSolutionStepValue(NODAL_H);
 }
@@ -75,7 +75,7 @@ double FindNodalHProcess<true>::GetValue(NodeType& rNode)
 /***********************************************************************************/
 
 template<>
-double FindNodalHProcess<false>::GetValue(NodeType& rNode)
+double& FindNodalHProcess<false>::GetValue(NodeType& rNode)
 {
     return rNode.GetValue(NODAL_H);
 }
