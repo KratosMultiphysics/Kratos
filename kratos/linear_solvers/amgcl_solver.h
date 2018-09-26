@@ -107,15 +107,6 @@ AMGCLScalarSolve(
 {
     typedef amgcl::backend::builtin<double> Backend;
 
-    // amgcl::make_solver<
-    //     amgcl::amg<
-    //         Backend,
-    //         amgcl::runtime::coarsening::wrapper,
-    //         amgcl::runtime::relaxation::wrapper
-    //         >,
-    //     amgcl::runtime::solver::wrapper<Backend>
-    //     > solve(amgcl::adapter::zero_copy(TSparseSpaceType::Size1(rA), rA.index1_data().begin(), rA.index2_data().begin(), rA.value_data().begin()), amgclParams);
-
     amgcl::make_solver<
         amgcl::runtime::preconditioner<Backend>,
         amgcl::runtime::solver::wrapper<Backend>
@@ -123,7 +114,8 @@ AMGCLScalarSolve(
 
     std::tie(rIterationNumber, rResidual) = solve(rB, rX);
 
-    //if(mVerbosity > 1 )
+    if(verbosity_level > 1 )
+        std::cout << "AMGCL Memory Occupation (MB): " << amgcl::backend::bytes(solve) << std::endl;
 }
 
 /**
@@ -154,15 +146,6 @@ AMGCLBlockSolve(
 
     std::size_t n = TSparseSpaceType::Size1(rA);
 
-    // amgcl::make_solver<
-    //     amgcl::amg<
-    //         Backend,
-    //         amgcl::runtime::coarsening::wrapper,
-    //         amgcl::runtime::relaxation::wrapper
-    //         >,
-    //     amgcl::runtime::solver::wrapper<Backend>
-    //     > solve( amgcl::adapter::block_matrix<value_type>(std::tie(n,rA.index1_data(),rA.index2_data(),rA.value_data() )), amgclParams);
-
     amgcl::make_solver<
         amgcl::runtime::preconditioner<Backend>,
         amgcl::runtime::solver::wrapper<Backend>
@@ -175,6 +158,10 @@ AMGCLBlockSolve(
     boost::iterator_range<const rhs_type*> b_range = boost::make_iterator_range(b_begin, b_begin + n / TBlockSize);
 
     std::tie(rIterationNumber, rResidual) = solve(b_range, x_range);
+
+    if(verbosity_level > 1 )
+        std::cout << "AMGCL Memory Occupation (kB): " << amgcl::backend::bytes(solve) << std::endl;
+
 }
 
 ///@}

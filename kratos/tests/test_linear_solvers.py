@@ -241,7 +241,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "max_iteration": 100,
                         "provide_coordinates": false,
                         "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 1,
+                        "verbosity" : 2,
                         "tolerance": 1e-6,
                         "scaling": false,
                         "block_size": 1,
