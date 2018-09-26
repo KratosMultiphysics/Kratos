@@ -305,6 +305,8 @@ Vector& HyperElasticIsotropicNeoHookean3D::CalculateValue(
             ConstitutiveLawUtilities<VoigtSize>::CalculateBiotStrain(C_tensor, r_strain_vector);
         }
 
+        rValue = rParameterValues.GetStrainVector();
+
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
@@ -323,7 +325,7 @@ Vector& HyperElasticIsotropicNeoHookean3D::CalculateValue(
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
         r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
         // We compute the stress
@@ -336,6 +338,8 @@ Vector& HyperElasticIsotropicNeoHookean3D::CalculateValue(
         } if (rThisVariable == PK2_STRESS_VECTOR) {
             this->CalculateMaterialResponsePK2(rParameterValues);
         }
+
+        rValue = rParameterValues.GetStressVector();
 
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
@@ -378,6 +382,8 @@ Matrix& HyperElasticIsotropicNeoHookean3D::CalculateValue(
         } else if (rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
             this->CalculateMaterialResponsePK2(rParameterValues);
         }
+
+        rValue = rParameterValues.GetConstitutiveMatrix();
 
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
@@ -504,7 +510,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculatePK2Stress(
 
     stress_matrix = LameLambda * std::log(DeterminantF) * rInvCTensor + LameMu * ( IdentityMatrix(dimension, dimension) - rInvCTensor );
 
-    rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
+    rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, GetStrainSize() );
 }
 
 /***********************************************************************************/

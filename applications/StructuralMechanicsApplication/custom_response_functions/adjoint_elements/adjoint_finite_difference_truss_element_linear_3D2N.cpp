@@ -27,42 +27,6 @@ AdjointFiniteDifferenceTrussElementLinear::~AdjointFiniteDifferenceTrussElementL
 {
 }
 
-void AdjointFiniteDifferenceTrussElementLinear::Calculate(const Variable<Vector >& rVariable,
-                        Vector& rOutput,
-                        const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    if(rVariable == STRESS_ON_GP)
-    {
-        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
-
-        const SizeType  GP_num = (mpPrimalElement->GetGeometry().IntegrationPoints()).size();
-        if (rOutput.size() != GP_num)
-            rOutput.resize(GP_num, false);
-
-        switch (traced_stress_type)
-        {
-            case TracedStressType::FX:
-            {
-                std::vector< array_1d<double, 3 > > force_vector;
-                mpPrimalElement->CalculateOnIntegrationPoints(FORCE, force_vector, rCurrentProcessInfo);
-                for(IndexType i = 0; i < GP_num ; ++i)
-                    rOutput(i) = force_vector[i][0];
-                break;
-            }
-            default:
-                KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;
-        }
-    }
-    else
-    {
-        rOutput.resize(1);
-        rOutput.clear();
-    }
-
-    KRATOS_CATCH("")
-}
 
 void AdjointFiniteDifferenceTrussElementLinear::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
