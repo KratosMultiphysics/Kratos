@@ -113,7 +113,7 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
 
     // Create the auxiliary entities
     CreateElementsToRefine(elem_id, elem_tag);
-    CreateConditionsToRefine(elem_id, cond_tag);
+    CreateConditionsToRefine(cond_id, cond_tag);
 
     // Execute the refinement
     int divisions = mrRefinedModelPart.GetValue(SUBSCALE_INDEX) * mDivisionsAtSubscale;
