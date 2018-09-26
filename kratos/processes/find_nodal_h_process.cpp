@@ -36,7 +36,7 @@ void FindNodalHProcess<THistorical>::Execute()
     #pragma omp parallel for 
     for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i) {
         auto it_node = mrModelPart.NodesBegin() + i;
-        it_node->FastGetSolutionStepValue(NODAL_H) = std::numeric_limits<double>::max();
+        SetInitialValue(it_node);
     }
     
     for(IndexType i=0; i < mrModelPart.Elements().size(); ++i) {
