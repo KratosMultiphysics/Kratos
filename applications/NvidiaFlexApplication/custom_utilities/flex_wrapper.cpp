@@ -110,7 +110,7 @@ namespace Kratos {
 
         NvFlexSetParams(mFlexSolver, &mFlexParameters);
 
-        if(transfer_spheres) {
+        if (transfer_spheres) {
             mFlexPositions->map();
             mFlexVelocities->map();
             mFlexPhases->map();
@@ -124,7 +124,7 @@ namespace Kratos {
 
             int phase = NvFlexMakePhase(0, eNvFlexPhaseSelfCollide);
 
-            for (size_t i=0; i< number_of_nodes; i++) {
+            for (size_t i = 0; i < number_of_nodes; i++) {
                 const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
                 const auto& coords = node_it->Coordinates();
                 (*mFlexPositions)[i] = Vec4((float)coords[0], (float)coords[1], (float)coords[2], (float)(1.0 / node_it->FastGetSolutionStepValue(NODAL_MASS)));
@@ -147,7 +147,7 @@ namespace Kratos {
             NvFlexSetActiveCount(mFlexSolver, mActiveIndices->size());
         }
 
-        if(transfer_walls) {
+        if (transfer_walls) {
             mFlexFemPositions->map();
             mFlexFemConnectivities->map();
 
@@ -160,18 +160,19 @@ namespace Kratos {
             max[0] = max[1] = max[2] = -std::numeric_limits<double>::max();
             min[0] = min[1] = min[2] =  std::numeric_limits<double>::max();
 
-            for (size_t i=0; i< number_of_fem_nodes; i++) {
+            for (size_t i = 0; i < number_of_fem_nodes; i++) {
                 const auto node_it = mrFemModelPart.Nodes().begin() + i;
                 const auto& coords = node_it->Coordinates();
-                (*mFlexFemPositions)[i] = Vec4( (float)coords[0], (float)coords[1], (float)coords[2], 0.0f );
+                (*mFlexFemPositions)[i] = Vec4((float)coords[0], (float)coords[1], (float)coords[2], 0.0f);
                 id2index[node_it->Id()] = i;
-                if(coords[0]>max[0]) max[0] = coords[0];
-                if(coords[1]>max[1]) max[1] = coords[1];
-                if(coords[2]>max[2]) max[2] = coords[2];
-                if(coords[0]<min[0]) min[0] = coords[0];
-                if(coords[1]<min[1]) min[1] = coords[1];
-                if(coords[2]<min[2]) min[2] = coords[2];
+                if (coords[0] > max[0]) max[0] = coords[0];
+                if (coords[1] > max[1]) max[1] = coords[1];
+                if (coords[2] > max[2]) max[2] = coords[2];
+                if (coords[0] < min[0]) min[0] = coords[0];
+                if (coords[1] < min[1]) min[1] = coords[1];
+                if (coords[2] < min[2]) min[2] = coords[2];
             }
+            
             for (size_t i = 0; i < number_of_fem_conditions; i++) {
                 const auto cond_it = mrFemModelPart.Conditions().begin() + i;
                 const auto& nodes = cond_it->GetGeometry();
@@ -246,22 +247,30 @@ namespace Kratos {
         for (size_t i = 0; i < number_of_nodes; i++) {
             const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
             mFlexParameters.radius = (float) 2.0 * node_it->FastGetSolutionStepValue(RADIUS);
-            mFlexParameters.staticFriction = mFlexParameters.particleFriction = mFlexParameters.dynamicFriction = (float) mrSpheresModelPart.GetProcessInfo()[PARTICLE_FRICTION];
             break;
         }
-        if (mFlexParameters.radius == 0.0) {
-            KRATOS_ERROR << "The radius of the particles cannot be 0.0!"<<std::endl;
-        }
+        
+        if (mFlexParameters.radius == 0.0) KRATOS_ERROR << "The radius of the particles cannot be 0.0!"<<std::endl;
+        
+        // We obtain both friction and coefficient of restitution from the mdpa
+        Element* p_element = mrSpheresModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin()->get();
+        SphericParticle* p_spheric_particle = dynamic_cast<SphericParticle*> (p_element);
+        mFlexParameters.staticFriction = mFlexParameters.particleFriction = mFlexParameters.dynamicFriction = (float) p_spheric_particle->GetProperties()[PARTICLE_FRICTION];
+        mFlexParameters.restitution = (float) p_spheric_particle->GetProperties()[COEFFICIENT_OF_RESTITUTION];
+
+        KRATOS_WATCH(mFlexParameters.dynamicFriction)
+        KRATOS_WATCH(mFlexParameters.particleFriction)
+        KRATOS_WATCH(mFlexParameters.staticFriction)
+        KRATOS_WATCH(mFlexParameters.restitution)
         
         //check that all radii are the same!!
         const double tolerance = 1.0e-6;
         double reference_radius = 0.0;
-        for (size_t i=0; i< number_of_nodes; i++) {
+        for (size_t i = 0; i < number_of_nodes; i++) {
             const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
             if (i == 0) {
                 reference_radius = node_it->FastGetSolutionStepValue(RADIUS);
-            }
-            else {
+            } else {
                 const double& radius_i = node_it->FastGetSolutionStepValue(RADIUS);
                 if (std::abs(radius_i - reference_radius) > tolerance) {
                     KRATOS_ERROR<<"The radii of the particles are not equal! Nvidia Flex only works with particles of the same size! "<<radius_i<<" is different from "<<reference_radius<<std::endl;
@@ -276,7 +285,7 @@ namespace Kratos {
         mFlexParameters.freeSurfaceDrag = 0.0f;
         mFlexParameters.drag = 0.0f;
         mFlexParameters.lift = 0.0f;
-        mFlexParameters.numIterations = 3; //5; //30; //3;
+        mFlexParameters.numIterations = 3; //30; //3;
         mFlexParameters.fluidRestDistance = 0.9 * mFlexParameters.radius; //0.0f;
         mFlexParameters.solidRestDistance = 0.9 * mFlexParameters.radius; //0.0f;
 
@@ -292,7 +301,7 @@ namespace Kratos {
         mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance * 0.05f; //1,0f; // * 0.05f;
         mFlexParameters.sleepThreshold = 0.0f;
         mFlexParameters.shockPropagation = 0.0f;
-        mFlexParameters.restitution = 0.05f; //0.0f; //0.5f;
+        //mFlexParameters.restitution = 0.05f; //0.0f; //0.5f;
 
         mFlexParameters.maxSpeed = 100.0f; //FLT_MAX;
         mFlexParameters.maxAcceleration = 100.0f; // approximately 10x gravity
@@ -317,12 +326,12 @@ namespace Kratos {
         const array_1d<double, 3 >& high_point = mrParticleCreatorDestructor.GetHighNode();
 
         mFlexParameters.numPlanes = 6;
-        (Vec4&)mFlexParameters.planes[0] = Vec4(0.0f, 1.0f, 0.0f, (float)10 * -low_point[1]);
-        (Vec4&)mFlexParameters.planes[1] = Vec4(0.0f, 0.0f, 1.0f, (float)10 * -low_point[2]);
-        (Vec4&)mFlexParameters.planes[2] = Vec4(1.0f, 0.0f, 0.0f, (float)10 * -low_point[0]);
-        (Vec4&)mFlexParameters.planes[3] = Vec4(-1.0f, 0.0f, 0.0f, (float)10 * high_point[0]);
-        (Vec4&)mFlexParameters.planes[4] = Vec4(0.0f, 0.0f, -1.0f, (float)10 * high_point[2]);
-        (Vec4&)mFlexParameters.planes[5] = Vec4(0.0f, -1.0f, 0.0f, (float)10 * high_point[1]);
+        (Vec4&)mFlexParameters.planes[0] = Vec4(0.0f, 1.0f, 0.0f, (float)1.0 * -low_point[1]);
+        (Vec4&)mFlexParameters.planes[1] = Vec4(0.0f, 0.0f, 1.0f, (float)1.0 * -low_point[2]);
+        (Vec4&)mFlexParameters.planes[2] = Vec4(1.0f, 0.0f, 0.0f, (float)1.0 * -low_point[0]);
+        (Vec4&)mFlexParameters.planes[3] = Vec4(-1.0f, 0.0f, 0.0f, (float)1.0 * high_point[0]);
+        (Vec4&)mFlexParameters.planes[4] = Vec4(0.0f, 0.0f, -1.0f, (float)1.0 * high_point[2]);
+        (Vec4&)mFlexParameters.planes[5] = Vec4(0.0f, -1.0f, 0.0f, (float)1.0 * high_point[1]);
 
         if (mFlexParameters.solidRestDistance == 0.0f) mFlexParameters.solidRestDistance = mFlexParameters.radius;
 
@@ -407,7 +416,7 @@ namespace Kratos {
         static size_t gravity_number = 0;
         float elapsed_time = mrSpheresModelPart.GetProcessInfo()[TIME] - current_reference_time;
         // Minimum time span to wait between gravity shifts to ensure that the powder realocates
-        const float delta_security_time = 0.5f;
+        const float delta_security_time = 10.5f;
         const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
         // We choose the maximum velocity admissible in order to change the gravity vector
         const float maximum_squared_velocity_module = 0.05f * 0.05f; // squares will be compared
