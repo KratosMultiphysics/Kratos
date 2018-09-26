@@ -56,7 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/mpi_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
 #include "processes/process.h"
 
 namespace Kratos

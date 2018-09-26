@@ -17,7 +17,7 @@
 
 // Project includes
 #include "add_mpi_communicator_to_python.h"
-#include "includes/mpi_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
 
 namespace Kratos {
 namespace Python {
