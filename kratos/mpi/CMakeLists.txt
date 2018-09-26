@@ -12,6 +12,7 @@ set( KRATOS_MPI_SOURCES
 set( KRATOS_MPI_PYTHON_SOURCES
     python/kratos_mpi_python.cpp
     python/add_mpi_communicator_to_python.cpp
+    python/add_mpi_utilities_to_python.cpp
 )
 
 ## Define library for the C++ layer
