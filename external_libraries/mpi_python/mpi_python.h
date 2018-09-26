@@ -341,14 +341,16 @@ public:
             for (int i=0; i<size; ++i) {
                 send_sizes[i] = rLocalValues[i].size();
             }
-            const int send_block_size = *(std::max_element(send_sizes.begin(), send_sizes.end()));
+            // no padding is applied in the buffer
+            const int sum_values = std::accumulate(send_sizes.begin(), send_sizes.end(), 0);
+            send_buffer.resize(sum_values);
 
-            send_buffer.resize(send_block_size * size);
-
+            int counter = 0;
             for (int i=0; i<size; ++i) {
-                displs[i] = i * send_block_size;
+                displs[i] = counter;
                 for (int j=0; j<send_sizes[i]; ++j) {
-                    send_buffer[i*send_block_size+j] = rLocalValues[i][j];
+                    send_buffer[counter] = rLocalValues[i][j];
+                    ++counter;
                 }
             }
         }
