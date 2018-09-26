@@ -445,7 +445,7 @@ void MultiScaleRefiningProcess::IdentifyParentNodesToErase()
                 // We need to ensure the refined mesh does not has dependencies
                 if (search->second->IsNot(MeshingFlags::REFINED))
                 {
-                    coarse_node->Set(MeshingFlags::TO_COARSE, true);
+                    coarse_node->Set(MeshingFlags::TO_COARSEN, true);
                     mCoarseToRefinedNodesMap.erase(search);
                     mRefinedToCoarseNodesMap.erase(search->second->Id());
                 }
@@ -471,11 +471,11 @@ void MultiScaleRefiningProcess::IdentifyElementsToErase()
         bool to_coarse = false;
         for (IndexType inode = 0; inode < element_nodes; inode++)
         {
-            if (coarse_elem->GetGeometry()[inode].Is(MeshingFlags::TO_COARSE))
+            if (coarse_elem->GetGeometry()[inode].Is(MeshingFlags::TO_COARSEN))
                 to_coarse = true;
         }
         if (to_coarse)
-            coarse_elem->Set(MeshingFlags::TO_COARSE, true);
+            coarse_elem->Set(MeshingFlags::TO_COARSEN, true);
     }
 
     // Identify the refined elements to remove
@@ -486,7 +486,7 @@ void MultiScaleRefiningProcess::IdentifyElementsToErase()
     for (int i = 0; i < nelems_ref; i++)
     {
         auto refined_elem = ref_elem_begin + i;
-        if ((refined_elem->GetValue(FATHER_ELEMENT))->Is(MeshingFlags::TO_COARSE))
+        if ((refined_elem->GetValue(FATHER_ELEMENT))->Is(MeshingFlags::TO_COARSEN))
             refined_elem->Set(TO_ERASE, true);
     }
 }
@@ -508,11 +508,11 @@ void MultiScaleRefiningProcess::IdentifyConditionsToErase()
         bool to_coarse = false;
         for (IndexType inode = 0; inode < condition_nodes; inode++)
         {
-            if (coarse_cond->GetGeometry()[inode].Is(MeshingFlags::TO_COARSE))
+            if (coarse_cond->GetGeometry()[inode].Is(MeshingFlags::TO_COARSEN))
                 to_coarse = true;
         }
         if (to_coarse)
-            coarse_cond->Set(MeshingFlags::TO_COARSE, true);
+            coarse_cond->Set(MeshingFlags::TO_COARSEN, true);
     }
 
     // Identify the refined conditions to remove
@@ -523,7 +523,7 @@ void MultiScaleRefiningProcess::IdentifyConditionsToErase()
     for (int i = 0; i < nconds_ref; i++)
     {
         auto refined_cond = ref_cond_begin + i;
-        if ((refined_cond->GetValue(FATHER_CONDITION))->Is(MeshingFlags::TO_COARSE))
+        if ((refined_cond->GetValue(FATHER_CONDITION))->Is(MeshingFlags::TO_COARSEN))
             refined_cond->Set(TO_ERASE, true);
     }
 }
@@ -684,7 +684,7 @@ void MultiScaleRefiningProcess::FinalizeCoarsening()
     for (int i = 0; i < nnodes; i++)
     {
         auto node = nodes_begin + i;
-        node->Set(MeshingFlags::TO_COARSE, false);
+        node->Set(MeshingFlags::TO_COARSEN, false);
     }
 
     // Resetting the elements flags
@@ -695,7 +695,7 @@ void MultiScaleRefiningProcess::FinalizeCoarsening()
     for (int i = 0; i < nelems; i++)
     {
         auto elem = elements_begin + i;
-        elem->Set(MeshingFlags::TO_COARSE, false);
+        elem->Set(MeshingFlags::TO_COARSEN, false);
     }
 
     // Resetting the conditions flags
@@ -706,7 +706,7 @@ void MultiScaleRefiningProcess::FinalizeCoarsening()
     for (int i = 0; i < nconds; i++)
     {
         auto cond = conditions_begin + i;
-        cond->Set(MeshingFlags::TO_COARSE, false);
+        cond->Set(MeshingFlags::TO_COARSEN, false);
     }
 }
 

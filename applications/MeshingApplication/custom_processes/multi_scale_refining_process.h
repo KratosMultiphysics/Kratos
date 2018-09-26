@@ -391,7 +391,7 @@ public:
 
     /**
      * @brief FinalizeCoarsening resets the flags on the nodes, elements and conditions
-     * @detail MeshingFlags::TO_COARSE
+     * @detail MeshingFlags::TO_COARSEN
      */
     void FinalizeCoarsening();
 
