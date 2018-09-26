@@ -10,6 +10,9 @@
 //  Main author:     Jordi Cotela
 //
 
+#ifndef KRATOS_ADD_MPI_UTILITIES_TO_PYTHON_H_INCLUDED
+#define KRATOS_ADD_MPI_UTILITIES_TO_PYTHON_H_INCLUDED
+
 // System includes
 
 // External includes
@@ -24,4 +27,6 @@ void AddMPIUtilitiesToPython(pybind11::module& m);
 
 } // namespace Python
 } // namespace Kratos
+
+#endif // KRATOS_ADD_MPI_UTILITIES_TO_PYTHON_H_INCLUDED
 
