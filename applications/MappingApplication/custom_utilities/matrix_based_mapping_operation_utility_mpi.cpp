@@ -65,13 +65,15 @@ void UtilityType::ResizeAndInitializeVectors(
 
     const auto nodes_begin_orig = rModelPartOrigin.GetCommunicator().LocalMesh().NodesBegin();
     #pragma omp parallel for
-    for (int i=0; i<num_local_nodes_orig; ++i)
+    for (int i=0; i<num_local_nodes_orig; ++i) {
         global_elements_orig[i] = ( nodes_begin_orig + i )->GetValue(INTERFACE_EQUATION_ID);
+    }
 
     const auto nodes_begin_dest = rModelPartDestination.GetCommunicator().LocalMesh().NodesBegin();
     #pragma omp parallel for
-    for (int i=0; i<num_local_nodes_dest; ++i)
+    for (int i=0; i<num_local_nodes_dest; ++i) {
         global_elements_dest[i] = ( nodes_begin_dest + i )->GetValue(INTERFACE_EQUATION_ID);
+    }
 
     // Construct vectors containing all the indices this processor contributes to
     std::vector<int> row_indices(num_local_nodes_dest*2); // using number of nodes as size estimation
