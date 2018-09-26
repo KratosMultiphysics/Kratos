@@ -142,6 +142,12 @@ public:
      */
     void GetLastCreatedIds(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId);
 
+    /**
+     * @brief RemoveRefinedEntities
+     * @param ThisFlag
+     */
+    void RemoveRefinedEntities(Flags ThisFlag);
+
     ///@}
     ///@name Access
     ///@{

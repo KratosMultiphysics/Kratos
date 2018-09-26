@@ -146,6 +146,51 @@ void UniformRefineUtility<TDim>::GetLastCreatedIds(IndexType& rNodeId, IndexType
 }
 
 
+/// Remove the refined entities
+template< unsigned int TDim>
+void UniformRefineUtility<TDim>::RemoveRefinedEntities(Flags ThisFlag)
+{
+    // 1. Clear the maps
+    for (ModelPart::NodeIterator node = mrModelPart.NodesBegin(); node < mrModelPart.NodesEnd(); node++)
+    {
+        auto search = mNodesColorMap.find(node->Id());
+        if (search != mNodesColorMap.end())
+            mNodesColorMap.erase(search);
+
+        for (NodesInEdgeMapType::iterator pair = mNodesMap.begin(); pair != mNodesMap.end(); pair++)
+        {
+            if (node->Id() == pair->second)
+                mNodesMap.erase(pair);
+        }
+
+        for (NodesInFaceMapType::iterator pair = mNodesInFaceMap.begin(); pair != mNodesInFaceMap.end(); pair++)
+        {
+            if (node->Id() == pair->second)
+                mNodesInFaceMap.erase(pair);
+        }
+    }
+
+    for (ModelPart::ElementIterator elem = mrModelPart.ElementsBegin(); elem < mrModelPart.ElementsEnd(); elem++)
+    {
+        auto search = mElemColorMap.find(elem->Id());
+        if (search != mElemColorMap.end())
+            mElemColorMap.erase(search);
+    }
+
+    for (ModelPart::ConditionIterator cond = mrModelPart.ConditionsBegin(); cond < mrModelPart.ConditionsEnd(); cond++)
+    {
+        auto search = mCondColorMap.find(cond->Id());
+        if (search != mCondColorMap.end())
+            mCondColorMap.erase(search);
+    }
+
+    // 2. Remove the entities
+    mrModelPart.RemoveNodesFromAllLevels(ThisFlag);
+    mrModelPart.RemoveElementsFromAllLevels(ThisFlag);
+    mrModelPart.RemoveConditionsFromAllLevels(ThisFlag);
+}
+
+
 /// Execute the refinement once
 template< unsigned int TDim>
 void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)

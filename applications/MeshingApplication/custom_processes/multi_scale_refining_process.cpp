@@ -138,11 +138,7 @@ void MultiScaleRefiningProcess::ExecuteCoarsening()
 
     ClearInterfaceSet();
 
-    // NOTE: THIS IS TEMPORARY. THE UNIFORM REFINING UTILITY SHOULD BE
-    // A MEMBER OBJECT IN CHARGE TO EXECUTE THE REFINEMENT AND THE COARSENING
-    mrRefinedModelPart.RemoveNodesFromAllLevels(TO_ERASE);
-    mrRefinedModelPart.RemoveElementsFromAllLevels(TO_ERASE);
-    mrRefinedModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+    mUniformRefinement.RemoveRefinedEntities(TO_ERASE);
 
     FinalizeCoarsening();
 }
