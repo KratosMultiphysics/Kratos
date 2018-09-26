@@ -115,7 +115,7 @@ AMGCLScalarSolve(
     std::tie(rIterationNumber, rResidual) = solve(rB, rX);
 
     if(verbosity_level > 1 )
-        std::cout << "AMGCL Memory Occupation (kB): " << amgcl::backend::bytes(solve)/1024 << std::endl;
+        std::cout << "AMGCL Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
 }
 
 /**
@@ -160,7 +160,7 @@ AMGCLBlockSolve(
     std::tie(rIterationNumber, rResidual) = solve(b_range, x_range);
 
     if(verbosity_level > 1 )
-        std::cout << "AMGCL Memory Occupation (kB): " << amgcl::backend::bytes(solve)/1024 << std::endl;
+        std::cout << "AMGCL Memory Occupation : " << amgcl::human_readable_memory(amgcl::backend::bytes(solve)) << std::endl;
 
 }
 
