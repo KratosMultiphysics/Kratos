@@ -348,9 +348,14 @@ public:
     void CreateConditionsToRefine(IndexType& rCondId, IndexIndexMapType& rCondTag);
 
     /**
-     * This method makes a substitution on the visualization model part: removes the coarse entities and adds the refined ones
+     * @brief This method makes a substitution on the visualization model part: removes the coarse entities and adds the refined ones
      */
     void UpdateVisualizationAfterRefinement();
+
+    /**
+     * @brief This method substitutes the refined entities by the coarse entities
+     */
+    void UpdateVisualizationAfterCoarsening();
 
     /**
      * @brief IdentifyNodesToErase looks for the nodes which should be removed from the refined model part

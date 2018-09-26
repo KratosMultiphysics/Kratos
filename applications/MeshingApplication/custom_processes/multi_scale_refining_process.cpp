@@ -140,6 +140,9 @@ void MultiScaleRefiningProcess::ExecuteCoarsening()
 
     mUniformRefinement.RemoveRefinedEntities(TO_ERASE);
 
+    // Update the visualization model part
+    UpdateVisualizationAfterCoarsening();
+
     FinalizeCoarsening();
 }
 
@@ -278,6 +281,19 @@ void MultiScaleRefiningProcess::UpdateVisualizationAfterRefinement()
     // Add the new entities which are refined
     FastTransferBetweenModelPartsProcess(mrVisualizationModelPart, mrRefinedModelPart,
         FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, NEW_ENTITY)();
+}
+
+
+void MultiScaleRefiningProcess::UpdateVisualizationAfterCoarsening()
+{
+    // Remove the coarsened entities
+    mrVisualizationModelPart.RemoveNodesFromAllLevels(TO_ERASE);
+    mrVisualizationModelPart.RemoveElementsFromAllLevels(TO_ERASE);
+    mrVisualizationModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+
+    // Add the origin entities which are coarsened
+    FastTransferBetweenModelPartsProcess(mrVisualizationModelPart, mrCoarseModelPart,
+        FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, MeshingFlags::TO_COARSEN)();
 }
 
 
@@ -667,6 +683,29 @@ void MultiScaleRefiningProcess::FinalizeRefinement()
         auto node = nodes_begin + i;
         node->Set(NEW_ENTITY, false);
         node->Set(INTERFACE, false);
+        node->Set(MeshingFlags::REFINED, false);
+    }
+
+    // Resetting the elements flags
+    int nelems = static_cast<int>(mrCoarseModelPart.Elements().size());
+    ModelPart::ElementsContainerType::iterator elements_begin = mrCoarseModelPart.ElementsBegin();
+
+    #pragma omp parallel for
+    for (int i = 0; i < nelems; i++)
+    {
+        auto elem = elements_begin + i;
+        elem->Set(MeshingFlags::REFINED, false);
+    }
+
+    // Resetting the conditions flags
+    int nconds = static_cast<int>(mrCoarseModelPart.Conditions().size());
+    ModelPart::ConditionsContainerType::iterator conditions_begin = mrCoarseModelPart.ConditionsBegin();
+
+    #pragma omp parallel for
+    for (int i = 0; i < nconds; i++)
+    {
+        auto cond = conditions_begin + i;
+        cond->Set(MeshingFlags::REFINED, false);
     }
 }
 
