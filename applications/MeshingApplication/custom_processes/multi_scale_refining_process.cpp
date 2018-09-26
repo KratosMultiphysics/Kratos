@@ -789,19 +789,25 @@ void MultiScaleRefiningProcess::IdentifyRefiningInterface(IndexType& rCondId)
 void MultiScaleRefiningProcess::ClearInterfaceSet()
 {
     ModelPart& coarse_interface = mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName);
-    const IndexType num_nodes = coarse_interface.ConditionsBegin()->GetGeometry().PointsNumber();
 
-    for (ModelPart::ConditionIterator cond = coarse_interface.ConditionsBegin(); cond < coarse_interface.ConditionsEnd(); cond++)
+    if (coarse_interface.Conditions().size() > 0) // just avoiding segfault in case of an empty interface model part
     {
-        if (cond->Is(TO_ERASE))
+        const IndexType num_nodes = coarse_interface.ConditionsBegin()->GetGeometry().PointsNumber();
+
+        for (ModelPart::ConditionIterator cond = coarse_interface.ConditionsBegin(); cond < coarse_interface.ConditionsEnd(); cond++)
         {
-            // Get the key and remove it from the set
-            IndexVectorType interface_key(num_nodes);
-            for (IndexType i = 0; i < num_nodes; i++)
-                interface_key[i] = cond->GetGeometry()[i].Id();
-            
-            std::sort(interface_key.begin(), interface_key.end());
-            mCoarseInterfacesSet.erase(interface_key);
+            if (cond->Is(TO_ERASE))
+            {
+                // Get the key and remove it from the set
+                IndexVectorType interface_key(num_nodes);
+                for (IndexType i = 0; i < num_nodes; i++)
+                    interface_key[i] = cond->GetGeometry()[i].Id();
+                
+                std::sort(interface_key.begin(), interface_key.end());
+                auto search = mCoarseInterfacesSet.find(interface_key);
+                if (search != mCoarseInterfacesSet.end())
+                    mCoarseInterfacesSet.erase(search);
+            }
         }
     }
 }
