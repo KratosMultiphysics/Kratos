@@ -52,6 +52,7 @@
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/sub_model_parts_list_utility.h"
+#include "utilities/merge_variable_lists_utility.h"
 #include "utilities/variable_redistribution_utility.h"
 
 namespace Kratos
@@ -151,12 +152,12 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
         .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
         .def("SetScalarVar", &VariableUtils::SetScalarVarForFlag<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
-        .def("SetNonHistoricalVectorVar", &VariableUtils::SetNonHistoricalVectorVar)
-        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<Variable<double>>)
-        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
-        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
-        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
-        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar<VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 4>>>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 6>>>>)
+        .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalVariable<double, ModelPart::NodesContainerType, VariableComponent<VectorComponentAdaptor<array_1d<double, 9>>>>)
+        .def("SetNonHistoricalVectorVar", &VariableUtils::SetNonHistoricalVariable<array_1d<double, 3>, ModelPart::NodesContainerType>)
         .def("SetVariable", &VariableUtils::SetVariable<bool>)
         .def("SetVariable", &VariableUtils::SetVariable<double>)
         .def("SetVariable", &VariableUtils::SetVariable<array_1d<double, 3>>)
@@ -228,6 +229,7 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("SaveScalarNonHistoricalVar", &VariableUtils::SaveScalarNonHistoricalVar)
         .def("SelectNodeList", &VariableUtils::SelectNodeList)
         .def("CopyVectorVar", &VariableUtils::CopyVectorVar)
+        .def("CopyComponentVar", &VariableUtils::CopyComponentVar)
         .def("CopyScalarVar", &VariableUtils::CopyScalarVar)
         .def("SetToZero_VectorVar", &VariableUtils::SetToZero_VectorVar)
         .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
@@ -568,6 +570,10 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
     ;
 
+    class_<MergeVariableListsUtility, typename MergeVariableListsUtility::Pointer>(m, "MergeVariableListsUtility")
+    .def(init<>())
+    .def("Merge",&MergeVariableListsUtility::Merge)
+    ;
     // VariableRedistributionUtility
     typedef void (*DistributePointDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&, double, unsigned int);
     typedef void (*DistributePointArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&,double, unsigned int);

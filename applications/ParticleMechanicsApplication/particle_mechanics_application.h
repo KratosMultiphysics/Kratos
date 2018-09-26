@@ -15,8 +15,6 @@
 #if !defined(KRATOS_PARTICLE_MECHANICS_APPLICATION_H_INCLUDED )
 #define  KRATOS_PARTICLE_MECHANICS_APPLICATION_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
@@ -42,14 +40,12 @@
 #include "custom_conditions/mpm_line_load_condition_2d.h"
 #include "custom_conditions/mpm_surface_load_condition_3d.h"
 
-//element
+//---element
 #include "custom_elements/updated_lagrangian.hpp"
 #include "custom_elements/updated_lagrangian_UP.hpp"
 #include "custom_elements/updated_lagrangian_quadrilateral.hpp"
-//#include "custom_elements/updated_lagrangian_UP_quadrilateral.hpp"
-//#include "custom_elements/total_lagrangian.hpp"
 
-//constitutive laws
+//---constitutive laws
 #include "custom_constitutive/hyperelastic_viscoplastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_viscoplastic_2D_plain_strain_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
@@ -58,20 +54,23 @@
 #include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_strain_softening_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_strain_softening_3D_law.hpp"
+#include "custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_borja_cam_clay_3D_law.hpp"
 
-//flow rules
+//---flow rules
 #include "custom_constitutive/flow_rules/viscoplastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
-//#include "custom_constitutive/flow_rules/drucker_prager_flow_rule.hpp"
+#include "custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.hpp"
 
-//yield criteria
+//---yield criteria
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
-//#include "custom_constitutive/yield_criteria/drucker_prager_yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.hpp"
 
-//hardening laws
+//---hardening laws
 #include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
+#include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -242,12 +241,16 @@ private:
     // CL: Mohr Coulomb Strain Softening
     const HenckyMCStrainSofteningPlastic3DLaw               mHenckyMCStrainSofteningPlastic3DLaw;
     const HenckyMCStrainSofteningPlasticPlaneStrain2DLaw    mHenckyMCStrainSofteningPlasticPlaneStrain2DLaw;
+    // CL: Borja Cam Clay
+    const HenckyBorjaCamClayPlastic3DLaw                    mHenckyBorjaCamClayPlastic3DLaw;
+    const HenckyBorjaCamClayPlasticPlaneStrain2DLaw         mHenckyBorjaCamClayPlasticPlaneStrain2DLaw;
 
     // Flow Rules
     const ViscoplasticFlowRule                      mViscoplasticFlowRule;
     const BinghamViscoplasticFlowRule               mBinghamViscoplasticFlowRule;
     const MCPlasticFlowRule                         mMCPlasticFlowRule;
     const MCStrainSofteningPlasticFlowRule          mMCStrainSofteningPlasticFlowRule;
+    const BorjaCamClayPlasticFlowRule               mBorjaCamClayPlasticFlowRule;
     //const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
     //const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
     //const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
@@ -255,12 +258,14 @@ private:
 
     // Yield Criteria
     const MCYieldCriterion                          mMCYieldCriterion;
+    const ModifiedCamClayYieldCriterion             mModifiedCamClayYieldCriterion;
     //const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
     //const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
     //const DruckerPragerYieldCriterion             mDruckerPragerYieldCriterion;
 
     // Hardening Laws
     const ExponentialStrainSofteningLaw             mExponentialStrainSofteningLaw;
+    const CamClayHardeningLaw                       mCamClayHardeningLaw;
     //const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
     //const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
     //const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;

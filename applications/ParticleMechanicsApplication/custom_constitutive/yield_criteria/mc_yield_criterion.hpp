@@ -10,10 +10,9 @@
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
+
 #if !defined(KRATOS_MC_YIELD_CRITERION_H_INCLUDED)
 #define      KRATOS_MC_YIELD_CRITERION_H_INCLUDED
-
-
 
 // System includes
 
@@ -88,7 +87,7 @@ public:
     ///@name Operations
     ///@{
 
-    double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rBeta) override;
+    double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rCohesion, const double& rFrictionAngle) override;
 
     ///@name Access
     ///@{
@@ -129,11 +128,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    double GetSmoothingLodeAngle();
-
     double GetPI();
-
-    double GetSmoothingHiperbolic();
     
     ///@}
     ///@name Protected  Access

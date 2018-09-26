@@ -16,6 +16,9 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         # We create the model part
         main_model_part = KratosMultiphysics.ModelPart("MainModelPart")
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 1.0)
+        #main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 1)
 
         # We add the variables needed
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
@@ -46,7 +49,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         ZeroVector[5] = 0.0
 
         for node in main_model_part.Nodes:
-            node.SetValue(MeshingApplication.MMG_METRIC, ZeroVector)
+            node.SetValue(MeshingApplication.METRIC_TENSOR_3D, ZeroVector)
 
         # We define a metric using the ComputeLevelSetSolMetricProcess
         MetricParameters = KratosMultiphysics.Parameters("""
@@ -93,7 +96,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
                                                     "WriteConditionsFlag": "WriteConditions",
                                                     "MultiFileFlag": "SingleFile"
                                                 },
-                                                "nodal_results"       : []
+                                                "nodal_results"       : ["DISTANCE"]
                                             }
                                         }
                                         """)
@@ -124,6 +127,42 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         check_files.ExecuteInitializeSolutionStep()
         check_files.ExecuteFinalizeSolutionStep()
         check_files.ExecuteFinalize()
+
+        model = KratosMultiphysics.Model()
+        model.AddModelPart(main_model_part)
+
+        import from_json_check_result_process
+
+        check_parameters = KratosMultiphysics.Parameters("""
+        {
+            "check_variables"      : ["DISTANCE"],
+            "input_file_name"      : "mmg_eulerian_test/distante_extrapolation.json",
+            "model_part_name"      : "MainModelPart",
+            "time_frequency"       : 0.0
+        }
+        """)
+
+        check = from_json_check_result_process.FromJsonCheckResultProcess(model, check_parameters)
+        check.ExecuteInitialize()
+        check.ExecuteBeforeSolutionLoop()
+        check.ExecuteFinalizeSolutionStep()
+
+        ## The following is used to create the solution database
+        #import json_output_process
+
+        #out_parameters = KratosMultiphysics.Parameters("""
+        #{
+            #"output_variables"     : ["DISTANCE"],
+            #"output_file_name"     : "mmg_eulerian_test/distante_extrapolation.json",
+            #"model_part_name"      : "MainModelPart",
+            #"time_frequency"       : 0.0
+        #}
+        #""")
+
+        #out = json_output_process.JsonOutputProcess(model, out_parameters)
+        #out.ExecuteInitialize()
+        #out.ExecuteBeforeSolutionLoop()
+        #out.ExecuteFinalizeSolutionStep()
 
 if __name__ == '__main__':
     KratosUnittest.main()
