@@ -2,10 +2,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics
 
-import sys
-
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if(not isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignFlagProcess(Model, settings["Parameters"])
 
@@ -23,7 +21,7 @@ class AssignFlagProcess(KratosMultiphysics.Process):
     
     def __init__(self, Model, settings ):
         """ The default constructor of the class
-
+        
         Keyword arguments:
         self -- It signifies an instance of a class.
         Model -- the container of the different model parts.
