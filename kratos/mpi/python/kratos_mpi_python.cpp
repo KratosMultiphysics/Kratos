@@ -19,7 +19,7 @@
 #include <pybind11/pybind11.h>
 
 // Module includes
-#include "mpi_environment.h"
+#include "mpi/mpi_environment.h"
 #include "add_mpi_communicator_to_python.h"
 
 namespace Kratos {

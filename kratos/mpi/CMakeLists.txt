@@ -1,5 +1,5 @@
-
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Not including current dir (we want to force users to specify the mpi/ in the include path)
+set(CMAKE_INCLUDE_CURRENT_DIR OFF)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
