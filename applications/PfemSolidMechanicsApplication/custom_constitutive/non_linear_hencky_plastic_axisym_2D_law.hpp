@@ -26,7 +26,7 @@ namespace Kratos
  */
 
 
-class NonLinearHenckyElasticPlasticAxisym2DLaw: public NonLinearHenckyElasticPlastic3DLaw
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) NonLinearHenckyElasticPlasticAxisym2DLaw: public NonLinearHenckyElasticPlastic3DLaw
 {
 
 public:

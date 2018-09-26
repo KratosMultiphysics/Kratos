@@ -22,7 +22,7 @@ namespace Kratos
 {
 
 
-   class AxisymWaterPressureUtilities
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) AxisymWaterPressureUtilities
       : public WaterPressureUtilities
    {
 

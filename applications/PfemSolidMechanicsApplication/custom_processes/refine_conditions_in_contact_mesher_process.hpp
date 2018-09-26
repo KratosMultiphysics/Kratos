@@ -48,7 +48,7 @@ namespace Kratos
 
 */
 
-class RefineConditionsInContactMesherProcess
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) RefineConditionsInContactMesherProcess
   : public RefineConditionsMesherProcess
 {
 public:
