@@ -136,6 +136,8 @@ void MultiScaleRefiningProcess::ExecuteCoarsening()
     IdentifyConditionsToErase();
     IdentifyRefinedNodesToErase();
 
+    ClearInterfaceSet();
+
     // NOTE: THIS IS TEMPORARY. THE UNIFORM REFINING UTILITY SHOULD BE
     // A MEMBER OBJECT IN CHARGE TO EXECUTE THE REFINEMENT AND THE COARSENING
     mrRefinedModelPart.RemoveNodesFromAllLevels(TO_ERASE);
@@ -782,50 +784,27 @@ void MultiScaleRefiningProcess::IdentifyRefiningInterface(IndexType& rCondId)
     /* do some stuff here */
     //IndexType nconds 
 }
-//     // TODO: here I need to tranfer the INTERFACE flag from the father nodes to the middle nodes
-//     /* do some stuff */
 
-//     // 2. Remove the old conditions
-//     ModelPart& interface = mrRefinedModelPart.GetSubModelPart(mRefinedInterfaceName);
-//     const int nconds = static_cast<int>(interface.Conditions().size());
-//     ModelPart::ConditionsContainerType::iterator cond_begin = interface.ConditionsBegin();
 
-//     // The number of nodes of the conditions
-//     const IndexType condition_nodes = cond_begin->GetGeometry().size();
+void MultiScaleRefiningProcess::ClearInterfaceSet()
+{
+    ModelPart& coarse_interface = mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName);
+    const IndexType num_nodes = coarse_interface.ConditionsBegin()->GetGeometry().PointsNumber();
 
-//     // Find the conditions which are not interface
-//     #pragma omp parallel for
-//     for (int i = 0; i < nconds; i++)
-//     {
-//         auto cond = cond_begin + i;
-//         bool to_erase = false;
-//         for (IndexType node = 0; node < condition_nodes; node++)
-//         {
-//             if (cond->GetGeometry()[node].IsNot(INTERFACE))
-//                 to_erase = true;
-//         }
-//         cond->Set(TO_ERASE, to_erase);
-
-//         // We need to preserve the old interface
-//         // Warning: what should I do with OMP???????
-//         // NOTE: I am accessing the nodes twice
-//         if (!to_erase)
-//         {
-//             for (IndexType node = 0; node < condition_nodes; node++)
-//                 cond->GetGeometry()[node].Set(MeshingFlags::TO_COARSE, true);
-//         }
-//     }
-
-//     // 3. And finally, create the new conditions where needed
-//     // The condition should inherit the refining level from the coarse element
-//     /**
-//      *  loop elements
-//      *      loop edges
-//      *          loop nodes
-//      *              if (all nodes are INTERFACE and are not MeshingFlags::TO_COARSE)
-//      *                  Create condition
-//      **/
-// }
+    for (ModelPart::ConditionIterator cond = coarse_interface.ConditionsBegin(); cond < coarse_interface.ConditionsEnd(); cond++)
+    {
+        if (cond->Is(TO_ERASE))
+        {
+            // Get the key and remove it from the set
+            IndexVectorType interface_key(num_nodes);
+            for (IndexType i = 0; i < num_nodes; i++)
+                interface_key[i] = cond->GetGeometry()[i].Id();
+            
+            std::sort(interface_key.begin(), interface_key.end());
+            mCoarseInterfacesSet.erase(interface_key);
+        }
+    }
+}
 
 
 void MultiScaleRefiningProcess::GetLastId(

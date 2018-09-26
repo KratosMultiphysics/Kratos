@@ -396,10 +396,15 @@ public:
     void FinalizeCoarsening();
 
     /**
-     * @brief IdentifyRefiningInterface
-     * TODO: define how it works
+     * @brief IdentifyRefiningInterface identify the refining interface before to execute the refinement
+     * @brief rCondId this id will identify the new conditions
      */
     void IdentifyRefiningInterface(IndexType& rCondId);
+
+    /**
+     * @brief ClearInterfaceSet free the memory before to execute the coarsening
+     */
+    void ClearInterfaceSet();
 
     /**
      * @brief GetLastId gets the absolute root model part and looks for the maximum id's
