@@ -56,7 +56,7 @@ public:
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
-                                                Matrix& rOutput,
+                                                Vector& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
 
     static void CalculateLeftHandSideDerivative(Element& rElement,

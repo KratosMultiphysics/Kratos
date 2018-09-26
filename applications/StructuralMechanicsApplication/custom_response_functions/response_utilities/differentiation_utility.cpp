@@ -149,7 +149,7 @@ namespace Kratos
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
-                                                Matrix& rOutput,
+                                                Vector& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
@@ -172,8 +172,8 @@ namespace Kratos
             // compute RHS before perturbion
             rElement.CalculateRightHandSide(RHS_unperturbed, copy_process_info);
 
-            if ( (rOutput.size1() != 1) || (rOutput.size2() != RHS_unperturbed.size() ) )
-                rOutput.resize(1, RHS_unperturbed.size());
+            if ( rOutput.size() != RHS_unperturbed.size() )
+                rOutput.resize(RHS_unperturbed.size(), false);
 
             // perturb the design variable
             rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
@@ -183,8 +183,7 @@ namespace Kratos
             rElement.CalculateRightHandSide(RHS_perturbed, copy_process_info);
 
             //compute derivative of RHS w.r.t. design variable with finite differences
-            for(IndexType i = 0; i < RHS_perturbed.size(); ++i)
-                rOutput(0, i) = (RHS_perturbed[i]-RHS_unperturbed[i]) / rPertubationSize;
+            noalias(rOutput) = (RHS_perturbed - RHS_unperturbed) / rPertubationSize;
 
              // unperturb the design variable
             rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
@@ -196,8 +195,8 @@ namespace Kratos
         else
         {
             KRATOS_WARNING("DifferentiationUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
-            if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
-                rOutput.resize(0,0,false);
+            if ( (rOutput.size() != 0) )
+                rOutput.resize(0,false);
         }
 
         KRATOS_CATCH("");
