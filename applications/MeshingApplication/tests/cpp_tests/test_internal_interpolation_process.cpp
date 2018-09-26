@@ -248,6 +248,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2PlasticityPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -344,6 +346,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2PlasticityPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -445,6 +449,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2Plasticity3DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -542,6 +548,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2Plasticity3DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -643,6 +651,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -720,6 +730,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -802,6 +814,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -880,6 +894,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();

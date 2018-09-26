@@ -329,17 +329,7 @@ namespace Kratos
       double ComputeBarkerMuIrheologyViscosity(ElementalVariables & rElementalVariables);
 
       double ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables);
-   
-      /* void ComputeBulkMatrixLump(MatrixType& BulkMatrix, */
-      /* 				 const double Weight); */
-      
-      /* void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix, */
-      /* 				       const double Weight); */
-       
-      /* void ComputeBulkMatrix(MatrixType& BulkMatrix, */
-      /* 			     const ShapeFunctionsType& rN, */
-      /* 			     const double Weight); */
-
+  
       void ComputeBulkMatrixRHS(MatrixType& BulkMatrix,
 				const double Weight) override;
       

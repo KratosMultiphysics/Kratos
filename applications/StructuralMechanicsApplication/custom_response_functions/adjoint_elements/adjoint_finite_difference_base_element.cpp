@@ -186,7 +186,10 @@ void AdjointFiniteDifferencingBaseElement::Calculate(const Variable<Matrix >& rV
         }
     }
     else
+    {
+        KRATOS_WARNING("AdjointFiniteDifferencingBaseElement") << "Calculate function called for unknown variable: " << rVariable << std::endl;
         rOutput.clear();
+    }
 
     KRATOS_CATCH("")
 }
@@ -414,7 +417,11 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative
     Vector stress_derivatives_vector;
 
     // TODO first calculation only to get the size of the stress vector
-    this->Calculate(rStressVariable, stress_derivatives_vector, rCurrentProcessInfo);
+    TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+    if (rStressVariable == STRESS_ON_GP)
+        StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
+    else
+        StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
     rOutput.resize(num_dofs, stress_derivatives_vector.size() );
     rOutput.clear();
     initial_state_variables.resize(num_dofs);
@@ -453,7 +460,11 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative
         {
             mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 1.0;
 
-            this->Calculate(rStressVariable, stress_derivatives_vector, rCurrentProcessInfo);
+            TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+            if (rStressVariable == STRESS_ON_GP)
+                StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
+            else
+                StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
 
             for(IndexType k = 0; k < stress_derivatives_vector.size(); ++k)
                 rOutput(index+j, k) = stress_derivatives_vector[k];
@@ -484,7 +495,11 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
     Vector stress_vector_dist;
 
     // Compute stress on GP before perturbation
-    this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+    TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+    if (rStressVariable == STRESS_ON_GP)
+        StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
+    else
+        StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
 
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable);
@@ -506,7 +521,11 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
         p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
 
         // Compute stress on GP after perturbation
-        this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+        if (rStressVariable == STRESS_ON_GP)
+            StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_vector_dist, rCurrentProcessInfo);
+        else
+            StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_dist, rCurrentProcessInfo);
 
         // Compute derivative of stress w.r.t. design variable with finite differences
         for(size_t j = 0; j < stress_vector_size; ++j)
@@ -540,7 +559,11 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
         const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
         // Compute stress on GP before perturbation
-        this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+        if (rStressVariable == STRESS_ON_GP)
+            StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
+        else
+            StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
 
         const SizeType stress_vector_size = stress_vector_undist.size();
         rOutput.resize(dimension * number_of_nodes, stress_vector_size);
@@ -556,7 +579,11 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
                 node_i[coord_dir_i] += delta;
 
                 // Compute stress on GP after perturbation
-                this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+                TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+                if (rStressVariable == STRESS_ON_GP)
+                    StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_vector_dist, rCurrentProcessInfo);
+                else
+                    StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_dist, rCurrentProcessInfo);
 
                 // Compute derivative of stress w.r.t. design variable with finite differences
                 for(IndexType i = 0; i < stress_vector_size; ++i)
