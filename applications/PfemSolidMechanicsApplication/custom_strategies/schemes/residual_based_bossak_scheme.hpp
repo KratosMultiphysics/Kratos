@@ -43,7 +43,7 @@ namespace Kratos
 /*@} */
 
 template<class TSparseSpace,  class TDenseSpace >
-class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) ResidualBasedBossakScheme: public Scheme<TSparseSpace,TDenseSpace>
+class ResidualBasedBossakScheme: public Scheme<TSparseSpace,TDenseSpace>
 {
 protected:
 
