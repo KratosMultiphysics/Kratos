@@ -890,54 +890,6 @@ void MultiScaleRefiningProcess::GetLastId(
         if (rCondsId < cond->Id())
             rCondsId = cond->Id();
     }
-
-    // // Get the number of threads
-    // const int num_threads = OpenMPUtils::GetNumThreads();
-
-    // // Get the maximum node id
-    // const int nnodes = static_cast<int>(root_model_part.Nodes().size());
-    // ModelPart::NodesContainerType::iterator nodes_begin = root_model_part.NodesBegin();
-    // std::vector<IndexType> nodes_id(num_threads);
-    // #pragma omp parallel
-    // {
-    //     const int thread_id = OpenMPUtils::ThisThread();
-
-    //     #pragma omp for
-    //     for (int i = 0; i < nnodes; i++)
-    //     {
-    //         auto node = nodes_begin + i;
-    //         if (nodes_id[thread_id] < node->Id())
-    //             nodes_id[thread_id] = node->Id();
-    //     }
-
-    //     #pragma omp single
-    //     {
-    //         rNodesId = *std::max_element(nodes_id.begin(), nodes_id.end());
-    //     }
-    // }
-
-    // // Get the maximum element id
-    // const int nelems = static_cast<int>(root_model_part.Nodes().size());
-    // ModelPart::ElementsContainerType::iterator elements_begin = root_model_part.ElementsBegin();
-    // std::vector<IndexType> elems_id(num_threads);
-    // #pragma omp parallel
-    // {
-    //     const int thread_id = OpenMPUtils::ThisThread();
-
-    //     #pragma omp for
-    //     for (int i = 0; i < nelems; i++)
-    //     {   /* WARNING: HERE IS SOME SEGMENTATION FAULT */
-    //         auto elem = elements_begin + i;
-    //         if (elems_id[thread_id] < elem->Id())
-    //             elems_id[thread_id] = elem->Id();
-    //     }
-
-    //     #pragma omp single
-    //     {
-    //         rElemsId = *(std::max_element(elems_id.begin(), elems_id.end()));
-    //     }
-    // }
 }
-
 
 } // namespace Kratos
