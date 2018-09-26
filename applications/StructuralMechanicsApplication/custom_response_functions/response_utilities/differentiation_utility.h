@@ -52,6 +52,13 @@ public:
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
 
+    static void CalculateRigthHandSideDerivative(Element& rElement,
+                                                const array_1d_component_type& rDesignVariable,
+                                                Node<3>& rNode,
+                                                const double& rPertubationSize,
+                                                Matrix& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo);
+
     static void CalculateLeftHandSideDerivative(Element& rElement,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
@@ -65,6 +72,10 @@ public:
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
+
+private:
+
+    static std::size_t GetCoordinateDirection(const array_1d_component_type& rDesignVariable);
 
 }; // class DifferentiationUtility.
 

@@ -145,8 +145,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    //template <class TVarType>
-    void DifferentiationUtility::CalculateLeftHandSideDerivative(Element& rElement,
+        void DifferentiationUtility::CalculateRigthHandSideDerivative(Element& rElement,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
@@ -163,13 +162,65 @@ namespace Kratos
 
         if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
         {
-            IndexType coord_dir = 0;
-            if( rDesignVariable == SHAPE_X )
-                coord_dir = 0;
-            else if( rDesignVariable == SHAPE_Y )
-                coord_dir = 1;
-            else if( rDesignVariable == SHAPE_Z )
-                coord_dir = 2;
+           const IndexType coord_dir = DifferentiationUtility::GetCoordinateDirection(rDesignVariable);
+
+            // define working variables
+            Vector RHS_unperturbed;
+            Vector RHS_perturbed;
+            ProcessInfo copy_process_info = rCurrentProcessInfo;
+
+            // compute RHS before perturbion
+            rElement.CalculateRightHandSide(RHS_unperturbed, copy_process_info);
+
+            if ( (rOutput.size1() != 1) || (rOutput.size2() != RHS_unperturbed.size() ) )
+                rOutput.resize(1, RHS_unperturbed.size());
+
+            // perturb the design variable
+            rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
+            rNode.Coordinates()[coord_dir] += rPertubationSize;
+
+            // compute LHS after perturbation
+            rElement.CalculateRightHandSide(RHS_perturbed, copy_process_info);
+
+            //compute derivative of RHS w.r.t. design variable with finite differences
+            for(IndexType i = 0; i < RHS_perturbed.size(); ++i)
+                rOutput(0, i) = (RHS_perturbed[i]-RHS_unperturbed[i]) / rPertubationSize;
+
+             // unperturb the design variable
+            rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
+            rNode.Coordinates()[coord_dir] -= rPertubationSize;
+
+            //call one last time to make sure everything is as it was before TODO improve this..
+            rElement.CalculateRightHandSide(RHS_perturbed, copy_process_info);
+        }
+        else
+        {
+            KRATOS_WARNING("DifferentiationUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
+            if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
+                rOutput.resize(0,0,false);
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    void DifferentiationUtility::CalculateLeftHandSideDerivative(Element& rElement,
+                                                const array_1d_component_type& rDesignVariable,
+                                                Node<3>& rNode,
+                                                const double& rPertubationSize,
+                                                Matrix& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        #ifdef _OPENMP
+            KRATOS_ERROR_IF(omp_get_thread_num() > 0) <<
+                "DifferentiationUtility::CalculateLeftHandSideDerivative " <<
+                "is not thread safe for shape derivatives!" << omp_get_thread_num();
+        #endif
+
+        if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
+        {
+            const IndexType coord_dir = DifferentiationUtility::GetCoordinateDirection(rDesignVariable);
 
             // define working variables
             Matrix LHS_unperturbed;
@@ -221,19 +272,13 @@ namespace Kratos
 
         #ifdef _OPENMP
             KRATOS_ERROR_IF(omp_get_thread_num() > 0) <<
-                "DifferentiationUtility::CalculateRigthHandSideDerivative " <<
+                "DifferentiationUtility::CalculateMassMatrixDerivative " <<
                 "is not thread safe for shape derivatives!" << omp_get_thread_num();
         #endif
 
         if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
         {
-            IndexType coord_dir = 0;
-            if( rDesignVariable == SHAPE_X )
-                coord_dir = 0;
-            else if( rDesignVariable == SHAPE_Y )
-                coord_dir = 1;
-            else if( rDesignVariable == SHAPE_Z )
-                coord_dir = 2;
+            const IndexType coord_dir = DifferentiationUtility::GetCoordinateDirection(rDesignVariable);
 
             // define working variables
             Matrix unperturbed_mass_matrix;
@@ -271,6 +316,19 @@ namespace Kratos
         }
 
         KRATOS_CATCH("");
+    }
+
+    std::size_t DifferentiationUtility::GetCoordinateDirection(const array_1d_component_type& rDesignVariable)
+    {
+        IndexType coord_dir = 0;
+        if( rDesignVariable == SHAPE_X )
+            coord_dir = 0;
+        else if( rDesignVariable == SHAPE_Y )
+            coord_dir = 1;
+        else if( rDesignVariable == SHAPE_Z )
+            coord_dir = 2;
+
+        return coord_dir;
     }
 
 }  // namespace Kratos.
