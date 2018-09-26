@@ -298,13 +298,6 @@ struct bytes_impl< vex::vector<V> > {
     }
 };
 
-template < typename V >
-struct bytes_impl< solver::vexcl_skyline_lu<V> > {
-    static size_t get(const solver::vexcl_skyline_lu<V> &s) {
-        return s.bytes();
-    }
-};
-
 template < typename Alpha, typename Beta, typename Va, typename Vx, typename Vy, typename C, typename P >
 struct spmv_impl<
     Alpha, vex::sparse::distributed<vex::sparse::matrix<Va,C,P>>, vex::vector<Vx>,

@@ -314,6 +314,15 @@ struct crs {
         return row_iterator(col + p, col + e, val + p);
     }
 
+    size_t bytes() const {
+        if (own_data) {
+            return sizeof(ptr_type) * (nrows + 1)
+                 + sizeof(col_type) * nnz
+                 + sizeof(val_type) * nnz;
+        } else {
+            return 0;
+        }
+    }
 };
 
 /// Sort rows of the matrix column-wise.
@@ -920,13 +929,6 @@ template < typename V, typename C, typename P >
 struct cols_impl< crs<V, C, P> > {
     static size_t get(const crs<V, C, P> &A) {
         return A.ncols;
-    }
-};
-
-template < typename V, typename C, typename P >
-struct bytes_impl< crs<V, C, P> > {
-    static size_t get(const crs<V, C, P> &A) {
-        return sizeof(P) * (A.nrows + 1) + sizeof(C) * A.nnz + sizeof(V) * A.nnz;
     }
 };
 

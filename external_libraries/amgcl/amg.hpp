@@ -594,21 +594,6 @@ std::ostream& operator<<(std::ostream &os, const amg<B, C, R> &a)
     return os;
 }
 
-namespace backend {
-
-template <
-    class B,
-    template <class> class C,
-    template <class> class R
-    >
-struct bytes_impl< amg<B, C, R> > {
-    static size_t get(const amg<B, C, R> &A) {
-        return A.bytes();
-    }
-};
-
-} // namespace backend
-
 } // namespace amgcl
 
 #endif
