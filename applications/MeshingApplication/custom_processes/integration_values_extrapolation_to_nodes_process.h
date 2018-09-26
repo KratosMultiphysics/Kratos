@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -36,7 +36,7 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -45,7 +45,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class IntegrationValuesExtrapolationToNodesProcess
  * @ingroup MeshingApplication
  * @brief This process extrapolates vales from the integration points to the nodes
@@ -54,13 +54,13 @@ namespace Kratos
  * @todo Replace generalized inverse for QR decomposition
  * @author Vicente Mataix Ferrandiz
  */
-class IntegrationValuesExtrapolationToNodesProcess
+class KRATOS_API(KRATOS_MESHING_APPLICATION) IntegrationValuesExtrapolationToNodesProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
-    
+
     // General type definitions
     typedef ModelPart::NodesContainerType                    NodesArrayType;
     typedef ModelPart::ElementsContainerType              ElementsArrayType;
@@ -74,11 +74,11 @@ public:
 
     /// Pointer definition of IntegrationValuesExtrapolationToNodesProcess
     KRATOS_CLASS_POINTER_DEFINITION( IntegrationValuesExtrapolationToNodesProcess );
-      
+
     ///@}
     ///@name  Enum's
     ///@{
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -88,12 +88,12 @@ public:
      * @param rMainModelPart The model part from where extrapolate values
      * @param ThisParameters The parameters containing all the information needed
      */
-    
+
     IntegrationValuesExtrapolationToNodesProcess(
         ModelPart& rMainModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
-    
+
     /// Destructor
     ~IntegrationValuesExtrapolationToNodesProcess() override= default;;
 
@@ -109,7 +109,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief We execute the search relative to the old and new model part
      */
@@ -124,7 +124,7 @@ public:
      * @brief This function will be executed at every time step AFTER performing the solve phase
      */
     void ExecuteFinalizeSolutionStep() override;
-    
+
     /**
      * @brief This function is designed for being called at the end of the computations right after reading the model and the groups
      */
@@ -144,7 +144,7 @@ public:
 
     /************************************ GET INFO *************************************/
     /***********************************************************************************/
-    
+
     std::string Info() const override
     {
         return "IntegrationValuesExtrapolationToNodesProcess";
@@ -152,7 +152,7 @@ public:
 
     /************************************ PRINT INFO ***********************************/
     /***********************************************************************************/
-    
+
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
@@ -165,7 +165,7 @@ public:
     ///@}
 
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -176,7 +176,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -202,7 +202,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mrThisModelPart;                                /// The main model part
     bool mExtrapolateNonHistorical;                            /// If the non-historical values are interpolated
     bool mAreaAverage;                                         /// If the values are averaged over area
@@ -214,7 +214,7 @@ private:
     std::unordered_map<Variable<Matrix>, std::pair<SizeType, SizeType>, VariableHasher<Variable<Matrix>>, VariableComparator<Variable<Matrix>>> mSizeMatrixes; /// The size of the matrixes variables
     Variable<double> mAverageVariable = NODAL_AREA;            /// The variable used to compute the average weight
     SizeType mEchoLevel;                                       /// The level of verbosity
-    
+
     ///@}
     ///@name Private Operators
     ///@{

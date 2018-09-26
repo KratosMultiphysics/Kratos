@@ -129,7 +129,7 @@ class SearchBaseProcess(KM.Process):
         self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
         self.find_nodal_h.Execute()
 
-        ## We recompute the serach factor and the check in function of the relative size of the mesh
+        ## We recompute the search factor and the check in function of the relative size of the mesh
         if (self.settings["search_parameters"]["adapt_search"].GetBool() is True):
             factor = CSMA.ContactUtilities.CalculateRelativeSizeMesh(self.computing_model_part)
             KM.Logger.PrintWarning("SEARCH ADAPT FACTOR: ", "{:.2e}".format(factor))
@@ -634,7 +634,10 @@ class SearchBaseProcess(KM.Process):
         sub_search_model_part_name = "ContactSub"+key
         self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
         detect_skin_parameters["name_auxiliar_model_part"].SetString(sub_search_model_part_name)
-        detect_skin = KM.SkinDetectionProcess3D(model_part, detect_skin_parameters)
+        if (self.dimension == 2):
+            detect_skin = KM.SkinDetectionProcess2D(model_part, detect_skin_parameters)
+        else:
+            detect_skin = KM.SkinDetectionProcess3D(model_part, detect_skin_parameters)
         detect_skin.Execute()
         self.settings["search_model_part"][key].Append(sub_search_model_part_name)
         # Assigning master and slave sides

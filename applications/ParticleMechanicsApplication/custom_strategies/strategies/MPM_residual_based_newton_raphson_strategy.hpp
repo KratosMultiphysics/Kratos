@@ -11,11 +11,11 @@
 //
 //
 
+
 #if !defined(KRATOS_MPM_RESIDUAL_BASED_NEWTON_RAPHSON_STRATEGY )
 #define  KRATOS_MPM_RESIDUAL_BASED_NEWTON_RAPHSON_STRATEGY
 
 /* System includes */
-
 
 /* External includes */
 
@@ -1166,9 +1166,9 @@ protected:
 
     void MaxIterationsExceeded()
     {
-        std::cout << "***************************************************" << std::endl;
-        std::cout << "******* ATTENTION: max iterations exceeded ********" << std::endl;
-        std::cout << "***************************************************" << std::endl;
+        KRATOS_INFO("MPMStrategy") << "***************************************************" << std::endl;
+        KRATOS_INFO("MPM_Strategy") << "******* ATTENTION: max iterations exceeded ********" << std::endl;
+        KRATOS_INFO("MPM_Strategy") << "***************************************************" << std::endl;
 
     }
 

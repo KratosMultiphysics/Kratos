@@ -10,6 +10,7 @@
 //  Main authors:    Ilaria Iaconeta
 //
 
+
 #if !defined (KRATOS_HENCKY_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED)
 #define  KRATOS_HENCKY_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED
 
@@ -178,8 +179,6 @@ protected:
     Matrix SetConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix,const Matrix& rElastoPlasticTangentMatrix) override;
 
     Vector SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix) override;
-
-    Matrix SetMatrixToAppropriateDimension(Matrix& rMatrix) override;
 
     void CalculateHenckyMainStrain(const Matrix& rCauchyGreeMatrix,
                                    MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,

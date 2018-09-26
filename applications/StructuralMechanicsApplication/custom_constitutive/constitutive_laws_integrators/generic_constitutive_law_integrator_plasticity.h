@@ -194,7 +194,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
                 iteration++;
             }
         }
-        KRATOS_WARNING_IF("Backward Euler Plasticity", iteration == max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        KRATOS_WARNING_IF("Backward Euler Plasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
 
     /**

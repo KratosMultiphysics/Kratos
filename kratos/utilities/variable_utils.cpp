@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi 
+//  Main authors:    Riccardo Rossi
 //                   Ruben Zorrilla
 //                   Vicente Mataix Ferrandiz
 //
@@ -59,7 +59,7 @@ void VariableUtils::SetVectorVarForFlag(
         NodesContainerType::iterator it_node = rNodes.begin() + k;
         if (it_node->Is(Flag) == Check) noalias(it_node->FastGetSolutionStepValue(rVariable)) = Value;
     }
-    
+
     KRATOS_CATCH("")
 }
 
@@ -139,7 +139,7 @@ void VariableUtils::SaveVectorNonHistoricalVar(
         NodesContainerType::iterator it_node = rNodes.begin() + k;
         it_node->SetValue(SavedVariable, it_node->GetValue(OriginVariable));
     }
-    
+
     KRATOS_CATCH("")
 }
 
@@ -153,13 +153,13 @@ void VariableUtils::SaveScalarNonHistoricalVar(
     )
 {
     KRATOS_TRY
-    
+
     #pragma omp parallel for
     for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
         NodesContainerType::iterator it_node = rNodes.begin() + k;
         it_node->SetValue(SavedVariable,it_node->GetValue(OriginVariable));
     }
-    
+
     KRATOS_CATCH("")
 }
 
@@ -173,13 +173,33 @@ void VariableUtils::CopyVectorVar(
     )
 {
     KRATOS_TRY
-    
+
     #pragma omp parallel for
     for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
         NodesContainerType::iterator it_node = rNodes.begin() + k;
         noalias(it_node->FastGetSolutionStepValue(DestinationVariable)) = it_node->FastGetSolutionStepValue(OriginVariable);
     }
-    
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariableUtils::CopyComponentVar(
+    const ComponentVarType& OriginVariable,
+    ComponentVarType& DestinationVariable,
+    NodesContainerType& rNodes
+    )
+{
+    KRATOS_TRY
+
+    #pragma omp parallel for
+    for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
+        NodesContainerType::iterator it_node = rNodes.begin() + k;
+        it_node->FastGetSolutionStepValue(DestinationVariable) = it_node->FastGetSolutionStepValue(OriginVariable);
+    }
+
     KRATOS_CATCH("")
 }
 
@@ -193,13 +213,13 @@ void VariableUtils::CopyScalarVar(
     )
 {
     KRATOS_TRY
-    
+
     #pragma omp parallel for
     for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
         NodesContainerType::iterator it_node = rNodes.begin() + k;
         it_node->FastGetSolutionStepValue(DestinationVariable) = it_node->FastGetSolutionStepValue(OriginVariable);
     }
-    
+
     KRATOS_CATCH("")
 }
 
@@ -207,18 +227,18 @@ void VariableUtils::CopyScalarVar(
 /***********************************************************************************/
 
 void VariableUtils::SetToZero_VectorVar(
-    const ArrayVarType& Variable, 
+    const ArrayVarType& Variable,
     NodesContainerType& rNodes
     )
 {
     KRATOS_TRY
-    
+
     #pragma omp parallel for
     for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
         NodesContainerType::iterator i = rNodes.begin() + k;
         noalias(i->FastGetSolutionStepValue(Variable)) = ZeroVector(3);
     }
-    
+
     KRATOS_CATCH("")
 }
 
@@ -226,18 +246,18 @@ void VariableUtils::SetToZero_VectorVar(
 /***********************************************************************************/
 
 void VariableUtils::SetToZero_ScalarVar(
-    const DoubleVarType& Variable, 
+    const DoubleVarType& Variable,
     NodesContainerType& rNodes
     )
 {
     KRATOS_TRY
-    
+
     #pragma omp parallel for
     for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
         NodesContainerType::iterator i = rNodes.begin() + k;
         i->FastGetSolutionStepValue(Variable) = 0.0;
     }
-    
+
     KRATOS_CATCH("")
 }
 
@@ -251,7 +271,7 @@ ModelPart::NodesContainerType VariableUtils::SelectNodeList(
     )
 {
     KRATOS_TRY
-    
+
     NodesContainerType selected_nodes;
     for (NodesContainerType::iterator it_node = rOriginNodes.begin(); it_node != rOriginNodes.end(); ++it_node) {
         if (it_node->FastGetSolutionStepValue(Variable) == Value)
@@ -259,7 +279,7 @@ ModelPart::NodesContainerType VariableUtils::SelectNodeList(
     }
 
     return selected_nodes;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -425,9 +445,9 @@ bool VariableUtils::CheckVariableKeys()
     CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >();
     CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >();
     CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >();
-        
+
     return true;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -445,9 +465,9 @@ bool VariableUtils::CheckDofs(ModelPart& rModelPart)
 
         }
     }
-    
+
     return true;
-    
+
     KRATOS_CATCH("")
 }
 } /* namespace Kratos.*/

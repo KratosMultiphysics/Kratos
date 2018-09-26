@@ -1,6 +1,19 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
+//
+//  Main authors:    Bodhinanda Chandra
+//
+
+
 // System includes
-#if !defined(KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED )
-#define  KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED
+#if !defined(KRATOS_MPM_LINE_LOAD_CONDITION_2D_H_INCLUDED )
+#define  KRATOS_MPM_LINE_LOAD_CONDITION_2D_H_INCLUDED
 
 // System includes
 
@@ -266,6 +279,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined 
+#endif // KRATOS_MPM_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined 
 
 

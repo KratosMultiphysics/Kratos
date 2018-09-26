@@ -16,7 +16,7 @@
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
-#include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
+#include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
 
 // Yield surfaces
@@ -98,8 +98,13 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         double& r_plastic_dissipation = this->GetPlasticDissipation();
         Vector& r_plastic_strain = this->GetPlasticStrain();
 
-        // S0 = r_constitutive_matrix:(E-Ep)
-        array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
+        array_1d<double, VoigtSize> predictive_stress_vector;
+        if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
+            predictive_stress_vector = rValues.GetStressVector();
+        } else {
+            // S0 = r_constitutive_matrix:(E-Ep)
+            predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
+        }
 
         // Initialize Plastic Parameters
         double uniaxial_stress = 0.0, plastic_denominator = 0.0;
@@ -142,7 +147,6 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
                 this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
         }
-        // this->SetValue(INTEGRATED_STRESS_TENSOR, MathUtils<double>::StressVectorToTensor(integrated_stress_vector), rValues.GetProcessInfo());
     }
 } // End CalculateMaterialResponseCauchy
 

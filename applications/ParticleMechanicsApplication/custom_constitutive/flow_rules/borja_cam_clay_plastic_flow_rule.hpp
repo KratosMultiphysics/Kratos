@@ -9,15 +9,16 @@
 //
 //  Main authors:    Bodhinanda Chandra
 //
+
+
 #if !defined(KRATOS_BORJA_CAM_CLAY_PLASTIC_FLOW_RULE_H_INCLUDED )
 #define      KRATOS_BORJA_CAM_CLAY_PLASTIC_FLOW_RULE_H_INCLUDED
 
-
 // System includes
+#include <cmath>
 
 // External includes
 
-#include<cmath>
 // Project includes
 #include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
 
@@ -85,9 +86,9 @@ public:
     public:
         void PrintInfo()
         {
-            std::cout << "PreconsolidationPressure   = " <<  PreconsolidationPressure  << std::endl;
-            std::cout << "PlasticHardeningModulus   = " <<  PlasticHardeningModulus  << std::endl;
-            std::cout << "ConsistencyParameter   = " <<  ConsistencyParameter  << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "PreconsolidationPressure = " <<  PreconsolidationPressure  << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "PlasticHardeningModulus  = " <<  PlasticHardeningModulus   << std::endl;
+            KRATOS_INFO("MPMFlowRule.MaterialParameters") << "ConsistencyParameter     = " <<  ConsistencyParameter      << std::endl;
         }
 
     };
@@ -231,12 +232,8 @@ protected:
 
     void UpdateStateVariables(const Vector rPrincipalStress, const double rAlpha = 0.0, const double rConsistencyParameter = 0.0);
 
-    double GetSmoothingLodeAngle();
-
     double GetPI();
-
-    double GetSmoothingHiperbolic();
-    
+  
     //virtual void GetPrincipalStressAndStrain(Vector& PrincipalStresses, Vector& PrincipalStrains);
     ///@}
     ///@name Protected  Access
