@@ -220,7 +220,7 @@ public:
 	 * Broadcasting a value to all ranks
 	 * @param rComm A communicator object.
 	 * @param LocalValue The local value to be sent in the gather.
-	 * @param RankToBroacastFrom The MPI rank of the process where the valued will be broadcasted from.
+	 * @param RankToBroacastFrom The MPI rank of the process where the values will be broadcasted from.
 	 * @return The broadcasted value on all ranks
 	 */
 	template<class TValueType>
@@ -241,7 +241,7 @@ public:
 	 * Perform a reduction given an MPI_Op-Type
 	 * @param rComm A communicator object.
 	 * @param LocalValue The local value to be sent in the gather.
-	 * @param RankToReduceOn The MPI rank of the process where the valued will be gathered.
+	 * @param RankToReduceOn The MPI rank of the process where the values will be gathered.
 	 * @param MPI_Operation The MPI_Op to be used for the reduction
 	 * @return The reduced value on the for the RankToReduceOn thread
 	 */
@@ -286,10 +286,10 @@ public:
 
 	/// Perform a MPI_Scatter operation.
 	/**
-	 * Provide a std::vector containing all local values to scatter from the RankToScatterFrom process.
+	 * Scattering a vector of values from the RankToScatterFrom process.
 	 * @param rComm A communicator object.
 	 * @param rLocalValues The local values to be scattered.
-	 * @param RankToScatterFrom The MPI rank of the process where the valued will be scattered from.
+	 * @param RankToScatterFrom The MPI rank of the process where the values will be scattered from.
 	 * @return The local value that was scattered
 	 */
     template<class TValueType>
@@ -311,24 +311,61 @@ public:
         return receive_val;
     }
 
+	/// Perform a MPI_Scatterv operation.
+	/**
+	 * Scattering a number of vector with values from the RankToScatterFrom process.
+	 * @param rComm A communicator object.
+	 * @param rLocalValues The local values to be scattered.
+	 * @param RankToScatterFrom The MPI rank of the process where the values will be scattered from.
+	 * @return The vector of values that was scattered
+	 */
     template<class TValueType>
 	std::vector<TValueType> scatterv(PythonMPIComm& rComm,
-                                     const std::vector<std::vector<TValueType>>& LocalValue,
+                                     const std::vector<std::vector<TValueType>>& rLocalValues,
                                      const int RankToScatterFrom)
     {
-        // // Determime data type
-        // const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
-        // int rank, size;
-        // MPI_Comm_rank(rComm.GetMPIComm(), &rank);
-        // MPI_Comm_size(rComm.GetMPIComm(), &size);
-        // // Create recieve buffer
-        // std::vector<TValueType> global_values;
-        // if (rank == RankToScatterFrom)
-        //     global_values.resize(size);
-        // // Communicate
-        // MPI_Gather(&LocalValue, 1, DataType, global_values.data(),
-        //            1, DataType, RankToScatterFrom, rComm.GetMPIComm());
-        // return global_values;
+        // Determime data type
+        const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
+        int rank, size;
+        MPI_Comm_rank(rComm.GetMPIComm(), &rank);
+        MPI_Comm_size(rComm.GetMPIComm(), &size);
+        if (rank == RankToScatterFrom && rLocalValues.size() != size)
+            throw std::runtime_error("Wrong number of values to Scatter!");
+
+        std::vector<TValueType> send_buffer;
+        std::vector<int> send_sizes(size);
+        std::vector<int> displs(size);
+
+        if (rank == RankToScatterFrom)
+        {
+            for (int i=0; i<size; ++i) {
+                send_sizes[i] = rLocalValues[i].size();
+            }
+            const int send_block_size = *(std::max_element(send_sizes.begin(), send_sizes.end()));
+
+            send_buffer.resize(send_block_size * size);
+
+            for (int i=0; i<size; ++i) {
+                displs[i] = i * send_block_size;
+                for (int j=0; j<send_sizes[i]; ++j) {
+                    send_buffer[i*send_block_size+j] = rLocalValues[i][j];
+                }
+            }
+        }
+
+        // Communicate how much data each rank will receive
+        int recv_count;
+        MPI_Scatter(send_sizes.data(), 1, MPI_INT, &recv_count,
+                    1, MPI_INT, RankToScatterFrom, rComm.GetMPIComm());
+
+        std::vector<TValueType> scattered_vals(recv_count);
+
+        // Communicate
+        MPI_Scatterv(send_buffer.data(), send_sizes.data(), displs.data(),
+                     DataType, scattered_vals.data(), recv_count,
+                     DataType, RankToScatterFrom, rComm.GetMPIComm());
+
+        return scattered_vals;
     }
 
 	/// Perform a MPI_Gather operation.
@@ -336,7 +373,7 @@ public:
 	 * Provide a std::vector containing all local values to the RankToGatherOn process.
 	 * @param rComm A communicator object.
 	 * @param LocalValue The local value to be sent in the gather.
-	 * @param RankToGatherOn The MPI rank of the process where the valued will be gathered.
+	 * @param RankToGatherOn The MPI rank of the process where the values will be gathered.
 	 * @return A std::vector containing the local values in all processes, sorted by rank,
      * for the RankToGatherOn thread, an empty std::vector for other processes
 	 */
@@ -364,7 +401,7 @@ public:
         return global_values;
     }
 
-    /// Perform an MPI_Gather operation.
+    /// Perform an MPI_Gatherv operation.
     /**
      * Provide a std::vector containing all local values to the RankToGatherOn process.
      * @param rComm A communicator object.
