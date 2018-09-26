@@ -388,7 +388,13 @@ public:
     void IdentifyRefinedNodesToErase();
 
     /**
-     * @brief FinalizeRefinement resets the flags on the nodes and elements
+     * @brief InitializeRefinement sets to false the required flags
+     * @detail INTERFACE
+     */
+    void InitializeRefinement();
+
+    /**
+     * @brief FinalizeRefinement resets the flags on the nodes and elements and conditions
      * @detail NEW_ENTITY is set to false
      * @see CloneNodesToRefine
      */
@@ -401,10 +407,18 @@ public:
     void FinalizeCoarsening();
 
     /**
-     * @brief IdentifyRefiningInterface identify the refining interface before to execute the refinement
+     * @brief CreateNewInterface identify the refining interface before to execute the refinement
+     * @detail This method should be executed before calling the re-mesher
      * @brief rCondId this id will identify the new conditions
      */
-    void IdentifyRefiningInterface(IndexType& rCondId);
+    void CreateNewInterface(IndexType& rCondId);
+
+    /**
+     * @brief RemoveOldInterface
+     * @detail This method should be executed after CreateNewInterface
+     * @see CreateNewInterace
+     */
+    void RemoveOldInterface();
 
     /**
      * @brief ClearInterfaceSet free the memory before to execute the coarsening

@@ -90,6 +90,8 @@ void MultiScaleRefiningProcess::Check()
 
 void MultiScaleRefiningProcess::ExecuteRefinement()
 {
+    InitializeRefinement();
+
     // Initialize the maps
     IndexIndexMapType node_tag, elem_tag, cond_tag;
     SubModelPartsListUtility model_part_collection(mrCoarseModelPart);
@@ -109,7 +111,8 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
     MarkConditionsFromNodalFlag();
 
     // Check and prepare the interface
-    IdentifyRefiningInterface(cond_id);
+    CreateNewInterface(cond_id);
+    RemoveOldInterface();
 
     // Create the auxiliary entities
     CreateElementsToRefine(elem_id, elem_tag);
@@ -671,6 +674,21 @@ void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, Ind
 }
 
 
+void MultiScaleRefiningProcess::InitializeRefinement()
+{
+    // Resetting the nodes flags
+    int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
+    ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
+
+    #pragma omp parallel for
+    for (int i = 0; i < nnodes; i++)
+    {
+        auto node = nodes_begin + i;
+        node->Set(INTERFACE, false);
+    }
+}
+
+
 void MultiScaleRefiningProcess::FinalizeRefinement()
 {
     // Resetting the nodes flags
@@ -682,7 +700,6 @@ void MultiScaleRefiningProcess::FinalizeRefinement()
     {
         auto node = nodes_begin + i;
         node->Set(NEW_ENTITY, false);
-        node->Set(INTERFACE, false);
         node->Set(MeshingFlags::REFINED, false);
     }
 
@@ -746,7 +763,7 @@ void MultiScaleRefiningProcess::FinalizeCoarsening()
 }
 
 
-void MultiScaleRefiningProcess::IdentifyRefiningInterface(IndexType& rCondId)
+void MultiScaleRefiningProcess::CreateNewInterface(IndexType& rCondId)
 {
     ModelPart& coarse_interface = mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName);
     Properties::Pointer property = mrCoarseModelPart.ElementsBegin()->pGetProperties();
@@ -814,10 +831,41 @@ void MultiScaleRefiningProcess::IdentifyRefiningInterface(IndexType& rCondId)
             }
         }
     }
+}
 
-    // Identify the old interface and delete it
-    /* do some stuff here */
-    //IndexType nconds 
+
+void MultiScaleRefiningProcess::RemoveOldInterface()
+{
+    ModelPart& coarse_interface = mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName);
+    ModelPart& refined_interface = mrRefinedModelPart.GetSubModelPart(mRefinedInterfaceName);
+
+    const int num_coarse = static_cast<int>(coarse_interface.Conditions().size());
+    ModelPart::ConditionIterator coarse_begin = coarse_interface.ConditionsBegin();
+    
+    #pragma omp parallel for
+    for (int i = 0; i < num_coarse; i++)
+    {
+        auto coarse_cond = coarse_begin + i;
+        if (coarse_cond->IsNot(INTERFACE))
+            coarse_cond->Set(TO_ERASE);
+    }
+
+    ClearInterfaceSet();
+
+    const int num_refined = static_cast<int>(refined_interface.Conditions().size());
+    ModelPart::ConditionIterator refined_begin = refined_interface.ConditionsBegin();
+
+    #pragma omp parallel for
+    for (int i = 0; i < num_refined; i++)
+    {
+        auto refined_cond = refined_begin + i;
+        if (refined_cond->GetValue(FATHER_CONDITION)->Is(TO_ERASE))
+            refined_cond->Set(TO_ERASE);
+    }
+
+    mrCoarseModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+    mrRefinedModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+    mrVisualizationModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 }
 
 
@@ -827,15 +875,15 @@ void MultiScaleRefiningProcess::ClearInterfaceSet()
 
     if (coarse_interface.Conditions().size() > 0) // just avoiding segfault in case of an empty interface model part
     {
-        const IndexType num_nodes = coarse_interface.ConditionsBegin()->GetGeometry().PointsNumber();
+        const IndexType cond_size = coarse_interface.ConditionsBegin()->GetGeometry().PointsNumber();
 
         for (ModelPart::ConditionIterator cond = coarse_interface.ConditionsBegin(); cond < coarse_interface.ConditionsEnd(); cond++)
         {
             if (cond->Is(TO_ERASE))
             {
                 // Get the key and remove it from the set
-                IndexVectorType interface_key(num_nodes);
-                for (IndexType i = 0; i < num_nodes; i++)
+                IndexVectorType interface_key(cond_size);
+                for (IndexType i = 0; i < cond_size; i++)
                     interface_key[i] = cond->GetGeometry()[i].Id();
                 
                 std::sort(interface_key.begin(), interface_key.end());
