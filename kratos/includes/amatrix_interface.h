@@ -638,7 +638,7 @@ template <typename TExpressionType, std::size_t TCategory>
 			return _value;
 		}
 
-		inline TDataType operator[](std::size_t i) const { return TDataType(); }
+		inline TDataType operator[](std::size_t i) const { return _value; }
 
 		inline std::size_t size1() const { return _size1; }
 		inline std::size_t size2() const { return _size2; }
