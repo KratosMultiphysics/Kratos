@@ -23,7 +23,7 @@ namespace Kratos
 {
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(
-    const array_1d<double, VoigtSize>& rStressVector,
+    const BoundedVectorType& rStressVector,
     double& rI1
     )
 {
@@ -37,7 +37,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateI1Invariant(
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateI2Invariant(
-    const array_1d<double, VoigtSize>& rStressVector,
+    const BoundedVectorType& rStressVector,
     double& rI2
     )
 {
@@ -50,7 +50,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateI2Invariant(
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateI3Invariant(
-    const array_1d<double, VoigtSize>& rStressVector,
+    const BoundedVectorType& rStressVector,
     double& rI3
     )
 {
@@ -64,9 +64,9 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateI3Invariant(
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateJ2Invariant(
-    const array_1d<double, VoigtSize>& rStressVector,
+    const BoundedVectorType& rStressVector,
     const double I1,
-    array_1d<double, VoigtSize>& rDeviator,
+    BoundedVectorType& rDeviator,
     double& rJ2
     )
 {
@@ -88,7 +88,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateJ2Invariant(
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateJ3Invariant(
-    const array_1d<double, VoigtSize>& rDeviator,
+    const BoundedVectorType& rDeviator,
     double& rJ3
     )
 {
@@ -101,7 +101,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateJ3Invariant(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(array_1d<double, VoigtSize>& rFirstVector)
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(BoundedVectorType& rFirstVector)
 {
     rFirstVector = ZeroVector(TVoigtSize);
     for (IndexType i = 0; i < Dimension; ++i)
@@ -113,9 +113,9 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(array_1d<double,
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateSecondVector(
-    const array_1d<double, VoigtSize>& rDeviator,
+    const BoundedVectorType& rDeviator,
     const double J2,
-    array_1d<double, VoigtSize>& rSecondVector
+    BoundedVectorType& rSecondVector
     )
 {
     if (rSecondVector.size() != TVoigtSize)
@@ -134,9 +134,9 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateSecondVector(
 
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateThirdVector(
-    const array_1d<double, VoigtSize>& rDeviator,
+    const BoundedVectorType& rDeviator,
     const double J2,
-    array_1d<double, VoigtSize>& rThirdVector
+    BoundedVectorType& rThirdVector
     )
 {
     if (rThirdVector.size() != TVoigtSize)
@@ -174,16 +174,175 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
+    const MatrixType& rCauchyTensor,
+    Vector& rStrainVector
+    )
+{
+    // Doing resize in case is needed
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize);
+    
+    // Identity matrix
+    MatrixType identity_matrix(Dimension, Dimension);
+    for (IndexType i = 0; i < Dimension; ++i) {
+        for (IndexType j = 0; j < Dimension; ++j) {
+            if (i == j) identity_matrix(i, j) = 1.0;
+            else identity_matrix(i, j) = 0.0;
+        }
+    }
+    
+    // Calculate E matrix
+    const BoundedMatrixType E_matrix = 0.5 * (rCauchyTensor - identity_matrix);
+
+    // Green-Lagrangian Strain Calculation
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
+    const MatrixType& rLeftCauchyTensor,
+    Vector& rStrainVector
+    )
+{
+    // Doing resize in case is needed
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize);
+    
+    // Identity matrix
+    MatrixType identity_matrix(Dimension, Dimension);
+    for (IndexType i = 0; i < Dimension; ++i) {
+        for (IndexType j = 0; j < Dimension; ++j) {
+            if (i == j) identity_matrix(i, j) = 1.0;
+            else identity_matrix(i, j) = 0.0;
+        }
+    }
+
+    // Calculating the inverse of the left Cauchy tensor
+    MatrixType inverse_B_tensor ( Dimension, Dimension );
+    double aux_det_b = 0;
+    MathUtils<double>::InvertMatrix( rLeftCauchyTensor, inverse_B_tensor, aux_det_b);
+    
+    // Calculate E matrix
+    const BoundedMatrixType E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
+
+    // Almansi Strain Calculation
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
+    const MatrixType& rCauchyTensor,
+    Vector& rStrainVector
+    )
+{
+    // Doing resize in case is needed
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize);
+    
+    // Declare the different matrix
+    BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
+
+    // Decompose matrix
+    MathUtils<double>::EigenSystem<Dimension>(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
+
+    // Calculate the eigenvalues of the E matrix
+    for (IndexType i = 0; i < Dimension; ++i) {
+        eigen_values_matrix(i, i) = 0.5 * std::log(eigen_values_matrix(i, i));
+    }
+
+    // Calculate E matrix
+    const BoundedMatrixType E_matrix = prod(trans(eigen_vectors_matrix), prod<BoundedMatrixType>(eigen_values_matrix, eigen_vectors_matrix));
+
+    // Hencky Strain Calculation
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
+    const MatrixType& rCauchyTensor,
+    Vector& rStrainVector
+    )
+{
+    // Doing resize in case is needed
+    if (rStrainVector.size() != VoigtSize)
+        rStrainVector.resize(VoigtSize);
+    
+    // Declare the different matrix
+    BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
+
+    // Decompose matrix
+    MathUtils<double>::EigenSystem<Dimension>(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
+
+    // Calculate the eigenvalues of the E matrix
+    for (IndexType i = 0; i < Dimension; ++i) {
+        eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
+    }
+
+    // Calculate E matrix
+    const BoundedMatrixType E_matrix = prod(trans(eigen_vectors_matrix), prod<BoundedMatrixType>(eigen_values_matrix, eigen_vectors_matrix));
+
+    // Biot Strain Calculation
+    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::PolarDecomposition(
+    const MatrixType& rFDeformationGradient,
+    MatrixType& rRMatrix,
+    MatrixType& rUMatrix
+    )
+{
+    // Doing resize in case is needed
+    if (rRMatrix.size1() != Dimension || rRMatrix.size2() != Dimension)
+        rRMatrix.resize(Dimension, Dimension);
+    if (rUMatrix.size1() != Dimension || rUMatrix.size2() != Dimension)
+        rUMatrix.resize(Dimension, Dimension);
+        
+    // We compute Right Cauchy tensor 
+    const MatrixType C = prod( trans(rFDeformationGradient), rFDeformationGradient );
+
+    // Decompose matrix C
+    BoundedMatrix<double, Dimension, Dimension> eigen_vector_matrix,  eigen_values_matrix;
+    MathUtils<double>::EigenSystem<Dimension>(C, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
+
+    for (IndexType i = 0; i < Dimension; ++i)
+        eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
+
+    noalias(rUMatrix) = prod( eigen_values_matrix, eigen_vector_matrix );
+
+    double aux_det;
+    MatrixType invU(Dimension, Dimension);
+    MathUtils<double>::InvertMatrix(rUMatrix, invU, aux_det);
+    noalias(rRMatrix) = prod( rFDeformationGradient, invU );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStresses(
     array_1d<double, Dimension>& rPrincipalStressVector,
-    const array_1d<double, VoigtSize>& rStressVector
+    const BoundedVectorType& rStressVector
     )
 {
     double I1, I2, I3;
-    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils<double>::VectorToSymmetricTensor<array_1d<double, VoigtSize>, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
+    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils<double>::VectorToSymmetricTensor<BoundedVectorType, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
     double norm = norm_frobenius(tensor);
     if (norm < tolerance) norm = 1.0;
-    const array_1d<double, VoigtSize> norm_stress_vector = rStressVector/norm;
+    const BoundedVectorType norm_stress_vector = rStressVector/norm;
     CalculateI1Invariant(norm_stress_vector, I1);
     CalculateI2Invariant(norm_stress_vector, I2);
     CalculateI3Invariant(norm_stress_vector, I3);
@@ -216,14 +375,14 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStresses(
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano(
     array_1d<double, Dimension>& rPrincipalStressVector,
-    const array_1d<double, VoigtSize>& rStressVector
+    const BoundedVectorType& rStressVector
     )
 {
     double a, b, c;
-    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils<double>::VectorToSymmetricTensor<array_1d<double, VoigtSize>, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
+    BoundedMatrix<double, Dimension, Dimension> tensor = MathUtils<double>::VectorToSymmetricTensor<BoundedVectorType, BoundedMatrix<double, Dimension, Dimension>>(rStressVector);
     double norm = norm_frobenius(tensor);
     if (norm < tolerance) norm = 1.0;
-    const array_1d<double, VoigtSize> norm_stress_vector = rStressVector/norm;
+    const BoundedVectorType norm_stress_vector = rStressVector/norm;
     CalculateI1Invariant(norm_stress_vector, a);
     CalculateI2Invariant(norm_stress_vector, b);
     CalculateI3Invariant(norm_stress_vector, c);
