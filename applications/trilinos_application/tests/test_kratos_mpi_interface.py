@@ -125,8 +125,6 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
             for i in range(comm_size):
                 rank_list = list(range(i+min_list_size))
                 vals_to_scatter.append(rank_list)
-
-            print(vals_to_scatter)
         else:
             vals_to_scatter = list(list())
         scattered_list = mpi.scatterv_int(mpi.world, vals_to_scatter, rank_to_scatter_from)
@@ -137,7 +135,7 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
         my_rank_list = list(range(my_rank+min_list_size))
 
         for recv_val, exp_val in zip(scattered_list, my_rank_list):
-            self.assertEqual(recv_val, exp_val+1)
+            self.assertEqual(recv_val, exp_val)
 
     def test_scatterv_double(self):
         rank_to_scatter_from = 0
@@ -148,22 +146,20 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
             vals_to_scatter = list()
             for i in range(comm_size):
                 range_list = list(range(i+min_list_size))
-                rank_list = [2.125**x for x in range_list]
+                rank_list = DoubleScatterVList(range_list)
                 vals_to_scatter.append(rank_list)
-
-            print(vals_to_scatter)
         else:
             vals_to_scatter = list(list())
         scattered_list = mpi.scatterv(mpi.world, vals_to_scatter, rank_to_scatter_from)
 
         self.assertEqual(type(scattered_list), list)
-        self.assertEqual(len(scattered_list), my_rank+min_list_size)
+        self.assertEqual(len(scattered_list), my_rank+min_list_size, msg="Rank: "+str(my_rank) + " ; " + str(scattered_list))
 
-        my_range_list = list(range(i+min_list_size))
-        my_rank_list = [2.125**x for x in my_range_list]
+        my_range_list = list(range(my_rank+min_list_size))
+        my_rank_list = DoubleScatterVList(my_range_list)
 
         for recv_val, exp_val in zip(scattered_list, my_rank_list):
-            self.assertAlmostEqual(recv_val, exp_val+1)
+            self.assertAlmostEqual(recv_val, exp_val)
 
     def test_broadcast_int(self):
         val_to_broadcast = (mpi.rank+1)*5
@@ -246,6 +242,9 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
             comm_size = mpi.size
             exp_val = int((comm_size)*(comm_size+1)/2)
             self.assertEqual(exp_val, sum_val)
+
+def DoubleScatterVList(range_list):
+    return [(2.125**x)/(2**(x-6)) for x in range_list]
 
 
 if __name__ == '__main__':
