@@ -48,7 +48,7 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
         ( nodes_begin + i )->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
     }
 
-    rModelPartCommunicator.SynchronizeVariable(INTERFACE_EQUATION_ID);
+    rModelPartCommunicator.SynchronizeNonHistoricalVariable(INTERFACE_EQUATION_ID);
 }
 
 double ComputeSearchRadius(ModelPart& rModelPart, int EchoLevel)
