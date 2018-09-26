@@ -86,3 +86,5 @@ class AssignFlagProcess(KratosMultiphysics.Process):
                     self.flag_utils.SetFlag(self.flag, self.value, self.model_part.Conditions)
                 elif (self.entities[i].GetString() == "elements"):
                     self.flag_utils.SetFlag(self.flag, self.value, self.model_part.Elements)
+                elif (self.entities[i].GetString() == "model_part"):
+                    self.model_part.Set(self.flag, self.value)
