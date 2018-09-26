@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 
@@ -555,6 +555,36 @@ public:
     bool SynchronizeVariable(Variable<Matrix> const& ThisVariable) override
     {
         SynchronizeVariable<Matrix,double>(ThisVariable);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<int> const& ThisVariable) override
+    {
+        SynchronizeNonHistoricalVariable<int,int>(ThisVariable);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<double> const& ThisVariable) override
+    {
+        SynchronizeNonHistoricalVariable<double,double>(ThisVariable);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 3 > > const& ThisVariable) override
+    {
+        SynchronizeNonHistoricalVariable<array_1d<double, 3 >,double>(ThisVariable);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<Vector> const& ThisVariable) override
+    {
+        SynchronizeNonHistoricalVariable<Vector,double>(ThisVariable);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<Matrix> const& ThisVariable) override
+    {
+        SynchronizeNonHistoricalVariable<Matrix,double>(ThisVariable);
         return true;
     }
 
