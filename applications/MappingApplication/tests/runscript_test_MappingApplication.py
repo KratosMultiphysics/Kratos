@@ -60,7 +60,7 @@ print("OMP thread set to 1")
 
 # serial execution
 WriteInfo(kratos_output_file, tests_output_file, "w", "Serial Execution")
-system_cmd = "python3.5 " + input_file + " >> " + kratos_output_file + " 2>> " + tests_output_file
+system_cmd = "python3 " + input_file + " >> " + kratos_output_file + " 2>> " + tests_output_file
 os.system(system_cmd)
 
 # parallel executions
