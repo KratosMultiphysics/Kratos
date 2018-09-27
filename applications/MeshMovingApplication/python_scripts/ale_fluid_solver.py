@@ -25,6 +25,18 @@ class ALEFluidSolver(PythonSolver):
             fluid_mesh_model_part = KratosMultiphysics.ModelPart(fluid_model_part_name)
             self.model.AddModelPart(fluid_mesh_model_part)
 
+        ## Checking if reactions are being computed in the fluid
+        if solver_settings.Has("compute_reactions"):
+            if solver_settings["compute_reactions"].GetBool() == False:
+                solver_settings["compute_reactions"].SetBool(True)
+                warn_msg  = '"compute_reactions" is switched off for the fluid-solver, "
+                warn_msg += 'switching it on!'
+                KratosMultiphysics.Logger.PrintWarning("::[ALEFluidSolver]::", warn_msg)
+        else:
+            solver_settings.AddEmptyValue("compute_reactions").SetBool(True)
+            info_msg = 'Setting "compute_reactions" to true for the fluid-solver, "
+            KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
+
         ## Creating the fluid solver
         self.fluid_solver = self._CreateFluidSolver(solver_settings, parallelism)
 
@@ -65,11 +77,6 @@ class ALEFluidSolver(PythonSolver):
         if (self.mesh_motion_solver.settings["calculate_mesh_velocities"].GetBool() == False
             and self.is_printing_rank):
             info_msg = "Mesh velocities are not being computed in the Mesh solver!"
-            KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
-
-        if (self.fluid_solver.settings["compute_reactions"].GetBool() == False
-            and self.is_printing_rank):
-            info_msg = "Reactions are not being computed in the Fluid solver!"
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
 
         # TODO once the different computations of the Mehs-Vel are implemented,
