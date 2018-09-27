@@ -30,8 +30,8 @@ namespace Kratos
 namespace MapperUtilities
 {
 
-using SizeType = std::size_t;
-using IndexType = std::size_t;
+typedef std::size_t SizeType;
+typedef std::size_t IndexType;
 
 using NodeType = Node<3>;
 

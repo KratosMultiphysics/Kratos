@@ -26,8 +26,8 @@ namespace Kratos
 namespace MapperUtilities
 {
 
-using IndexType = std::size_t;
-using SizeType = std::size_t;
+typedef std::size_t SizeType;
+typedef std::size_t IndexType;
 
 void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
 {
