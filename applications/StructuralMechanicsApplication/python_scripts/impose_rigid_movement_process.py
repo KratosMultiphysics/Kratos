@@ -53,7 +53,7 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
 
         # The computing model part
         computing_model_part_name = settings["computing_model_part_name"].GetString()
-        self.computing_model_part = Model[computing_model_part_name]
+        self.computing_model_part = Model["Structure"].GetSubModelPart(computing_model_part_name)
 
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
@@ -68,7 +68,7 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
                 self.rigid_model_part = self.model_part.CreateSubModelPart(new_model_part_name)
         else:
             settings["new_model_part_name"].SetString(settings["model_part_name"].GetString())
-            
+            self.rigid_model_part = self.model_part
 
         # Create the process
         rigid_parameters = KratosMultiphysics.Parameters("""{}""")

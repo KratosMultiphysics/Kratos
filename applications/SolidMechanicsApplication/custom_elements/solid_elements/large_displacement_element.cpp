@@ -189,6 +189,7 @@ void LargeDisplacementElement::InitializeSolutionStep( ProcessInfo& rCurrentProc
     KRATOS_TRY
 
     SolidElement::InitializeSolutionStep(rCurrentProcessInfo);
+    this->Set(SolidElement::FINALIZED_STEP, false);
 
     KRATOS_CATCH( "" )
 }
@@ -203,6 +204,8 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
     KRATOS_TRY
 
     SolidElement::FinalizeSolutionStep(rCurrentProcessInfo);
+
+    this->Set(SolidElement::FINALIZED_STEP, true);
 
     KRATOS_CATCH( "" )
 }

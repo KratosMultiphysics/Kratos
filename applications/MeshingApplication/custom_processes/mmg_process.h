@@ -88,7 +88,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<SizeType TDim>
-class MmgProcess
+class KRATOS_API(KRATOS_MESHING_APPLICATION) MmgProcess
     : public Process
 {
 public:
@@ -151,6 +151,9 @@ public:
 
     /// Colors map
     typedef std::unordered_map<IndexType,IndexType> ColorsMapType;
+
+    /// Index pair
+    typedef std::pair<IndexType,IndexType> IndexPairType;
 
     ///@}
     ///@name  Enum's
@@ -598,7 +601,6 @@ private:
      * @param PostOutput If the ouput file is the solution after take into account the metric or not
      * @param Step The step to postprocess
      */
-
     void OutputSol(
         const bool PostOutput,
         const IndexType Step
@@ -607,13 +609,11 @@ private:
     /**
      * @brief This loads the solution
      */
-
     void MMGLibCall();
 
     /**
      * @brief This frees the MMG structures
      */
-
     void FreeAll();
 
     /**
@@ -624,7 +624,6 @@ private:
      * @param Color Reference of the node(submodelpart)
      * @param Index The index number of the node
      */
-
     void SetNodes(
         const double X,
         const double Y,
@@ -639,7 +638,6 @@ private:
      * @param Color Reference of the node(submodelpart)
      * @param Index The index number of the node
      */
-
     void SetConditions(
         GeometryType& Geom,
         const IndexType Color,
@@ -652,7 +650,6 @@ private:
      * @param Color Reference of the node(submodelpart)
      * @param Index The index number of the node
      */
-
     void SetElements(
         GeometryType& Geom,
         const IndexType Color,
@@ -663,7 +660,6 @@ private:
      * @brief This function is used to compute the metric scalar
      * @param Metric The inverse of the size node
      */
-
     void SetMetricScalar(
         const double Metric,
         const IndexType NodeId
@@ -673,7 +669,6 @@ private:
      * @brief This function is used to compute the metric vector (x, y, z)
      * @param Metric This array contains the components of the metric vector
      */
-
     void SetMetricVector(
         const array_1d<double, TDim>& Metric,
         const IndexType NodeId
@@ -683,7 +678,6 @@ private:
      * @brief This function is used to compute the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
      * @param Metric This array contains the components of the metric tensor in the MMG defined order
      */
-
     void SetMetricTensor(
         const TensorArrayType& Metric,
         const IndexType NodeId
@@ -692,14 +686,18 @@ private:
     /**
      * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
      */
-
     void CreateAuxiliarSubModelPartForFlags();
 
     /**
      * @brief This function assigns the flags and clears the auxiliar sub model part for flags
      */
-
     void AssignAndClearAuxiliarSubModelPartForFlags();
+
+    /**
+     * @brief This function creates an before/after remesh output file
+     * @param rOldModelPart The old model part before remesh
+     */
+    void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
 
     ///@}
     ///@name Private  Access

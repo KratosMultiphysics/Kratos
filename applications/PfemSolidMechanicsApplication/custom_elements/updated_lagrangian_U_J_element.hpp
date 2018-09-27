@@ -274,6 +274,11 @@ namespace Kratos
          ///@{
 
          /**
+          * Get element size from the dofs
+          */
+         virtual unsigned int GetDofsSize() override;
+
+         /**
           * Calculates the elemental contributions
           * \f$ K^e = w\,B^T\,D\,B \f$ and
           * \f$ r^e \f$
@@ -397,12 +402,6 @@ namespace Kratos
                double& rIntegrationWeight
                ) override;
 
-         /**
-          * Initialize System Matrices
-          */
-         void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-               VectorType& rRightHandSideVector,
-               Flags& rCalculationFlags) override;
 
          //on integration points:
          /**
