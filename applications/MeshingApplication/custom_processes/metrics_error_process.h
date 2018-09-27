@@ -49,7 +49,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<SizeType TDim>
-class KRATOS_API(KRATOS_MESHING_APPLICATION) MetricErrorProcess
+class MetricErrorProcess
     : public Process
 {
 public:
