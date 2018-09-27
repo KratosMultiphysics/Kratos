@@ -29,12 +29,12 @@ class ALEFluidSolver(PythonSolver):
         if solver_settings.Has("compute_reactions"):
             if solver_settings["compute_reactions"].GetBool() == False:
                 solver_settings["compute_reactions"].SetBool(True)
-                warn_msg  = '"compute_reactions" is switched off for the fluid-solver, "
+                warn_msg  = '"compute_reactions" is switched off for the fluid-solver, '
                 warn_msg += 'switching it on!'
                 KratosMultiphysics.Logger.PrintWarning("::[ALEFluidSolver]::", warn_msg)
         else:
             solver_settings.AddEmptyValue("compute_reactions").SetBool(True)
-            info_msg = 'Setting "compute_reactions" to true for the fluid-solver, "
+            info_msg = 'Setting "compute_reactions" to true for the fluid-solver, '
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
 
         ## Creating the fluid solver
