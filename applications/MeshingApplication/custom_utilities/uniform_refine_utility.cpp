@@ -103,6 +103,15 @@ void UniformRefineUtility<TDim>::PrintData(std::ostream& rOStream) const {
 template< unsigned int TDim>
 void UniformRefineUtility<TDim>::Refine(int& rFinalRefinementLevel)
 {
+    // KRATOS_INFO("UniformrefineUtility") << "The current nodes map has " << mNodesMap.size() << " items" << std::endl;
+    // for (auto it : mNodesMap)
+    // {
+    //     std::string nodes_map;
+    //     nodes_map = "[ " + std::to_string(it.first.first) + " , " + std::to_string(it.first.second) + " ] ";
+    //     nodes_map += std::to_string(it.second);
+    //     KRATOS_WATCH(nodes_map)
+    // }
+
     if (mrModelPart.Nodes().size() == 0)
         KRATOS_WARNING("UniformrefineUtility") << "Attempting to refine an empty model part" << std::endl;
     else
@@ -150,41 +159,50 @@ void UniformRefineUtility<TDim>::GetLastCreatedIds(IndexType& rNodeId, IndexType
 template< unsigned int TDim>
 void UniformRefineUtility<TDim>::RemoveRefinedEntities(Flags ThisFlag)
 {
-    // 1. Clear the maps
+    // Clear the maps
     for (ModelPart::NodeIterator node = mrModelPart.NodesBegin(); node < mrModelPart.NodesEnd(); node++)
     {
-        auto search = mNodesColorMap.find(node->Id());
-        if (search != mNodesColorMap.end())
-            mNodesColorMap.erase(search);
-
-        for (NodesInEdgeMapType::iterator pair = mNodesMap.begin(); pair != mNodesMap.end(); pair++)
+        if (node->Is(ThisFlag))
         {
-            if (node->Id() == pair->second)
-                mNodesMap.erase(pair);
-        }
+            auto search = mNodesColorMap.find(node->Id());
+            if (search != mNodesColorMap.end())
+                mNodesColorMap.erase(search);
 
-        for (NodesInFaceMapType::iterator pair = mNodesInFaceMap.begin(); pair != mNodesInFaceMap.end(); pair++)
-        {
-            if (node->Id() == pair->second)
-                mNodesInFaceMap.erase(pair);
+            for (NodesInEdgeMapType::iterator pair = mNodesMap.begin(); pair != mNodesMap.end(); pair++)
+            {
+                if (node->Id() == pair->second)
+                    mNodesMap.erase(pair);
+            }
+
+            for (NodesInFaceMapType::iterator pair = mNodesInFaceMap.begin(); pair != mNodesInFaceMap.end(); pair++)
+            {
+                if (node->Id() == pair->second)
+                    mNodesInFaceMap.erase(pair);
+            }
         }
     }
 
     for (ModelPart::ElementIterator elem = mrModelPart.ElementsBegin(); elem < mrModelPart.ElementsEnd(); elem++)
     {
-        auto search = mElemColorMap.find(elem->Id());
-        if (search != mElemColorMap.end())
-            mElemColorMap.erase(search);
+        if (elem->Is(ThisFlag))
+        {
+            auto search = mElemColorMap.find(elem->Id());
+            if (search != mElemColorMap.end())
+                mElemColorMap.erase(search);
+        }
     }
 
     for (ModelPart::ConditionIterator cond = mrModelPart.ConditionsBegin(); cond < mrModelPart.ConditionsEnd(); cond++)
     {
+        if (cond->Is(ThisFlag))
+        {
         auto search = mCondColorMap.find(cond->Id());
         if (search != mCondColorMap.end())
             mCondColorMap.erase(search);
+        }
     }
 
-    // 2. Remove the entities
+    // Remove the entities
     mrModelPart.RemoveNodesFromAllLevels(ThisFlag);
     mrModelPart.RemoveElementsFromAllLevels(ThisFlag);
     mrModelPart.RemoveConditionsFromAllLevels(ThisFlag);
