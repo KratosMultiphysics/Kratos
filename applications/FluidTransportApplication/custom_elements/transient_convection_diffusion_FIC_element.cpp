@@ -85,7 +85,6 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
     ElementVariables Variables;
     this->InitializeElementVariables(Variables,Geom,Prop,rCurrentProcessInfo);
 
-
     Variables.IterationNumber = rCurrentProcessInfo[NL_ITERATION_NUMBER];
 
     //Loop over integration points
@@ -97,8 +96,17 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
         //Compute N and Interpolated velocity
         noalias(Variables.N) = row(NContainer,GPoint);
 
+        Variables.QSource = 0.0;
+        for(unsigned int i=0; i<TNumNodes; i++)
+        {
+            Variables.QSource += Variables.N[i]*Variables.NodalQSource[i];
+        }
+
         noalias(Variables.VelInter) = ZeroVector(TDim);
         ElementUtilities::InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
+
+        noalias(Variables.DifMatrix) = ZeroMatrix( TDim, TDim );
+
         this->CalculateDiffusivityVariables(Variables,Prop,rCurrentProcessInfo);
         this->CalculateHVector(Variables,Prop,rCurrentProcessInfo);
 
@@ -252,14 +260,6 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
         rVariables.TransientAbsorption = previous_absorption;
     }
 
-    //TODO
-    if (rVariables.IterationNumber == 2 && this->Id() == 86)
-    {
-        // KRATOS_WATCH (fk)
-        // KRATOS_WATCH (NodalPhi0)
-        // KRATOS_WATCH (PrevNodalPhi)
-    }
-
     // rVariables.TransientAbsorption = previous_absorption;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -295,6 +295,11 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
 
     rVariables.AuxDiffusion = inner_prod(prod(trans(rVariables.VelInterHat), rVariables.DifMatrixK), rVariables.VelInterHat);
 
+    if (NormVel < rVariables.HighTolerance)
+    {
+        rVariables.AuxDiffusion = conductivity;
+    }
+
     double Domain = rGeom.DomainSize();
 
     if (TDim == 2)
@@ -318,6 +323,11 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
 
     this->CalculateBoundaryLv(rVariables);
 
+    rVariables.AlphaVBar = 0.0;
+    rVariables.OmegaV = 0.0;
+    rVariables.SigmaV = 0.0;
+    rVariables.Peclet = 0.0;
+
     if (NormVel < rVariables.HighTolerance)
     {
 
@@ -325,6 +335,8 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
         rVariables.OmegaV = rVariables.TransientAbsorption * rVariables.lv * rVariables.lv / conductivity;
 
         rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.HighTolerance);
+
+        rVariables.Peclet = NormVel * rVariables.lv * rVariables.rho_dot_c / (2.0 * rVariables.AuxDiffusion);
 
     }
     else
@@ -428,14 +440,29 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
 
     // phi = 2 in 2D and 3D
 
-    //TODO until +30 lines
-    rVariables.SigmaV = (previous_absorption * rVariables.lv * rVariables.lv / rVariables.AuxDiffusion) / (2.0 * rVariables.Peclet);
-    rVariables.OmegaV = previous_absorption * rVariables.lv * rVariables.lv / rVariables.AuxDiffusion;
+    //TODO until +40 lines
+    if (NormVel < rVariables.HighTolerance)
+    {
+
+        // TODO: S'ha de posar OmegaV = 0 si v = 0??
+        rVariables.OmegaV = previous_absorption * rVariables.lv * rVariables.lv / conductivity;
+
+        rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.HighTolerance);
+
+    }
+    else
+    {
+
+        rVariables.OmegaV = previous_absorption * rVariables.lv * rVariables.lv / rVariables.AuxDiffusion;
+
+        rVariables.SigmaV = rVariables.OmegaV / (2.0 * rVariables.Peclet);
+
+    }
 
     rVariables.AlphaR = rVariables.Peclet * (0.5 * rVariables.SigmaV * ((rVariables.XiV + 1.0) / (rVariables.XiV - 1.0)) - rVariables.AlphaV)
                         - 1.0 - (1.0 / rVariables.AuxDiffusion) * inner_prod(rVariables.VelInterHat, prod(rVariables.DifMatrixS, rVariables.VelInterHat));
 
-    if (rVariables.absorption < rVariables.HighTolerance) //rVariables.absorption
+    if (rVariables.absorption < rVariables.HighTolerance)
     {
         rVariables.AlphaR = 0.0;
     }
@@ -453,7 +480,6 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
         }
         else if (conductivity < rVariables.HighTolerance)
         {
-            rVariables.AlphaR = rVariables.absorption * rVariables.lv * rVariables.lv / 6.0;
             rVariables.AlphaR = previous_absorption * rVariables.lv * rVariables.lv / 6.0;
         }
     }
