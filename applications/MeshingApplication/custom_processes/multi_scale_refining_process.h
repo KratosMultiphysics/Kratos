@@ -55,6 +55,15 @@ namespace Kratos {
  * and the refined or the subscale model part
  * This process can be constructed again with the subscale as the origin model part
  * to get several subscales levels
+ * Flags used by the process:
+ *     SUBSCALE_INDEX
+ *     TO_REFINE
+ *     MeshingFlags::REFINED
+ *     MeshingFlags::TO_COARSEN
+ *     TO_ERASE
+ *     NEW_ENTITY
+ *     INTERFACE
+ *     INSIDE
  */
 class MultiScaleRefiningProcess : public Process
 {

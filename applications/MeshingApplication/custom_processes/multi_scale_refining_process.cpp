@@ -112,7 +112,7 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
 
     // Check and prepare the interface
     CreateNewInterface(cond_id);
-    RemoveOldInterface();
+    // RemoveOldInterface();
 
     // Create the auxiliary entities
     CreateElementsToRefine(elem_id, elem_tag);
@@ -273,11 +273,14 @@ void MultiScaleRefiningProcess::UpdateVisualizationAfterRefinement()
     const int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
     
+    #pragma omp parallel for
     for (int i = 0; i < nnodes; i++)
     {
         auto coarse_node = nodes_begin + i;
         if (coarse_node->Is((MeshingFlags::REFINED)) && (coarse_node->IsNot(INTERFACE)))
             coarse_node->Set(INSIDE, true);
+        else
+            coarse_node->Set(INSIDE, false);
     }
     mrVisualizationModelPart.RemoveNodesFromAllLevels(INSIDE);
 
@@ -461,6 +464,7 @@ void MultiScaleRefiningProcess::IdentifyParentNodesToErase()
                 if (search->second->IsNot(MeshingFlags::REFINED))
                 {
                     coarse_node->Set(MeshingFlags::TO_COARSEN, true);
+                    coarse_node->Set(MeshingFlags::REFINED, false);
                     mCoarseToRefinedNodesMap.erase(search);
                     mRefinedToCoarseNodesMap.erase(search->second->Id());
                 }
@@ -491,6 +495,7 @@ void MultiScaleRefiningProcess::IdentifyElementsToErase()
         }
         if (to_coarse)
             coarse_elem->Set(MeshingFlags::TO_COARSEN, true);
+            coarse_elem->Set(MeshingFlags::REFINED, false);
     }
 
     // Identify the refined elements to remove
@@ -528,6 +533,7 @@ void MultiScaleRefiningProcess::IdentifyConditionsToErase()
         }
         if (to_coarse)
             coarse_cond->Set(MeshingFlags::TO_COARSEN, true);
+            coarse_cond->Set(MeshingFlags::REFINED, false);
     }
 
     // Identify the refined conditions to remove
@@ -691,71 +697,70 @@ void MultiScaleRefiningProcess::InitializeRefinement()
 
 void MultiScaleRefiningProcess::FinalizeRefinement()
 {
+    /// Coarse model part
     // Resetting the nodes flags
-    int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
-    ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
-
+    ModelPart::NodeIterator coarse_nodes_begin = mrCoarseModelPart.NodesBegin();
     #pragma omp parallel for
-    for (int i = 0; i < nnodes; i++)
+    for (int i = 0; i < static_cast<int>(mrCoarseModelPart.Nodes().size()); i++)
     {
-        auto node = nodes_begin + i;
+        auto node = coarse_nodes_begin + i;
         node->Set(NEW_ENTITY, false);
-        node->Set(MeshingFlags::REFINED, false);
+    }
+
+    /// Refined model part
+    // Resetting the nodes flags
+    ModelPart::NodeIterator refined_nodes_begin = mrRefinedModelPart.NodesBegin();
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrRefinedModelPart.Nodes().size()); i++)
+    {
+        auto node = refined_nodes_begin + i;
+        node->Set(NEW_ENTITY, false);
     }
 
     // Resetting the elements flags
-    int nelems = static_cast<int>(mrCoarseModelPart.Elements().size());
-    ModelPart::ElementsContainerType::iterator elements_begin = mrCoarseModelPart.ElementsBegin();
-
+    ModelPart::ElementIterator refined_elem_begin = mrRefinedModelPart.ElementsBegin();
     #pragma omp parallel for
-    for (int i = 0; i < nelems; i++)
+    for (int i = 0; i < static_cast<int>(mrRefinedModelPart.Elements().size()); i++)
     {
-        auto elem = elements_begin + i;
-        elem->Set(MeshingFlags::REFINED, false);
+        auto elem = refined_elem_begin + i;
+        elem->Set(NEW_ENTITY, false);
     }
 
     // Resetting the conditions flags
-    int nconds = static_cast<int>(mrCoarseModelPart.Conditions().size());
-    ModelPart::ConditionsContainerType::iterator conditions_begin = mrCoarseModelPart.ConditionsBegin();
-
+    ModelPart::ConditionIterator refined_cond_begin = mrRefinedModelPart.ConditionsBegin();
     #pragma omp parallel for
-    for (int i = 0; i < nconds; i++)
+    for (int i = 0; i < static_cast<int>(mrRefinedModelPart.Conditions().size()); i++)
     {
-        auto cond = conditions_begin + i;
-        cond->Set(MeshingFlags::REFINED, false);
+        auto cond = refined_cond_begin + i;
+        cond->Set(NEW_ENTITY, false);
     }
 }
 
 void MultiScaleRefiningProcess::FinalizeCoarsening()
 {
+    /// Coarse model part
     // Resetting the nodes flags
-    int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
-    ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
-
+    ModelPart::NodeIterator nodes_begin = mrCoarseModelPart.NodesBegin();
     #pragma omp parallel for
-    for (int i = 0; i < nnodes; i++)
+    for (int i = 0; i < static_cast<int>(mrCoarseModelPart.Nodes().size()); i++)
     {
         auto node = nodes_begin + i;
         node->Set(MeshingFlags::TO_COARSEN, false);
     }
 
     // Resetting the elements flags
-    int nelems = static_cast<int>(mrCoarseModelPart.Elements().size());
-    ModelPart::ElementsContainerType::iterator elements_begin = mrCoarseModelPart.ElementsBegin();
-
+    ModelPart::ElementIterator elements_begin = mrCoarseModelPart.ElementsBegin();
     #pragma omp parallel for
-    for (int i = 0; i < nelems; i++)
+    for (int i = 0; i < static_cast<int>(mrCoarseModelPart.Elements().size()); i++)
     {
         auto elem = elements_begin + i;
         elem->Set(MeshingFlags::TO_COARSEN, false);
     }
 
     // Resetting the conditions flags
-    int nconds = static_cast<int>(mrCoarseModelPart.Conditions().size());
-    ModelPart::ConditionsContainerType::iterator conditions_begin = mrCoarseModelPart.ConditionsBegin();
-
+    ModelPart::ConditionIterator conditions_begin = mrCoarseModelPart.ConditionsBegin();
     #pragma omp parallel for
-    for (int i = 0; i < nconds; i++)
+    for (int i = 0; i < static_cast<int>(mrCoarseModelPart.Conditions().size()); i++)
     {
         auto cond = conditions_begin + i;
         cond->Set(MeshingFlags::TO_COARSEN, false);
@@ -765,8 +770,8 @@ void MultiScaleRefiningProcess::FinalizeCoarsening()
 
 void MultiScaleRefiningProcess::CreateNewInterface(IndexType& rCondId)
 {
-    ModelPart& coarse_interface = mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName);
-    Properties::Pointer property = mrCoarseModelPart.ElementsBegin()->pGetProperties();
+    // ModelPart& coarse_interface = mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName);
+    // Properties::Pointer property = mrCoarseModelPart.ElementsBegin()->pGetProperties();
     // 0. Reset the flags
     
     // 1. Identify the nodes which define the boundary
@@ -777,12 +782,12 @@ void MultiScaleRefiningProcess::CreateNewInterface(IndexType& rCondId)
     const IndexType element_nodes = elem_begin->GetGeometry().size();
 
     // The number of edges or faces
-    IndexType cond_nodes;
-    const IndexType dimension = elem_begin->GetGeometry().Dimension();
-    if (dimension == 2)
-        cond_nodes = elem_begin->GetGeometry().Edges()[0].PointsNumber();
-    else
-        cond_nodes = elem_begin->GetGeometry().Faces()[0].PointsNumber();
+    // IndexType cond_nodes;
+    // const IndexType dimension = elem_begin->GetGeometry().Dimension();
+    // if (dimension == 2)
+    //     cond_nodes = elem_begin->GetGeometry().Edges()[0].PointsNumber();
+    // else
+    //     cond_nodes = elem_begin->GetGeometry().Faces()[0].PointsNumber();
 
     // Identify the current interface: set the nodes and create the base conditions
     // Look for the elements which are not to refine and have some nodes to refine
@@ -799,36 +804,36 @@ void MultiScaleRefiningProcess::CreateNewInterface(IndexType& rCondId)
             }
             
             // Create the condition if needed
-            for (auto edge : elem->GetGeometry().Edges())
-            {
-                bool is_interface = true;
-                IndexVectorType interface_key(cond_nodes);
-                for (IndexType i = 0; i < cond_nodes; i++)
-                {
-                    if (edge[i].IsNot(INTERFACE))
-                        is_interface = false;
-                    interface_key[i] = edge[i].Id();
-                }
-                if (is_interface)
-                {
-                    // Create the condition if it does not exist
-                    std::sort(interface_key.begin(), interface_key.end());
-                    auto search = mCoarseInterfacesSet.find(interface_key);
-                    if (search == mCoarseInterfacesSet.end())
-                    {                        
-                        // Condition creation
-                        auto aux_cond = coarse_interface.CreateNewCondition(
-                            mInterfaceConditionName,
-                            ++rCondId,
-                            edge,
-                            property);
-                        aux_cond->Set(TO_REFINE, true);
+            // for (auto edge : elem->GetGeometry().Edges())
+            // {
+            //     bool is_interface = true;
+            //     IndexVectorType interface_key(cond_nodes);
+            //     for (IndexType i = 0; i < cond_nodes; i++)
+            //     {
+            //         if (edge[i].IsNot(INTERFACE))
+            //             is_interface = false;
+            //         interface_key[i] = edge[i].Id();
+            //     }
+            //     if (is_interface)
+            //     {
+            //         // Create the condition if it does not exist
+            //         std::sort(interface_key.begin(), interface_key.end());
+            //         auto search = mCoarseInterfacesSet.find(interface_key);
+            //         if (search == mCoarseInterfacesSet.end())
+            //         {                        
+            //             // Condition creation
+            //             auto aux_cond = coarse_interface.CreateNewCondition(
+            //                 mInterfaceConditionName,
+            //                 ++rCondId,
+            //                 edge,
+            //                 property);
+            //             aux_cond->Set(TO_REFINE, true);
 
-                        // Storing the condition key
-                        mCoarseInterfacesSet.insert(interface_key);
-                    }
-                }
-            }
+            //             // Storing the condition key
+            //             mCoarseInterfacesSet.insert(interface_key);
+            //         }
+            //     }
+            // }
         }
     }
 }
