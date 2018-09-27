@@ -17,6 +17,7 @@
 
 // System includes
 #include <vector>
+#include <numeric>
 #include "mpi.h"
 
 // External includes
