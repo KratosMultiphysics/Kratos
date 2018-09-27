@@ -201,6 +201,11 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
         {
             KRATOS_ERROR_IF_NOT(mpIterationIO) << " IterationIO is uninitialized!" << std::endl;
             mpIterationIO->InitializeResults(0.0, BaseType::GetModelPart().GetMesh());
+            mResults_writer.open("displacement_vs_iteration_hydrostatic.csv");
+            mResults_writer
+                << "iteration, displacement"
+                << "\n";
+            mResults_writer.close();
         }
 
         BaseType::SolveSolutionStep();
@@ -314,6 +319,7 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
     std::vector<double> mVectorOfVolumes;
     std::vector<IndexType> mListOfPropertiesId;
     IterationIOPointerType mpIterationIO;
+    std::ofstream mResults_writer;
 
     ///@}
     ///@name Private Operators
@@ -325,17 +331,21 @@ class NewtonRaphsonWithHydrostaticLoadStrategy
 
         if (mPrintIterations)
         {
+            unsigned int node_number = 19;
             KRATOS_ERROR_IF_NOT(mpIterationIO) << " IterationIO is uninitialized!" << std::endl;
             mpIterationIO->WriteNodalResults(DISPLACEMENT, BaseType::GetModelPart().Nodes(), IterationNumber, 0);
             mpIterationIO->WriteNodalResults(DISTANCE, BaseType::GetModelPart().Nodes(), IterationNumber, 0);
             mpIterationIO->WriteNodalResults(NORMAL, BaseType::GetModelPart().Nodes(), IterationNumber, 0);
+            mResults_writer.open("displacement_vs_iteration_hydrostatic.csv", std::ofstream::out | std::ofstream::app);
+            mResults_writer << IterationNumber << "," << BaseType::GetModelPart().GetNode(node_number).FastGetSolutionStepValue(DISPLACEMENT_Z, 0) << "\n";
+            mResults_writer.close();
         }
     }
 
     void InitializeIterationIO()
     {
         mpIterationIO = Kratos::make_unique<IterationIOType>(
-            "Non-linear_Iterations",
+            "Non-linear_Iterations_hydrostatic",
             GiD_PostAscii, // GiD_PostAscii // for debugging GiD_PostBinary
             MultiFileFlag::SingleFile,
             WriteDeformedMeshFlag::WriteUndeformed,
