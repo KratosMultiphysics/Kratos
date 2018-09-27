@@ -30,6 +30,8 @@
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
 
+// Adjoint postprocessing
+#include "custom_response_functions/response_utilities/adjoint_postprocess.h"
 
 namespace Kratos
 {
@@ -90,6 +92,14 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
       (m, "AdjointLinearStrainEnergyResponseFunction")
       .def(init<ModelPart&, Parameters>());
 
+    // Adjoint postprocess
+    class_<AdjointPostprocess, AdjointPostprocess::Pointer>
+      (m, "AdjointPostprocess")
+      .def(init<ModelPart&, AdjointStructuralResponseFunction&, Parameters>())
+      .def("Initialize", &AdjointPostprocess::Initialize)
+      .def("InitializeSolutionStep", &AdjointPostprocess::InitializeSolutionStep)
+      .def("FinalizeSolutionStep", &AdjointPostprocess::FinalizeSolutionStep)
+      .def("UpdateSensitivities", &AdjointPostprocess::UpdateSensitivities);
 }
 
 }  // namespace Python.

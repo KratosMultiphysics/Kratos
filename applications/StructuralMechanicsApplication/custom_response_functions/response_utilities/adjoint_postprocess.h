@@ -9,8 +9,8 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#ifndef ADJOINT_STRUCTURAL_RESPONSE_FUNCTION_H
-#define ADJOINT_STRUCTURAL_RESPONSE_FUNCTION_H
+#ifndef ADJOINT_POSTPROCESS_H
+#define ADJOINT_POSTPROCESS_H
 
 // System includes
 
@@ -20,6 +20,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "structural_mechanics_application_variables.h"
+#include "adjoint_structural_response_function.h"
 
 
 namespace Kratos
@@ -30,18 +31,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief AdjointStructuralResponseFunction
+/** \brief AdjointPostprocess
 *
-* This is the response base class for responses in structural mechanics.
+* This class is responsible to perform the post-processing step in which the
+* sensitvities are computed.
 * It is designed to be used in adjoint sensitivity analysis.
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointStructuralResponseFunction
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointPostprocess
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointStructuralResponseFunction);
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointPostprocess);
 
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
 
@@ -65,10 +67,10 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
+    AdjointPostprocess(ModelPart& rModelPart, AdjointStructuralResponseFunction& rResponseFunction, Parameters ResponseSettings);
 
     /// Destructor.
-    virtual ~AdjointStructuralResponseFunction();
+    virtual ~AdjointPostprocess();
 
     ///@}
     ///@name Operators
@@ -92,63 +94,7 @@ public:
 
     virtual void Clear();
 
-    virtual void CalculateGradient(const Element& rAdjointElem,
-                                   const Matrix& rAdjointMatrix,
-                                   Vector& rResponseGradient,
-                                   ProcessInfo& rProcessInfo);
-
-    virtual void CalculateGradient(const Condition& rAdjointCondition,
-                                   const Matrix& rAdjointMatrix,
-                                   Vector& rResponseGradient,
-                                   ProcessInfo& rProcessInfo);
-
-    virtual void CalculateFirstDerivativesGradient(const Element& rAdjointElem,
-                                                   const Matrix& rAdjointMatrix,
-                                                   Vector& rResponseGradient,
-                                                   ProcessInfo& rProcessInfo);
-
-    virtual void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
-                                                   const Matrix& rAdjointMatrix,
-                                                   Vector& rResponseGradient,
-                                                   ProcessInfo& rProcessInfo);
-
-    virtual void CalculateSecondDerivativesGradient(const Element& rAdjointElem,
-                                                    const Matrix& rAdjointMatrix,
-                                                    Vector& rResponseGradient,
-                                                    ProcessInfo& rProcessInfo);
-
-    virtual void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
-                                                    const Matrix& rAdjointMatrix,
-                                                    Vector& rResponseGradient,
-                                                    ProcessInfo& rProcessInfo);
-
     virtual void UpdateSensitivities();
-
-    virtual double CalculateValue(ModelPart& rModelPart);
-
-    virtual void CalculateSensitivityGradient(Element& rAdjointElem,
-                                              const Variable<double>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo);
-
-    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                              const Variable<double>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo);
-
-    virtual void CalculateSensitivityGradient(Element& rAdjointElem,
-                                              const Variable<array_1d<double,3>>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo);
-
-    virtual void CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                              const Variable<array_1d<double,3>>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo);
 
     ///@}
 
@@ -157,6 +103,7 @@ protected:
     ///@{
 
     ModelPart& mrModelPart;
+    AdjointStructuralResponseFunction& mrResponseFunction;
 
     ///@}
     ///@name Protected Operators
@@ -171,6 +118,7 @@ protected:
     void UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
     template <typename TDataType>
     void UpdateConditionSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable);
+
 
     void AssembleNodalSensitivityContribution(Variable<double> const& rSensitivityVariable,
                                               Vector const& rSensitivityVector,
@@ -205,8 +153,6 @@ private:
     ///@{
 
     std::string mSensitivityModelPartName;
-    unsigned int mGradientMode;
-    double mDelta;
 
     std::vector<std::vector<Variable<double>>> mNodalSensitivityScalarVariables;
     std::vector<std::vector<Variable<double>>> mElementSensitivityScalarVariables;
@@ -232,4 +178,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_STRUCTURAL_RESPONSE_FUNCTION defined */
+#endif /* KRATOS_ADJOINT_POSTPROCESS defined */

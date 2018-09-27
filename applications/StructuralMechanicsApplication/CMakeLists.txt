@@ -29,6 +29,9 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/stress_response_definitions.cpp
 
+  ## RESPONSE UTILITIES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/adjoint_postprocess.cpp
+
   ## DIFFERENTIATION_UTILITY
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/differentiation_utility.cpp
 
