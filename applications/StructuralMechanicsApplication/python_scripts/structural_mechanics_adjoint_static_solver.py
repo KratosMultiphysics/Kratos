@@ -99,7 +99,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         else:
             super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
         #after adjoint solution, calculate sensitivities
-        self.response_function.UpdateSensitivities()
+        #self.response_function.UpdateSensitivities()
 
     def _SolveSolutionStepSpecialLinearStrainEnergy(self):
         for node in self.main_model_part.Nodes:
