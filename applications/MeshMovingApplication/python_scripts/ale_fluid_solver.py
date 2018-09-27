@@ -186,4 +186,4 @@ class ALEFluidSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().CopyVectorVar(
                 KratosMultiphysics.MESH_VELOCITY,
                 KratosMultiphysics.VELOCITY,
-                mp.Nodes)
+                mp.GetCommunicator().LocalMesh().Nodes)
