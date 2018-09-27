@@ -16,6 +16,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -102,7 +103,7 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
     MathUtils<double>::InvertMatrix( C_tensor, inverse_C_tensor, aux_det);
 
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        CalculateCauchyGreenStrain(rValues, strain_vector);
+        this->CalculateGreenLagrangianStrain(rValues, strain_vector);
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
@@ -169,7 +170,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseCauchy (Constit
 
     Vector& stress_vector       = rValues.GetStressVector();
     Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-    const double determinant_f = rValues.GetDeterminantF();
+    const double determinant_f  = rValues.GetDeterminantF();
 
     // Set to Cauchy Stress:
     stress_vector       /= determinant_f;
@@ -269,6 +270,8 @@ Vector& HyperElasticIsotropicNeoHookean3D::CalculateValue(
 {
     if (rThisVariable == STRAIN ||
         rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
+        rThisVariable == HENCKY_STRAIN_VECTOR ||
+        rThisVariable == BIOT_STRAIN_VECTOR ||
         rThisVariable == ALMANSI_STRAIN_VECTOR) {
 
         // Get Values to compute the constitutive law:
@@ -290,6 +293,16 @@ Vector& HyperElasticIsotropicNeoHookean3D::CalculateValue(
             this->CalculateMaterialResponsePK2(rParameterValues);
         } else if (rThisVariable == ALMANSI_STRAIN_VECTOR) {
             this->CalculateMaterialResponseKirchhoff(rParameterValues);
+        } else if (rThisVariable == HENCKY_STRAIN_VECTOR) {
+            const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
+            const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
+            Vector& r_strain_vector = rParameterValues.GetStrainVector();
+            ConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(C_tensor, r_strain_vector);
+        } else if (rThisVariable == BIOT_STRAIN_VECTOR) {
+            const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
+            const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
+            Vector& r_strain_vector = rParameterValues.GetStrainVector();
+            ConstitutiveLawUtilities<VoigtSize>::CalculateBiotStrain(C_tensor, r_strain_vector);
         }
 
         rValue = rParameterValues.GetStrainVector();
@@ -523,23 +536,17 @@ void HyperElasticIsotropicNeoHookean3D::CalculateKirchhoffStress(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicNeoHookean3D::CalculateCauchyGreenStrain(
+void HyperElasticIsotropicNeoHookean3D::CalculateGreenLagrangianStrain(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
     )
 {
-    //1.-Compute total deformation gradient
+    // 1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
 
-    // e = 0.5*(inv(C) - I)
-    Matrix C_tensor = prod(trans(F),F);
-
-    rStrainVector[0] = 0.5 * ( C_tensor( 0, 0 ) - 1.00 );
-    rStrainVector[1] = 0.5 * ( C_tensor( 1, 1 ) - 1.00 );
-    rStrainVector[2] = 0.5 * ( C_tensor( 2, 2 ) - 1.00 );
-    rStrainVector[3] = C_tensor( 0, 1 ); // xy
-    rStrainVector[4] = C_tensor( 1, 2 ); // yz
-    rStrainVector[5] = C_tensor( 0, 2 ); // xz
+    // 2.-Compute e = 0.5*(inv(C) - I)
+    const Matrix C_tensor = prod(trans(F),F);
+    ConstitutiveLawUtilities<VoigtSize>::CalculateGreenLagrangianStrain(C_tensor, rStrainVector);
 }
 
 /***********************************************************************************/
@@ -550,23 +557,12 @@ void HyperElasticIsotropicNeoHookean3D::CalculateAlmansiStrain(
     Vector& rStrainVector
     )
 {
-    //1.-Compute total deformation gradient
+    // 1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
 
-    // e = 0.5*(1-inv(B))
-    Matrix B_tensor = prod(F,trans(F));
-
-    //Calculating the inverse of the jacobian
-    Matrix inverse_B_tensor ( 3, 3 );
-    double aux_det_b = 0;
-    MathUtils<double>::InvertMatrix( B_tensor, inverse_B_tensor, aux_det_b);
-
-    rStrainVector[0] = 0.5 * ( 1.00 - inverse_B_tensor( 0, 0 ) );
-    rStrainVector[1] = 0.5 * ( 1.00 - inverse_B_tensor( 1, 1 ) );
-    rStrainVector[2] = 0.5 * ( 1.00 - inverse_B_tensor( 2, 2 ) );
-    rStrainVector[3] = - inverse_B_tensor( 0, 1 ); // xy
-    rStrainVector[4] = - inverse_B_tensor( 1, 2 ); // yz
-    rStrainVector[5] = - inverse_B_tensor( 0, 2 ); // xz
+    // 2.-COmpute e = 0.5*(1-inv(B))
+    const Matrix B_tensor = prod(F,trans(F));
+    ConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rStrainVector);
 }
 
 } // Namespace Kratos

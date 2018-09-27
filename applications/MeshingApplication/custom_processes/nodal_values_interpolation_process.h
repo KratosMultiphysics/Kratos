@@ -29,6 +29,7 @@
 
 /* Utilities */
 #include "utilities/binbased_fast_point_locator.h"
+#include "utilities/openmp_utils.h"
 
 /* Tree structures */
 // #include "spatial_containers/bounding_volume_tree.h" // k-DOP

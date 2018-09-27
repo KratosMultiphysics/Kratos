@@ -427,17 +427,14 @@ void MmgProcess<TDim>::InitializeMeshData()
 
     /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
     // First we add the main model part
-    bool to_check_cond = false, to_check_elem = false;
     if (conditions_array.size() > 0) {
         const std::string type_name = (TDim == 2) ? "Condition2D2N" : "Condition3D";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
         mpRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), conditions_array.begin()->pGetProperties());
 //         mpRefCondition[0] = conditions_array.begin()->Create(0, conditions_array.begin()->GetGeometry(), conditions_array.begin()->pGetProperties());
-        to_check_cond = true;
     }
     if (elements_array.size() > 0) {
         mpRefElement[0] = elements_array.begin()->Create(0, elements_array.begin()->GetGeometry(), elements_array.begin()->pGetProperties());
-        to_check_elem = true;
     }
 
     // Now we add the reference elements and conditions
