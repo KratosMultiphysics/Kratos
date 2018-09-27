@@ -34,6 +34,7 @@
 // Include the spatial containers needed for search
 #include "spatial_containers/spatial_containers.h" // kd-tree
 #include "includes/io.h"
+#include "includes/gid_io.h"
 #include "includes/model_part_io.h"
 
 
@@ -109,7 +110,15 @@ MmgProcess<TDim>::MmgProcess(
         "save_external_files"                  : false,
         "save_mdpa_file"                       : false,
         "max_number_of_searchs"                : 1000,
+        "interpolate_non_historical"           : true,
+        "extrapolate_contour_values"           : true,
+        "search_parameters"                    : {
+            "allocation_size"                     : 1000,
+            "bucket_size"                         : 4,
+            "search_factor"                       : 2.0
+        },
         "echo_level"                           : 3,
+        "debug_result_mesh"                    : false,
         "step_data_size"                       : 0,
         "remesh_at_non_linear_iteration"       : false,
         "buffer_size"                          : 0
@@ -418,17 +427,14 @@ void MmgProcess<TDim>::InitializeMeshData()
 
     /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
     // First we add the main model part
-    bool to_check_cond = false, to_check_elem = false;
     if (conditions_array.size() > 0) {
         const std::string type_name = (TDim == 2) ? "Condition2D2N" : "Condition3D";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
         mpRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), conditions_array.begin()->pGetProperties());
 //         mpRefCondition[0] = conditions_array.begin()->Create(0, conditions_array.begin()->GetGeometry(), conditions_array.begin()->pGetProperties());
-        to_check_cond = true;
     }
     if (elements_array.size() > 0) {
         mpRefElement[0] = elements_array.begin()->Create(0, elements_array.begin()->GetGeometry(), elements_array.begin()->pGetProperties());
-        to_check_elem = true;
     }
 
     // Now we add the reference elements and conditions
@@ -747,13 +753,21 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         }
     }
 
+    // We create an auxiliar mesh for debugging purposes
+    if (mThisParameters["debug_result_mesh"].GetBool()) {
+        CreateDebugPrePostRemeshOutput(r_old_model_part);
+    }
+
     /* We interpolate all the values */
-    Parameters InterpolateParameters = Parameters(R"({"echo_level": 1, "framework": "Eulerian", "max_number_of_searchs": 1000, "step_data_size": 0, "buffer_size": 0})" );
-    InterpolateParameters["echo_level"].SetInt(mThisParameters["echo_level"].GetInt());
-    InterpolateParameters["framework"].SetString(mThisParameters["framework"].GetString());
-    InterpolateParameters["max_number_of_searchs"].SetInt(mThisParameters["max_number_of_searchs"].GetInt());
-    InterpolateParameters["step_data_size"].SetInt(mThisParameters["step_data_size"].GetInt());
-    InterpolateParameters["buffer_size"].SetInt(mThisParameters["buffer_size"].GetInt());
+    Parameters InterpolateParameters = Parameters(R"({})" );
+    InterpolateParameters.AddValue("echo_level", mThisParameters["echo_level"]);
+    InterpolateParameters.AddValue("framework", mThisParameters["framework"]);
+    InterpolateParameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
+    InterpolateParameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
+    InterpolateParameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
+    InterpolateParameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
+    InterpolateParameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
+    InterpolateParameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
     NodalValuesInterpolationProcess<TDim> InterpolateNodalValues = NodalValuesInterpolationProcess<TDim>(r_old_model_part, mrThisModelPart, InterpolateParameters);
     InterpolateNodalValues.Execute();
 
@@ -2197,6 +2211,69 @@ void MmgProcess<TDim>::AssignAndClearAuxiliarSubModelPartForFlags()
     }
 
     mrThisModelPart.RemoveSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+void MmgProcess<TDim>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
+{
+    ModelPart auxiliar_model_part("auxiliar_thing");
+
+    Properties::Pointer p_prop_1 = auxiliar_model_part.pGetProperties(1);
+    Properties::Pointer p_prop_2 = auxiliar_model_part.pGetProperties(2);
+
+    // We just transfer nodes and elements
+    // Current model part
+    FastTransferBetweenModelPartsProcess transfer_process_current = FastTransferBetweenModelPartsProcess(auxiliar_model_part, mrThisModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
+    transfer_process_current.Set(MODIFIED); // We replicate, not transfer
+    transfer_process_current.Execute();
+
+    ElementsArrayType& elements_array_1 = auxiliar_model_part.Elements();
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(elements_array_1.size()); ++i) {
+        auto it_elem = elements_array_1.begin() + i;
+        it_elem->SetProperties(p_prop_1);
+    }
+    // Old model part
+    ModelPart copy_old_model_part("old_model_part_copy");
+    FastTransferBetweenModelPartsProcess transfer_process_old = FastTransferBetweenModelPartsProcess(copy_old_model_part, rOldModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
+    transfer_process_current.Set(MODIFIED); // We replicate, not transfer
+    transfer_process_old.Execute();
+
+    ElementsArrayType& elements_array_2 = copy_old_model_part.Elements();
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(elements_array_2.size()); ++i) {
+        auto it_elem = elements_array_2.begin() + i;
+        it_elem->SetProperties(p_prop_2);
+    }
+
+    // Reorder ids to ensure be consecuent
+    NodesArrayType& auxiliar_nodes_array = auxiliar_model_part.Nodes();
+    const SizeType auxiliar_number_of_nodes = (auxiliar_nodes_array.end() - 1)->Id();
+    NodesArrayType& copy_old_nodes_array = copy_old_model_part.Nodes();
+
+    for(IndexType i = 0; i < copy_old_nodes_array.size(); ++i) {
+        auto it_node = copy_old_nodes_array.begin() + i;
+        it_node->SetId(auxiliar_number_of_nodes + i + 1);
+    }
+
+    // Last transfer
+    FastTransferBetweenModelPartsProcess transfer_process_last = FastTransferBetweenModelPartsProcess(auxiliar_model_part, copy_old_model_part, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
+    transfer_process_last.Set(MODIFIED);
+    transfer_process_last.Execute();
+
+    const int step = mrThisModelPart.GetProcessInfo()[STEP];
+    const double label = static_cast<double>(step);
+    GidIO<> gid_io("BEFORE_AND_AFTER_MMG_MESH_STEP=" + std::to_string(step), GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+
+    gid_io.InitializeMesh(label);
+    gid_io.WriteMesh(auxiliar_model_part.GetMesh());
+    gid_io.FinalizeMesh();
+    gid_io.InitializeResults(label, auxiliar_model_part.GetMesh());
 }
 
 /***********************************************************************************/

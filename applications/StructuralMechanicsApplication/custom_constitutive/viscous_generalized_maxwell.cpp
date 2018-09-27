@@ -157,10 +157,13 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::ComputeViscoElasticity(Con
 
         noalias(integrated_stress_vector) = previous_stress * std::exp(-time_step / delay_time) + prod(constitutive_matrix, auxiliar_strain);
         
+        this->SetNonConvPreviousStressVector(integrated_stress_vector);
+        this->SetNonConvPreviousStrainVector(r_strain_vector);
+        
         if (r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             rValues.SetConstitutiveMatrix(constitutive_matrix);
-            this->SetNonConvPreviousStressVector(integrated_stress_vector);
-            this->SetNonConvPreviousStrainVector(r_strain_vector);
+            // this->SetNonConvPreviousStressVector(integrated_stress_vector);
+            // this->SetNonConvPreviousStrainVector(r_strain_vector);
         }
     } else {
         // Elastic Matrix
