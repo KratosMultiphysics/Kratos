@@ -13,6 +13,8 @@ cmake .. -G "Visual Studio 15 2017 Win64"                                       
 -DMESH_MOVING_APPLICATION=ON                                                    ^
 -DSOLID_MECHANICS_APPLICATION=ON                                                ^
 -DCONSTITUTIVE_MODELS_APPLICATION=ON                                            ^
+-DADD_DEPENDENT_APPLICATIONS=ON                                                 ^
+-DADD_PFEM_APPLICATION=ON                                                       ^
 -DMETIS_APPLICATION=OFF                                                         ^
 -DPARMETIS_ROOT_DIR="UNSET"                                                     ^
 -DTRILINOS_APPLICATION=OFF                                                      ^
