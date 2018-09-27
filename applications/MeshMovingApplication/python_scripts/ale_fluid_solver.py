@@ -73,15 +73,14 @@ class ALEFluidSolver(PythonSolver):
 
         self.is_printing_rank = self.fluid_solver._IsPrintingRank()
 
-        # TODO move to "Check"?
+        # TODO once the different computations of the Mehs-Vel are implemented,
+        # check if the time schemes are consistent (in fluid and for the computation
+        # of the MESH_VELOCITY)
+        # Then also the computation of the mesh-vel will be in a utility
         if (self.mesh_motion_solver.settings["calculate_mesh_velocities"].GetBool() == False
             and self.is_printing_rank):
             info_msg = "Mesh velocities are not being computed in the Mesh solver!"
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
-
-        # TODO once the different computations of the Mehs-Vel are implemented,
-        # check if the time schemes are consistent (in fluid and for the computation
-        # of the MESH_VELOCITY)
 
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", "Construction finished")
