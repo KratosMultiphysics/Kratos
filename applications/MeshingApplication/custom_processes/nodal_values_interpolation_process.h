@@ -202,7 +202,7 @@ private:
  * @author Vicente Mataix Ferrandiz
  */
 template<SizeType TDim>
-class KRATOS_API(KRATOS_MESHING_APPLICATION) NodalValuesInterpolationProcess
+class NodalValuesInterpolationProcess
     : public Process
 {
 public:
