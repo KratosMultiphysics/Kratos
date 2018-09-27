@@ -108,8 +108,7 @@ public:
 
         const auto& mapper_list = GetRegisteredMappersList<TSparseSpace, TDenseSpace>();
 
-        if (mapper_list.find(mapper_name) != mapper_list.end())
-        {
+        if (mapper_list.find(mapper_name) != mapper_list.end()) {
             // Removing Parameters that are not needed by the Mapper
             MapperSettings.RemoveValue("mapper_type");
             MapperSettings.RemoveValue("interface_submodel_part_origin");
@@ -120,8 +119,7 @@ public:
                                                       r_interface_model_part_destination,
                                                       MapperSettings);
         }
-        else
-        {
+        else {
             std::stringstream err_msg;
             err_msg << "The requested Mapper \"" << mapper_name <<"\" is not not available!\n"
                     << "The following Mappers are available:" << std::endl;

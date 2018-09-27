@@ -133,8 +133,7 @@ public:
     void EquationIdVectors(EquationIdVectorType& rOriginIds,
                            EquationIdVectorType& rDestinationIds)
     {
-        if (!mIsComputed)
-        {
+        if (!mIsComputed) {
             CalculateAll(mMappingWeights, mOriginIds, mDestinationIds, mPairingStatus);
             mIsComputed = true;
         }
@@ -147,16 +146,14 @@ public:
                               EquationIdVectorType& rOriginIds,
                               EquationIdVectorType& rDestinationIds) // TODO should be const if it werent for the PairingStatus
     {
-        if (mIsComputed)
-        {
+        if (mIsComputed) {
             // This will be called if the EquationIdVectors have been querried before
             // i.e. matrix-based mapping
             rMappingWeights = mMappingWeights;
             rOriginIds      = mOriginIds;
             rDestinationIds = mDestinationIds;
         }
-        else
-        {
+        else {
             // This will be called if the EquationIdVectors have NOT been querried before
             // i.e. matrix-free mapping
             CalculateAll(rMappingWeights, rOriginIds, rDestinationIds, mPairingStatus);

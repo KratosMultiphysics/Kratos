@@ -92,8 +92,7 @@ public:
         : mSourceLocalSystemIndex(SourceLocalSystemIndex),
           mCoordinates(rCoordinates),
           mSourceRank(SourceRank)
-    {
-    }
+    {}
 
     /// Destructor.
     virtual ~MapperInterfaceInfo() {}

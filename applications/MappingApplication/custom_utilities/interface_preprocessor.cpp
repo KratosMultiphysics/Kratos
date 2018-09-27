@@ -26,23 +26,18 @@ namespace Kratos
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
-    InterfacePreprocessor::InterfacePreprocessor(ModelPart& rModelPartDestination,
-                                                 MapperLocalSystemPointerVectorPointer pMapperLocalSystems)
-        : mrModelPartDestination(rModelPartDestination),
-          mpMapperLocalSystems(pMapperLocalSystems)
-    {
-    }
-
     void InterfacePreprocessor::CreateMapperLocalSystems(const MapperLocalSystemPointer& rpLocalSystem)
     {
         mpMapperLocalSystems->clear();
 
         const bool use_nodes = rpLocalSystem->UseNodesAsBasis();
 
-        if (use_nodes)
+        if (use_nodes) {
             CreateMapperLocalSystemsFromNodes(rpLocalSystem);
-        else
+        }
+        else {
             CreateMapperLocalSystemsFromGeometries(rpLocalSystem);
+        }
 
         int num_local_systems = mpMapperLocalSystems->size(); // int bcs of MPI
         mrModelPartDestination.GetCommunicator().SumAll(num_local_systems);
@@ -65,12 +60,12 @@ namespace Kratos
         const std::size_t num_nodes = mrModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes();
         const auto nodes_ptr_begin = mrModelPartDestination.GetCommunicator().LocalMesh().Nodes().ptr_begin();
 
-        if (mpMapperLocalSystems->size() != num_nodes)
+        if (mpMapperLocalSystems->size() != num_nodes) {
             mpMapperLocalSystems->resize(num_nodes);
+        }
 
         #pragma omp parallel for
-        for (int i = 0; i< static_cast<int>(num_nodes); ++i)
-        {
+        for (int i = 0; i< static_cast<int>(num_nodes); ++i) {
             auto it_node = nodes_ptr_begin + i;
             (*mpMapperLocalSystems)[i] = rpLocalSystem->Create(*(it_node));
         }

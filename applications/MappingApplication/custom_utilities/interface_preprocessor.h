@@ -72,9 +72,12 @@ class InterfacePreprocessor
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
     InterfacePreprocessor(ModelPart& rModelPartDestination,
-                          MapperLocalSystemPointerVectorPointer pMapperLocalSystems);
+                          MapperLocalSystemPointerVectorPointer pMapperLocalSystems)
+        : mrModelPartDestination(rModelPartDestination),
+          mpMapperLocalSystems(pMapperLocalSystems)
+    {
+    }
 
     /// Destructor.
     virtual ~InterfacePreprocessor() {}

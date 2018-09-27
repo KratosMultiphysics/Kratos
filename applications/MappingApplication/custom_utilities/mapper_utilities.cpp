@@ -42,8 +42,7 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
     const auto nodes_begin = rModelPartCommunicator.LocalMesh().NodesBegin();
 
     #pragma omp parallel for
-    for (int i=0; i<num_nodes_local; ++i)
-    {
+    for (int i=0; i<num_nodes_local; ++i) {
         // TODO this should be working in omp, not usre though (could allocate data in parallel...)
         ( nodes_begin + i )->SetValue(INTERFACE_EQUATION_ID, start_equation_id + i);
     }
@@ -59,12 +58,13 @@ double ComputeSearchRadius(ModelPart& rModelPart, int EchoLevel)
     int num_conditions_global = ComputeNumberOfConditions(rModelPart);
     int num_elements_global = ComputeNumberOfElements(rModelPart);
 
-    if (num_conditions_global > 0)
+    if (num_conditions_global > 0) {
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Conditions());
-    else if (num_elements_global > 0)
+    }
+    else if (num_elements_global > 0) {
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Elements());
-    else
-    {
+    }
+    else {
         if (EchoLevel >= 2 && rModelPart.GetCommunicator().MyPID() == 0)
             std::cout << "MAPPER WARNING, no conditions/elements for search radius "
                         << "computations in ModelPart \"" << rModelPart.Name() << "\" found, "
@@ -138,8 +138,7 @@ std::vector<double> ComputeLocalBoundingBox(ModelPart& rModelPart)
     // xmax, xmin,  ymax, ymin,  zmax, zmin
 
     // loop over all nodes (local and ghost(necessary if conditions have only ghost nodes) )
-    for (auto &r_node : rModelPart.Nodes())
-    {
+    for (auto &r_node : rModelPart.Nodes()) {
         local_bounding_box[0] = std::max(r_node.X(), local_bounding_box[0]);
         local_bounding_box[1] = std::min(r_node.X(), local_bounding_box[1]);
         local_bounding_box[2] = std::max(r_node.Y(), local_bounding_box[2]);
@@ -159,15 +158,18 @@ void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes
     KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(size_vec, 6) == 0)
         << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
 
-    if (rBoundingBoxesWithTolerance.size() != size_vec)
+    if (rBoundingBoxesWithTolerance.size() != size_vec) {
         rBoundingBoxesWithTolerance.resize(size_vec);
+    }
 
     // Apply Tolerances
-    for (IndexType i=0; i<size_vec; i+=2)
+    for (IndexType i=0; i<size_vec; i+=2) {
         rBoundingBoxesWithTolerance[i] = rBoundingBoxes[i] + Tolerance;
+    }
 
-    for (IndexType i=1; i<size_vec; i+=2)
+    for (IndexType i=1; i<size_vec; i+=2) {
         rBoundingBoxesWithTolerance[i] = rBoundingBoxes[i] - Tolerance;
+    }
 }
 
 std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox)
@@ -206,25 +208,22 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVectorPointer& rp
         << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
 
     // #pragma omp parallel for => "bounding_box" has to be threadprivate!
-    for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
-    {
+    for (IndexType i_rank=0; i_rank<comm_size; ++i_rank) {
         auto& r_rank_buffer = rSendBuffer[i_rank];
         r_rank_buffer.clear();
         r_rank_buffer.reserve(BufferSizeEstimate);
         rSendSizes[i_rank] = 0;
 
-        for (IndexType i_local_sys=0; i_local_sys<rpMapperLocalSystems->size(); ++i_local_sys)
-        {
-            for (IndexType j=0; j<6; ++j)
+        for (IndexType i_local_sys=0; i_local_sys<rpMapperLocalSystems->size(); ++i_local_sys) {
+            for (IndexType j=0; j<6; ++j) {
                 bounding_box[j] = rBoundingBoxes[(i_rank*6) + j]; // retrieve bounding box of partition
+            }
 
             const auto& rp_local_sys = (*rpMapperLocalSystems)[i_local_sys];
 
-            if (!rp_local_sys->HasInterfaceInfo())
-            {
+            if (!rp_local_sys->HasInterfaceInfo()) {
                 const auto& r_coords = rp_local_sys->Coordinates();
-                if (MapperUtilities::PointIsInsideBoundingBox(bounding_box, r_coords))
-                {
+                if (MapperUtilities::PointIsInsideBoundingBox(bounding_box, r_coords)) {
                     // These push_backs are threadsafe bcs only one vector is accessed per thread!
                     r_rank_buffer.push_back(static_cast<double>(i_local_sys)); // this it the "mSourceLocalSystemIndex" of the MapperInterfaceInfo
                     r_rank_buffer.push_back(r_coords[0]);
@@ -250,8 +249,7 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
 
     array_1d<double, 3> coords;
     // Loop the ranks and construct the MapperInterfaceInfos
-    for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
-    {
+    for (IndexType i_rank=0; i_rank<comm_size; ++i_rank) {
         const SizeType recv_buffer_size_rank = rRecvBuffer[i_rank].size();
         KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(recv_buffer_size_rank, 4) == 0) << "Rank " << CommRank
             << " received a wrong buffer-size from rank " << i_rank+1 << "!" << std::endl;
@@ -261,11 +259,11 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
         auto& r_interface_infos_rank = (*rpMapperInterfaceInfosContainer)[i_rank];
         r_interface_infos_rank.clear();
 
-        if (r_interface_infos_rank.size() != num_objs)
+        if (r_interface_infos_rank.size() != num_objs) {
             r_interface_infos_rank.resize(num_objs);
+        }
 
-        for (IndexType j=0; j<num_objs; ++j)
-        {
+        for (IndexType j=0; j<num_objs; ++j) {
 #ifdef KRATOS_DEBUG
             // with this check we make sure that this field
             // only contains doubles converted from ints
@@ -300,10 +298,8 @@ void FillBufferAfterLocalSearch(const MapperInterfaceInfoPointerVectorPointerTyp
     KRATOS_DEBUG_ERROR_IF_NOT(rSendSizes.size() == comm_size)
         << "Buffer-size mismatch!" << std::endl;
 
-    for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
-    {
-        if (i_rank != static_cast<IndexType>(CommRank))
-        {
+    for (IndexType i_rank=0; i_rank<comm_size; ++i_rank) {
+        if (i_rank != static_cast<IndexType>(CommRank)) {
             MapperUtilities::MapperInterfaceInfoSerializer interface_infos_serializer(
                 (*rpMapperInterfaceInfosContainer)[i_rank], rpRefInterfaceInfo );
 
@@ -320,8 +316,9 @@ void FillBufferAfterLocalSearch(const MapperInterfaceInfoPointerVectorPointerTyp
             auto& r_rank_buffer = rSendBuffer[i_rank];
             r_rank_buffer.clear();
 
-            if (r_rank_buffer.size() != send_size)
+            if (r_rank_buffer.size() != send_size) {
                 r_rank_buffer.resize(send_size);
+            }
 
             std::memcpy(r_rank_buffer.data(), stream_str.c_str(), send_size);
         }
@@ -339,10 +336,8 @@ void DeserializeMapperInterfaceInfosFromBuffer(
     KRATOS_DEBUG_ERROR_IF_NOT(rRecvBuffer.size() == comm_size)
         << "Buffer-size mismatch!" << std::endl;
 
-    for (IndexType i_rank=0; i_rank<comm_size; ++i_rank)
-    {
-        if (i_rank != static_cast<IndexType>(CommRank))
-        {
+    for (IndexType i_rank=0; i_rank<comm_size; ++i_rank) {
+        if (i_rank != static_cast<IndexType>(CommRank)) {
             Kratos::Serializer serializer;
 
             const auto p_serializer_buffer = dynamic_cast<std::stringstream*>(serializer.pGetBuffer());
@@ -361,8 +356,9 @@ void MapperInterfaceInfoSerializer::save(Kratos::Serializer& rSerializer) const
     const SizeType num_infos = mrInterfaceInfos.size();
     rSerializer.save("size", num_infos);
 
-    for (IndexType i=0; i<num_infos; ++i)
+    for (IndexType i=0; i<num_infos; ++i) {
         rSerializer.save("E", *(mrInterfaceInfos[i])); // NOT serializing the shared_ptr!
+    }
 }
 
 void MapperInterfaceInfoSerializer::load(Kratos::Serializer& rSerializer)
@@ -372,11 +368,11 @@ void MapperInterfaceInfoSerializer::load(Kratos::Serializer& rSerializer)
     SizeType num_infos;
     rSerializer.load("size", num_infos);
 
-    if (mrInterfaceInfos.size() != num_infos)
+    if (mrInterfaceInfos.size() != num_infos) {
         mrInterfaceInfos.resize(num_infos);
+    }
 
-    for (IndexType i=0; i<num_infos; ++i)
-    {
+    for (IndexType i=0; i<num_infos; ++i) {
         // first we create a new object, then we load its data
         // this is needed bcs of the polymorphic behavior of the InterfaceInfos
         // i.e. in order to create the correct type

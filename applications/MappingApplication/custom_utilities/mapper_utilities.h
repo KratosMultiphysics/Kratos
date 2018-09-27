@@ -164,12 +164,9 @@ inline double ComputeMaxEdgeLengthLocal(const T& rEntityContainer)
 {
     double max_element_size = 0.0f;
     // Loop through each edge of a geometrical entity ONCE
-    for (auto& r_entity : rEntityContainer)
-    {
-        for (std::size_t i = 0; i < (r_entity.GetGeometry().size() - 1); ++i)
-        {
-            for (std::size_t j = i + 1; j < r_entity.GetGeometry().size(); ++j)
-            {
+    for (auto& r_entity : rEntityContainer) {
+        for (std::size_t i = 0; i < (r_entity.GetGeometry().size() - 1); ++i) {
+            for (std::size_t j = i + 1; j < r_entity.GetGeometry().size(); ++j) {
                 double edge_length = ComputeDistance(r_entity.GetGeometry()[i].Coordinates(),
                                                         r_entity.GetGeometry()[j].Coordinates());
                 max_element_size = std::max(max_element_size, edge_length);
@@ -183,10 +180,8 @@ inline double ComputeMaxEdgeLengthLocal(const ModelPart::NodesContainerType& rNo
 {
     double max_element_size = 0.0f;
     // TODO modify loop such that it loop only once over the nodes
-    for (auto& r_node_1 : rNodes)
-    {
-        for (auto& r_node_2 : rNodes)
-        {
+    for (auto& r_node_1 : rNodes) {
+        for (auto& r_node_2 : rNodes) {
             double edge_length = ComputeDistance(r_node_1.Coordinates(),
                                                     r_node_2.Coordinates());
             max_element_size = std::max(max_element_size, edge_length);
