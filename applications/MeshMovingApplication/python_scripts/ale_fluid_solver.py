@@ -34,7 +34,7 @@ class ALEFluidSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintWarning("::[ALEFluidSolver]::", warn_msg)
         else:
             solver_settings.AddEmptyValue("compute_reactions").SetBool(True)
-            info_msg = 'Setting "compute_reactions" to true for the fluid-solver, '
+            info_msg = 'Setting "compute_reactions" to true for the fluid-solver'
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", info_msg)
 
         ## Creating the fluid solver
