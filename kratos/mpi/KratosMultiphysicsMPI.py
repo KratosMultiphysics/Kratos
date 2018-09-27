@@ -1,8 +1,8 @@
 from KratosMPI import *
 import sys
-import atexit
+#import atexit
 
 Hello()
-MPIInitialize()
+#MPIInitialize()
 
-atexit.register(MPIFinalize)
+#atexit.register(MPIFinalize)

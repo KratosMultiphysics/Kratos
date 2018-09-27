@@ -37,11 +37,20 @@ PYBIND11_MODULE(KratosMPI, m)
 {
     namespace py = pybind11;
 
+    // Initialize MPI when loading this module
+    MPIEnvironment::Initialize();
+
+    // Define a callback to finalize MPI on module cleanup
+    auto cleanup_callback = []() {
+        MPIEnvironment::Finalize();
+    };
+
+    m.add_object("_cleanup", py::capsule(cleanup_callback));
+
     m.def("Hello",module_greet);
 
-    m.def("MPIInitialize",MPIEnvironment::Initialize);
-
-    m.def("MPIFinalize",MPIEnvironment::Finalize);
+    //m.def("MPIInitialize",MPIEnvironment::Initialize);
+    //m.def("MPIFinalize",MPIEnvironment::Finalize);
 
     AddMPICommunicatorToPython(m);
     AddMPIUtilitiesToPython(m);
