@@ -88,7 +88,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<SizeType TDim>
-class KRATOS_API(KRATOS_MESHING_APPLICATION) MmgProcess
+class MmgProcess
     : public Process
 {
 public:

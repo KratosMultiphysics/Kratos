@@ -73,7 +73,7 @@ namespace Kratos
  * @details The process employs the projection.h from MeshingApplication, which works internally using a kd-tree
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(KRATOS_MESHING_APPLICATION) InternalVariablesInterpolationProcess
+class InternalVariablesInterpolationProcess
     : public Process
 {
 public:
