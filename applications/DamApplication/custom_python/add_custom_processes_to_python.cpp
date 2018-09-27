@@ -20,6 +20,7 @@
 #include "includes/kratos_parameters.h"
 
 // Processes
+#include "custom_processes/apply_component_table_process.hpp"
 #include "custom_processes/dam_fix_temperature_condition_process.hpp"
 #include "custom_processes/dam_bofang_condition_temperature_process.hpp"
 #include "custom_processes/dam_reservoir_constant_temperature_process.hpp"
@@ -50,6 +51,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     using namespace pybind11;
 
     typedef Table<double,double> TableType;
+
+    // Apply table values
+    class_<ApplyComponentTableProcessDam, ApplyComponentTableProcessDam::Pointer, Process>
+    (m, "ApplyComponentTableProcessDam")
+    .def(init < ModelPart&, Parameters>());
 
     // Fix Temperature
     class_<DamFixTemperatureConditionProcess, DamFixTemperatureConditionProcess::Pointer, Process>

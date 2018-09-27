@@ -111,7 +111,7 @@ class DamMechanicalSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         # Add variables for post-processing
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Vi_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Viii_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
@@ -243,13 +243,13 @@ class DamMechanicalSolver(object):
 
         self.computing_model_part_name = "mechanical_computing_domain"
 
-        # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
+        # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcessDamMechanical
         aux_params = KratosMultiphysics.Parameters("{}")
         aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
 
-        # CheckAndPrepareModelProcess creates the solid_computational_model_part
-        import check_and_prepare_model_process_poro
-        check_and_prepare_model_process_poro.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
+        # CheckAndPrepareModelProcessDamMechanical creates the solid_computational_model_part
+        import check_and_prepare_model_process_dam_mechanical
+        check_and_prepare_model_process_dam_mechanical.CheckAndPrepareModelProcessDamMechanical(self.main_model_part, aux_params).Execute()
 
         # Constitutive law import
         import dam_constitutive_law_utility

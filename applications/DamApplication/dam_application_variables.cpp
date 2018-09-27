@@ -12,6 +12,9 @@ namespace Kratos
     typedef array_1d<double,3> Vector3;
 
     //Create Variables //Note that the application variables must not be defined if they already exist in KRATOS
+    KRATOS_CREATE_VARIABLE( double, TIME_UNIT_CONVERTER )
+
+
     KRATOS_CREATE_VARIABLE( double, THERMAL_EXPANSION )
 
     // Thermal Variables
@@ -40,6 +43,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, NODAL_YOUNG_MODULUS )
     KRATOS_CREATE_VARIABLE( double, ADDED_MASS )
     KRATOS_CREATE_VARIABLE( double, NODAL_REFERENCE_TEMPERATURE )
+    KRATOS_CREATE_VARIABLE( Matrix, NODAL_CAUCHY_STRESS_TENSOR )
     KRATOS_CREATE_VARIABLE( Matrix, INITIAL_NODAL_CAUCHY_STRESS_TENSOR )
 
 

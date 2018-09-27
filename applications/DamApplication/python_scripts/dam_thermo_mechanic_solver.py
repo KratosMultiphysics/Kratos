@@ -137,7 +137,7 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         # Add variables for post-processing
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Vi_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Viii_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)
@@ -346,7 +346,7 @@ class DamThermoMechanicSolver(object):
             self.loads_sub_sub_model_part_list.append("sub_"+self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"][i].GetString())
         self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.loads_sub_sub_model_part_list))
 
-        # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
+        # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcessDamThermal
         aux_params = KratosMultiphysics.Parameters("{}")
         aux_params.AddEmptyValue("thermal_model_part_name").SetString(self.thermal_model_part_name)
         aux_params.AddValue("thermal_domain_sub_model_part_list",self.settings["thermal_solver_settings"]["problem_domain_sub_model_part_list"])
@@ -361,9 +361,9 @@ class DamThermoMechanicSolver(object):
         aux_params.AddValue("loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"])
         aux_params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
 
-        # CheckAndPrepareModelProcess creates the solid_computational_model_part
-        import check_and_prepare_model_process_dam
-        check_and_prepare_model_process_dam.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
+        # CheckAndPrepareModelProcessDamMechanical creates the solid_computational_model_part
+        import check_and_prepare_model_process_dam_thermal
+        check_and_prepare_model_process_dam_thermal.CheckAndPrepareModelProcessDamThermal(self.main_model_part, aux_params).Execute()
 
         # Constitutive law import
         import dam_constitutive_law_utility
