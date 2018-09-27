@@ -20,7 +20,7 @@
             "input_filename" : "ale_fluid_test"
         },
         "echo_level"                  : 0,
-        "compute_reactions"           : true,
+        "compute_reactions"           : false,
         "stabilization" : {
             "formulation": "vms"
         },
