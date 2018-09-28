@@ -384,11 +384,8 @@ struct LocalIndices
     void Reset()
     {
         internal_index_vector.resize(0);
-        internal_index_vector.shrink_to_fit();
         master_index_vector.resize(0);
-        master_index_vector.shrink_to_fit();
         slave_index_vector.resize(0);
-        slave_index_vector.shrink_to_fit();
     }
 
     VectorIndexType internal_index_vector; // indicies corresponding to internal DOFs
@@ -613,9 +610,7 @@ private:
         mTransformationMatrixLocal.resize(0,0, false);
         mConstantVectorLocal.resize(0, false);
         mMasterEquationIds.clear();
-        mMasterEquationIds.shrink_to_fit();
         mContainerDofs.clear();
-        mContainerDofs.shrink_to_fit();
     }
     /**
      * @brief   This function calculates the local transformation matrix and the constant vector for each
