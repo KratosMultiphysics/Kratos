@@ -90,8 +90,6 @@ void MultiScaleRefiningProcess::Check()
 
 void MultiScaleRefiningProcess::ExecuteRefinement()
 {
-    InitializeRefinement();
-
     // Initialize the maps
     IndexIndexMapType node_tag, elem_tag, cond_tag;
     SubModelPartsListUtility model_part_collection(mrCoarseModelPart);
@@ -110,13 +108,14 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
     MarkElementsFromNodalFlag();
     MarkConditionsFromNodalFlag();
 
-    // Check and prepare the interface
-    CreateNewInterface(cond_id);
-    // RemoveOldInterface();
-
     // Create the auxiliary entities
     CreateElementsToRefine(elem_id, elem_tag);
     CreateConditionsToRefine(cond_id, cond_tag);
+
+    // Check and prepare the interface
+    IdentifyCurrentInterface();
+    // CreateNewInterface(cond_id);
+    // RemoveOldInterface();
 
     // Execute the refinement
     int divisions = mrRefinedModelPart.GetValue(SUBSCALE_INDEX) * mDivisionsAtSubscale;
@@ -144,6 +143,7 @@ void MultiScaleRefiningProcess::ExecuteCoarsening()
     mUniformRefinement.RemoveRefinedEntities(TO_ERASE);
 
     // Update the visualization model part
+    IdentifyCurrentInterface();
     UpdateVisualizationAfterCoarsening();
 
     FinalizeCoarsening();
@@ -270,11 +270,9 @@ void MultiScaleRefiningProcess::UpdateVisualizationAfterRefinement()
     mrVisualizationModelPart.RemoveConditionsFromAllLevels(MeshingFlags::REFINED);
 
     // Remove the refined nodes which are not interface
-    const int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
-    
     #pragma omp parallel for
-    for (int i = 0; i < nnodes; i++)
+    for (int i = 0; i < static_cast<int>(mrCoarseModelPart.Nodes().size()); i++)
     {
         auto coarse_node = nodes_begin + i;
         if (coarse_node->Is((MeshingFlags::REFINED)) && (coarse_node->IsNot(INTERFACE)))
@@ -300,6 +298,8 @@ void MultiScaleRefiningProcess::UpdateVisualizationAfterCoarsening()
     // Add the origin entities which are coarsened
     FastTransferBetweenModelPartsProcess(mrVisualizationModelPart, mrCoarseModelPart,
         FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, MeshingFlags::TO_COARSEN)();
+    FastTransferBetweenModelPartsProcess(mrVisualizationModelPart, mrCoarseModelPart,
+        FastTransferBetweenModelPartsProcess::EntityTransfered::NODES, INTERFACE)();
 }
 
 
@@ -494,8 +494,10 @@ void MultiScaleRefiningProcess::IdentifyElementsToErase()
                 to_coarse = true;
         }
         if (to_coarse)
+        {
             coarse_elem->Set(MeshingFlags::TO_COARSEN, true);
             coarse_elem->Set(MeshingFlags::REFINED, false);
+        }
     }
 
     // Identify the refined elements to remove
@@ -532,8 +534,10 @@ void MultiScaleRefiningProcess::IdentifyConditionsToErase()
                 to_coarse = true;
         }
         if (to_coarse)
+        {
             coarse_cond->Set(MeshingFlags::TO_COARSEN, true);
             coarse_cond->Set(MeshingFlags::REFINED, false);
+        }
     }
 
     // Identify the refined conditions to remove
@@ -687,21 +691,6 @@ void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, Ind
 }
 
 
-void MultiScaleRefiningProcess::InitializeRefinement()
-{
-    // Resetting the nodes flags
-    int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
-    ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
-
-    #pragma omp parallel for
-    for (int i = 0; i < nnodes; i++)
-    {
-        auto node = nodes_begin + i;
-        node->Set(INTERFACE, false);
-    }
-}
-
-
 void MultiScaleRefiningProcess::FinalizeRefinement()
 {
     /// Coarse model part
@@ -775,6 +764,41 @@ void MultiScaleRefiningProcess::FinalizeCoarsening()
 }
 
 
+void MultiScaleRefiningProcess::IdentifyCurrentInterface()
+{
+    // Resetting the flag
+    int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
+    ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
+
+    #pragma omp parallel for
+    for (int i = 0; i < nnodes; i++)
+    {
+        auto node = nodes_begin + i;
+        node->Set(INTERFACE, false);
+    }
+
+    // The number of nodes of the elements
+    ModelPart::ElementIterator elem_begin = mrCoarseModelPart.ElementsBegin();
+    const IndexType element_nodes = elem_begin->GetGeometry().size();
+
+    // Identify the current interface: 
+    // Look for the elements which are not to refine and have some nodes to refine
+    for (int i = 0; i < static_cast<int>(mrCoarseModelPart.Elements().size()); i++)
+    {
+        auto elem = elem_begin + i;
+        if (elem->IsNot(MeshingFlags::REFINED))
+        {
+            // set the nodal flags
+            for (IndexType node = 0; node < element_nodes; node++)
+            {
+                if (elem->GetGeometry()[node].Is(MeshingFlags::REFINED))
+                    elem->GetGeometry()[node].Set(INTERFACE, true);
+            }
+        }
+    }
+}
+
+
 void MultiScaleRefiningProcess::CreateNewInterface(IndexType& rCondId)
 {
     // ModelPart& coarse_interface = mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName);
@@ -801,7 +825,7 @@ void MultiScaleRefiningProcess::CreateNewInterface(IndexType& rCondId)
     for (int i = 0; i < nelems; i++)
     {
         auto elem = elem_begin + i;
-        if (elem->IsNot(MeshingFlags::REFINED))  // TODO: set the flag off before coarsening the element
+        if (elem->IsNot(MeshingFlags::REFINED))
         {
             // set the nodal flags
             for (IndexType node = 0; node < element_nodes; node++)

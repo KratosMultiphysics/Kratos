@@ -397,12 +397,6 @@ public:
     void IdentifyRefinedNodesToErase();
 
     /**
-     * @brief InitializeRefinement sets to false the required flags
-     * @detail INTERFACE
-     */
-    void InitializeRefinement();
-
-    /**
      * @brief FinalizeRefinement resets the flags on the nodes and elements and conditions
      * @detail NEW_ENTITY is set to false
      * @see CloneNodesToRefine
@@ -414,6 +408,12 @@ public:
      * @detail MeshingFlags::TO_COARSEN
      */
     void FinalizeCoarsening();
+
+    /**
+     * @brief Identify the nodes in the coarse model part defining the boundary with the subscale
+     * @detail INTERFACE
+     */
+    void IdentifyCurrentInterface();
 
     /**
      * @brief CreateNewInterface identify the refining interface before to execute the refinement
