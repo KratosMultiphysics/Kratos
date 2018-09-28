@@ -104,6 +104,7 @@ class AdjointResponseFunction(AdjointResponseFunctionBase):
         self.adjoint_analysis.Initialize()
         response_function = self._GetResponseFunctionUtility()
         self.adjoint_postprocess = StructuralMechanicsApplication.AdjointPostprocess(self.adjoint_model_part, response_function, self.response_function_settings)
+        self.adjoint_postprocess.Initialize()
 
     def InitializeSolutionStep(self):
 
