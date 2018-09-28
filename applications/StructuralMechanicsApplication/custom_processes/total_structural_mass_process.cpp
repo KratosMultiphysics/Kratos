@@ -43,6 +43,7 @@ void TotalStructuralMassProcess::Execute()
     // Now we iterate over the elements to calculate the total mass
     ElementsArrayType& elements_array = mrThisModelPart.GetCommunicator().LocalMesh().Elements();
 
+    // setting the NODAL_MASS on local- AND ghost-nodes, bcs the local elements might have ghost nodes!
     VariableUtils().SetNonHistoricalVariable(NODAL_MASS, 0.0, mrThisModelPart.Nodes()); // local- AND ghost-nodes
 
     #pragma omp parallel for private(element_mass)
@@ -64,6 +65,8 @@ void TotalStructuralMassProcess::Execute()
         // We get the values from the condition
         const Properties& this_properties = it_elem->GetProperties();
 
+        element_mass = 0.0; // resetting the element-mass
+
         if (local_space_dimension == 0) { // POINT MASSES
             if (it_elem->Has(NODAL_MASS))
                 element_mass = it_elem->GetValue(NODAL_MASS);
@@ -76,7 +79,7 @@ void TotalStructuralMassProcess::Execute()
             if (this_properties.Has(SHELL_ORTHOTROPIC_LAYERS)) { // composite material
                 const auto orthotropic_layers = this_properties[SHELL_ORTHOTROPIC_LAYERS];
                 for (std::size_t i=0; i<orthotropic_layers.size1(); ++i)
-                    element_mass = orthotropic_layers(i,0) * orthotropic_layers(i,2) * area; // thickness*density*area
+                    element_mass += orthotropic_layers(i,0) * orthotropic_layers(i,2) * area; // thickness*density*area
             } else {
                 const double thickness = GetFromProperty(this_properties,THICKNESS);
                 const double density = GetFromProperty(this_properties,DENSITY);
@@ -96,6 +99,9 @@ void TotalStructuralMassProcess::Execute()
         }
     }
 
+    // The contributions of the NODAL_MASS can also affect ghost-nodes, therefore assembling (summing)
+    // them before making the sum across the partitions
+    mrThisModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_MASS);
     const double total_mass = VariableUtils().SumNonHistoricalNodeScalarVariable(NODAL_MASS, mrThisModelPart);
 
     std::stringstream info_stream;
