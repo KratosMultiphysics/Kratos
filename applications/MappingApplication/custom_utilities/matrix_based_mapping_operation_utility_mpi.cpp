@@ -173,13 +173,8 @@ void UtilityType::ResizeAndInitializeVectors(
     // // TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );
     // // https://trilinos.org/docs/dev/packages/epetra/doc/html/Epetra__DataAccess_8h.html#ad1a985e79f94ad63030815a0d7d90928
     TSystemMatrixUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(Epetra_DataAccess::Copy, epetra_graph);
-    rpMdo.swap(p_Mdo);
-
     TSystemVectorUniquePointerType p_new_vector_destination = Kratos::make_unique<TSystemVectorType>(epetra_range_map);
-    rpQd.swap(p_new_vector_destination);
-
     TSystemVectorUniquePointerType p_new_vector_origin = Kratos::make_unique<TSystemVectorType>(epetra_domain_map);
-    rpQo.swap(p_new_vector_origin);
 
     // rpQo->GlobalAssemble();
     // rpQd->GlobalAssemble();
@@ -203,7 +198,7 @@ void UtilityType::ResizeAndInitializeVectors(
 
         if (mapping_weights.size() > 0)
         {
-            const int ierr = rpMdo->SumIntoGlobalValues(
+            const int ierr = p_Mdo->SumIntoGlobalValues(
                 destination_ids.size(), destination_ids.data(),
                 origin_ids.size(),      origin_ids.data(),
                 mapping_weights.data(),
@@ -218,16 +213,20 @@ void UtilityType::ResizeAndInitializeVectors(
 
     rModelPartOrigin.GetCommunicator().Barrier();
 
-    std::cout << "After Assembly\n" << *rpMdo << std::endl;
+    std::cout << "After Assembly\n" << *p_Mdo << std::endl;
 
-    rpMdo->GlobalAssemble(epetra_domain_map, epetra_range_map);
+    p_Mdo->GlobalAssemble(epetra_domain_map, epetra_range_map);
 
     rModelPartOrigin.GetCommunicator().Barrier();
 
-    std::cout << "After GlobalAssemble\n" << *rpMdo << std::endl;
+    std::cout << "After GlobalAssemble\n" << *p_Mdo << std::endl;
 
     if (GetEchoLevel() > 2)
-        SparseSpaceType::WriteMatrixMarketMatrix("TrilinosMappingMatrix", *rpMdo, false);
+        SparseSpaceType::WriteMatrixMarketMatrix("TrilinosMappingMatrix", *p_Mdo, false);
+
+    rpMdo.swap(p_Mdo);
+    rpQd.swap(p_new_vector_destination);
+    rpQo.swap(p_new_vector_origin);
 }
 
 // The "Build" function
@@ -288,6 +287,9 @@ void FillSystemVector(UtilityType::TSystemVectorType& rVector,
 {
     // Here we construct a function pointer to not have the if all the time inside the loop
     const auto fill_fct = MapperUtilities::GetFillFunction<TVarType>(rMappingOptions);
+
+    // as alternative:
+    // try to loop through the local values of the vector => check if size and num_nodes are equal!
 
     for (const auto& r_node : rModelPart.GetCommunicator().LocalMesh().Nodes())
     {

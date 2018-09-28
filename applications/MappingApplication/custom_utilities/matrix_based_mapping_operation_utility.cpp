@@ -116,7 +116,6 @@ template<>
 UtilityType::MatrixBasedMappingOperationUtility(Parameters Settings)
     : MappingOperationUtility<SparseSpaceType, DenseSpaceType>(Settings)
 {
-    KRATOS_INFO("MatrixBasedMappingOperationUtility") << "In Ctor" << std::endl;
     KRATOS_ERROR_IF(SparseSpaceType::IsDistributed())
         << "Using a distributed Space!" << std::endl;
 }
@@ -165,7 +164,7 @@ void UtilityType::BuildMappingMatrix(
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
 
-    KRATOS_INFO("BuildMappingMatrix, non-mpi") << "Entering" << std::endl;
+    std::cout << "BuildMappingMatrix, non-mpi: " << "Entering" << std::endl;
 
     for (auto& r_local_sys : rMapperLocalSystems) // TODO omp
     {
@@ -175,12 +174,19 @@ void UtilityType::BuildMappingMatrix(
         KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != destination_ids.size())
             << "DestinationID vector size mismatch" << std::endl;
 
+        KRATOS_WATCH(mapping_weights)
+        KRATOS_WATCH(origin_ids)
+        KRATOS_WATCH(destination_ids)
+        std::cout << std::endl;
+
         // Insert the mapping weights from the local_systems into the mapping matrix
         for (IndexType i=0; i<mapping_weights.size(); ++i)
             rMdo(destination_ids[i], origin_ids[i]) += mapping_weights[i];
 
         r_local_sys->Clear();
     }
+
+    std::cout << "BuildMappingMatrix, non-mpi: " << "Leaving" << std::endl;
 
     if (GetEchoLevel() > 2)
         SparseSpaceType::WriteMatrixMarketMatrix("MappingMatrix", rMdo, false);
