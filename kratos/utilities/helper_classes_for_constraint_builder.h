@@ -531,44 +531,10 @@ public:
         CalculateLocalIndices(rEquationIds, mLocalIndices, total_number_of_masters);
 
         // resizing the matrices to the new required length
-        MatrixType lhs_contribution = rLHSContribution;
-        VectorType rhs_contribution = rRHSContribution;
-        ResizeAndInitializeLocalMatrices(lhs_contribution, rhs_contribution, rEquationIds.size());
+        ResizeAndInitializeLocalMatrices(rLHSContribution, rRHSContribution, rEquationIds.size());
 
-        ResizeAndInitializeLocalMatrices(mTransformationMatrixLocal, mConstantVectorLocal, rEquationIds.size());
         // Calculating the T and C which are local to this container
-        CalculateLocalTransformationMatrix(mLocalIndices, mTransformationMatrixLocal, equation_ids);
-
-        CalculateLocalConstantVector(mLocalIndices, mConstantVectorLocal, equation_ids);
-        // Here order is important as lhs_contribution should be unmodified for using in calculation
-        // of RHS contribution. Later on lhs_contribution is modified to apply the constraint.
-        // rhs_h =  T'*(rhs - K*g)
-        VectorType temp_vec = ( rhs_contribution - prod(lhs_contribution, mConstantVectorLocal) );
-        noalias(rhs_contribution) = prod( trans(mTransformationMatrixLocal), temp_vec );
-        // lhs_h = T'*K*T
-        MatrixType temp_mat = prod(lhs_contribution, mTransformationMatrixLocal);
-        noalias(lhs_contribution) = prod( trans(mTransformationMatrixLocal),  temp_mat);
-        // rhs_h(s,s) = rhs(s,s) : that is reassigning the slave part of the matrix back. We do not modify the (slave, slave) block
-        // this is to facilitate the solution of the linear system of equation.
-        for (const auto &slave_index : mLocalIndices.slave_index_vector)
-            for (const auto &slave_index_other : mLocalIndices.slave_index_vector)
-                lhs_contribution(slave_index, slave_index_other) = rLHSContribution(slave_index, slave_index_other);
-        // rhs_h(s,i) = 0 and rhs_h(i,s) = 0
-        // making this blocks zero will ensure that the slaves are not connected to internal dofs
-        for (const auto &slave_index : mLocalIndices.slave_index_vector)
-            for (const auto &internal_index : mLocalIndices.internal_index_vector)
-            {
-                lhs_contribution(slave_index, internal_index) = 0.0;
-                lhs_contribution(internal_index, slave_index) = 0.0;
-            }
-
-        for (const auto &slave_index : mLocalIndices.slave_index_vector)
-            rhs_contribution(slave_index) = 0.0;
-
-        rLHSContribution.resize(rEquationIds.size(), rEquationIds.size());
-        rRHSContribution.resize(rEquationIds.size());
-        noalias(rLHSContribution) = lhs_contribution;
-        noalias(rRHSContribution) = rhs_contribution;
+        ModifyMatrices(rLHSContribution, rRHSContribution, rEquationIds);
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints:: Applying Multipoint constraints failed ..");
     }
@@ -600,6 +566,91 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief   This function does two operations : K = T' * K * T and F = T'*(F-K*b). Both these operations are done in place.
+     *          Meaning that there is no memory duplication and no explicit matrix and matrix or matrix vector multiplication.
+     *          Individual entries of K and F are modified to achieve the result. 
+     * @param   rLHSContribution The lhs matrix of the container
+     * @param   rRHSContribution The rhs vector of the container
+     * @param   rEquationIds the list of equation ids (extended with the masters).
+     */
+    void ModifyMatrices(MatrixType &rLHSContribution, VectorType& rRHSContribution, EquationIdVectorType &rEquationIds)
+    {
+        std::vector<double> container_master_weights;
+        container_master_weights.reserve(mLocalIndices.master_index_vector.size());
+        std::vector<IndexType> container_master_slaves;
+        container_master_slaves.reserve(mLocalIndices.master_index_vector.size());
+        std::vector<IndexType> processed_master_indices;
+        processed_master_indices.reserve(mLocalIndices.master_index_vector.size());
+        IndexType slave_equation_id;
+        EquationIdVectorType master_equation_ids;
+        VectorType master_weights_vector;
+        double slave_constant;
+        VectorType master_weights_vector_other;
+        double constant_other;
+
+        for (auto& slave_index : mLocalIndices.slave_index_vector) { // Loop over all the slaves for this container
+            // Get the global equation for this constraint
+            auto global_master_slave_constraint = mrGlobalMasterSlaveConstraints.find(rEquationIds[slave_index]);
+            // Get the tranformation matrix and constant_vector from the current slave
+            global_master_slave_constraint->second->EquationIdsVector(slave_equation_id, master_equation_ids);
+            global_master_slave_constraint->second->CalculateLocalSystem(master_weights_vector, slave_constant);
+
+            IndexType master_index = 0;
+            double master_weight = 0.0;
+            IndexType i_master = 0;
+            for (auto&  master_eq_id : master_equation_ids)
+            { // Loop over all the masters the slave has
+                master_index = std::distance(rEquationIds.begin(), std::find(rEquationIds.begin(), rEquationIds.end(), master_eq_id));
+                //master_weight = mTransformationMatrixLocal(slave_index,master_index);
+                master_weight = master_weights_vector(i_master);
+                for (auto& internal_index : mLocalIndices.internal_index_vector) {
+                    rRHSContribution(internal_index) += -rLHSContribution(internal_index, slave_index) * slave_constant;
+                    // For K(m,u) and K(u,m)
+                    rLHSContribution(internal_index, master_index) += rLHSContribution(internal_index, slave_index) * master_weight;
+                    rLHSContribution(master_index, internal_index) += rLHSContribution(slave_index, internal_index) * master_weight;
+                }
+                // For RHS(m) += A'*LHS(s,s)*B
+                for (auto& slave_index_other : mLocalIndices.slave_index_vector) {
+                    auto global_master_slave_constraint_other = mrGlobalMasterSlaveConstraints.find(rEquationIds[slave_index_other]);
+                    global_master_slave_constraint_other->second->CalculateLocalSystem(master_weights_vector_other, constant_other);
+                    rRHSContribution(master_index) -= rLHSContribution(slave_index, slave_index_other) * master_weight * constant_other;
+                }
+                // Changing the RHS side of the equation
+                rRHSContribution(master_index) += master_weight * rRHSContribution(slave_index);
+
+                container_master_weights.push_back( master_weight );
+                container_master_slaves.push_back( slave_index );
+                processed_master_indices.push_back( master_index );
+                i_master++;
+            } // Loop over all the masters the slave has
+
+            rRHSContribution(slave_index) = 0.0;
+        }
+
+        //Adding contribution from slave to Kmm
+        IndexType master_i = 0;
+        for (auto& master_index : processed_master_indices) {
+            IndexType master_i_other = 0;
+            for (auto& master_index_other : processed_master_indices) {
+                rLHSContribution(master_index, master_index_other) += container_master_weights[master_i] *
+                                                                        rLHSContribution(container_master_slaves[master_i], container_master_slaves[master_i_other])
+                                                                        * container_master_weights[master_i_other];
+                master_i_other++;
+            }
+            master_i++;
+        }
+
+        // For K(u,s) and K(s,u)
+        for (auto& slave_index : mLocalIndices.slave_index_vector) {
+            for (auto internal_index : mLocalIndices.internal_index_vector) {
+                rLHSContribution(slave_index, internal_index) = 0.0;
+                rLHSContribution(internal_index, slave_index) = 0.0;
+            }
+        }
+    }
+
 
     /**
      * @brief   Resets the member vectors and matrices to zero and zero size
