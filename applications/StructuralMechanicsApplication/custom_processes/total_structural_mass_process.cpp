@@ -46,7 +46,8 @@ void TotalStructuralMassProcess::Execute()
     // setting the NODAL_MASS on local- AND ghost-nodes, bcs the local elements might have ghost nodes!
     VariableUtils().SetNonHistoricalVariable(NODAL_MASS, 0.0, mrThisModelPart.Nodes()); // local- AND ghost-nodes
 
-    #pragma omp parallel for private(element_mass)
+    // Making this loop omp-parallel requires locking all the geometries & nodes, which
+    // is most probably not worth the effort
     for(int i = 0; i < static_cast<int>(elements_array.size()); ++i){
         const auto it_elem = elements_array.begin() + i;
 
