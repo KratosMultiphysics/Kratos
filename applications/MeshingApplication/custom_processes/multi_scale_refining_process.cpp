@@ -420,6 +420,8 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
                 mCoarseToRefinedNodesMap[coarse_node->Id()] = new_node;
                 mRefinedToCoarseNodesMap[rNodeId] = *coarse_node.base();
                 new_node->Set(NEW_ENTITY, true);
+                new_node->GetValue(FATHER_NODES).resize(0);
+                new_node->GetValue(FATHER_NODES).push_back( NodeType::WeakPointer(*coarse_node.base()) );
                 coarse_node->Set(NEW_ENTITY, true);
                 coarse_node->Set(MeshingFlags::REFINED, true);
             }

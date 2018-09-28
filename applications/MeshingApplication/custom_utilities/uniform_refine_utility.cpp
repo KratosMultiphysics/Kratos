@@ -527,6 +527,14 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
         for (IndexType variable = 0; variable < mStepDataSize; variable++)
             new_node_data[variable] = 0.5 * node_data_0[variable] + 0.5 * node_data_1[variable];
     }
+
+    pNewNode->GetValue(FATHER_NODES).resize(0);
+    for (auto node = pNode0->GetValue(FATHER_NODES).begin(); node != pNode0->GetValue(FATHER_NODES).end(); node++)
+        pNewNode->GetValue(FATHER_NODES).push_back(*(node.base()));
+    for (auto node = pNode1->GetValue(FATHER_NODES).begin(); node != pNode1->GetValue(FATHER_NODES).end(); node++)
+        pNewNode->GetValue(FATHER_NODES).push_back(*(node.base()));
+    auto last = std::unique(pNewNode->GetValue(FATHER_NODES).begin(), pNewNode->GetValue(FATHER_NODES).end());
+    pNewNode->GetValue(FATHER_NODES).erase(last, pNewNode->GetValue(FATHER_NODES).end());
 }
 
 
