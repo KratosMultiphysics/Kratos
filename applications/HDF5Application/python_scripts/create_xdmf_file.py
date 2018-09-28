@@ -77,22 +77,29 @@ def GetListOfTimeLabels(file_name):
 
 
 def WriteXdmfFile(file_name, rel_path_h5_files=""):
+    file_name = "thefile.h5"
+    rel_path_h5_files = "myfolder"
     temporal_grid = xdmf.TemporalGrid()
     h5_files_full_path = os.path.join(rel_path_h5_files, file_name)
+    print(h5_files_full_path)
     GenerateXdmfConnectivities(h5_files_full_path)
     # Get the initial spatial grid from the base file.
     with h5py.File(h5_files_full_path, "r") as h5py_file:
         current_spatial_grid = GetSpatialGrid(h5py_file)
+    print("BREAK 1")
     for current_time in GetListOfTimeLabels(h5_files_full_path):
         current_file_name = h5_files_full_path.replace(".h5", "-" + current_time + ".h5")
+        print("current_file_name = ", current_file_name)
+        print(os.listdir("myfolder"))
         # Check if the current file has mesh information.
-        with h5py.File(current_file_name, "r") as h5py_file:
+        with h5py.File("myfolder/thefile-1.0000.h5", "r") as h5py_file:
             has_mesh = ("ModelData" in h5py_file.keys())
             has_data = ("/ResultsData" in h5py_file.keys())
         if not has_data:
             continue
         if has_mesh:
             GenerateXdmfConnectivities(current_file_name)
+        print("BREAK 2")
         with h5py.File(current_file_name, "r") as h5py_file:
             if has_mesh:
                 # Update current spatial grid
@@ -117,4 +124,4 @@ def WriteXdmfFile(file_name, rel_path_h5_files=""):
 
 if __name__ == '__main__':
     file_name = sys.argv[1]
-    WriteXdmfFile(file_name)
+    WriteXdmfFile("thefile.h5", "myfolder")
