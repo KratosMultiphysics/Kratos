@@ -1,5 +1,5 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.KratosMultiphysicsMPI as MPI #TODO: do not import the so directly (but I need a nice Python module first)
+import KratosMultiphysics.mpi as MPI #TODO: do not import the so directly (but I need a nice Python module first)
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
