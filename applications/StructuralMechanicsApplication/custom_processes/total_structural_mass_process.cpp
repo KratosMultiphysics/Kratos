@@ -40,7 +40,7 @@ void TotalStructuralMassProcess::Execute()
     const std::size_t dimension = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
     // Now we iterate over the elements to calculate the total mass
-    ElementsArrayType& elements_array = mrThisModelPart.Elements();
+    ElementsArrayType& elements_array = mrThisModelPart.GetCommunicator().LocalMesh().Elements();
 
     #pragma omp parallel for reduction(+:total_mass)
     for(int i = 0; i < static_cast<int>(elements_array.size()); ++i){
