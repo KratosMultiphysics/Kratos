@@ -24,6 +24,7 @@ class AssignVectorComponentsToNodesProcess(KratosMultiphysics.Process):
              "model_part_name": "MODEL_PART_NAME",
              "variable_name": "VARIABLE_NAME",
              "value": [0.0, 0.0, 0.0],
+             "compound_assignment": "direct",
              "constrained":true,
              "interval": [0.0, "End"],
              "local_axes" : {}

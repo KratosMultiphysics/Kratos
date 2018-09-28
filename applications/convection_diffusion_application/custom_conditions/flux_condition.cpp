@@ -12,6 +12,7 @@
 
 #include "flux_condition.h"
 #include "includes/convection_diffusion_settings.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {

@@ -6,14 +6,14 @@
             "Material": {
                     "name": "Material",
                     "constitutive_law": {
-                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStrain2DLaw"
+                            "name": "LinearElasticPlaneStrain2DLaw"
                     },
                     "Variables": {
-                            "KratosMultiphysics.YOUNG_MODULUS": 2.06900E+11 ,
-                            "KratosMultiphysics.DENSITY": 1.00000E+03,
-                            "KratosMultiphysics.POISSON_RATIO": 2.90000E-01,
-                            "KratosMultiphysics.THICKNESS": 1.00000,
-                            "KratosMultiphysics.FRICTION_COEFFICIENT": 0.01
+                            "YOUNG_MODULUS": 2.06900E+11 ,
+                            "DENSITY": 1.00000E+03,
+                            "POISSON_RATIO": 2.90000E-01,
+                            "THICKNESS": 1.00000,
+                            "FRICTION_COEFFICIENT": 0.01
                     },
                     "Tables": {}
             }
@@ -24,14 +24,14 @@
             "Material": {
                     "name": "Material",
                     "constitutive_law": {
-                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStrain2DLaw"
+                            "name": "LinearElasticPlaneStrain2DLaw"
                     },
                     "Variables": {
-                            "KratosMultiphysics.YOUNG_MODULUS": 2.06900E+11 ,
-                            "KratosMultiphysics.DENSITY": 1.00000E+03,
-                            "KratosMultiphysics.POISSON_RATIO": 2.90000E-01,
-                            "KratosMultiphysics.THICKNESS": 1.00000,
-                            "KratosMultiphysics.FRICTION_COEFFICIENT": 0.01
+                            "YOUNG_MODULUS": 2.06900E+11 ,
+                            "DENSITY": 1.00000E+03,
+                            "POISSON_RATIO": 2.90000E-01,
+                            "THICKNESS": 1.00000,
+                            "FRICTION_COEFFICIENT": 0.01
                     },
                     "Tables": {}
             }

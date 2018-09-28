@@ -13,7 +13,7 @@ def CreateSolver(custom_settings):
 
 #Base class to develop other solvers
 class MonolithicSolver(object):
-    """The base class for solid mechanics solvers.
+    """The base class for solid mechanics solvers
 
     This class provides functions for importing and exporting models,
     adding nodal variables and dofs and solving each solution step.
@@ -50,23 +50,24 @@ class MonolithicSolver(object):
                 "time_integration_order": 1,
                 "buffer_size": 2
             },
-            "solving_strategy_settings":{
-                "builder_type": "block_builder",
-                "line_search": false,
-                "implex": false,
-                "compute_reactions": true,
-                "move_mesh_flag": true,
-                "clear_storage": false,
-                "reform_dofs_at_each_step": false,
-                "max_iteration": 10
-            },
             "convergence_criterion_settings":{
                 "convergence_criterion": "Residual_criterion",
                 "variable_relative_tolerance": 1.0e-4,
                 "variable_absolute_tolerance": 1.0e-9,
                 "residual_relative_tolerance": 1.0e-4,
                 "residual_absolute_tolerance": 1.0e-9,
-                "separate_dofs": false
+                "separate_dofs": true
+            },
+            "solving_strategy_settings":{
+                "builder_type": "block_builder",
+                "line_search": false,
+                "implex": false,
+                "compute_reactions": true,
+                "move_mesh_flag": true,
+                "iterative_update": true,
+                "clear_storage": false,
+                "reform_dofs_at_each_step": false,
+                "max_iteration": 10
             },
             "linear_solver_settings":{
                 "solver_type": "SuperLUSolver",
@@ -74,9 +75,15 @@ class MonolithicSolver(object):
                 "tolerance": 1e-9,
                 "scaling": false,
                 "verbosity": 1
-            }
+            },
+            "processes": []
         }
         """)
+
+        # Linear solver settings can have different number of settings
+        if(custom_settings.Has("linear_solver_settings")):
+            default_settings.RemoveValue("linear_solver_settings")
+            default_settings.AddValue("linear_solver_settings",custom_settings["linear_solver_settings"])
 
         # Check and fix supplied settings compatibility (experimental)
         from json_settings_utility import JsonSettingsUtility
@@ -87,13 +94,15 @@ class MonolithicSolver(object):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         # Validate and assign other values
-        self.settings["time_integration_settings"].ValidateAndAssignDefaults(default_settings["time_integration_settings"])
+        self.settings["time_integration_settings"].ValidateAndAssignDefaults(default_settings["time_integration_settings"]) #default values in factory
         self.settings["solving_strategy_settings"].ValidateAndAssignDefaults(default_settings["solving_strategy_settings"])
-        self.settings["convergence_criterion_settings"].ValidateAndAssignDefaults(default_settings["convergence_criterion_settings"])
+        #self.settings["convergence_criterion_settings"].ValidateAndAssignDefaults(default_settings["convergence_criterion_settings"]) #default values in factory
         self.settings["linear_solver_settings"].ValidateAndAssignDefaults(default_settings["linear_solver_settings"])
+        #print("Monolithic Solver Settings",self.settings.PrettyPrintJsonString())
 
         # Echo level
         self.echo_level = 0
+
 
     def GetMinimumBufferSize(self):
         buffer_size = self.settings["time_integration_settings"]["buffer_size"].GetInt()
@@ -108,22 +117,12 @@ class MonolithicSolver(object):
 
     def ExecuteInitialize(self):
 
-        # Main model part and computing model part
-        self.main_model_part = self.model_part.GetRootModelPart()
+        # Set model and info
+        self._set_model_info()
 
-        # Process information
-        self.process_info = self.main_model_part.ProcessInfo
+        # Configure model and solver
+        self._set_integration_parameters()
 
-        # Add dofs
-        if( self._is_not_restarted() ):
-            self._add_dofs()
-
-        # Create integration information (needed in other processes)
-        self._set_time_integration_methods()
-
-        # Set buffer
-        if( self._is_not_restarted() ):
-            self._set_and_fill_buffer()
 
     def ExecuteBeforeSolutionLoop(self):
 
@@ -137,7 +136,7 @@ class MonolithicSolver(object):
 
         self.Check()
 
-        print("::[Solver]:: Ready")
+        print(self._class_prefix(),self.settings["time_integration_settings"]["integration_method"].GetString()+"_Scheme Ready")
 
     def GetVariables(self):
 
@@ -201,6 +200,27 @@ class MonolithicSolver(object):
         else:
             return True
 
+    def _set_model_info(self):
+
+        # Main model part and computing model part
+        self.main_model_part = self.model_part.GetRootModelPart()
+
+        # Process information
+        self.process_info = self.main_model_part.ProcessInfo
+
+
+    def _set_integration_parameters(self):
+        # Add dofs
+        if( self._is_not_restarted() ):
+            self._add_dofs()
+
+        # Create integration information (needed in other processes)
+        self._set_time_integration_methods()
+
+        # Set buffer
+        if( self._is_not_restarted() ):
+            self._set_and_fill_buffer()
+
     def _get_solution_scheme(self):
         if not hasattr(self, '_solution_scheme'):
             self._solution_scheme = self._create_solution_scheme()
@@ -231,9 +251,7 @@ class MonolithicSolver(object):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
-        buffer_size = self.settings["time_integration_settings"]["buffer_size"].GetInt()
-        if buffer_size < self.GetMinimumBufferSize():
-            buffer_size = self.GetMinimumBufferSize()
+        buffer_size = self.GetMinimumBufferSize()
         self.main_model_part.SetBufferSize(buffer_size)
         # Cycle the buffer. This sets all historical nodal solution step data to
         # the current value and initializes the time stepping in the process info.
@@ -252,8 +270,9 @@ class MonolithicSolver(object):
     def _create_solution_scheme(self):
         import schemes_factory
         Schemes = schemes_factory.SolutionScheme(self.settings["time_integration_settings"],self.settings["dofs"])
-        mechanical_scheme = Schemes.GetSolutionScheme()
-        return mechanical_scheme
+        solution_scheme = Schemes.GetSolutionScheme()
+        solution_scheme.SetProcessVector(self._get_scheme_custom_processes())
+        return solution_scheme
 
     def _create_convergence_criterion(self):
         criterion_parameters = self.settings["convergence_criterion_settings"]
@@ -293,10 +312,14 @@ class MonolithicSolver(object):
         AddDofsProcess.Execute()
         if( self.echo_level > 1 ):
             print(dof_variables + dof_reactions)
-            print("::[Solver]:: DOF's ADDED")
+            print(self._class_prefix()+" DOF's ADDED")
 
+    @classmethod
+    def _get_scheme_custom_processes(self):
+        process_list = []
+        return process_list
 
-    def _set_scheme_parameters(self):
+    def _set_scheme_process_info_parameters(self):
         pass
 
     def _get_time_integration_methods(self):
@@ -313,12 +336,12 @@ class MonolithicSolver(object):
 
         #print(scalar_integration_methods)
         #print(component_integration_methods)
-        
+
         # set time order
         self.process_info[KratosSolid.TIME_INTEGRATION_ORDER] = Schemes.GetTimeIntegrationOrder()
 
         # set scheme parameters to process_info
-        self._set_scheme_parameters()
+        self._set_scheme_process_info_parameters()
 
         # first: calculate parameters (only once permitted for each monolithic dof set "components + scalar")
         dofs_list = self.settings["dofs"]
@@ -341,11 +364,12 @@ class MonolithicSolver(object):
             if( isinstance(kratos_variable,KratosMultiphysics.DoubleVariable) and (not scalar_dof_method_set) ):
                 scalar_integration_methods[dof].CalculateParameters(self.process_info)
                 scalar_dof_method_set = True
-                print("::[Integration]:: ",scalar_integration_methods[dof],"(",dof,")")
+
+                print("::[----Integration----]::",scalar_integration_methods[dof],"("+dof+")")
             if( isinstance(kratos_variable,KratosMultiphysics.Array1DVariable3) and (not vector_dof_method_set) ):
                 component_integration_methods[dof+"_X"].CalculateParameters(self.process_info)
                 vector_dof_method_set = True
-                print("::[Integration]:: ",component_integration_methods[dof+"_X"],"(",dof,")")
+                print("::[----Integration----]::",component_integration_methods[dof+"_X"],"("+dof+")")
 
         return scalar_integration_methods, component_integration_methods
 
@@ -374,3 +398,9 @@ class MonolithicSolver(object):
 
         #print(scalar_integration_methods)
         #print(component_integration_methods)
+
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[-Monolithic_Solver-]::"
+        return header

@@ -21,7 +21,6 @@
 #include "spatial_containers/spatial_containers.h"
 
 #include "custom_processes/adaptive_time_interval_process.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "geometries/triangle_2d_3.h"
@@ -165,9 +164,9 @@ namespace Kratos
 
 	  const unsigned int dimension =  mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 	  if(dimension==2){
-	    CheckNodalConditionForTimeStepReduction(updatedTimeInterval,increaseTimeInterval,timeIntervalReduced);
+	    CheckNodalCriterionForTimeStepReduction(updatedTimeInterval,increaseTimeInterval,timeIntervalReduced);
 	    if(timeIntervalReduced==false){
-	      CheckElementalConditionForTimeStepReduction(increaseTimeInterval);
+	      CheckElementalCriterionForTimeStepReduction(increaseTimeInterval);
 	    }
 	}
 	}
@@ -214,7 +213,7 @@ namespace Kratos
     };
 
 
-    void CheckNodalConditionForTimeStepReduction(double updatedTimeInterval,
+    void CheckNodalCriterionForTimeStepReduction(double updatedTimeInterval,
 						 bool &increaseTimeInterval,
 						 bool &timeIntervalReduced)
     {
@@ -272,7 +271,7 @@ namespace Kratos
     }
 
 
-    void CheckElementalConditionForTimeStepReduction(bool &increaseTimeInterval)
+    void CheckElementalCriterionForTimeStepReduction(bool &increaseTimeInterval)
     {
 
       ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();

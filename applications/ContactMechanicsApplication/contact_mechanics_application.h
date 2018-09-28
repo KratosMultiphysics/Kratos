@@ -1,9 +1,9 @@
 //-------------------------------------------------------------
-//          ___         _           _   
-//  KRATOS / __|___ _ _| |_ __ _ __| |_ 
+//          ___         _           _
+//  KRATOS / __|___ _ _| |_ __ _ __| |_
 //        | (__/ _ \ ' \  _/ _` / _|  _|
 //         \___\___/_||_\__\__,_\__|\__|MECHANICS
-//                                            
+//
 //  License:(BSD)    ContactMechanicsApplication/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
@@ -44,6 +44,9 @@
 #include "custom_conditions/contact_domain_penalty_2D_condition.hpp"
 #include "custom_conditions/axisym_contact_domain_LM_2D_condition.hpp"
 #include "custom_conditions/axisym_contact_domain_penalty_2D_condition.hpp"
+
+#include "custom_conditions/thermal_contact_domain_penalty_2D_condition.hpp"
+#include "custom_conditions/axisym_thermal_contact_domain_penalty_2D_condition.hpp"
 
 #include "custom_conditions/point_rigid_contact_condition.hpp"
 #include "custom_conditions/point_rigid_contact_penalty_3D_condition.hpp"
@@ -91,7 +94,8 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosContactMechanicsApplication : public KratosApplication {
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) KratosContactMechanicsApplication : public KratosApplication
+{
 public:
 	///@name Type Definitions
 	///@{
@@ -225,12 +229,15 @@ private:
 
 	//conditions
 	const ContactDomainLM3DCondition                       mContactDomainLMCondition3D4N;
-	
+
 	const ContactDomainLM2DCondition                       mContactDomainLMCondition2D3N;
 	const ContactDomainPenalty2DCondition             mContactDomainPenaltyCondition2D3N;
 
 	const AxisymContactDomainLM2DCondition           mAxisymContactDomainLMCondition2D3N;
 	const AxisymContactDomainPenalty2DCondition mAxisymContactDomainPenaltyCondition2D3N;
+
+        const ThermalContactDomainPenalty2DCondition  mThermalContactDomainPenaltyCondition2D3N;
+        const AxisymThermalContactDomainPenalty2DCondition  mAxisymThermalContactDomainPenaltyCondition2D3N;
 
 	const PointRigidContactPenalty2DCondition       mPointRigidContactPenalty2DCondition;
 	const PointRigidContactPenalty3DCondition       mPointRigidContactPenalty3DCondition;
@@ -239,8 +246,9 @@ private:
 	const EPPointRigidContactPenalty2DCondition       mEPPointRigidContactPenalty2DCondition;
 	const EPPointRigidContactPenalty3DCondition       mEPPointRigidContactPenalty3DCondition;
 	const EPAxisymPointRigidContactPenalty2DCondition mEPAxisymPointRigidContactPenalty2DCondition;
-   const HydraulicRigidContactPenalty3DCondition mHydraulicRigidContactPenalty3DCondition;
-   const HydraulicAxisymRigidContactPenalty2DCondition mHydraulicAxisymRigidContactPenalty2DCondition;
+
+        const HydraulicRigidContactPenalty3DCondition mHydraulicRigidContactPenalty3DCondition;
+        const HydraulicAxisymRigidContactPenalty2DCondition mHydraulicAxisymRigidContactPenalty2DCondition;
 
 	//friction laws
 	const FrictionLaw                                                       mFrictionLaw;

@@ -27,7 +27,7 @@
 #include "includes/properties.h"
 #include "includes/condition.h"
 #include "geometries/geometry.h"
-
+#include "includes/variables.h"
 
 namespace Kratos
 {

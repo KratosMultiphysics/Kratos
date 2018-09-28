@@ -169,7 +169,7 @@ class ResidualCriterion : public  ConvergenceCriterion< TSparseSpace, TDenseSpac
       {
         if (this->GetEchoLevel() >= 1)
         {
-          std::cout << "RESIDUAL (" << GetDofName() << ") :: Ratio = "<< ratio  << "; Norm = " << absolute_norm <<std::endl;
+          std::cout << "RESIDUAL (" << GetDofName() << ") ["<<rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]<<"] :: Ratio = "<< ratio  << "; Norm = " << absolute_norm <<std::endl;
         }
       }
 

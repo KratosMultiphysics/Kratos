@@ -54,10 +54,10 @@ public:
 	typedef std::vector< Ply > PlyCollection;
 
 	typedef std::size_t SizeType;
-	
+
 	///@name Enums
     ///@{
-	
+
 	/** SectionBehaviorType Enum
 	* Defines the supported behaviors of the cross section
 	*/
@@ -66,12 +66,12 @@ public:
 		Thick, /**< Thick section (Mindlin-Reissner Plate Theory) */
 		Thin /**< Thin section (Kirchhoff-Love Plate Theory) */
 	};
-	
+
 	///@}
-	
+
 	///@name Classes
     ///@{
-	
+
 	struct Features
 	{
 		Flags mOptions;
@@ -79,26 +79,26 @@ public:
 		double mSpaceDimension;
 		std::vector< ConstitutiveLaw::StrainMeasure > mStrainMeasures;
 	};
-	
+
 	class Parameters
 	{
-	
+
 	private:
-	
+
 		Flags                mOptions;
-		
+
 		Vector*              mpGeneralizedStrainVector;
-		Vector*              mpGeneralizedStressVector; 
+		Vector*              mpGeneralizedStressVector;
 		Matrix*              mpConstitutiveMatrix;
-		
+
 		const Vector*        mpShapeFunctionsValues;
 		const Matrix*        mpShapeFunctionsDerivatives;
 		const ProcessInfo*   mpCurrentProcessInfo;
 		const Properties*    mpMaterialProperties;
 		const GeometryType*  mpElementGeometry;
-		
+
 	public:
-		
+
 		Parameters()
 			: mpGeneralizedStrainVector(NULL)
 			, mpGeneralizedStressVector(NULL)
@@ -109,7 +109,7 @@ public:
 			, mpMaterialProperties(NULL)
 			, mpElementGeometry(NULL)
 		{}
-		
+
 		Parameters (const GeometryType& rElementGeometry,
 					const Properties& rMaterialProperties,
 					const ProcessInfo& rCurrentProcessInfo)
@@ -122,7 +122,7 @@ public:
 			, mpMaterialProperties(&rMaterialProperties)
 			, mpElementGeometry(&rElementGeometry)
 		{}
-		
+
 		Parameters (const Parameters & rNewParameters)
 			: mOptions(rNewParameters.mOptions)
 			, mpGeneralizedStrainVector(rNewParameters.mpGeneralizedStrainVector)
@@ -134,9 +134,9 @@ public:
 			, mpMaterialProperties(rNewParameters.mpMaterialProperties)
 			, mpElementGeometry(rNewParameters.mpElementGeometry)
 		{}
-		
+
 	public:
-		
+
 		/**
 		*Checks shape functions and shape function derivatives
 		*/
@@ -144,10 +144,10 @@ public:
 		{
 			if(!mpShapeFunctionsValues)
 				KRATOS_THROW_ERROR(std::invalid_argument,"ShapeFunctionsValues NOT SET","");
-			
+
 			if(!mpShapeFunctionsDerivatives)
 				KRATOS_THROW_ERROR(std::invalid_argument,"ShapeFunctionsDerivatives NOT SET","");
-			
+
 			return 1;
 		}
 
@@ -158,13 +158,13 @@ public:
 		{
 			if(!mpCurrentProcessInfo)
 				KRATOS_THROW_ERROR(std::invalid_argument,"CurrentProcessInfo NOT SET","");
-			
+
 			if(!mpMaterialProperties)
 				KRATOS_THROW_ERROR(std::invalid_argument,"MaterialProperties NOT SET","");
-			
+
 			if(!mpElementGeometry)
 				KRATOS_THROW_ERROR(std::invalid_argument,"ElementGeometry NOT SET","");
-			
+
 			return 1;
 		}
 
@@ -175,16 +175,16 @@ public:
 		{
 			if(!mpGeneralizedStrainVector)
 				KRATOS_THROW_ERROR(std::invalid_argument,"GenralizedStrainVector NOT SET","");
-			
+
 			if(!mpGeneralizedStressVector)
 				KRATOS_THROW_ERROR(std::invalid_argument,"GenralizedStressVector NOT SET","");
-			
+
 			if(!mpConstitutiveMatrix)
 				KRATOS_THROW_ERROR(std::invalid_argument,"ConstitutiveMatrix NOT SET","");
-			
+
 			return 1;
 		}
-		
+
 		/**
 		* Public Methods to access variables of the struct class
 		*/
@@ -192,68 +192,68 @@ public:
 		/**
 		* sets the variable or the pointer of a specified variable: assigns the direction of the pointer for the mpvariables, only non const values can be modified
 		*/
-		
+
 		void Set                             (Flags ThisFlag)                           {mOptions.Set(ThisFlag);};
 		void Reset                           (Flags ThisFlag)                           {mOptions.Reset(ThisFlag);};
-		
+
 		void SetOptions                      (const Flags&  rOptions)                   {mOptions=rOptions;};
-		
+
 		void SetGeneralizedStrainVector      (Vector& rGeneralizedStrainVector)         {mpGeneralizedStrainVector=&rGeneralizedStrainVector;};
-		void SetGeneralizedStressVector      (Vector& rGeneralizedStressVector)         {mpGeneralizedStressVector=&rGeneralizedStressVector;};     
+		void SetGeneralizedStressVector      (Vector& rGeneralizedStressVector)         {mpGeneralizedStressVector=&rGeneralizedStressVector;};
 		void SetConstitutiveMatrix           (Matrix& rConstitutiveMatrix)              {mpConstitutiveMatrix =&rConstitutiveMatrix;};
-		
+
 		void SetShapeFunctionsValues         (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
 		void SetShapeFunctionsDerivatives    (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
 		void SetProcessInfo                  (const ProcessInfo& rProcessInfo)          {mpCurrentProcessInfo =&rProcessInfo;};
 		void SetMaterialProperties           (const Properties&  rMaterialProperties)   {mpMaterialProperties =&rMaterialProperties;};
 		void SetElementGeometry              (const GeometryType& rElementGeometry)     {mpElementGeometry =&rElementGeometry;};
-		
+
 		/**
 		* returns the reference or the value of a specified variable: returns the value of the parameter, only non const values can be modified
 		*/
-		
+
 		Flags& GetOptions () {return mOptions;};
 
 		Vector& GetGeneralizedStrainVector         () {return *mpGeneralizedStrainVector;};
 		Vector& GetGeneralizedStressVector         () {return *mpGeneralizedStressVector;};
 		Matrix& GetConstitutiveMatrix              () {return *mpConstitutiveMatrix;};
-		
+
 		const Vector& GetShapeFunctionsValues      () {return *mpShapeFunctionsValues;};
 		const Matrix& GetShapeFunctionsDerivatives () {return *mpShapeFunctionsDerivatives;};
 		const ProcessInfo&  GetProcessInfo         () {return *mpCurrentProcessInfo;};
 		const Properties&   GetMaterialProperties  () {return *mpMaterialProperties;};
 		const GeometryType& GetElementGeometry     () {return *mpElementGeometry;};
 	};
-	
+
 	class IntegrationPoint
 	{
-	
+
 	private:
-		
+
 		double mWeight;
 		double mLocation;
 		ConstitutiveLaw::Pointer mConstitutiveLaw;
-		
+
 	public:
-		
+
 		IntegrationPoint()
 			: mWeight(0.0)
 			, mLocation(0.0)
 			, mConstitutiveLaw(ConstitutiveLaw::Pointer())
 		{}
-		
+
 		IntegrationPoint(double location, double weight, const ConstitutiveLaw::Pointer pMaterial)
 			: mWeight(weight)
 			, mLocation(location)
 			, mConstitutiveLaw(pMaterial)
 		{}
-		
+
 		IntegrationPoint(const IntegrationPoint& other)
 			: mWeight(other.mWeight)
 			, mLocation(other.mLocation)
 			, mConstitutiveLaw(other.mConstitutiveLaw != NULL ? other.mConstitutiveLaw->Clone() : ConstitutiveLaw::Pointer())
 		{}
-		
+
 		IntegrationPoint & operator = (const IntegrationPoint & other) {
 			if(this != &other) {
 				mWeight = other.mWeight;
@@ -262,24 +262,24 @@ public:
 			}
 			return *this;
 		}
-          
+
                 virtual ~IntegrationPoint(){};
-          
+
 	public:
-		
+
 		inline double GetWeight()const { return mWeight; }
 		inline void SetWeight(double w) { mWeight = w; }
-		
+
 		inline double GetLocation()const { return mLocation; }
 		inline void SetLocation(double l) { mLocation = l; }
-		
+
 		inline const ConstitutiveLaw::Pointer& GetConstitutiveLaw()const { return mConstitutiveLaw; }
 		inline void SetConstitutiveLaw(const ConstitutiveLaw::Pointer& pLaw) { mConstitutiveLaw = pLaw; }
-		
+
 	private:
-		
+
 		friend class Serializer;
-		
+
 		virtual void save(Serializer& rSerializer) const
 		{
 			rSerializer.save("W", mWeight);
@@ -294,24 +294,24 @@ public:
 			rSerializer.load("CLaw", mConstitutiveLaw);
 		}
 	};
-	
+
 	class Ply
 	{
-	
+
 	public:
-	
+
 		typedef std::vector< IntegrationPoint > IntegrationPointCollection;
-		
+
 	private:
-		
+
 		double mThickness;
 		double mLocation;
 		double mOrientationAngle;
 		IntegrationPointCollection mIntegrationPoints;
 		Properties::Pointer mpProperties;
-		
+
 	public:
-		
+
 		Ply()
 			: mThickness(0.0)
 			, mLocation(0.0)
@@ -319,17 +319,17 @@ public:
 			, mIntegrationPoints()
 			, mpProperties(Properties::Pointer())
 		{}
-		
+
 		Ply(double thickness, double location, double orientationAngle, int numPoints, const Properties::Pointer & pProperties)
 			: mThickness(thickness)
 			, mLocation(location)
 			, mIntegrationPoints()
-			, mpProperties(pProperties) 
+			, mpProperties(pProperties)
 		{
 			this->SetOrientationAngle(orientationAngle);
 			this->SetUpIntegrationPoints(numPoints);
 		}
-		
+
 		Ply(const Ply& other)
 			: mThickness(other.mThickness)
 			, mLocation(other.mLocation)
@@ -337,7 +337,7 @@ public:
 			, mIntegrationPoints(other.mIntegrationPoints)
 			, mpProperties(other.mpProperties)
 		{}
-		
+
 		Ply & operator = (const Ply & other) {
 			if(this != &other) {
 				mThickness = other.mThickness;
@@ -350,12 +350,12 @@ public:
 		}
 
                 virtual ~Ply(){};
-          
+
 	public:
-		
+
 		inline double GetThickness()const { return mThickness; }
 		inline void SetThickness(double thickness) { mThickness = thickness; }
-		
+
 		inline double GetLocation()const { return mLocation; }
 		inline void SetLocation(double location) {
 			if(location != mLocation) {
@@ -364,23 +364,23 @@ public:
 				mLocation = location; // update the current location
 			}
 		}
-		
+
 		inline double GetOrientationAngle()const { return mOrientationAngle; }
 		inline void SetOrientationAngle(double degrees) {
 			mOrientationAngle = std::fmod(degrees, 360.0);
 			if(mOrientationAngle < 0.0)
 				mOrientationAngle += 360.0;
 		}
-		
+
 		inline const IntegrationPointCollection& GetIntegrationPoints()const { return mIntegrationPoints; }
 		inline IntegrationPointCollection& GetIntegrationPoints() { return mIntegrationPoints; }
-		
+
 		inline const Properties::Pointer & GetPropertiesPointer()const { return mpProperties; }
-		
+
 		inline const Properties & GetProperties()const { return *mpProperties; }
-		
+
 		inline double CalculateMassPerUnitArea()const { return mpProperties->GetValue(DENSITY) * mThickness; }
-		
+
 		inline IntegrationPointCollection::size_type NumberOfIntegrationPoints()const { return mIntegrationPoints.size(); }
 
 		inline void SetConstitutiveLawAt(IntegrationPointCollection::size_type integrationPointID, const ConstitutiveLaw::Pointer& pNewConstitutiveLaw)
@@ -388,22 +388,22 @@ public:
 			if(integrationPointID < mIntegrationPoints.size())
 				mIntegrationPoints[integrationPointID].SetConstitutiveLaw(pNewConstitutiveLaw);
 		}
-		
+
 	private:
-		
+
 		void SetUpIntegrationPoints(int n)
 		{
 			KRATOS_TRY
-			
+
                             const ConstitutiveLaw::Pointer & pMaterial = GetProperties()[CONSTITUTIVE_LAW];
 			if(pMaterial == NULL)
                           KRATOS_THROW_ERROR(std::logic_error, "A Ply needs a constitutive law to be set. Missing constitutive law in property : ", GetProperties().Id());
-			
+
 			// make sure the number is greater than 0 and odd
 			if(n < 0) n = -n;
 			if(n == 0) n = 5;
 			if(n % 2 == 0) n += 1;
-			
+
 			// generate the weights (composite simpson rule)
 			Vector ip_w(n, 1.0);
 			if(n >= 3) {
@@ -413,7 +413,7 @@ public:
                           }
                           ip_w /= sum( ip_w );
 			}
-			
+
 			// generate locations (direction: top(+thickness/2) to bottom(-thickness/2)
 			Vector ip_loc(n, 0.0);
 			if(n >= 3) {
@@ -424,7 +424,7 @@ public:
                             loc_start -= loc_incr;
                           }
 			}
-			
+
 			// generate the integration points
 			mIntegrationPoints.clear();
 			mIntegrationPoints.resize(n);
@@ -434,14 +434,14 @@ public:
                           intp.SetLocation(ip_loc(i));
                           intp.SetConstitutiveLaw(pMaterial->Clone());
 			}
-			
+
 			KRATOS_CATCH("")
                             }
-		
+
          private:
-		
+
           friend class Serializer;
-		
+
           virtual void save(Serializer& rSerializer) const
           {
             rSerializer.save("T", mThickness);
@@ -459,41 +459,41 @@ public:
             rSerializer.load("IntP", mIntegrationPoints);
             rSerializer.load("Prop", mpProperties);
           }
-		
+
 	};
-	
+
  protected:
-	
+
   struct ElementVariables
   {
     double DeterminantF;
     double DeterminantF0;
-		
+
     Vector StrainVector_2D;
     Vector StressVector_2D;
     Matrix ConstitutiveMatrix_2D;
     Matrix DeformationGradientF_2D;
     Matrix DeformationGradientF0_2D;
-		
+
     Vector StrainVector_3D;
     Vector StressVector_3D;
     Matrix ConstitutiveMatrix_3D;
     Matrix DeformationGradientF_3D;
     Matrix DeformationGradientF0_3D;
-		
+
     double GYZ;
     double GXZ;
-		
+
     Matrix H;
     Matrix L;
     Matrix LT;
     Vector CondensedStressVector;
   };
-	
+
   ///@}
 
  public:
-	
+
   ///@name Life Cycle
   ///@{
 
@@ -511,7 +511,7 @@ public:
   /**
    * Destructor
    */
-  ~ShellCrossSection();
+  ~ShellCrossSection() override;
 
   ///@}
 
@@ -541,8 +541,8 @@ public:
    * After the stack is properly set it is necessary to call EndStack() to finalize the stack editing.
    * @param thickness the thickness of the new ply.
    * @param orientationAngle the angle (degrees) between the new ply and the cross section.
-   * @param numPoints the number of integration points. can be 1,3,5,7,9,... and so on. 
-   For numPoints = 3, the Simpson rule is used. 
+   * @param numPoints the number of integration points. can be 1,3,5,7,9,... and so on.
+   For numPoints = 3, the Simpson rule is used.
    For numPoints = odd number > 3, the composite Simpson rule is used.
    * @param pProperties the pointer to the properties assigned to the new ply.
    */
@@ -558,7 +558,7 @@ public:
    * @return the string with informations
    */
   virtual std::string GetInfo()const;
-	
+
   /**
    * Clone function
    * @return a pointer to a new instance of this cross section
@@ -660,9 +660,9 @@ public:
    * @param rCurrentProcessInfo the process info
    */
   virtual void SetValue(const Variable<Vector >& rVariable,
-                        const Vector& rValue, 
+                        const Vector& rValue,
                         const ProcessInfo& rCurrentProcessInfo);
- 
+
   /**
    * sets the value of a specified variable
    * @param rVariable the variable to be returned
@@ -670,7 +670,7 @@ public:
    * @param rCurrentProcessInfo the process info
    */
   virtual void SetValue(const Variable<Matrix >& rVariable,
-                        const Matrix& rValue, 
+                        const Matrix& rValue,
                         const ProcessInfo& rCurrentProcessInfo);
 
   /**
@@ -774,7 +774,7 @@ public:
    * @see Parameters
    */
   virtual void CalculateSectionResponse(Parameters& rValues, const ConstitutiveLaw::StressMeasure& rStressMeasure);
-	
+
   /**
    * Updates the section response, called by the element in FinalizeSolutionStep.
    * @param rValues the parameters for the current calculation
@@ -793,7 +793,7 @@ public:
   virtual void ResetCrossSection(const Properties& rMaterialProperties,
                                  const GeometryType& rElementGeometry,
                                  const Vector& rShapeFunctionsValues);
-	
+
   /**
    * This function is designed to be called once to perform all the checks needed
    * on the input provided. Checks can be "expensive" as the function is designed
@@ -806,7 +806,7 @@ public:
   virtual int Check(const Properties& rMaterialProperties,
                     const GeometryType& rElementGeometry,
                     const ProcessInfo& rCurrentProcessInfo);
-	
+
   /**
    * Computes the transformations matrix for shell generalized strains, given an orientation angle in radians.
    * @param radians the input angle in radians
@@ -819,7 +819,7 @@ public:
     double s = std::sin(radians);
 
     SizeType strain_size = GetStrainSize();
-		
+
     if(T.size1() != strain_size || T.size2() != strain_size)
       T.resize(strain_size, strain_size, false);
     noalias( T ) = ZeroMatrix(strain_size, strain_size);
@@ -836,7 +836,7 @@ public:
       T(7, 6) = - s;		T(7, 7) = c;
     }
   }
-	
+
   /**
    * Computes the transformations matrix for condensed strains, given an orientation angle in radians.
    * @param radians the input angle in radians
@@ -846,7 +846,7 @@ public:
   inline void GetRotationMatrixForCondensedStrains(double radians, Matrix & T)
   {
     SizeType strain_size = GetCondensedStrainSize();
-		
+
     if(T.size1() != strain_size || T.size2() != strain_size)
       T.resize(strain_size, strain_size, false);
     noalias( T ) = ZeroMatrix(strain_size, strain_size);
@@ -875,7 +875,7 @@ public:
     double s = std::sin(radians);
 
     SizeType strain_size = GetStrainSize();
-		
+
     if(T.size1() != strain_size || T.size2() != strain_size)
       T.resize(strain_size, strain_size, false);
     noalias( T ) = ZeroMatrix(strain_size, strain_size);
@@ -892,7 +892,7 @@ public:
       T(7, 6) = - s;		T(7, 7) = c;
     }
   }
-	
+
   /**
    * Computes the transformations matrix for condensed stresses, given an orientation angle in radians.
    * @param radians the input angle in radians
@@ -902,7 +902,7 @@ public:
   inline void GetRotationMatrixForCondensedStresses(double radians, Matrix & T)
   {
     SizeType strain_size = GetCondensedStrainSize();
-		
+
     if(T.size1() != strain_size || T.size2() != strain_size)
       T.resize(strain_size, strain_size, false);
     noalias( T ) = ZeroMatrix(strain_size, strain_size);
@@ -918,11 +918,11 @@ public:
       T(2, 1) = - s;		T(2, 2) = c;
     }
   }
-	
+
   ///@}
 
  public:
-	
+
   ///@name Public Access
   ///@{
 
@@ -1045,7 +1045,7 @@ public:
   {
     return mBehavior;
   }
-	
+
   /**
    * Sets the behavior of this cross section (thin/thick)
    * @param behavior the section behavior
@@ -1054,7 +1054,7 @@ public:
   {
     mBehavior = behavior;
   }
-	
+
   /**
    * Returns the size of the generalized strain vector of this cross section,
    * 8 for thick sections and 6 for Thin sections
@@ -1064,7 +1064,7 @@ public:
   {
     return (mBehavior == Thick) ? 8 : 6;
   }
-	
+
   /**
    * Returns the size of the condensed strain vector of this cross section,
    * 1 for thick sections and 3 for Thin sections
@@ -1074,7 +1074,7 @@ public:
   {
     return (mBehavior == Thick) ? 1 : 3;
   }
-	
+
   /**
    * Returns the stiffness value to be used for the drilling part of the shell formulation
    * @return the drilling stiffness
@@ -1090,14 +1090,14 @@ public:
 
   ///@name Private Methods
   ///@{
-	
+
   void InitializeParameters(Parameters& rValues, ConstitutiveLaw::Parameters& rMaterialValues, ElementVariables& rVariables);
-	
+
   void UpdateIntegrationPointParameters(IntegrationPoint& rPoint, ConstitutiveLaw::Parameters& rMaterialValues, ElementVariables& rVariables);
-	
-  void CalculateIntegrationPointResponse(IntegrationPoint& rPoint, 
+
+  void CalculateIntegrationPointResponse(IntegrationPoint& rPoint,
                                          ConstitutiveLaw::Parameters& rMaterialValues,
-                                         Parameters& rValues, 
+                                         Parameters& rValues,
                                          ElementVariables& rVariables,
                                          const ConstitutiveLaw::StressMeasure& rStressMeasure);
 
@@ -1114,9 +1114,9 @@ public:
 
   ///@name Private Methods
   ///@{
-	
+
   ///@}
-	
+
  private:
 
   ///@name Member Variables
@@ -1134,7 +1134,7 @@ public:
   bool mNeedsOOPCondensation;
   Vector mOOP_CondensedStrains;
   Vector mOOP_CondensedStrains_converged;
-	
+
   ///@}
 
   ///@name Serialization
@@ -1142,7 +1142,7 @@ public:
 
   friend class Serializer;
 
-  virtual void save(Serializer& rSerializer) const override
+  void save(Serializer& rSerializer) const override
   {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
     rSerializer.save("th", mThickness);
@@ -1160,7 +1160,7 @@ public:
     rSerializer.save("OOP_eps", mOOP_CondensedStrains_converged);
   }
 
-  virtual void load(Serializer& rSerializer) override
+  void load(Serializer& rSerializer) override
   {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
     rSerializer.load("th", mThickness);
@@ -1179,7 +1179,7 @@ public:
     rSerializer.load("hasOOP", mNeedsOOPCondensation);
     rSerializer.load("OOP_eps", mOOP_CondensedStrains_converged);
   }
-	
+
   ///@}
 
  public:

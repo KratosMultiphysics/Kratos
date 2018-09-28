@@ -1,14 +1,14 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.PfemApplication as KratosPfem
+import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 KratosMultiphysics.CheckForPreviousImport()
 
 from multiprocessing import Pool
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if( not isinstance(settings,KratosMultiphysics.Parameters) ):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return ParametricWallsProcess(Model, settings["Parameters"])
 
@@ -67,7 +67,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
             wall = parametric_wall_module.CreateParametricWall(self.main_model_part, item)
             self.parametric_walls.append(wall)
 
-        # mesh modeler initial values
+        # mesh mesher initial values
         self.search_contact_active = False
         if( self.number_of_walls ):
             self.search_contact_active = True

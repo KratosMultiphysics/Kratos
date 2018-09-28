@@ -16,12 +16,14 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
 
         default_settings = KratosMultiphysics.Parameters("""
             {
+                "help"                 : "This process checks analytically from a function the solution (vector) in a set of nodes belonging a certain submodelpart",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "SPECIFY_VARIABLE_NAME",
                 "interval"             : [0.0, 1e30],
                 "value"                : [10.0, "3*t", "x+y"],
                 "tolerance_rank"       : 3, 
+                "reference_conf"       : false,
                 "local_axes"           : {}
             }
             """
@@ -57,6 +59,7 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
             x_params.AddValue("interval",settings["interval"])
             x_params.AddValue("value",settings["value"][0])
             x_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_X")
+            x_params.AddValue("reference_conf",settings["reference_conf"])
             x_params.AddValue("local_axes",settings["local_axes"])
             self.aux_processes.append( check_scalar_to_nodes_process.CheckScalarToNodesProcess(Model, x_params) )
 
@@ -69,6 +72,7 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
             y_params.AddValue("interval",settings["interval"])
             y_params.AddValue("value",settings["value"][1])
             y_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Y")
+            y_params.AddValue("reference_conf",settings["reference_conf"])
             y_params.AddValue("local_axes",settings["local_axes"])
             self.aux_processes.append( check_scalar_to_nodes_process.CheckScalarToNodesProcess(Model, y_params) )
 
@@ -81,6 +85,7 @@ class CheckVectorComponentsToNodesProcess(KratosMultiphysics.Process, KratosUnit
             z_params.AddValue("interval",settings["interval"])
             z_params.AddValue("value",settings["value"][2])
             z_params.AddEmptyValue("variable_name").SetString(settings["variable_name"].GetString() + "_Z")
+            z_params.AddValue("reference_conf",settings["reference_conf"])
             z_params.AddValue("local_axes",settings["local_axes"])
             self.aux_processes.append( check_scalar_to_nodes_process.CheckScalarToNodesProcess(Model, z_params) )
 

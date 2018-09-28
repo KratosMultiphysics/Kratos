@@ -22,11 +22,12 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "embedded_solver_from_defaults",
-            "model_part_name": "FluidModelPart",
-            "domain_size": 2,
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "unknown_name"
+                "input_filename": "unknown_name",
+                "reorder": false
             },
             "distance_reading_settings"    : {
                 "import_mode"         : "from_mdpa",
@@ -55,8 +56,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 "maximum_delta_time"  : 1.0
             },
             "periodic": "periodic",
-            "move_mesh_flag": false,
-            "reorder": false
+            "move_mesh_flag": false
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -129,7 +129,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         # Creating the solution strategy
         self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),

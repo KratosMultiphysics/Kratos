@@ -330,9 +330,9 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUJWwPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void AxisymUpdatedLagrangianUJWwPElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
-      AxisymUpdatedLagrangianUJElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+      AxisymUpdatedLagrangianUJElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
       // SAVE THE TIME STEP, THAT WILL BE USED; BUT IS A BAD IDEA TO DO IT THIS WAY.
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
@@ -411,7 +411,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -465,7 +465,7 @@ namespace Kratos
 
    // **********************************************************************************
    //          Matrix that may appear due to the stabilization matrix 
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddKPPStab( MatrixType & rLeftHandSideMatrix,ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddKPPStab( MatrixType & rLeftHandSideMatrix,ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -474,7 +474,7 @@ namespace Kratos
 
    // **********************************************************************************
    //          Matrix that may appear due to the high order terms
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderKPP( MatrixType & rLeftHandSideMatrix,ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderKPP( MatrixType & rLeftHandSideMatrix,ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -483,7 +483,7 @@ namespace Kratos
 
    //************************************************************************************
    //         Matrix due to the the water pressure contribution to the internal forces   
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -522,7 +522,7 @@ namespace Kratos
 
    //************************************************************************************
    //      Water material Matrix
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddKWwP( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddKWwP( MatrixType & rLeftHandSide, ElementDataType& rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -561,7 +561,7 @@ namespace Kratos
 
    // ***********************************************************************************
    // ***********************************************************************************
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -621,7 +621,7 @@ namespace Kratos
 
    // *********************************************************************************
    //    part of the RHS that goes directly to the RHS
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddStabilizationRHS( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddStabilizationRHS( VectorType & rRightHandSideVector, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -630,7 +630,7 @@ namespace Kratos
 
    // *********************************************************************************
    //    High order part of the RHS that goes directly to the RHS
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderRHS( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderRHS( VectorType & rRightHandSideVector, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -639,7 +639,7 @@ namespace Kratos
 
    // **********************************************************************************
    //    mass balance equation of the mixture (aka: Darcy's Law ) 
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddMassBalanceEquation( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddMassBalanceEquation( VectorType & rRightHandSideVector, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
       // a convective term may go here. not coded yet. 
@@ -648,7 +648,7 @@ namespace Kratos
 
    // **********************************************************************************
    //    linear momentum balance equation of the fluid phase (aka: Darcy's Law ) 
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddFluidLinearMomentum( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddFluidLinearMomentum( VectorType & rRightHandSideVector, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -686,7 +686,7 @@ namespace Kratos
 
    // **************************************************************************
    // Calculate and Add volumetric loads
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddExternalForcesUJWwP( VectorType & rRightHandSideVector, ElementVariables & rVariables, 
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddExternalForcesUJWwP( VectorType & rRightHandSideVector, ElementDataType & rVariables, 
          Vector & rVolumeForce, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -730,7 +730,7 @@ namespace Kratos
    // **********************************************************************************
    //         CalculateAndAddInternalForces
    void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddInternalWaterForces(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight
          )
    {
@@ -786,8 +786,8 @@ namespace Kratos
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
@@ -829,7 +829,7 @@ namespace Kratos
 
    // ********************************************************************************
    //      part of the mass matrix that steams from the stabilization factor
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -838,7 +838,7 @@ namespace Kratos
 
    // ********************************************************************************
    //      part of the damping matrix coming from the high order terms
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderDampingMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderDampingMatrix( MatrixType & rDampingMatrix, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -867,8 +867,8 @@ namespace Kratos
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
 
 
@@ -946,7 +946,7 @@ namespace Kratos
 
    // ********************************************************************************
    //      part of the damping matrix that steams from the stabilization factor
-   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -986,7 +986,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   double & AxisymUpdatedLagrangianUJWwPElement::CalculateStabilizationFactor( ElementVariables & rVariables, double & rStabFactor)
+   double & AxisymUpdatedLagrangianUJWwPElement::CalculateStabilizationFactor( ElementDataType & rVariables, double & rStabFactor)
    {
       KRATOS_TRY
 

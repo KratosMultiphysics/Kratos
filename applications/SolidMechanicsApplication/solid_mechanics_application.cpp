@@ -59,411 +59,431 @@ namespace Kratos {
 KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
     : KratosApplication("SolidMechanicsApplication"),
       mLinearSolidElement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Triangle2D3<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(3))),
       mLinearSolidElement2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Quadrilateral2D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mLinearSolidElement3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Tetrahedra3D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mLinearSolidElement3D8N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Hexahedra3D8<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(8))),
 
       mSmallDisplacementElement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Triangle2D3<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(3))),
       mSmallDisplacementElement2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Quadrilateral2D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mSmallDisplacementElement2D6N(
-          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Triangle2D6<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(6))),
       mSmallDisplacementElement2D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Quadrilateral2D8<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(8))),
       mSmallDisplacementElement2D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
+          0, Kratos::make_shared< Quadrilateral2D9<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(9))),
       mSmallDisplacementElement3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Tetrahedra3D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mSmallDisplacementElement3D6N(
-          0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Prism3D6<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(6))),
       mSmallDisplacementElement3D8N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Hexahedra3D8<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(8))),
       mSmallDisplacementElement3D10N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(
-                 Element::GeometryType::PointsArrayType(10)))),
+          0, Kratos::make_shared< Tetrahedra3D10<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(10))),
       mSmallDisplacementElement3D15N(
-          0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(
-                 Element::GeometryType::PointsArrayType(15)))),
+          0, Kratos::make_shared< Prism3D15<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(15))),
       mSmallDisplacementElement3D20N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(
-                 Element::GeometryType::PointsArrayType(20)))),
+          0, Kratos::make_shared< Hexahedra3D20<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(20))),
       mSmallDisplacementElement3D27N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(
-                 Element::GeometryType::PointsArrayType(27)))),
+          0, Kratos::make_shared< Hexahedra3D27<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(27))),
 
       mSmallDisplacementBbarElement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Triangle2D3<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(3))),
       mSmallDisplacementBbarElement2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Quadrilateral2D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mSmallDisplacementBbarElement2D6N(
-          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Triangle2D6<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(6))),
       mSmallDisplacementBbarElement2D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Quadrilateral2D8<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(8))),
       mSmallDisplacementBbarElement2D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
+          0, Kratos::make_shared< Quadrilateral2D9<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(9))),
       mSmallDisplacementBbarElement3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Tetrahedra3D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mSmallDisplacementBbarElement3D6N(
-          0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Prism3D6<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(6))),
       mSmallDisplacementBbarElement3D8N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Hexahedra3D8<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(8))),
       mSmallDisplacementBbarElement3D10N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(
-                 Element::GeometryType::PointsArrayType(10)))),
+          0, Kratos::make_shared< Tetrahedra3D10<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(10))),
       mSmallDisplacementBbarElement3D15N(
-          0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(
-                 Element::GeometryType::PointsArrayType(15)))),
+          0, Kratos::make_shared< Prism3D15<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(15))),
       mSmallDisplacementBbarElement3D20N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(
-                 Element::GeometryType::PointsArrayType(20)))),
+          0, Kratos::make_shared< Hexahedra3D20<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(20))),
       mSmallDisplacementBbarElement3D27N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(
-                 Element::GeometryType::PointsArrayType(27)))),
+          0, Kratos::make_shared< Hexahedra3D27<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(27))),
 
       mAxisymSmallDisplacementElement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Triangle2D3<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(3))),
       mAxisymSmallDisplacementElement2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Quadrilateral2D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mAxisymSmallDisplacementElement2D6N(
-          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Triangle2D6<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(6))),
       mAxisymSmallDisplacementElement2D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Quadrilateral2D8<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(8))),
       mAxisymSmallDisplacementElement2D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
+          0, Kratos::make_shared< Quadrilateral2D9<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(9))),
 
       mTotalLagrangianElement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Triangle2D3<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(3))),
       mTotalLagrangianElement2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Quadrilateral2D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mTotalLagrangianElement2D6N(
-          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Triangle2D6<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(6))),
       mTotalLagrangianElement2D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Quadrilateral2D8<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(8))),
       mTotalLagrangianElement2D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
+          0, Kratos::make_shared< Quadrilateral2D9<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(9))),
       mTotalLagrangianElement3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Tetrahedra3D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mTotalLagrangianElement3D6N(
-          0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Prism3D6<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(6))),
       mTotalLagrangianElement3D8N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Hexahedra3D8<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(8))),
       mTotalLagrangianElement3D10N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(
-                 Element::GeometryType::PointsArrayType(10)))),
+          0, Kratos::make_shared< Tetrahedra3D10<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(10))),
       mTotalLagrangianElement3D15N(
-          0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(
-                 Element::GeometryType::PointsArrayType(15)))),
+          0, Kratos::make_shared< Prism3D15<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(15))),
       mTotalLagrangianElement3D20N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(
-                 Element::GeometryType::PointsArrayType(20)))),
+          0, Kratos::make_shared< Hexahedra3D20<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(20))),
       mTotalLagrangianElement3D27N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(
-                 Element::GeometryType::PointsArrayType(27)))),
+          0, Kratos::make_shared< Hexahedra3D27<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(27))),
 
       mUpdatedLagrangianElement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Triangle2D3<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(3))),
       mUpdatedLagrangianElement2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Quadrilateral2D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mUpdatedLagrangianElement2D6N(
-          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Triangle2D6<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(6))),
       mUpdatedLagrangianElement2D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Quadrilateral2D8<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(8))),
       mUpdatedLagrangianElement2D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
+          0, Kratos::make_shared< Quadrilateral2D9<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(9))),
       mUpdatedLagrangianElement3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Tetrahedra3D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mUpdatedLagrangianElement3D6N(
-          0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Prism3D6<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(6))),
       mUpdatedLagrangianElement3D8N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Hexahedra3D8<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(8))),
       mUpdatedLagrangianElement3D10N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(
-                 Element::GeometryType::PointsArrayType(10)))),
+          0, Kratos::make_shared< Tetrahedra3D10<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(10))),
       mUpdatedLagrangianElement3D15N(
-          0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(
-                 Element::GeometryType::PointsArrayType(15)))),
+          0, Kratos::make_shared< Prism3D15<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(15))),
       mUpdatedLagrangianElement3D20N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(
-                 Element::GeometryType::PointsArrayType(20)))),
+          0, Kratos::make_shared< Hexahedra3D20<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(20))),
       mUpdatedLagrangianElement3D27N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(
-                 Element::GeometryType::PointsArrayType(27)))),
+          0, Kratos::make_shared< Hexahedra3D27<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(27))),
       mAxisymUpdatedLagrangianElement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Triangle2D3<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(3))),
       mAxisymUpdatedLagrangianElement2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Quadrilateral2D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mAxisymUpdatedLagrangianElement2D6N(
-          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Triangle2D6<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(6))),
       mAxisymUpdatedLagrangianElement2D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Quadrilateral2D8<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(8))),
       mAxisymUpdatedLagrangianElement2D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
+          0, Kratos::make_shared< Quadrilateral2D9<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(9))),
 
       mUpdatedLagrangianVElement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Triangle2D3<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(3))),
       mUpdatedLagrangianVElement2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Quadrilateral2D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mUpdatedLagrangianVElement2D6N(
-          0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Triangle2D6<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(6))),
       mUpdatedLagrangianVElement2D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Quadrilateral2D8<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(8))),
       mUpdatedLagrangianVElement2D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
+          0, Kratos::make_shared< Quadrilateral2D9<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(9))),
       mUpdatedLagrangianVElement3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Tetrahedra3D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
       mUpdatedLagrangianVElement3D6N(
-          0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Prism3D6<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(6))),
       mUpdatedLagrangianVElement3D8N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Hexahedra3D8<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(8))),
       mUpdatedLagrangianVElement3D10N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(
-                 Element::GeometryType::PointsArrayType(10)))),
+          0, Kratos::make_shared< Tetrahedra3D10<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(10))),
       mUpdatedLagrangianVElement3D15N(
-          0, Element::GeometryType::Pointer(new Prism3D15<Node<3> >(
-                 Element::GeometryType::PointsArrayType(15)))),
+          0, Kratos::make_shared< Prism3D15<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(15))),
       mUpdatedLagrangianVElement3D20N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D20<Node<3> >(
-                 Element::GeometryType::PointsArrayType(20)))),
+          0, Kratos::make_shared< Hexahedra3D20<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(20))),
       mUpdatedLagrangianVElement3D27N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(
-                 Element::GeometryType::PointsArrayType(27)))),
-      
+          0, Kratos::make_shared< Hexahedra3D27<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(27))),
+
+      mUpdatedLagrangianSegregatedVPElement2D3N(
+          0, Kratos::make_shared< Triangle2D3<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(3))),
+      mUpdatedLagrangianSegregatedVPElement3D4N(
+          0, Kratos::make_shared< Tetrahedra3D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
+
       mUpdatedLagrangianUPElement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Triangle2D3<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(3))),
       mAxisymUpdatedLagrangianUPElement2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Triangle2D3<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(3))),
       mUpdatedLagrangianUPElement3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Tetrahedra3D4<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(4))),
 
       mSmallDisplacementBeamElement3D2N(
-          0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
-                 Element::GeometryType::PointsArrayType(2)))),
+          0, Kratos::make_shared< Line3D2<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(2))),
       mLargeDisplacementBeamElement3D2N(
-          0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
-                 Element::GeometryType::PointsArrayType(2)))),
+          0, Kratos::make_shared< Line3D2<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(2))),
       mLargeDisplacementBeamElement3D3N(
-          0, Element::GeometryType::Pointer(new Line3D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Line3D3<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(3))),
       mLargeDisplacementBeamEMCElement3D2N(
-          0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
-                 Element::GeometryType::PointsArrayType(2)))),
+          0, Kratos::make_shared< Line3D2<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(2))),
       mLargeDisplacementBeamEMCElement3D3N(
-          0, Element::GeometryType::Pointer(new Line3D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),      
+          0, Kratos::make_shared< Line3D3<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(3))),
       mLargeDisplacementBeamSEMCElement3D2N(
-          0, Element::GeometryType::Pointer(new LineGaussLobatto3D2<Node<3> >(
-                 Element::GeometryType::PointsArrayType(2)))),
+          0, Kratos::make_shared< LineGaussLobatto3D2<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(2))),
       mGeometricallyExactRodElement3D2N(
-          0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
-                 Element::GeometryType::PointsArrayType(2)))),
+          0, Kratos::make_shared< Line3D2<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(2))),
       mLargeDisplacementBeamElement2D2N(
-          0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(
-                 Element::GeometryType::PointsArrayType(2)))),
-      
+          0, Kratos::make_shared< Line2D2<Node<3> > >(
+                 Element::GeometryType::PointsArrayType(2))),
+
       mShellThickElement3D4N(0,
-          Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-              Element::GeometryType::PointsArrayType(4))),
+          Kratos::make_shared< Quadrilateral3D4<Node<3> > >(
+              Element::GeometryType::PointsArrayType(4)),
           false),
       mShellThickCorotationalElement3D4N(0,
-          Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-              Element::GeometryType::PointsArrayType(4))),
+          Kratos::make_shared< Quadrilateral3D4<Node<3> > >(
+              Element::GeometryType::PointsArrayType(4)),
           true),
       mShellThinElement3D3N(0,
-          Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-              Element::GeometryType::PointsArrayType(3))),
+          Kratos::make_shared< Triangle3D3<Node<3> > >(
+              Element::GeometryType::PointsArrayType(3)),
           false),
       mShellThinCorotationalElement3D3N(0,
-          Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-              Element::GeometryType::PointsArrayType(3))),
+          Kratos::make_shared< Triangle3D3<Node<3> > >(
+              Element::GeometryType::PointsArrayType(3)),
           true),
 
+      mThermalElement2D3N(0,
+           Kratos::make_shared< Triangle2D3<Node<3> > >(
+               Element::GeometryType::PointsArrayType(3))),
+      mThermalElement3D4N(0,
+           Kratos::make_shared< Tetrahedra3D4<Node<3> > >(
+               Element::GeometryType::PointsArrayType(4))),
+      mAxisymThermalElement2D3N(0,
+           Kratos::make_shared< Triangle2D3<Node<3> > >(
+               Element::GeometryType::PointsArrayType(3))),
+
       mPointLoadCondition3D1N(
-          0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
+          0, Kratos::make_shared< Point3D<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(1))),
       mPointLoadCondition2D1N(
-          0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
+          0, Kratos::make_shared< Point2D<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(1))),
       mAxisymPointLoadCondition2D1N(
-          0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
+          0, Kratos::make_shared< Point2D<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(1))),
 
       mLineLoadCondition3D2N(
-          0, Condition::GeometryType::Pointer(new Line3D2<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(2)))),
+          0, Kratos::make_shared< Line3D2<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(2))),
       mLineLoadCondition3D3N(
-          0, Condition::GeometryType::Pointer(new Line3D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Line3D3<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(3))),
       mLineLoadCondition2D2N(
-          0, Condition::GeometryType::Pointer(new Line2D2<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(2)))),
+          0, Kratos::make_shared< Line2D2<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(2))),
       mLineLoadCondition2D3N(
-          0, Condition::GeometryType::Pointer(new Line2D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Line2D3<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(3))),
       mAxisymLineLoadCondition2D2N(
-          0, Condition::GeometryType::Pointer(new Line2D2<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(2)))),
+          0, Kratos::make_shared< Line2D2<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(2))),
       mAxisymLineLoadCondition2D3N(
-          0, Condition::GeometryType::Pointer(new Line2D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Line2D3<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(3))),
 
       mSurfaceLoadCondition3D3N(
-          0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Triangle3D3<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(3))),
       mSurfaceLoadCondition3D4N(
-          0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Quadrilateral3D4<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(4))),
       mSurfaceLoadCondition3D6N(
-          0, Condition::GeometryType::Pointer(new Triangle3D6<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Triangle3D6<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(6))),
       mSurfaceLoadCondition3D8N(
-          0, Condition::GeometryType::Pointer(new Quadrilateral3D8<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Quadrilateral3D8<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(8))),
       mSurfaceLoadCondition3D9N(
-          0, Condition::GeometryType::Pointer(new Quadrilateral3D9<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(9)))),
+          0, Kratos::make_shared< Quadrilateral3D9<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(9))),
 
       mPointMomentCondition3D1N(
-          0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
+          0, Kratos::make_shared< Point3D<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(1))),
       mPointMomentCondition2D1N(
-          0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
+          0, Kratos::make_shared< Point2D<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(1))),
 
       mLineMomentCondition3D2N(
-          0, Condition::GeometryType::Pointer(new Line3D2<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(2)))),
+          0, Kratos::make_shared< Line3D2<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(2))),
       mLineMomentCondition3D3N(
-          0, Condition::GeometryType::Pointer(new Line3D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Line3D3<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(3))),
       mLineMomentCondition2D2N(
-          0, Condition::GeometryType::Pointer(new Line2D2<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(2)))),
+          0, Kratos::make_shared< Line2D2<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(2))),
       mLineMomentCondition2D3N(
-          0, Condition::GeometryType::Pointer(new Line2D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Line2D3<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(3))),
 
       mSurfaceMomentCondition3D3N(
-          0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Triangle3D3<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(3))),
       mSurfaceMomentCondition3D4N(
-          0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Quadrilateral3D4<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(4))),
       mSurfaceMomentCondition3D6N(
-          0, Condition::GeometryType::Pointer(new Triangle3D6<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Triangle3D6<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(6))),
       mSurfaceMomentCondition3D8N(
-          0, Condition::GeometryType::Pointer(new Quadrilateral3D8<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Quadrilateral3D8<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(8))),
       mSurfaceMomentCondition3D9N(
-          0, Condition::GeometryType::Pointer(new Quadrilateral3D9<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(9)))),
+          0, Kratos::make_shared< Quadrilateral3D9<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(9))),
 
       mPointElasticCondition3D1N(
-          0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
+          0, Kratos::make_shared< Point3D<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(1))),
       mPointElasticCondition2D1N(
-          0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
+          0, Kratos::make_shared< Point2D<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(1))),
       mAxisymPointElasticCondition2D1N(
-          0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
+          0, Kratos::make_shared< Point2D<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(1))),
 
       mLineElasticCondition3D2N(
-          0, Condition::GeometryType::Pointer(new Line3D2<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(2)))),
+          0, Kratos::make_shared< Line3D2<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(2))),
       mLineElasticCondition3D3N(
-          0, Condition::GeometryType::Pointer(new Line3D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Line3D3<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(3))),
       mLineElasticCondition2D2N(
-          0, Condition::GeometryType::Pointer(new Line2D2<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(2)))),
+          0, Kratos::make_shared< Line2D2<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(2))),
       mLineElasticCondition2D3N(
-          0, Condition::GeometryType::Pointer(new Line2D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Line2D3<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(3))),
       mAxisymLineElasticCondition2D2N(
-          0, Condition::GeometryType::Pointer(new Line2D2<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(2)))),
+          0, Kratos::make_shared< Line2D2<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(2))),
       mAxisymLineElasticCondition2D3N(
-          0, Condition::GeometryType::Pointer(new Line2D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Line2D3<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(3))),
 
       mSurfaceElasticCondition3D3N(
-          0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(3)))),
+          0, Kratos::make_shared< Triangle3D3<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(3))),
       mSurfaceElasticCondition3D4N(
-          0, Condition::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(4)))),
+          0, Kratos::make_shared< Quadrilateral3D4<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(4))),
       mSurfaceElasticCondition3D6N(
-          0, Condition::GeometryType::Pointer(new Triangle3D6<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(6)))),
+          0, Kratos::make_shared< Triangle3D6<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(6))),
       mSurfaceElasticCondition3D8N(
-          0, Condition::GeometryType::Pointer(new Quadrilateral3D8<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(8)))),
+          0, Kratos::make_shared< Quadrilateral3D8<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(8))),
       mSurfaceElasticCondition3D9N(
-          0, Condition::GeometryType::Pointer(new Quadrilateral3D9<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(9))))
+          0, Kratos::make_shared< Quadrilateral3D9<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(9))),
+      mLineHeatFluxCondition2D2N(
+          0, Kratos::make_shared< Line2D2<Node<3> > >(
+                 Condition::GeometryType::PointsArrayType(2)))
 
 {}
 
@@ -486,17 +506,22 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(EIGENVECTOR_MATRIX)
 
     //integration methods
-    KRATOS_REGISTER_VARIABLE(VECTOR_TIME_INTEGRATION_METHODS)  
-    KRATOS_REGISTER_VARIABLE(SCALAR_TIME_INTEGRATION_METHODS)  
-    KRATOS_REGISTER_VARIABLE(COMPONENT_TIME_INTEGRATION_METHODS)  
-        
+    KRATOS_REGISTER_VARIABLE(VECTOR_TIME_INTEGRATION_METHODS)
+    KRATOS_REGISTER_VARIABLE(SCALAR_TIME_INTEGRATION_METHODS)
+    KRATOS_REGISTER_VARIABLE(COMPONENT_TIME_INTEGRATION_METHODS)
+
     //explicit schemes
-    KRATOS_REGISTER_VARIABLE(COMPUTE_CONSISTENT_MASS_MATRIX)        
+    KRATOS_REGISTER_VARIABLE(COMPUTE_CONSISTENT_MASS_MATRIX)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
+    //variables
+    KRATOS_REGISTER_VARIABLE( PRESSURE_VELOCITY )
+    KRATOS_REGISTER_VARIABLE( PRESSURE_ACCELERATION )
+
     //solution
+    KRATOS_REGISTER_VARIABLE(SEGREGATED_STEP)
     KRATOS_REGISTER_VARIABLE(WRITE_ID)
-    KRATOS_REGISTER_VARIABLE(TIME_INTEGRATION_ORDER)        
+    KRATOS_REGISTER_VARIABLE(TIME_INTEGRATION_ORDER)
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_ALPHA)
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_BETA)
 
@@ -526,42 +551,46 @@ void KratosSolidMechanicsApplication::Register() {
 
     //nodal load variable (legacy)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(POINT_LOAD)
-  
+
     //force loads
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FORCE_LOAD)
     KRATOS_REGISTER_VARIABLE(FORCE_LOAD_VECTOR)
-  
+
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(FOLLOWER_FORCE_LOAD)
     KRATOS_REGISTER_VARIABLE(FOLLOWER_FORCE_LOAD_VECTOR)
-  
+
     //moment loads
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MOMENT_LOAD)
     KRATOS_REGISTER_VARIABLE(MOMENT_LOAD_VECTOR)
-   
+
     //elastic loads
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ELASTIC_LOAD)
-    KRATOS_REGISTER_VARIABLE(ELASTIC_LOAD_VECTOR)  
+    KRATOS_REGISTER_VARIABLE(ELASTIC_LOAD_VECTOR)
 
     //force pressure
     KRATOS_REGISTER_VARIABLE(POSITIVE_FACE_PRESSURE_VECTOR)
     KRATOS_REGISTER_VARIABLE(NEGATIVE_FACE_PRESSURE_VECTOR)
-  
+
     //moment pressures
     KRATOS_REGISTER_VARIABLE(PLANE_MOMENT_LOAD)
     KRATOS_REGISTER_VARIABLE(PLANE_MOMENT_LOAD_VECTOR)
-  
+
     //elastic pressures
     KRATOS_REGISTER_VARIABLE(BALLAST_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(BALLAST_COEFFICIENT_VECTOR)
-      
+
+    //heat fluxes
+    KRATOS_REGISTER_VARIABLE(FACE_HEAT_FLUX_VECTOR)
+
     //element
     KRATOS_REGISTER_VARIABLE(VON_MISES_STRESS)
 
     //nodal dofs
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_REACTION)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ROTATION_REACTION)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_REACTION)        
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_REACTION)
     KRATOS_REGISTER_VARIABLE(PRESSURE_REACTION)
+    KRATOS_REGISTER_VARIABLE(TEMPERATURE_REACTION)
 
     //explicit beam
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(EXTERNAL_MOMENT)
@@ -592,6 +621,21 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(YOUNGxINERTIA_Y)
     KRATOS_REGISTER_VARIABLE(SHEARxREDUCED_AREA)
     KRATOS_REGISTER_VARIABLE(SHEARxPOLAR_INERTIA)
+
+    //boundary definition
+    KRATOS_REGISTER_VARIABLE(MASTER_ELEMENTS)
+
+    //thermal properties
+    KRATOS_REGISTER_VARIABLE(HEAT_CAPACITY)
+    KRATOS_REGISTER_VARIABLE(HEAT_CONDUCTIVITY)
+    KRATOS_REGISTER_VARIABLE(HEAT_SOURCE)
+
+    KRATOS_REGISTER_VARIABLE(TEMPERATURE_DEPENDENT)
+    KRATOS_REGISTER_VARIABLE(HEAT_CAPACITY_A)
+    KRATOS_REGISTER_VARIABLE(HEAT_CAPACITY_B)
+    KRATOS_REGISTER_VARIABLE(HEAT_CONDUCTIVITY_A)
+    KRATOS_REGISTER_VARIABLE(HEAT_CONDUCTIVITY_B)
+
 
     //Register Elements
 
@@ -721,7 +765,7 @@ void KratosSolidMechanicsApplication::Register() {
         "UpdatedLagrangianElement3D20N", mUpdatedLagrangianElement3D20N)
     KRATOS_REGISTER_ELEMENT(
         "UpdatedLagrangianElement3D27N", mUpdatedLagrangianElement3D27N)
-        
+
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D3N",
         mAxisymUpdatedLagrangianElement2D3N)
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianElement2D4N",
@@ -757,7 +801,12 @@ void KratosSolidMechanicsApplication::Register() {
         "UpdatedLagrangianVElement3D20N", mUpdatedLagrangianVElement3D20N)
     KRATOS_REGISTER_ELEMENT(
         "UpdatedLagrangianVElement3D27N", mUpdatedLagrangianVElement3D27N)
-        
+
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianSegregatedVPElement2D3N", mUpdatedLagrangianSegregatedVPElement2D3N)
+    KRATOS_REGISTER_ELEMENT(
+        "UpdatedLagrangianSegregatedVPElement3D4N", mUpdatedLagrangianSegregatedVPElement3D4N)
+
     KRATOS_REGISTER_ELEMENT(
         "UpdatedLagrangianUPElement2D3N", mUpdatedLagrangianUPElement2D3N)
     KRATOS_REGISTER_ELEMENT("AxisymUpdatedLagrangianUPElement2D3N",
@@ -790,6 +839,12 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ShellThinElement3D3N", mShellThinElement3D3N)
     KRATOS_REGISTER_ELEMENT(
         "ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N)
+
+    // Register thermal elements
+    KRATOS_REGISTER_ELEMENT( "ThermalElement2D3N", mThermalElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "ThermalElement3D4N", mThermalElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "AxisymThermalElement2D3N", mAxisymThermalElement2D3N )
+
 
     //Register Conditions
     KRATOS_REGISTER_CONDITION("PointLoadCondition3D1N", mPointLoadCondition3D1N)
@@ -873,6 +928,9 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION(
         "SurfaceElasticCondition3D9N", mSurfaceElasticCondition3D9N)
 
+    KRATOS_REGISTER_CONDITION(
+        "LineHeatFluxCondition2D2N", mLineHeatFluxCondition2D2N )
+
     //Register Constitutive Laws with KRATOS_REGISTER to the Kernel
     //Linear Elastic laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DLaw", mLinearElastic3DLaw);
@@ -894,38 +952,49 @@ void KratosSolidMechanicsApplication::Register() {
     //Hyperelastic Plastic J2 specilization laws U-P
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ23DLaw", mHyperElasticPlasticUPJ23DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ2PlaneStrain2DLaw",mHyperElasticPlasticUPJ2PlaneStrain2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ2Axisym2DLaw",mHyperElasticPlasticUPJ2Axisym2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticUPJ2Axisym2DLaw", mHyperElasticPlasticUPJ2Axisym2DLaw);
     //Isotropic Damage laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageSimoJu3DLaw", mIsotropicDamageSimoJu3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageSimoJuPlaneStrain2DLaw",mIsotropicDamageSimoJuPlaneStrain2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageSimoJuPlaneStress2DLaw",mIsotropicDamageSimoJuPlaneStress2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageSimoJuPlaneStrain2DLaw", mIsotropicDamageSimoJuPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageSimoJuPlaneStress2DLaw", mIsotropicDamageSimoJuPlaneStress2DLaw);
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMises3DLaw",mIsotropicDamageModifiedMises3DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMisesPlaneStrain2DLaw",mIsotropicDamageModifiedMisesPlaneStrain2DLaw);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMisesPlaneStress2DLaw",mIsotropicDamageModifiedMisesPlaneStress2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMises3DLaw", mIsotropicDamageModifiedMises3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMisesPlaneStrain2DLaw", mIsotropicDamageModifiedMisesPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("IsotropicDamageModifiedMisesPlaneStress2DLaw", mIsotropicDamageModifiedMisesPlaneStress2DLaw);
+
+    //Thermo-Mechanical laws
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalJ2PlaneStrain2DLaw", mHyperElasticPlasticThermalJ2PlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalJohnsonCookPlaneStrain2DLaw", mHyperElasticPlasticThermalJohnsonCookPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalBakerJohnsonCookPlaneStrain2DLaw", mHyperElasticPlasticThermalBakerJohnsonCookPlaneStrain2DLaw);
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalUPJ23DLaw", mHyperElasticPlasticThermalUPJ23DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalUPJ2PlaneStrain2DLaw", mHyperElasticPlasticThermalUPJ2PlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalUPJ2Axisym2DLaw", mHyperElasticPlasticThermalUPJ2Axisym2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw", mHyperElasticPlasticThermalUPJohnsonCookPlaneStrain2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw", mHyperElasticPlasticThermalUPJohnsonCookAxisym2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlasticThermalUPBakerJohnsonCookPlaneStrain2DLaw", mHyperElasticPlasticThermalUPBakerJohnsonCookPlaneStrain2DLaw);
 
     //Flow Rules
-    Serializer::Register("NonLinearAssociativePlasticFlowRule",
-        mNonLinearAssociativePlasticFlowRule);
-    Serializer::Register(
-        "LinearAssociativePlasticFlowRule", mLinearAssociativePlasticFlowRule);
+    Serializer::Register("NonLinearAssociativePlasticFlowRule", mNonLinearAssociativePlasticFlowRule);
+    Serializer::Register("LinearAssociativePlasticFlowRule", mLinearAssociativePlasticFlowRule);
     Serializer::Register("IsotropicDamageFlowRule", mIsotropicDamageFlowRule);
+    Serializer::Register("NonLinearRateDependentPlasticFlowRule",mNonLinearRateDependentPlasticFlowRule);
 
     //Yield Criteria
     Serializer::Register("MisesHuberYieldCriterion", mMisesHuberYieldCriterion);
     Serializer::Register("SimoJuYieldCriterion", mSimoJuYieldCriterion);
-    Serializer::Register(
-        "ModifiedMisesYieldCriterion", mModifiedMisesYieldCriterion);
+    Serializer::Register("ModifiedMisesYieldCriterion", mModifiedMisesYieldCriterion);
+    Serializer::Register("MisesHuberThermalYieldCriterion", mMisesHuberThermalYieldCriterion);
 
     //Hardening Laws
-    Serializer::Register("NonLinearIsotropicKinematicHardeningLaw",
-        mNonLinearIsotropicKinematicHardeningLaw);
-    Serializer::Register("LinearIsotropicKinematicHardeningLaw",
-        mLinearIsotropicKinematicHardeningLaw);
-    Serializer::Register(
-        "ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw);
-    Serializer::Register("ModifiedExponentialDamageHardeningLaw",
-        mModifiedExponentialDamageHardeningLaw);
+    Serializer::Register("NonLinearIsotropicKinematicHardeningLaw", mNonLinearIsotropicKinematicHardeningLaw);
+    Serializer::Register("LinearIsotropicKinematicHardeningLaw", mLinearIsotropicKinematicHardeningLaw);
+    Serializer::Register("ExponentialDamageHardeningLaw", mExponentialDamageHardeningLaw);
+    Serializer::Register("ModifiedExponentialDamageHardeningLaw", mModifiedExponentialDamageHardeningLaw);
+    Serializer::Register("NonLinearIsotropicKinematicThermalHardeningLaw", mNonLinearIsotropicKinematicThermalHardeningLaw);
+    Serializer::Register("JohnsonCookThermalHardeningLaw", mJohnsonCookThermalHardeningLaw);
+    Serializer::Register("BakerJohnsonCookThermalHardeningLaw", mBakerJohnsonCookThermalHardeningLaw);
+
 }
 
 }  // namespace Kratos.

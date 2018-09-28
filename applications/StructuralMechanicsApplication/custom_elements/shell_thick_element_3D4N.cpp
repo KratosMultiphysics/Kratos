@@ -393,57 +393,22 @@ void ShellThickElement3D4N::Initialize()
 {
     KRATOS_TRY
 
-    const GeometryType & geom = GetGeometry();
-    const PropertiesType & props = GetProperties();
+    const auto& r_geom = GetGeometry();
 
-    if(geom.PointsNumber() != 4)
-        KRATOS_THROW_ERROR(std::logic_error, "ShellThickElement3D4N Element needs a geometry with 4 nodes", geom.PointsNumber());
+    KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(GetIntegrationMethod())).size() == 4)
+        << "ShellThickElement3D4N - needs a full integration scheme" << std::endl;
 
-    const GeometryType::IntegrationPointsArrayType & integrationPoints = geom.IntegrationPoints(GetIntegrationMethod());
-    if(integrationPoints.size() != 4)
-        KRATOS_THROW_ERROR(std::logic_error, "ShellThickElement3D4N Element needs a full integration scheme", integrationPoints.size());
+    const int points_number = r_geom.PointsNumber();
+    KRATOS_ERROR_IF_NOT(points_number == 4) << "ShellThickElement3D4N - Wrong number of nodes"
+        << points_number << std::endl;
 
-    if(mSections.size() != 4)
-    {
-        const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-
-        ShellCrossSection::Pointer theSection;
-        if(props.Has(SHELL_CROSS_SECTION))
-        {
-            theSection = props[SHELL_CROSS_SECTION];
-        }
-		else if (ShellCrossSection::CheckIsOrthotropic(props))
-		{
-			// make new instance of shell cross section
-			theSection =
-				ShellCrossSection::Pointer(new ShellCrossSection());
-
-			// Parse material properties for each layer
-			theSection->ParseOrthotropicPropertyMatrix(this->pGetProperties());
-		}
-		else
-        {
-            theSection = ShellCrossSection::Pointer(new ShellCrossSection());
-            theSection->BeginStack();
-            theSection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
-            theSection->EndStack();
-        }
-
-        mSections.clear();
-        for(int i = 0; i < 4; i++)
-        {
-            ShellCrossSection::Pointer sectionClone = theSection->Clone();
-            sectionClone->SetSectionBehavior(GetSectionBehavior());
-            sectionClone->InitializeCrossSection(props, geom, row( shapeFunctionsValues, i ));
-            mSections.push_back(sectionClone);
-        }
-    }
+    BaseShellElement::Initialize();
 
     mpCoordinateTransformation->Initialize();
 
     this->SetupOrientationAngles();
 
-    mEASStorage.Initialize(geom);
+    mEASStorage.Initialize(r_geom);
 
     KRATOS_CATCH("")
 }
@@ -505,7 +470,7 @@ void ShellThickElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, Process
     // Calculate avarage mass per unit area
     double av_mass_per_unit_area = 0.0;
     for(SizeType i = 0; i < 4; i++)
-        av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
+        av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea(GetProperties());
     av_mass_per_unit_area /= 4.0;
 
     // Gauss Loop
@@ -531,7 +496,7 @@ void ShellThickElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, Process
 //
 // =====================================================================================
 
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -539,24 +504,17 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
     if (rValues.size() != size)
         rValues.resize(size);
 
-	// The membrane formulation needs to iterate to find the correct
-	// mid-surface strain values.
-	//
-	// Check if we are doing a non-linear analysis type. If not, print warning
-	// for just the first element.
+    // The membrane formulation needs to iterate to find the correct
+    // mid-surface strain values.
+    // Check if we are doing a non-linear analysis type. If not, print warning
 
-    if (this->Id() == 1)
-	{
-		if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
-		{
-			std::cout << "\nWARNING:\nGauss point results have been requested for a linear analysis."
-				<< "\nThe membrane formulation used in the specified shell element"
-				<< "(ShellThickElement3D4N) requires iteration to accurately determine "
-				<< "recovered quantities (strain, stress, etc...).\n"
-				<< "Please switch to 'analysis_type = Non-Linear' in your json file for accurate recovered quantities."
-				<< std::endl;
-		}
-	}
+    if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
+    {
+        KRATOS_WARNING_ONCE("ShellThickElement3D4N") << "Warning: Gauss point results have "
+            << "been requested for a linear analysis.\nThe membrane formulation used "
+            << "requires iteration to accurately determine recovered "
+            << "quantities (strain, stress, etc...)." << std::endl;
+    }
 
 	if (rVariable == VON_MISES_STRESS ||
 		rVariable == VON_MISES_STRESS_TOP_SURFACE ||
@@ -651,7 +609,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 			ShellCrossSection::Pointer & section = mSections[i];
 
 			//add in shear stabilization
-			double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness());
+			double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness(GetProperties()));
 			parameters.SetStenbergShearStabilization(shearStabilisation);
 			//double shearStabilisation = (hMean*hMean) / (hMean*hMean + 0.1*h_e*h_e);
 
@@ -662,7 +620,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 
 			// Compute stresses
 			CalculateStressesFromForceResultants(generalizedStresses,
-				section->GetThickness());
+				section->GetThickness(GetProperties()));
 
 			// Calculate von mises results
 			CalculateVonMisesStress(generalizedStresses, rVariable, rValues[i]);
@@ -773,7 +731,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 			// Retrieve ply orientations
 			section = mSections[i];
 			Vector ply_orientation(section->NumberOfPlies());
-			section->GetLaminaeOrientation(ply_orientation);
+			section->GetLaminaeOrientation(GetProperties(), ply_orientation);
 
 			// Rotate lamina stress from element CS to section CS, and then
 			// to lamina angle to lamina material principal directions
@@ -813,7 +771,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 		std::vector<double> temp(size);
 
 		for (SizeType i = 0; i < size; i++)
-			mSections[i]->GetValue(rVariable, temp[i]);
+			mSections[i]->GetValue(rVariable, GetProperties(), temp[i]);
 
 		const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues();
 		Vector N(size);
@@ -831,7 +789,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
 	}
 }
 
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -917,77 +875,31 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& 
 	}
 }
 
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-	// The membrane formulation needs to iterate to find the correct
-	// mid-surface strain values.
-	//
-	// Check if we are doing a non-linear analysis type. If not, print warning
-	// for just the first element.
+    // The membrane formulation needs to iterate to find the correct
+    // mid-surface strain values.
+    // Check if we are doing a non-linear analysis type. If not, print warning
 
-	if (this->Id() == 1)
-	{
-		if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
-		{
-			std::cout << "\nWARNING:\nGauss point results have been requested for a linear analysis."
-				<< "\nThe membrane formulation used in the specified shell element"
-				<< "(ShellThickElement3D4N) requires iteration to accurately determine "
-				<< "recovered quantities (strain, stress, etc...).\n"
-				<< "Please switch to 'analysis_type = Non-Linear' in your json file for accurate recovered quantities."
-				<< std::endl;
-		}
-	}
+    if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
+    {
+        KRATOS_WARNING_ONCE("ShellThickElement3D4N") << "Warning: Gauss point results have "
+            << "been requested for a linear analysis.\nThe membrane formulation used "
+            << "requires iteration to accurately determine recovered "
+            << "quantities (strain, stress, etc...)." << std::endl;
+    }
 
 
-    if(TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
+    if(TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    if(TryGetValueOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
-}
-
-void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable,
-        std::vector<array_1d<double,6> >& rValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-}
-
-void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo & rCurrentProcessInfo)
-{
-	GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-	std::vector<Vector>& rOutput,
-	const ProcessInfo& rCurrentProcessInfo)
-{
-	GetValueOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
-}
-
-void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-	std::vector<Matrix>& rValues,
-	const ProcessInfo& rCurrentProcessInfo)
-{
-	GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3> >& rVariable,
-	std::vector<array_1d<double, 3> >& rValues,
-	const ProcessInfo& rCurrentProcessInfo)
-{
-	GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<array_1d<double, 6> >& rVariable,
-	std::vector<array_1d<double, 6> >& rValues,
-	const ProcessInfo& rCurrentProcessInfo)
-{
-	GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    if(TryCalculateOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
 void ShellThickElement3D4N::Calculate(const Variable<Matrix>& rVariable, Matrix & Output, const ProcessInfo & rCurrentProcessInfo)
@@ -1031,7 +943,7 @@ void ShellThickElement3D4N::CalculateStressesFromForceResultants(VectorType & rs
 void ShellThickElement3D4N::CalculateLaminaStrains(ShellCrossSection::Pointer & section, const Vector & generalizedStrains, std::vector<VectorType>& rlaminateStrains)
 {
 	// Get laminate properties
-	double thickness = section->GetThickness();
+	double thickness = section->GetThickness(GetProperties());
 	double z_current = thickness / -2.0; // start from the top of the 1st layer
 
 	// Establish current strains at the midplane
@@ -1046,7 +958,7 @@ void ShellThickElement3D4N::CalculateLaminaStrains(ShellCrossSection::Pointer & 
 
 	// Get ply thicknesses
 	Vector ply_thicknesses = Vector(section->NumberOfPlies(), 0.0);
-	section->GetPlyThicknesses(ply_thicknesses);
+	section->GetPlyThicknesses(GetProperties(), ply_thicknesses);
 
 	// Resize output vector. 2 Surfaces for each ply
 	rlaminateStrains.resize(2 * section->NumberOfPlies());
@@ -1671,7 +1583,7 @@ void ShellThickElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
         parameters.SetShapeFunctionsValues( iN );
         parameters.SetShapeFunctionsDerivatives( jacOp.XYDerivatives() );
 		//add in shear stabilization
-		double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness());
+		double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness(GetProperties()));
 		parameters.SetStenbergShearStabilization(shearStabilisation);
         section->CalculateSectionResponse( parameters, ConstitutiveLaw::StressMeasure_PK2 );
         Ddrilling = section->GetDrillingStiffness();
@@ -1737,7 +1649,7 @@ void ShellThickElement3D4N::AddBodyForces(const array_1d<double,4> & dA, VectorT
     for(unsigned int igauss = 0; igauss < 4; igauss++)
     {
         // get mass per unit area
-        double mass_per_unit_area = mSections[igauss]->CalculateMassPerUnitArea();
+        double mass_per_unit_area = mSections[igauss]->CalculateMassPerUnitArea(GetProperties());
 
         // interpolate nodal volume accelerations to this gauss point
         // and obtain the body force vector
@@ -1761,7 +1673,7 @@ void ShellThickElement3D4N::AddBodyForces(const array_1d<double,4> & dA, VectorT
     }
 }
 
-bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
+bool ShellThickElement3D4N::TryCalculateOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
         std::vector<array_1d<double,3> >& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1827,7 +1739,7 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_MaterialOrientation(c
     return true;
 }
 
-bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
+bool ShellThickElement3D4N::TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1953,7 +1865,7 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
         ShellCrossSection::Pointer & section = mSections[i];
 
 		//Add in shear stabilization
-		double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness());
+		double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness(GetProperties()));
 		parameters.SetStenbergShearStabilization(shearStabilisation);
 
         if(ijob > 2)
@@ -1975,7 +1887,7 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
 				{
 					// Compute stresses
 					CalculateStressesFromForceResultants(generalizedStresses,
-						section->GetThickness());
+						section->GetThickness(GetProperties()));
 				}
 			}
         }

@@ -24,7 +24,7 @@ namespace Kratos
    * Defines a linear isotropic constitutive law
    * This material law is defined by the parameters:
    * 1) YOUNG MODULUS
-   * 2) POISSON RATIO 
+   * 2) POISSON RATIO
    * As there are no further parameters the functionality is valid
    * for small and large displacements elasticity.
    */
@@ -32,13 +32,13 @@ namespace Kratos
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SmallStrain3DLaw : public Constitutive3DLaw
   {
   public:
-  
+
     ///@name Type Definitions
     ///@{
 
     typedef ConstitutiveModel                                     ModelType; //small_strain model
     typedef ModelType::Pointer                             ModelTypePointer;
-	
+
     /// Pointer definition of SmallStrain3DLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrain3DLaw);
 
@@ -48,7 +48,7 @@ namespace Kratos
 
     /// Default constructor.
     SmallStrain3DLaw();
-    
+
     /// Constructor.
     SmallStrain3DLaw(ModelTypePointer pModel);
 
@@ -62,17 +62,17 @@ namespace Kratos
     SmallStrain3DLaw& operator=(const SmallStrain3DLaw& rOther);
 
     /// Destructor.
-    virtual ~SmallStrain3DLaw();
+    ~SmallStrain3DLaw() override;
 
     ///@}
     ///@name Operators
     ///@{
 
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * Material parameters are inizialized
      */
@@ -88,7 +88,7 @@ namespace Kratos
      */
     void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
 
-    
+
     /**
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
@@ -101,7 +101,7 @@ namespace Kratos
      * @param rFeatures
      */
     void GetModelFeatures(Features& rFeatures);
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -109,11 +109,11 @@ namespace Kratos
     /**
      * Set Values
      */
-    
+
     void SetValue(const Variable<Vector>& rThisVariable,
                   const Vector& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
-    
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -123,7 +123,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "SmallStrain3DLaw";
@@ -131,13 +131,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SmallStrain3DLaw";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "SmallStrain3DLaw Data";
     }
@@ -150,24 +150,24 @@ namespace Kratos
 
     ///@}
 
-    
+
   protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
 
     //constitutive model
     ModelTypePointer mpModel;
-   
-    
+
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -180,19 +180,19 @@ namespace Kratos
      * @see   Parameters
      * @param rModelValues
      */
-    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues, ModelDataType& rModelValues) override;
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues, ModelDataType& rModelValues) override;
 
     /**
      * Initialize ModelData type:
      */
-    virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues) override;	
+    void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
 
 
     /**
      * Finalize ModelData type:
      */
-    virtual void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
-    
+    void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues) override;
+
     /**
      * Calculates the stress vector
      * matrix is to be generated for
@@ -200,13 +200,13 @@ namespace Kratos
      */
     virtual void CalculateStressVector(ModelDataType& rModelValues, Vector& rStressVector);
 
-    
+
     /**
      * Calculates the constitutive matrix
      * matrix is to be generated for
      * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
-    virtual void CalculateConstitutiveMatrix(ModelDataType& rModelValues, Matrix& rConstitutiveMatrix);   
+    virtual void CalculateConstitutiveMatrix(ModelDataType& rModelValues, Matrix& rConstitutiveMatrix);
 
 
     /**
@@ -216,7 +216,7 @@ namespace Kratos
      * @param rResult Matrix the result (ConstitutiveMatrix) will be stored in
      */
     virtual void CalculateStressVectorAndConstitutiveMatrix(ModelDataType& rModelValues, Vector& rStressVector, Matrix& rConstitutiveMatrix);
-     
+
     /**
      * Calculates the stresses for given strain state
      * @param rStrainVector
@@ -239,15 +239,15 @@ namespace Kratos
 
     virtual void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
 					     const Properties& rMaterialProperties);
-    
-    
+
+
     ///@}
 
   private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -269,12 +269,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Constitutive3DLaw )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Constitutive3DLaw )
     }
@@ -304,6 +304,6 @@ namespace Kratos
   ///@}
 
   ///@} addtogroup block
-    
+
 }  // namespace Kratos.
-#endif // KRATOS_SMALL_STRAIN_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_STRAIN_3D_LAW_H_INCLUDED  defined

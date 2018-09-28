@@ -371,9 +371,9 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SmallDisplacementUWwPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void SmallDisplacementUWwPElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
-      SmallDisplacementElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+      SmallDisplacementElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
       // SAVE THE TIME STEP, THAT WILL BE USED; BUT IS A BAD IDEA TO DO IT THIS WAY.
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
@@ -442,7 +442,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void SmallDisplacementUWwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -468,7 +468,7 @@ namespace Kratos
 
    //************************************************************************************
    //         Matrix due to the the water pressure contribution to the internal forces   
-   void SmallDisplacementUWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementVariables & rVariables, double & rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -510,7 +510,7 @@ namespace Kratos
 
    //************************************************************************************
    //         Material stiffness matrix
-   void SmallDisplacementUWwPElement::CalculateAndAddKuum( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddKuum( MatrixType & rLeftHandSide, ElementDataType& rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -540,7 +540,7 @@ namespace Kratos
 
    //************************************************************************************
    //      Water material Matrix
-   void SmallDisplacementUWwPElement::CalculateAndAddKWwP( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddKWwP( MatrixType & rLeftHandSide, ElementDataType& rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -578,7 +578,7 @@ namespace Kratos
 
    // ***********************************************************************************
    // ***********************************************************************************
-   void SmallDisplacementUWwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -613,7 +613,7 @@ namespace Kratos
 
    // **********************************************************************************
    //    mass balance equation of the mixture (aka: Darcy's Law ) 
-   void SmallDisplacementUWwPElement::CalculateAndAddMassBalanceEquation( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddMassBalanceEquation( VectorType & rRightHandSideVector, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
       // a convective term may go here. not coded yet. 
@@ -622,7 +622,7 @@ namespace Kratos
 
    // **********************************************************************************
    //    linear momentum balance equation of the fluid phase (aka: Darcy's Law ) 
-   void SmallDisplacementUWwPElement::CalculateAndAddFluidLinearMomentum( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void SmallDisplacementUWwPElement::CalculateAndAddFluidLinearMomentum( VectorType & rRightHandSideVector, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -660,7 +660,7 @@ namespace Kratos
 
    // **************************************************************************
    // Calculate and Add volumetric loads
-   void SmallDisplacementUWwPElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementVariables & rVariables, 
+   void SmallDisplacementUWwPElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementDataType & rVariables, 
          Vector & rVolumeForce, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -704,7 +704,7 @@ namespace Kratos
    // **********************************************************************************
    //         CalculateAndAddInternalForces
    void SmallDisplacementUWwPElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight
          )
    {
@@ -759,8 +759,8 @@ namespace Kratos
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
@@ -826,8 +826,8 @@ namespace Kratos
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
 
 
@@ -936,7 +936,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   double & SmallDisplacementUWwPElement::CalculateStabilizationFactor( ElementVariables & rVariables, double & rStabFactor)
+   double & SmallDisplacementUWwPElement::CalculateStabilizationFactor( ElementDataType & rVariables, double & rStabFactor)
    {
       KRATOS_TRY
 

@@ -39,7 +39,7 @@ namespace Kratos
    HydraulicAxisymRigidContactPenalty2DCondition::HydraulicAxisymRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
       : HydraulicRigidContactPenalty3DCondition(NewId, pGeometry, pProperties)
    {
-      //DO NOT ADD DOFS HERE!!!    
+      //DO NOT ADD DOFS HERE!!!
    }
 
 
@@ -58,7 +58,7 @@ namespace Kratos
    HydraulicAxisymRigidContactPenalty2DCondition::HydraulicAxisymRigidContactPenalty2DCondition( HydraulicAxisymRigidContactPenalty2DCondition const& rOther )
       : HydraulicRigidContactPenalty3DCondition(rOther)
    {
-      //DO NOT ADD DOFS HERE!!! 
+      //DO NOT ADD DOFS HERE!!!
    }
 
    //************************************************************************************
@@ -66,7 +66,7 @@ namespace Kratos
 
    Condition::Pointer HydraulicAxisymRigidContactPenalty2DCondition::Create(IndexType NewId, const NodesArrayType& ThisNodes, PropertiesType::Pointer pProperties) const
    {
-      return Condition::Pointer(new HydraulicAxisymRigidContactPenalty2DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
+     return Kratos::make_shared<HydraulicAxisymRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
    }
 
    //************************************CLONE*******************************************
@@ -74,7 +74,7 @@ namespace Kratos
 
    Condition::Pointer HydraulicAxisymRigidContactPenalty2DCondition::Clone(IndexType NewId, const NodesArrayType& ThisNodes) const
    {
-      return Condition::Pointer(new HydraulicAxisymRigidContactPenalty2DCondition(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall));
+     return Kratos::make_shared<HydraulicAxisymRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
    }
 
 
@@ -95,7 +95,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      CalculateRadius( rVariables.CurrentRadius, rVariables.ReferenceRadius ); 
+      CalculateRadius( rVariables.CurrentRadius, rVariables.ReferenceRadius );
 
       HydraulicRigidContactPenalty3DCondition::CalculateKinematics( rVariables, rCurrentProcessInfo, rPointNumber);
 
@@ -134,7 +134,7 @@ namespace Kratos
          {
             array_1d<double, 3 > & NodePosition = rN[i].Coordinates();
             if( NodePosition[0] != 0 ){
-               rCurrentRadius += NodePosition[0] * 0.225; 	    
+               rCurrentRadius += NodePosition[0] * 0.225;
                counter ++;
             }
 
@@ -195,6 +195,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
-
-

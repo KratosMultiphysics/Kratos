@@ -20,15 +20,15 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 // (set):=(set in this process)
 
 namespace Kratos
@@ -76,13 +76,13 @@ namespace Kratos
 
     /// Default constructor.
     BuildContactModelPartProcess(ModelPart& rModelPart,
-				     ModelerUtilities::MeshingParameters& rRemeshingParameters,
+				     MesherUtilities::MeshingParameters& rRemeshingParameters,
 				     std::vector<std::string>& rContactModelParts,
 				     int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters),
 	mrContactModelParts(rContactModelParts)
-    { 
+    {
       mEchoLevel = EchoLevel;
       mMasterConditionsInitialized = false;
     }
@@ -114,14 +114,14 @@ namespace Kratos
       if( mEchoLevel > 0 )
 	std::cout<<" [ CONSTRUCT CONTACT MODEL_PART: "<<std::endl;
 
-          
+
       ModelPart& rModelPart = mrModelPart.GetSubModelPart(mrRemesh.SubModelPartName);
-      
+
       //set CONTACT label
       rModelPart.Set(CONTACT);
 
       this->Execute(rModelPart);
-      
+
       //this->Transfer(rModelPart);
 
       this->SetHoles();
@@ -220,7 +220,7 @@ namespace Kratos
     ///@{
     ModelPart& mrModelPart;
 
-    ModelerUtilities::MeshingParameters&   mrRemesh;
+    MesherUtilities::MeshingParameters&   mrRemesh;
 
     std::vector<std::string>& mrContactModelParts;
 
@@ -242,7 +242,7 @@ namespace Kratos
       //check if the construction is needed
       unsigned int count_nodes = 0;
       unsigned int count_conditions = 0;
-     
+
       for(std::vector<std::string>::iterator n_mp = mrContactModelParts.begin(); n_mp!=mrContactModelParts.end(); n_mp++)
 	{
 	  ModelPart&  i_mp = mrModelPart.GetSubModelPart(*n_mp);
@@ -260,7 +260,7 @@ namespace Kratos
 	    }
 	}
 
-      
+
       bool build_is_needed = false;
       if( count_nodes != rModelPart.Nodes().size() || count_conditions != rModelPart.Conditions().size() )
 	build_is_needed = true;
@@ -273,14 +273,14 @@ namespace Kratos
 	std::cout<<"   REBUILD "<<std::endl;
 	//*******************************************************************
 	//set boundary conditions and nodes:
-          
+
 	rModelPart.Nodes().clear();
 	rModelPart.Elements().clear();
-      
+
 	ModelPart::ConditionsContainerType PreservedConditions;
 	PreservedConditions.swap(rModelPart.Conditions());
-          
-      
+
+
 	for(std::vector<std::string>::iterator n_mp = mrContactModelParts.begin(); n_mp!=mrContactModelParts.end(); n_mp++)
 	  {
 	    ModelPart&  i_mp = mrModelPart.GetSubModelPart(*n_mp);
@@ -305,21 +305,21 @@ namespace Kratos
 	      rModelPart.Conditions().push_back(*(i_cond.base()));
 	    }
 	  }
-      
-      
+
+
 	//Sort
 	//rModelPart.Nodes().Sort();
-	//rModelPart.Conditions().Sort();     
-      
+	//rModelPart.Conditions().Sort();
+
 	//Unique
 	//rModelPart.Nodes().Unique();
 	//rModelPart.Conditions().Unique();
 
       }
-      
+
       if( mEchoLevel > 0 )
 	std::cout<<"   CONTACT MODEL_PART: (NODES:"<<rModelPart.NumberOfNodes()<<" CONDITIONS:"<<rModelPart.NumberOfConditions()<<") ]; "<<std::endl;
-      
+
       KRATOS_CATCH(" ")
 
     }
@@ -330,14 +330,14 @@ namespace Kratos
     {
 
       KRATOS_TRY
-    
+
       //*******************************************************************
       //set transfer parameters
       MeshDataTransferUtilities DataTransferUtilities;
 
       MeshDataTransferUtilities::TransferParameters::Pointer rParameters = mrRemesh.GetTransferParameters();
 
-      //be careful: it must be done once only after the step solution: 
+      //be careful: it must be done once only after the step solution:
       if(!mMasterConditionsInitialized){
 	rParameters->Options.Set(MeshDataTransferUtilities::INITIALIZE_MASTER_CONDITION, true);
 	DataTransferUtilities.TransferBoundaryData(*rParameters, rModelPart);
@@ -347,8 +347,8 @@ namespace Kratos
 	rParameters->Options.Set(MeshDataTransferUtilities::MASTER_ELEMENT_TO_MASTER_CONDITION, true);
 	DataTransferUtilities.TransferBoundaryData(*rParameters, mrModelPart);
       }
-       
-      KRATOS_CATCH( "" )   	
+
+      KRATOS_CATCH( "" )
     }
 
 
@@ -359,7 +359,7 @@ namespace Kratos
     {
 
       KRATOS_TRY
-    
+
       //*******************************************************************
       //set holes (inside point of the contact domains):
       std::vector<BoundedVector<double, 3> > Holes;
@@ -381,11 +381,11 @@ namespace Kratos
 	  for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin() ; i_node != i_mp.NodesEnd() ; i_node++)
 	    {
 	      if( i_node->IsNot(BOUNDARY) ){
-		Point[0] = i_node->X();	
+		Point[0] = i_node->X();
 		Point[1] = i_node->Y();
 
 		if(dimension>2)
-		  Point[2] = i_node->Z();		
+		  Point[2] = i_node->Z();
 
 		//std::cout<<" SetPoint "<<Point<<std::endl;
 		Holes.push_back(Point);
@@ -409,7 +409,7 @@ namespace Kratos
 		Point[1] = i_node->Y() - Normal[1] * tolerance;
 		if(dimension>2)
 		  Point[2] = i_node->Z() - Normal[2] * tolerance;
-		
+
 		Holes.push_back(Point);
 		hole_found = true;
 		break;
@@ -486,4 +486,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BUILD_CONTACT_MODEL_PART_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_BUILD_CONTACT_MODEL_PART_PROCESS_H_INCLUDED  defined

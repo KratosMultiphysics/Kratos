@@ -28,12 +28,12 @@ Auxiliar external libraries can be added for the solvers: (recommended)
 when frequency analysis is needed, this module has to be activated:
 
 ``` cmake
--DINCLUDE_FEAST=ON 
+-DINCLUDE_FEAST=ON
 ```
 
 ## Theory
 
-Classical FE method theory for small and large displacements. 
+Classical FE method theory for small and large displacements.
 
 [original wiki web page](http://kratos-wiki.cimne.upc.edu/index.php/Solid_Mechanics_Application)
 

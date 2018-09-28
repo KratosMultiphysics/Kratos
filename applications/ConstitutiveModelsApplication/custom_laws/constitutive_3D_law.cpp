@@ -23,7 +23,7 @@ namespace Kratos
   Constitutive3DLaw::Constitutive3DLaw() : ConstitutiveLaw()
   {
   }
-  
+
   //******************************COPY CONSTRUCTOR**************************************
   //************************************************************************************
 
@@ -37,15 +37,15 @@ namespace Kratos
   Constitutive3DLaw& Constitutive3DLaw::operator=(const Constitutive3DLaw& rOther)
   {
     return *this;
-  } 
+  }
 
-  
+
   //********************************CLONE***********************************************
   //************************************************************************************
 
   ConstitutiveLaw::Pointer Constitutive3DLaw::Clone() const
   {
-    return ( Constitutive3DLaw::Pointer(new Constitutive3DLaw(*this)) );
+    return Kratos::make_shared<Constitutive3DLaw>(*this);
   }
 
 
@@ -56,7 +56,7 @@ namespace Kratos
   Constitutive3DLaw::~Constitutive3DLaw()
   {
   }
-  
+
   //*******************************OPERATIONS FROM BASE CLASS***************************
   //************************************************************************************
 
@@ -68,7 +68,7 @@ namespace Kratos
     KRATOS_TRY
 
     return false;
-    
+
     KRATOS_CATCH(" ")
   }
 
@@ -77,7 +77,7 @@ namespace Kratos
     KRATOS_TRY
 
     return false;
-    
+
     KRATOS_CATCH(" ")
   }
 
@@ -86,7 +86,7 @@ namespace Kratos
     KRATOS_TRY
 
     return false;
-    
+
     KRATOS_CATCH(" ")
   }
 
@@ -95,7 +95,7 @@ namespace Kratos
     KRATOS_TRY
 
     return false;
-    
+
     KRATOS_CATCH(" ")
   }
 
@@ -104,11 +104,11 @@ namespace Kratos
     KRATOS_TRY
 
     return false;
-    
+
     KRATOS_CATCH(" ")
   }
-  
-  
+
+
   //***********************SET VALUE: DOUBLE - VECTOR - MATRIX**************************
   //************************************************************************************
 
@@ -117,7 +117,7 @@ namespace Kratos
 				    const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
-      
+
     KRATOS_CATCH(" ")
   }
 
@@ -125,7 +125,7 @@ namespace Kratos
 				    const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
-      
+
     KRATOS_CATCH(" ")
   }
 
@@ -133,7 +133,7 @@ namespace Kratos
 				    const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
-      
+
     KRATOS_CATCH(" ")
   }
 
@@ -141,7 +141,7 @@ namespace Kratos
 				    const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
-      
+
     KRATOS_CATCH(" ")
   }
 
@@ -150,7 +150,7 @@ namespace Kratos
 				    const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
-      
+
     KRATOS_CATCH(" ")
   }
 
@@ -162,8 +162,8 @@ namespace Kratos
     KRATOS_TRY
 
     return rValue;
-    
-    KRATOS_CATCH(" ")   
+
+    KRATOS_CATCH(" ")
   }
 
   Vector& Constitutive3DLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
@@ -171,8 +171,8 @@ namespace Kratos
     KRATOS_TRY
 
     return rValue;
-    
-    KRATOS_CATCH(" ")   
+
+    KRATOS_CATCH(" ")
   }
 
   Matrix& Constitutive3DLaw::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
@@ -180,8 +180,8 @@ namespace Kratos
     KRATOS_TRY
 
     return rValue;
-    
-    KRATOS_CATCH(" ")   
+
+    KRATOS_CATCH(" ")
   }
 
   array_1d<double,3>& Constitutive3DLaw::GetValue( const Variable<array_1d<double,3> >& rThisVariable, array_1d<double,3>& rValue )
@@ -189,8 +189,8 @@ namespace Kratos
     KRATOS_TRY
 
     return rValue;
-    
-    KRATOS_CATCH(" ")   
+
+    KRATOS_CATCH(" ")
   }
 
   array_1d<double,6>& Constitutive3DLaw::GetValue( const Variable<array_1d<double,6> >& rThisVariable, array_1d<double,6>& rValue )
@@ -198,13 +198,13 @@ namespace Kratos
     KRATOS_TRY
 
     return rValue;
-    
-    KRATOS_CATCH(" ")   
+
+    KRATOS_CATCH(" ")
   }
 
   //***********************CALCULATE VALUE: DOUBLE - VECTOR - MATRIX********************
   //************************************************************************************
-  
+
   int& Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<int>& rThisVariable, int& rValue)
   {
     KRATOS_TRY
@@ -214,12 +214,12 @@ namespace Kratos
     ModelValues.SetIntVariableData(rThisVariable,rValue);
 
     this->CalculateValue(rParameterValues,ModelValues);
-    
+
     return rValue;
-      
+
     KRATOS_CATCH(" ")
   }
-  
+
   double& Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
   {
     KRATOS_TRY
@@ -227,14 +227,14 @@ namespace Kratos
     ModelDataType ModelValues;
 
     ModelValues.SetDoubleVariableData(rThisVariable,rValue);
-    
+
     this->CalculateValue(rParameterValues,ModelValues);
 
     return rValue;
-      
+
     KRATOS_CATCH(" ")
   }
-  
+
   Vector& Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue)
   {
     KRATOS_TRY
@@ -242,14 +242,14 @@ namespace Kratos
     ModelDataType ModelValues;
 
     ModelValues.SetVectorVariableData(rThisVariable,rValue);
-    
+
     this->CalculateValue(rParameterValues,ModelValues);
 
     return rValue;
-    
+
     KRATOS_CATCH(" ")
   }
-  
+
   Matrix& Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue)
   {
     KRATOS_TRY
@@ -261,25 +261,25 @@ namespace Kratos
     this->CalculateValue(rParameterValues,ModelValues);
 
     return rValue;
-      
+
     KRATOS_CATCH(" ")
   }
-  
+
   array_1d<double, 3 > & Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,3> >& rThisVariable, array_1d<double,3> & rValue)
   {
     KRATOS_TRY
 
     ModelDataType ModelValues;
-    
+
     ModelValues.SetArray3VariableData(rThisVariable,rValue);
 
     this->CalculateValue(rParameterValues,ModelValues);
 
     return rValue;
-      
+
     KRATOS_CATCH(" ")
   }
-  
+
   array_1d<double, 6 > & Constitutive3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,6> >& rThisVariable, array_1d<double,6> & rValue)
   {
     KRATOS_TRY
@@ -290,8 +290,8 @@ namespace Kratos
 
     this->CalculateValue(rParameterValues,ModelValues);
 
-    return rValue;      
-      
+    return rValue;
+
     KRATOS_CATCH(" ")
   }
 
@@ -304,7 +304,7 @@ namespace Kratos
 					      const Vector& rShapeFunctionsValues )
   {
     KRATOS_TRY
-      
+
     KRATOS_CATCH(" ")
   }
 
@@ -340,12 +340,12 @@ namespace Kratos
   //************* COMPUTING  METHODS
   //************************************************************************************
   //************************************************************************************
-  
+
   void Constitutive3DLaw::InitializeModelData(Parameters& rValues,ModelDataType& rModelValues)
   {
     KRATOS_TRY
-    
-    KRATOS_CATCH(" ")     
+
+    KRATOS_CATCH(" ")
   }
 
   //************************************************************************************
@@ -354,10 +354,10 @@ namespace Kratos
   void Constitutive3DLaw::FinalizeModelData(Parameters& rValues,ModelDataType& rModelValues)
   {
     KRATOS_TRY
-           
-    KRATOS_CATCH(" ")      
+
+    KRATOS_CATCH(" ")
   }
-  
+
 
   //*****************************MATERIAL RESPONSES*************************************
   //************************************************************************************
@@ -366,11 +366,11 @@ namespace Kratos
   void Constitutive3DLaw::CalculateMaterialResponsePK2(Parameters& rValues)
   {
     KRATOS_TRY
- 
+
     this->CalculateMaterialResponseKirchhoff(rValues);
 
     //1.- Obtain parameters
-    Flags & Options                      = rValues.GetOptions();    
+    Flags & Options                      = rValues.GetOptions();
 
     Vector& StressVector                 = rValues.GetStressVector();
 
@@ -391,8 +391,8 @@ namespace Kratos
       {
 	PullBackConstitutiveMatrix(ConstitutiveMatrix, DeltaDeformationMatrix);
       }
-    
-    KRATOS_CATCH(" ")      
+
+    KRATOS_CATCH(" ")
   }
 
 
@@ -403,7 +403,7 @@ namespace Kratos
   void Constitutive3DLaw::CalculateMaterialResponsePK1(Parameters& rValues)
   {
     KRATOS_TRY
- 
+
     this->CalculateMaterialResponsePK2(rValues);
 
     Vector& rStressVector                 = rValues.GetStressVector();
@@ -411,9 +411,9 @@ namespace Kratos
     const double& rDeltaDeformationDet    = rValues.GetDeterminantF();
 
     TransformStresses(rStressVector,rDeltaDeformationMatrix,rDeltaDeformationDet,StressMeasure_PK2,StressMeasure_PK1);
-    
+
     KRATOS_CATCH(" ")
-	  
+
   }
 
   //************************************************************************************
@@ -422,11 +422,11 @@ namespace Kratos
   void Constitutive3DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues)
   {
     KRATOS_TRY
-      
+
     this->CalculateMaterialResponsePK2(rValues);
 
     //1.- Obtain parameters
-    Flags & Options                      = rValues.GetOptions();    
+    Flags & Options                      = rValues.GetOptions();
 
     Vector& StressVector                 = rValues.GetStressVector();
 
@@ -448,7 +448,7 @@ namespace Kratos
         PushForwardConstitutiveMatrix(ConstitutiveMatrix, DeltaDeformationMatrix);
       }
 
-    KRATOS_CATCH(" ")      
+    KRATOS_CATCH(" ")
   }
 
 
@@ -458,7 +458,7 @@ namespace Kratos
   void Constitutive3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
   {
     KRATOS_TRY
-      
+
     this->CalculateMaterialResponseKirchhoff(rValues);
 
     const double& rDeltaDeformationDet   = rValues.GetDeterminantF();
@@ -472,7 +472,7 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
-  
+
   //***************************MATERIAL RESPONSES WITH MODELS***************************
   //************************************************************************************
 
@@ -481,21 +481,21 @@ namespace Kratos
     KRATOS_TRY
 
     this->CalculateMaterialResponseKirchhoff(rValues,rModelValues);
-      
+
     KRATOS_CATCH(" ")
   }
 
   //************************************************************************************
   //************************************************************************************
-  
+
   void Constitutive3DLaw::CalculateMaterialResponsePK2(Parameters& rValues, ModelDataType& rModelValues)
   {
     KRATOS_TRY
- 
+
     this->CalculateMaterialResponseKirchhoff(rValues, rModelValues);
 
     //1.- Obtain parameters
-    Flags & Options                      = rValues.GetOptions();    
+    Flags & Options                      = rValues.GetOptions();
 
     Vector& StressVector                 = rValues.GetStressVector();
 
@@ -516,8 +516,8 @@ namespace Kratos
       {
 	PullBackConstitutiveMatrix(ConstitutiveMatrix, DeltaDeformationMatrix);
       }
-    
-    KRATOS_CATCH(" ")      
+
+    KRATOS_CATCH(" ")
   }
 
 
@@ -528,7 +528,7 @@ namespace Kratos
   void Constitutive3DLaw::CalculateMaterialResponsePK1(Parameters& rValues, ModelDataType& rModelValues)
   {
     KRATOS_TRY
- 
+
     this->CalculateMaterialResponsePK2(rValues, rModelValues);
 
     Vector& rStressVector                 = rValues.GetStressVector();
@@ -536,9 +536,9 @@ namespace Kratos
     const double& rDeltaDeformationDet    = rValues.GetDeterminantF();
 
     TransformStresses(rStressVector,rDeltaDeformationMatrix,rDeltaDeformationDet,StressMeasure_PK2,StressMeasure_PK1);
-    
+
     KRATOS_CATCH(" ")
-	  
+
   }
 
   //************************************************************************************
@@ -547,11 +547,11 @@ namespace Kratos
   void Constitutive3DLaw::CalculateMaterialResponseKirchhoff(Parameters& rValues, ModelDataType& rModelValues)
   {
     KRATOS_TRY
-      
+
     this->CalculateMaterialResponsePK2(rValues, rModelValues);
 
     //1.- Obtain parameters
-    Flags & Options                      = rValues.GetOptions();    
+    Flags & Options                      = rValues.GetOptions();
 
     Vector& StressVector                 = rValues.GetStressVector();
 
@@ -573,7 +573,7 @@ namespace Kratos
         PushForwardConstitutiveMatrix(ConstitutiveMatrix, DeltaDeformationMatrix);
       }
 
-    KRATOS_CATCH(" ")      
+    KRATOS_CATCH(" ")
   }
 
 
@@ -583,7 +583,7 @@ namespace Kratos
   void Constitutive3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues, ModelDataType& rModelValues)
   {
     KRATOS_TRY
-      
+
     this->CalculateMaterialResponseKirchhoff(rValues, rModelValues);
 
     const double& rDeltaDeformationDet   = rValues.GetDeterminantF();
@@ -619,9 +619,9 @@ namespace Kratos
   void Constitutive3DLaw::InitializeMaterialResponsePK1(Parameters& rValues)
   {
     KRATOS_TRY
-      
+
     // nothing to be done
-      
+
     KRATOS_CATCH(" ")
   }
 
@@ -632,9 +632,9 @@ namespace Kratos
   void Constitutive3DLaw::InitializeMaterialResponseKirchhoff(Parameters& rValues)
   {
     KRATOS_TRY
-      
+
     // nothing to be done
-      
+
     KRATOS_CATCH(" ")
   }
 
@@ -645,21 +645,21 @@ namespace Kratos
   void Constitutive3DLaw::InitializeMaterialResponseCauchy(Parameters& rValues)
   {
     KRATOS_TRY
-      
+
     // nothing to be done
-      
+
     KRATOS_CATCH(" ")
   }
 
 
-  
+
   //***********************************FINALIZE*****************************************
   //************************************************************************************
 
   void Constitutive3DLaw::FinalizeMaterialResponsePK2(Parameters& rValues)
   {
     KRATOS_TRY
-      
+
     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
     this->CalculateMaterialResponsePK2(rValues);
     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
@@ -674,7 +674,7 @@ namespace Kratos
   void Constitutive3DLaw::FinalizeMaterialResponsePK1(Parameters& rValues)
   {
     KRATOS_TRY
-      
+
     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
     this->CalculateMaterialResponsePK1(rValues);
     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
@@ -689,7 +689,7 @@ namespace Kratos
   void Constitutive3DLaw::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
   {
     KRATOS_TRY
-      
+
     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
     this->CalculateMaterialResponseKirchhoff(rValues);
     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
@@ -704,7 +704,7 @@ namespace Kratos
   void Constitutive3DLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
   {
     KRATOS_TRY
-      
+
     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
     this->CalculateMaterialResponseCauchy(rValues);
     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
@@ -721,15 +721,15 @@ namespace Kratos
   //   KRATOS_TRY
 
   //   mpElasticModel->CalculateStrainEnergyFunction(mStrainEnergy);
-      
+
   //   // double ln_J = std::log(rVariables.DeltaDeformationDet);
   //   // double trace_C = 0.0;
-    
+
   //   // for(unsigned int i = 0; i<RightCauchyGreen.size1();i++)
   //   //   {
   //   // 	trace_C += RightCauchyGreen(i,i);
   //   //   }
-    
+
   //   // mStrainEnergy =  0.5*ElasticVariables.LameLambda*ln_J*ln_J - ElasticVariables.LameMu*ln_J + 0.5*ElasticVariables.LameMu*(trace_C-3); //see Belytschko page 239
 
   //   KRATOS_CATCH(" ")
@@ -745,7 +745,7 @@ namespace Kratos
     KRATOS_TRY
 
     LawDataType& rVariables = rModelValues.rConstitutiveLawData();
-    
+
     rVariables.Temperature = this->CalculateDomainTemperature(rValues, rVariables.Temperature);
     rVariables.Pressure    = this->CalculateDomainPressure(rValues, rVariables.Pressure);
 
@@ -757,19 +757,19 @@ namespace Kratos
 
   //****************************** COMPUTE DOMAIN VARIABLE ****************************
   //************************************************************************************
-  
+
   double& Constitutive3DLaw::CalculateDomainVariable(Parameters& rValues, const Variable<double>& rThisVariable, double& rVariable)
   {
     KRATOS_TRY
-      
+
     const GeometryType& DomainGeometry = rValues.GetElementGeometry();
     const Vector& ShapeFunctionsValues = rValues.GetShapeFunctionsValues();
     const unsigned int number_of_nodes = DomainGeometry.size();
-    
-    rVariable = 0;    
+
+    rVariable = 0;
 
     if( DomainGeometry[0].SolutionStepsDataHas(rThisVariable) ){
-    
+
       for( unsigned int j = 0; j < number_of_nodes; j++ )
 	{
 	  rVariable += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(rThisVariable);
@@ -781,12 +781,12 @@ namespace Kratos
       //KRATOS_ERROR << "Constitutive3DLaw : Asking a variable that is not in the SolutionStepsData .." << rThisVariable << std::endl;
 
     }
-    
+
     return rVariable;
 
     KRATOS_CATCH(" ")
   }
-  
+
   //******************************* COMPUTE DOMAIN TEMPERATURE  ************************
   //************************************************************************************
 
@@ -794,9 +794,9 @@ namespace Kratos
   double& Constitutive3DLaw::CalculateDomainTemperature(Parameters& rValues, double& rTemperature)
   {
     KRATOS_TRY
-      
+
     rTemperature = this->CalculateDomainVariable(rValues,TEMPERATURE,rTemperature);
-				  
+
     return rTemperature;
 
     KRATOS_CATCH(" ")
@@ -809,9 +809,9 @@ namespace Kratos
   double& Constitutive3DLaw::CalculateDomainPressure(Parameters& rValues, double& rPressure)
   {
     KRATOS_TRY
-      
+
     rPressure = this->CalculateDomainVariable(rValues,PRESSURE,rPressure);
-				  
+
     return rPressure;
 
     KRATOS_CATCH(" ")
@@ -824,14 +824,14 @@ namespace Kratos
   void Constitutive3DLaw::GetLawFeatures(Features& rFeatures)
   {
     KRATOS_TRY
-    
+
     //Set the type of law
     rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
     rFeatures.mOptions.Set( ISOTROPIC );
-    
+
 
     //Set strain measure required by the consitutive law
-    
+
     //Set the strain size
     rFeatures.mStrainSize = GetStrainSize();
 
@@ -841,7 +841,7 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
-  
+
   //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
   //************************************************************************************
 
@@ -851,7 +851,7 @@ namespace Kratos
 
     return rValues.CheckAllParameters();
 
-    KRATOS_CATCH(" ")    
+    KRATOS_CATCH(" ")
   }
 
   //************************************************************************************
@@ -861,11 +861,11 @@ namespace Kratos
   int Constitutive3DLaw::Check(const Properties& rMaterialProperties,
 			       const GeometryType& rElementGeometry,
 			       const ProcessInfo& rCurrentProcessInfo)
-  {    
+  {
     KRATOS_TRY
-      		
+
     return 0;
-    
+
     KRATOS_CATCH(" ")
   }
 

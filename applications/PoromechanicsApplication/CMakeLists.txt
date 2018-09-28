@@ -85,7 +85,7 @@ if(${USE_PORO_MPI} MATCHES ON)
 
     ## PoromechanicsApplication core library (C++ parts)
     add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-    target_link_libraries( KratosPoromechanicsCore PRIVATE KratosCore KratosTrilinosApplication KratosSolidMechanicsCore)
+    target_link_libraries( KratosPoromechanicsCore PUBLIC KratosCore KratosTrilinosApplication KratosSolidMechanicsCore)
 
 else()
 
@@ -101,7 +101,7 @@ else()
 
     ## PoromechanicsApplication core library (C++ parts)
     add_library( KratosPoromechanicsCore SHARED ${KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES})
-    target_link_libraries( KratosPoromechanicsCore PRIVATE KratosCore KratosSolidMechanicsCore)
+    target_link_libraries( KratosPoromechanicsCore PUBLIC KratosCore KratosSolidMechanicsCore)
 
 endif()
 

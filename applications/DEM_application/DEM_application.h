@@ -12,8 +12,8 @@
 
 // External includes
 #include "includes/define.h"
+#include "DEM_application_variables.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
 #include "custom_elements/cylinder_particle.h"
 #include "custom_elements/cylinder_continuum_particle.h"
 #include "custom_elements/spheric_particle.h"

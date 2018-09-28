@@ -24,14 +24,11 @@ namespace Kratos
 
    /**
     * Clone function (has to be implemented by any derived class)
-    * @return a pointer to a new instance of this constitutive law
-    * NOTE: implementation scheme:
-    *      ConstitutiveLaw::Pointer p_clone(new ConstitutiveLaw());
-    *      return p_clone;
+    * @return a pointer to a new instance of this friction law
     */
    FrictionLaw::Pointer FrictionLaw::Clone() const
    {
-      KRATOS_THROW_ERROR(std::logic_error, "Called the virtual function for Clone", "");
+      return Kratos::make_shared<FrictionLaw>(*this);
    }
 
    void FrictionLaw::FinalizeSolutionStep()
@@ -49,7 +46,7 @@ namespace Kratos
 
       mPlasticSlipNew = mPlasticSlip;
       if ( rTangentVariables.FrictionCoefficient == 0 && rTangentVariables.Adhesion == 0)
-      { 
+      {
          rTangentForce = 0.0;
          rTangentVariables.PlasticSlip = 0.0;
          rTangentVariables.PlasticSlipOld = 0.0;
@@ -92,7 +89,7 @@ namespace Kratos
          rTangentForce = TangentStress * rTangentVariables.Area;
          rTangentVariables.PlasticSlip = Gamma + mDeltaPlasticSlip;
          Slip = true;
-      } 
+      }
       else {
 
          if ( ContactYield < 1.0e-8)  // elasticPart
@@ -103,7 +100,7 @@ namespace Kratos
          Slip = true;
          int i = 0;
          double Hardening, Derivative;
-         double DeltaGamma = 0, DeltaDeltaGamma = 0; 
+         double DeltaGamma = 0, DeltaDeltaGamma = 0;
          double CurrentStress = TangentStress;
          while ( i < 100)
          {
@@ -114,7 +111,7 @@ namespace Kratos
             DeltaDeltaGamma = ContactYield / Derivative;
             DeltaGamma += DeltaDeltaGamma;
 
-            CurrentStress = TangentStress - rTangentVariables.TangentPenalty * DeltaGamma; 
+            CurrentStress = TangentStress - rTangentVariables.TangentPenalty * DeltaGamma;
 
             ContactYield = EvaluateContactYield( CurrentStress, NormalStress,  Gamma+DeltaGamma, rTangentVariables);
 
@@ -145,10 +142,10 @@ namespace Kratos
    /**
     * Methods
     */
-   void FrictionLaw::EvaluateConstitutiveComponents( double& rNormalModulus, double & rTangentModulus, const double& rTangentForce, const double& rNormalForce, FrictionLawVariables& rTangentVariables) 
+   void FrictionLaw::EvaluateConstitutiveComponents( double& rNormalModulus, double & rTangentModulus, const double& rTangentForce, const double& rNormalForce, FrictionLawVariables& rTangentVariables)
    {
       if ( rTangentVariables.FrictionCoefficient == 0 && rTangentVariables.Adhesion == 0)
-      { 
+      {
          rNormalModulus = 0.0;
          rTangentModulus = 0.0;
          return;
@@ -165,9 +162,9 @@ namespace Kratos
          return;
       }
 
-      double NormalStress = rNormalForce; 
-      double TangentStress = rTangentForce; 
-      if ( rTangentVariables.Area > 0.0) { 
+      double NormalStress = rNormalForce;
+      double TangentStress = rTangentForce;
+      if ( rTangentVariables.Area > 0.0) {
          NormalStress /= rTangentVariables.Area;
          TangentStress /= rTangentVariables.Area;
       }
@@ -201,4 +198,3 @@ namespace Kratos
 
 
 } // namespace Kratos
-

@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-    void Model::AddModelPart( ModelPart::Pointer pModelPart) //TODO: DEPRECATED. to be removed. this is TEMPORARY
+    void Model::AddModelPart( ModelPart* pModelPart) //TODO: DEPRECATED. to be removed. this is TEMPORARY
     {
         KRATOS_TRY
 
@@ -35,7 +35,7 @@ namespace Kratos
         auto search = mflat_map.find(pModelPart->Name());
         if( search == mflat_map.end())
         {
-            mflat_map[pModelPart->Name()] = pModelPart.get();
+            mflat_map[pModelPart->Name()] = pModelPart;
 
             //walk the submodelparts
             for(auto& part : pModelPart->SubModelParts())
@@ -43,7 +43,7 @@ namespace Kratos
         }
         else
         {
-            if(&(*search->second) != &*(pModelPart.get()))
+            if(&(*search->second) != &*(pModelPart))
                 KRATOS_ERROR << "trying to add to the Model two DISTINCT model parts with the same name. This should be possible (and it will be in the future) if they belong to two different root model_parts, but it is currently disallowed";
 
         }

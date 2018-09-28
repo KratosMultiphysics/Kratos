@@ -49,7 +49,7 @@ namespace Kratos
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) LinearAssociativePlasticityModel : public NonLinearAssociativePlasticityModel<TElasticityModel,TYieldSurface>
   {
   public:
-    
+
     ///@name Type Definitions
     ///@{
 
@@ -63,7 +63,7 @@ namespace Kratos
 
     //derived type
     typedef NonLinearAssociativePlasticityModel<ElasticityModelType,YieldSurfaceType>   DerivedType;
-    
+
     //base type
     typedef PlasticityModel<ElasticityModelType,YieldSurfaceType>     BaseType;
 
@@ -76,7 +76,7 @@ namespace Kratos
     typedef typename BaseType::MaterialDataType               MaterialDataType;
     typedef typename BaseType::PlasticDataType                 PlasticDataType;
     typedef typename BaseType::InternalVariablesType     InternalVariablesType;
-    
+
     /// Pointer definition of LinearAssociativePlasticityModel
     KRATOS_CLASS_POINTER_DEFINITION( LinearAssociativePlasticityModel );
 
@@ -89,7 +89,7 @@ namespace Kratos
 
     /// Constructor.
     LinearAssociativePlasticityModel(ElasticityModelPointer pElasticityModel, YieldSurfacePointer pYieldSurface) : DerivedType(pElasticityModel, pYieldSurface) {}
-    
+
     /// Copy constructor.
     LinearAssociativePlasticityModel(LinearAssociativePlasticityModel const& rOther) : DerivedType(rOther) {}
 
@@ -103,7 +103,7 @@ namespace Kratos
     /// Clone.
     virtual ConstitutiveModel::Pointer Clone() const override
     {
-      return ( LinearAssociativePlasticityModel::Pointer(new LinearAssociativePlasticityModel(*this)) );
+      return Kratos::make_shared<LinearAssociativePlasticityModel>(*this);
     }
 
     /// Destructor.
@@ -114,7 +114,7 @@ namespace Kratos
     ///@name Operators
     ///@{
 
-   
+
     ///@}
     ///@name Operations
     ///@{
@@ -151,7 +151,7 @@ namespace Kratos
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "LinearAssociativePlasticityModel Data";	    
+      rOStream << "LinearAssociativePlasticityModel Data";
     }
 
     ///@}
@@ -164,21 +164,21 @@ namespace Kratos
   protected:
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
 
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
 
-      
+
     // calculate ratial return
     virtual bool CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
@@ -191,22 +191,22 @@ namespace Kratos
       double& rDeltaGamma                  = rVariables.DeltaInternal.Variables[0];
 
 
-      double StateFunction                = rVariables.TrialStateFunction;	
+      double StateFunction                = rVariables.TrialStateFunction;
 
       //Calculate Delta State Function:
       DeltaStateFunction = this->mYieldSurface.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
 
       //Calculate DeltaGamma:
       rDeltaGamma  = StateFunction/DeltaStateFunction;
-	       
+
       //Update Equivalent Plastic Strain:
       DeltaPlasticStrain        = sqrt(2.0/3.0) * rDeltaGamma;
       rEquivalentPlasticStrain += DeltaPlasticStrain;
-	
+
       KRATOS_CATCH(" ")
     }
 
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -232,8 +232,8 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -261,9 +261,9 @@ namespace Kratos
 
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )  
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
     }
-    
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -287,11 +287,9 @@ namespace Kratos
   ///@{
 
   ///@}
-  
+
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_LINEAR_ASSOCIATIVE_PLASTICITY_MODEL_H_INCLUDED  defined 
-
-
+#endif // KRATOS_LINEAR_ASSOCIATIVE_PLASTICITY_MODEL_H_INCLUDED  defined

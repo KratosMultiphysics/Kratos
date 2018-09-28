@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosPfemSolidMechanicsApplication $
-//   Created by:          $Author:                  LMonforte $
-//   Last modified by:    $Co-Author:                         $
-//   Date:                $Date:                    July 2013 $
-//   Revision:            $Revision:                      0.0 $
+//   Project Name:        KratosContactMechanicsApplication $
+//   Created by:          $Author:                LMonforte $
+//   Last modified by:    $Co-Author:                       $
+//   Date:                $Date:                  July 2013 $
+//   Revision:            $Revision:                    0.0 $
 //
 //
 
@@ -15,7 +15,7 @@
 namespace Kratos
 {
 
-class EPPointRigidContactPenaltywP3DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) EPPointRigidContactPenaltywP3DCondition
     : public EPPointRigidContactPenalty3DCondition
 {
  public:
@@ -59,7 +59,7 @@ class EPPointRigidContactPenaltywP3DCondition
    * @param pProperties: the properties assigned to the new condition
    * @return a Pointer to the new condition
    */
-  Condition::Pointer Clone(IndexType NewId, 
+  Condition::Pointer Clone(IndexType NewId,
                            NodesArrayType const& ThisNodes) const override;
 
   void GetDofList(DofsVectorType& rConditionDofList,

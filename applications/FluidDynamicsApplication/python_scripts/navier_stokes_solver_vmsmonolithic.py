@@ -108,10 +108,11 @@ class NavierStokesSolverMonolithic(FluidSolver):
         {
             "solver_type": "navier_stokes_solver_vmsmonolithic",
             "model_part_name": "FluidModelPart",
-            "domain_size": 2,
+            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "unknown_name"
+                "input_filename": "unknown_name",
+                "reorder": false
             },
             "stabilization": {
                 "formulation": "vms"
@@ -145,8 +146,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "move_mesh_strategy": 0,
             "periodic": "periodic",
             "move_mesh_flag": false,
-            "turbulence_model": "None",
-            "reorder": false
+            "turbulence_model": "None"
         }""")
 
         ## Backwards compatibility -- deprecation warnings
@@ -244,7 +244,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         # Creating the solution strategy
         self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
@@ -259,7 +259,6 @@ class NavierStokesSolverMonolithic(FluidSolver):
                 if self.settings["consider_periodic_conditions"].GetBool() == True:
                     self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
                                         self.settings["alpha"].GetDouble(),
-                                        self.settings["move_mesh_strategy"].GetInt(),
                                         self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                         KratosCFD.PATCH_INDEX)
                 else:

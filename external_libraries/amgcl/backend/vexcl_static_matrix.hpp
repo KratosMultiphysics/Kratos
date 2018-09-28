@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -116,9 +116,9 @@ class ell<amgcl::static_matrix<T, N, N>, Col, Ptr> {
                 const ColRange &col,
                 const ValRange &val,
                 bool fast = true
-           ) :
-            q(q[0]), n(nrows), m(ncols), nnz(boost::size(val)),
-            ell_pitch(alignup(nrows, 16U)), csr_nnz(0)
+           ) : q(q[0]), n(nrows), m(ncols),
+               nnz(std::distance(std::begin(val), std::end(val))),
+               ell_pitch(alignup(nrows, 16U)), csr_nnz(0)
         {
             precondition(q.size() == 1,
                     "sparse::ell is only supported for single-device contexts");

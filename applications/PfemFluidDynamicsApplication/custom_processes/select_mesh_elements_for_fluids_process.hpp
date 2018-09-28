@@ -20,11 +20,12 @@
 #include "spatial_containers/spatial_containers.h"
 
 #include "includes/model_part.h"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/tetrahedra_3d_10.h"
+#include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
 //Data:     
@@ -47,7 +48,7 @@ namespace Kratos
     
 */
 class SelectMeshElementsForFluidsProcess
-  : public Process
+  : public MesherProcess
 {
 public:
     ///@name Type Definitions
@@ -66,7 +67,7 @@ public:
 
     /// Default constructor.
     SelectMeshElementsForFluidsProcess(ModelPart& rModelPart,
-			      ModelerUtilities::MeshingParameters& rRemeshingParameters,
+			      MesherUtilities::MeshingParameters& rRemeshingParameters,
 			      int EchoLevel) 
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
@@ -129,7 +130,7 @@ public:
 
       int number_of_slivers = 0;
 
-      if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::SELECT_TESSELLATION_ELEMENTS))
+      if(mrRemesh.ExecutionOptions.IsNot(MesherUtilities::SELECT_TESSELLATION_ELEMENTS))
 	{
 	  for(int el=0; el<OutNumberOfElements; el++)
 	    {
@@ -178,7 +179,7 @@ public:
 		{
 		  //set vertices
 		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<0){
-		    if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
+		    if(mrRemesh.Options.IsNot(MesherUtilities::CONTACT_SEARCH))
 		      std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
 		    box_side_element = true;
 		    break;
@@ -270,7 +271,7 @@ public:
 		      Alpha*=0;
 		    }
 		  }else{
-		    std::cout<<"ATTENTION!!! CHECKED NODES= "<<checkedNodes<<" and the nodes are "<<nds<<std::endl;
+                    KRATOS_INFO( "ATTENTION!!! CHECKED NODES= " ) <<checkedNodes<<" and the nodes are "<<nds<<std::endl;
 		    Alpha*=0;
 		  }
 		}
@@ -321,32 +322,32 @@ public:
 
 	      bool accepted=false;
 	      
-	      ModelerUtilities ModelerUtils;
+	      MesherUtilities MesherUtils;
 	      
-	      if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
+	      if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
 		{
-		  accepted=ModelerUtils.ShrankAlphaShape(Alpha,vertices,mrRemesh.OffsetFactor,dimension);
+		  accepted=MesherUtils.ShrankAlphaShape(Alpha,vertices,mrRemesh.OffsetFactor,dimension);
 		}
 	      else
 		{
 
 		  double MeanMeshSize=mrRemesh.Refine->CriticalRadius;
-		  accepted=ModelerUtils.AlphaShape(Alpha,vertices,dimension,MeanMeshSize);
+		  accepted=MesherUtils.AlphaShape(Alpha,vertices,dimension,MeanMeshSize);
 
 		}
 
 
 	      //3.1.-
 	      bool self_contact = false;
-	      if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
-		self_contact = ModelerUtils.CheckSubdomain(vertices);
+	      if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
+		self_contact = MesherUtils.CheckSubdomain(vertices);
 	    	    
 	      //4.- to control that the element is inside of the domain boundaries
 	      if(accepted)
 		{
-		  if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
+		  if(mrRemesh.Options.Is(MesherUtilities::CONTACT_SEARCH))
 		    {
-		      accepted=ModelerUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
+		      accepted=MesherUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
 		    }
 		}
 
@@ -375,8 +376,34 @@ public:
 	      	  // }else
 		    if(dimension==3 && nds==4){
 	      	    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
+
+
 	      	    double Volume = tetrahedron->Volume();
 	      	    double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
+
+		    if(CriticalVolume==0){
+		      array_1d<double,3> CoorDifference= vertices[0].Coordinates() - vertices[1].Coordinates();
+		      double SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      double meanLength=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[0].Coordinates() - vertices[2].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[0].Coordinates() - vertices[3].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[1].Coordinates() - vertices[2].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[1].Coordinates() - vertices[3].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      CoorDifference= vertices[2].Coordinates() - vertices[3].Coordinates();
+		      SquaredLength = CoorDifference[0]*CoorDifference[0] + CoorDifference[1]*CoorDifference[1] + CoorDifference[2]*CoorDifference[2];
+		      meanLength+=sqrt(SquaredLength)/6.0;
+		      double regularTetrahedronVolume=pow(meanLength,3)*sqrt(2)/12.0;
+		      CriticalVolume=0.00001*regularTetrahedronVolume;
+		    }
+
 		    // std::cout<<"riticalVolume "<<Volume<<std::endl;
 	      	    if(Volume<CriticalVolume){
 	      	      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
@@ -426,7 +453,7 @@ public:
 	std::cout<<"Number of Preserved Fluid Elements "<<mrRemesh.Info->NumberOfElements<<" (slivers detected: "<<number_of_slivers<<") "<<std::endl;
 	std::cout<<"TOTAL removed nodes "<<mrRemesh.Info->RemovedNodes<<std::endl;
       }
-      if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::KEEP_ISOLATED_NODES)){
+      if(mrRemesh.ExecutionOptions.IsNot(MesherUtilities::KEEP_ISOLATED_NODES)){
 
 
 	ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();	  
@@ -488,8 +515,8 @@ public:
 
 
       mrRemesh.InputInitializedFlag = false;
-      // mModelerUtilities.SetNodes(mrModelPart,mrRemesh);
-      mModelerUtilities.SetNodes(mrModelPart,mrRemesh);
+      // mMesherUtilities.SetNodes(mrModelPart,mrRemesh);
+      mMesherUtilities.SetNodes(mrModelPart,mrRemesh);
       mrRemesh.InputInitializedFlag = true;
 
       if( mEchoLevel > 1 ){
@@ -551,9 +578,9 @@ private:
     ///@{
     ModelPart& mrModelPart;
  
-    ModelerUtilities::MeshingParameters& mrRemesh;
+    MesherUtilities::MeshingParameters& mrRemesh;
 
-    ModelerUtilities mModelerUtilities;  
+    MesherUtilities mMesherUtilities;  
 
     int mEchoLevel;
 

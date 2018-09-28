@@ -57,15 +57,15 @@ namespace Kratos
   Condition::Pointer AxisymPointRigidContactPenalty2DCondition::Create(IndexType NewId, NodesArrayType
 								       const& ThisNodes,  PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new AxisymPointRigidContactPenalty2DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<AxisymPointRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
   }
-  
+
   //************************************CLONE*******************************************
   //************************************************************************************
-  
+
   Condition::Pointer AxisymPointRigidContactPenalty2DCondition::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
   {
-    return Condition::Pointer(new AxisymPointRigidContactPenalty2DCondition(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall));
+    return Kratos::make_shared<AxisymPointRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
   }
 
   //************************************************************************************
@@ -76,11 +76,11 @@ namespace Kratos
   {
   }
 
-   
+
 
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
-  
+
   void AxisymPointRigidContactPenalty2DCondition::CalculateKinematics(ConditionVariables& rVariables,
 								      const ProcessInfo& rCurrentProcessInfo,
 								      const double& rPointNumber)
@@ -88,9 +88,9 @@ namespace Kratos
     KRATOS_TRY
 
     CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius);
-    
+
     PointRigidContactPenalty2DCondition::CalculateKinematics(rVariables, rCurrentProcessInfo, rPointNumber);
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -102,7 +102,7 @@ namespace Kratos
   {
 
     KRATOS_TRY
-      
+
     WeakPointerVector<Node<3> >& rN = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
 
     array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
@@ -117,11 +117,11 @@ namespace Kratos
     for(unsigned int i = 0; i < rN.size(); i++)
       {
 	if(rN[i].Is(BOUNDARY)){
-	    
+
 	  Neighb_Point[0] = rN[i].X();
 	  Neighb_Point[1] = rN[i].Y();
 	  Neighb_Point[2] = rN[i].Z();
-	    
+
 	  // radius = fabs(Contact_Point[0] + rN[i].X()) * 0.5;
 	  // meanradius += radius;
 	  // distance += norm_2(Contact_Point-Neighb_Point) * radius;
@@ -135,7 +135,7 @@ namespace Kratos
     // if( Contact_Point[0] > 0)
     //   distance /= ( counter * Contact_Point[0] );
     // else
-    //   distance /= ( counter * (meanradius/counter) ); 
+    //   distance /= ( counter * (meanradius/counter) );
 
     if( counter != 0 )
       distance /= counter;
@@ -157,7 +157,7 @@ namespace Kratos
 	ElasticModulus = GetProperties()[C10];
     }
     else{
-	
+
 	if( rE.front().GetProperties().Has(YOUNG_MODULUS) ){
 	    ElasticModulus = rE.front().GetProperties()[YOUNG_MODULUS];
 	}
@@ -177,7 +177,7 @@ namespace Kratos
 	}
       ElasticModulus /= double(rE.size());
     }
-    
+
     double factor = 4;
     if( distance < 1.0 ){ //take a number bigger than 1.0 (length units)
       int order = (int)((-1) * std::log10(distance) + 1) ;
@@ -189,27 +189,27 @@ namespace Kratos
     double PenaltyRatio = 1;
     if( GetProperties().Has(TANGENTIAL_PENALTY_RATIO) )
       PenaltyRatio = GetProperties()[TANGENTIAL_PENALTY_RATIO];
-    
-    rVariables.Penalty.Tangent = rVariables.Penalty.Normal * PenaltyRatio;  
-    
+
+    rVariables.Penalty.Tangent = rVariables.Penalty.Normal * PenaltyRatio;
+
 
     //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
 
     //set contact normal
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	GetGeometry()[i].SetLock();
-	
+
 	array_1d<double, 3> &ContactNormal  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_NORMAL);
-	
+
 	for(unsigned int i=0; i<3; i++)
-	  ContactNormal[i] = rVariables.Surface.Normal[i];	 
-	
+	  ContactNormal[i] = rVariables.Surface.Normal[i];
+
 	GetGeometry()[i].UnSetLock();
       }
-      
+
     KRATOS_CATCH( "" )
   }
 
@@ -236,23 +236,23 @@ namespace Kratos
     rReferenceRadius = ReferencePosition[0];
 
     if( rCurrentRadius == 0 ){
-      
+
       WeakPointerVector<Node<3> >& rN = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
-      
+
       double counter = 0;
 
       for(unsigned int i = 0; i < rN.size(); i++)
 	{
 	  array_1d<double, 3 > & NodePosition = rN[i].Coordinates();
 	  if( NodePosition[0] != 0 ){
-	    rCurrentRadius += NodePosition[0] * 0.225; 	    
+	    rCurrentRadius += NodePosition[0] * 0.225;
 	    counter ++;
 	  }
-	    
+
 	}
 
       rCurrentRadius /= counter;
-      
+
     }
 
 
@@ -267,7 +267,7 @@ namespace Kratos
   {
 
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
-    
+
     if ( this->GetProperties().Has(THICKNESS) ) {
        if( GetProperties()[THICKNESS] > 0 )
           IntegrationWeight /=  GetProperties()[THICKNESS];
@@ -300,14 +300,11 @@ namespace Kratos
     //KRATOS_WATCH( rRightHandSideVector )
   }
 
-  
-  
+
+
 
 
 
 
 
 } // Namespace Kratos
-
-
-

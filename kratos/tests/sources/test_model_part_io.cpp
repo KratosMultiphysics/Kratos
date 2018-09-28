@@ -194,7 +194,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     main_model_part.CreateNewElement("Element2D3N", 2, elem_nodes_2, p_properties_1);
 
     //elemental data
-    Matrix stress(2,2,1);
+    Matrix stress = ScalarMatrix(2,2, 1.00);
     main_model_part.GetMesh().GetElement(1).SetValue(CAUCHY_STRESS_TENSOR,stress);
     bool is_restarted = true;
     main_model_part.GetMesh().GetElement(1).SetValue(IS_RESTARTED,is_restarted);
@@ -220,7 +220,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     main_model_part.GetMesh().GetCondition(1).SetValue(TEMPERATURE, temperature);
     main_model_part.GetMesh().GetCondition(1).SetValue(DISPLACEMENT_X, displacement_x);
 
-    ModelPart::Pointer p_sub_model_part = main_model_part.CreateSubModelPart("SubModelPart");
+    ModelPart* p_sub_model_part = &main_model_part.CreateSubModelPart("SubModelPart");
     std::vector<ModelPart::IndexType> sub_model_part_nodes = {1,2,4};
     std::vector<ModelPart::IndexType> sub_model_part_elems = {1};
     std::vector<ModelPart::IndexType> sub_model_part_conds = {1,3};

@@ -48,7 +48,7 @@ void  AddCustomFrictionLawsToPython(pybind11::module& m)
 
   class_<Variable<FrictionLawPointer>, VariableData>(m,"FrictionLawVariable")
       ;
-       
+
   //Friction laws
   class_< FrictionLaw, typename FrictionLaw::Pointer>(m,"FrictionLaw")
       .def( init<>() )

@@ -36,7 +36,7 @@ PYBIND11_MODULE(KratosConstitutiveModelsApplication,m)
       .def(init<>())
       ;
 
-  AddCustomConstitutiveLawsToPython(m); 
+  AddCustomConstitutiveLawsToPython(m);
 }
 
 

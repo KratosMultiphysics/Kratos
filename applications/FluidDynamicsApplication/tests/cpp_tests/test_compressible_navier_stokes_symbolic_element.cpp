@@ -86,7 +86,7 @@ namespace Kratos {
             momentum[0] = velocity*density;        //momentum
             momentum[1] = velocity*density;        //momentum
 			momentum[2] = 0.0;        //momentum
-			double Ma = velocity/sqrt(1.4*R*T);
+			//double Ma = velocity/sqrt(1.4*R*T);
             double total_energy = density*R*T/(1.4-1)+(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2])/(2*density);
 
             // std::cout<<"\n\nSupersonic Test For Constant Variables"<<std::endl;
@@ -190,7 +190,7 @@ namespace Kratos {
             momentum[0] = velocity*density;        //momentum (velocity = 300 m/s)
             momentum[1] = velocity*density;        //momentum
 			momentum[2] = 0.0;        //momentum
-			double Ma = velocity/sqrt(1.4*R*T);
+			//double Ma = velocity/sqrt(1.4*R*T);
             double total_energy = density*R*T/(1.4-1)+(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2])/(2*density);
             momentum_n[0] = 1.0; momentum_n[1] = 1.0; momentum_n[2] = 1.0; //Casual value for the previous steps
 
@@ -362,7 +362,7 @@ namespace Kratos {
             momentum[0] = velocity*density;        //momentum (velocity = 300 m/s)
             momentum[1] = velocity*density;        //momentum
 			momentum[2] = 0.0;        //momentum
-			double Ma = velocity/sqrt(1.4*R*T);
+			//double Ma = velocity/sqrt(1.4*R*T);
             double total_energy = density*R*T/(1.4-1)+(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2])/(2*density);
             momentum_n[0] = 1.0; momentum_n[1] = 1.0; momentum_n[2] = 1.0; //Casual value for the previous steps
 
@@ -535,7 +535,7 @@ namespace Kratos {
 			 momentum[0] = velocity*density;        //momentum
 			 momentum[1] = velocity*density;        //momentum
 			 momentum[2] = velocity*density;         //momentum
-			 double Ma = velocity/sqrt(1.4*R*T); 
+			 //double Ma = velocity/sqrt(1.4*R*T); 
 			 double total_energy = density*R*T/(1.4-1)+(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2])/(2*density);   	
  
 			//  std::cout<<"\n\nSupersonic Test For 3D Constant Variables"<<std::endl;
@@ -640,7 +640,7 @@ namespace Kratos {
 			 momentum[0] = velocity*density;        //momentum (velocity = 300 m/s)
 			 momentum[1] = velocity*density;        //momentum
 			 momentum[2] = 0.0;        //momentum
-			 double Ma = velocity/sqrt(1.4*R*T);
+			 //double Ma = velocity/sqrt(1.4*R*T);
 			 double total_energy = density*R*T/(1.4-1)+(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2])/(2*density);   	
 			 momentum_n[0] = 1.0; momentum_n[1] = 1.0; momentum_n[2] = 1.0; //Casual value for the previous steps 
  

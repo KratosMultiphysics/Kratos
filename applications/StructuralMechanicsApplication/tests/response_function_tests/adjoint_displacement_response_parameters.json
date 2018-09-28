@@ -1,0 +1,25 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "rectangular_plate_structure",
+        "model_part_name" : "rectangular_plate_structure",
+        "domain_size"     : 3,
+        "time_step"       : 1.0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0
+    },
+    "kratos_response_settings":{
+        "response_type"    : "adjoint_nodal_displacement",
+        "gradient_mode"     : "semi_analytic",
+        "sensitivity_model_part_name" :"Parts_AREAS",
+        "nodal_sensitivity_variables"  : ["SHAPE"],
+        "element_sensitivity_variables"  : [],
+        "condition_sensitivity_variables"  : [],
+        "step_size"         : 1.0e-6,
+        "traced_node_id"       : 5,
+        "traced_dof"        : "DISPLACEMENT_Z",
+        "primal_settings"  : "rectangular_plate_parameters.json",
+        "adjoint_settings"  : "rectangular_plate_adjoint_parameters.json"
+    }
+}

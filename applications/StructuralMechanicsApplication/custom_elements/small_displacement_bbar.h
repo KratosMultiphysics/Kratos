@@ -221,7 +221,7 @@ protected:
             const Vector& rBodyForce,
             const Vector& rStressVector,
             const double IntegrationWeight
-            );
+            ) override ;
 
     /**
     * This functions updates the constitutive variables
@@ -262,12 +262,12 @@ protected:
     * @param B The deformation matrix
     * @param DN_DX The derivatives of the shape functions
     */
-    virtual void CalculateB(
+    void CalculateB(
             Matrix& rB,
             const Matrix& DN_DX
     );
 
-    virtual Matrix ComputeEquivalentF(const Vector& rStrainTensor);
+    Matrix ComputeEquivalentF(const Vector& rStrainTensor);
 
     /**
         * This functions updates the kinematics variables
@@ -285,7 +285,7 @@ protected:
     * @param B The deformation matrix
     * @param DN_DX The derivatives of the shape functions
     */
-    virtual void CalculateBbar(
+    void CalculateBbar(
             Matrix &rB,
             Vector &rBh,
             const Matrix &DN_DX,

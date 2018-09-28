@@ -65,10 +65,8 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         target_norm = tolerance*space.TwoNorm(boriginal)
 
         if(not (achieved_norm <= target_norm)):
-            print("echo of settings for failing test:")
-            print(settings.PrettyPrintJsonString())
-            print("achieved_norm",achieved_norm)
-            print("target_norm",target_norm)
+            KratosMultiphysics.Logger.PrintInfo("Test linear solvers: ", "Echo of settings for failing test:\n", settings.PrettyPrintJsonString())
+            KratosMultiphysics.Logger.PrintInfo("Test linear solvers: ", "Achieved_norm",achieved_norm, "\n", "Target_norm", target_norm)
         self.assertTrue(achieved_norm <= target_norm)
 
 

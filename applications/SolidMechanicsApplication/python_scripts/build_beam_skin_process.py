@@ -42,14 +42,14 @@ class BeamBuildSkinProcess(KratosMultiphysics.Process):
         self.beam_skin_process = KratosSolid.BuildStringSkinProcess(self.model_part, self.sides, self.radius)
 
         self.beam_skin_process.ExecuteInitialize()
-        print("::[Skin_Created]:: (sides:"+str(self.sides),"radius:"+str(self.radius)+")")
+        print("::[----Skin_Created---]:: (sides:"+str(self.sides),"radius:"+str(self.radius)+")")
 
 
     #
     def ExecuteBeforeSolutionLoop(self):
         self.beam_skin_process.ExecuteBeforeSolutionLoop()
         if( self.echo_level > 0 ):
-            print("::[Skin_Created]::Transfer to output")
+            print("::[----Skin_Created---]::Transfer to output")
 
     #
     def ExecuteInitializeSolutionStep(self):
@@ -59,7 +59,7 @@ class BeamBuildSkinProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         self.beam_skin_process.ExecuteFinalizeSolutionStep()
         if( self.echo_level > 0 ):
-            print("::[Skin_Updated]::", self.settings["section_type"].GetString())
+            print("::[----Skin_Updated---]::", self.settings["section_type"].GetString())
 
     #
     def Execute(self):

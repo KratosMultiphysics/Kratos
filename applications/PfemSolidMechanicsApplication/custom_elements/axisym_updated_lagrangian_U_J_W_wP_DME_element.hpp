@@ -142,7 +142,7 @@ protected:
      * Part of the mass matrix due to the stabilization
      */
     virtual void CalculateAndAddMassStabilizationMatrix(MatrixType& rMassMatrix,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           ) override; 
 
@@ -150,7 +150,7 @@ protected:
      * Part of the damping matrix due to the stabilization
      */
     virtual void CalculateAndAddDampingStabilizationMatrix(MatrixType& rDampingMatrix,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           ) override;
 

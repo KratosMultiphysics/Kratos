@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED )
@@ -120,11 +120,11 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     AxisymPointLoadCondition() : PointLoadCondition()
     {
     }
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -150,13 +150,13 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
 
      /**
-     * It calcules the integration load for the point load 
+     * It calcules the integration load for the point load
      */
     double GetPointLoadIntegrationWeight() override;
 
@@ -168,7 +168,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-    
+
     friend class Serializer;
 
     // A private default constructor necessary for serialization
@@ -199,4 +199,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED  defined

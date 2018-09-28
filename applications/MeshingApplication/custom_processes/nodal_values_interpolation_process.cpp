@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -15,9 +15,10 @@
 // External includes
 
 // Project includes
-
-// Include the point locator
 #include "custom_processes/nodal_values_interpolation_process.h"
+#include "processes/find_nodal_h_process.h"
+#include "processes/skin_detection_process.h"
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -27,27 +28,27 @@ NodalValuesInterpolationProcess<TDim>::NodalValuesInterpolationProcess(
         ModelPart& rDestinationMainModelPart,
         Parameters ThisParameters
         ):mrOriginMainModelPart(rOriginMainModelPart),
-          mrDestinationMainModelPart(rDestinationMainModelPart)
+          mrDestinationMainModelPart(rDestinationMainModelPart),
+          mThisParameters(ThisParameters)
 {
-    Parameters DefaultParameters = Parameters(R"(
+    Parameters default_parameters = Parameters(R"(
     {
-    "echo_level"                 : 1,
-    "framework"                  : "Eulerian",
-    "max_number_of_searchs"      : 1000,
-    "interpolate_non_historical" : true,
-    "step_data_size"             : 0,
-    "buffer_size"                : 0
+        "echo_level"                 : 1,
+        "framework"                  : "Eulerian",
+        "max_number_of_searchs"      : 1000,
+        "interpolate_non_historical" : true,
+        "extrapolate_contour_values" : true,
+        "search_parameters"          : {
+            "allocation_size"           : 1000,
+            "bucket_size"               : 4,
+            "search_factor"             : 2.0
+        },
+        "step_data_size"             : 0,
+        "buffer_size"                : 0
     })");
-    ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-    
-    mEchoLevel = ThisParameters["echo_level"].GetInt();
-    mFramework = ConvertFramework(ThisParameters["framework"].GetString());
-    mMaxNumberOfResults = ThisParameters["max_number_of_searchs"].GetInt();
-    mInterpolateNonHistorical = ThisParameters["interpolate_non_historical"].GetBool();
-    mStepDataSize = ThisParameters["step_data_size"].GetInt();
-    mBufferSize   = ThisParameters["buffer_size"].GetInt();
+    mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-    KRATOS_INFO_IF("NodalValuesInterpolationProcess", mEchoLevel > 0) << "Step data size: " << mStepDataSize << " Buffer size: " << mBufferSize << std::endl;
+    KRATOS_INFO_IF("NodalValuesInterpolationProcess", mThisParameters["echo_level"].GetInt() > 0) << "Step data size: " << mThisParameters["step_data_size"].GetInt() << " Buffer size: " << mThisParameters["buffer_size"].GetInt() << std::endl;
 }
 
 /***********************************************************************************/
@@ -59,36 +60,47 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
     // We create the locator
     BinBasedFastPointLocator<TDim> point_locator = BinBasedFastPointLocator<TDim>(mrOriginMainModelPart);
     point_locator.UpdateSearchDatabase();
-    
+
     // Iterate in the nodes
     NodesArrayType& nodes_array = mrDestinationMainModelPart.Nodes();
     const SizeType num_nodes = nodes_array.end() - nodes_array.begin();
-    
-    if (mInterpolateNonHistorical)
+
+    if (mThisParameters["interpolate_non_historical"].GetBool())
         GetListNonHistoricalVariables();
+
+    // We check if we extrapolate values
+    const bool extrapolate_values = mThisParameters["extrapolate_contour_values"].GetBool();
+    std::vector<NodeType::Pointer> to_extrapolate_nodes; // In this vector we will store the nodes to be extrapolated
 
     /* Nodes */
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(num_nodes); ++i) {
         auto it_node = nodes_array.begin() + i;
-        
+
         Vector shape_functions;
         Element::Pointer p_element;
-        
+
         const array_1d<double, 3>& coordinates = it_node->Coordinates();
-        const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mMaxNumberOfResults, 5.0e-2);
-        
-        if (is_found == false) {
-            if (mEchoLevel > 0 || mFramework == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
-                KRATOS_WARNING("NodalValuesInterpolationProcess") << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
-                KRATOS_WARNING_IF("NodalValuesInterpolationProcess", mFramework == FrameworkEulerLagrange::LAGRANGIAN) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
+        const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mThisParameters["max_number_of_searchs"].GetInt(), 5.0e-2);
+
+        if (!is_found) {
+            if (extrapolate_values) to_extrapolate_nodes.push_back(*(it_node.base()));
+            if (mThisParameters["echo_level"].GetInt() > 0 || ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
+                KRATOS_WARNING_IF("NodalValuesInterpolationProcess", !extrapolate_values) << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
+                KRATOS_WARNING_IF("NodalValuesInterpolationProcess", ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN && !extrapolate_values ) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
             }
         } else {
-            if (mInterpolateNonHistorical)
-                CalculateData(*(it_node.base()), p_element, shape_functions);
-            for(IndexType i_step = 0; i_step < mBufferSize; ++i_step)
-                CalculateStepData(*(it_node.base()), p_element, shape_functions, i_step);
+            if (mThisParameters["interpolate_non_historical"].GetBool())
+                CalculateData<Element>(*(it_node.base()), p_element, shape_functions);
+            for(IndexType i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
+                CalculateStepData<Element>(*(it_node.base()), p_element, shape_functions, i_step);
         }
+    }
+
+    // In case interpolate fails we extrapolate values
+    if (extrapolate_values) {
+        GenerateBoundary();
+        ExtrapolateValues(to_extrapolate_nodes);
     }
 }
 
@@ -136,214 +148,180 @@ void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void NodalValuesInterpolationProcess<2>::CalculateData(
-    NodeType::Pointer pNode,
-    const Element::Pointer& pElement,
-    const Vector& rShapeFunctions
-    )
+template<SizeType TDim>
+void NodalValuesInterpolationProcess<TDim>::GenerateBoundary()
 {
-    // The nodal data (non-historical)
-    auto& data = pNode->Data();
+    Parameters skin_parameters = Parameters(R"(
+    {
+        "name_auxiliar_model_part" : "SKIN_MODEL_PART_TO_LATER_REMOVE"
+    })" );
 
-    // The nodal data (non-historical) of each node of the original mesh
-    const auto& node_data_0 = pElement->GetGeometry()[0].Data();
-    const auto& node_data_1 = pElement->GetGeometry()[1].Data();
-    const auto& node_data_2 = pElement->GetGeometry()[2].Data();
+    /* Destination skin */
+    auto boundary_process_origin = SkinDetectionProcess<TDim>(mrOriginMainModelPart, skin_parameters);
+    boundary_process_origin.Execute();
+    // Compute normal in the skin
+    ModelPart& r_model_part_origin = mrOriginMainModelPart.GetSubModelPart("SKIN_MODEL_PART_TO_LATER_REMOVE");
+    ComputeNormalSkin(r_model_part_origin);
 
-    // Now we interpolate the values of each node
-    double aux_coeff;
-    for (auto& var : mListDoublesVariables) {
-        aux_coeff = 0.0;
-        if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
-        if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
-        if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
-        if (aux_coeff > 0.0) {
-            aux_coeff = 1.0/aux_coeff;
-            data.SetValue(var,
-      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
-                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                 + rShapeFunctions[2] * (node_data_2.GetValue(var))));
+    /* Destination skin */
+    auto boundary_process_destination = SkinDetectionProcess<TDim>(mrDestinationMainModelPart, skin_parameters);
+    boundary_process_destination.Execute();
+    // Compute normal in the skin
+    ModelPart& r_model_part_destination = mrDestinationMainModelPart.GetSubModelPart("SKIN_MODEL_PART_TO_LATER_REMOVE");
+    ComputeNormalSkin(r_model_part_destination);
+    mrDestinationMainModelPart.RemoveSubModelPart("SKIN_MODEL_PART_TO_LATER_REMOVE");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(std::vector<NodeType::Pointer>& rToExtrapolateNodes)
+{
+    // We compute the NODAL_H
+    FindNodalHProcess find_h_process = FindNodalHProcess(mrDestinationMainModelPart);
+    find_h_process.Execute();
+
+    // We initialize some values
+    const SizeType bucket_size = mThisParameters["search_parameters"]["bucket_size"].GetInt();
+    const SizeType allocation_size = mThisParameters["search_parameters"]["allocation_size"].GetInt();
+    const double search_factor = mThisParameters["search_parameters"]["search_factor"].GetDouble();
+
+    // A list that contents the all the points (from nodes) from the modelpart
+    PointVector point_list_destination;
+
+    point_list_destination.clear();
+
+    // Iterate in the conditions
+    ConditionsArrayType& origin_conditions_array = mrOriginMainModelPart.GetSubModelPart("SKIN_MODEL_PART_TO_LATER_REMOVE").Conditions();
+
+    // Creating a buffer for parallel vector fill
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<PointVector> points_buffer(num_threads);
+
+    #pragma omp parallel
+    {
+        const int thread_id = OpenMPUtils::ThisThread();
+
+        #pragma omp for
+        for(int i = 0; i < static_cast<int>(origin_conditions_array.size()); ++i) {
+            auto it_cond = origin_conditions_array.begin() + i;
+
+            const PointTypePointer& p_point = PointTypePointer(new PointBoundaryType((*it_cond.base())));
+            (points_buffer[thread_id]).push_back(p_point);
+        }
+
+        // Combine buffers together
+        #pragma omp single
+        {
+            for( auto& point_buffer : points_buffer)
+                std::move(point_buffer.begin(),point_buffer.end(),back_inserter(point_list_destination));
         }
     }
-    for (auto& var : mListArraysVariables) {
-            aux_coeff = 0.0;
-            if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
-            if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
-            if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
-        if (aux_coeff > 0.0)  {
-            if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
-            data.SetValue<array_1d<double, 3>>(var,
-      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
-                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                 + rShapeFunctions[2] * (node_data_2.GetValue(var))));
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(point_list_destination.size()); ++i)
+        point_list_destination[i]->UpdatePoint();
+
+    // Create a tree
+    // It will use a copy of mNodeList (a std::vector which contains pointers)
+    // Copying the list is required because the tree will reorder it for efficiency
+    KDTreeType tree_points(point_list_destination.begin(), point_list_destination.end(), bucket_size);
+
+    // We extrapolate the nodes that cannot been found
+    for (auto& p_node : rToExtrapolateNodes) {
+        // Initialize values
+        PointVector points_found(allocation_size);
+
+        const double search_radius = search_factor * std::sqrt(p_node->FastGetSolutionStepValue(NODAL_H));
+
+        const SizeType number_points_found = tree_points.SearchInRadius(p_node->Coordinates(), search_radius, points_found.begin(), allocation_size);
+
+        if (number_points_found > 0) {
+            for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
+                Condition::Pointer p_cond_origin = points_found[i_point]->GetCondition();
+
+                PointType projected_point_global;
+
+                GeometryType& r_geom = p_cond_origin->GetGeometry();
+                GeometricalProjectionUtilities::FastProjectDirection( r_geom, p_node->Coordinates(), projected_point_global, p_cond_origin->GetValue(NORMAL), -(p_node->GetValue(NORMAL)));
+
+                GeometryType::CoordinatesArrayType projected_point_local;
+
+                const bool is_inside = r_geom.IsInside(projected_point_global.Coordinates( ), projected_point_local);
+
+                if (is_inside) {
+                    // SHAPE FUNCTIONS
+                    Vector shape_functions;
+                    r_geom.ShapeFunctionsValues( shape_functions, projected_point_local );
+
+                    // Finally we interpolate
+                    if (mThisParameters["interpolate_non_historical"].GetBool())
+                        CalculateData<Condition>(p_node, p_cond_origin, shape_functions);
+                    for(IndexType i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
+                        CalculateStepData<Condition>(p_node, p_cond_origin, shape_functions, i_step);
+
+                    break;
+                }
+            }
         }
-    }
-    for (auto& var : mListVectorVariables) {
-            aux_coeff = 0.0;
-            if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
-            if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
-            if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
-        if (aux_coeff > 0.0)  {
-            if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
-            data.SetValue<Vector>(var,
-      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
-                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                 + rShapeFunctions[2] * (node_data_2.GetValue(var))));
-        }
-    }
-    for (auto& var : mListMatrixVariables) {
-            aux_coeff = 0.0;
-            if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
-            if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
-            if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
-        if (aux_coeff > 0.0)  {
-            if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
-            data.SetValue<Matrix>(var,
-      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
-                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                 + rShapeFunctions[2] * (node_data_2.GetValue(var))));
-        }
+
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void NodalValuesInterpolationProcess<3>::CalculateData(
-    NodeType::Pointer pNode,
-    const Element::Pointer& pElement,
-    const Vector& rShapeFunctions
-    )
+template<SizeType TDim>
+void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelPart)
 {
-    // The nodal data (non-historical)
-    auto& data = pNode->Data();
+    NodesArrayType& nodes_array = rModelPart.Nodes();
+    const int num_nodes = static_cast<int>(nodes_array.size());
 
-    // The nodal data (non-historical) of each node of the original mesh
-    const auto& node_data_0 = pElement->GetGeometry()[0].Data();
-    const auto& node_data_1 = pElement->GetGeometry()[1].Data();
-    const auto& node_data_2 = pElement->GetGeometry()[2].Data();
-    const auto& node_data_3 = pElement->GetGeometry()[3].Data();
+    // Auxiliar zero array
+    const array_1d<double, 3> zero_array = ZeroVector(3);
 
-    // Now we interpolate the values of each node
-    double aux_coeff;
-    for (auto& var : mListDoublesVariables) {
-        aux_coeff = 0.0;
-        if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
-        if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
-        if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
-        if (node_data_3.Has(var)) aux_coeff += rShapeFunctions[3];
-        if (aux_coeff > 0.0)  {
-            if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
-            data.SetValue(var,
-      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
-                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                 + rShapeFunctions[2] * (node_data_2.GetValue(var))
-                 + rShapeFunctions[3] * (node_data_3.GetValue(var))));
+    #pragma omp parallel for
+    for(int i = 0; i < num_nodes; ++i)
+        (nodes_array.begin() + i)->SetValue(NORMAL, zero_array);
+
+    // Sum all the nodes normals
+    ConditionsArrayType& conditions_array = rModelPart.Conditions();
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
+        auto it_cond = conditions_array.begin() + i;
+        GeometryType& this_geometry = it_cond->GetGeometry();
+
+        // Aux coordinates
+        CoordinatesArrayType aux_coords;
+        aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_geometry.Center());
+
+        it_cond->SetValue(NORMAL, this_geometry.UnitNormal(aux_coords));
+
+        const SizeType number_nodes = this_geometry.PointsNumber();
+
+        for (IndexType i = 0; i < number_nodes; ++i) {
+            auto& this_node = this_geometry[i];
+            aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_node.Coordinates());
+            const array_1d<double, 3> normal = this_geometry.UnitNormal(aux_coords);
+            auto& aux_normal = this_node.GetValue(NORMAL);
+            for (IndexType index = 0; index < 3; ++index) {
+                #pragma omp atomic
+                aux_normal[index] += normal[index];
+            }
         }
     }
-    for (auto& var : mListArraysVariables) {
-        aux_coeff = 0.0;
-        if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
-        if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
-        if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
-        if (node_data_3.Has(var)) aux_coeff += rShapeFunctions[3];
-        if (aux_coeff > 0.0)  {
-            if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
-            data.SetValue<array_1d<double, 3>>(var,
-      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
-                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                 + rShapeFunctions[2] * (node_data_2.GetValue(var))
-                 + rShapeFunctions[3] * (node_data_3.GetValue(var))));
-        }
-    }
-    for (auto& var : mListVectorVariables) {
-        aux_coeff = 0.0;
-        if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
-        if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
-        if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
-        if (node_data_3.Has(var)) aux_coeff += rShapeFunctions[3];
-        if (aux_coeff > 0.0)  {
-            data.SetValue<Vector>(var,
-      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
-                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                 + rShapeFunctions[2] * (node_data_2.GetValue(var))
-                 + rShapeFunctions[3] * (node_data_3.GetValue(var))));
-        }
-    }
-    for (auto& var : mListMatrixVariables) {
-        aux_coeff = 0.0;
-        if (node_data_0.Has(var)) aux_coeff += rShapeFunctions[0];
-        if (node_data_1.Has(var)) aux_coeff += rShapeFunctions[1];
-        if (node_data_2.Has(var)) aux_coeff += rShapeFunctions[2];
-        if (node_data_3.Has(var)) aux_coeff += rShapeFunctions[3];
-        if (aux_coeff > 0.0)  {
-            if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
-            data.SetValue<Matrix>(var,
-      aux_coeff * (rShapeFunctions[0] * (node_data_0.GetValue(var))
-                 + rShapeFunctions[1] * (node_data_1.GetValue(var))
-                 + rShapeFunctions[2] * (node_data_2.GetValue(var))
-                 + rShapeFunctions[3] * (node_data_3.GetValue(var))));
-        }
-    }
-}
 
-/***********************************************************************************/
-/***********************************************************************************/
+    #pragma omp parallel for
+    for(int i = 0; i < num_nodes; ++i) {
+        auto it_node = nodes_array.begin() + i;
 
-template<>
-void NodalValuesInterpolationProcess<2>::CalculateStepData(
-    NodeType::Pointer pNode,
-    const Element::Pointer& pElement,
-    const Vector& rShapeFunctions,
-    const IndexType Step
-    )
-{
-    // The nodal data (historical)
-    double* step_data = pNode->SolutionStepData().Data(Step);
+        array_1d<double, 3>& normal = it_node->GetValue(NORMAL);
+        const double norm_normal = norm_2(normal);
 
-    // The nodal data (historical) of each node of the original mesh
-    // NOTE: This just works with triangle (you are going to have problems with anything else)
-    const double* node_data_0 = pElement->GetGeometry()[0].SolutionStepData().Data(Step);
-    const double* node_data_1 = pElement->GetGeometry()[1].SolutionStepData().Data(Step);
-    const double* node_data_2 = pElement->GetGeometry()[2].SolutionStepData().Data(Step);
-
-    // Now we interpolate the values of each node
-    for (IndexType j = 0; j < mStepDataSize; ++j) {
-        step_data[j] = rShapeFunctions[0] * node_data_0[j]
-                     + rShapeFunctions[1] * node_data_1[j]
-                     + rShapeFunctions[2] * node_data_2[j];
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>  
-void NodalValuesInterpolationProcess<3>::CalculateStepData(
-    NodeType::Pointer pNode,
-    const Element::Pointer& pElement,
-    const Vector& rShapeFunctions,
-    const IndexType Step
-    )
-{
-    // The nodal data (historical)
-    double* step_data = pNode->SolutionStepData().Data(Step);
-    
-    // The nodal data (historical) of each node of the original mesh
-    // NOTE: This just works with tetrahedron (you are going to have problems with anything else)
-    const double* node_data_0 = pElement->GetGeometry()[0].SolutionStepData().Data(Step);
-    const double* node_data_1 = pElement->GetGeometry()[1].SolutionStepData().Data(Step);
-    const double* node_data_2 = pElement->GetGeometry()[2].SolutionStepData().Data(Step);
-    const double* node_data_3 = pElement->GetGeometry()[3].SolutionStepData().Data(Step);
-    
-    // Now we interpolate the values of each node
-    for (IndexType j = 0; j < mStepDataSize; ++j) {
-        step_data[j] = rShapeFunctions[0] * node_data_0[j]
-                     + rShapeFunctions[1] * node_data_1[j]
-                     + rShapeFunctions[2] * node_data_2[j]
-                     + rShapeFunctions[3] * node_data_3[j];
+        if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
+        else KRATOS_ERROR_IF(it_node->Is(INTERFACE)) << "ERROR:: ZERO NORM NORMAL IN NODE: " << it_node->Id() << std::endl;
     }
 }
 

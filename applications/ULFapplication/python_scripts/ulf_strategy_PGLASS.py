@@ -37,9 +37,9 @@ class ULFStrategyPython:
         self.pDx = self.space_utils.CreateEmptyVectorPointer()
         self.pb = self.space_utils.CreateEmptyVectorPointer()
 
-        self.A = (self.pA).GetReference()
-        self.Dx = (self.pDx).GetReference()
-        self.b = (self.pb).GetReference()
+        self.A = (self.pA)#.GetReference()
+        self.Dx = (self.pDx)#.GetReference()
+        self.b = (self.pb)#.GetReference()
 
         # initialize flags
         self.SolutionStepIsInitialized = False
@@ -176,9 +176,9 @@ class ULFStrategyPython:
             self.builder_and_solver.ResizeAndInitializeVectors(self.scheme, self.pA, self.pDx, self.pb, self.model_part);
 
             # updating references
-            self.A = (self.pA).GetReference()
-            self.Dx = (self.pDx).GetReference()
-            self.b = (self.pb).GetReference()
+            self.A = (self.pA)#.GetReference()
+            self.Dx = (self.pDx)#.GetReference()
+            self.b = (self.pb)#.GetReference()
 
 # print "A size1 ",self.space_utils.Size1(self.A)
 # print "b size ",self.space_utils.Size(self.b)

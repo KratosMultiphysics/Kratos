@@ -65,6 +65,9 @@ public:
     /// Pointer definition of TreeContactSearch
     KRATOS_CLASS_POINTER_DEFINITION( SparseMatrixMultiplicationUtility );
 
+    /// The size type
+    typedef std::size_t SizeType;
+
     /// The index type
     typedef std::size_t IndexType;
 
@@ -234,7 +237,7 @@ public:
         }
 
         // We reorder the rows
-        SparseMatrixMultiplicationUtility::SortRows(c_ptr, nrows, ncols, aux_index2_c, aux_val_c);
+        SortRows(c_ptr, nrows, ncols, aux_index2_c, aux_val_c);
 
         // We fill the matrix
         CreateSolutionMatrix(C, nrows, ncols, c_ptr, aux_index2_c, aux_val_c);
@@ -495,7 +498,7 @@ public:
         }
 
         // We reorder the rows
-        SparseMatrixMultiplicationUtility::SortRows(new_a_ptr, nrows, ncols, aux_index2_new_a, aux_val_new_a);
+        SortRows(new_a_ptr, nrows, ncols, aux_index2_new_a, aux_val_new_a);
 
         // We fill the matrix
         CreateSolutionMatrix(A, nrows, ncols, new_a_ptr, aux_index2_new_a, aux_val_new_a);
@@ -504,6 +507,79 @@ public:
         delete[] new_a_ptr;
         delete[] aux_index2_new_a;
         delete[] aux_val_new_a;
+    }
+
+    /**
+     * @brief This method computes of the transpose matrix of a given matrix
+     * @param rA The resulting matrix
+     * @param rB The second matrix to transpose
+     */
+    template <class AMatrix, class BMatrix>
+    static void TransposeMatrix(
+        AMatrix& rA,
+        const BMatrix& rB,
+        const double Factor = 1.0
+        )
+    {
+        typedef typename value_type<AMatrix>::type Val;
+
+        // Get access to B data
+        const IndexType* index1 = rB.index1_data().begin();
+        const IndexType* index2 = rB.index2_data().begin();
+        const Val* data = rB.value_data().begin();
+        const SizeType transpose_nonzero_values = rB.value_data().end() - rB.value_data().begin();
+
+        const SizeType size_system_1 = rB.size1();
+        const SizeType size_system_2 = rB.size2();
+
+        if (rA.size1() != size_system_2 || rA.size2() != size_system_1 ) {
+            rA.resize(size_system_2, size_system_1, false);
+        }
+
+        IndexVectorType new_a_ptr(size_system_2 + 1, 0);
+        SignedIndexVectorType aux_index2_new_a(transpose_nonzero_values);
+        DenseVector<Val> aux_val_new_a(transpose_nonzero_values);
+
+        #pragma omp parallel for
+        for (int i=0; i<static_cast<int>(size_system_1); ++i) {
+            IndexType row_begin = index1[i];
+            IndexType row_end   = index1[i+1];
+
+            for (std::size_t j=row_begin; j<row_end; j++) {
+                #pragma omp atomic
+                new_a_ptr[index2[j] + 1] += 1;
+            }
+        }
+
+        // We initialize the blocks sparse matrix
+        std::partial_sum(new_a_ptr.begin(), new_a_ptr.end(), &new_a_ptr[0]);
+
+        IndexVectorType aux_indexes(size_system_2, 0);
+
+//         #pragma omp parallel for
+        for (int i=0; i<static_cast<int>(size_system_1); ++i) {
+            IndexType row_begin = index1[i];
+            IndexType row_end   = index1[i+1];
+
+            for (IndexType j=row_begin; j<row_end; j++) {
+                const IndexType current_row = index2[j];
+                const IndexType initial_position = new_a_ptr[current_row];
+
+                const IndexType current_index = initial_position + aux_indexes[current_row];
+                aux_index2_new_a[current_index] = i;
+                aux_val_new_a[current_index] = Factor * data[j];
+
+//                 #pragma omp atomic
+                aux_indexes[current_row] += 1;
+            }
+
+        }
+
+        // We reorder the rows
+        SortRows(&new_a_ptr[0], size_system_2, size_system_1, &aux_index2_new_a[0], &aux_val_new_a[0]);
+
+        // We fill the matrix
+        CreateSolutionMatrix(rA, size_system_2, size_system_1, &new_a_ptr[0], &aux_index2_new_a[0], &aux_val_new_a[0]);
     }
 
     /**

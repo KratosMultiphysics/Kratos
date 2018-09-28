@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.4.33">
+<Kratos_Data version="1.4.35">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -208,66 +208,67 @@
     </RootData>
     <RootData id="DEM" pid="DEM" state="normal" class="application" icon="dem.gif" help="DEM application" open="1">
         <Container id="DEM-Elements" pid="Elements" help="Elements assignation" open="0" icon="demelements.gif">
-        <Container id="DEM-Element" pid="DEM Element" state="normal" class="Groups" GiDEntity="all" idTemplate="DEM-Element" icon="demelements.gif" help="Assign this atribute to a group containing Volumes which will be meshed as Spheres or to a group containing Spheres of the Mesh. Only the Spheres tagged with this attribute as DEM Element will be actually calculated. Double click to add a group." open="0"/>
+            <Container id="DEM-Element" pid="DEM Element" state="normal" class="Groups" GiDEntity="all" idTemplate="DEM-Element" icon="demelements.gif" help="Assign this atribute to a group containing Volumes which will be meshed as Spheres or to a group containing Spheres of the Mesh. Only the Spheres tagged with this attribute as DEM Element will be actually calculated. Double click to add a group." open="0"/>
         </Container>
         <Container id="DEM-Conditions" pid="Conditions" class="Tab" help="Boundary Conditions, including inlets, moving walls, prescribed degrees of freedom and initial conditions" icon="trianglesmesh.gif" open="0">
-        <Container id="DEM-FEM-Wall" pid="DEM-FEM wall" class="Groups" idTemplate="DEM-FEM-Wall" GiDEntity="surface" icon="trianglesmesh.gif" help="Apply this attribute to a Group containing a FEM mesh. The Group will act as a wall which cannot be crossed by DEM Spheres. Double click to add a group." open="0"/>
-        <Container id="DEM-Inlet" pid="Inlet" class="Groups" idTemplate="DEM-InletBC" GiDEntity="all" icon="demelements.gif" help="It allows the insertion of new DEM elements into the domain. Double click to add a group." open="0"/>
-        <Container id="DEM-VelocityBC" pid="Prescribe motion on Elements" class="Groups" idTemplate="DEM-VelocityBC" GiDEntity="all" icon="handball.gif" help="It allows to impose a rigid body motion or to constrict certain degrees of freedom of a group of elements. Double click to add a group." open="0"/>
-        <Container id="DEM-VelocityIC" pid="Initial conditions on Elements" class="Groups" idTemplate="DEM-VelocityIC" GiDEntity="all" icon="beginning.gif" help="It allows to impose initial velocities or angular velocities to a group of elements. Double click to add a group." open="0"/>
+            <Container id="DEM-FEM-Wall" pid="DEM-FEM wall" class="Groups" idTemplate="DEM-FEM-Wall" GiDEntity="surface" icon="trianglesmesh.gif" help="Apply this attribute to a Group containing a FEM mesh. The Group will act as a wall which cannot be crossed by DEM Spheres. Double click to add a group." open="0"/>
+            <Container id="DEM-Inlet" pid="Inlet" class="Groups" idTemplate="DEM-InletBC" GiDEntity="all" icon="demelements.gif" help="It allows the insertion of new DEM elements into the domain. Double click to add a group." open="0"/>
+            <Container id="DEM-VelocityBC" pid="Prescribe motion on Elements" class="Groups" idTemplate="DEM-VelocityBC" GiDEntity="all" icon="handball.gif" help="It allows to impose a rigid body motion or to constrict certain degrees of freedom of a group of elements. Double click to add a group." open="0"/>
+            <Container id="DEM-VelocityIC" pid="Initial conditions on Elements" class="Groups" idTemplate="DEM-VelocityIC" GiDEntity="all" icon="beginning.gif" help="It allows to impose initial velocities or angular velocities to a group of elements. Double click to add a group." open="0"/>
         </Container>
         <Container id="DEM-Options" pid="General options" class="Tab" help="DEM general options" icon="aplicationTree.gif" open="0">
-        <Container id="DEM-Boundingbox" pid="Bounding box" icon="cube.gif" help="Any Discrete Element going outside of the Bounding Box will be deleted" class="Tab">
-            <Item id="UseBoundingBox" pid="Bounding box" dv="Yes" class="DEM-BBox" ivalues="Yes,No" icon="active.gif" values="Active,Not active" help="Any Discrete element going out of the bounding box will be deleted"/>
-            <Item id="BoundingBoxType" pid="Bounding box type" DEM-BBox="Yes" class="DEM-BBoxType" dv="Fixed" ivalues="Automatic,Fixed" values="Automatic,Fixed" help="If Automatic is chosen, the bounding box will be created using the existing entities at the beginning of the computation"/>
-            <Item id="EnlargementFactor" pid="Enlargement factor" DEM-BBox="Yes" DEM-BBoxType="Automatic" dv="1.1" help="Enlargement factor"/>
-            <Item id="MaxX" pid="Max X" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max X"/>
-            <Item id="MaxY" pid="Max Y" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max Y" sbi="PickCoordinates" sbp="Pick" sbxp="MaxX,MaxY,MaxZ"/>
-            <Item id="MaxZ" pid="Max Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max Z"/>
-            <Item id="MinX" pid="Min X" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min X"/>
-            <Item id="MinY" pid="Min Y" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Y" sbi="PickCoordinates" sbp="Pick" sbxp="MinX,MinY,MinZ"/>
-            <Item id="MinZ" pid="Min Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Z"/>
-            <Item id="StartTime" pid="Start Time" DEM-BBox="Yes" dv="0.0" help="Time at which the bounding box gets active."/>
-            <Item id="StopTime" pid="Stop Time" DEM-BBox="Yes" dv="1000.0" help="Time at which the bounding box stops acting."/>
-            <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="No" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
-        </Container>
-        <Container id="DEM-Physical-opts" pid="Physical options" class="Tab" icon="advanced_options2.gif" help="DEM general physical options" open="0">
-            <Item id="GravityValue" pid="Gravity value" dv="9.81" help="Gravity value"/>
-            <Item id="Cx" pid="Gx" dv="0.0" help="X Vector"/>
-            <Item id="Cy" pid="Gy" dv="0.0" help="Y Vector"/>
-            <Item id="Cz" pid="Gz" dv="-1.0" nDim="3D" help="Z Vector"/>
-            <Item id="PeriodicDomainOption" pid="Periodic Domain" dv="No" class="PeriodicDomain" ivalues="Yes,No" values="Yes,No" help="Consider a parallepipedic periodic domain defined by the bounding box for the DEM problem"/>
-        </Container>
-        <Container id="DEM-AdvancedOptions" pid="Advanced options" class="Tab" icon="advanced_options.gif" help="More advanced options that modify the computation" open='0'>
-            <Item id="DEM-CleanInitialIndentations" pid="Clean initial indentations" dv="Yes" ivalues="Yes,No" values="Yes,No" help="If activated, initial indentations between spheres and between spheres and walls are eliminated to avoid explosions (reducing the radius of the spheres accordigly)"/>
-            <Item id="DEM-TangencyTolerance" pid="Tangency tolerance type" state="hidden" dv="Absolute" class="DEM-TangTolerance" ivalues="Absolute,Coordination_Number,None" values="Absolute,Coordination Number,None" help="Choose if you want to set manually the maximum gap between particles at the beginning of the computation (Absolute) or if you prefer an automatic gap that tries to match a certain average Coordination Number"/>
-            <Item id="DEM-TangencyToleranceValueAbsolute" pid="Tangency tolerance value (m)" state="hidden" dv="0.0" DEM-TangTolerance="Absolute" help="Choose the maximum admissible gap between two particles to consider them cohesive at the beginning of the computation"/>
-            <Item id="DEM-TangencyCoordinationNumber" pid="Coordination number" state="hidden" dv="10" DEM-TangTolerance="Coordination_Number" help=""/>
-            <Item id="DEM-ExportModelDataInformation" pid="Export model data information" state="hidden" dv="No" ivalues="Yes,No" values="Active,Not Active" help="Export Model Data Information"/>
-            <Item id="DEM-VirtualMassCoef" pid="Virtual mass coefficient" dv="1.0" help="Virtual Mass"/>
-            <Item id="DEM-CalculateRotations" pid="Calculate rotations" state="normal" dv="Yes" ivalues="Yes,No" values="Yes,No" class="DEM-Rotation" help="If activated, torques and rotations will be calculated on the Discrete Elements. Will increase computation time slightly. "/>
-            <Item id="DEM-RollingFriction" pid="Rolling friction" dv="No" ivalues="Yes,No" class="DEM-Rolling" values="Active,Not Active" help="If activated, the Rolling Friction parameter set in the Materials Tree will be taken into account. Otherwise it will be ignored. Will increase computation time slightly"/>
-            <Item id="DEM-GlobalDamping" pid="Global Damping" dv="0.0" help="Choose the value for the damping. 0.0 means no damping at all, while 1.0 means full damping."/>
-            <Item id="DEM-DontSearchUntilFail" state="hidden" pid="Don't search until failure" dv="OFF" ivalues="ON,OFF" values="ON,OFF" help="Don't search until failure"/>
-            <Item id="DEM-RemoveBallsInEmbedded" state="hidden" pid="Remove DEM elements inside embedded" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Removes DEM elements that are inside an embedded DEM-FEM wall"/>
-        </Container>
+            <Container id="DEM-Boundingbox" pid="Bounding box" icon="cube.gif" help="Any Discrete Element going outside of the Bounding Box will be deleted" class="Tab">
+                <Item id="UseBoundingBox" pid="Bounding box" dv="Yes" class="DEM-BBox" ivalues="Yes,No" icon="active.gif" values="Active,Not active" help="Any Discrete element going out of the bounding box will be deleted"/>
+                <Item id="BoundingBoxType" pid="Bounding box type" DEM-BBox="Yes" class="DEM-BBoxType" dv="Fixed" ivalues="Automatic,Fixed" values="Automatic,Fixed" help="If Automatic is chosen, the bounding box will be created using the existing entities at the beginning of the computation"/>
+                <Item id="EnlargementFactor" pid="Enlargement factor" DEM-BBox="Yes" DEM-BBoxType="Automatic" dv="1.1" help="Enlargement factor"/>
+                <Item id="MaxX" pid="Max X" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max X"/>
+                <Item id="MaxY" pid="Max Y" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max Y" sbi="PickCoordinates" sbp="Pick" sbxp="MaxX,MaxY,MaxZ"/>
+                <Item id="MaxZ" pid="Max Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="10" help="Max Z"/>
+                <Item id="MinX" pid="Min X" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min X"/>
+                <Item id="MinY" pid="Min Y" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Y" sbi="PickCoordinates" sbp="Pick" sbxp="MinX,MinY,MinZ"/>
+                <Item id="MinZ" pid="Min Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Z"/>
+                <Item id="StartTime" pid="Start Time" DEM-BBox="Yes" dv="0.0" help="Time at which the bounding box gets active."/>
+                <Item id="StopTime" pid="Stop Time" DEM-BBox="Yes" dv="1000.0" help="Time at which the bounding box stops acting."/>
+                <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="Yes" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
+            </Container>
+            <Container id="DEM-Physical-opts" pid="Physical options" class="Tab" icon="advanced_options2.gif" help="DEM general physical options" open="0">
+                <Item id="GravityValue" pid="Gravity value" dv="9.81" help="Gravity value"/>
+                <Item id="Cx" pid="Gx" dv="0.0" help="X Vector"/>
+                <Item id="Cy" pid="Gy" dv="0.0" help="Y Vector"/>
+                <Item id="Cz" pid="Gz" dv="-1.0" nDim="3D" help="Z Vector"/>
+                <Item id="PeriodicDomainOption" pid="Periodic Domain" dv="No" class="PeriodicDomain" ivalues="Yes,No" values="Yes,No" help="Consider a parallepipedic periodic domain defined by the bounding box for the DEM problem"/>
+            </Container>
+            <Container id="DEM-AdvancedOptions" pid="Advanced options" class="Tab" icon="advanced_options.gif" help="More advanced options that modify the computation" open='0'>
+                <Item id="DEM-CleanInitialIndentations" pid="Clean initial indentations" dv="Yes" ivalues="Yes,No" values="Yes,No" help="If activated, initial indentations between spheres and between spheres and walls are eliminated to avoid explosions (reducing the radius of the spheres accordigly)"/>
+                <Item id="DEM-TangencyTolerance" pid="Tangency tolerance type" state="hidden" dv="Absolute" class="DEM-TangTolerance" ivalues="Absolute,Coordination_Number,None" values="Absolute,Coordination Number,None" help="Choose if you want to set manually the maximum gap between particles at the beginning of the computation (Absolute) or if you prefer an automatic gap that tries to match a certain average Coordination Number"/>
+                <Item id="DEM-TangencyToleranceValueAbsolute" pid="Tangency tolerance value (m)" state="hidden" dv="0.0" DEM-TangTolerance="Absolute" help="Choose the maximum admissible gap between two particles to consider them cohesive at the beginning of the computation"/>
+                <Item id="DEM-TangencyCoordinationNumber" pid="Coordination number" state="hidden" dv="10" DEM-TangTolerance="Coordination_Number" help=""/>
+                <Item id="DEM-ExportModelDataInformation" pid="Export model data information" state="hidden" dv="No" ivalues="Yes,No" values="Active,Not Active" help="Export Model Data Information"/>
+                <Item id="DEM-VirtualMassCoef" pid="Virtual mass coefficient" dv="1.0" help="Virtual Mass"/>
+                <Item id="DEM-CalculateRotations" pid="Calculate rotations" state="normal" dv="Yes" ivalues="Yes,No" values="Yes,No" class="DEM-Rotation" help="If activated, torques and rotations will be calculated on the Discrete Elements. Will increase computation time slightly. "/>
+                <Item id="DEM-RollingFriction" pid="Rolling friction" dv="No" ivalues="Yes,No" class="DEM-Rolling" values="Active,Not Active" help="If activated, the Rolling Friction parameter set in the Materials Tree will be taken into account. Otherwise it will be ignored. Will increase computation time slightly"/>
+                <Item id="DEM-GlobalDamping" pid="Global Damping" dv="0.0" help="Choose the value for the damping. 0.0 means no damping at all, while 1.0 means full damping."/>
+                <Item id="DEM-DontSearchUntilFail" state="hidden" pid="Don't search until failure" dv="OFF" ivalues="ON,OFF" values="ON,OFF" help="Don't search until failure"/>
+                <Item id="DEM-RemoveBallsInEmbedded" state="hidden" pid="Remove DEM elements inside embedded" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Removes DEM elements that are inside an embedded DEM-FEM wall"/>
+            </Container>
         </Container>
         <Container id="DEM-SolutionStrategy" pid="Solution strategy" class="Tab" help="Options and parameters that change the numerical strategy" icon="gear.gif" open="0">
             <Item id="DEM-TimeTranslationalIntegrationScheme" pid="Translational integration scheme" dv="Symplectic_Euler" ivalues="Symplectic_Euler,Forward_Euler,Taylor_Scheme,Newmark_Beta_Method,Velocity_Verlet" values="Symplectic Euler,Forward Euler,Taylor Scheme,Newmark Beta Method,Velocity Verlet" help="Time Integration Scheme for translational motion"/>
             <Item id="DEM-TimeRotationalIntegrationScheme" pid="Rotational integration scheme" dv="Direct_Integration" ivalues="Direct_Integration,Runge_Kutta,Quaternion_Integration" values="Direct Integration,Runge Kutta,Quaternion Integration" help="Time Integration Scheme for rotational motion"/>
-        <Container id="DEM-ParallelType" pid="Parallel type" help="Locked to OpenMP (MPI will be available in the future)" class="Tab">
-            <Item id="ParallelType" pid="Parallel type" state="disabled" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help="Locked to OpenMP (MPI will be available in the future)"/>
-            <Item id="NumberOfThreads" pid="Number of threads"  dv="1" help="Set the number of threads you want to use for this computation. Do not choose more than the available threads on your computer or the computation will be slower"/>
+            <Container id="DEM-ParallelType" pid="Parallel type" help="Locked to OpenMP (MPI will be available in the future)" class="Tab">
+                <Item id="ParallelType" pid="Parallel type" state="disabled" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help="Locked to OpenMP (MPI will be available in the future)"/>
+                <Item id="NumberOfThreads" pid="Number of threads"  dv="1" help="Set the number of threads you want to use for this computation. Do not choose more than the available threads on your computer or the computation will be slower"/>
+            </Container>
+            <Container id="DEM-TimeParameters" pid="Time parameters" icon="hourglass.gif" help="Options and parameters related with time" class="Tab">
+                <Item id="UseAutomaticDeltaTime" pid="Delta time selection" state="hidden" class="DEM-deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the type of Delta time to be used"/>
+                <Item id="DeltaTime" DEM-deltatimetype="Fixed" pid="Delta time (s)" dv="5e-5"  help="Delta time used by DEM"/>
+                <Item id="DeltaTimeSafetyFactor" DEM-deltatimetype="Automatic" pid="Delta time safety factor" dv="1.0" help="Delta time safety factor"/>
+                <Item id="DEM-TotalTime" pid="Total time (s)" dv="1.0"  help="Total Time"/>
+                <Item id="DEM-ScreenInfoOutput" pid="Info screen output" dv="4.0" unit="s" help="How often the user gets information on the running process (in seconds)"/>
+                <Item id="DEM-NeighbourSearchFrequency" pid="Neighbour search frequency"  dv="50" unit="Hz" help="choose how often the neighbours are searched. 1 means every time step, 10 means 1 out of 10 steps"/>
+            </Container>
         </Container>
-        <Container id="DEM-TimeParameters" pid="Time parameters" icon="hourglass.gif" help="Options and parameters related with time" class="Tab">
-            <Item id="UseAutomaticDeltaTime" pid="Delta time selection" state="hidden" class="DEM-deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the type of Delta time to be used"/>
-            <Item id="DeltaTime" DEM-deltatimetype="Fixed" pid="Delta time (s)" dv="5e-5"  help="Delta time used by DEM"/>
-            <Item id="DeltaTimeSafetyFactor" DEM-deltatimetype="Automatic" pid="Delta time safety factor" dv="1.0" help="Delta time safety factor"/>
-            <Item id="DEM-TotalTime" pid="Total time (s)" dv="1.0"  help="Total Time"/>
-            <Item id="DEM-ScreenInfoOutput" pid="Info screen output" dv="4.0" unit="s" help="How often the user gets information on the running process (in seconds)"/>
-            <Item id="DEM-NeighbourSearchFrequency" pid="Neighbour search frequency"  dv="50" unit="Hz" help="choose how often the neighbours are searched. 1 means every time step, 10 means 1 out of 10 steps"/>
-        </Container>
-        </Container>
+        <Container id="DEM-CustomSubModelParts" pid="Custom SubModelParts" class="Groups" idTemplate="DEM-CustomSubModelPartTemp" GiDEntity="all" icon="demelements.gif" help="It allows the creation of SubModelParts that will be printed in the mpda input files for Kratos. Double click to add a group." open="0"/>
         <Container id="DEM-Results" pid="Results" help="Adjust the level of detail, frequency and type of the results that must be printed on disk during the computation" icon="bouncingball.gif" open="0">
             <Item id="DEM-OTimeStepType" pid="Set Output Criterion" dv="Detail_priority" icon="hourglass.gif" class="DEM-OTimestepType" ivalues="Detail_priority,Storage_priority" values="Time interval,Total number of files" help="Select a printing interval or the total amount of result files to print"/>
             <Item id="DEM-OTimeStepDetail" pid="Time interval (s)" dv="1e-2" DEM-OTimestepType="Detail_priority" help="Set a printing interval for the GiD results"/>
@@ -705,6 +706,11 @@
                 <Item id="SurfaceDFx" pid="Fx" dv="0.0" functionDissable="0" help="Fx Vector"/>
                 <Item id="SurfaceDFy" pid="Fy" dv="0.0" functionDissable="0" help="Fy Vector"/>
                 <Item id="SurfaceDFz" pid="Fz" dv="0.0" functionDissable="0" nDim="3D" help="Fz Vector"/>
+            </Container>
+        </Template>
+        <Template id="DEM-CustomSubModelPartTemp" help="DEM custom SubModelPart">
+            <Container id="MainProperties" pid="New property" state="hidden" help="Values">
+                <Item id="WhatMdpa" pid="Destination mdpa" dv="DEM" ivalues="DEM,DEM-Inlet,FEM" values="DEM,DEM-Inlet,FEM" help="Decide what mpda file you want this SubModelPart to be added to"/>
             </Container>
         </Template>
     </Templates>

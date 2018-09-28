@@ -123,7 +123,7 @@
     }],
     "auxiliar_process_list" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_primal_input_process",
+        "python_module" : "single_mesh_temporal_input_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
@@ -131,7 +131,7 @@
             "file_settings" : {
                 "file_access_mode" : "read_only"
             },
-            "nodal_results_settings" : {
+            "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
             }
         }
@@ -143,7 +143,10 @@
         "Parameters" : {
             "position"         : [0.020957, 0.0055272, 0.0],
             "model_part_name"  : "Parts_Fluid",
-            "output_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe1.dat",
+            "output_file_settings": {
+                "file_name"  : "cylinder_test_adjoint_probe1.dat",
+                "folder_name": "AdjointVMSSensitivity2DTest"
+            },
             "output_variables" : ["ADJOINT_VELOCITY_X", "ADJOINT_VELOCITY_Y"]
         }
      },{
@@ -154,7 +157,10 @@
         "Parameters" : {
             "position"         : [0.014931,-0.0034173, 0.0],
             "model_part_name"  : "Parts_Fluid",
-            "output_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe2.dat",
+            "output_file_settings": {
+                "file_name"  : "cylinder_test_adjoint_probe2.dat",
+                "folder_name": "AdjointVMSSensitivity2DTest"
+            },
             "output_variables" : ["ADJOINT_PRESSURE"]
         }
      },{
@@ -165,7 +171,10 @@
         "Parameters" : {
             "position"         : [0.023303,-0.0037623, 0.0],
             "model_part_name"  : "Parts_Fluid",
-            "output_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe3.dat",
+            "output_file_settings": {
+                "file_name"  : "cylinder_test_adjoint_probe3.dat",
+                "folder_name": "AdjointVMSSensitivity2DTest"
+            },
             "output_variables" : ["SHAPE_SENSITIVITY_X", "SHAPE_SENSITIVITY_Y"]
         }
     },{

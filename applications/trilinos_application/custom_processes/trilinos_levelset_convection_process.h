@@ -239,7 +239,7 @@ protected:
             "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
 
         // Generate
-        ModelPart::UniquePointer p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart");
+        Kratos::unique_ptr<ModelPart> p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart");
         (this->mpDistanceModelPart).swap(p_aux_model_part);
 
         (this->mpDistanceModelPart)->Nodes().clear();

@@ -39,7 +39,7 @@ namespace Kratos
    HydraulicRigidContactPenalty3DCondition::HydraulicRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
       : PointRigidContactCondition(NewId, pGeometry, pProperties)
    {
-      //DO NOT ADD DOFS HERE!!!    
+      //DO NOT ADD DOFS HERE!!!
    }
 
 
@@ -58,7 +58,7 @@ namespace Kratos
    HydraulicRigidContactPenalty3DCondition::HydraulicRigidContactPenalty3DCondition( HydraulicRigidContactPenalty3DCondition const& rOther )
       : PointRigidContactCondition(rOther)
    {
-      //DO NOT ADD DOFS HERE!!! 
+      //DO NOT ADD DOFS HERE!!!
    }
 
    //************************************************************************************
@@ -66,7 +66,7 @@ namespace Kratos
 
    Condition::Pointer HydraulicRigidContactPenalty3DCondition::Create(IndexType NewId, const NodesArrayType& ThisNodes, PropertiesType::Pointer pProperties) const
    {
-      return Condition::Pointer(new HydraulicRigidContactPenalty3DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
+     return Kratos::make_shared<HydraulicRigidContactPenalty3DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
    }
 
    //************************************CLONE*******************************************
@@ -74,7 +74,7 @@ namespace Kratos
 
    Condition::Pointer HydraulicRigidContactPenalty3DCondition::Clone(IndexType NewId, const NodesArrayType& ThisNodes) const
    {
-      return Condition::Pointer(new HydraulicRigidContactPenalty3DCondition(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall));
+     return Kratos::make_shared<HydraulicRigidContactPenalty3DCondition>(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
    }
 
 
@@ -166,7 +166,7 @@ namespace Kratos
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
       unsigned int       condition_size  = number_of_nodes * dimension;
 
-      if ( rValues.size() != condition_size ) 
+      if ( rValues.size() != condition_size )
          rValues.resize( condition_size, false );
 
       for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -291,7 +291,7 @@ namespace Kratos
          distance /= counter;
 
       if( distance == 0 )
-         distance = 1;           
+         distance = 1;
 
 
       rVariables.ContributoryFactor = distance;
@@ -452,7 +452,7 @@ namespace Kratos
       const array_1d< double, 3> & PreviousWaterDisplacement = GetGeometry()[0].FastGetSolutionStepValue( WATER_DISPLACEMENT, 1);
 
       array_1d<double, 3> DeltaWaterPressure;
-      DeltaWaterPressure = CurrentWaterDisplacement - PreviousWaterDisplacement; 
+      DeltaWaterPressure = CurrentWaterDisplacement - PreviousWaterDisplacement;
 
       rNormalForceModulus = 0;
       for (unsigned int i = 0; i < 3; i++) {
@@ -471,6 +471,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
-
-

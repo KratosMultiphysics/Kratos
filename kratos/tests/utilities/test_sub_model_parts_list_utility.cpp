@@ -40,10 +40,10 @@ namespace Kratos
         {
             // Creating the reference model part and the relative submodelparts non alphabetically ordered
             ModelPart first_model_part("Main");
-            ModelPart::Pointer p_first_sub_modelpart_1 = first_model_part.CreateSubModelPart("BSubModelPart1");
-            ModelPart::Pointer p_first_sub_modelpart_2 = first_model_part.CreateSubModelPart("ASubModelPart2");
-            ModelPart::Pointer p_first_sub_modelpart_3 = first_model_part.CreateSubModelPart("ZSubModelPart3");
-            ModelPart::Pointer p_first_sub_modelpart_4 = first_model_part.CreateSubModelPart("YSubModelPart4");
+            ModelPart* p_first_sub_modelpart_1 = &first_model_part.CreateSubModelPart("BSubModelPart1");
+            ModelPart* p_first_sub_modelpart_2 = &first_model_part.CreateSubModelPart("ASubModelPart2");
+            ModelPart* p_first_sub_modelpart_3 = &first_model_part.CreateSubModelPart("ZSubModelPart3");
+            ModelPart* p_first_sub_modelpart_4 = &first_model_part.CreateSubModelPart("YSubModelPart4");
 
             // Creating the Properties
             Properties::Pointer p_elem_prop = first_model_part.pGetProperties(0);
@@ -67,25 +67,25 @@ namespace Kratos
             element_nodes_0[0] = p_node_1;
             element_nodes_0[1] = p_node_2;
             element_nodes_0[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_0( element_nodes_0 );
+            Triangle2D3 <NodeType> triangle_0( PointerVector<NodeType>{element_nodes_0} );
 
             std::vector<NodeType::Pointer> element_nodes_1 (3);
             element_nodes_1[0] = p_node_1;
             element_nodes_1[1] = p_node_3;
             element_nodes_1[2] = p_node_4;
-            Triangle2D3 <NodeType> triangle_1( element_nodes_1 );
+            Triangle2D3 <NodeType> triangle_1( PointerVector<NodeType>{element_nodes_1} );
 
             std::vector<NodeType::Pointer> element_nodes_2 (3);
             element_nodes_2[0] = p_node_2;
             element_nodes_2[1] = p_node_5;
             element_nodes_2[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_2( element_nodes_2 );
+            Triangle2D3 <NodeType> triangle_2( PointerVector<NodeType>{element_nodes_2} );
 
             std::vector<NodeType::Pointer> element_nodes_3 (3);
             element_nodes_3[0] = p_node_5;
             element_nodes_3[1] = p_node_6;
             element_nodes_3[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_3( element_nodes_3 );
+            Triangle2D3 <NodeType> triangle_3( PointerVector<NodeType>{element_nodes_3} );
 
             Element::Pointer p_elem_0 = first_model_part.CreateNewElement("Element2D3N", 1, triangle_0, p_elem_prop);
             Element::Pointer p_elem_1 = first_model_part.CreateNewElement("Element2D3N", 2, triangle_1, p_elem_prop);
@@ -107,10 +107,10 @@ namespace Kratos
 
             // Creating the second model part
             ModelPart second_model_part("Main");
-            ModelPart::Pointer p_second_sub_modelpart_1 = second_model_part.CreateSubModelPart("BSubModelPart1");
-            ModelPart::Pointer p_second_sub_modelpart_2 = second_model_part.CreateSubModelPart("ASubModelPart2");
-            ModelPart::Pointer p_second_sub_modelpart_3 = second_model_part.CreateSubModelPart("ZSubModelPart3");
-            ModelPart::Pointer p_second_sub_modelpart_4 = second_model_part.CreateSubModelPart("YSubModelPart4");
+            second_model_part.CreateSubModelPart("BSubModelPart1");
+            second_model_part.CreateSubModelPart("ASubModelPart2");
+            second_model_part.CreateSubModelPart("ZSubModelPart3");
+            second_model_part.CreateSubModelPart("YSubModelPart4");
 
             // We add the nodes and elements from the first model part
             second_model_part.AddNodes(first_model_part.Nodes().begin(), first_model_part.Nodes().end());
@@ -174,12 +174,12 @@ namespace Kratos
         {
             // Creating the reference model part and the relative submodelparts
             ModelPart first_model_part("Main");
-            ModelPart::Pointer p_first_sub_modelpart_1 = first_model_part.CreateSubModelPart("BSubModelPart1");
-            ModelPart::Pointer p_first_sub_modelpart_1a = p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
-            ModelPart::Pointer p_first_sub_modelpart_1b = p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
-            ModelPart::Pointer p_first_sub_modelpart_2 = first_model_part.CreateSubModelPart("ASubModelPart2");
-            ModelPart::Pointer p_first_sub_modelpart_3 = first_model_part.CreateSubModelPart("ZSubModelPart3");
-            ModelPart::Pointer p_first_sub_modelpart_4 = first_model_part.CreateSubModelPart("YSubModelPart4");
+            ModelPart* p_first_sub_modelpart_1 = &first_model_part.CreateSubModelPart("BSubModelPart1");
+            ModelPart* p_first_sub_modelpart_1a = &p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
+            ModelPart* p_first_sub_modelpart_1b = &p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
+            ModelPart* p_first_sub_modelpart_2 = &first_model_part.CreateSubModelPart("ASubModelPart2");
+            ModelPart* p_first_sub_modelpart_3 = &first_model_part.CreateSubModelPart("ZSubModelPart3");
+            ModelPart* p_first_sub_modelpart_4 = &first_model_part.CreateSubModelPart("YSubModelPart4");
 
             // Creating the Properties
             Properties::Pointer p_elem_prop = first_model_part.pGetProperties(0);
@@ -205,25 +205,25 @@ namespace Kratos
             element_nodes_0[0] = p_node_1;
             element_nodes_0[1] = p_node_2;
             element_nodes_0[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_0( element_nodes_0 );
+            Triangle2D3 <NodeType> triangle_0( PointerVector<NodeType>{element_nodes_0} );
 
             std::vector<NodeType::Pointer> element_nodes_1 (3);
             element_nodes_1[0] = p_node_1;
             element_nodes_1[1] = p_node_3;
             element_nodes_1[2] = p_node_4;
-            Triangle2D3 <NodeType> triangle_1( element_nodes_1 );
+            Triangle2D3 <NodeType> triangle_1( PointerVector<NodeType>{element_nodes_1} );
 
             std::vector<NodeType::Pointer> element_nodes_2 (3);
             element_nodes_2[0] = p_node_2;
             element_nodes_2[1] = p_node_5;
             element_nodes_2[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_2( element_nodes_2 );
+            Triangle2D3 <NodeType> triangle_2( PointerVector<NodeType>{element_nodes_2} );
 
             std::vector<NodeType::Pointer> element_nodes_3 (3);
             element_nodes_3[0] = p_node_5;
             element_nodes_3[1] = p_node_6;
             element_nodes_3[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_3( element_nodes_3 );
+            Triangle2D3 <NodeType> triangle_3( PointerVector<NodeType>{element_nodes_3} );
 
             Element::Pointer p_elem_0 = first_model_part.CreateNewElement("Element2D3N", 1, triangle_0, p_elem_prop);
             Element::Pointer p_elem_1 = first_model_part.CreateNewElement("Element2D3N", 2, triangle_1, p_elem_prop);
@@ -247,12 +247,12 @@ namespace Kratos
 
             // Creating the second model part
             ModelPart second_model_part("Main");
-            ModelPart::Pointer p_second_sub_modelpart_1 = second_model_part.CreateSubModelPart("BSubModelPart1");
-            ModelPart::Pointer p_second_sub_modelpart_1a = p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
-            ModelPart::Pointer p_second_sub_modelpart_1b = p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
-            ModelPart::Pointer p_second_sub_modelpart_2 = second_model_part.CreateSubModelPart("ASubModelPart2");
-            ModelPart::Pointer p_second_sub_modelpart_3 = second_model_part.CreateSubModelPart("ZSubModelPart3");
-            ModelPart::Pointer p_second_sub_modelpart_4 = second_model_part.CreateSubModelPart("YSubModelPart4");
+            ModelPart* p_second_sub_modelpart_1 = &second_model_part.CreateSubModelPart("BSubModelPart1");
+            p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
+            p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
+            second_model_part.CreateSubModelPart("ASubModelPart2");
+            second_model_part.CreateSubModelPart("ZSubModelPart3");
+            second_model_part.CreateSubModelPart("YSubModelPart4");
 
             // We add the nodes and elements from the first model part
             second_model_part.AddNodes(first_model_part.Nodes().begin(), first_model_part.Nodes().end());

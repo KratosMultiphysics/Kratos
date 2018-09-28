@@ -8,16 +8,13 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/properties.h"
-#include "solid_mechanics_application_variables.h"
 #include "custom_constitutive/custom_flow_rules/linear_associative_plastic_flow_rule.hpp"
+
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -28,7 +25,7 @@ namespace Kratos
 LinearAssociativePlasticFlowRule::LinearAssociativePlasticFlowRule()
 	:NonLinearAssociativePlasticFlowRule()
 {
-   
+
 }
 
 //*****************************INITIALIZATION CONSTRUCTOR*****************************
@@ -37,7 +34,7 @@ LinearAssociativePlasticFlowRule::LinearAssociativePlasticFlowRule()
 LinearAssociativePlasticFlowRule::LinearAssociativePlasticFlowRule(YieldCriterionPointer pYieldCriterion)
 	:NonLinearAssociativePlasticFlowRule(pYieldCriterion)
 {
-   
+
 }
 
 //*******************************ASSIGMENT OPERATOR***********************************
@@ -63,8 +60,7 @@ LinearAssociativePlasticFlowRule::LinearAssociativePlasticFlowRule(LinearAssocia
 
 FlowRule::Pointer LinearAssociativePlasticFlowRule::Clone() const
 {
-  FlowRule::Pointer p_clone(new LinearAssociativePlasticFlowRule(*this));
-  return p_clone;
+  return Kratos::make_shared<LinearAssociativePlasticFlowRule>(*this);
 }
 
 //********************************DESTRUCTOR******************************************
@@ -88,20 +84,20 @@ bool LinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialRetu
 	rReturnMappingVariables.DeltaGamma    = 0;
 
 	double StateFunction                  = rReturnMappingVariables.TrialStateFunction;
-   
+
 	//Calculate Delta State Function:
 	DeltaStateFunction = mpYieldCriterion->CalculateDeltaStateFunction( DeltaStateFunction, rCriterionParameters );
 
 	//Calculate DeltaGamma:
 	rReturnMappingVariables.DeltaGamma = StateFunction/DeltaStateFunction;
-	       
+
 	//Update Equivalent Plastic Strain:
 	rPlasticVariables.DeltaPlasticStrain       = sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
 	rPlasticVariables.EquivalentPlasticStrain += rPlasticVariables.DeltaPlasticStrain;
-	       
+
 	//std::cout<<" Strain Rate "<<rPlasticVariables.DeltaPlasticStrain<<std::endl;
 
-	return true;	
+	return true;
 }
 
 
@@ -110,7 +106,7 @@ bool LinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialRetu
 
 // void LinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors )
 // {
-	
+
 // 	//1.-Identity build
 // 	Matrix Identity  = identity_matrix<double> (3);
 
@@ -131,15 +127,15 @@ bool LinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialRetu
 	// DeltaHardening = mpYieldCriterion->GetHardeningLaw().CalculateDeltaHardening( DeltaHardening, HardeningParameters );
 
 // 	rScalingFactors.Beta0 = 1.0 + DeltaHardening/(3.0 * rReturnMappingVariables.LameMu_bar);
-		
+
 // 	rScalingFactors.Beta1 = 1.0 - ( 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma / rReturnMappingVariables.NormIsochoricStress );
-		
+
 // 	rScalingFactors.Beta2 = 0;
-		
+
 // 	rScalingFactors.Beta3 = ( ( 1.0 / rScalingFactors.Beta0 ) - ( 1 - rScalingFactors.Beta1 ) );
-		
+
 // 	rScalingFactors.Beta4 = 0;
-	
+
 // 	std::cout<<"LINEAR:: Beta0 "<<rScalingFactors.Beta0<<" Beta 1 "<<rScalingFactors.Beta1<<" Beta2 "<<rScalingFactors.Beta2<<" Beta 3 "<<rScalingFactors.Beta3<<" Beta4 "<<rScalingFactors.Beta4<<std::endl;
 
 // };

@@ -72,19 +72,17 @@ def Run():
         for benchmark in Total_DEM_Benchmarks_list:
             print(Benchmark_text[benchmark - 1])
             try:
-                if platform.system()=="Windows":
-                    os.system("setenv OMP_NUM_THREADS 1") # Is that the correct way to run on Windows?
-                    subprocess.check_call(["python", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
-                    os.system("setenv OMP_NUM_THREADS ") # Trying to set a 'default' value
+                os.environ["OMP_NUM_THREADS"] = "1"
 
+                if platform.system()=="Windows":
+                    subprocess.check_call(["python", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
                 else:
-                    os.environ['OMP_NUM_THREADS']='1'
                     if sys.version_info >= (3, 0):
                         subprocess.check_call(["python3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
-
                     else:
                         subprocess.check_call(["python", "-3", path + "/DEM_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
-                    os.system("export OMP_NUM_THREADS=") # Trying to set a 'default' value
+
+                os.environ["OMP_NUM_THREADS"] = "" # Trying to set a 'default' value
             except:
                 #failure = True
                 #list_of_failed_tests += [benchmark]

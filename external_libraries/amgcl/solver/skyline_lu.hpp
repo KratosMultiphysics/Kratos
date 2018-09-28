@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -90,14 +90,14 @@ class skyline_lu {
 
         typedef amgcl::detail::empty_params params;
 
-        static size_t coarse_enough() { return 3000 / math::static_rows<value_type>::value; }
+        static size_t coarse_enough() {
+            return 3000 / math::static_rows<value_type>::value;
+        }
 
         template <class Matrix>
         skyline_lu(const Matrix &A, const params& = params())
             : n( backend::rows(A) ), perm(n), ptr(n + 1, 0), D(n, math::zero<value_type>()), y(n)
         {
-            typedef typename backend::row_iterator<Matrix>::type row_iterator;
-
             // Find the permutation for the ordering.
             ordering::get(A, perm);
 
@@ -116,7 +116,7 @@ class skyline_lu {
 
             // Traverse the matrix finding nonzero elements
             for(int i = 0; i < n; ++i) {
-                for(row_iterator a = backend::row_begin(A, i); a; ++a) {
+                for(auto a = backend::row_begin(A, i); a; ++a) {
                     int  j = a.col();
                     value_type v = a.value();
 
@@ -153,7 +153,7 @@ class skyline_lu {
             // And finally traverse again the CSR matrix, copying its entries
             // into the correct places in the skyline format
             for(int i = 0; i < n; ++i) {
-                for(row_iterator a = backend::row_begin(A, i); a; ++a) {
+                for(auto a = backend::row_begin(A, i); a; ++a) {
                     int  j = a.col();
                     value_type v = a.value();
 
@@ -196,6 +196,15 @@ class skyline_lu {
             }
 
             for(int i = 0; i < n; ++i) x[perm[i]] = y[i];
+        }
+
+        size_t bytes() const {
+            return
+                backend::bytes(perm) +
+                backend::bytes(ptr) +
+                backend::bytes(L) +
+                backend::bytes(U) +
+                backend::bytes(D);
         }
     private:
         int n;
@@ -299,6 +308,17 @@ class skyline_lu {
 };
 
 } // namespace solver
+
+namespace backend {
+
+template <typename V, class O>
+struct bytes_impl< solver::skyline_lu<V, O> > {
+    static size_t get(const solver::skyline_lu<V, O> &S) {
+        return S.bytes();
+    }
+};
+
+} // namespace backend
 } // namespace amgcl
 
 

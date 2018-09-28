@@ -42,6 +42,11 @@
 #include "containers/pointer_hash_map_set.h"
 #include "input_output/logger.h"
 #include "includes/kratos_flags.h"
+#include "includes/master_slave_constraint.h"
+#include "containers/variable.h"
+#include "containers/variable_component.h"
+#include "containers/vector_component_adaptor.h"
+#include "containers/variable_data.h"
 
 namespace Kratos
 {
@@ -96,13 +101,18 @@ public:
     ///@{
 
     /// Pointer definition of ModelPart
-    KRATOS_CLASS_POINTER_DEFINITION(ModelPart);
+    //KRATOS_CLASS_POINTER_DEFINITION(ModelPart); //INTENTIONALLY REMOVING DEFINITION - DO NOT UNCOMMENT
 
     typedef std::size_t IndexType;
 
     typedef std::size_t SizeType;
 
     typedef Dof<double> DofType;
+    typedef std::vector< DofType::Pointer > DofsVectorType;
+    typedef Kratos::Variable<double> DoubleVariableType;
+    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
+    typedef Matrix MatrixType;
+    typedef Vector VectorType;
 
 //     typedef PointerVectorSet<DofType, SetIdentityFunction<DofType> > DofsArrayType;
     typedef PointerVectorSet<DofType,
@@ -208,11 +218,29 @@ public:
     Table by * operator and not a pointer for more convenient
     usage. */
     typedef TablesContainerType::const_iterator TableConstantIterator;
+    /**
+     *
+     */
+    /// The container of the constraints
+    typedef MeshType::MasterSlaveConstraintType MasterSlaveConstraintType;
+    typedef MeshType::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
+
+    /** Iterator over the constraints. This iterator is an indirect
+    iterator over MasterSlaveConstraint::Pointer which turn back a reference to
+    MasterSlaveConstraint by * operator and not a pointer for more convenient
+    usage. */
+    typedef MeshType::MasterSlaveConstraintIteratorType MasterSlaveConstraintIteratorType;
+
+    /** Const iterator over the constraints. This iterator is an indirect
+    iterator over MasterSlaveConstraint::Pointer which turn back a reference to
+    Table by * operator and not a pointer for more convenient
+    usage. */
+    typedef MeshType::MasterSlaveConstraintConstantIteratorType MasterSlaveConstraintConstantIteratorType;
 
     /// The container of the sub model parts. A hash table is used.
     /**
     */
-    typedef PointerHashMapSet<ModelPart, std::hash< std::string >, GetModelPartName, ModelPart::Pointer>  SubModelPartsContainerType;
+    typedef PointerHashMapSet<ModelPart, std::hash< std::string >, GetModelPartName, Kratos::shared_ptr<ModelPart> >  SubModelPartsContainerType;
 
     /// Iterator over the sub model parts of this model part.
     /**	Note that this iterator only iterates over the next level of
@@ -385,6 +413,11 @@ public:
         return GetMesh(ThisIndex).GetNode(NodeId);
     }
 
+    const NodeType& GetNode(IndexType NodeId, IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).GetNode(NodeId);
+    }
+
     /** Remove the node with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
     void RemoveNode(IndexType NodeId, IndexType ThisIndex = 0);
@@ -409,19 +442,19 @@ public:
     */
     void RemoveNodeFromAllLevels(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
 
-    /** erases all nodes identified by "identifier_flag" by removing the pointer.
+    /** erases all nodes identified by "IdentifierFlag" by removing the pointer.
      * Pointers are erased from this level downwards
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveNodes(Flags identifier_flag = TO_ERASE);
+    void RemoveNodes(Flags IdentifierFlag = TO_ERASE);
 
-    /** erases all nodes identified by "identifier_flag" by removing the pointer.
+    /** erases all nodes identified by "IdentifierFlag" by removing the pointer.
      * Pointers will be erase from all levels
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveNodesFromAllLevels(Flags identifier_flag = TO_ERASE);
+    void RemoveNodesFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
     /** this function gives back the "root" model part, that is the model_part that has no father */
     ModelPart& GetRootModelPart();
@@ -447,6 +480,11 @@ public:
     }
 
     NodesContainerType& Nodes(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).Nodes();
+    }
+
+    const NodesContainerType& Nodes(IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).Nodes();
     }
@@ -573,6 +611,176 @@ public:
         return mTables.GetContainer();
     }
 
+
+    ///@}
+    ///@name MasterSlaveConstraints
+    ///@{
+
+    SizeType NumberOfMasterSlaveConstraints(IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).NumberOfMasterSlaveConstraints();
+    }
+
+    MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).MasterSlaveConstraints();
+    }
+
+    const MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0) const 
+    {
+        return GetMesh(ThisIndex).MasterSlaveConstraints();
+    }
+
+    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsBegin(IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).MasterSlaveConstraintsBegin();
+    }
+
+    MasterSlaveConstraintConstantIteratorType  MasterSlaveConstraintsEnd(IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).MasterSlaveConstraintsEnd();
+    }
+
+    MasterSlaveConstraintIteratorType  MasterSlaveConstraintsBegin(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).MasterSlaveConstraintsBegin();
+    }
+
+    MasterSlaveConstraintIteratorType  MasterSlaveConstraintsEnd(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).MasterSlaveConstraintsEnd();
+    }
+
+
+
+    /** Inserts a master-slave constraint in the current modelpart.
+     */
+    void AddMasterSlaveConstraint(MasterSlaveConstraintType::Pointer pNewMasterSlaveConstraint, IndexType ThisIndex = 0);
+
+    /** Inserts a list of master-slave constraints to a submodelpart provided their Id. Does nothing if applied to the top model part
+     */
+    void AddMasterSlaveConstraints(std::vector<IndexType> const& MasterSlaveConstraintIds, IndexType ThisIndex = 0);
+
+    /** Inserts a list of pointers to Master-Slave constraints
+     */
+    template<class TIteratorType >
+    void AddMasterSlaveConstraints(TIteratorType constraints_begin,  TIteratorType constraints_end, IndexType ThisIndex = 0)
+    {
+        KRATOS_TRY
+        ModelPart::MasterSlaveConstraintContainerType  aux;
+        ModelPart::MasterSlaveConstraintContainerType  aux_root;
+        ModelPart* root_model_part = &this->GetRootModelPart();
+
+        for(TIteratorType it = constraints_begin; it!=constraints_end; it++)
+        {
+            auto it_found = root_model_part->MasterSlaveConstraints().find(it->Id());
+            if(it_found == root_model_part->MasterSlaveConstraintsEnd()) //node does not exist in the top model part
+            {
+                aux_root.push_back( *(it.base()) );
+                aux.push_back( *(it.base()) );
+            }
+            else //if it does exist verify it is the same node
+            {
+                if(&(*it_found) != &(*it))//check if the pointee coincides
+                    KRATOS_ERROR << "attempting to add a new master-slave constraint with Id :" << it_found->Id() << ", unfortunately a (different) master-slave constraint with the same Id already exists" << std::endl;
+                else
+                    aux.push_back( *(it.base()) );
+            }
+        }
+
+        for(auto it = aux_root.begin(); it!=aux_root.end(); it++)
+                root_model_part->MasterSlaveConstraints().push_back( *(it.base()) );
+        root_model_part->MasterSlaveConstraints().Unique();
+
+        //add to all of the leaves
+
+        ModelPart* current_part = this;
+        while(current_part->IsSubModelPart())
+        {
+            for(auto it = aux.begin(); it!=aux.end(); it++)
+                current_part->MasterSlaveConstraints().push_back( *(it.base()) );
+
+            current_part->MasterSlaveConstraints().Unique();
+
+            current_part = current_part->GetParentModelPart();
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Creates a new master-slave constraint in the current modelpart.
+     * @todo Replace these 3 functions by one that perfectly forwards arguments, then just define these 3 interfaces on the pybind side
+     */
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
+                                                                                    IndexType Id, 
+                                                                                    DofsVectorType& rMasterDofsVector,
+                                                                                    DofsVectorType& rSlaveDofsVector,
+                                                                                    const MatrixType& RelationMatrix,
+                                                                                    const VectorType& ConstantVector,
+                                                                                    IndexType ThisIndex = 0);
+
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
+                                                                                    IndexType Id, 
+                                                                                    NodeType& rMasterNode,
+                                                                                    const DoubleVariableType& rMasterVariable,
+                                                                                    NodeType& rSlaveNode,
+                                                                                    const DoubleVariableType& rSlaveVariable,
+                                                                                    const double Weight,
+                                                                                    const double Constant,
+                                                                                    IndexType ThisIndex = 0);
+
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
+                                                                                    IndexType Id, 
+                                                                                    NodeType& rMasterNode,
+                                                                                    const VariableComponentType& rMasterVariable,
+                                                                                    NodeType& rSlaveNode,
+                                                                                    const VariableComponentType& rSlaveVariable,
+                                                                                    double Weight,
+                                                                                    double Constant,
+                                                                                    IndexType ThisIndex = 0);
+
+    /**
+     * @brief Remove the master-slave constraint with given Id from mesh with ThisIndex in this modelpart and all its subs.
+     */
+    void RemoveMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
+
+    /**
+     * @brief Remove given master-slave constraint from mesh with ThisIndex in this modelpart and all its subs.
+     */
+    void RemoveMasterSlaveConstraint(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0);
+
+    /**
+     * @brief Remove the master-slave constraint with given Id from mesh with ThisIndex in parents, itself and children.
+     */
+    void RemoveMasterSlaveConstraintFromAllLevels(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
+
+    /**
+     * @brief Remove given master-slave constraint from mesh with ThisIndex in parents, itself and children.
+     */
+    void RemoveMasterSlaveConstraintFromAllLevels(MasterSlaveConstraintType& ThisMasterSlaveConstraint, IndexType ThisIndex = 0);
+
+    /**
+     * @brief It erases all constraints identified by "IdentifierFlag" by removing the pointer.
+     * @details Pointers are erased from this level downwards nodes will be automatically destructured when no pointer is left to them
+     * @param IdentifierFlag The flag that identifies the constraints to remove
+     */
+    void RemoveMasterSlaveConstraints(Flags IdentifierFlag = TO_ERASE);
+
+    /**
+     * @brief It erases all constraints identified by "IdentifierFlag" by removing the pointer.
+     * @details Pointers will be erase from all levels nodes will be automatically destructured when no pointer is left to them
+     * @param IdentifierFlag The flag that identifies the constraints to remove
+     */
+    void RemoveMasterSlaveConstraintsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
+
+    /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
+    MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ConstraintId, IndexType ThisIndex = 0);
+
+    /** Returns a reference MasterSlaveConstraint corresponding to it's identifier */
+    MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0);
+    /** Returns a const reference MasterSlaveConstraint corresponding to it's identifier */
+    const MasterSlaveConstraintType& GetMasterSlaveConstraint(IndexType MasterSlaveConstraintId, IndexType ThisIndex = 0) const ;
 
 
     ///@}
@@ -791,6 +999,11 @@ public:
         return GetMesh(ThisIndex).GetElement(ElementId);
     }
 
+    const ElementType& GetElement(IndexType ElementId, IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).GetElement(ElementId);
+    }
+
     /** Remove the element with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
     void RemoveElement(IndexType ElementId, IndexType ThisIndex = 0);
@@ -815,19 +1028,19 @@ public:
     */
     void RemoveElementFromAllLevels(ElementType::Pointer pThisElement, IndexType ThisIndex = 0);
 
-    /** erases all elements identified by "identifier_flag" by removing the pointer.
+    /** erases all elements identified by "IdentifierFlag" by removing the pointer.
          * Pointers are erased from this level downwards
          * nodes will be automatically destructured
          * when no pointer is left to them
          */
-    void RemoveElements(Flags identifier_flag = TO_ERASE);
+    void RemoveElements(Flags IdentifierFlag = TO_ERASE);
 
-    /** erases all elements identified by "identifier_flag" by removing the pointer.
+    /** erases all elements identified by "IdentifierFlag" by removing the pointer.
      * Pointers will be erase from all levels
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveElementsFromAllLevels(Flags identifier_flag = TO_ERASE);
+    void RemoveElementsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
     ElementIterator ElementsBegin(IndexType ThisIndex = 0)
     {
@@ -850,6 +1063,11 @@ public:
     }
 
     ElementsContainerType& Elements(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).Elements();
+    }
+
+    const ElementsContainerType& Elements(IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).Elements();
     }
@@ -959,6 +1177,11 @@ public:
         return GetMesh(ThisIndex).GetCondition(ConditionId);
     }
 
+    const ConditionType& GetCondition(IndexType ConditionId, IndexType ThisIndex = 0) const
+    {
+        return GetMesh(ThisIndex).GetCondition(ConditionId);
+    }
+
     /**  Remove the condition with given Id from mesh with ThisIndex in this modelpart and all its subs.
     */
     void RemoveCondition(IndexType ConditionId, IndexType ThisIndex = 0);
@@ -983,19 +1206,19 @@ public:
     */
     void RemoveConditionFromAllLevels(ConditionType::Pointer pThisCondition, IndexType ThisIndex = 0);
 
-    /** erases all elements identified by "identifier_flag" by removing the pointer.
+    /** erases all elements identified by "IdentifierFlag" by removing the pointer.
     * Pointers are erased from this level downwards
     * nodes will be automatically destructured
     * when no pointer is left to them
     */
-    void RemoveConditions(Flags identifier_flag = TO_ERASE);
+    void RemoveConditions(Flags IdentifierFlag = TO_ERASE);
 
-    /** erases all elements identified by "identifier_flag" by removing the pointer.
+    /** erases all elements identified by "IdentifierFlag" by removing the pointer.
      * Pointers will be erase from all levels
      * nodes will be automatically destructured
      * when no pointer is left to them
      */
-    void RemoveConditionsFromAllLevels(Flags identifier_flag = TO_ERASE);
+    void RemoveConditionsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
     ConditionIterator ConditionsBegin(IndexType ThisIndex = 0)
     {
@@ -1018,6 +1241,11 @@ public:
     }
 
     ConditionsContainerType& Conditions(IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).Conditions();
+    }
+
+    const ConditionsContainerType& Conditions(IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).Conditions();
     }
@@ -1050,7 +1278,7 @@ public:
     /** Creates a new sub model part with given name.
     Does nothing if a sub model part with the same name exist.
     */
-    ModelPart::Pointer CreateSubModelPart(std::string const& NewSubModelPartName);
+    ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
 
     /** Add an existing model part as a sub model part.
     	All the meshes will be added to the parents.
@@ -1059,7 +1287,7 @@ public:
     	In the case of conflict the new one would replace the old one
     	resulting inconsitency in parent.
     */
-    void AddSubModelPart(ModelPart::Pointer rThisSubModelPart);
+    void AddSubModelPart(Kratos::shared_ptr<ModelPart> pThisSubModelPart);
 
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
@@ -1077,14 +1305,14 @@ public:
     /** Returns a shared pointer to the sub_model part with given string name
     	In debug gives an error if does not exist.
     */
-    ModelPart::Pointer pGetSubModelPart(std::string const& SubModelPartName)
+    ModelPart* pGetSubModelPart(std::string const& SubModelPartName)
     {
         SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
         if(i == mSubModelParts.end())
             KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
             //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
 
-            return i.base()->second;
+            return (i.base()->second).get();
     }
 
     /** Remove a sub modelpart with given name.
@@ -1239,7 +1467,7 @@ public:
 
     void SetBufferSize(IndexType NewBufferSize);
 
-    IndexType GetBufferSize()
+    IndexType GetBufferSize() const
     {
         return mBufferSize;
     }

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,7 @@ THE SOFTWARE.
  * \brief  Default direct solver for coarse level.
  */
 
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <memory>
 #include <amgcl/backend/builtin.hpp>
 
 namespace amgcl {
@@ -52,7 +51,7 @@ struct default_direct_solver {
             typename Backend::params const &prm
             )
     {
-        std::shared_ptr<host_matrix> ainv = std::make_shared<host_matrix>();
+        auto ainv = std::make_shared<host_matrix>();
         *ainv = inverse(*A);
         Ainv = Backend::copy_matrix(ainv, prm);
     }

@@ -320,28 +320,6 @@ namespace Kratos
        */
 
 
-      /* void ComputeLumpedMassMatrix(Matrix& rMassMatrix, */
-      /* 				   const double Weight, */
-      /* 				   double& MeanValue); */
-        
-      /* void ComputeBulkMatrixLump(MatrixType& BulkMatrix, */
-      /* 				 const double Weight); */
-      
-      /* void ComputeBulkMatrixConsistent(MatrixType& BulkMatrix, */
-      /* 				       const double Weight); */
-       
-      /* void ComputeBulkMatrix(MatrixType& BulkMatrix, */
-      /* 			     const ShapeFunctionsType& rN, */
-      /* 			     const double Weight); */
-      
-      /* void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix, */
-      /* 					       const double Weight); */
-
-
-      /* void ComputeBulkMatrixForPressureVel(MatrixType& BulkVelMatrix, */
-      /* 				       const ShapeFunctionsType& rN, */
-      /* 				       const double Weight); */
-
       void ComputeBulkMatrixRHS(MatrixType& BulkMatrix,
 				const double Weight) override;
       
@@ -355,11 +333,6 @@ namespace Kratos
 				 const double BoundRHSCoeffAcc,
 				 const double BoundRHSCoeffDev){};
 
-      /* virtual bool CalcMechanicsUpdated(ElementalVariables & rElementalVariables, */
-      /* 					const ProcessInfo& rCurrentProcessInfo, */
-      /* 					const ShapeFunctionDerivativesType& rDN_DX, */
-      /* 					unsigned int g); */
-	
       void GetPositions(Vector& rValues,
 			const ProcessInfo& rCurrentProcessInfo,
 			const double theta) override;
@@ -367,10 +340,7 @@ namespace Kratos
       void CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables,
 					    double TimeStep,
 					    unsigned int g) override;
-     
-      /* virtual void CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, */
-      /* 							 VectorType& rRightHandSideVector, */
-      /* 							 ProcessInfo& rCurrentProcessInfo); */
+    
  
       double GetThetaMomentum () override{return 1.0;};
 

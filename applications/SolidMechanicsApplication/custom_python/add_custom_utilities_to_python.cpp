@@ -15,10 +15,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 // Utilities
-#include "custom_utilities/comparison_utilities.hpp"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "custom_utilities/energy_utilities.h"
-#include "custom_utilities/isotropic_damage_utilities.hpp"
 #include "custom_utilities/eigenvector_to_solution_step_variable_transfer_utility.hpp"
 
 

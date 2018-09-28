@@ -44,7 +44,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) NonLinearIsotropicKinematicHardeningLaw 
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) NonLinearIsotropicKinematicHardeningLaw
 	: public HardeningLaw
 {
 public:
@@ -69,7 +69,7 @@ public:
     NonLinearIsotropicKinematicHardeningLaw& operator=(NonLinearIsotropicKinematicHardeningLaw const& rOther);
 
     /// Destructor.
-    ~NonLinearIsotropicKinematicHardeningLaw();
+    ~NonLinearIsotropicKinematicHardeningLaw() override;
 
     ///@}
     ///@name Operators
@@ -86,7 +86,7 @@ public:
     ///@{
 
     double& CalculateHardening(double &rHardening, const Parameters& rValues) override;
-  
+
     double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues) override;
 
     double& CalculateKinematicHardening(double &rKinematicHardening, const Parameters& rValues) override;
@@ -143,9 +143,9 @@ protected:
      * Pure isotropic hardening Theta=1;  pure kinematic hardening Theta= 0; combined isotropic-kinematic 0<Theta<1
      */
 
-    double mTheta; 
-	
-     
+    double mTheta;
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -255,6 +255,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED  defined 
+#endif // KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED  defined
 
 

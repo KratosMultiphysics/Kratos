@@ -81,7 +81,7 @@ public:
     {
         return 1;
     }
-    
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -101,15 +101,15 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -119,7 +119,7 @@ private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -157,4 +157,4 @@ private:
 
 }; // Class BeamConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_DUMMY_BEAM_LAW_H_INCLUDED  defined 
+#endif // KRATOS_DUMMY_BEAM_LAW_H_INCLUDED  defined

@@ -15,5 +15,5 @@ optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, parameters["optimizati
 
 # Create optimizer and perform optimization
 import optimizer_factory
-optimizer = optimizer_factory.CreateOptimizer(parameters, optimization_model_part)
+optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], optimization_model_part)
 optimizer.Optimize()

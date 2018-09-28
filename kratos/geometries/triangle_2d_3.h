@@ -52,11 +52,25 @@ namespace Kratos
 ///@{
 
 /**
- * A three node element geometry. While the shape functions are only defined in
- * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
- * defining surfaces on 3D elements.
+ * @class Triangle2D3
+ * @ingroup KratosCore
+ * @brief A three node 2D triangle geometry with linear shape functions
+ * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
+ * The node ordering corresponds with: 
+ *      v                                                              
+ *      ^                                                               
+ *      |                                                              
+ *      2                                   
+ *      |`\                   
+ *      |  `\                   
+ *      |    `\                 
+ *      |      `\                
+ *      |        `\                 
+ *      0----------1 --> u  
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Triangle2D3
     : public Geometry<TPointType>
 {
@@ -430,16 +444,16 @@ public:
 
     /**
      * Check if an axis-aliged bounding box (AABB) intersects a triangle
-     * 
+     *
      * Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/personal/tomas_akenine-moller/code/tribox3.txt
      * and the article "A Fast Triangle-Triangle Intersection Test", SIGGRAPH '05 ACM, Art.8, 2005:
      * http://fileadmin.cs.lth.se/cs/personal/tomas_akenine-moller/code/tribox_tam.pdf
-     * 
+     *
      * @return bool if the triangle overlaps a box
      * @param rLowPoint first corner of the box
      * @param rHighPoint second corner of the box
      */
-    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override 
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
     {
         Point box_center;
         Point box_half_size;
@@ -479,10 +493,6 @@ public:
      * @return double value with the minimum edge length
      */
     virtual double Semiperimeter() const {
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
-
       return CalculateSemiperimeter(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
         MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
@@ -675,16 +685,16 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
+    bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
@@ -720,7 +730,7 @@ public:
         ) override {
 
         rResult = ZeroVector(3);
-        
+
         const TPointType& point_0 = this->GetPoint(0);
 
         // Compute the Jacobian matrix and its determinant
@@ -734,7 +744,7 @@ public:
         // Compute eta and xi
         const double eta = (J(1,0)*(point_0.X() - rPoint(0)) +
                             J(0,0)*(rPoint(1) - point_0.Y())) / det_J;
-        const double xi  = (J(1,1)*(rPoint(0) - point_0.X()) + 
+        const double xi  = (J(1,1)*(rPoint(0) - point_0.X()) +
                             J(0,1)*(point_0.Y() - rPoint(1))) / det_J;
 
         rResult(0) = xi;
@@ -804,18 +814,20 @@ public:
 
     void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
+        // faces in columns
         if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
             NodesInFaces.resize(3,3,false);
 
-        NodesInFaces(0,0)=0;//face or other node
+        //face 1
+        NodesInFaces(0,0)=0;//contrary node to the face
         NodesInFaces(1,0)=1;
         NodesInFaces(2,0)=2;
-
-        NodesInFaces(0,1)=1;//face or other node
+        //face 2
+        NodesInFaces(0,1)=1;//contrary node to the face
         NodesInFaces(1,1)=2;
         NodesInFaces(2,1)=0;
-
-        NodesInFaces(0,2)=2;//face or other node
+        //face 3
+        NodesInFaces(0,2)=2;//contrary node to the face
         NodesInFaces(1,2)=0;
         NodesInFaces(2,2)=1;
 
@@ -1900,7 +1912,7 @@ private:
     }
 
 
-    /** 
+    /**
      * @see HasIntersection
      * use separating axis theorem to test overlap between triangle and box
      * need to test for overlap in these directions:
@@ -1946,7 +1958,7 @@ private:
         //  first test overlap in the {x,y,(z)}-directions
         //  find min, max of the triangle each direction, and test for overlap in
         //  that direction -- this is equivalent to testing a minimal AABB around
-        //  the triangle against the AABB 
+        //  the triangle against the AABB
 
         // test in X-direction
         min_max = std::minmax({vert0[0],vert1[0],vert2[0]});
@@ -1969,7 +1981,7 @@ private:
 
     /** AxisTestZ
      * This method returns true if there is a separating axis
-     * 
+     *
      * @param rEdgeX, rEdgeY i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeY i-edge abs coordinates
      * @param rVertA i   vertex
@@ -1977,10 +1989,10 @@ private:
      * @param rVertC i+2 vertex
      * @param rBoxHalfSize
      */
-    bool AxisTestZ(double& rEdgeX, double& rEdgeY, 
+    bool AxisTestZ(double& rEdgeX, double& rEdgeY,
                    double& rAbsEdgeX, double& rAbsEdgeY,
-                   array_1d<double,3>& rVertA, 
-                   array_1d<double,3>& rVertC, 
+                   array_1d<double,3>& rVertA,
+                   array_1d<double,3>& rVertC,
                    Point& rBoxHalfSize)
     {
         double proj_a, proj_c, rad;

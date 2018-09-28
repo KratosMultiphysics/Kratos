@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_GAUSS_POINT_ITEM )
@@ -48,7 +48,7 @@ namespace Kratos
  * @brief Custom Gauss Point container to be used by the search
  * @author Vicente Mataix Ferrandiz
  */
-class GaussPointItem 
+class GaussPointItem
     : public Point
 {
 public:
@@ -68,7 +68,7 @@ public:
 
     /**
      * @brief  Default constructor
-     * @details It just computes the default constructor of the point 
+     * @details It just computes the default constructor of the point
      */
     GaussPointItem():
         Point()
@@ -77,7 +77,7 @@ public:
 
     /**
      * @brief Constructor with coordinates
-     * @details It just computes the coordinates constructor of the point 
+     * @details It just computes the coordinates constructor of the point
      */
     GaussPointItem(const array_1d<double, 3>& Coordinates):
         Point(Coordinates)
@@ -86,7 +86,7 @@ public:
 
     /**
      * @brief Complete constructor
-     * @details Computes the point constructor + Considers the CL pointer and the integration weight 
+     * @details Computes the point constructor + Considers the CL pointer and the integration weight
      */
     GaussPointItem(
         const array_1d<double, 3>& Coordinates,
@@ -469,7 +469,7 @@ private:
     ///@name Unaccessible methods
     ///@{
     ///@}
-}; // Class GaussPointItem 
+}; // Class GaussPointItem
 ///@}
 
 ///@name Type Definitions
@@ -483,4 +483,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GAUSS_POINT_ITEM  defined 
+#endif // KRATOS_GAUSS_POINT_ITEM  defined

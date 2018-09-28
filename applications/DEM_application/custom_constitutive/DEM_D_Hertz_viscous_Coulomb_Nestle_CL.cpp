@@ -42,8 +42,8 @@ namespace Kratos {
     void DEM_D_Hertz_viscous_Coulomb_Nestle::CalculateViscoDampingForceWithFEM(double LocalRelVel[3],
                                                                 double ViscoDampingLocalContactForce[3],
                                                                 SphericParticle* const element,
-                                                                DEMWall* const wall) {
-
+                                                                Condition* const wall) {
+        
         const double my_mass    = element->GetMass();
         const double gamma = element->GetProperties()[DAMPING_GAMMA];
         const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn);

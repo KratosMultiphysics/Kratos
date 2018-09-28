@@ -173,7 +173,7 @@ namespace Kratos {
             vector_of_proxies[properties_counter].SetRollingFrictionFromProperties(NULL);
             }*/
               
-            aux_pointer = &( props_it->GetValue(PARTICLE_FRICTION) );
+            aux_pointer = &( props_it->GetValue(FRICTION) );
             vector_of_proxies[properties_counter].SetTgOfFrictionAngleFromProperties(aux_pointer);
               
             aux_pointer = &( props_it->GetValue(COEFFICIENT_OF_RESTITUTION) );

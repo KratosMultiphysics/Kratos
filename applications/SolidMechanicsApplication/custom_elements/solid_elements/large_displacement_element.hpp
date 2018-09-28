@@ -48,7 +48,7 @@ public:
 
     ///@name Type Definitions
     ///@{
-  
+
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
     ///Pointer type for constitutive laws
@@ -57,7 +57,11 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-    
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef SolidElement::ElementDataType ElementDataType;
+
     /// Counted pointer of LargeDisplacementElement
     KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementElement );
 
@@ -77,7 +81,7 @@ public:
     LargeDisplacementElement(LargeDisplacementElement const& rOther);
 
     /// Destructor.
-    virtual ~LargeDisplacementElement();
+    ~LargeDisplacementElement() override;
 
     ///@}
     ///@name Operators
@@ -138,7 +142,7 @@ public:
      * Calculate a Matrix Variable on the Element Constitutive Law
      */
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-    
+
 
 
     //************************************************************************************
@@ -164,7 +168,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Large Displacement Element #" << Id();
@@ -172,13 +176,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Large Displacement Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -190,44 +194,34 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-    
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    /**
-     * Finalize and Initialize label
-     */
-    bool mFinalizedStep;
-
-	
     ///@}
     ///@name Protected Operators
     ///@{
-    
     ///@}
     ///@name Protected Operations
     ///@{
-
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                             ElementVariables& rVariables,
+                             ElementDataType& rVariables,
                              double& rIntegrationWeight) override;
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    void SetElementVariables(ElementVariables& rVariables,
+    void SetElementData(ElementDataType& rVariables,
                              ConstitutiveLaw::Parameters& rValues,
                              const int & rPointNumber) override;
-    
+
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    virtual void GetHistoricalVariables(ElementVariables& rVariables, 
+    virtual void GetHistoricalVariables(ElementDataType& rVariables,
 					const double& rPointNumber );
 
     /**
@@ -285,9 +279,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry
@@ -308,4 +302,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED  defined

@@ -871,7 +871,7 @@ namespace Kratos
 
         for(unsigned int i=0; i<mesh_nodes.size(); i++) {
             NodesContainerType::ptr_iterator pTubeNode = mesh_nodes.ptr_begin()+i;
-            (rDestinationModelPart.Nodes()).push_back(*pTubeNode); 
+            (rDestinationModelPart.Nodes()).push_back(*pTubeNode);
         }
 
     }

@@ -38,12 +38,25 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
         # Create solvers list
         self.solvers = []
         solvers_list = self.settings["solvers"]
-        for i in range(0,len(solvers_list)):
+        for i in range(solvers_list.size()):
             solver_module = __import__(solvers_list[i]["solver_type"].GetString())
             self.solvers.append(solver_module.CreateSolver(solvers_list[i]["Parameters"]))
 
         # Echo level
         self.echo_level = 0
+
+
+    def ExecuteInitialize(self):
+        for solver in self.solvers:
+            solver._set_model_info()
+
+        super(SegregatedSolver, self).ExecuteInitialize()
+
+    def ExecuteBeforeSolutionLoop(self):
+        for solver in self.solvers:
+            solver.ExecuteBeforeSolutionLoop()
+
+        self.SetEchoLevel(self.echo_level)
 
     def GetMinimumBufferSize(self):
         buffer_size = 2
@@ -56,7 +69,7 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
     def SetComputingModelPart(self, computing_model_part):
         self.model_part = computing_model_part
         for solver in self.solvers:
-            solver.SetComputingModelPart(compution_model_part)
+            solver.SetComputingModelPart(computing_model_part)
 
     def GetVariables(self):
         nodal_variables = []
@@ -68,6 +81,10 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
         for solver in self.solvers:
             solver.SetEchoLevel(level)
         self.echo_level = level
+
+    def Clear(self):
+        for solver in self.solvers:
+            solver.Clear()
 
     #### Solver internal methods ####
 
@@ -84,6 +101,7 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
                 self._get_mechanical_solver.SetInitializePerformedFlag(True)
             else:
                 self._get_mechanical_solver.Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
+
     #
     def _create_mechanical_solver(self):
         strategies = []
@@ -103,6 +121,15 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
             dof_reactions = dof_reactions + solver_dof_reactions
 
         return dof_variables, dof_reactions
+
+
+    def _add_dofs(self):
+        dof_variables, dof_reactions = self._get_dofs()
+        AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, dof_variables, dof_reactions)
+        AddDofsProcess.Execute()
+        if( self.echo_level > 1 ):
+            print(dof_variables + dof_reactions)
+            print("::[-------Solver------]:: DOF's ADDED")
 
     #
     def _get_time_integration_methods(self):
