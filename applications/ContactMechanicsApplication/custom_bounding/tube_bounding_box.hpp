@@ -296,7 +296,7 @@ public:
       for(ModelPart::SubModelPartIterator i_mp= pMainModelPart->SubModelPartsBegin() ; i_mp!=pMainModelPart->SubModelPartsEnd(); i_mp++)
 	{
 	  if( i_mp->Is(BOUNDARY) || i_mp->Is(ACTIVE) ){
-	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
+	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; ++i_node)
 	      {
 		if( i_node->Id() == rModelPart.Nodes().front().Id() ){
 		  BoundaryModelPartsName.push_back(i_mp->Name());
@@ -529,7 +529,7 @@ protected:
 
       NodePointerType GeneratrixPoint;
 
-      for(ElementsContainerType::iterator ie = rModelPart.ElementsBegin(); ie!=rModelPart.ElementsEnd(); ie++)
+      for(ElementsContainerType::iterator ie = rModelPart.ElementsBegin(); ie!=rModelPart.ElementsEnd(); ++ie)
 	{
 	  if( ie->GetGeometry().size() > 1){
 

@@ -93,6 +93,8 @@ namespace Kratos
         :mrModelPart(rOther.mrModelPart)
         ,mrRemesh(rOther.mrRemesh)
         ,mrContactModelParts(rOther.mrContactModelParts)
+        ,mEchoLevel(rOther.mEchoLevel)
+        ,mMasterConditionsInitialized(rOther.mMasterConditionsInitialized)
     {
     }
 

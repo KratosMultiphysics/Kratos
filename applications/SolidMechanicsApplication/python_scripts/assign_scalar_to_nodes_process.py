@@ -188,6 +188,7 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
                     self.TimeIntegrationMethod.Assign(node)
 
     #
+    @classmethod
     def GetInverseAssigment(self,compound_assignment):
         if compound_assignment == "direct":
             return "direct"

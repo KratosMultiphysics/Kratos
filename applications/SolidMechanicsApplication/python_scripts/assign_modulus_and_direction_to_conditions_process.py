@@ -210,6 +210,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         if self.IsInsideInterval():
             self.UnAssignValueProcess.Execute()
     #
+    @classmethod
     def GetInverseAssigment(self,compound_assignment):
         if compound_assignment == "direct":
             return "direct"

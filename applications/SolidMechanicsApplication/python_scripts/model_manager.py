@@ -158,6 +158,7 @@ class ModelManager(object):
             for i in range(solving_parts.size()):
                 part_name = solving_parts[i]["model_part_name"].GetString()
                 self._add_model_part_to_model(part_name)
+            
             '''
             for part in self.main_model_part.SubModelParts:
                 self._add_model_part_to_model(part.Name)

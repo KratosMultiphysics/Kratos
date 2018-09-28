@@ -319,7 +319,7 @@ protected:
       //add elements to computing model part: (in order to be written)
       ModelPart* pComputingModelPart = NULL;
       if( rModelPart.IsSubModelPart() )
-	for(ModelPart::SubModelPartIterator i_mp= rModelPart.GetParentModelPart()->SubModelPartsBegin() ; i_mp!=rModelPart.GetParentModelPart()->SubModelPartsEnd(); i_mp++)
+	for(ModelPart::SubModelPartIterator i_mp= rModelPart.GetParentModelPart()->SubModelPartsBegin() ; i_mp!=rModelPart.GetParentModelPart()->SubModelPartsEnd(); ++i_mp)
 	  {
 	    if( i_mp->Is(ACTIVE) )  //computing_domain
 	      pComputingModelPart = &rModelPart.GetParentModelPart()->GetSubModelPart(i_mp->Name());

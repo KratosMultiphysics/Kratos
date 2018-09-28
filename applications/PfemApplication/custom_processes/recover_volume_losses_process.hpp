@@ -54,6 +54,7 @@ class RecoverVolumeLossesProcess : public Process
                              int EchoLevel)
       : Process(Flags()), mrModelPart(rModelPart), mEchoLevel(EchoLevel)
   {
+    mTotalVolume = 0;
   }
 
 

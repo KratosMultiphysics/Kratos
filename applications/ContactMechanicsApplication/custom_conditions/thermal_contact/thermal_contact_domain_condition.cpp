@@ -309,8 +309,8 @@ void ThermalContactDomainCondition::FinalizeSolutionStep( ProcessInfo& CurrentPr
 void ThermalContactDomainCondition::CalculateHeatConductivity()
 {
   //Initilialize penalty parameter
-  double penalty_parameter = 1000;
-  penalty_parameter = GetProperties()[PENALTY_PARAMETER];
+  //double penalty_parameter = 1000;
+  double penalty_parameter = GetProperties()[PENALTY_PARAMETER];
 
   // unsigned int vsize=GetValue(MASTER_ELEMENTS).size();
   // Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS)[vsize-1];

@@ -80,7 +80,7 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
     def Clear(self):
         for solver in self.solvers:
             solver.Clear()
-               
+
     #### Solver internal methods ####
 
     def _check_initialized(self):
