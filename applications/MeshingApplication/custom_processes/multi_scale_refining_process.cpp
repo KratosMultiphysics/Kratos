@@ -555,18 +555,25 @@ void MultiScaleRefiningProcess::IdentifyRefinedNodesToErase()
     const IndexType nelems = mrRefinedModelPart.Elements().size();
     if (nelems != 0) // just avoiding segfault in case of an empty coarse model part
     {
-        ModelPart::ElementsContainerType::iterator element_begin = mrRefinedModelPart.ElementsBegin();
-        const IndexType element_nodes = element_begin->GetGeometry().size();
+        ModelPart::NodeIterator nodes_begin = mrRefinedModelPart.NodesBegin();
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(mrRefinedModelPart.Nodes().size()); i++)
+        {
+            auto node = nodes_begin + i;
+            node->Set(TO_ERASE, true);
+        }
+
+        ModelPart::ElementIterator elements_begin = mrRefinedModelPart.ElementsBegin();
+        const IndexType element_nodes = elements_begin->GetGeometry().size();
 
         for (IndexType i = 0; i < nelems; i++)
         {
-            auto elem = element_begin + i;
-            if (elem->Is(TO_ERASE))
+            auto elem = elements_begin + i;
+            if (elem->IsNot(TO_ERASE))
             {
                 for (IndexType inode = 0; inode < element_nodes; inode++)
                 {
-                    if ((elem->GetGeometry()[inode]).IsNot(TO_REFINE))
-                        (elem->GetGeometry()[inode]).Set(TO_ERASE, true);
+                    (elem->GetGeometry()[inode]).Set(TO_ERASE, false);
                 }
             }
         }
