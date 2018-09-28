@@ -336,7 +336,7 @@ void RigidBodyElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 
 {
     //resizing as needed the LHS
-    SizeType MatSize               = this->GetDofsSize();
+    SizeType MatSize = this->GetDofsSize();
 
     if ( rCalculationFlags.Is(RigidBodyElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
@@ -450,9 +450,6 @@ void RigidBodyElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
     //Initialize sizes for the system components:
     this->InitializeSystemMatrices(LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags);
 
-    //Calculate elemental system
-    this->CalculateElementalSystem(LocalSystem, rCurrentProcessInfo);
-
     KRATOS_CATCH("")
 }
 
@@ -475,9 +472,6 @@ void RigidBodyElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
     //Initialize sizes for the system components:
     this->InitializeSystemMatrices(rLeftHandSideMatrix, RightHandSideVector,  LocalSystem.CalculationFlags);
-
-    //Calculate elemental system
-    this->CalculateElementalSystem(LocalSystem, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
@@ -502,24 +496,9 @@ void RigidBodyElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     //Initialize sizes for the system components:
     this->InitializeSystemMatrices(rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags);
 
-    //Calculate elemental system
-    this->CalculateElementalSystem(LocalSystem, rCurrentProcessInfo);
-
     KRATOS_CATCH("")
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodyElement::CalculateElementalSystem(LocalSystemComponents& rLocalSystem,
-                                                ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-        
-    KRATOS_ERROR << " calling the default method CalculateElementalSystem for a rigid body element " << std::endl;
-    
-    KRATOS_CATCH("")
-}
 
 //************************************************************************************
 //************************************************************************************
@@ -946,10 +925,11 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     rLeftHandSideMatrix = ZeroMatrix( MatSize, MatSize );
 
     //rCurrentProcessInfo must give it:
-    double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+    double Newmark0 = 0;
+    double Newmark1 = 0;
+    double Newmark2 = 0;
 
-    double Newmark1 = (1.0/ ( DeltaTime * DeltaTime * rCurrentProcessInfo[NEWMARK_BETA] ));
-    double Newmark2 = ( DeltaTime * rCurrentProcessInfo[NEWMARK_GAMMA] );
+    this->GetTimeIntegrationParameters(Newmark0,Newmark1,Newmark2,rCurrentProcessInfo);
 
     //block m(1,1) of the mass matrix
 
@@ -1144,7 +1124,7 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     	  {
     	    ColIndex = j * (dofs_size);
 
-    	    m11 = (1.0-AlphaM) * Newmark1 * TotalMass * DiagonalMatrix;
+    	    m11 = (1.0-AlphaM) * Newmark0 * TotalMass * DiagonalMatrix;
 
     	    m22 = MassMatrixBlock2;
 
@@ -1266,6 +1246,20 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
 
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void RigidBodyElement::GetTimeIntegrationParameters(double& rP0,double& rP1,double& rP2, const ProcessInfo& rCurrentProcessInfo)
+{
+  KRATOS_TRY
+
+  double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+  rP0 = 1.0;
+  rP1 = (1.0/ ( DeltaTime * DeltaTime * rCurrentProcessInfo[NEWMARK_BETA] ));
+  rP2 = ( DeltaTime * rCurrentProcessInfo[NEWMARK_GAMMA] );
+      
+  KRATOS_CATCH("")
+}
 
 //************************************************************************************
 //************************************************************************************

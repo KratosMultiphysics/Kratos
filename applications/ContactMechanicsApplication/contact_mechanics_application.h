@@ -36,6 +36,7 @@
 // elements
 #include "custom_elements/rigid_body_element.hpp"
 #include "custom_elements/translatory_rigid_body_element.hpp"
+#include "custom_elements/rigid_body_segregated_V_element.hpp"
 
 // conditions
 #include "custom_conditions/deformable_contact/contact_domain_condition.hpp"
@@ -226,6 +227,7 @@ private:
 	//elements
 	const RigidBodyElement                                             mRigidBodyElement;
 	const TranslatoryRigidBodyElement                       mTranslatoryRigidBodyElement;
+	const RigidBodySegregatedVElement                       mRigidBodySegregatedVElement;
 
 	//conditions
 	const ContactDomainLM3DCondition                       mContactDomainLMCondition3D4N;

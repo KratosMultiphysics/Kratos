@@ -51,8 +51,8 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, HEAT_CONDUCTIVITY )
 
   //solution
+  KRATOS_CREATE_VARIABLE( int, SEGREGATED_STEP )
   KRATOS_CREATE_VARIABLE( double, CONTACT_STEP_TIME )
-
 
   ///@}
 }

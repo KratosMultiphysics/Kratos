@@ -53,7 +53,7 @@ namespace Kratos {
       // Serializer::Register( "TranslatoryRigidBodyElement", mTranslatoryRigidBodyElement);
       KRATOS_REGISTER_ELEMENT( "RigidBodyElement", mRigidBodyElement )
       KRATOS_REGISTER_ELEMENT( "TranslatoryRigidBodyElement", mTranslatoryRigidBodyElement )
-
+      KRATOS_REGISTER_ELEMENT( "RigidBodySegregatedVElement", mRigidBodySegregatedVElement )
 
       //Register Conditions
       KRATOS_REGISTER_CONDITION( "ContactDomainLMCondition3D4N", mContactDomainLMCondition3D4N )
@@ -127,6 +127,7 @@ namespace Kratos {
       KRATOS_REGISTER_VARIABLE( HEAT_CONDUCTIVITY )
 
       //solution
+      KRATOS_REGISTER_VARIABLE(SEGREGATED_STEP)    
       KRATOS_REGISTER_VARIABLE(CONTACT_STEP_TIME)
 
       }
