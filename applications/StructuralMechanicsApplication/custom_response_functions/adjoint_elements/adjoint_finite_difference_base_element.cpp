@@ -284,9 +284,9 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable);
-
+    ProcessInfo copy_process_info = rCurrentProcessInfo;
     // Get pseudo-load from utility
-    DifferentiationUtility::CalculateRigthHandSideDerivative(*pGetPrimalElement(), rDesignVariable, delta, rOutput, rCurrentProcessInfo);
+    DifferentiationUtility::CalculateRigthHandSideDerivative(*pGetPrimalElement(), rDesignVariable, delta, rOutput, copy_process_info);
 
     KRATOS_CATCH("")
 }
@@ -298,9 +298,9 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable);
-
+    ProcessInfo copy_process_info = rCurrentProcessInfo;
     // Get pseudo-load from utility
-    DifferentiationUtility::CalculateRigthHandSideDerivative(*pGetPrimalElement(), rDesignVariable, delta, rOutput, rCurrentProcessInfo);
+    DifferentiationUtility::CalculateRigthHandSideDerivative(*pGetPrimalElement(), rDesignVariable, delta, rOutput, copy_process_info);
 
     KRATOS_CATCH("")
 }

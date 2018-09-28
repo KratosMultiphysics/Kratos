@@ -24,7 +24,7 @@ namespace Kratos
                                                 const Variable<double>& rDesignVariable,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
-                                                const ProcessInfo& rCurrentProcessInfo)
+                                                ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -35,10 +35,8 @@ namespace Kratos
             Vector RHS_unperturbed;
             Vector RHS_perturbed;
 
-            ProcessInfo copy_process_info = rCurrentProcessInfo;
-
             // Compute RHS before perturbion
-            rElement.CalculateRightHandSide(RHS_unperturbed, copy_process_info);
+            rElement.CalculateRightHandSide(RHS_unperturbed, rCurrentProcessInfo);
 
             if ( (rOutput.size1() != 1) || (rOutput.size2() != RHS_unperturbed.size() ) )
                 rOutput.resize(1, RHS_unperturbed.size());
@@ -55,7 +53,7 @@ namespace Kratos
             p_local_property->SetValue(rDesignVariable, (current_property_value + rPertubationSize));
 
             // Compute RHS after perturbation
-            rElement.CalculateRightHandSide(RHS_perturbed, copy_process_info);
+            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
 
             // Compute derivative of RHS w.r.t. design variable with finite differences
             for(IndexType i = 0; i < RHS_perturbed.size(); ++i)
@@ -65,7 +63,7 @@ namespace Kratos
             rElement.SetProperties(p_global_properties);
 
             //call one last time to make sure everything is as it was before TODO improve this..
-            rElement.CalculateRightHandSide(RHS_perturbed, copy_process_info);
+            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
         }
         else
             if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
@@ -78,7 +76,7 @@ namespace Kratos
                                                 const Variable<array_1d<double,3>>& rDesignVariable,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
-                                                const ProcessInfo& rCurrentProcessInfo)
+                                                ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -93,13 +91,12 @@ namespace Kratos
             // define working variables
             Vector RHS_unperturbed;
             Vector RHS_perturbed;
-            ProcessInfo copy_process_info = rCurrentProcessInfo;
 
             const SizeType number_of_nodes = rElement.GetGeometry().PointsNumber();
             const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
             // compute RHS before perturbion
-            rElement.CalculateRightHandSide(RHS_unperturbed, copy_process_info);
+            rElement.CalculateRightHandSide(RHS_unperturbed, rCurrentProcessInfo);
 
             if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != RHS_unperturbed.size() ) )
                 rOutput.resize(dimension * number_of_nodes, RHS_unperturbed.size());
@@ -114,7 +111,7 @@ namespace Kratos
                     node_i[coord_dir_i] += rPertubationSize;
 
                     // compute RHS after perturbation
-                    rElement.CalculateRightHandSide(RHS_perturbed, copy_process_info);
+                    rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
 
                     //compute derivative of RHS w.r.t. design variable with finite differences
                     for(IndexType i = 0; i < RHS_perturbed.size(); ++i)
@@ -131,7 +128,7 @@ namespace Kratos
                 index++;
 
                 //call one last time to make sure everything is as it was before TODO improve this..
-                rElement.CalculateRightHandSide(RHS_perturbed, copy_process_info);
+                rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
 
             }// end loop over element nodes
         }
@@ -150,7 +147,7 @@ namespace Kratos
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Vector& rOutput,
-                                                const ProcessInfo& rCurrentProcessInfo)
+                                                ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -167,10 +164,9 @@ namespace Kratos
             // define working variables
             Vector RHS_unperturbed;
             Vector RHS_perturbed;
-            ProcessInfo copy_process_info = rCurrentProcessInfo;
 
             // compute RHS before perturbion
-            rElement.CalculateRightHandSide(RHS_unperturbed, copy_process_info);
+            rElement.CalculateRightHandSide(RHS_unperturbed, rCurrentProcessInfo);
 
             if ( rOutput.size() != RHS_unperturbed.size() )
                 rOutput.resize(RHS_unperturbed.size(), false);
@@ -180,7 +176,7 @@ namespace Kratos
             rNode.Coordinates()[coord_dir] += rPertubationSize;
 
             // compute LHS after perturbation
-            rElement.CalculateRightHandSide(RHS_perturbed, copy_process_info);
+            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
 
             //compute derivative of RHS w.r.t. design variable with finite differences
             noalias(rOutput) = (RHS_perturbed - RHS_unperturbed) / rPertubationSize;
@@ -190,7 +186,7 @@ namespace Kratos
             rNode.Coordinates()[coord_dir] -= rPertubationSize;
 
             //call one last time to make sure everything is as it was before TODO improve this..
-            rElement.CalculateRightHandSide(RHS_perturbed, copy_process_info);
+            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
         }
         else
         {
@@ -207,7 +203,7 @@ namespace Kratos
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
-                                                const ProcessInfo& rCurrentProcessInfo)
+                                                ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -225,10 +221,9 @@ namespace Kratos
             Matrix LHS_unperturbed;
             Matrix LHS_perturbed;
             Vector dummy;
-            ProcessInfo copy_process_info = rCurrentProcessInfo;
 
             // compute LHS before perturbion
-            rElement.CalculateLocalSystem(LHS_unperturbed, dummy ,copy_process_info);
+            rElement.CalculateLocalSystem(LHS_unperturbed, dummy, rCurrentProcessInfo);
 
             if ( (rOutput.size1() != LHS_unperturbed.size1()) || (rOutput.size2() != LHS_unperturbed.size2() ) )
                 rOutput.resize(LHS_unperturbed.size1(), LHS_unperturbed.size2());
@@ -238,7 +233,7 @@ namespace Kratos
             rNode.Coordinates()[coord_dir] += rPertubationSize;
 
             // compute LHS after perturbation
-            rElement.CalculateLocalSystem(LHS_perturbed, dummy ,copy_process_info);
+            rElement.CalculateLocalSystem(LHS_perturbed, dummy, rCurrentProcessInfo);
 
             //compute derivative of RHS w.r.t. design variable with finite differences
             noalias(rOutput) = (LHS_perturbed - LHS_unperturbed) / rPertubationSize;
@@ -248,7 +243,7 @@ namespace Kratos
             rNode.Coordinates()[coord_dir] -= rPertubationSize;
 
             //call one last time to make sure everything is as it was before TODO improve this..
-            rElement.CalculateLocalSystem(LHS_perturbed, dummy ,copy_process_info);
+            rElement.CalculateLocalSystem(LHS_perturbed, dummy, rCurrentProcessInfo);
         }
         else
         {
@@ -265,7 +260,7 @@ namespace Kratos
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
-                                                const ProcessInfo& rCurrentProcessInfo)
+                                                ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY;
 
@@ -282,10 +277,9 @@ namespace Kratos
             // define working variables
             Matrix unperturbed_mass_matrix;
             Matrix perturbed_mass_matrix;
-            ProcessInfo copy_process_info = rCurrentProcessInfo;
 
             // compute mass matrix before perturbion
-            rElement.CalculateMassMatrix(unperturbed_mass_matrix, copy_process_info);
+            rElement.CalculateMassMatrix(unperturbed_mass_matrix, rCurrentProcessInfo);
 
             if ( (rOutput.size1() != unperturbed_mass_matrix.size1()) || (rOutput.size2() != unperturbed_mass_matrix.size2() ) )
                 rOutput.resize(unperturbed_mass_matrix.size1(), unperturbed_mass_matrix.size2());
@@ -295,7 +289,7 @@ namespace Kratos
             rNode.Coordinates()[coord_dir] += rPertubationSize;
 
             // compute LHS after perturbation
-            rElement.CalculateMassMatrix(perturbed_mass_matrix, copy_process_info);
+            rElement.CalculateMassMatrix(perturbed_mass_matrix, rCurrentProcessInfo);
 
             //compute derivative of RHS w.r.t. design variable with finite differences
             noalias(rOutput) = (perturbed_mass_matrix - unperturbed_mass_matrix) / rPertubationSize;
@@ -305,7 +299,7 @@ namespace Kratos
             rNode.Coordinates()[coord_dir] -= rPertubationSize;
 
             //call one last time to make sure everything is as it was before TODO improve this..
-            rElement.CalculateMassMatrix(perturbed_mass_matrix, copy_process_info);
+            rElement.CalculateMassMatrix(perturbed_mass_matrix, rCurrentProcessInfo);
         }
         else
         {
