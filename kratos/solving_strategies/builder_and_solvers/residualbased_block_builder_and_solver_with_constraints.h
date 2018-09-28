@@ -153,7 +153,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         TSystemMatrixType &A,
         TSystemVectorType &b) override
     {
-        if(rModelPart.NumberOfMasterSlaveConstraints() > 0)
+        if(mGlobalMasterSlaveConstraints.size() > 0)
             BuildWithConstraints(pScheme, rModelPart, A, b);
         else
             BaseType::Build(pScheme, rModelPart, A, b);
@@ -177,7 +177,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         TSystemVectorType &Dx,
         TSystemVectorType &b) override
     {
-        if(rModelPart.NumberOfMasterSlaveConstraints() > 0)
+        if(mGlobalMasterSlaveConstraints.size() > 0)
             BuildAndSolveWithConstraints(pScheme, rModelPart, A, Dx, b);
         else
             BaseType::BuildAndSolve(pScheme, rModelPart, A, Dx, b);
@@ -258,7 +258,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         TSystemMatrixType &A,
         ModelPart &rModelPart) override
     {
-        if(rModelPart.NumberOfMasterSlaveConstraints() > 0)
+        if(mGlobalMasterSlaveConstraints.size() > 0)
             ConstructMatrixStructureWithConstraints(pScheme, A, rModelPart);
         else
             BaseType::ConstructMatrixStructure(pScheme, A, rModelPart);

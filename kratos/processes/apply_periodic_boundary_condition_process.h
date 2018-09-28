@@ -65,6 +65,7 @@ class ApplyPeriodicConditionProcess : public Process
                                             {
                                             "master_sub_model_part_name":"default_master",
                                             "slave_sub_model_part_name":"default_slave",
+                                            "axis_sub_model_part_name":"",
                                             "variable_names":[],
                                             "center":[0,0,0],
                                             "axis_of_rotation":[0.0,0.0,0.0],
@@ -93,6 +94,8 @@ class ApplyPeriodicConditionProcess : public Process
 
         mTransformationMatrix.resize(4,4);
 
+        RemoveAxisFromSlave();
+
         if (mTheta == 0 && mModulus != 0)
             mType = "translation";
         else if (mTheta != 0.0 && mModulus == 0.0)
@@ -105,6 +108,20 @@ class ApplyPeriodicConditionProcess : public Process
     }
     ~ApplyPeriodicConditionProcess()
     {
+    }
+
+    void RemoveAxisFromSlave()
+    {
+        if(!mParameters["axis_sub_model_part_name"].GetString().empty())
+        {
+            ModelPart &r_slave_model_part = mrMainModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
+            ModelPart &r_axis_model_part = mrMainModelPart.GetSubModelPart(mParameters["axis_sub_model_part_name"].GetString());
+            for (auto& axis_node : r_axis_model_part.Nodes())
+            {
+                axis_node.Set(TO_ERASE);
+            }
+            r_slave_model_part.RemoveNodes(TO_ERASE);
+        }
     }
 
     void ExecuteInitializeSolutionStep() override
