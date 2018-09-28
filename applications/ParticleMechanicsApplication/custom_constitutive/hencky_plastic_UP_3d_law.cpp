@@ -114,10 +114,10 @@ void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialRe
     {
         for (unsigned int j = 0; j<3; ++j)
         {
-            aux_N(j) = rReturnMappingVariables.MainDirections(i,j);
+            aux_N[j] = rReturnMappingVariables.MainDirections(i,j);
         }
         aux_M = MathUtils<double>::TensorProduct3(aux_N, aux_N);
-        rStressMatrix += deviatoric_principal_stress(i)*aux_M;
+        rStressMatrix += deviatoric_principal_stress[i]*aux_M;
     }
 
     double pressure = 0;
@@ -137,7 +137,7 @@ void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialRe
     rStressMatrix.clear();
     for(unsigned int i=0; i<3; i++)
     {
-        rStressMatrix(i,i) = eigen_values(i);
+        rStressMatrix(i,i) = eigen_values[i];
     }
 
 }

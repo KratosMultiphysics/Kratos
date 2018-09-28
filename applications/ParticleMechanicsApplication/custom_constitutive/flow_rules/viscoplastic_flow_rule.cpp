@@ -169,7 +169,7 @@ bool ViscoplasticFlowRule::CalculateConsistencyCondition( RadialReturnVariables&
 
 
     double Hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(Hardening,NewHardeningParameters);
-    double StateFunction = (Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)*pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-std::sqrt(2.0/3.0) * Hardening;
+    double StateFunction = (Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)*std::pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-std::sqrt(2.0/3.0) * Hardening;
 
 //    std::cout << "Qtrail:" << Qtrail << std::endl;
 //    std::cout << "OldTrialStateFunction:" << rReturnMappingVariables.TrialStateFunction << std::endl;
@@ -181,7 +181,7 @@ bool ViscoplasticFlowRule::CalculateConsistencyCondition( RadialReturnVariables&
         //Calculate Delta State Function:
         //DeltaStateFunction = mpYieldCriterion->CalculateDeltaStateFunction( DeltaStateFunction, rCriterionParameters );
         double DeltaHardening = mpYieldCriterion->GetHardeningLaw().CalculateDeltaHardening(Hardening,NewHardeningParameters);
-        DeltaStateFunction = -(2.0*G+RateSensitivity*mu*(Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)/(mu*rReturnMappingVariables.DeltaGamma+dt))*pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-2.0/3.0 * DeltaHardening;
+        DeltaStateFunction = -(2.0*G+RateSensitivity*mu*(Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)/(mu*rReturnMappingVariables.DeltaGamma+dt))*std::pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-2.0/3.0 * DeltaHardening;
         //Calculate DeltaGamma:
         DeltaDeltaGamma  = -StateFunction/DeltaStateFunction;
         rReturnMappingVariables.DeltaGamma += DeltaDeltaGamma;
@@ -194,7 +194,7 @@ bool ViscoplasticFlowRule::CalculateConsistencyCondition( RadialReturnVariables&
         NewHardeningParameters.SetEquivalentPlasticStrain(rPlasticVariables.EquivalentPlasticStrain);
         NewHardeningParameters.SetDeltaGamma(rReturnMappingVariables.DeltaGamma);
         Hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(Hardening,NewHardeningParameters);
-        StateFunction = (Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)*pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-std::sqrt(2.0/3.0) * Hardening;
+        StateFunction = (Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)*std::pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-std::sqrt(2.0/3.0) * Hardening;
 
         iter++;
 //        std::cout << "Iter:" << iter << std::endl;

@@ -106,17 +106,6 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix 
 
 }
 
-Matrix HenckyElasticPlasticPlaneStrain2DLaw::SetMatrixToAppropriateDimension(Matrix& rMatrix){
-    if(rMatrix.size1() == 3){
-        rMatrix.resize( 2, 2, true);
-        return rMatrix;
-    }
-    else if (rMatrix.size1() == 2) { 
-        return rMatrix;
-    }
-    else KRATOS_ERROR << "Wrong size of input matrix:: Conversion is unknown!" << std::endl;
-}
-
 Vector HenckyElasticPlasticPlaneStrain2DLaw::SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix)
 {
     rStressVector = MathUtils<double>::StressTensorToVector( rStressMatrix, rStressVector.size() );
@@ -184,12 +173,12 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matri
 
 
     Vector TrialEigenValues = ZeroVector(3);
-    TrialEigenValues(0) = AuxEigenValues(0);
-    TrialEigenValues(1) = AuxEigenValues(1);
-    TrialEigenValues(2) =  rCauchyGreenMatrix(2,2);
+    TrialEigenValues[0] = AuxEigenValues[0];
+    TrialEigenValues[1] = AuxEigenValues[1];
+    TrialEigenValues[2] = rCauchyGreenMatrix(2,2);
 
     for (unsigned int i = 0; i<3; i++)
-        rMainStrain(i) = 0.50*std::log(TrialEigenValues(i));
+        rMainStrain[i] = 0.50*std::log(TrialEigenValues[i]);
 
 }
 
