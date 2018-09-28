@@ -3,9 +3,9 @@ import KratosMultiphysics.mpi as MPI #TODO: do not import the so directly (but I
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-class MPICommunicatorTest(UnitTest.TestCase):
+class TestMPICommunicatorSetUp(UnitTest.TestCase):
 
-    def testMPICommunicatorSetup(self):
+    def testMPICommunicatorSetUp(self):
         model_part = Kratos.ModelPart("Test_model_part")
 
         # I'd do more complex tests, but this one should work in serial too (JC)
