@@ -133,16 +133,24 @@ class TestMassCalculation(KratosUnittest.TestCase):
         elem3 = mp.CreateNewElement("NodalConcentratedElement3D1N", 3, [3], mp.GetProperties()[0])
         elem4 = mp.CreateNewElement("NodalConcentratedElement3D1N", 4, [4], mp.GetProperties()[0])
 
-        elem1.SetValue(KratosMultiphysics.NODAL_MASS,21.234)
-        elem2.SetValue(KratosMultiphysics.NODAL_MASS,5.234)
-        elem3.SetValue(KratosMultiphysics.NODAL_MASS,112.234)
-        elem4.SetValue(KratosMultiphysics.NODAL_MASS,78.234)
+        expected_nodal_masses_by_id = {
+            1 : 21.234,
+            2 : 5.234,
+            3 : 112.234,
+            4 : 78.234
+        }
+        elem1.SetValue(KratosMultiphysics.NODAL_MASS, expected_nodal_masses_by_id[1])
+        elem2.SetValue(KratosMultiphysics.NODAL_MASS, expected_nodal_masses_by_id[2])
+        elem3.SetValue(KratosMultiphysics.NODAL_MASS, expected_nodal_masses_by_id[3])
+        elem4.SetValue(KratosMultiphysics.NODAL_MASS, expected_nodal_masses_by_id[4])
 
         mass_process = StructuralMechanicsApplication.TotalStructuralMassProcess(mp)
         mass_process.Execute()
-        total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
 
-        self.assertAlmostEqual(216.936, total_mass, 5)
+        self.__CheckNodalMasses(mp, expected_nodal_masses_by_id)
+
+        total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
+        self.assertAlmostEqual(sum(expected_nodal_masses_by_id.values()), total_mass)
 
     def test_beam_mass(self):
         dim = 3
@@ -166,9 +174,24 @@ class TestMassCalculation(KratosUnittest.TestCase):
 
         mass_process = StructuralMechanicsApplication.TotalStructuralMassProcess(mp)
         mass_process.Execute()
-        total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
 
-        self.assertAlmostEqual(94.2, total_mass, 5)
+        expected_nodal_masses_by_id = {
+            1  : 4.71,
+            2  : 9.42,
+            3  : 9.42,
+            4  : 9.42,
+            5  : 9.42,
+            6  : 9.42,
+            7  : 9.42,
+            8  : 9.42,
+            9  : 9.42,
+            10 : 9.42,
+            11 : 4.71
+        }
+        self.__CheckNodalMasses(mp, expected_nodal_masses_by_id)
+
+        total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
+        self.assertAlmostEqual(sum(expected_nodal_masses_by_id.values()), total_mass)
 
     def test_shell_mass(self):
         dim = 3
@@ -184,9 +207,18 @@ class TestMassCalculation(KratosUnittest.TestCase):
 
         mass_process = StructuralMechanicsApplication.TotalStructuralMassProcess(mp)
         mass_process.Execute()
-        total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
 
-        self.assertAlmostEqual(1.36733, total_mass, 5)
+        expected_nodal_masses_by_id = {
+            1 : 0.2112780739,
+            2 : 0.2370237273,
+            3 : 0.24449964434,
+            4 : 0.21875399088417,
+            5 : 0.45577771826
+        }
+        self.__CheckNodalMasses(mp, expected_nodal_masses_by_id)
+
+        total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
+        self.assertAlmostEqual(sum(expected_nodal_masses_by_id.values()), total_mass)
 
     def test_orthotropic_shell_mass(self):
         dim = 3
@@ -202,9 +234,18 @@ class TestMassCalculation(KratosUnittest.TestCase):
 
         mass_process = StructuralMechanicsApplication.TotalStructuralMassProcess(mp)
         mass_process.Execute()
-        total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
 
-        self.assertAlmostEqual(45.8740273, total_mass, 5)
+        expected_nodal_masses_by_id = {
+            1 : 7.08837937,
+            2 : 7.95214605348,
+            3 : 8.20296306789,
+            4 : 7.339196394164,
+            5 : 15.2913424476
+        }
+        self.__CheckNodalMasses(mp, expected_nodal_masses_by_id)
+
+        total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
+        self.assertAlmostEqual(sum(expected_nodal_masses_by_id.values()), total_mass)
 
     def test_solid_mass(self):
         dim = 2
@@ -231,9 +272,24 @@ class TestMassCalculation(KratosUnittest.TestCase):
 
         mass_process = StructuralMechanicsApplication.TotalStructuralMassProcess(mp)
         mass_process.Execute()
-        total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
 
-        self.assertAlmostEqual(0.16, total_mass)
+        expected_nodal_masses_by_id = {
+            1 : 0.015,
+            2 : 0.03166666667,
+            3 : 0.038333333333,
+            4 : 0.02166666667,
+            5 : 0.05333333333
+        }
+        self.__CheckNodalMasses(mp, expected_nodal_masses_by_id)
+
+        total_mass = mp.ProcessInfo[KratosMultiphysics.NODAL_MASS]
+        self.assertAlmostEqual(sum(expected_nodal_masses_by_id.values()), total_mass)
+
+    def __CheckNodalMasses(self, model_part, expected_nodal_masses_by_id):
+        for node in model_part.Nodes:
+            self.assertAlmostEqual(expected_nodal_masses_by_id[node.Id],
+                                   node.GetValue(KratosMultiphysics.NODAL_MASS))
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
