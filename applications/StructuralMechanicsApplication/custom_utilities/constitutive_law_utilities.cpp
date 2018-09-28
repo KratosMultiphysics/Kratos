@@ -244,13 +244,12 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
         double sint3 = (-3.0 * std::sqrt(3.0) * J3) / (2.0 * J2 * std::sqrt(J2));
         if (sint3 < -0.95)
             sint3 = -1.0;
-        if (sint3 > 0.95)
+        else if (sint3 > 0.95)
             sint3 = 1.0;
         rLodeAngle = std::asin(sint3) / 3.0;
     } else {
         rLodeAngle = 0.0;
     }
-
 }
 
 /***********************************************************************************/
