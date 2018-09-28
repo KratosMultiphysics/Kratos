@@ -47,12 +47,6 @@ public:
                                                 ProcessInfo& rCurrentProcessInfo);
 
     static void CalculateRigthHandSideDerivative(Element& rElement,
-                                                const Variable<array_1d<double,3>>& rDesignVariable,
-                                                const double& rPertubationSize,
-                                                Matrix& rOutput,
-                                                ProcessInfo& rCurrentProcessInfo);
-
-    static void CalculateRigthHandSideDerivative(Element& rElement,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,

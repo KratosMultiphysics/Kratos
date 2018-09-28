@@ -296,11 +296,38 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 {
     KRATOS_TRY;
 
-    // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable);
     ProcessInfo copy_process_info = rCurrentProcessInfo;
-    // Get pseudo-load from utility
-    DifferentiationUtility::CalculateRigthHandSideDerivative(*pGetPrimalElement(), rDesignVariable, delta, rOutput, copy_process_info);
+
+    if( rDesignVariable == SHAPE )
+    {
+        const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+        const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+        const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
+        const SizeType local_size = number_of_nodes * num_dofs_per_node;
+        std::vector<array_1d_component_type> coord_directions = {SHAPE_X, SHAPE_Y, SHAPE_Z};
+        Vector derived_RHS;
+
+        if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) )
+            rOutput.resize(dimension * number_of_nodes, local_size);
+
+        IndexType index = 0;
+        for(auto& node_i : mpPrimalElement->GetGeometry())
+        {
+            for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i)
+            {
+                // Get pseudo-load contribution from utility
+                DifferentiationUtility::CalculateRigthHandSideDerivative(*pGetPrimalElement(), coord_directions[coord_dir_i],
+                                                                            node_i, delta, derived_RHS, copy_process_info);
+
+                KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
+
+                for(IndexType i = 0; i < derived_RHS.size(); ++i)
+                    rOutput( (coord_dir_i + index*dimension), i) = derived_RHS[i];
+            }
+            index++;
+        }
+    }
 
     KRATOS_CATCH("")
 }
