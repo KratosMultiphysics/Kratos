@@ -1168,6 +1168,10 @@ ConditionType::Pointer MmgProcess<2>::CreateCondition0(
     bool SkipCreation
     )
 {
+    // Sometimes MMG creates conditions where there are not, then we skip
+    if (mpRefCondition[PropId] == nullptr) return nullptr;
+    
+    // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
     int edge_0, edge_1, is_ridge;
@@ -1202,6 +1206,10 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition0(
     bool SkipCreation
     )
 {
+    // Sometimes MMG creates conditions where there are not, then we skip
+    if (mpRefCondition[PropId] == nullptr) return nullptr;
+    
+    // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
     int vertex_0, vertex_1, vertex_2;
