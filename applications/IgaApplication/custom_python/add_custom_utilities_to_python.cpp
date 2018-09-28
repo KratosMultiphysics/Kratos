@@ -302,14 +302,24 @@ void RegisterSurfaceGeometryBase(
         .def("Pole", &Type::Pole,
             "IndexU"_a,
             "IndexV"_a)
-        .def("SetPole", &Type::SetPole,
+        .def("SetPole", (void (Type::*)(const int, const VectorType&))
+            &Type::SetPole,
+            "Index"_a,
+            "Value"_a)
+        .def("SetPole", (void (Type::*)(const int, const int,
+            const VectorType&)) &Type::SetPole,
             "IndexU"_a,
             "IndexV"_a,
             "Value"_a)
         .def("Weight", &Type::Weight,
             "IndexU"_a,
             "IndexV"_a)
-        .def("SetWeight", &Type::SetWeight,
+        .def("SetWeight", (void (Type::*)(const int, const double))
+            &Type::SetWeight,
+            "Index"_a,
+            "Value"_a)
+        .def("SetWeight", (void (Type::*)(const int, const int,
+            const double)) &Type::SetWeight,
             "IndexU"_a,
             "IndexV"_a,
             "Value"_a)
@@ -717,7 +727,7 @@ void RegisterIntegrationPoint1(
     using Type = ANurbs::IntegrationPoint1<double>;
 
     pybind11::class_<Type>(m, name.c_str())
-        .def("__iter__", 
+        .def("__iter__",
             [](const Type &self) {
                 return pybind11::make_iterator(&self.t, &self.t + 2);
             }, pybind11::keep_alive<0, 1>())
@@ -736,7 +746,7 @@ void RegisterIntegrationPoint2(
     using Type = ANurbs::IntegrationPoint2<double>;
 
     pybind11::class_<Type>(m, name.c_str())
-        .def("__iter__", 
+        .def("__iter__",
             [](const Type &self) {
                 return pybind11::make_iterator(&self.u, &self.u + 3);
             }, pybind11::keep_alive<0, 1>())
@@ -798,7 +808,7 @@ void AddCustomUtilitiesToPython(
     RegisterCurveGeometry<1>(m, "CurveGeometry1D");
     RegisterCurveGeometry<2>(m, "CurveGeometry2D");
     RegisterCurveGeometry<3>(m, "CurveGeometry3D");
-    
+
     RegisterSurfaceGeometryBase<1>(m, "SurfaceGeometryBase1D");
     RegisterSurfaceGeometryBase<2>(m, "SurfaceGeometryBase2D");
     RegisterSurfaceGeometryBase<3>(m, "SurfaceGeometryBase3D");
