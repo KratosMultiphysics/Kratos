@@ -12,7 +12,6 @@ set( KRATOS_FSI_APPLICATION_SOURCES
 
 	# utilities
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AdvancedNMPointsMapper.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/variable_redistribution_utility.cpp
 
 	# python interface sources
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fsi_python_application.cpp
