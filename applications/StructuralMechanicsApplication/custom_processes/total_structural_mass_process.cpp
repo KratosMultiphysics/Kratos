@@ -96,6 +96,8 @@ void TotalStructuralMassProcess::Execute()
         }
     }
 
+    const double total_mass = VariableUtils().SumNonHistoricalNodeScalarVariable(NODAL_MASS, mrThisModelPart);
+
     std::stringstream info_stream;
     info_stream << "Total Mass of ModelPart \"" << mrThisModelPart.Name() << "\"";
 
