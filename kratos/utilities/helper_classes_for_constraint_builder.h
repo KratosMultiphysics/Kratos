@@ -533,7 +533,7 @@ public:
         // resizing the matrices to the new required length
         ResizeAndInitializeLocalMatrices(rLHSContribution, rRHSContribution, rEquationIds.size());
 
-        // Calculating the T and C which are local to this container
+        // Calculating the K = T' * K *T and F = T'*(F-K*g) which are local to this container
         ModifyMatrices(rLHSContribution, rRHSContribution, rEquationIds);
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints:: Applying Multipoint constraints failed ..");
