@@ -285,7 +285,7 @@ class ConstitutiveLawUtilities
      * @param rStrainVector The Strain Vector
      * @param rProjectionOperator The projection operator
      */
-    static void SpectralDecompositionStrain(
+    static void CalculateProjectionOperator(
         const Vector& rStrainVector,
         MatrixType& rProjectionOperator
         );

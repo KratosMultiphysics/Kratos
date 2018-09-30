@@ -524,7 +524,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<6>::SpectralDecompositionStrain(
+void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
     const Vector& rStrainVector,
     MatrixType& rProjectionOperator
     )
@@ -591,7 +591,7 @@ void ConstitutiveLawUtilities<6>::SpectralDecompositionStrain(
 }
 
 template<>
-void ConstitutiveLawUtilities<3>::SpectralDecompositionStrain(
+void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
     const Vector& rStrainVector,
     MatrixType& rProjectionOperator
     )
