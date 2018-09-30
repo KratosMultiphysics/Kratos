@@ -277,7 +277,7 @@ class ConstitutiveLawUtilities
         );
 
     /**
-     * @brief This method performs Spectral Decomposition of the Strain
+     * @brief This method calculates the projection operator
      * and calculates the Projection Operator
      * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
      * Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
@@ -288,6 +288,23 @@ class ConstitutiveLawUtilities
     static void CalculateProjectionOperator(
         const Vector& rStrainVector,
         MatrixType& rProjectionOperator
+        );
+
+    /**
+     * @brief This method performs Spectral Decomposition of the Stress Vector/Tensor
+     * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
+     * Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
+     * Materials" - M. Cervera and C. Tesei.
+     * @param rStressVector The Stress Vector
+     * @param rStressVectorTension The Stress Vector
+     * @param rStressVectorCompression The Stress Vector
+     * @param rMatrixTension The Stress Vector
+     * @param rMatrixCompression The Stress Vector
+     */
+    static void SpectralDecomposition(
+        const Vector& rStressVector,
+        Vector& rStressVectorTension,
+        Vector& rStressVectorCompression
         );
 
   private:
