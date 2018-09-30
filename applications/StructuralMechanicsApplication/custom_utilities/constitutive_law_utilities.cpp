@@ -523,6 +523,205 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<>
+void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
+    const Vector& rStrainVector,
+    MatrixType& rProjectionOperator
+    )
+{
+    BoundedMatrix<double, Dimension, Dimension> strain_tensor;
+    strain_tensor = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
+    BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
+
+    MathUtils<double>::EigenSystem<Dimension>(strain_tensor, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
+
+    std::vector<Vector> eigen_vectors_container;
+
+    Vector auxiliar_vector = ZeroVector(Dimension);
+    for (IndexType i = 0; i < Dimension; ++i) {
+		auxiliar_vector[0] = eigen_vectors_matrix(0, i);
+		auxiliar_vector[1] = eigen_vectors_matrix(1, i);
+		auxiliar_vector[2] = eigen_vectors_matrix(2, i);
+        eigen_vectors_container.push_back(auxiliar_vector);
+    }
+
+    if (rProjectionOperator.size1() != Dimension ||
+        rProjectionOperator.size2() != Dimension) {
+        rProjectionOperator = ZeroMatrix(Dimension, Dimension);
+    }
+    
+    Vector sigma_tension_vector;
+	Matrix sigma_tension_tensor;
+    for (IndexType i = 0; i < Dimension; ++i) {
+        if (eigen_values_matrix(i, i) > 0.0) {
+            sigma_tension_tensor = outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
+            sigma_tension_vector = MathUtils<double>::StressTensorToVector(sigma_tension_tensor);
+            rProjectionOperator += outer_prod(sigma_tension_vector, sigma_tension_vector);
+        }
+    }
+
+    Matrix indexes_ij;
+    indexes_ij.resize(3, 2);
+    indexes_ij(0, 0) = 0;
+    indexes_ij(0, 1) = 1;
+    indexes_ij(1, 0) = 1;
+    indexes_ij(1, 1) = 2;
+    indexes_ij(2, 0) = 0;
+    indexes_ij(2, 1) = 2;
+
+    IndexType i, j;
+    double h_i = 0.0, h_j = 0.0;
+    Matrix cross_p_ij_tensor;
+    Vector cross_p_ij_vector;
+
+    for (IndexType index = 0; index < Dimension; ++index) {
+        i = indexes_ij(index, 0);
+        j = indexes_ij(index, 1);
+
+        if (eigen_values_matrix(i, i) > 0)
+            h_i = 1.0;
+        if (eigen_values_matrix(j, j) > 0)
+            h_j = 1.0;
+
+        cross_p_ij_tensor = 0.5 * (outer_prod(eigen_vectors_container[i], eigen_vectors_container[j]) +
+                                   outer_prod(eigen_vectors_container[j], eigen_vectors_container[i]));
+        cross_p_ij_vector = MathUtils<double>::StressTensorToVector(cross_p_ij_tensor);
+        rProjectionOperator += (h_i + h_j) * (outer_prod(cross_p_ij_vector, cross_p_ij_vector));
+    }
+}
+
+template<>
+void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
+    const Vector& rStrainVector,
+    MatrixType& rProjectionOperator
+    )
+{
+    BoundedMatrix<double, Dimension, Dimension> strain_tensor;
+    strain_tensor = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
+    BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
+
+    MathUtils<double>::EigenSystem<Dimension>(strain_tensor, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
+
+    std::vector<Vector> eigen_vectors_container;
+
+    Vector auxiliar_vector = ZeroVector(Dimension);
+    for (IndexType i = 0; i < Dimension; ++i) {
+		auxiliar_vector[0] = eigen_vectors_matrix(0, i);
+		auxiliar_vector[1] = eigen_vectors_matrix(1, i);
+        eigen_vectors_container.push_back(auxiliar_vector);
+    }
+
+    if (rProjectionOperator.size1() != Dimension ||
+        rProjectionOperator.size2() != Dimension) {
+        rProjectionOperator = ZeroMatrix(Dimension, Dimension);
+    }
+    
+    Vector sigma_tension_vector;
+	Matrix sigma_tension_tensor;
+    for (IndexType i = 0; i < Dimension; ++i) {
+        if (eigen_values_matrix(i, i) > 0.0) {
+            sigma_tension_tensor = outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
+            sigma_tension_vector = MathUtils<double>::StressTensorToVector(sigma_tension_tensor);
+            rProjectionOperator += outer_prod(sigma_tension_vector, sigma_tension_vector);
+        }
+    }
+   
+    double h_i = 0.0, h_j = 0.0;
+    Matrix cross_p_ij_tensor;
+    Vector cross_p_ij_vector;
+
+    if (eigen_values_matrix(0, 0) > 0)
+        h_i = 1.0;
+    if (eigen_values_matrix(1, 1) > 0)
+        h_j = 1.0;
+
+    cross_p_ij_tensor = 0.5 * (outer_prod(eigen_vectors_container[0], eigen_vectors_container[1]) +
+                               outer_prod(eigen_vectors_container[1], eigen_vectors_container[0]));
+    cross_p_ij_vector = MathUtils<double>::StressTensorToVector(cross_p_ij_tensor);
+
+    rProjectionOperator += (h_i + h_j) * (outer_prod(cross_p_ij_vector, cross_p_ij_vector));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ConstitutiveLawUtilities<6>::SpectralDecomposition(
+    const Vector& rStressVector,
+    Vector& rStressVectorTension,
+    Vector& rStressVectorCompression
+    )
+{
+    rStressVectorTension     = ZeroVector(6);
+    rStressVectorCompression = ZeroVector(6);
+
+    BoundedMatrix<double, Dimension, Dimension> stress_tensor;
+    stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
+    BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
+    BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
+
+    MathUtils<double>::EigenSystem<Dimension>(stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
+
+    std::vector<Vector> eigen_vectors_container;
+    Vector auxiliar_vector = ZeroVector(Dimension);
+    for (IndexType i = 0; i < Dimension; ++i) {
+		auxiliar_vector[0] = eigen_vectors_matrix(0, i);
+		auxiliar_vector[1] = eigen_vectors_matrix(1, i);
+		auxiliar_vector[2] = eigen_vectors_matrix(2, i);
+        eigen_vectors_container.push_back(auxiliar_vector);
+    }
+
+    Vector sigma_tension_vector;
+	Matrix sigma_tension_tensor;
+    for (IndexType i = 0; i < Dimension; ++i) {
+        if (eigen_values_matrix(i, i) > 0.0) {
+            sigma_tension_tensor = eigen_values_matrix(i, i) * outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
+            rStressVectorTension += MathUtils<double>::StressTensorToVector(sigma_tension_tensor);
+        }
+    }
+    rStressVectorCompression = rStressVector - rStressVectorTension;
+}
+
+template<>
+void ConstitutiveLawUtilities<3>::SpectralDecomposition(
+    const Vector& rStressVector,
+    Vector& rStressVectorTension,
+    Vector& rStressVectorCompression
+    )
+{
+    rStressVectorTension     = ZeroVector(3);
+    rStressVectorCompression = ZeroVector(3);
+
+    BoundedMatrix<double, Dimension, Dimension> stress_tensor;
+    stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
+    BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
+    BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
+
+    MathUtils<double>::EigenSystem<Dimension>(stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
+
+    std::vector<Vector> eigen_vectors_container;
+    Vector auxiliar_vector = ZeroVector(Dimension);
+    for (IndexType i = 0; i < Dimension; ++i) {
+		auxiliar_vector[0] = eigen_vectors_matrix(0, i);
+		auxiliar_vector[1] = eigen_vectors_matrix(1, i);
+        eigen_vectors_container.push_back(auxiliar_vector);
+    }
+
+    Vector sigma_tension_vector;
+	Matrix sigma_tension_tensor;
+    for (IndexType i = 0; i < Dimension; ++i) {
+        if (eigen_values_matrix(i, i) > 0.0) {
+            sigma_tension_tensor = eigen_values_matrix(i, i) * outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
+            rStressVectorTension += MathUtils<double>::StressTensorToVector(sigma_tension_tensor);
+        }
+    }
+    rStressVectorCompression = rStressVector - rStressVectorTension;
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class ConstitutiveLawUtilities<3>; 
 template class ConstitutiveLawUtilities<6>;
 
