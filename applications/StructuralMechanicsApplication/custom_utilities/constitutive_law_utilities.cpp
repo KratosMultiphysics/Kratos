@@ -684,7 +684,41 @@ void ConstitutiveLawUtilities<6>::SpectralDecomposition(
     rStressVectorCompression = rStressVector - rStressVectorTension;
 }
 
+template<>
+void ConstitutiveLawUtilities<3>::SpectralDecomposition(
+    const Vector& rStressVector,
+    Vector& rStressVectorTension,
+    Vector& rStressVectorCompression
+    )
+{
+    rStressVectorTension     = ZeroVector(3);
+    rStressVectorCompression = ZeroVector(3);
 
+    BoundedMatrix<double, Dimension, Dimension> stress_tensor;
+    stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
+    BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
+    BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
+
+    MathUtils<double>::EigenSystem<Dimension>(stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
+
+    std::vector<Vector> eigen_vectors_container;
+    Vector auxiliar_vector = ZeroVector(Dimension);
+    for (IndexType i = 0; i < Dimension; ++i) {
+		auxiliar_vector[0] = eigen_vectors_matrix(0, i);
+		auxiliar_vector[1] = eigen_vectors_matrix(1, i);
+        eigen_vectors_container.push_back(auxiliar_vector);
+    }
+
+    Vector sigma_tension_vector;
+	Matrix sigma_tension_tensor;
+    for (IndexType i = 0; i < Dimension; ++i) {
+        if (eigen_values_matrix(i, i) > 0.0) {
+            sigma_tension_tensor = eigen_values_matrix(i, i) * outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
+            rStressVectorTension += MathUtils<double>::StressTensorToVector(sigma_tension_tensor);
+        }
+    }
+    rStressVectorCompression = rStressVector - rStressVectorTension;
+}
 /***********************************************************************************/
 /***********************************************************************************/
 
