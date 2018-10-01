@@ -10,7 +10,7 @@
 #if !defined(PROCESS_INFO_EXTENSIONS_H_INCLUDED)
 #define PROCESS_INFO_EXTENSIONS_H_INCLUDED
 
-
+#if !defined(DECLARE_HAS_THIS_TYPE_PROCESS_INFO)
 #define DECLARE_HAS_THIS_TYPE_PROCESS_INFO                              \
   template<class TVariable>                                             \
   static bool HasProcessInfo(TVariable const& rV, ProcessInfo::Pointer& p) \
@@ -23,9 +23,9 @@
 
 #define DECLARE_HAS_THIS_TYPE_PROCESS_INFO_PYTHON_AS_POINTER(TClassName) \
   .def_static("HasProcessInfo", &TClassName::HasProcessInfo< Variable< TClassName::Pointer > >)
+#endif
 
-
-
+#if !defined(DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO)
 #define DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO                           \
   template<class TVariable>                                             \
   static void AddToProcessInfo(TVariable const& rV, typename TVariable::Type const& rValue, ProcessInfo::Pointer& p) \
@@ -38,9 +38,9 @@
 
 #define DECLARE_ADD_THIS_TYPE_TO_PROCESS_INFO_PYTHON_AS_POINTER(TClassName) \
   .def_static("AddToProcessInfo", &TClassName::AddToProcessInfo< Variable< TClassName::Pointer > >)
+#endif
 
-
-
+#if !defined(DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO)
 #define DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO                         \
   template<class TVariable>                                             \
   static typename TVariable::Type GetFromProcessInfo(TVariable const& rV, ProcessInfo::Pointer& p) \
@@ -53,6 +53,6 @@
 
 #define DECLARE_GET_THIS_TYPE_FROM_PROCESS_INFO_PYTHON_AS_POINTER(TClassName) \
   .def_static("GetFromProcessInfo", &TClassName::GetFromProcessInfo< Variable< TClassName::Pointer > >)
-
+#endif
 
 #endif // PROCESS_INFO_EXTENSIONS_H_INCLUDED defined

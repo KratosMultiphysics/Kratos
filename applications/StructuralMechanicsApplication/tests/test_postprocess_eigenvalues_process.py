@@ -51,13 +51,15 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
 
     def test_PostprocessEigenvaluesProcess(self):
         test_model = KratosMultiphysics.Model()
-        model_part = KratosMultiphysics.ModelPart("computing_domain")
+        model_part = KratosMultiphysics.ModelPart("Structure")
+        comp_model_part = model_part.CreateSubModelPart("computing_domain")
+        test_model.AddModelPart(model_part) # TODO this will become model.CreateModelPart() or sth similar
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
 
-        CreateNodes(model_part)
+        CreateNodes(comp_model_part)
 
         # adding dofs is needed for the process internally
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
@@ -67,7 +69,6 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,model_part)
 
-        test_model.AddModelPart(model_part)
 
         # set EigenValues and -Vectors
         num_eigenvalues = 4

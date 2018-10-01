@@ -149,7 +149,7 @@ namespace Kratos
     const double& rDeltaTime                   = rValues.GetProcessInfo()[DELTA_TIME];
 
     // Skewsymmetric spatial velocity gradient
-    MatrixType W = 0.5 * rDeltaTime * (rSpatialVelocityGradient - trans(rSpatialVelocityGradient));
+    Matrix W = 0.5 * rDeltaTime * (rSpatialVelocityGradient - trans(rSpatialVelocityGradient));
 
     // Exponential map using quaternions
     Quaternion<double> QuaternionValue = Quaternion<double>::FromRotationMatrix( W );
