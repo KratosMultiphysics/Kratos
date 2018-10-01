@@ -59,7 +59,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "rectangular_plate_structure.PointLoad3D_NODES",
             "variable_name"   : "POINT_LOAD",
-            "modulus"         : 1.0,
+            "modulus"         : 10.0,
             "direction"       : [0.0,0.0,1],
             "interval"        : [0.0,"End"]
         }

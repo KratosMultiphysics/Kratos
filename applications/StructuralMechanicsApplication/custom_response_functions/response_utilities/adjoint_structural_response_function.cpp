@@ -25,26 +25,26 @@ namespace Kratos
 
     /// Constructor.
     AdjointStructuralResponseFunction::AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
-      : mrModelPart(rModelPart)
+      : mrModelPart(rModelPart), mResponseSettings(ResponseSettings)
     {
         KRATOS_TRY;
 
-        mResponseSettings = ResponseSettings;
+        Parameters gradient_settings = mResponseSettings["gradient_settings"];
 
-        mSensitivityModelPartName = mResponseSettings["sensitivity_model_part_name"].GetString();
+        mSensitivityModelPartName = gradient_settings["sensitivity_model_part_name"].GetString();
 
-        this->ReadDesignVariables(mNodalSensitivityScalarVariables, mNodalSensitivityVectorVariables, mResponseSettings["nodal_sensitivity_variables"]);
-        this->ReadDesignVariables(mElementSensitivityScalarVariables, mElementSensitivityVectorVariables, mResponseSettings["element_sensitivity_variables"]);
-        this->ReadDesignVariables(mConditionSensitivityScalarVariables, mConditionSensitivityVectorVariables, mResponseSettings["condition_sensitivity_variables"]);
+        this->ReadDesignVariables(mNodalSensitivityScalarVariables, mNodalSensitivityVectorVariables, gradient_settings["nodal_sensitivity_variables"]);
+        this->ReadDesignVariables(mElementSensitivityScalarVariables, mElementSensitivityVectorVariables, gradient_settings["element_sensitivity_variables"]);
+        this->ReadDesignVariables(mConditionSensitivityScalarVariables, mConditionSensitivityVectorVariables, gradient_settings["condition_sensitivity_variables"]);
 
         // Set gradient mode
-        const std::string& gradient_mode = mResponseSettings["gradient_mode"].GetString();
+        const std::string& gradient_mode = gradient_settings["gradient_mode"].GetString();
 
         // Mode 1: semi-analytic sensitivities
         if (gradient_mode == "semi_analytic")
         {
             mGradientMode = 1;
-            double delta = mResponseSettings["step_size"].GetDouble();
+            double delta = gradient_settings["step_size"].GetDouble();
             mDelta = delta;
         }
         else

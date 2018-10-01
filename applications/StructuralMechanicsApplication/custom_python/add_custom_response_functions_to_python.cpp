@@ -30,6 +30,9 @@
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
 
+#include "custom_response_functions/response_utilities/linear_strain_energy_response_function.h"
+#include "custom_response_functions/response_utilities/local_stress_response_function.h"
+#include "custom_response_functions/response_utilities/nodal_displacement_response_function.h"
 
 namespace Kratos
 {
@@ -89,6 +92,24 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     class_<AdjointLinearStrainEnergyResponseFunction, AdjointLinearStrainEnergyResponseFunction::Pointer, AdjointStructuralResponseFunction>
       (m, "AdjointLinearStrainEnergyResponseFunction")
       .def(init<ModelPart&, Parameters>());
+
+    class_<LinearStrainEnergyResponseFunction, LinearStrainEnergyResponseFunction::Pointer>
+      (m, "LinearStrainEnergyResponseFunction")
+      .def(init<ModelPart&, Parameters>())
+      .def("CalculateValue", &LinearStrainEnergyResponseFunction::CalculateValue)
+      ;
+
+    class_<NodalDisplacementResponseFunction, NodalDisplacementResponseFunction::Pointer>
+      (m, "NodalDisplacementResponseFunction")
+      .def(init<ModelPart&, Parameters>())
+      .def("CalculateValue", &NodalDisplacementResponseFunction::CalculateValue)
+      ;
+
+    class_<LocalStressResponseFunction, LocalStressResponseFunction::Pointer>
+      (m, "LocalStressResponseFunction")
+      .def(init<ModelPart&, Parameters>())
+      .def("CalculateValue", &LocalStressResponseFunction::CalculateValue)
+      ;
 
 }
 

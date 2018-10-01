@@ -11,17 +11,19 @@
     },
     "kratos_response_settings":{
         "response_type"    : "adjoint_local_stress",
-        "gradient_mode"     : "semi_analytic",
-        "sensitivity_model_part_name" :"Parts_AREAS",
-        "nodal_sensitivity_variables"  : ["SHAPE"],
-        "element_sensitivity_variables"  : [],
-        "condition_sensitivity_variables"  : [],
-        "step_size"         : 1.0e-5,
+        "primal_settings"  : "rectangular_plate_parameters.json",
         "traced_element_id"    : 2,
         "stress_type"       : "MXX",
         "stress_treatment"  : "mean",
         "stress_location"   : 1,
-        "primal_settings"  : "rectangular_plate_parameters.json",
-        "adjoint_settings"  : "rectangular_plate_adjoint_parameters.json"
+        "gradient_settings" : {
+            "gradient_mode"     : "semi_analytic",
+            "sensitivity_model_part_name" :"Parts_AREAS",
+            "adjoint_settings"  : "rectangular_plate_adjoint_parameters.json",
+            "nodal_sensitivity_variables"  : ["SHAPE"],
+            "element_sensitivity_variables"  : [],
+            "condition_sensitivity_variables"  : [],
+            "step_size"         : 1.0e-5
+        }
     }
 }

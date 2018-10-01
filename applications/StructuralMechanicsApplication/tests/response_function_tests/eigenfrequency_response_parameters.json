@@ -12,11 +12,16 @@
     "kratos_response_settings":{
         "response_type"          : "eigenfrequency",
         "primal_settings"        : "eigenfrequency_primal_parameters.json",
-        "gradient_mode"          : "semi_analytic",
-        "step_size"              : 1e-8,
         "traced_eigenfrequencies"  : [1],
-        "weighting_method"       : "linear_scaling",
         "weighting_factors"      : [1.0],
-        "consider_discretization": true
+        "weighting_method"       : "linear_scaling",
+        "gradient_settings"      : {
+            "gradient_mode"          : "semi_analytic",
+            "nodal_sensitivity_variables"     : ["SHAPE"],
+            "element_sensitivity_variables"   : [],
+            "condition_sensitivity_variables" : [],
+            "step_size"              : 1e-8,
+            "consider_discretization": true
+        }
     }
 }

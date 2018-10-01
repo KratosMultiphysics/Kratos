@@ -1,22 +1,14 @@
 {
     "kratos_response_settings":{
-        "response_type"          : "global_finite_differencing",
-        "sensitivity_model_part_name" :"Parts_AREAS",
-        "nodal_sensitivity_variables"  : ["SHAPE"],
-        "element_sensitivity_variables"  : [],
-        "condition_sensitivity_variables"  : [],
-        "step_size"         : 1.0e-6,
-        "model_import_settings"    : {
-            "input_type"       : "mdpa",
-            "input_filename"   : "rectangular_plate_structure",
-            "input_file_label" : 0
-        },
-        "sub_response_settings" :{
-            "response_type"          : "strain_energy",
-            "primal_settings"        : "rectangular_plate_parameters_without_hdf5.json",
-            "gradient_mode"          : "semi_analytic",
-            "step_size"              : 1e-6,
-            "consider_discretization": false
+        "response_type"    : "adjoint_linear_strain_energy",
+        "primal_settings"  : "rectangular_plate_parameters_without_hdf5.json",
+        "gradient_settings" : {
+            "gradient_mode"     : "finite_differencing",
+            "sensitivity_model_part_name" :"Parts_AREAS",
+            "nodal_sensitivity_variables"  : ["SHAPE"],
+            "element_sensitivity_variables"  : [],
+            "condition_sensitivity_variables"  : [],
+            "step_size"         : 1.0e-6
         }
     }
 }

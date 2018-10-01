@@ -19,8 +19,13 @@
             "input_filename"   : "rectangular_plate_structure",
             "input_file_label" : 0
         },
-        "gradient_mode"          : "finite_differencing",
-        "step_size"              : 1e-5,
-        "consider_discretization": false
+        "gradient_settings" : {
+            "gradient_mode"          : "finite_differencing",
+            "nodal_sensitivity_variables"     : ["SHAPE"],
+            "element_sensitivity_variables"   : [],
+            "condition_sensitivity_variables" : [],
+            "step_size"              : 1e-5,
+            "consider_discretization": false
+        }
     }
 }

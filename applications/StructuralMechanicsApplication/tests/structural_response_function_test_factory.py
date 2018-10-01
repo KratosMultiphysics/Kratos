@@ -145,12 +145,11 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
 
     def test_execution(self):
         self._calculate_response_and_gradient()
-        self.assertAlmostEqual(self.value, 0.00606275111915477)
+        self.assertAlmostEqual(self.value, 0.6062751119154768)
 
-        nodeId = 4
-        self.assertAlmostEqual(self.gradient[nodeId][0], -0.011324859625486555, 9)
-        self.assertAlmostEqual(self.gradient[nodeId][1],  0.0017745756664132117, 9)
-        self.assertAlmostEqual(self.gradient[nodeId][2], -1.5466215093998671e-07, 9)
+        self.assertAlmostEqual(self.gradient[4][0], -1.132485962510845)
+        self.assertAlmostEqual(self.gradient[4][1], 0.17745756668175833)
+        self.assertAlmostEqual(self.gradient[4][2], -1.5466170818541692e-05)
 
 @KratosUnittest.skipUnless(has_eigensolvers_application,"Missing required application: EigenSolversApplication")
 class TestEigenfrequencyResponseFunction(StructuralResponseFunctionTestFactory):
@@ -170,12 +169,12 @@ class TestFDStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
 
     def test_execution(self):
         self._calculate_response_and_gradient()
-        self.assertAlmostEqual(self.value, 0.00606275111915477)
+        self.assertAlmostEqual(self.value, 0.6062751119154768)
 
         nodeId = 4
-        self.assertAlmostEqual(self.gradient[nodeId][0], -0.011324859625486555, 5)
-        self.assertAlmostEqual(self.gradient[nodeId][1],  0.0017745756664132117, 5)
-        self.assertAlmostEqual(self.gradient[nodeId][2], -1.5466215093998671e-07, 5)
+        self.assertAlmostEqual(self.gradient[nodeId][0], -1.132481240673222)
+        self.assertAlmostEqual(self.gradient[nodeId][1],  0.1774584938996071)
+        self.assertAlmostEqual(self.gradient[nodeId][2], -7.99504906723314e-06)
 
 class TestFDStressResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "FD_stress_response"
