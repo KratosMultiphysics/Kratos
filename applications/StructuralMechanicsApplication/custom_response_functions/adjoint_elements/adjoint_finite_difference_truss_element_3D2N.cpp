@@ -28,51 +28,6 @@ AdjointFiniteDifferenceTrussElement::~AdjointFiniteDifferenceTrussElement()
 {
 }
 
-void AdjointFiniteDifferenceTrussElement::Calculate(const Variable<Vector >& rVariable,
-                        Vector& rOutput,
-                        const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    if(rVariable == STRESS_ON_GP)
-    {
-        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
-
-        const SizeType  GP_num = (mpPrimalElement->GetGeometry().IntegrationPoints()).size();
-        if (rOutput.size() != GP_num)
-            rOutput.resize(GP_num, false);
-
-        switch (traced_stress_type)
-        {
-            case TracedStressType::FX:
-            {
-                std::vector< array_1d<double, 3 > > force_vector;
-                mpPrimalElement->GetValueOnIntegrationPoints(FORCE, force_vector, rCurrentProcessInfo);
-                for(IndexType i = 0; i < GP_num ; ++i)
-                    rOutput(i) = force_vector[i][0];
-                break;
-            }
-            case TracedStressType::PK2:
-            {
-                std::vector<Vector> stress_vector;
-                mpPrimalElement->GetValueOnIntegrationPoints(PK2_STRESS_VECTOR, stress_vector, rCurrentProcessInfo);
-                for(IndexType i = 0; i < GP_num ; ++i)
-                    rOutput(i) = stress_vector[i][0];
-                break;
-            }
-            default:
-                KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;
-        }
-    }
-    else
-    {
-        rOutput.resize(1);
-        rOutput.clear();
-    }
-
-    KRATOS_CATCH("")
-}
-
 void AdjointFiniteDifferenceTrussElement::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -176,18 +131,6 @@ void AdjointFiniteDifferenceTrussElement::CheckProperties(const ProcessInfo& rCu
     KRATOS_ERROR_IF(cl == nullptr)
     << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
     cl->Check(r_properties ,this->GetGeometry(),rCurrentProcessInfo);
-}
-
-double AdjointFiniteDifferenceTrussElement::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
-{
-    KRATOS_TRY;
-
-    if(rDesignVariable == SHAPE)
-        return this->CalculateReferenceLength();
-    else
-        return 1.0;
-
-    KRATOS_CATCH("")
 }
 
 double AdjointFiniteDifferenceTrussElement::CalculateReferenceLength()

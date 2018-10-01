@@ -1,10 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:            Duan Wenjie $
-//   Date:                $Date:                March 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Duan Wenjie
 //
+
 
 // System includes
 #include <string>
@@ -102,7 +107,7 @@ bool BinghamViscoplasticFlowRule::CalculateConsistencyCondition( RadialReturnVar
 
     double Hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(Hardening,NewHardeningParameters);
     //double StateFunction = (Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)*pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-sqrt(2.0/3.0) * Hardening;
-    double StateFunction = Qtrial-sqrt(2.0/3.0) * Hardening;
+    double StateFunction = Qtrial-std::sqrt(2.0/3.0) * Hardening;
 
 //    std::cout << "Qtrail:" << Qtrail << std::endl;
 //    std::cout << "OldTrialStateFunction:" << rReturnMappingVariables.TrialStateFunction << std::endl;
@@ -111,7 +116,7 @@ bool BinghamViscoplasticFlowRule::CalculateConsistencyCondition( RadialReturnVar
 //    std::cout << "StateFunction:" << StateFunction << std::endl;
 //    std::cin.get();
 
-    while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
+    while ( std::abs(StateFunction)>=Tolerance && iter<=MaxIterations)
     {
         //Calculate Delta State Function:
         //DeltaStateFunction = mpYieldCriterion->CalculateDeltaStateFunction( DeltaStateFunction, rCriterionParameters );
@@ -123,14 +128,14 @@ bool BinghamViscoplasticFlowRule::CalculateConsistencyCondition( RadialReturnVar
         rReturnMappingVariables.DeltaGamma += DeltaDeltaGamma;
 
         //Update Equivalent Plastic Strain:
-        rPlasticVariables.DeltaPlasticStrain       = sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
+        rPlasticVariables.DeltaPlasticStrain       = std::sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
         rPlasticVariables.EquivalentPlasticStrain  = rPlasticVariables.EquivalentPlasticStrainOld + rPlasticVariables.DeltaPlasticStrain;
 
         //Calculate State Function:
         NewHardeningParameters.SetEquivalentPlasticStrain(rPlasticVariables.EquivalentPlasticStrain);
         NewHardeningParameters.SetDeltaGamma(rReturnMappingVariables.DeltaGamma);
         Hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(Hardening,NewHardeningParameters);
-        StateFunction = Qtrial-2.0*G*rReturnMappingVariables.DeltaGamma-sqrt(2.0/3.0) * Hardening-eta/dt*rReturnMappingVariables.DeltaGamma;
+        StateFunction = Qtrial-2.0*G*rReturnMappingVariables.DeltaGamma-std::sqrt(2.0/3.0) * Hardening-eta/dt*rReturnMappingVariables.DeltaGamma;
 
         iter++;
 //        std::cout << "Iter:" << iter << std::endl;
@@ -168,7 +173,7 @@ void BinghamViscoplasticFlowRule::CalculateScalingFactors(const RadialReturnVari
 
 
     //3.-Auxiliar constants
-    double EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrain + sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
+    double EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrain + std::sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
     double DeltaHardening = 0;
 
     double eta = GetProperties().GetValue(VISCOSITY);

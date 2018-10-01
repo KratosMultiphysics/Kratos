@@ -14,7 +14,9 @@
 #define KRATOS_SPR_ERROR_PROCESS
 
 // System includes
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 // External includes
 
@@ -243,6 +245,12 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method performs a neighnour search
+     * @param rModelPart The model part where to search
+     */
+    static inline void FindNodalNeighbours(ModelPart& rModelPart);
 
     ///@}
     ///@name Private  Access

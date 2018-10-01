@@ -11,17 +11,17 @@
 // System includes
 
 // External includes
- 
+
 // Project includes
 #include "custom_elements/two_step_updated_lagrangian_V_P_explicit_solid_element.h"
-#include "includes/cfd_variables.h" 
+#include "includes/cfd_variables.h"
 
 namespace Kratos {
 
   /*
    * public TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim> functions
    */
-  
+
   template< unsigned int TDim >
   Element::Pointer TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
@@ -81,13 +81,13 @@ namespace Kratos {
     // SizeType integration_points_number = rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_4);
     if ( this->mCurrentTotalCauchyStress.size() != integration_points_number )
       this->mCurrentTotalCauchyStress.resize( integration_points_number );
-    
+
     if ( this->mCurrentDeviatoricCauchyStress.size() != integration_points_number )
       this->mCurrentDeviatoricCauchyStress.resize( integration_points_number );
-    
+
     if ( this->mUpdatedTotalCauchyStress.size() != integration_points_number )
       this->mUpdatedTotalCauchyStress.resize( integration_points_number );
-    
+
     if ( this->mUpdatedDeviatoricCauchyStress.size() != integration_points_number )
       this->mUpdatedDeviatoricCauchyStress.resize( integration_points_number );
 
@@ -157,7 +157,7 @@ namespace Kratos {
     // YoungModulus=100000000;
     // PoissonRatio=0;
 
-    // FirstLame = timeStep*PoissonRatio*YoungModulus/((1.0+PoissonRatio)*(1.0-2.0*PoissonRatio)); 
+    // FirstLame = timeStep*PoissonRatio*YoungModulus/((1.0+PoissonRatio)*(1.0-2.0*PoissonRatio));
     DeviatoricCoeff = timeStep*YoungModulus/(1.0+PoissonRatio)*0.5;
     // BulkModulus = FirstLame + 2.0*SecondLame/3.0;
     VolumetricCoeff = timeStep*PoissonRatio*YoungModulus/((1.0+PoissonRatio)*(1.0-2.0*PoissonRatio)) + 2.0*DeviatoricCoeff/3.0;
@@ -190,8 +190,8 @@ namespace Kratos {
       KRATOS_THROW_ERROR(std::invalid_argument,"BODY_FORCE Key is 0. Check that the application was correctly registered.","");
     if(DENSITY.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check that the application was correctly registered.","");
-    if(VISCOSITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check that the application was correctly registered.","");
+    if(DYNAMIC_VISCOSITY.Key() == 0)
+      KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_VISCOSITY Key is 0. Check that the application was correctly registered.","");
     if(DELTA_TIME.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check that the application was correctly registered.","");
 
@@ -206,8 +206,8 @@ namespace Kratos {
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing BODY_FORCE variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing DENSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(VISCOSITY) == false)
-	  KRATOS_THROW_ERROR(std::invalid_argument,"missing VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+        if(this->GetGeometry()[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false)
+	  KRATOS_THROW_ERROR(std::invalid_argument,"missing DYNAMIC_VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
            this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
            this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
@@ -215,7 +215,7 @@ namespace Kratos {
         if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
       }
-    
+
     // If this is a 2D problem, check that nodes are in XY plane
     if (this->GetGeometry().WorkingSpaceDimension() == 2)
       {
@@ -251,7 +251,7 @@ namespace Kratos {
   // 	  }
 
   // 	  BulkVelMatrix(i,i) +=  Mij*consistent;
-	 
+
   // 	}
   //   }else{
   //     for (SizeType i = 0; i < NumNodes; ++i)
@@ -286,9 +286,9 @@ namespace Kratos {
   //   	  }
 
   //     }
- 
+
   // }
- 
+
 
 
   // template< unsigned int TDim>
@@ -303,7 +303,7 @@ namespace Kratos {
   //   const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
   //   this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
   //   return computeElement;
-  // } 
+  // }
 
 
   template<>
@@ -352,7 +352,7 @@ namespace Kratos {
 
 
 
-  template <  unsigned int TDim> 
+  template <  unsigned int TDim>
   void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>:: InitializeElementalVariables(ElementalVariables & rElementalVariables)
   {
     unsigned int voigtsize  = 3;
@@ -384,11 +384,11 @@ namespace Kratos {
   }
 
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianVPExplicitSolidElement<2>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
   {
     // std::cout<<"CalcElasticPlasticCauchySplitted "<<std::endl;
-  
+
     rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
     rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
@@ -443,7 +443,7 @@ namespace Kratos {
 
   }
 
-  template < > 
+  template < >
   void TwoStepUpdatedLagrangianVPExplicitSolidElement<3>:: CalcElasticPlasticCauchySplitted(ElementalVariables & rElementalVariables, double TimeStep, unsigned int g)
   {
 
@@ -454,7 +454,7 @@ namespace Kratos {
 
     // double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
     // double CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
-  
+
     double DefX=rElementalVariables.SpatialDefRate[0];
     double DefY=rElementalVariables.SpatialDefRate[1];
     double DefZ=rElementalVariables.SpatialDefRate[2];
@@ -515,10 +515,10 @@ namespace Kratos {
 
 
 
-  template < unsigned int TDim > 
+  template < unsigned int TDim >
   void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>:: UpdateCauchyStress(unsigned int g,ProcessInfo &rCurrentProcessInfo)
   {
-   
+
     double theta=this->GetThetaContinuity();
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
@@ -540,7 +540,7 @@ namespace Kratos {
 
   }
 
-  template < unsigned int TDim > 
+  template < unsigned int TDim >
   void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::ComputeBulkMatrixRHS(Matrix& BulkMatrix,
 										  const double Weight)
   {
@@ -557,7 +557,7 @@ namespace Kratos {
     }else{
       std::cout<<"... ComputeBulkMatrixLump TO IMPLEMENT"<<std::endl;
     }
-    
+
     // const SizeType NumNodes = this->GetGeometry().PointsNumber();
     // for (SizeType i = 0; i < NumNodes; ++i)
     //   {
@@ -573,89 +573,6 @@ namespace Kratos {
   }
 
 
-  // template< unsigned int TDim >
-  // void TwoStepUpdatedLagrangianVPExplicitSolidElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-  // {
-  //   GeometryType& rGeom = this->GetGeometry();
-  //   const unsigned int NumNodes = rGeom.PointsNumber();
-
-  //   // Check sizes and initialize
-  //   if( rLeftHandSideMatrix.size1() != NumNodes ) 
-  //     rLeftHandSideMatrix.resize(NumNodes,NumNodes);
-
-  //   rLeftHandSideMatrix = ZeroMatrix(NumNodes,NumNodes);
- 
-  //   if( rRightHandSideVector.size() != NumNodes )
-  //     rRightHandSideVector.resize(NumNodes);
-
-  //   rRightHandSideVector = ZeroVector(NumNodes);
- 
-  //   // MatrixType BulkVelMatrix = ZeroMatrix(NumNodes,NumNodes);
-    
-  //   // Shape functions and integration points
-  //   ShapeFunctionDerivativesArrayType DN_DX;
-  //   Matrix NContainer;
-  //   VectorType GaussWeights;
-  //   this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-  //   const unsigned int NumGauss = GaussWeights.size();
-
-  //   // const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
-  //   double theta=this->GetThetaContinuity();
-
-  //   ElementalVariables rElementalVariables;
-  //   this->InitializeElementalVariables(rElementalVariables);
- 
-  //   // double Density  = mMaterialDensity;
-  //   // double DeviatoricCoeff = mMaterialVolumetricCoefficient;
-  //   double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
-    
-  //   double totalVolume=0;
-
-  //   // Loop on integration points
-  //   for (unsigned int g = 0; g < NumGauss; g++)
-  //     {
-  // 	const double GaussWeight = GaussWeights[g];
-  // 	totalVolume+=GaussWeight;
-  // 	const ShapeFunctionsType& N = row(NContainer,g);
-  // 	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-  // 	// bool computeElement=this->CalcStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-  // 	bool computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
-  // 	if(computeElement==true){
-  // 	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);
-  // 	  // this->ComputeBulkMatrixForPressureVel(BulkVelMatrix,N,BulkCoeff);
-
-  // 	  for (SizeType i = 0; i < NumNodes; ++i)
-  // 	    {
-  // 	      // RHS contribution
-  // 	      // Velocity divergence
-  // 	      double RHSi =  N[i] * rElementalVariables.VolumetricDefRate;
-  // 	      rRightHandSideVector[i] += GaussWeight * RHSi;
-  // 	    }
-
-  // 	}
-
-  //     }   
-    
-  //   MatrixType BulkVelMatrixLump = ZeroMatrix(NumNodes,NumNodes);
-  //   double lumpedBulkCoeff =totalVolume/(VolumetricCoeff);
-  //   this->ComputeBulkMatrixLump(BulkVelMatrixLump,lumpedBulkCoeff);
-  
-  //   rLeftHandSideMatrix+=BulkVelMatrixLump;
-  //   // rLeftHandSideMatrix+=BulkVelMatrix;	
-
-  //   VectorType UpdatedPressure = ZeroVector(NumNodes);
-  //   VectorType CurrentPressure = ZeroVector(NumNodes);;
-
-  //   this->GetPressureValues(UpdatedPressure,0);
-  //   this->GetPressureValues(CurrentPressure,1);
-
-  //   VectorType DeltaPressure = UpdatedPressure-CurrentPressure;
-
-  //   rRightHandSideVector -= prod(BulkVelMatrixLump,DeltaPressure);
-  //   // rRightHandSideVector -= prod(BulkVelMatrix,DeltaPressure);
-
-  // }
-  
 
   template class TwoStepUpdatedLagrangianVPExplicitSolidElement<2>;
   template class TwoStepUpdatedLagrangianVPExplicitSolidElement<3>;

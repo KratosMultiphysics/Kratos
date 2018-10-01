@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Pablo Becker
-//                    
+//
 //
 
 
@@ -267,11 +267,9 @@ public:
         }
 
         //compute exact distance gradients
-        array_1d<double, 3 > exact_distance_gradient;
-        noalias(exact_distance_gradient) = prod(trans(DN_DX), exact_distance);
+        array_1d<double, 3 > exact_distance_gradient = prod(trans(DN_DX), exact_distance);
 
-        array_1d<double, 3 > abs_distance_gradient;
-        noalias(abs_distance_gradient) = prod(trans(DN_DX), abs_distance);
+        array_1d<double, 3 > abs_distance_gradient = prod(trans(DN_DX), abs_distance);
 
         int number_of_splitted_edges = new_node_id - 4; //number of splitted edges
 
@@ -492,7 +490,7 @@ public:
      *        Each element of vector is a 2x3 matrix representing the gradients of enriched shape functions. The row indicates enrichemnt function
      *        and the colum the direction of the gradient
      * @param Nenriched is a Matrix of size 6x2 that contains for every gauss point the values of the enriched shape functions at the position of the gauss point
-     *        so that Nenriched(1,0) contains the value of the enriched shape function "0" at the gauss point "1" 
+     *        so that Nenriched(1,0) contains the value of the enriched shape function "0" at the gauss point "1"
      * @return number of partitions created which can be from 1 to 6.
      *         1 holds for only 1 partition which is the original element. (No partitioning needed)
      */
@@ -913,7 +911,7 @@ public:
     static int CalculateEnrichedShapeFuncions(
         BoundedMatrix<double,3, 2 >& rPoints,
                 BoundedMatrix<double, 3, 2 >& DN_DX,
-                 array_1d<double,3>& rDistances, 
+                 array_1d<double,3>& rDistances,
                  array_1d<double,3>& rVolumes,
                  BoundedMatrix<double, 3, 3 >& rGPShapeFunctionValues,
                  array_1d<double,3>& rPartitionsSign,

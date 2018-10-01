@@ -38,7 +38,7 @@ namespace Kratos
             
             Matrix a_matrix, u_matrix, s_matrix, v_matrix;
             
-            a_matrix.resize(2, 2);
+            a_matrix.resize(2, 2,false);
             a_matrix(0,0) = 0.57690;
             a_matrix(0,1) = 0.28760;
             a_matrix(1,0) = 0.72886;
@@ -72,7 +72,7 @@ namespace Kratos
             
             Matrix a_matrix, u_matrix, s_matrix, v_matrix;
             
-            a_matrix.resize(3, 3);
+            a_matrix.resize(3, 3, false);
             a_matrix(0,0) = 0.57690;
             a_matrix(0,1) = 0.28760;
             a_matrix(0,2) = 0.63942;
@@ -112,7 +112,7 @@ namespace Kratos
             
             Matrix a_matrix, u_matrix, s_matrix, v_matrix;
             
-            a_matrix.resize(3, 3);
+            a_matrix.resize(3, 3, false);
             a_matrix(0,0) = 0.57690;
             a_matrix(0,1) = 0.28760;
             a_matrix(0,2) = 0.63942;

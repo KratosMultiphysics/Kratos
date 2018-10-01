@@ -550,7 +550,7 @@ namespace Kratos
             }
 
             // We check the Right inverse
-            mat.resize(j_dim, i_dim);
+            mat.resize(j_dim, i_dim, false);
             mat = ZeroMatrix(j_dim, i_dim);
 
             mat(0,0) = 0.786075;
@@ -665,6 +665,34 @@ namespace Kratos
 
             KRATOS_CHECK_EQUAL(b, 1.0);
             KRATOS_CHECK_EQUAL(c, 1.0);
+        }
+
+        /** Checks if it calculates the norm of a vector without underflow
+         * Checks if it calculates the norm of a vector without underflow
+         */
+
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsStableNormUnderflowTest, KratosCoreMathUtilsFastSuite)
+        {
+            array_1d<double, 3> a = ZeroVector(3);
+            a[0] = 1e-162;
+
+            const double b = MathUtils<double>::StableNorm(a);
+
+            KRATOS_CHECK_EQUAL(b, 1e-162);
+        }
+
+        /** Checks if it calculates the norm of a vector without overflow
+         * Checks if it calculates the norm of a vector without overflow
+         */
+
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsStableNormOverflowTest, KratosCoreMathUtilsFastSuite)
+        {
+            array_1d<double, 3> a = ZeroVector(3);
+            a[0] = 1e155;
+
+            const double b = MathUtils<double>::StableNorm(a);
+
+            KRATOS_CHECK_EQUAL(b, 1e155);
         }
 
         /** Checks if it calculates the cross product (I)
