@@ -179,6 +179,18 @@ public:
     ///@name Operations
     ///@{
 
+    void AddQuantity(StatisticsSampler::Pointer pAverage) {
+        KRATOS_ERROR_IF(mInitialized) << "Trying to add more statistics quantities after initialization" << std::endl;
+        mAverages.push_back(pAverage);
+    }
+
+    void AddQuantity(HigherOrderStatistic::Pointer pHigherOrderStatistic)  {
+        KRATOS_ERROR_IF(mInitialized) << "Trying to add more statistics quantities after initialization" << std::endl;
+        mHigherOrderStatistics.push_back(pHigherOrderStatistic);
+    }
+
+    void Initialize() {}
+
     void Update(const ValueContainerType& rMeasurement) {}
 
     void Combine(const StatisticsUtilities& rOther) {}
@@ -258,6 +270,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    std::vector<StatisticsSampler::Pointer> mAverages;
+
+    std::vector<HigherOrderStatistic::Pointer> mHigherOrderStatistics;
 
     ///@}
     ///@name Private Operators
