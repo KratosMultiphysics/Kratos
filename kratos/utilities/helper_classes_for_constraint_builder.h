@@ -252,9 +252,6 @@ public:
         //clearing the contents
         mMasterEquationIdVector.clear();
         mMasterWeightsVector.clear();
-        //shrinking the memory
-        mMasterEquationIdVector.shrink_to_fit();
-        mMasterWeightsVector.shrink_to_fit();
     }
 
     /**
