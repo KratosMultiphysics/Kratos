@@ -110,6 +110,7 @@
 #include "custom_constitutive/viscous_generalized_kelvin.h"
 #include "custom_constitutive/viscous_generalized_maxwell.h"
 #include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
+#include "custom_constitutive/generic_small_strain_d_plus_d_minus_damage.h"
 
 // Integrators
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
@@ -495,6 +496,7 @@ private:
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DSimoJuDruckerPrager;
     const GenericSmallStrainIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainIsotropicDamage3DSimoJuTresca;
 
+    const GenericSmallStrainDplusDminusDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainDplusDminusDamage3DSimoJuDruckerPrager;
 
     ///@}
     ///@name Private Operators

@@ -98,7 +98,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
         double& threshold = this->GetThreshold();
         double& damage = this->GetDamage();
 
-        // S0 = C:(E-Ep)
+        // S0 = C:E
         array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
 
         // Initialize Plastic Parameters

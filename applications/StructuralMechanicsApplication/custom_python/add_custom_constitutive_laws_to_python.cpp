@@ -45,6 +45,7 @@
 #include "custom_constitutive/generic_small_strain_viscoplasticity_3d.h"
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
 #include "custom_constitutive/generic_small_strain_isotropic_damage.h"
+#include "custom_constitutive/generic_small_strain_d_plus_d_minus_damage.h"
 
 // Integrators
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
@@ -372,6 +373,11 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     class_< GenericSmallStrainViscoplasticity3D, typename GenericSmallStrainViscoplasticity3D::Pointer,  ConstitutiveLaw  >
     (m,"GenericSmallStrainViscoplasticity3D").def( init<>())
     ;
+
+    class_<  GenericSmallStrainDplusDminusDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename GenericSmallStrainDplusDminusDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainDplusDminusDamage3DSimoJuDruckerPrager").def( init<>());
 }
 
 }  // namespace Python.
