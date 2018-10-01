@@ -278,33 +278,33 @@ public:
     /**
      * @brief This is called in the beginning of each solution step
      */
-    virtual void InitializeSolutionStep()
+    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     /**
      * @brief This is called for non-linear analysis at the beginning of the iteration process
      */
-    virtual void InitializeNonLinearIteration()
+    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     /**
      * @brief This is called for non-linear analysis at the end of the iteration process
      */
-    virtual void FinalizeNonLinearIteration()
+    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     /**
      * @brief This is called at the end of each solution step
      */
-    virtual void FinalizeSolutionStep()
+    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     /**
-     * @brief Determines the constrant's slvae and master list of DOFs
+     * @brief Determines the constrant's slave and master list of DOFs
      * @param rSlaveDofList The list of slave DOFs
      * @param rMasterDofList The list of slave DOFs
      * @param rCurrentProcessInfo The current process info instance
