@@ -133,13 +133,16 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     )
 {
     // We construct the CL parameters
-    //ProcessInfo dummy_process_info;
-    //ConstitutiveLaw::Parameters aux_param(rElementGeometry, rMaterialProperties, dummy_process_info);
+    ProcessInfo dummy_process_info;
+    ConstitutiveLaw::Parameters aux_param(rElementGeometry, rMaterialProperties, dummy_process_info);
 
-    //// We call the integrator
-    //double initial_threshold;
-    //TConstLawIntegratorType::GetInitialUniaxialThreshold(aux_param, initial_threshold);
-    //this->SetThreshold(initial_threshold);
+    // We call the integrators
+    double initial_threshold_tension, initial_threshold_compression;
+    TConstLawIntegratorTensionType::GetInitialUniaxialThreshold(aux_param, initial_threshold_tension);
+    this->SetTensionThreshold(initial_threshold_tension);
+
+    TConstLawIntegratorCompressionType::GetInitialUniaxialThreshold(aux_param, initial_threshold_compression);
+    this->SetCompressionThreshold(initial_threshold_compression);
 }
 
 /***********************************************************************************/
