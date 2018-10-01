@@ -19,13 +19,12 @@ class ContactMesher(mesher.Mesher):
     def __init__(self, main_model_part, meshing_parameters):
 
         mesher.Mesher.__init__(self, main_model_part, meshing_parameters)
-
-        print("::[Contact_Mesher]:: -BUILT-")
+        self.echo_level = 0
 
     #
     def Initialize(self, dimension):
 
-        self.dimension   =  dimension
+        self.dimension = dimension
 
         # set mesh mesher
         if(self.dimension == 2):
@@ -109,16 +108,16 @@ class ContactMesher(mesher.Mesher):
 
         # The order set is the order of execution:
 
-        #print GiD mesh output for checking purposes
-        print_output_mesh = KratosDelaunay.PrintMeshOutput(self.model_part, self.MeshingParameters, "output", self.echo_level)
-        self.mesher.SetPostMeshingProcess(print_output_mesh)
+        #print GiD mesh output for checking purposes (current print)
+        #print_output_mesh = KratosDelaunay.PrintMeshOutput(self.model_part, self.MeshingParameters, "output", self.echo_level)
+        #self.mesher.SetPostMeshingProcess(print_output_mesh)
 
         #select mesh elements
         select_mesh_elements  = KratosDelaunay.SelectElements(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
 
         # build contact conditions
-        build_contact_conditions= KratosContact.GenerateNewContactConditions(self.model_part, self.MeshingParameters, self.echo_level)
+        build_contact_conditions= KratosContact.BuildContactConditions(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(build_contact_conditions)
 
     #
@@ -130,3 +129,9 @@ class ContactMesher(mesher.Mesher):
         self.MeshingParameters.SetExecutionOptions(execution_options)
 
         self.MeshingParameters.FinalizeMeshing()
+
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[---Contact Mesher--]::"
+        return header

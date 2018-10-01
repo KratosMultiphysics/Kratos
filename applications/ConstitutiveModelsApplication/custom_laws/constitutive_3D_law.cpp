@@ -795,7 +795,11 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    rTemperature = this->CalculateDomainVariable(rValues,TEMPERATURE,rTemperature);
+    const Properties& rProperties = rValues.GetMaterialProperties();
+    if( rProperties.Has(TEMPERATURE_VARIABLE) )
+      rTemperature = this->CalculateDomainVariable(rValues,KratosComponents<Variable<double> >::Get(rProperties[TEMPERATURE_VARIABLE]),rTemperature);
+    else
+      rTemperature = this->CalculateDomainVariable(rValues,TEMPERATURE,rTemperature);
 
     return rTemperature;
 
@@ -810,7 +814,11 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    rPressure = this->CalculateDomainVariable(rValues,PRESSURE,rPressure);
+    const Properties& rProperties = rValues.GetMaterialProperties();
+    if( rProperties.Has(PRESSURE_VARIABLE) )
+      rPressure = this->CalculateDomainVariable(rValues,KratosComponents<Variable<double> >::Get(rProperties[PRESSURE_VARIABLE]),rPressure);
+    else
+      rPressure = this->CalculateDomainVariable(rValues,PRESSURE,rPressure);
 
     return rPressure;
 
