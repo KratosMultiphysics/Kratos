@@ -23,6 +23,7 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "structural_mechanics_application_variables.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {

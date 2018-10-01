@@ -81,42 +81,42 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        #ifdef _OPENMP
-            KRATOS_ERROR_IF(omp_get_thread_num() > 0) <<
-                "ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative " <<
-                "is not thread safe for shape derivatives!" << omp_get_thread_num();
-        #endif
-
         if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
         {
-           const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
+            KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
+                << "This function is not thread safe for shape derivatives!" << std::endl;
 
-            // define working variables
-            Vector RHS_unperturbed;
-            Vector RHS_perturbed;
+            #pragma omp critical
+			{
+                const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
-            // compute RHS before perturbion
-            rElement.CalculateRightHandSide(RHS_unperturbed, rCurrentProcessInfo);
+                // define working variables
+                Vector RHS_unperturbed;
+                Vector RHS_perturbed;
 
-            if ( rOutput.size() != RHS_unperturbed.size() )
-                rOutput.resize(RHS_unperturbed.size(), false);
+                // compute RHS before perturbion
+                rElement.CalculateRightHandSide(RHS_unperturbed, rCurrentProcessInfo);
 
-            // perturb the design variable
-            rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
-            rNode.Coordinates()[coord_dir] += rPertubationSize;
+                if ( rOutput.size() != RHS_unperturbed.size() )
+                    rOutput.resize(RHS_unperturbed.size(), false);
 
-            // compute LHS after perturbation
-            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+                // perturb the design variable
+                rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
+                rNode.Coordinates()[coord_dir] += rPertubationSize;
 
-            //compute derivative of RHS w.r.t. design variable with finite differences
-            noalias(rOutput) = (RHS_perturbed - RHS_unperturbed) / rPertubationSize;
+                // compute LHS after perturbation
+                rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
 
-             // unperturb the design variable
-            rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
-            rNode.Coordinates()[coord_dir] -= rPertubationSize;
+                //compute derivative of RHS w.r.t. design variable with finite differences
+                noalias(rOutput) = (RHS_perturbed - RHS_unperturbed) / rPertubationSize;
 
-            //call one last time to make sure everything is as it was before TODO improve this..
-            rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+                 // unperturb the design variable
+                rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
+                rNode.Coordinates()[coord_dir] -= rPertubationSize;
+
+                //call one last time to make sure everything is as it was before TODO improve this..
+                rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+            }
         }
         else
         {
@@ -137,43 +137,43 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        #ifdef _OPENMP
-            KRATOS_ERROR_IF(omp_get_thread_num() > 0) <<
-                "ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative " <<
-                "is not thread safe for shape derivatives!" << omp_get_thread_num();
-        #endif
-
         if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
         {
-            const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
+            KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
+                << "This function is not thread safe for shape derivatives!" << std::endl;
 
-            // define working variables
-            Matrix LHS_unperturbed;
-            Matrix LHS_perturbed;
-            Vector dummy;
+            #pragma omp critical
+			{
+                const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
-            // compute LHS before perturbion
-            rElement.CalculateLocalSystem(LHS_unperturbed, dummy, rCurrentProcessInfo);
+                // define working variables
+                Matrix LHS_unperturbed;
+                Matrix LHS_perturbed;
+                Vector dummy;
 
-            if ( (rOutput.size1() != LHS_unperturbed.size1()) || (rOutput.size2() != LHS_unperturbed.size2() ) )
-                rOutput.resize(LHS_unperturbed.size1(), LHS_unperturbed.size2());
+                // compute LHS before perturbion
+                rElement.CalculateLocalSystem(LHS_unperturbed, dummy, rCurrentProcessInfo);
 
-            // perturb the design variable
-            rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
-            rNode.Coordinates()[coord_dir] += rPertubationSize;
+                if ( (rOutput.size1() != LHS_unperturbed.size1()) || (rOutput.size2() != LHS_unperturbed.size2() ) )
+                    rOutput.resize(LHS_unperturbed.size1(), LHS_unperturbed.size2());
 
-            // compute LHS after perturbation
-            rElement.CalculateLocalSystem(LHS_perturbed, dummy, rCurrentProcessInfo);
+                // perturb the design variable
+                rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
+                rNode.Coordinates()[coord_dir] += rPertubationSize;
 
-            //compute derivative of RHS w.r.t. design variable with finite differences
-            noalias(rOutput) = (LHS_perturbed - LHS_unperturbed) / rPertubationSize;
+                // compute LHS after perturbation
+                rElement.CalculateLocalSystem(LHS_perturbed, dummy, rCurrentProcessInfo);
 
-             // unperturb the design variable
-            rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
-            rNode.Coordinates()[coord_dir] -= rPertubationSize;
+                //compute derivative of RHS w.r.t. design variable with finite differences
+                noalias(rOutput) = (LHS_perturbed - LHS_unperturbed) / rPertubationSize;
 
-            //call one last time to make sure everything is as it was before TODO improve this..
-            rElement.CalculateLocalSystem(LHS_perturbed, dummy, rCurrentProcessInfo);
+                 // unperturb the design variable
+                rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
+                rNode.Coordinates()[coord_dir] -= rPertubationSize;
+
+                //call one last time to make sure everything is as it was before TODO improve this..
+                rElement.CalculateLocalSystem(LHS_perturbed, dummy, rCurrentProcessInfo);
+            }
         }
         else
         {
@@ -194,42 +194,42 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        #ifdef _OPENMP
-            KRATOS_ERROR_IF(omp_get_thread_num() > 0) <<
-                "ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative " <<
-                "is not thread safe for shape derivatives!" << omp_get_thread_num();
-        #endif
-
         if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
         {
-            const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
+            KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
+                << "This function is not thread safe for shape derivatives!" << std::endl;
 
-            // define working variables
-            Matrix unperturbed_mass_matrix;
-            Matrix perturbed_mass_matrix;
+            #pragma omp critical
+			{
+                const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
-            // compute mass matrix before perturbion
-            rElement.CalculateMassMatrix(unperturbed_mass_matrix, rCurrentProcessInfo);
+                // define working variables
+                Matrix unperturbed_mass_matrix;
+                Matrix perturbed_mass_matrix;
 
-            if ( (rOutput.size1() != unperturbed_mass_matrix.size1()) || (rOutput.size2() != unperturbed_mass_matrix.size2() ) )
-                rOutput.resize(unperturbed_mass_matrix.size1(), unperturbed_mass_matrix.size2());
+                // compute mass matrix before perturbion
+                rElement.CalculateMassMatrix(unperturbed_mass_matrix, rCurrentProcessInfo);
 
-            // perturb the design variable
-            rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
-            rNode.Coordinates()[coord_dir] += rPertubationSize;
+                if ( (rOutput.size1() != unperturbed_mass_matrix.size1()) || (rOutput.size2() != unperturbed_mass_matrix.size2() ) )
+                    rOutput.resize(unperturbed_mass_matrix.size1(), unperturbed_mass_matrix.size2());
 
-            // compute LHS after perturbation
-            rElement.CalculateMassMatrix(perturbed_mass_matrix, rCurrentProcessInfo);
+                // perturb the design variable
+                rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
+                rNode.Coordinates()[coord_dir] += rPertubationSize;
 
-            //compute derivative of RHS w.r.t. design variable with finite differences
-            noalias(rOutput) = (perturbed_mass_matrix - unperturbed_mass_matrix) / rPertubationSize;
+                // compute LHS after perturbation
+                rElement.CalculateMassMatrix(perturbed_mass_matrix, rCurrentProcessInfo);
 
-             // unperturb the design variable
-            rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
-            rNode.Coordinates()[coord_dir] -= rPertubationSize;
+                //compute derivative of RHS w.r.t. design variable with finite differences
+                noalias(rOutput) = (perturbed_mass_matrix - unperturbed_mass_matrix) / rPertubationSize;
 
-            //call one last time to make sure everything is as it was before TODO improve this..
-            rElement.CalculateMassMatrix(perturbed_mass_matrix, rCurrentProcessInfo);
+                 // unperturb the design variable
+                rNode.GetInitialPosition()[coord_dir] -= rPertubationSize;
+                rNode.Coordinates()[coord_dir] -= rPertubationSize;
+
+                //call one last time to make sure everything is as it was before TODO improve this..
+                rElement.CalculateMassMatrix(perturbed_mass_matrix, rCurrentProcessInfo);
+            }
         }
         else
         {
