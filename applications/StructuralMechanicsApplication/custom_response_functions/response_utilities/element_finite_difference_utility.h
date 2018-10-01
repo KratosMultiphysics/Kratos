@@ -40,13 +40,13 @@ public:
     typedef std::size_t SizeType;
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> array_1d_component_type;
 
-    static void CalculateRigthHandSideDerivative(Element& rElement,
+    static void CalculateRightHandSideDerivative(Element& rElement,
                                                 const Variable<double>& rDesignVariable,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 ProcessInfo& rCurrentProcessInfo);
 
-    static void CalculateRigthHandSideDerivative(Element& rElement,
+    static void CalculateRightHandSideDerivative(Element& rElement,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,

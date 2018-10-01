@@ -20,7 +20,7 @@
 
 namespace Kratos
 {
-    void ElementFiniteDifferenceUtility::CalculateRigthHandSideDerivative(Element& rElement,
+    void ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(Element& rElement,
                                                 const Variable<double>& rDesignVariable,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
@@ -72,7 +72,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void ElementFiniteDifferenceUtility::CalculateRigthHandSideDerivative(Element& rElement,
+    void ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(Element& rElement,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
@@ -83,7 +83,7 @@ namespace Kratos
 
         #ifdef _OPENMP
             KRATOS_ERROR_IF(omp_get_thread_num() > 0) <<
-                "ElementFiniteDifferenceUtility::CalculateRigthHandSideDerivative " <<
+                "ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative " <<
                 "is not thread safe for shape derivatives!" << omp_get_thread_num();
         #endif
 
