@@ -58,20 +58,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(problem_data["domain_size"].GetInt())
 
-        # Time stepping checks (no sub-stepping between subdomains has been implemented yed)
-        time_step_structure = self.settings["structure_solver_settings"]["problem_data"]["time_step"].GetDouble()
-        # If automatic time stepping has been selected in the fluid domain, deactivate it and use the structure time step
-        if (self.settings["fluid_solver_settings"]["solver_settings"]["time_stepping"]["automatic_time_step"].GetBool()):
-            self.settings["fluid_solver_settings"]["solver_settings"]["time_stepping"]["automatic_time_step"].SetBool(False)
-            time_step_fluid = time_step_structure
-            self._PrintWarningOnRankZero("::[PartitionedFSIBaseSolver]::", "Automatic fluid time stepping cannot be used. Setting structure time step as fluid time step.")
-        else:
-            time_step_fluid = self.settings["fluid_solver_settings"]["solver_settings"]["time_stepping"]["time_step"].GetDouble()
-            if time_step_structure != time_step_fluid:
-                raise Exception('Different time step among subdomains! No sub-stepping implemented yet.')
-
-        self.time_step = time_step_fluid
-
         # Auxiliar variables
         coupling_solver_settings = self.settings["coupling_solver_settings"]["solver_settings"]
         self.max_nl_it = coupling_solver_settings["nl_max_it"].GetInt()
@@ -98,13 +84,11 @@ class PartitionedFSIBaseSolver(PythonSolver):
             structural_solver_settings.AddEmptyValue("model_part_name")
             structural_solver_settings["model_part_name"].SetString(self.settings["structure_solver_settings"]["problem_data"]["model_part_name"].GetString())
 
-        self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.model,
-                                                                               self.settings["structure_solver_settings"])
+        self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.model, self.settings["structure_solver_settings"])
         self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Structure solver construction finished.")
 
         # Construct the fluid solver
-        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolver(self.model,
-                                                                      self.settings["fluid_solver_settings"])
+        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.settings["fluid_solver_settings"])
         self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Fluid solver construction finished.")
 
         # Construct the coupling partitioned strategy
@@ -112,20 +96,8 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Coupling strategy construction finished.")
 
         # Construct the ALE mesh solver
-        mesh_solver_settings = KratosMultiphysics.Parameters("{}")
-        mesh_solver_settings.AddEmptyValue("problem_data")
-        mesh_solver_settings.AddEmptyValue("solver_settings")
-        parallel_type = KratosMultiphysics.Parameters('''{"parallel_type" : ""}''')
-        parallel_type["parallel_type"].SetString(self.settings["fluid_solver_settings"]["problem_data"]["parallel_type"].GetString())
-        mesh_solver_type = KratosMultiphysics.Parameters('''{"solver_type" : ""}''')
-        mesh_solver_type["solver_type"].SetString(self.settings["coupling_solver_settings"]["solver_settings"]["mesh_solver"].GetString())
-        mesh_solver_settings["problem_data"] = parallel_type
-        mesh_solver_settings["solver_settings"] = mesh_solver_type
-        #TODO: UPDATE TO MODEL ONCE MESH MOVING APPLICATION SUPPORTS IT
-        self.mesh_solver = python_solvers_wrapper_mesh_motion.CreateSolver(self.fluid_solver.main_model_part,
-                                                                           mesh_solver_settings)
+        self.mesh_solver = self._create_mesh_solver()
         self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "ALE mesh solver construction finished.")
-
         self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Partitioned FSI base solver construction finished.")
 
     def GetMinimumBufferSize(self):
@@ -224,9 +196,6 @@ class PartitionedFSIBaseSolver(PythonSolver):
     def GetOutputVariables(self):
         pass
 
-    def ComputeDeltaTime(self):
-        return self.time_step
-
     def SaveRestart(self):
         pass
 
@@ -314,12 +283,45 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self.fluid_solver.Check()
         self.structure_solver.Check()
 
-
     #######################################################################
     ##############          PRIVATE METHODS SECTION          ##############
+
     #######################################################################
 
-    ### AUXILIAR METHODS ###
+    # This method constructs the ALE mesh solver
+    def _create_mesh_solver(self):
+        # Create the mesh solver json settings
+        mesh_solver_settings = KratosMultiphysics.Parameters("""
+        {
+            "problem_data": {
+                "parallel_type": ""
+            },
+            "solver_settings": {
+                "echo_level" : 0,
+                "domain_size" : -1,
+                "model_part_name": "",
+                "solver_type": ""
+            }
+        }
+        """)
+
+        # Fill the mesh solver json settings
+        parallel_type = self.settings["fluid_solver_settings"]["problem_data"]["parallel_type"].GetString()
+        mesh_solver_settings["problem_data"]["parallel_type"].SetString(parallel_type)
+
+        echo_level = self.settings["fluid_solver_settings"]["solver_settings"]["echo_level"].GetInt()
+        domain_size = self.settings["fluid_solver_settings"]["solver_settings"]["domain_size"].GetInt()
+        mesh_solver_type = self.settings["coupling_solver_settings"]["solver_settings"]["mesh_solver"].GetString()
+        model_part_name = self.settings["fluid_solver_settings"]["solver_settings"]["model_part_name"].GetString()
+        mesh_solver_settings["solver_settings"]["echo_level"].SetInt(echo_level)
+        mesh_solver_settings["solver_settings"]["domain_size"].SetInt(domain_size)
+        mesh_solver_settings["solver_settings"]["solver_type"].SetString(mesh_solver_type)
+        mesh_solver_settings["solver_settings"]["model_part_name"].SetString(model_part_name)
+
+        # Create the mesh solver
+        mesh_solver = python_solvers_wrapper_mesh_motion.CreateSolver(self.model, mesh_solver_settings)
+        return mesh_solver
+
     # This method is to be overwritten in the MPI solver
     def _PrintInfoOnRankZero(self, *args):
         KratosMultiphysics.Logger.PrintInfo(" ".join(map(str, args)))
