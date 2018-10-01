@@ -29,7 +29,7 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
-#include "element_finite_difference_utility.h"
+#include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
 
 // ==============================================================================
 
