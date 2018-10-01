@@ -254,10 +254,10 @@ class EigensystemSolver
 
 
         if (static_cast<int>(rEigenvalues.size()) != nroot) {
-            rEigenvalues.resize(nroot);
+            rEigenvalues.resize(nroot, false);
         }
         if (static_cast<int>(rEigenvectors.size1()) != nroot || static_cast<int>(rEigenvectors.size2()) != nn) {
-            rEigenvectors.resize(nroot, nn);
+            rEigenvectors.resize(nroot, nn, false);
         }
 
         Eigen::Map<vector_t> eigvals (rEigenvalues.data().begin(), rEigenvalues.size());
