@@ -137,13 +137,27 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
     ModelPart model_part("TestModelPart");
     Internals::TestStatisticsUtilitiesInitializeModelPart(model_part, 0.1 ,2);
 
+    StatisticsUtilities::Pointer p_turbulent_statistics = Kratos::make_shared<StatisticsUtilities>();
+    auto average_pressure = MakeSamplerAtLocalCoordinate::ValueGetter(PRESSURE);
+    p_turbulent_statistics->AddQuantity(average_pressure);
+    auto average_velocity = MakeSamplerAtLocalCoordinate::ValueGetter(VELOCITY);
+    p_turbulent_statistics->AddQuantity(average_velocity);
+    auto uu_correlation = SecondOrderMoment(average_velocity.GetComponent(0),average_velocity.GetComponent(0));
+    p_turbulent_statistics->AddQuantity(uu_correlation);
+    auto up_correlation = SecondOrderMoment(average_velocity.GetComponent(0),average_pressure.GetValue());
+    p_turbulent_statistics->AddQuantity(up_correlation);
+    auto pressure_variance = SecondOrderMoment(average_pressure,average_pressure);
+    p_turbulent_statistics->AddQuantity(pressure_variance);
+    auto pressure_skewness = ThirdOrderMoment(average_pressure,pressure_variance);
+    p_turbulent_statistics->AddQuantity(pressure_skewness);
+
+    double dummy;
     for( auto it_elem = model_part.ElementsBegin(); it_elem != model_part.ElementsEnd(); ++it_elem)
     {
-        auto average_pressure = MakeSamplerAtLocalCoordinate::Get(it_elem->GetGeometry(), N, PRESSURE);
-        it_elem->GetValue(TURBULENT_STATISTICS).AddQuantity(average_pressure);
-        auto pressure_variance = SecondOrderMoment(average_pressure,average_pressure);
-        auto pressure_skewness = ThirdOrderMoment(average_pressure,pressure_variance);
+        it_elem->CalculateOnIntegrationPoints(AVERAGES,dummy,model_part.GetProcessInfo());
     }
+
+    StatisticsUtilities::DumpToFile(p_turbulent_statistics,model_part,"filename.h5");
 }
 
 }
