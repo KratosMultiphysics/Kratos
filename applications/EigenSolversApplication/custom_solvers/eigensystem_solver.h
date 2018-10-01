@@ -260,8 +260,8 @@ class EigensystemSolver
             rEigenvectors.resize(nroot, nn, false);
         }
 
-        Eigen::Map<vector_t> eigvals (rEigenvalues.data().begin(), rEigenvalues.size());
-        Eigen::Map<matrix_t> eigvecs (rEigenvectors.data().begin(), rEigenvectors.size1(), rEigenvectors.size2());
+        Eigen::Map<vector_t> eigvals (std::begin(rEigenvalues.data()), rEigenvalues.size());
+        Eigen::Map<matrix_t> eigvecs (std::begin(rEigenvectors.data()), rEigenvectors.size1(), rEigenvectors.size2());
 
         eigvals = eig.eigenvalues().head(nroot);
 

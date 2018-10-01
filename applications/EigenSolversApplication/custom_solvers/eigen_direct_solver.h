@@ -39,14 +39,14 @@ struct SpaceType;
 template <>
 struct SpaceType<double>
 {
-	using Global = UblasSpace<double, CompressedMatrix, Vector>;
+	using Global = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
 	using Local = UblasSpace<double, Matrix, Vector>;
 };
 
 template <>
 struct SpaceType<std::complex<double>>
 {
-	using Global = UblasSpace<std::complex<double>, ComplexCompressedMatrix, ComplexVector>;
+	using Global = UblasSpace<std::complex<double>, ComplexCompressedMatrix, boost::numeric::ublas::vector<std::complex<double>>>;
 	using Local = UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector>;
 };
 
@@ -166,8 +166,8 @@ class EigenDirectSolver
      */
     void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1> > x(rX.data().begin(), rX.size());
-        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1> > b(rB.data().begin(), rB.size());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1> > x(std::begin(rX.data()), rX.size());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1> > b(std::begin(rB.data()), rB.size());
 
         x = m_solver.solve(b);
 
