@@ -24,7 +24,6 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/properties.h"
-#include "includes/properties_with_subproperties.h"
 #include "includes/constitutive_law.h"
 #include "python/add_mesh_to_python.h"
 #include "python/containers_interface.h"
@@ -39,7 +38,7 @@ typedef Node<3> NodeType;
 typedef Mesh<NodeType, Properties, Element, Condition> MeshType;
 typedef ConstitutiveLaw ConstitutiveLawBaseType;
 typedef std::size_t IndexType;
-typedef std::unordered_map<IndexType, Properties::Pointer> SubPropertiesListType;
+typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
 
 template< class TContainerType, class TVariableType >
 bool HasHelperFunction_Element(TContainerType& rProperties, const TVariableType& rVar)
@@ -57,26 +56,18 @@ void SetValueHelperFunction1(
     rProperties.SetValue(rVar,Data);
 }
 
-SubPropertiesListType& GetSubProperties1(Properties& rProperties)
+PropertiesContainerType& GetSubProperties1(Properties& rProperties)
 {
     return rProperties.GetSubProperties();
 }
 
-SubPropertiesListType const& GetSubProperties2(const Properties& rProperties)
+PropertiesContainerType const& GetSubProperties2(const Properties& rProperties)
 {
     return rProperties.GetSubProperties();
 }
 
 Properties::Pointer GetSubProperty1(
     Properties& rProperties,
-    IndexType Index
-    )
-{
-    return rProperties.GetSubProperty(Index);
-}
-
-Properties::Pointer GetSubProperty2(
-    const Properties& rProperties,
     IndexType Index
     )
 {
@@ -212,16 +203,9 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("NumberOfSubproperties", &Properties::NumberOfSubproperties)
     .def("AddSubProperty", &Properties::AddSubProperty)
     .def("GetSubProperty", GetSubProperty1)
-    .def("GetSubProperty", GetSubProperty2)
     .def("GetSubProperties", GetSubProperties1)
     .def("GetSubProperties", GetSubProperties2)
     .def("SetSubProperties", &Properties::SetSubProperties)
-    ;
-
-    class_<PropertiesWithSubProperties, PropertiesWithSubProperties::Pointer, Properties >(m,"PropertiesWithSubProperties")
-    .def(init<IndexType>())
-    .def(init<Properties::Pointer>())
-    .def(init<Properties&>())
     ;
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");

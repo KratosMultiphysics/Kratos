@@ -91,17 +91,33 @@ public:
 
     typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
 
-    typedef std::unordered_map<IndexType, Properties::Pointer> SubPropertiesListType;
+    /// Properties container. A vector set of properties with their Id's as key.
+    typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
+
+    /** Iterator over the properties. This iterator is an indirect
+    iterator over Properties::Pointer which turn back a reference to
+    properties by * operator and not a pointer for more convenient
+    usage. */
+    typedef typename PropertiesContainerType::iterator PropertiesIterator;
+
+    /** Const iterator over the properties. This iterator is an indirect
+    iterator over Properties::Pointer which turn back a reference to
+    properties by * operator and not a pointer for more convenient
+    usage. */
+    typedef typename PropertiesContainerType::const_iterator PropertiesConstantIterator;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables() {}
+    Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mSubPropetiesList() {}
+
+    /// Default of properties with subproperties
+    Properties(IndexType NewId, PropertiesContainerType SubPropetiesList) : BaseType(NewId), mData(), mTables(), mSubPropetiesList(SubPropetiesList) {}
 
     /// Copy constructor.
-    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables) {}
+    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables), mSubPropetiesList(rOther.mSubPropetiesList) {}
 
     /// Destructor.
     ~Properties() override {}
@@ -116,6 +132,7 @@ public:
     {
         BaseType::operator=(rOther);
         mData = rOther.mData;
+        mSubPropetiesList = rOther.mSubPropetiesList;
         return *this;
     }
 
@@ -281,73 +298,56 @@ public:
     /**
      * @brief This method returns the number of subproperties
      * @return The current number of subproperties
-     * @warning Must be defined on derived class
      */
     virtual std::size_t NumberOfSubproperties()
     {
-        return 0;
+        return mSubPropetiesList.size();
     }
 
     /**
      * @brief This method insert a new property into the list of subproperties
      * @param pNewSubProperty The new property to be added
-     * @warning Must be defined on derived class
      */
     virtual void AddSubProperty(Properties::Pointer pNewSubProperty)
     {
-        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+        mSubPropetiesList.insert(mSubPropetiesList.begin(), pNewSubProperty);
     }
 
     /**
      * @brief This method gets the subproperty from the index corresponding to the property id
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return The pointer to the subproperty of interest
-     * @warning Must be defined on derived class
      */
     virtual Properties::Pointer GetSubProperty(IndexType SubPropertyIndex)
     {
-        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
-    }
-
-    /**
-     * @brief This method gets the subproperty from the index corresponding to the property id
-     * @param SubPropertyIndex The index of the subproperty to be get
-     * @return The pointer to the subproperty of interest
-     * @warning Must be defined on derived class
-     */
-    virtual Properties::Pointer const& GetSubProperty(IndexType SubPropertyIndex) const
-    {
-        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+        return mSubPropetiesList(SubPropertyIndex);
     }
 
     /**
      * @brief This method returns the whole list of subproperties
      * @return The whole lis of subproperties
-     * @warning Must be defined on derived class
      */
-    virtual SubPropertiesListType& GetSubProperties()
+    virtual PropertiesContainerType& GetSubProperties()
     {
-        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+        return SubPropetiesList();
     }
 
     /**
      * @brief This method returns the whole list of subproperties
      * @return The whole lis of subproperties
-     * @warning Must be defined on derived class
      */
-    virtual SubPropertiesListType const& GetSubProperties() const
+    virtual PropertiesContainerType const& GetSubProperties() const
     {
-        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+        return SubPropetiesList();
     }
 
     /**
      * @brief This method set the whole list of subproperties
      * @param rSubPropetiesList The list of subproperties
-     * @warning Must be defined on derived class
      */
-    virtual void SetSubProperties(SubPropertiesListType& rSubPropetiesList)
+    virtual void SetSubProperties(PropertiesContainerType& rSubPropetiesList)
     {
-        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+        mSubPropetiesList = rSubPropetiesList;
     }
 
     ///@}
@@ -376,18 +376,18 @@ public:
      * @brief This method returns the whole list of subproperties (constant)
      * @return The whole lis of subproperties
      */
-    virtual SubPropertiesListType& SubPropetiesList()
+    virtual PropertiesContainerType& SubPropetiesList()
     {
-        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+        return mSubPropetiesList;
     }
 
     /**
      * @brief This method returns the whole list of subproperties (constant)
      * @return The whole lis of subproperties
      */
-    virtual SubPropertiesListType const& SubPropetiesList() const
+    virtual PropertiesContainerType const& SubPropetiesList() const
     {
-        KRATOS_ERROR << "You cannot access to subproperties in a base property. Use PropertiesWithSubProperties" << std::endl;
+        return mSubPropetiesList;
     }
 
     ///@}
@@ -428,6 +428,12 @@ public:
     {
         mData.PrintData(rOStream);
         rOStream << "This properties contains " << mTables.size() << " tables";
+        if (mSubPropetiesList.size() > 0) {
+            rOStream << "\nThis properties contains the following subproperties " << mSubPropetiesList.size() << " subproperties" << std::endl;
+            for (auto& subprop : mSubPropetiesList) {
+                subprop.PrintData(rOStream);
+            }
+        }
     }
 
 
@@ -487,6 +493,8 @@ private:
     ContainerType mData;
     TablesContainerType mTables;
 
+    PropertiesContainerType mSubPropetiesList; /// The vector containing the list of subproperties
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -508,6 +516,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.save("Data", mData);
         rSerializer.save("Tables", mTables);
+        rSerializer.save("SubPropetiesList", mSubPropetiesList);
     }
 
     void load(Serializer& rSerializer) override
@@ -515,6 +524,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.load("Data", mData);
         rSerializer.load("Tables", mTables);
+        rSerializer.load("SubPropetiesList", mSubPropetiesList);
     }
 
     ///@}
