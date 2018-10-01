@@ -53,6 +53,8 @@ void UtilityType::ResizeAndInitializeVectors(
     ModelPart& rModelPartDestination,
     MapperLocalSystemPointerVector& rMapperLocalSystems) const
 {
+    if (rModelPartOrigin.GetCommunicator().MyPID() == 0)
+        std::cout << "\n\n\nENTERING the Matrix and Vector Assembly" << std::endl;
     // big TODO what if the rank doesn't have local nodes ... ?
 
     const int num_local_nodes_orig = rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
@@ -101,6 +103,11 @@ void UtilityType::ResizeAndInitializeVectors(
     std::sort( row_indices.begin(), row_indices.end() );
     row_indices.erase( std::unique( row_indices.begin(), row_indices.end() ), row_indices.end() );
 
+    rModelPartOrigin.GetCommunicator().Barrier();
+    std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " row_indices:\n" << row_indices << std::endl;
+    std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " col_indices:\n" << col_indices << std::endl;
+    std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " global_elements_dest:\n" << global_elements_dest << std::endl;
+    std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " global_elements_orig:\n" << global_elements_orig << std::endl;
 
     // Epetra_Map (long long NumGlobalElements, int NumMyElements, const long long *MyGlobalElements, int IndexBase, const Epetra_Comm &Comm)
 
@@ -119,9 +126,6 @@ void UtilityType::ResizeAndInitializeVectors(
                               index_base,
                               epetra_comm);
 
-    std::cout << epetra_row_map << std::endl;
-    std::cout << epetra_col_map << std::endl;
-
     Epetra_Map epetra_domain_map(num_global_elements,
                                  num_local_nodes_orig,
                                  global_elements_orig.data(), // taken as const
@@ -133,6 +137,12 @@ void UtilityType::ResizeAndInitializeVectors(
                                 global_elements_dest.data(), // taken as const
                                 index_base,
                                 epetra_comm);
+
+    rModelPartOrigin.GetCommunicator().Barrier();
+    std::cout << "COL_MAP\n" << epetra_col_map << std::endl;
+    std::cout << "\n\n\nROW_MAP\n" << epetra_row_map << std::endl;
+    std::cout << "\n\n\nDOMAIN_MAP\n" << epetra_domain_map << std::endl;
+    std::cout << "\n\n\nRANGE_MAP\n" << epetra_range_map << std::endl;
 
 
     // explanation in here: https://trilinos.org/docs/dev/packages/epetra/doc/html/classEpetra__CrsGraph.html
@@ -170,6 +180,9 @@ void UtilityType::ResizeAndInitializeVectors(
 
     epetra_graph.OptimizeStorage();
 
+    rModelPartOrigin.GetCommunicator().Barrier();
+    std::cout << "GRAPH\n" << epetra_graph << std::endl;
+
     // // TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );
     // // https://trilinos.org/docs/dev/packages/epetra/doc/html/Epetra__DataAccess_8h.html#ad1a985e79f94ad63030815a0d7d90928
     TSystemMatrixUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(Epetra_DataAccess::Copy, epetra_graph);
@@ -180,7 +193,7 @@ void UtilityType::ResizeAndInitializeVectors(
     // rpQd->GlobalAssemble();
     MappingWeightsVector mapping_weights;
 
-    std::cout << "Before Assembly" << std::endl;
+    std::cout << "Before Assembly\n" << *p_Mdo << std::endl;
 
     for (auto& rp_local_sys : rMapperLocalSystems)
     {
