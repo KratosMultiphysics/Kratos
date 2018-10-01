@@ -90,6 +90,23 @@ void AddCustomSolversToPython(pybind11::module& m)
 	#else  // !defined USE_EIGEN_MKL
 	register_eigensystem_solver<PardisoLDLT<double>>(m, "EigensystemSolver");
 	#endif // !defined USE_EIGEN_MKL
+
+	{
+		using Type = boost::numeric::ublas::vector<double>;
+
+		class_<Type>(m, "UblasVector")
+			.def(init<>())
+			.def(init<int>())
+			.def("__getitem__",
+				[](const Type& self, std::size_t index) -> double {
+					return self[index];
+				})
+			.def("__setitem__",
+				[](Type& self, std::size_t index, double value) -> void {
+					self[index] = value;
+				})
+		;
+	}
 }
 
 } // namespace Python
