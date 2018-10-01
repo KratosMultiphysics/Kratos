@@ -79,12 +79,23 @@ namespace Kratos
 				     MesherUtilities::MeshingParameters& rRemeshingParameters,
 				     std::vector<std::string>& rContactModelParts,
 				     int EchoLevel)
-      : mrModelPart(rModelPart),
-	mrRemesh(rRemeshingParameters),
-	mrContactModelParts(rContactModelParts)
+        : mrModelPart(rModelPart)
+        ,mrRemesh(rRemeshingParameters)
+        ,mrContactModelParts(rContactModelParts)
     {
       mEchoLevel = EchoLevel;
       mMasterConditionsInitialized = false;
+    }
+
+
+    /// Copy constructor.
+    BuildContactModelPartProcess(BuildContactModelPartProcess const& rOther)
+        :mrModelPart(rOther.mrModelPart)
+        ,mrRemesh(rOther.mrRemesh)
+        ,mrContactModelParts(rOther.mrContactModelParts)
+        ,mEchoLevel(rOther.mEchoLevel)
+        ,mMasterConditionsInitialized(rOther.mMasterConditionsInitialized)
+    {
     }
 
     /// Destructor.
@@ -113,7 +124,6 @@ namespace Kratos
 
       if( mEchoLevel > 0 )
 	std::cout<<" [ CONSTRUCT CONTACT MODEL_PART: "<<std::endl;
-
 
       ModelPart& rModelPart = mrModelPart.GetSubModelPart(mrRemesh.SubModelPartName);
 
@@ -220,9 +230,9 @@ namespace Kratos
     ///@{
     ModelPart& mrModelPart;
 
-    MesherUtilities::MeshingParameters&   mrRemesh;
+    MesherUtilities::MeshingParameters& mrRemesh;
 
-    std::vector<std::string>& mrContactModelParts;
+    std::vector<std::string> mrContactModelParts;
 
     int mEchoLevel;
 
@@ -238,25 +248,26 @@ namespace Kratos
     {
 
       KRATOS_TRY
-
+     
       //check if the construction is needed
       unsigned int count_nodes = 0;
       unsigned int count_conditions = 0;
 
-      for(std::vector<std::string>::iterator n_mp = mrContactModelParts.begin(); n_mp!=mrContactModelParts.end(); n_mp++)
+      for(std::vector<std::string>::const_iterator n_mp = mrContactModelParts.begin(); n_mp!=mrContactModelParts.end(); ++n_mp)
 	{
-	  ModelPart&  i_mp = mrModelPart.GetSubModelPart(*n_mp);
-
+          //std::cout<<" ModelParts "<<*n_mp<<std::endl;
+ 	  ModelPart& i_mp = mrModelPart.GetSubModelPart(*n_mp);
+              
 	  for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin() ; i_node != i_mp.NodesEnd() ; i_node++)
 	    {
 	      if( i_node->Is(BOUNDARY) )
-		count_nodes+=1;
+		++count_nodes;
 	    }
 
 	  for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp.ConditionsBegin() ; i_cond != i_mp.ConditionsEnd() ; i_cond++)
 	    {
 	      if( i_cond->Is(BOUNDARY) && i_cond->IsNot(CONTACT) )
-		count_conditions+=1;
+		++count_conditions;
 	    }
 	}
 
@@ -265,12 +276,12 @@ namespace Kratos
       if( count_nodes != rModelPart.Nodes().size() || count_conditions != rModelPart.Conditions().size() )
 	build_is_needed = true;
 
-      if( rModelPart.GetProcessInfo()[MESHING_STEP_PERFORMED] )
+      const ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
+      if( rProcessInfo[MESHING_STEP_TIME] == rProcessInfo[TIME] )
 	build_is_needed = true;
 
       if( build_is_needed ){
 
-	std::cout<<"   REBUILD "<<std::endl;
 	//*******************************************************************
 	//set boundary conditions and nodes:
 
@@ -281,8 +292,9 @@ namespace Kratos
 	PreservedConditions.swap(rModelPart.Conditions());
 
 
-	for(std::vector<std::string>::iterator n_mp = mrContactModelParts.begin(); n_mp!=mrContactModelParts.end(); n_mp++)
+	for(std::vector<std::string>::const_iterator n_mp = mrContactModelParts.begin(); n_mp!=mrContactModelParts.end(); ++n_mp)
 	  {
+            //std::cout<<" ModelParts "<<*n_mp<<std::endl;
 	    ModelPart&  i_mp = mrModelPart.GetSubModelPart(*n_mp);
 
 	    for(ModelPart::NodesContainerType::iterator i_node = i_mp.NodesBegin() ; i_node != i_mp.NodesEnd() ; i_node++)
@@ -365,7 +377,7 @@ namespace Kratos
       std::vector<BoundedVector<double, 3> > Holes;
       BoundedVector<double, 3> Point;
 
-      for(std::vector<std::string>::iterator n_mp = mrContactModelParts.begin(); n_mp!=mrContactModelParts.end(); n_mp++)
+      for(std::vector<std::string>::const_iterator n_mp = mrContactModelParts.begin(); n_mp!=mrContactModelParts.end(); ++n_mp)
 	{
 	  //std::cout<<" ModelParts "<<*n_mp<<std::endl;
 	  ModelPart&  i_mp = mrModelPart.GetSubModelPart(*n_mp);
