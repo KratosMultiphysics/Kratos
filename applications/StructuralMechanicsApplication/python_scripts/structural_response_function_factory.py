@@ -1,8 +1,8 @@
 from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
-from KratosMultiphysics import *
 import structural_response
+import structural_response_global_finite_differencing
 
 def CreateResponseFunction(response_id, response_settings, model):
     response_type = response_settings["response_type"].GetString()

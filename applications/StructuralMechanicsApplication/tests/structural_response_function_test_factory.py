@@ -49,10 +49,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
                 parameters = KratosMultiphysics.Parameters( parameter_file.read())
 
             # To avoid many prints
-            if (parameters["problem_data"]["echo_level"].GetInt() == 0):
-                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-
-            self.problem_name = parameters["problem_data"]["problem_name"].GetString()
+            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
             model = KratosMultiphysics.Model()
             self.response_function = structural_response_function_factory.CreateResponseFunction("dummy", parameters["kratos_response_settings"], model)
@@ -75,10 +72,10 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
         with controlledExecutionScope(_get_test_working_dir()):
             self.response_function.Finalize()
 
-            kratos_utils.DeleteFileIfExisting(self.problem_name + ".post.bin")
-            kratos_utils.DeleteFileIfExisting(self.problem_name + ".time")
-            kratos_utils.DeleteFileIfExisting(self.problem_name + ".h5")
-            kratos_utils.DeleteFileIfExisting(self.problem_name + "-1.0000.h5")
+            kratos_utils.DeleteFileIfExisting("rectangular_plate_structure.post.bin")
+            kratos_utils.DeleteFileIfExisting("rectangular_plate_structure.time")
+            kratos_utils.DeleteFileIfExisting("rectangular_plate_structure.h5")
+            kratos_utils.DeleteFileIfExisting("rectangular_plate_structure-1.0000.h5")
             kratos_utils.DeleteFileIfExisting("response_function_tests.post.lst")
 
 @KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
@@ -148,12 +145,11 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
 
     def test_execution(self):
         self._calculate_response_and_gradient()
-        self.assertAlmostEqual(self.value, 0.00606275111915477)
+        self.assertAlmostEqual(self.value, 0.6062751119154768)
 
-        nodeId = 4
-        self.assertAlmostEqual(self.gradient[nodeId][0], -0.011324859625486555, 9)
-        self.assertAlmostEqual(self.gradient[nodeId][1],  0.0017745756664132117, 9)
-        self.assertAlmostEqual(self.gradient[nodeId][2], -1.5466215093998671e-07, 9)
+        self.assertAlmostEqual(self.gradient[4][0], -1.132485962510845)
+        self.assertAlmostEqual(self.gradient[4][1], 0.17745756668175833)
+        self.assertAlmostEqual(self.gradient[4][2], -1.5466170818541692e-05)
 
 @KratosUnittest.skipUnless(has_eigensolvers_application,"Missing required application: EigenSolversApplication")
 class TestEigenfrequencyResponseFunction(StructuralResponseFunctionTestFactory):
@@ -168,6 +164,30 @@ class TestEigenfrequencyResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertAlmostEqual(self.gradient[19][1], -0.0070165270383214864)
         self.assertAlmostEqual(self.gradient[19][2], 1.0549911195848093e-08)
 
+class TestFDStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
+    file_name = "FD_strain_energy_response"
+
+    def test_execution(self):
+        self._calculate_response_and_gradient()
+        self.assertAlmostEqual(self.value, 0.6062751119154768)
+
+        nodeId = 4
+        self.assertAlmostEqual(self.gradient[nodeId][0], -1.132481240673222)
+        self.assertAlmostEqual(self.gradient[nodeId][1],  0.1774584938996071)
+        self.assertAlmostEqual(self.gradient[nodeId][2], -7.99504906723314e-06)
+
+class TestFDStressResponseFunction(StructuralResponseFunctionTestFactory):
+    file_name = "FD_stress_response"
+
+    def test_execution(self):
+        self._calculate_response_and_gradient()
+        self.assertAlmostEqual(self.value, -0.8233392989483471)
+
+        nodeId = 4
+        self.assertAlmostEqual(self.gradient[nodeId][0], 0.35275363552411676)
+        self.assertAlmostEqual(self.gradient[nodeId][1], -0.6917253843052862)
+        self.assertAlmostEqual(self.gradient[nodeId][2], 1.7361001525273423e-05)
+
 
 if __name__ == "__main__":
     suites = KratosUnittest.KratosSuites
@@ -178,6 +198,8 @@ if __name__ == "__main__":
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStrainEnergyResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenfrequencyResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFDStrainEnergyResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFDStressResponseFunction]))
     allSuite = suites['all']
     allSuite.addTests(smallSuite)
     KratosUnittest.runTests(suites)

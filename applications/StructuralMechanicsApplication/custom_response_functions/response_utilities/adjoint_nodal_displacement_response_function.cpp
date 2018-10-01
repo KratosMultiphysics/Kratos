@@ -15,6 +15,7 @@
 
 // Project includes
 #include "adjoint_nodal_displacement_response_function.h"
+#include "nodal_displacement_response_function.h"
 
 namespace Kratos
 {
@@ -96,10 +97,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const VariableComponentType& r_traced_dof =
-            KratosComponents<VariableComponentType>::Get(mTracedDofLabel);
+        NodalDisplacementResponseFunction zero_order_response(rModelPart, mResponseSettings);
 
-        return mpTracedNode->FastGetSolutionStepValue(r_traced_dof, 0);
+        return zero_order_response.CalculateValue();
 
         KRATOS_CATCH("");
     }

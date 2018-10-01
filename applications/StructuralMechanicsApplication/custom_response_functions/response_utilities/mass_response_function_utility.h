@@ -79,18 +79,21 @@ public:
 
 	/// Default constructor.
 	MassResponseFunctionUtility(ModelPart& model_part, Parameters responseSettings)
-	: mrModelPart(model_part)
+	: mrModelPart(model_part), mResponseSettings(responseSettings)
 	{
-		std::string gradient_mode = responseSettings["gradient_mode"].GetString();
-		if (gradient_mode.compare("finite_differencing") == 0)
+		// Validate gradient settings
+		if (mResponseSettings.Has("gradient_settings"))
 		{
-			double delta = responseSettings["step_size"].GetDouble();
-			mDelta = delta;
+			Parameters gradient_settings = mResponseSettings["gradient_settings"];
+			if (gradient_settings["gradient_mode"].GetString() != "finite_differencing")
+				KRATOS_ERROR << "Specified gradient_mode '" << gradient_settings["gradient_mode"].GetString() << "' not recognized. The only option is: finite_differencing" << std::endl;
+			if (gradient_settings["element_sensitivity_variables"].size() != 0)
+				KRATOS_ERROR << "CalculateGradient not implemented for element_sensitivity_variables." << std::endl;
+			if (gradient_settings["condition_sensitivity_variables"].size() != 0)
+				KRATOS_ERROR << "CalculateGradient not implemented for condition_sensitivity_variables." << std::endl;
+			if (gradient_settings["sensitivity_model_part_name"].GetString() != mrModelPart.Name())
+				KRATOS_ERROR << "CalculateGradient only implemented for complete model part!" << std::endl;
 		}
-		else
-			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: finite_differencing" << std::endl;
-
-		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 	}
 
 	/// Destructor.
@@ -138,12 +141,18 @@ public:
 	{
 		KRATOS_TRY;
 
+		if (!mResponseSettings.Has("gradient_settings"))
+		{
+			KRATOS_ERROR << "CalculateGradient can not be called for zero order response!" << std::endl;
+		}
+
 		// Formula computed in general notation:
 		// \frac{dm_{total}}{dx}
 
+		const double delta = mResponseSettings["gradient_settings"]["step_size"].GetDouble();
+
 		// First gradients are initialized
 		VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
-
 
 		// Start process to identify element neighbors for every node
 		FindNodalNeighboursProcess neighorFinder = FindNodalNeighboursProcess(mrModelPart, 10, 10);
@@ -171,7 +180,7 @@ public:
 
 			// Apply pertubation in X-direction and recompute total mass of all neighbor elements
 			double mass_after_fd = 0.0;
-			node_i.X() += mDelta;
+			node_i.X() += delta;
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
@@ -181,12 +190,12 @@ public:
 				double elem_volume = GetElementVolume(ng_elem_i);
 				mass_after_fd +=  elem_density*elem_volume;
 			}
-			gradient[0] = (mass_after_fd - mass_before_fd) / mDelta;
-			node_i.X() -= mDelta;
+			gradient[0] = (mass_after_fd - mass_before_fd) / delta;
+			node_i.X() -= delta;
 
 			// Apply pertubation in Y-direction and recompute total mass of all neighbor elements
 			mass_after_fd = 0.0;
-			node_i.Y() += mDelta;
+			node_i.Y() += delta;
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
@@ -196,12 +205,12 @@ public:
 				double elem_volume = GetElementVolume(ng_elem_i);
 				mass_after_fd +=  elem_density*elem_volume;
 			}
-			gradient[1] = (mass_after_fd - mass_before_fd) / mDelta;
-			node_i.Y() -= mDelta;
+			gradient[1] = (mass_after_fd - mass_before_fd) / delta;
+			node_i.Y() -= delta;
 
 			// Apply pertubation in Z-direction and recompute total mass of all neighbor elements
 			mass_after_fd = 0.0;
-			node_i.Z() += mDelta;
+			node_i.Z() += delta;
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
@@ -211,15 +220,15 @@ public:
 				double elem_volume = GetElementVolume(ng_elem_i);
 				mass_after_fd +=  elem_density*elem_volume;
 			}
-			gradient[2] = (mass_after_fd - mass_before_fd) / mDelta;
-			node_i.Z() -= mDelta;
+			gradient[2] = (mass_after_fd - mass_before_fd) / delta;
+			node_i.Z() -= delta;
 
 			// Compute sensitivity
 			noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = gradient;
 
 		}
 
-		if (mConsiderDiscretization)
+		if (mResponseSettings["gradient_settings"]["consider_discretization"].GetBool())
 			this->ConsiderDiscretization();
 
 		KRATOS_CATCH("");
@@ -343,8 +352,7 @@ private:
 	///@{
 
 	ModelPart &mrModelPart;
-	double mDelta;
-	bool mConsiderDiscretization;
+	Parameters mResponseSettings;
 
 	///@}
 ///@name Private Operators

@@ -15,6 +15,7 @@
 
 // Project includes
 #include "adjoint_linear_strain_energy_response_function.h"
+#include "linear_strain_energy_response_function.h"
 
 namespace Kratos
 {
@@ -56,29 +57,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
-        double response_value = 0.0;
+        LinearStrainEnergyResponseFunction zero_order_response(rModelPart, mResponseSettings);
 
-        // Check if there are at primal elements, because the primal state is required
-        KRATOS_ERROR_IF( r_current_process_info.Has(IS_ADJOINT) && r_current_process_info[IS_ADJOINT] )
-             << "Calculate value for strain energy response is only available when using primal elements" << std::endl;
-
-        // Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
-        Matrix LHS;
-        Vector RHS;
-        Vector disp;
-
-        for (auto& elem_i : rModelPart.Elements())
-        {
-            elem_i.GetValuesVector(disp,0);
-
-            elem_i.CalculateLocalSystem(LHS, RHS, r_current_process_info);
-
-            // Compute linear strain energy 0.5*u*K*u
-            response_value += 0.5 * inner_prod(disp, prod(LHS,disp));
-         }
-
-        return response_value;
+        return zero_order_response.CalculateValue();
 
         KRATOS_CATCH("");
     }

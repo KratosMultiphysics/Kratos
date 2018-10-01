@@ -180,12 +180,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    double CalculateMeanElementStress(ModelPart& rModelPart);
-
-    double CalculateGaussPointStress(ModelPart& rModelPart);
-
-    double CalculateNodeStress(ModelPart& rModelPart);
-
     void CalculateElementContributionToSensitivityGradient(Element& rAdjointElem,
                                       const std::string& rVariableName,
                                       const Matrix& rDerivativesMatrix,

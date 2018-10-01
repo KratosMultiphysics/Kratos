@@ -15,6 +15,7 @@
 
 // Project includes
 #include "adjoint_local_stress_response_function.h"
+#include "local_stress_response_function.h"
 
 namespace Kratos
 {
@@ -46,15 +47,9 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        double stress_value = 0.0;
+        LocalStressResponseFunction zero_order_response(rModelPart, mResponseSettings);
 
-        if(mStressTreatment == StressTreatment::Mean)
-            stress_value = CalculateMeanElementStress(rModelPart);
-        else if (mStressTreatment == StressTreatment::GaussPoint)
-            stress_value = CalculateGaussPointStress(rModelPart);
-        else if (mStressTreatment == StressTreatment::Node)
-            stress_value = CalculateNodeStress(rModelPart);
-        return stress_value;
+        return zero_order_response.CalculateValue();
 
         KRATOS_CATCH("");
     }
@@ -171,58 +166,6 @@ namespace Kratos
             rResponseGradient.resize(0, false);
 
         KRATOS_CATCH("");
-    }
-
-    double AdjointLocalStressResponseFunction::CalculateMeanElementStress(ModelPart& rModelPart)
-    {
-        double stress_value = 0.0;
-
-        Vector element_stress;
-
-        Element& r_element = rModelPart.GetElement(mpTracedElement->Id());
-        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
-
-        const SizeType stress_vec_size = element_stress.size();
-
-        for(IndexType i = 0; i < stress_vec_size; ++i)
-            stress_value += element_stress[i];
-
-        stress_value /= stress_vec_size;
-
-        return stress_value;
-    }
-
-    double AdjointLocalStressResponseFunction::CalculateGaussPointStress(ModelPart& rModelPart)
-    {
-        Vector element_stress;
-
-        Element& r_element = rModelPart.GetElement(mpTracedElement->Id());
-        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
-
-        const SizeType stress_vec_size = element_stress.size();
-
-        if(stress_vec_size >= mIdOfLocation)
-            return element_stress[mIdOfLocation - 1];
-
-        KRATOS_ERROR << "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
-                        stress_vec_size  << "!"<< std::endl;
-    }
-
-    double AdjointLocalStressResponseFunction::CalculateNodeStress(ModelPart& rModelPart)
-    {
-        Vector element_stress;
-
-        Element& r_element = rModelPart.GetElement(mpTracedElement->Id());
-        StressCalculation::CalculateStressOnNode(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
-
-        const SizeType num_ele_nodes = mpTracedElement->GetGeometry().PointsNumber();
-
-        if(num_ele_nodes >= mIdOfLocation)
-            return element_stress[mIdOfLocation - 1];
-
-        KRATOS_ERROR << "Chosen Node is not available. The element has only " <<
-                        num_ele_nodes  << " nodes."<< std::endl;
-
     }
 
     void AdjointLocalStressResponseFunction::CalculateElementContributionToSensitivityGradient(Element& rAdjointElem,

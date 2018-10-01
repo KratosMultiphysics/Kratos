@@ -78,7 +78,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","SHAPE_SENSITIVITY"],
+            "nodal_results"       : ["DISPLACEMENT"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []

@@ -133,6 +133,7 @@ protected:
     ///@{
 
     ModelPart& mrModelPart;
+    Parameters mResponseSettings;
 
     ///@}
     ///@name Protected Operators

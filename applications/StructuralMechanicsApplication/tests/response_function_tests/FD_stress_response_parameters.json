@@ -1,0 +1,18 @@
+{
+    "kratos_response_settings":{
+        "response_type"    : "adjoint_local_stress",
+        "primal_settings"  : "rectangular_plate_parameters_without_hdf5.json",
+        "traced_element_id"    : 2,
+        "stress_type"       : "MXX",
+        "stress_treatment"  : "mean",
+        "stress_location"   : 1,
+        "gradient_settings" : {
+            "gradient_mode"     : "finite_differencing",
+            "sensitivity_model_part_name" :"Parts_AREAS",
+            "nodal_sensitivity_variables"  : ["SHAPE"],
+            "element_sensitivity_variables"  : [],
+            "condition_sensitivity_variables"  : [],
+            "step_size"         : 1.0e-6
+        }
+    }
+}

@@ -12,8 +12,13 @@
     "kratos_response_settings":{
         "response_type"          : "strain_energy",
         "primal_settings"        : "rectangular_plate_parameters_without_hdf5.json",
-        "gradient_mode"          : "semi_analytic",
-        "step_size"              : 1e-6,
-        "consider_discretization": false
+        "gradient_settings"      : {
+            "gradient_mode"                   : "semi_analytic",
+            "nodal_sensitivity_variables"     : ["SHAPE"],
+            "element_sensitivity_variables"   : [],
+            "condition_sensitivity_variables" : [],
+            "step_size"                       : 1e-6,
+            "consider_discretization"         : false
+        }
     }
 }

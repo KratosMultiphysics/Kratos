@@ -25,24 +25,26 @@ namespace Kratos
 
     /// Constructor.
     AdjointStructuralResponseFunction::AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
-      : mrModelPart(rModelPart)
+      : mrModelPart(rModelPart), mResponseSettings(ResponseSettings)
     {
         KRATOS_TRY;
 
-        mSensitivityModelPartName = ResponseSettings["sensitivity_model_part_name"].GetString();
+        Parameters gradient_settings = mResponseSettings["gradient_settings"];
 
-        this->ReadDesignVariables(mNodalSensitivityScalarVariables, mNodalSensitivityVectorVariables, ResponseSettings["nodal_sensitivity_variables"]);
-        this->ReadDesignVariables(mElementSensitivityScalarVariables, mElementSensitivityVectorVariables, ResponseSettings["element_sensitivity_variables"]);
-        this->ReadDesignVariables(mConditionSensitivityScalarVariables, mConditionSensitivityVectorVariables, ResponseSettings["condition_sensitivity_variables"]);
+        mSensitivityModelPartName = gradient_settings["sensitivity_model_part_name"].GetString();
+
+        this->ReadDesignVariables(mNodalSensitivityScalarVariables, mNodalSensitivityVectorVariables, gradient_settings["nodal_sensitivity_variables"]);
+        this->ReadDesignVariables(mElementSensitivityScalarVariables, mElementSensitivityVectorVariables, gradient_settings["element_sensitivity_variables"]);
+        this->ReadDesignVariables(mConditionSensitivityScalarVariables, mConditionSensitivityVectorVariables, gradient_settings["condition_sensitivity_variables"]);
 
         // Set gradient mode
-        const std::string& gradient_mode = ResponseSettings["gradient_mode"].GetString();
+        const std::string& gradient_mode = gradient_settings["gradient_mode"].GetString();
 
         // Mode 1: semi-analytic sensitivities
         if (gradient_mode == "semi_analytic")
         {
             mGradientMode = 1;
-            double delta = ResponseSettings["step_size"].GetDouble();
+            double delta = gradient_settings["step_size"].GetDouble();
             mDelta = delta;
         }
         else

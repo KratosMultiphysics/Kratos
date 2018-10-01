@@ -1,0 +1,14 @@
+{
+    "kratos_response_settings":{
+        "response_type"    : "adjoint_linear_strain_energy",
+        "primal_settings"  : "rectangular_plate_parameters_without_hdf5.json",
+        "gradient_settings" : {
+            "gradient_mode"     : "finite_differencing",
+            "sensitivity_model_part_name" :"Parts_AREAS",
+            "nodal_sensitivity_variables"  : ["SHAPE"],
+            "element_sensitivity_variables"  : [],
+            "condition_sensitivity_variables"  : [],
+            "step_size"         : 1.0e-6
+        }
+    }
+}

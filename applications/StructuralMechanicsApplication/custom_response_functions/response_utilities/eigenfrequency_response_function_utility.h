@@ -76,20 +76,33 @@ public:
 
     /// Default constructor.
     EigenfrequencyResponseFunctionUtility(ModelPart& model_part, Parameters response_settings)
-    : mrModelPart(model_part)
+    : mrModelPart(model_part), mResponseSettings(response_settings)
     {
-        CheckSettingsForGradientAnalysis(response_settings);
-        DetermineTracedEigenfrequencies(response_settings);
+        DetermineTracedEigenfrequencies(mResponseSettings);
         if(AreSeveralEigenfrequenciesTraced())
         {
-            KRATOS_ERROR_IF_NOT(response_settings.Has("weighting_method")) << "Several eigenfrequencies are traced but no weighting method specified in the parameters!" << std::endl;
-            if(response_settings["weighting_method"].GetString() == "linear_scaling")
-                CalculateLinearWeights(response_settings);
+            KRATOS_ERROR_IF_NOT(mResponseSettings.Has("weighting_method")) << "Several eigenfrequencies are traced but no weighting method specified in the parameters!" << std::endl;
+            if(mResponseSettings["weighting_method"].GetString() == "linear_scaling")
+                CalculateLinearWeights(mResponseSettings);
             else
                 KRATOS_ERROR  << "Specified weighting method for eigenfrequencies is not implemented! Available weighting methods are: 'linear_scaling'." << std::endl;
         }
         else
             UseDefaultWeight();
+
+        // Validate gradient settings
+        if (mResponseSettings.Has("gradient_settings"))
+		{
+            Parameters gradient_settings = mResponseSettings["gradient_settings"];
+			if (gradient_settings["gradient_mode"].GetString() != "semi_analytic")
+				KRATOS_ERROR << "Specified gradient_mode '" << gradient_settings["gradient_mode"].GetString() << "' not recognized. The only option is: semi_analytic" << std::endl;
+			if (gradient_settings["element_sensitivity_variables"].size() != 0)
+				KRATOS_ERROR << "CalculateGradient not implemented for element_sensitivity_variables." << std::endl;
+			if (gradient_settings["condition_sensitivity_variables"].size() != 0)
+				KRATOS_ERROR << "CalculateGradient not implemented for condition_sensitivity_variables." << std::endl;
+			if (gradient_settings["sensitivity_model_part_name"].GetString() != mrModelPart.Name())
+				KRATOS_ERROR << "CalculateGradient only implemented for complete model part!" << std::endl;
+		}
     }
 
     /// Destructor.
@@ -126,6 +139,11 @@ public:
     // --------------------------------------------------------------------------
     void CalculateGradient()
     {
+		if (!mResponseSettings.Has("gradient_settings"))
+		{
+			KRATOS_ERROR << "CalculateGradient can not be called for zero order response!" << std::endl;
+		}
+
         CheckIfAllNecessaryEigenvaluesAreComputed();
         VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
         PerformSemiAnalyticSensitivityAnalysis();
@@ -183,17 +201,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    // ==============================================================================
-    void CheckSettingsForGradientAnalysis(Parameters rResponseSettings)
-    {
-        const std::string gradient_mode = rResponseSettings["gradient_mode"].GetString();
-
-        if (gradient_mode == "semi_analytic")
-            mDelta = rResponseSettings["step_size"].GetDouble();
-        else
-            KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
-    }
 
     // --------------------------------------------------------------------------
     void DetermineTracedEigenfrequencies(Parameters rResponseSettings)
@@ -253,6 +260,8 @@ protected:
     // --------------------------------------------------------------------------
     void PerformSemiAnalyticSensitivityAnalysis()
     {
+        const double delta = mResponseSettings["gradient_settings"]["step_size"].GetDouble();
+
         ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
         // Predetermine all necessary eigenvalues and prefactors for gradient calculation
@@ -295,14 +304,14 @@ protected:
 
                 for(std::size_t coord_dir_i = 0; coord_dir_i < domain_size; coord_dir_i++)
                 {
-                    node_i.GetInitialPosition()[coord_dir_i] += mDelta;
-                    node_i.Coordinates()[coord_dir_i] += mDelta;
+                    node_i.GetInitialPosition()[coord_dir_i] += delta;
+                    node_i.Coordinates()[coord_dir_i] += delta;
 
                     elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
-                    noalias(perturbed_mass_matrix) = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
+                    noalias(perturbed_mass_matrix) = (perturbed_mass_matrix - mass_matrix_org) / delta;
 
                     elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
-                    noalias(perturbed_LHS) = (perturbed_LHS - LHS_org) / mDelta;
+                    noalias(perturbed_LHS) = (perturbed_LHS - LHS_org) / delta;
 
                     for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                     {
@@ -315,8 +324,8 @@ protected:
                         gradient_contribution[coord_dir_i] += gradient_prefactors[i] * inner_prod(eigenvectors_of_element[i] , aux_vector) * mWeightingFactors[i];
                     }
 
-                    node_i.GetInitialPosition()[coord_dir_i] -= mDelta;
-                    node_i.Coordinates()[coord_dir_i] -= mDelta;
+                    node_i.GetInitialPosition()[coord_dir_i] -= delta;
+                    node_i.Coordinates()[coord_dir_i] -= delta;
                 }
                 noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
             }
@@ -380,9 +389,9 @@ private:
     ///@{
 
     ModelPart &mrModelPart;
-    double mDelta;
     std::vector<int> mTracedEigenfrequencyIds;
     std::vector<double> mWeightingFactors;
+    Parameters mResponseSettings;
 
     ///@}
 ///@name Private Operators

@@ -78,20 +78,21 @@ public:
 
 	/// Default constructor.
 	StrainEnergyResponseFunctionUtility(ModelPart& model_part, Parameters responseSettings)
-	: mrModelPart(model_part)
+	: mrModelPart(model_part), mResponseSettings(responseSettings)
 	{
-		// Set gradient mode
-		std::string gradient_mode = responseSettings["gradient_mode"].GetString();
-
-		if (gradient_mode.compare("semi_analytic") == 0)
+		// Validate gradient settings
+		if (mResponseSettings.Has("gradient_settings"))
 		{
-			double delta = responseSettings["step_size"].GetDouble();
-			mDelta = delta;
+			Parameters gradient_settings = mResponseSettings["gradient_settings"];
+			if (gradient_settings["gradient_mode"].GetString() != "semi_analytic")
+				KRATOS_ERROR << "Specified gradient_mode '" << gradient_settings["gradient_mode"].GetString() << "' not recognized. The only option is: semi_analytic" << std::endl;
+			if (gradient_settings["element_sensitivity_variables"].size() != 0)
+				KRATOS_ERROR << "CalculateGradient not implemented for element_sensitivity_variables." << std::endl;
+			if (gradient_settings["condition_sensitivity_variables"].size() != 0)
+				KRATOS_ERROR << "CalculateGradient not implemented for condition_sensitivity_variables." << std::endl;
+			if (gradient_settings["sensitivity_model_part_name"].GetString() != mrModelPart.Name())
+				KRATOS_ERROR << "CalculateGradient only implemented for complete model part!" << std::endl;
 		}
-		else
-			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
-
-		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 	}
 
 	/// Destructor.
@@ -142,36 +143,43 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
+	/**
+	 * Formula computed in general notation:
+	 * \frac{dF}{dx} = \frac{\partial F}{\partial x}
+	 *                 - \lambda^T \frac{\partial R_S}{\partial x}
+     *
+	 * Adjoint variable:
+	 * \lambda       = \frac{1}{2} u^T
+     *
+	 * Correspondingly in specific notation for given response function
+	 * \frac{dF}{dx} = \frac{1}{2} u^T \cdot \frac{\partial f_{ext}}{\partial x}
+	 *                 + \frac{1}{2} u^T \cdot ( \frac{\partial f_{ext}}{\partial x} - \frac{\partial K}{\partial x} )
+     */
 	void CalculateGradient()
 	{
 		KRATOS_TRY;
 
-		// Formula computed in general notation:
-		// \frac{dF}{dx} = \frac{\partial F}{\partial x}
-		//                 - \lambda^T \frac{\partial R_S}{\partial x}
-
-		// Adjoint variable:
-		// \lambda       = \frac{1}{2} u^T
-
-		// Correspondingly in specific notation for given response function
-		// \frac{dF}{dx} = \frac{1}{2} u^T \cdot \frac{\partial f_{ext}}{\partial x}
-		//                 + \frac{1}{2} u^T \cdot ( \frac{\partial f_{ext}}{\partial x} - \frac{\partial K}{\partial x} )
+		// Set gradient mode
+		if (!mResponseSettings.Has("gradient_settings"))
+		{
+			KRATOS_ERROR << "CalculateGradient can not be called for zero order response!" << std::endl;
+		}
 
 		// First gradients are initialized
 		VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
 
+		// Semi analytic sensitivities:
 
-		// Gradient calculation
 		// 1st step: Calculate partial derivative of response function w.r.t. node coordinates
-		// 2nd step: Calculate adjoint field
-		// 3rd step: Calculate partial derivative of state equation w.r.t. node coordinates and multiply with adjoint field
-
-		// Semi analytic sensitivities
 		CalculateResponseDerivativePartByFiniteDifferencing();
+
+		// 2nd step: Calculate adjoint field
 		CalculateAdjointField();
+
+		// 3rd step: Calculate partial derivative of state equation w.r.t. node coordinates and multiply with adjoint field
 		CalculateStateDerivativePartByFiniteDifferencing();
 
-		if (mConsiderDiscretization)
+		if (mResponseSettings["gradient_settings"]["consider_discretization"].GetBool())
 			this->ConsiderDiscretization();
 
 		KRATOS_CATCH("");
@@ -245,6 +253,8 @@ protected:
 	{
 		KRATOS_TRY;
 
+		const double delta = mResponseSettings["gradient_settings"]["step_size"].GetDouble();
+
 		// Working variables
 		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
 
@@ -269,28 +279,28 @@ protected:
 				Vector perturbed_RHS = Vector(0);
 
 				// Pertubation, gradient analysis and recovery of x
-				node_i.X0() += mDelta;
+				node_i.X0() += delta;
 				elem_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
-				node_i.X0() -= mDelta;
+				gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / delta);
+				node_i.X0() -= delta;
 
 				// Reset pertubed vector
 				perturbed_RHS = Vector(0);
 
 				// Pertubation, gradient analysis and recovery of y
-				node_i.Y0() += mDelta;
+				node_i.Y0() += delta;
 				elem_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
-				node_i.Y0() -= mDelta;
+				gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / delta);
+				node_i.Y0() -= delta;
 
 				// Reset pertubed vector
 				perturbed_RHS = Vector(0);
 
 				// Pertubation, gradient analysis and recovery of z
-				node_i.Z0() += mDelta;
+				node_i.Z0() += delta;
 				elem_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
-				node_i.Z0() -= mDelta;
+				gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / delta);
+				node_i.Z0() -= delta;
 
 				// Assemble sensitivity to node
 				noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
@@ -324,28 +334,28 @@ protected:
 					Vector perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of x
-					node_i.X0() += mDelta;
+					node_i.X0() += delta;
 					cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
-					node_i.X0() -= mDelta;
+					gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / delta);
+					node_i.X0() -= delta;
 
 					// Reset pertubed vector
 					perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of y
-					node_i.Y0() += mDelta;
+					node_i.Y0() += delta;
 					cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
-					node_i.Y0() -= mDelta;
+					gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / delta);
+					node_i.Y0() -= delta;
 
 					// Reset pertubed vector
 					perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of z
-					node_i.Z0() += mDelta;
+					node_i.Z0() += delta;
 					cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
-					node_i.Z0() -= mDelta;
+					gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / delta);
+					node_i.Z0() -= delta;
 
 					// Assemble shape gradient to node
 					noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
@@ -360,6 +370,8 @@ protected:
 	void CalculateResponseDerivativePartByFiniteDifferencing()
 	{
 		KRATOS_TRY;
+
+		const double delta = mResponseSettings["gradient_settings"]["step_size"].GetDouble();
 
 		// Working variables
 		ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
@@ -389,28 +401,28 @@ protected:
 					Vector perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of x
-					node_i.X0() += mDelta;
+					node_i.X0() += delta;
 					cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[0] = inner_prod(0.5*u, (perturbed_RHS - RHS) / mDelta);
-					node_i.X0() -= mDelta;
+					gradient_contribution[0] = inner_prod(0.5*u, (perturbed_RHS - RHS) / delta);
+					node_i.X0() -= delta;
 
 					// Reset pertubed vector
 					perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of y
-					node_i.Y0() += mDelta;
+					node_i.Y0() += delta;
 					cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[1] = inner_prod(0.5*u, (perturbed_RHS - RHS) / mDelta);
-					node_i.Y0() -= mDelta;
+					gradient_contribution[1] = inner_prod(0.5*u, (perturbed_RHS - RHS) / delta);
+					node_i.Y0() -= delta;
 
 					// Reset pertubed vector
 					perturbed_RHS = Vector(0);
 
 					// Pertubation, gradient analysis and recovery of z
-					node_i.Z0() += mDelta;
+					node_i.Z0() += delta;
 					cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[2] = inner_prod(0.5*u, (perturbed_RHS - RHS) / mDelta);
-					node_i.Z0() -= mDelta;
+					gradient_contribution[2] = inner_prod(0.5*u, (perturbed_RHS - RHS) / delta);
+					node_i.Z0() -= delta;
 
 					// Assemble shape gradient to node
 					noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
@@ -472,8 +484,7 @@ private:
 	///@{
 
 	ModelPart &mrModelPart;
-	double mDelta;
-	bool mConsiderDiscretization;
+	Parameters mResponseSettings;
 
 	///@}
 ///@name Private Operators
