@@ -229,7 +229,7 @@ public:
                          TValueType LocalValue,
                          const int RankToBroacastFrom)
 	{
-        // Determime data type
+        // Determine data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
         MPI_Bcast(&LocalValue, 1, DataType, RankToBroacastFrom, rComm.GetMPIComm());
@@ -252,7 +252,7 @@ public:
                       const int RankToReduceOn,
                       const MPI_Operation MpiOp)
 	{
-		// Determime data type
+		// Determine data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
         TValueType result_val;
@@ -275,7 +275,7 @@ public:
                          const TValueType LocalValue,
                          const MPI_Operation MpiOp)
 	{
-		// Determime data type
+		// Determine data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
         TValueType result_val;
@@ -298,7 +298,7 @@ public:
                        const std::vector<TValueType>& rLocalValues,
                        const int RankToScatterFrom)
     {
-        // Determime data type
+        // Determine data type
         const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
         int rank, size;
         MPI_Comm_rank(rComm.GetMPIComm(), &rank);
@@ -325,7 +325,7 @@ public:
                                      const std::vector<std::vector<TValueType>>& rLocalValues,
                                      const int RankToScatterFrom)
     {
-        // Determime data type
+        // Determine data type
         const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
         int rank, size;
         MPI_Comm_rank(rComm.GetMPIComm(), &rank);
@@ -385,7 +385,7 @@ public:
                                    const TValueType LocalValue,
                                    const int RankToGatherOn)
     {
-        // Determime data type
+        // Determine data type
         const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
         int rank, size;
@@ -418,7 +418,7 @@ public:
                                    const std::vector<TValueType>& rLocalValues,
                                    const int RankToGatherOn)
     {
-        // Determime data type
+        // Determine data type
         const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
 
         int recv_block_size = 1;
@@ -479,7 +479,7 @@ public:
     std::vector<TValueType> allgather(PythonMPIComm& rComm,
                                       const TValueType LocalValue)
     {
-        // Determime data type
+        // Determine data type
         const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
         int size;
