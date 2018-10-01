@@ -31,7 +31,7 @@
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
-#include "differentiation_utility.h"
+#include "element_finite_difference_utility.h"
 
 // ==============================================================================
 
@@ -270,15 +270,15 @@ protected:
 				Vector derived_RHS = Vector(0);
 
 				// x-direction
-				DifferentiationUtility::CalculateRigthHandSideDerivative(elem_i, SHAPE_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				ElementFiniteDifferenceUtility::CalculateRigthHandSideDerivative(elem_i, SHAPE_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[0] = inner_prod(lambda, derived_RHS);
 
                 // y-direction
-				DifferentiationUtility::CalculateRigthHandSideDerivative(elem_i, SHAPE_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				ElementFiniteDifferenceUtility::CalculateRigthHandSideDerivative(elem_i, SHAPE_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[1] = inner_prod(lambda, derived_RHS);
 
                 // z-direction
-				DifferentiationUtility::CalculateRigthHandSideDerivative(elem_i, SHAPE_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				ElementFiniteDifferenceUtility::CalculateRigthHandSideDerivative(elem_i, SHAPE_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
 				gradient_contribution[2] = inner_prod(lambda, derived_RHS);
 
 				// Assemble sensitivity to node

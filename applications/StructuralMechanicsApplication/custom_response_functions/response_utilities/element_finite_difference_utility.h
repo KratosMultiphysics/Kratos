@@ -10,8 +10,8 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#if !defined(KRATOS_DIFFERENTIATION_UTILITY_H_INCLUDED )
-#define  KRATOS_DIFFERENTIATION_UTILITY_H_INCLUDED
+#if !defined(KRATOS_ELEMENT_FINITE_DIFFERENCE_UTILITY_H_INCLUDED )
+#define  KRATOS_ELEMENT_FINITE_DIFFERENCE_UTILITY_H_INCLUDED
 
 
 // System includes
@@ -27,12 +27,12 @@
 namespace Kratos
 {
 
-/** \brief DifferentiationUtility
+/** \brief ElementFiniteDifferenceUtility
  *
  * This class calculates comnputes the derivatives of different element and condition entities
  * (e.g. RHS, LHS, mass-matrix, ...) with respect to a design variable (e.g. nodal-coordinate, property).
  */
-class DifferentiationUtility
+class ElementFiniteDifferenceUtility
 {
 public:
 
@@ -71,12 +71,12 @@ private:
 
     static std::size_t GetCoordinateDirection(const array_1d_component_type& rDesignVariable);
 
-}; // class DifferentiationUtility.
+}; // class ElementFiniteDifferenceUtility.
 
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DIFFERENTIATION_UTILITY_H_INCLUDED  defined
+#endif // KRATOS_ELEMENT_FINITE_DIFFERENCE_UTILITY_H_INCLUDED  defined
 
 

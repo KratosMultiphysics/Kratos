@@ -29,7 +29,7 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
-#include "differentiation_utility.h"
+#include "element_finite_difference_utility.h"
 
 // ==============================================================================
 
@@ -294,8 +294,8 @@ protected:
 
                 for(std::size_t coord_dir_i = 0; coord_dir_i < domain_size; coord_dir_i++)
                 {
-                    DifferentiationUtility::CalculateLeftHandSideDerivative(elem_i, coord_directions[coord_dir_i], node_i, mDelta, derived_LHS, CurrentProcessInfo);
-                    DifferentiationUtility::CalculateMassMatrixDerivative(elem_i, coord_directions[coord_dir_i], node_i, mDelta, derived_mass_matrix, CurrentProcessInfo);
+                    ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative(elem_i, coord_directions[coord_dir_i], node_i, mDelta, derived_LHS, CurrentProcessInfo);
+                    ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative(elem_i, coord_directions[coord_dir_i], node_i, mDelta, derived_mass_matrix, CurrentProcessInfo);
 
                     for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                     {

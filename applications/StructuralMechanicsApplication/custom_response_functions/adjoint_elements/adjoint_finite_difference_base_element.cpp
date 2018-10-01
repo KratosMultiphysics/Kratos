@@ -17,7 +17,7 @@
 #include "adjoint_finite_difference_base_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
-#include "custom_response_functions/response_utilities/differentiation_utility.h"
+#include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
 #include "includes/checks.h"
 
 
@@ -286,7 +286,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
     const double delta = this->GetPerturbationSize(rDesignVariable);
     ProcessInfo process_info = rCurrentProcessInfo;
     // Get pseudo-load from utility
-    DifferentiationUtility::CalculateRigthHandSideDerivative(*pGetPrimalElement(), rDesignVariable, delta, rOutput, process_info);
+    ElementFiniteDifferenceUtility::CalculateRigthHandSideDerivative(*pGetPrimalElement(), rDesignVariable, delta, rOutput, process_info);
 
     KRATOS_CATCH("")
 }
@@ -317,7 +317,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
             for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i)
             {
                 // Get pseudo-load contribution from utility
-                DifferentiationUtility::CalculateRigthHandSideDerivative(*pGetPrimalElement(), coord_directions[coord_dir_i],
+                ElementFiniteDifferenceUtility::CalculateRigthHandSideDerivative(*pGetPrimalElement(), coord_directions[coord_dir_i],
                                                                             node_i, delta, derived_RHS, process_info);
 
                 KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;

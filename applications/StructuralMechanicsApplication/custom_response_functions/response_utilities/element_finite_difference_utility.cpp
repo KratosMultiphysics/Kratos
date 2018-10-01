@@ -16,11 +16,11 @@
 // External includes
 
 // Project includes
-#include "differentiation_utility.h"
+#include "element_finite_difference_utility.h"
 
 namespace Kratos
 {
-    void DifferentiationUtility::CalculateRigthHandSideDerivative(Element& rElement,
+    void ElementFiniteDifferenceUtility::CalculateRigthHandSideDerivative(Element& rElement,
                                                 const Variable<double>& rDesignVariable,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
@@ -72,7 +72,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void DifferentiationUtility::CalculateRigthHandSideDerivative(Element& rElement,
+    void ElementFiniteDifferenceUtility::CalculateRigthHandSideDerivative(Element& rElement,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
@@ -83,13 +83,13 @@ namespace Kratos
 
         #ifdef _OPENMP
             KRATOS_ERROR_IF(omp_get_thread_num() > 0) <<
-                "DifferentiationUtility::CalculateRigthHandSideDerivative " <<
+                "ElementFiniteDifferenceUtility::CalculateRigthHandSideDerivative " <<
                 "is not thread safe for shape derivatives!" << omp_get_thread_num();
         #endif
 
         if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
         {
-           const IndexType coord_dir = DifferentiationUtility::GetCoordinateDirection(rDesignVariable);
+           const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
             // define working variables
             Vector RHS_unperturbed;
@@ -120,7 +120,7 @@ namespace Kratos
         }
         else
         {
-            KRATOS_WARNING("DifferentiationUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
+            KRATOS_WARNING("ElementFiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
             if ( (rOutput.size() != 0) )
                 rOutput.resize(0,false);
         }
@@ -128,7 +128,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void DifferentiationUtility::CalculateLeftHandSideDerivative(Element& rElement,
+    void ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative(Element& rElement,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
@@ -139,13 +139,13 @@ namespace Kratos
 
         #ifdef _OPENMP
             KRATOS_ERROR_IF(omp_get_thread_num() > 0) <<
-                "DifferentiationUtility::CalculateLeftHandSideDerivative " <<
+                "ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative " <<
                 "is not thread safe for shape derivatives!" << omp_get_thread_num();
         #endif
 
         if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
         {
-            const IndexType coord_dir = DifferentiationUtility::GetCoordinateDirection(rDesignVariable);
+            const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
             // define working variables
             Matrix LHS_unperturbed;
@@ -177,7 +177,7 @@ namespace Kratos
         }
         else
         {
-            KRATOS_WARNING("DifferentiationUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
+            KRATOS_WARNING("ElementFiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
             if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
                 rOutput.resize(0,0,false);
         }
@@ -185,7 +185,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void DifferentiationUtility::CalculateMassMatrixDerivative(Element& rElement,
+    void ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative(Element& rElement,
                                                 const array_1d_component_type& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
@@ -196,13 +196,13 @@ namespace Kratos
 
         #ifdef _OPENMP
             KRATOS_ERROR_IF(omp_get_thread_num() > 0) <<
-                "DifferentiationUtility::CalculateMassMatrixDerivative " <<
+                "ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative " <<
                 "is not thread safe for shape derivatives!" << omp_get_thread_num();
         #endif
 
         if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
         {
-            const IndexType coord_dir = DifferentiationUtility::GetCoordinateDirection(rDesignVariable);
+            const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
             // define working variables
             Matrix unperturbed_mass_matrix;
@@ -233,7 +233,7 @@ namespace Kratos
         }
         else
         {
-            KRATOS_WARNING("DifferentiationUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
+            KRATOS_WARNING("ElementFiniteDifferenceUtility") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
             if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
                 rOutput.resize(0,0,false);
         }
@@ -241,7 +241,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    std::size_t DifferentiationUtility::GetCoordinateDirection(const array_1d_component_type& rDesignVariable)
+    std::size_t ElementFiniteDifferenceUtility::GetCoordinateDirection(const array_1d_component_type& rDesignVariable)
     {
         if( rDesignVariable == SHAPE_X )
             return 0;
