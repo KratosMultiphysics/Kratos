@@ -17,7 +17,6 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
-#include "custom_constitutive/elastic_isotropic_3d.h"
 
 namespace Kratos
 {
@@ -52,6 +51,7 @@ namespace Kratos
  *                  |---[----|
  *                   Damper C
  *
+ * @param TElasticBehaviourLaw Defines the elastic behaviour of the constitutive law (can be hyperelastic or just linear elastic, or any desired elastic behaviour)
  * @author Alejandro Cornejo&  Lucia Barbu
  */
 

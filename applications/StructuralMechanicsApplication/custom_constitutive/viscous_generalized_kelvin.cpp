@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_constitutive/viscous_generalized_kelvin.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos

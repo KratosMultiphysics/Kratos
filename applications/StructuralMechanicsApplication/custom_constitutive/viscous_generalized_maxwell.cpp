@@ -18,6 +18,7 @@
 #include "includes/checks.h"
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/viscous_generalized_maxwell.h"
 
 namespace Kratos
