@@ -33,6 +33,61 @@ using UtilityType = MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpa
 using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
 using MappingWeightsVector = typename MapperLocalSystem::MappingWeightsVector;
 
+void Assemble_Vectors(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
+                                  EquationIdVectorType& rOriginIds,
+                                  EquationIdVectorType& rDestinationIds,
+                                  MappingWeightsVector& rMappingWeights)
+{
+    const int ierr = rpMdo->SumIntoGlobalValues(
+        rDestinationIds.size(), rDestinationIds.data(),
+        rOriginIds.size(),      rOriginIds.data(),
+        rMappingWeights.data(),
+        Epetra_FECrsMatrix::ROW_MAJOR );
+
+    KRATOS_ERROR_IF( ierr < 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
+        << "Error code: " << ierr << std::endl;
+}
+
+void Assemble_SerialDenseObjs(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
+                              EquationIdVectorType& rOriginIds,
+                              EquationIdVectorType& rDestinationIds,
+                              MappingWeightsVector& rMappingWeights)
+{
+    // TODO in case I end up using this, this can be optimized,
+    // i.e. construct an actual recangular matrix!
+
+    KRATOS_ERROR << " IMPORTANT, this function is currently NOT working!!!" << std::endl;
+
+    int num_rows = rDestinationIds.size();
+    int num_cols = rOriginIds.size();
+    Epetra_IntSerialDenseVector row_id_vector(num_rows);
+    Epetra_IntSerialDenseVector col_id_vector(num_cols);
+
+    Epetra_SerialDenseMatrix values(num_rows, num_cols);
+
+    // filling the objects
+    for (std::size_t i=0; i<num_rows; ++i) {
+        row_id_vector[i] = rDestinationIds[i];
+    }
+    for (std::size_t i=0; i<num_cols; ++i) {
+        col_id_vector[i] = rOriginIds[i];
+    }
+    for (std::size_t i=0; i<rMappingWeights.size(); ++i) {
+        values(rDestinationIds[i], rOriginIds[i]) = rMappingWeights[i];
+    }
+
+    const int ierr = rpMdo->SumIntoGlobalValues(
+        row_id_vector,
+        col_id_vector,
+        values
+        ,Epetra_FECrsMatrix::ROW_MAJOR //???
+        );
+
+    KRATOS_ERROR_IF( ierr < 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
+        << "Error code: " << ierr << std::endl;
+}
+
+
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
@@ -211,14 +266,16 @@ void UtilityType::ResizeAndInitializeVectors(
 
         if (mapping_weights.size() > 0)
         {
-            const int ierr = p_Mdo->SumIntoGlobalValues(
-                destination_ids.size(), destination_ids.data(),
-                origin_ids.size(),      origin_ids.data(),
-                mapping_weights.data(),
-                Epetra_FECrsMatrix::ROW_MAJOR );
+            Assemble_Vectors(p_Mdo, origin_ids, destination_ids, mapping_weights);
+            // Assemble_SerialDenseObjs(p_Mdo, origin_ids, destination_ids, mapping_weights);
+            // const int ierr = p_Mdo->SumIntoGlobalValues(
+            //     destination_ids.size(), destination_ids.data(),
+            //     origin_ids.size(),      origin_ids.data(),
+            //     mapping_weights.data(),
+            //     Epetra_FECrsMatrix::ROW_MAJOR );
 
-            KRATOS_ERROR_IF( ierr < 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
-                << "Error code: " << ierr << std::endl;
+            // KRATOS_ERROR_IF( ierr < 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
+            //     << "Error code: " << ierr << std::endl;
         }
 
         rp_local_sys->Clear();
