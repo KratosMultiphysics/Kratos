@@ -87,7 +87,7 @@ namespace Kratos
                 << "This function is not thread safe for shape derivatives!" << std::endl;
 
             #pragma omp critical
-			{
+            {
                 const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
                 // define working variables
@@ -143,7 +143,7 @@ namespace Kratos
                 << "This function is not thread safe for shape derivatives!" << std::endl;
 
             #pragma omp critical
-			{
+            {
                 const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
                 // define working variables
@@ -200,7 +200,7 @@ namespace Kratos
                 << "This function is not thread safe for shape derivatives!" << std::endl;
 
             #pragma omp critical
-			{
+            {
                 const IndexType coord_dir = ElementFiniteDifferenceUtility::GetCoordinateDirection(rDesignVariable);
 
                 // define working variables
