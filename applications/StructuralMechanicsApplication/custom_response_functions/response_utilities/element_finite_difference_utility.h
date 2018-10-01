@@ -29,8 +29,8 @@ namespace Kratos
 
 /** \brief ElementFiniteDifferenceUtility
  *
- * This class calculates comnputes the derivatives of different element and condition entities
- * (e.g. RHS, LHS, mass-matrix, ...) with respect to a design variable (e.g. nodal-coordinate, property).
+ * This class calculates the derivatives of different element quantities (e.g. RHS, LHS, mass-matrix, ...)
+ * with respect to a design variable (e.g. nodal-coordinate, property).
  */
 class ElementFiniteDifferenceUtility
 {
