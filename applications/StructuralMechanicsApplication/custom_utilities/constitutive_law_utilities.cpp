@@ -567,13 +567,15 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
     indexes_ij(0, 1) = 1;
     indexes_ij(1, 0) = 1;
     indexes_ij(1, 1) = 2;
+    indexes_ij(2, 0) = 0;
+    indexes_ij(2, 1) = 2;
 
     IndexType i, j;
     double h_i = 0.0, h_j = 0.0;
     Matrix cross_p_ij_tensor;
     Vector cross_p_ij_vector;
 
-    for (IndexType index = 0; index < 2; ++index) {
+    for (IndexType index = 0; index < Dimension; ++index) {
         i = indexes_ij(index, 0);
         j = indexes_ij(index, 1);
 
