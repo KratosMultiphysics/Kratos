@@ -15,6 +15,9 @@
 // System includes
 
 // External includes
+#ifdef KRATOS_USE_AMATRIX
+#include "boost/numeric/ublas/matrix.hpp" // for the sparse space dense vector
+#endif // KRATOS_USE_AMATRIX
 
 // Project includes
 #include "includes/define_python.h"
@@ -47,64 +50,64 @@ void AddCustomProcessesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    class_< SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, Process >
+    class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
     (m,"SpalartAllmarasTurbulenceModel")
     .def(init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
     .def("ActivateDES", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
     .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::AdaptForFractionalStep)
     ;
 
-    class_< StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >, Process >
+    class_<StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >, StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
     (m,"StokesInitializationProcess")
-    .def(init<ModelPart::Pointer, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
+    .def(init<ModelPart&, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
     .def("SetConditions",&StokesInitializationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>::SetConditions)
     ;
 
-    class_< BoussinesqForceProcess, Process >
+    class_<BoussinesqForceProcess, BoussinesqForceProcess::Pointer, Process>
     (m,"BoussinesqForceProcess")
-    .def(init<ModelPart::Pointer, Parameters& >())
+    .def(init<ModelPart&, Parameters& >())
     ;
 
-    class_< WindkesselModel, Process >
+    class_<WindkesselModel, WindkesselModel::Pointer, Process>
     (m,"WindkesselModel")
     .def(init < ModelPart&>())
     ;
 
-    class_< DistanceModificationProcess, Process >
+    class_<DistanceModificationProcess, DistanceModificationProcess::Pointer, Process>
     (m,"DistanceModificationProcess")
     .def(init < ModelPart&, const double, const double, const bool, const bool, const bool >())
     .def(init< ModelPart&, Parameters& >())
     ;
 
-    class_< EmbeddedNodesInitializationProcess, Process >
+    class_<EmbeddedNodesInitializationProcess, EmbeddedNodesInitializationProcess::Pointer, Process>
     (m,"EmbeddedNodesInitializationProcess")
     .def(init < ModelPart&, unsigned int >())
     ;
 
-    class_< EmbeddedPostprocessProcess, Process >
+    class_<EmbeddedPostprocessProcess, EmbeddedPostprocessProcess::Pointer, Process>
     (m,"EmbeddedPostprocessProcess")
     .def(init < ModelPart& >())
     ;
 
-    class_< EmbeddedSkinVisualizationProcess, Process >
+    class_<EmbeddedSkinVisualizationProcess, EmbeddedSkinVisualizationProcess::Pointer, Process>
     (m,"EmbeddedSkinVisualizationProcess")
-    .def(init < 
-        ModelPart&, 
-        ModelPart&, 
-        const std::vector<Variable <double> >, 
-        const std::vector<Variable< array_1d<double, 3> > >, 
-        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >, 
-        std::string, 
+    .def(init <
+        ModelPart&,
+        ModelPart&,
+        const std::vector<Variable <double> >,
+        const std::vector<Variable< array_1d<double, 3> > >,
+        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >,
+        std::string,
         const bool >())
     .def(init< ModelPart&, ModelPart&, Parameters& >())
     ;
 
-    class_< MoveRotorProcess, Process >
+    class_<MoveRotorProcess, MoveRotorProcess::Pointer, Process>
     (m,"MoveRotorProcess")
     .def(init < ModelPart&, const double, const double, const double, const double, const double, const unsigned int >())
     .def(init< ModelPart&, Parameters& >())

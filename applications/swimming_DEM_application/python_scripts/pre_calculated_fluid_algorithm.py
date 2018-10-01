@@ -20,6 +20,7 @@ class Algorithm(BaseAlgorithm):
         Add("DEM_steps_per_fluid_load_step").SetInt(10)
         Add("store_fluid_in_single_precision").SetBool(True)
         Add("store_fluid_pressure_option").SetBool(True)
+        Add("do_write_results_to_hdf5").SetBool(True)
 
     def PerformZeroStepInitializations(self):
         BaseAlgorithm.PerformZeroStepInitializations(self)
@@ -37,7 +38,8 @@ class Algorithm(BaseAlgorithm):
     def FluidSolve(self, time = 'None', solve_system = True):
         if not self.pp.CFD_DEM["fluid_already_calculated"].GetBool():
             BaseAlgorithm.FluidSolve(self, time, solve_system = solve_system)
-            self.fluid_loader.FillFluidDataStep()
+            if self.pp.CFD_DEM["do_write_results_to_hdf5"].GetBool():
+                self.fluid_loader.FillFluidDataStep()
         else:
             BaseAlgorithm.FluidSolve(self, time, solve_system = False)
             if not self.stationarity:

@@ -192,8 +192,8 @@ public:
         }
 
         //matrix containing the position of the 4/15/45 particles that we will seed at the beggining
-        bounded_matrix<double, 5*(1+TDim), 3 > pos;
-        bounded_matrix<double, 5*(1+TDim), (1+TDim) > N;
+        BoundedMatrix<double, 5*(1+TDim), 3 > pos;
+        BoundedMatrix<double, 5*(1+TDim), (1+TDim) > N;
 
         int particle_id=0;
         mNElems = mrModelPart.Elements().size();
@@ -918,8 +918,8 @@ public:
             //ModelPart::ElementsContainerType::iterator it_end = mrModelPart.ElementsBegin() + elem_partition[k+1] ; 
             //ModelPart::NodesContainerType local_list=aux[k];
             //PointerVectorSet<ShallowParticle, IndexedObject> & list=aux[k];
-            bounded_matrix<double, (TDim+1), 3 > pos;
-            bounded_matrix<double, (TDim+1) , (TDim+1) > N;
+            BoundedMatrix<double, (TDim+1), 3 > pos;
+            BoundedMatrix<double, (TDim+1) , (TDim+1) > N;
             unsigned int freeparticle=0; //we start with the first position in the particles array
 
             //int local_id=1;
@@ -1039,8 +1039,8 @@ public:
 
             int k = OpenMPUtils::ThisThread();
 
-            bounded_matrix<double, (3+2*TDim), 3 > pos; //7 particles (2D) or 9 particles (3D)
-            bounded_matrix<double, (3+2*TDim), (TDim+1) > N;
+            BoundedMatrix<double, (3+2*TDim), 3 > pos; //7 particles (2D) or 9 particles (3D)
+            BoundedMatrix<double, (3+2*TDim), (TDim+1) > N;
 
             double mesh_scalar1;
             array_1d<double,3> mesh_vector1;
@@ -1849,8 +1849,8 @@ private:
     /**
      */
     void ComputeGaussPointPositions_4( Geometry< Node < 3 > >& geom,
-                                       bounded_matrix<double, 7, 3 > & pos,
-                                       bounded_matrix<double, 7, 3 > & N )
+                                       BoundedMatrix<double, 7, 3 > & pos,
+                                       BoundedMatrix<double, 7, 3 > & N )
     {
         double one_third = 1.0 / 3.0;
         double one_sixt = 0.15; //1.0 / 6.0;
@@ -1897,8 +1897,8 @@ private:
      * @see PostReseed
      */
     void ComputeGaussPointPositionsForPostReseed( Geometry< Node < 3 > >& geom,
-                                                  bounded_matrix<double, 7, 3 > & pos,
-                                                  bounded_matrix<double, 7, 3 > & N ) //2d
+                                                  BoundedMatrix<double, 7, 3 > & pos,
+                                                  BoundedMatrix<double, 7, 3 > & N ) //2d
     {
         double one_third = 1.0 / 3.0;
         double one_eight = 0.12; //1.0 / 6.0;
@@ -1975,8 +1975,8 @@ private:
      * @see PostReseed
      */
     void ComputeGaussPointPositionsForPostReseed( Geometry< Node < 3 > >& geom,
-                                                  bounded_matrix<double, 9, 3 > & pos,
-                                                  bounded_matrix<double, 9, 4 > & N ) //3D
+                                                  BoundedMatrix<double, 9, 3 > & pos,
+                                                  BoundedMatrix<double, 9, 4 > & N ) //3D
     {
         double one_quarter = 0.25;
         double small_fraction = 0.1; //1.0 / 6.0;
@@ -2047,8 +2047,8 @@ private:
      * @see PreReseed
      */
     void ComputeGaussPointPositionsForPreReseed( Geometry< Node < 3 > >& geom,
-                                                 bounded_matrix<double, 3, 3 > & pos,
-                                                 bounded_matrix<double, 3, 3 > & N ) //2D
+                                                 BoundedMatrix<double, 3, 3 > & pos,
+                                                 BoundedMatrix<double, 3, 3 > & N ) //2D
     {
         N(0, 0) = 0.5;
         N(0, 1) = 0.25;
@@ -2085,8 +2085,8 @@ private:
      * @see PreReseed
      */
     void ComputeGaussPointPositionsForPreReseed( Geometry< Node < 3 > >& geom,
-                                                 bounded_matrix<double, 4, 3 > & pos,
-                                                 bounded_matrix<double, 4, 4 > & N ) //3D
+                                                 BoundedMatrix<double, 4, 3 > & pos,
+                                                 BoundedMatrix<double, 4, 4 > & N ) //3D
     {
         //creating 4 particles, each will be closer to a node and equidistant to the other nodes
 
@@ -2128,8 +2128,8 @@ private:
     /** 
      */
     void ComputeGaussPointPositions_45( Geometry< Node < 3 > >& geom,
-                                        bounded_matrix<double, 45, 3 > & pos,
-                                        bounded_matrix<double, 45, 3 > & N )
+                                        BoundedMatrix<double, 45, 3 > & pos,
+                                        BoundedMatrix<double, 45, 3 > & N )
     {
         unsigned int counter=0;
         for (unsigned int i=0; i!=9;i++)
@@ -2153,8 +2153,8 @@ private:
     /** 
      */
     void ComputeGaussPointPositions_initial( Geometry< Node < 3 > >& geom,
-                                             bounded_matrix<double, 15, 3 > & pos,
-                                             bounded_matrix<double, 15, 3 > & N ) //2D
+                                             BoundedMatrix<double, 15, 3 > & pos,
+                                             BoundedMatrix<double, 15, 3 > & N ) //2D
     {
         unsigned int counter=0;
         for (unsigned int i=0; i!=5;i++)
@@ -2178,8 +2178,8 @@ private:
     /** 
      */
     void ComputeGaussPointPositions_initial( Geometry< Node < 3 > >& geom,
-                                             bounded_matrix<double, 20, 3 > & pos,
-                                             bounded_matrix<double, 20, 4 > & N ) //3D
+                                             BoundedMatrix<double, 20, 3 > & pos,
+                                             BoundedMatrix<double, 20, 4 > & N ) //3D
     {
         double fraction_increment;
         unsigned int counter=0;

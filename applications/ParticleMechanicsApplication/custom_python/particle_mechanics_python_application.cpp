@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
 
@@ -28,14 +28,12 @@
 #include "custom_elements/updated_lagrangian.hpp"
 #include "custom_elements/updated_lagrangian_UP.hpp"
 #include "custom_elements/updated_lagrangian_quadrilateral.hpp"
-//#include "custom_elements/updated_lagrangian_UP_quadrilateral.hpp"
 
-//#include "custom_elements/total_lagrangian.hpp"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
-
+#include "geometries/hexahedra_3d_8.h"
 
 #include "particle_mechanics_application.h"
 
@@ -49,43 +47,27 @@ using namespace pybind11;
 
 Element::Pointer CreateUpdatedLagragian2D3N()
 {
-    UpdatedLagrangian::Pointer NewElement(
-        new UpdatedLagrangian( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ));
-    return NewElement;
-
+    return Kratos::make_shared<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
 }
 
 Element::Pointer CreateUpdatedLagragianUP2D3N()
 {
-    UpdatedLagrangianUP::Pointer NewElement(
-        new UpdatedLagrangianUP( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ));
-    return NewElement;
-
+    return Kratos::make_shared<UpdatedLagrangianUP>( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) );
 }
 
 Element::Pointer CreateUpdatedLagragian3D4N()
 {
-    UpdatedLagrangian::Pointer NewElement(
-        new UpdatedLagrangian( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ));
-    return NewElement;
-
+    return Kratos::make_shared<UpdatedLagrangian>( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
 }
 Element::Pointer CreateUpdatedLagragian2D4N()
 {
-    UpdatedLagrangianQuadrilateral::Pointer NewElement(
-        new UpdatedLagrangianQuadrilateral( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ));
-    return NewElement;
+    return Kratos::make_shared<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) );
 
 }
-
-
-//Element::Pointer CreateUpdatedLagragianUP2D4N()
-//{
-//UpdatedLagrangianUPQuadrilateral::Pointer NewElement(
-//new UpdatedLagrangianUPQuadrilateral( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ));
-//return NewElement;
-
-//}
+Element::Pointer CreateUpdatedLagragian3D8N()
+{
+    return Kratos::make_shared<UpdatedLagrangianQuadrilateral>( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8 ) ) ) );
+}
 
 
 PYBIND11_MODULE(KratosParticleMechanicsApplication, m)
@@ -105,10 +87,7 @@ PYBIND11_MODULE(KratosParticleMechanicsApplication, m)
     m.def("CreateUpdatedLagragianUP2D3N", &CreateUpdatedLagragianUP2D3N);
     m.def("CreateUpdatedLagragian3D4N", &CreateUpdatedLagragian3D4N);
     m.def("CreateUpdatedLagragian2D4N", &CreateUpdatedLagragian2D4N);
-//	def("CreateUpdatedLagragianUP2D4N", &CreateUpdatedLagragianUP2D4N);
-
-    //def("CreateTotalLagragian2D3N", &CreateTotalLagragian2D3N);
-    //def("CreateTotalLagragian3D4N", &CreateTotalLagragian3D4N);
+    m.def("CreateUpdatedLagragian3D8N", &CreateUpdatedLagragian3D8N);
 
     // Registering variables in python
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  GAUSS_COORD )
@@ -124,9 +103,15 @@ PYBIND11_MODULE(KratosParticleMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_TOTAL_ENERGY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_PRESSURE);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_JACOBIAN);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_EQUIVALENT_PLASTIC_STRAIN);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_DELTA_PLASTIC_STRAIN );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_DELTA_PLASTIC_DEVIATORIC_STRAIN );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_EQUIVALENT_PLASTIC_STRAIN );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN );
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_CONSTITUTIVE_PRESSURE);
-    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NODAL_MASS);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MP_MATERIAL_ID);
+
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUX_VELOCITY);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUX_ACCELERATION);
 
@@ -156,6 +141,16 @@ PYBIND11_MODULE(KratosParticleMechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  AUX_R_ACC )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  AUX_T_ACC )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,  NODAL_LUMPED_MASS )
+
+    // Nodal load variables
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  POINT_LOAD )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  LINE_LOAD )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,  SURFACE_LOAD )
+
+    // Condition load variables
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,POINT_LOADS_VECTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,LINE_LOADS_VECTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,SURFACE_LOADS_VECTOR )
 }
 
 

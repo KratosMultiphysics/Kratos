@@ -48,8 +48,8 @@ namespace Kratos
       /// Destructor.
       virtual ~IterativeSolverStrategy()
       {
-         Timer::SetOuputFile("TimesPartialRelease");
-         Timer::PrintTimingInformation();
+         //Timer::SetOuputFile("TimesPartialRelease");
+         //Timer::PrintTimingInformation();
       }
 
 

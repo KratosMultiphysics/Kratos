@@ -75,7 +75,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElasticPlaneStrain2DLaw();
+    ~HyperElasticPlaneStrain2DLaw() override;
 
     /**
      * Operators
@@ -167,7 +167,7 @@ protected:
                                        Matrix& rConstitutiveMatrix ) override;
 
 
- 
+
 private:
 
     ///@name Static Member Variables
@@ -211,4 +211,4 @@ private:
 
 }; // Class HyperElasticPlaneStrain2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HYPERELASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_HYPERELASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined

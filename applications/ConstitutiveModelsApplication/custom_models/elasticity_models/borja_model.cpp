@@ -39,7 +39,7 @@ namespace Kratos
 
    ConstitutiveModel::Pointer BorjaModel::Clone() const
    {
-      return ( BorjaModel::Pointer(new BorjaModel(*this)) );
+      return Kratos::make_shared<BorjaModel>(*this);
    }
 
    //********************************ASSIGNMENT******************************************
@@ -191,8 +191,8 @@ namespace Kratos
 
       for (unsigned int i = 0; i<3; ++i) {
          for (unsigned int j = 0; j<3; ++j) {
-            rConstitutiveMatrix(i,j) -= Modulus * (StrainVector(i) ); 
-            rConstitutiveMatrix(i,j) -= Modulus * (StrainVector(j) ); 
+            rConstitutiveMatrix(i,j) -= Modulus * (StrainVector(i) );
+            rConstitutiveMatrix(i,j) -= Modulus * (StrainVector(j) );
          }
       }
 

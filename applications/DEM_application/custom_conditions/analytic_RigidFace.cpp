@@ -73,6 +73,11 @@ int AnalyticRigidFace3D::GetNumberThroughput()
     return mNumberThroughput;
 }
 
+int AnalyticRigidFace3D::AreThereNewCrossings()
+{
+    return int(mCrossers.size());
+}
+
 std::vector<int> AnalyticRigidFace3D::GetSignedCollidingIds()
 {
     return mCrossers;

@@ -66,7 +66,15 @@ namespace Kratos
 
   Condition::Pointer ContactDomainPenalty2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
   {
-    return Condition::Pointer(new ContactDomainPenalty2DCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+    return Kratos::make_shared<ContactDomainPenalty2DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
+  }
+
+  //************************************CLONE*******************************************
+  //************************************************************************************
+
+  Condition::Pointer ContactDomainPenalty2DCondition::Clone( IndexType NewId, NodesArrayType const& ThisNodes ) const
+  {
+    return this->Create(NewId, ThisNodes, pGetProperties());
   }
 
 
@@ -93,7 +101,7 @@ namespace Kratos
     penalty_parameter = GetProperties()[PENALTY_PARAMETER];
 
     ElementType& rMasterElement = mContactVariables.GetMasterElement();
-  
+
     //Look at the nodes, get the slave and get the Emin
 
     //Contact face segment node1-node2
@@ -116,7 +124,7 @@ namespace Kratos
     else if( MasterProperties.Has(C10) ){
 	Emaster = MasterProperties[C10];
     }
-    
+
     //STANDARD OPTION
     if(Emaster>Eslave)
       Emaster=Eslave;
@@ -124,7 +132,7 @@ namespace Kratos
     mContactVariables.PenaltyFactor = 0.5 * penalty_parameter * Emaster;
 
     // mContactVariables.PenaltyParameter = 0.5 / mContactVariables.StabilizationFactor ;
-   
+
   }
 
 
@@ -143,14 +151,14 @@ namespace Kratos
 
     //Contact face segment node1-node2
     unsigned int node1=mContactVariables.nodes[0];
-    unsigned int node2=mContactVariables.nodes[1];    
+    unsigned int node2=mContactVariables.nodes[1];
     unsigned int slave=mContactVariables.slaves.back();
 
     // std::cout<<" ************ CONTACT ELEMENT "<<this->Id()<<" ************* "<<std::endl;
     // std::cout<<std::endl;
-    
+
     // Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();
-    
+
     // std::cout<<" master element "<<MasterElement.Id()<<std::endl;
     // std::cout<<" Elastic Modulus "<<MasterElement.GetProperties()[YOUNG_MODULUS]<<std::endl;
 
@@ -224,7 +232,7 @@ namespace Kratos
 
     //complete the computation of the stabilization gap
     //rVariables.Contact.ContactFactor.Normal = mContactVariables.StabilizationFactor * rVariables.Contact.ReferenceBase[0].L;
-    rVariables.Contact.ContactFactor.Normal  = mContactVariables.PenaltyFactor; // rVariables.Contact.ReferenceBase[0].L; 
+    rVariables.Contact.ContactFactor.Normal  = mContactVariables.PenaltyFactor; // rVariables.Contact.ReferenceBase[0].L;
     rVariables.Contact.ContactFactor.Tangent = mContactVariables.PenaltyFactor; // rVariables.Contact.ReferenceBase[0].L;
 
 
@@ -236,7 +244,7 @@ namespace Kratos
 
     double ReferenceGapN = inner_prod((PS - P1),mContactVariables.ReferenceSurface.Normal);
     //std::cout<<" Reference GAP "<<ReferenceGapN<<std::endl;
-    
+
     double ReferenceGapT = ReferenceGapN;
 
     double H = ReferenceGapN;
@@ -253,13 +261,13 @@ namespace Kratos
     ReferenceGapN+=inner_prod(rVariables.Contact.CurrentSurface.Normal,DS);
 
     //(g_T)3
-    ReferenceGapT*=inner_prod(rVariables.Contact.CurrentSurface.Tangent,mContactVariables.ReferenceSurface.Normal);     
+    ReferenceGapT*=inner_prod(rVariables.Contact.CurrentSurface.Tangent,mContactVariables.ReferenceSurface.Normal);
 
     ReferenceGapT+=inner_prod(rVariables.Contact.CurrentSurface.Tangent,(D1*(-rVariables.Contact.ReferenceBase[0].A/rVariables.Contact.ReferenceBase[0].L)));
     ReferenceGapT+=inner_prod(rVariables.Contact.CurrentSurface.Tangent,(D2*(-rVariables.Contact.ReferenceBase[0].B/rVariables.Contact.ReferenceBase[0].L)));
     ReferenceGapT+=inner_prod(rVariables.Contact.CurrentSurface.Tangent,DS);
 
- 
+
     //Write Displacements:
     // std::cout<<" displacement node 1 "<<D1<<std::endl;
     // std::cout<<" displacement node 2 "<<D2<<std::endl;
@@ -277,7 +285,7 @@ namespace Kratos
     rVariables.Contact.CurrentGap.Tangent = ReferenceGapT; //(g_T)3 -- needed in the Kcont1 computation
 
     //5.- Compute Penalty Factors
-        
+
     //(1/(2*Tau)) is now ContactFactor.Normal, the penalty parameter
     rVariables.Contact.Penalty.Normal  = rVariables.Contact.CurrentGap.Normal * rVariables.Contact.ContactFactor.Normal;
 
@@ -294,7 +302,7 @@ namespace Kratos
       {
         rVariables.Contact.TangentialGapSign*=(-1);
       }
-    
+
     if(H==0) rVariables.Contact.TangentialGapSign=0;
 
     // if friction still not avaliable:
@@ -321,12 +329,12 @@ namespace Kratos
 
         //Calculate Relative Velocity
         this->CalculateRelativeVelocity    ( rVariables, TangentVelocity, rCurrentProcessInfo);
-    
+
 	//Calculate Friction Coefficient
         this->CalculateFrictionCoefficient ( rVariables, TangentVelocity );
 
 
-      
+
 	rVariables.Contact.Options.Set(ACTIVE,true); //normal contact active
 
         // if(fabs(EffectiveGapT)<=rVariables.Contact.FrictionCoefficient*fabs(EffectiveGapN))
@@ -339,7 +347,7 @@ namespace Kratos
         //     rVariables.Contact.Options.Set(SLIP,true);  //contact slip  case active
 
         // }
-	rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS); 
+	rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS);
 	rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_FORCES);
 
       }
@@ -354,15 +362,15 @@ namespace Kratos
 
     //set contact normal
     array_1d<double, 3> &ContactNormal  = GetGeometry()[slave].FastGetSolutionStepValue(CONTACT_NORMAL);
-	
+
     for(unsigned int i=0; i<3; i++)
       ContactNormal[i] = rVariables.Contact.CurrentSurface.Normal[i];
-    
+
 
     if(mContactVariables.IterationCounter < 1)
       mContactVariables.IterationCounter += 1;
 
-    
+
 
   }
 
@@ -371,7 +379,7 @@ namespace Kratos
   //************************************************************************************
 
   void ContactDomainPenalty2DCondition::CalculateNormalForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
-  {    
+  {
     F = rVariables.Contact.Penalty.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir];
 
   }
@@ -391,7 +399,7 @@ namespace Kratos
       F=0.0;
     }
 
-		
+
   }
 
   //************************************************************************************
@@ -421,10 +429,10 @@ namespace Kratos
   void ContactDomainPenalty2DCondition::CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
   {
     KRATOS_TRY
-    
+
     Kcont=0;
 
-    
+
     //Normal contact penalty contribution:
     //KI:
     Kcont = rVariables.Contact.ContactFactor.Normal * ( rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
@@ -450,9 +458,9 @@ namespace Kratos
 						       + rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
 						       - rVariables.Contact.CurrentGap.Normal*(rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])
 						       - rVariables.Contact.CurrentGap.Normal*(rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Tangent[jdir]));
-		    
+
 	    //( rVariables.Contact.Penalty.Tangent-  rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.CurrentGap.Tangent )
-	  
+
 	  }
       }
     // else
@@ -475,7 +483,7 @@ namespace Kratos
 
     //std::cout<<" Ks "<<Kcont-K1<<std::endl;
 
-    KRATOS_CATCH(" ")    
+    KRATOS_CATCH(" ")
   }
 
 
@@ -492,5 +500,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
-

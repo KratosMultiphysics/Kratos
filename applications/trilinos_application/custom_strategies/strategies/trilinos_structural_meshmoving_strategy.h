@@ -27,7 +27,6 @@
 
 /* Trilinos includes */
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 
 namespace Kratos
@@ -113,7 +112,7 @@ public:
         GenerateMeshPart();
 
         typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(
-            new TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
+            new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace, TDenseSpace>());
 
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
         BuilderSolverTypePointer builderSolver = BuilderSolverTypePointer(
@@ -303,7 +302,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    ModelPart::Pointer mpmesh_model_part;
+    Kratos::unique_ptr<ModelPart> mpmesh_model_part;
 
     typename BaseType::Pointer mstrategy;
 
@@ -324,7 +323,8 @@ private:
     void GenerateMeshPart()
     {
         // Initialize auxiliary model part storing the mesh elements
-        mpmesh_model_part = ModelPart::Pointer(new ModelPart("MeshPart", 1));
+        auto tmp = Kratos::make_unique<ModelPart>("MeshPart", 1);
+        mpmesh_model_part.swap(tmp);
 
         // Initializing mesh nodes
         mpmesh_model_part->Nodes() = BaseType::GetModelPart().Nodes();

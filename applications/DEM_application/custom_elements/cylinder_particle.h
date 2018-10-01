@@ -22,7 +22,7 @@
 namespace Kratos
 {
 
-  class CylinderParticle : public SphericParticle
+  class KRATOS_API(DEM_APPLICATION) CylinderParticle : public SphericParticle
     {
     public:
 
@@ -41,14 +41,14 @@ namespace Kratos
 
       /// Destructor.
       virtual ~CylinderParticle();
-      
-      double CalculateVolume() override;  
+
+      double CalculateVolume() override;
       double CalculateMomentOfInertia() override;
-      
+
       void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info) override;
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
-      void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info) override;    
+      void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info) override;
 
       /// Turn back information as a string.
       virtual std::string Info() const override
@@ -84,7 +84,7 @@ namespace Kratos
           KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
       }
 
-     
+
 
     }; // Class SphericParticle
 

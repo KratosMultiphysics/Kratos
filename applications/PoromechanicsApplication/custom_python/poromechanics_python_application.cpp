@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        KratosPoromechanicsApplication $
 //   Last Modified by:    $Author:    Ignasi de Pouplana $
 //   Date:                $Date:            January 2016 $
@@ -20,7 +20,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "poromechanics_application.h"
- 
+
 namespace Kratos
 {
 
@@ -28,11 +28,11 @@ namespace Python
 {
 
 using namespace pybind11;
-  
+
 PYBIND11_MODULE(KratosPoromechanicsApplication, m)
 {
-    class_<KratosPoromechanicsApplication, 
-    KratosPoromechanicsApplication::Pointer, 
+    class_<KratosPoromechanicsApplication,
+    KratosPoromechanicsApplication::Pointer,
     KratosApplication>(m, "KratosPoromechanicsApplication")
     .def(init<>());
 
@@ -52,19 +52,22 @@ PYBIND11_MODULE(KratosPoromechanicsApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, PERMEABILITY_MATRIX )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, LOCAL_PERMEABILITY_MATRIX )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, TOTAL_STRESS_TENSOR )
-    
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, IS_CONVERGED )
-    
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, ARC_LENGTH_LAMBDA )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, ARC_LENGTH_RADIUS_FACTOR )
-    
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, TIME_UNIT_CONVERTER )
-    
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, JOINT_WIDTH )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_SMOOTHING )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_CAUCHY_STRESS_TENSOR )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_VON_MISES_STRESS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_DAMAGE_VARIABLE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_JOINT_AREA )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_JOINT_WIDTH )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_JOINT_DAMAGE )
 }
 
 }  // namespace Python.

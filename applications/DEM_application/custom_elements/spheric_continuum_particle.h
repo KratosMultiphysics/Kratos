@@ -33,7 +33,7 @@
 
 namespace Kratos
 {
-    class SphericContinuumParticle : public SphericParticle
+    class KRATOS_API(DEM_APPLICATION) SphericContinuumParticle : public SphericParticle
     {
     public:
 

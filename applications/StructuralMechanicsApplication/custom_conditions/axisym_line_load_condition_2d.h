@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED )
@@ -77,11 +77,11 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
-        
-    Condition::Pointer Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes, 
-        PropertiesType::Pointer pProperties 
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const override;
 
     //std::string Info() const;
@@ -120,11 +120,11 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     AxisymLineLoadCondition2D() : LineLoadCondition2D()
     {
     }
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -150,7 +150,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -175,7 +175,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-    
+
     friend class Serializer;
 
     // A private default constructor necessary for serialization
@@ -206,4 +206,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined

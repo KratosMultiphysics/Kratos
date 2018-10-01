@@ -55,7 +55,7 @@ BeamPointRigidContactCondition::BeamPointRigidContactCondition(IndexType NewId, 
 BeamPointRigidContactCondition::BeamPointRigidContactCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall)
   : Condition(NewId, pGeometry, pProperties)
 {
-  
+
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
     mpRigidWall = pRigidWall;
 
@@ -68,7 +68,7 @@ BeamPointRigidContactCondition::BeamPointRigidContactCondition(IndexType NewId, 
 BeamPointRigidContactCondition::BeamPointRigidContactCondition( BeamPointRigidContactCondition const& rOther )
     : Condition(rOther)
     ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
-      
+
 {
 }
 
@@ -79,7 +79,7 @@ Condition::Pointer BeamPointRigidContactCondition::Create(
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new BeamPointRigidContactCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+  return Kratos::make_shared<BeamPointRigidContactCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -119,10 +119,10 @@ void BeamPointRigidContactCondition::GetDofList(DofsVectorType& rConditionDofLis
 
 	if( dimension == 3 ){
 	  rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-	  rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X)); 
+	  rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
 	  rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
 	}
-	
+
         rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
 
     }
@@ -157,7 +157,7 @@ void BeamPointRigidContactCondition::EquationIdVector(EquationIdVectorType& rRes
 	  rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
           rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
 	}
-	
+
 	rResult[index + 5] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
     }
 
@@ -176,7 +176,7 @@ void BeamPointRigidContactCondition::GetValuesVector(Vector& rValues, int Step)
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       condition_size  = number_of_nodes * (dimension * (dimension-1));
 
-    if ( rValues.size() != condition_size ) 
+    if ( rValues.size() != condition_size )
       rValues.resize( condition_size, false );
 
     for (unsigned int i = 0; i < number_of_nodes; i++) //TODO: fix this. Apparentñy, it would not work in 2D!! MA
@@ -190,7 +190,7 @@ void BeamPointRigidContactCondition::GetValuesVector(Vector& rValues, int Step)
 	    rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ROTATION_X, Step );
 	    rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Y, Step );
 	}
-	
+
 	rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
     }
 
@@ -223,7 +223,7 @@ void BeamPointRigidContactCondition::GetFirstDerivativesVector( Vector& rValues,
 	}
 
 	rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );
-	
+
     }
 
     KRATOS_CATCH( "" )
@@ -255,7 +255,7 @@ void BeamPointRigidContactCondition::GetSecondDerivativesVector( Vector& rValues
 	  rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Y, Step );
 
 	}
-	
+
 	rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
 
     }
@@ -287,9 +287,9 @@ void BeamPointRigidContactCondition::ClearNodalForces()
 //***********************************************************************************
 //***********************************************************************************
 
-void BeamPointRigidContactCondition::AddExplicitContribution(const VectorType& rRHSVector, 
-						 const Variable<VectorType>& rRHSVariable, 
-						 Variable<array_1d<double,3> >& rDestinationVariable, 
+void BeamPointRigidContactCondition::AddExplicitContribution(const VectorType& rRHSVector,
+						 const Variable<VectorType>& rRHSVariable,
+						 Variable<array_1d<double,3> >& rDestinationVariable,
 						 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -356,7 +356,7 @@ void BeamPointRigidContactCondition::InitializeSolutionStep( ProcessInfo& rCurre
 //************************************************************************************
 //************************************************************************************
 void BeamPointRigidContactCondition::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
-{  
+{
   ClearNodalForces();
 }
 
@@ -373,7 +373,7 @@ void BeamPointRigidContactCondition::FinalizeNonLinearIteration(ProcessInfo& Cur
 void BeamPointRigidContactCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
 {
   KRATOS_TRY
-      
+
   KRATOS_CATCH( "" )
 }
 //***********************************************************************************
@@ -405,9 +405,9 @@ void BeamPointRigidContactCondition::InitializeSystemMatrices(MatrixType& rLeftH
     {
         if ( rRightHandSideVector.size() != MatSize )
 	    rRightHandSideVector.resize( MatSize, false );
-      
+
 	rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
-	  
+
     }
 }
 
@@ -419,7 +419,7 @@ void BeamPointRigidContactCondition::InitializeConditionVariables(ConditionVaria
 {
     KRATOS_TRY
 
- 
+
     KRATOS_CATCH( "" )
 
 }
@@ -469,7 +469,7 @@ void BeamPointRigidContactCondition::CalculateConditionSystem(LocalSystemCompone
 
         if ( rLocalSystem.CalculationFlags.Is(BeamPointRigidContactCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
-            //contribution to external forces 
+            //contribution to external forces
 	    this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
         }
 
@@ -495,7 +495,7 @@ void BeamPointRigidContactCondition::CalculateAndAddLHS(LocalSystemComponents& r
       for( unsigned int i=0; i<rLeftHandSideVariables.size(); i++ )
 	{
 	  bool calculated = false;
-	  
+
 	  if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX ){
 	    // operation performed: add Kg to the rLefsHandSideMatrix
 	    this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
@@ -508,10 +508,10 @@ void BeamPointRigidContactCondition::CalculateAndAddLHS(LocalSystemComponents& r
 	    }
 
 	}
-    } 
+    }
   else{
-    
-    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
+
+    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
     // operation performed: add Kg to the rLefsHandSideMatrix
     this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
@@ -541,7 +541,7 @@ void BeamPointRigidContactCondition::CalculateAndAddRHS(LocalSystemComponents& r
 	    this->CalculateAndAddContactForces( rRightHandSideVectors[i], rVariables, rIntegrationWeight );
 	    calculated = true;
 	  }
-	  
+
 	  if(calculated == false)
 	    {
 	      KRATOS_THROW_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rRightHandSideVariables[i])
@@ -550,8 +550,8 @@ void BeamPointRigidContactCondition::CalculateAndAddRHS(LocalSystemComponents& r
 	}
     }
     else{
-      
-      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+
+      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
       // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
       this->CalculateAndAddContactForces( rRightHandSideVector, rVariables, rIntegrationWeight );
@@ -559,7 +559,7 @@ void BeamPointRigidContactCondition::CalculateAndAddRHS(LocalSystemComponents& r
       //KRATOS_WATCH( rRightHandSideVector )
 
     }
-    
+
 
 }
 
@@ -614,7 +614,7 @@ void BeamPointRigidContactCondition::CalculateRightHandSide( std::vector< Vector
     //Initialize sizes for the system components:
     if( rRHSVariables.size() != rRightHandSideVectors.size() )
       rRightHandSideVectors.resize(rRHSVariables.size());
-    
+
     for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
       {
 	this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
@@ -685,7 +685,7 @@ void BeamPointRigidContactCondition::CalculateLocalSystem( std::vector< MatrixTy
 
     if( rRHSVariables.size() != rRightHandSideVectors.size() )
       rRightHandSideVectors.resize(rRHSVariables.size());
-    
+
     LocalSystem.CalculationFlags.Set(BeamPointRigidContactCondition::COMPUTE_LHS_MATRIX);
     for( unsigned int i=0; i<rLeftHandSideMatrices.size(); i++ )
       {

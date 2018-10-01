@@ -25,7 +25,10 @@
 
 
 // Project includes
+#include <pybind11/pybind11.h>
 #include "includes/define.h"
+#include "includes/define_python.h"
+
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "utilities/math_utils.h"
@@ -138,7 +141,8 @@ namespace Kratos
 		    {
 		      if (neighb[i].X() != x0 || neighb[i].Y() != y0)
 		      {
-			if (neighnum == 0)
+ 			if (neighnum == 0)
+                        //if (neighnum < 1e-15)
 			{
 			  x1 = neighb[i].X();
 			  y1 = neighb[i].Y();
@@ -204,7 +208,8 @@ namespace Kratos
 		    }
 		  }
 		}
-		if (curv_pos == 0)
+ 		if (curv_pos == 0)
+                //if (curv_pos < 1e-15)
 		{
 		  sign_curv = -1.0;
 		}
@@ -267,7 +272,8 @@ namespace Kratos
 		im->FastGetSolutionStepValue(MEAN_CURVATURE_2D) = curv_tp;			
 	      }
 	      
-	      if(im->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0 && im->FastGetSolutionStepValue(TRIPLE_POINT)*1.0E8 == 0.0)
+ 	      if(im->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0 && im->FastGetSolutionStepValue(TRIPLE_POINT)*1.0E8 == 0.0)
+              //if(im->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0 && im->FastGetSolutionStepValue(TRIPLE_POINT)*1.0E8 < 1e-15)
 		  im->FastGetSolutionStepValue(MEAN_CURVATURE_2D) = 0.0;
 	    }
 	    
@@ -340,7 +346,8 @@ namespace Kratos
 		      if (neighb_faces[i].GetGeometry()[j].X() != xi || 
 			neighb_faces[i].GetGeometry()[j].Y() != yi || neighb_faces[i].GetGeometry()[j].Z() != zi)
 		      {
-			if (neighnum == 0)
+ 			if (neighnum == 0)
+                       // if (neighnum < 1e-15)
 			{
 			  xj = neighb_faces[i].GetGeometry()[j].X();
 			  yj = neighb_faces[i].GetGeometry()[j].Y();
@@ -417,7 +424,7 @@ namespace Kratos
 		im->FastGetSolutionStepValue(NORMAL_GEOMETRIC_Z) = K_xi_norm[2];
 		
 		//Final step: kappa_H and kappa_G (mean curvature kappa_H is half the magnitude (norm) of K_xi vector)
-		im->FastGetSolutionStepValue(MEAN_CURVATURE_3D) = 0.5*Norm3D(K_xi);
+		im->FastGetSolutionStepValue(MEAN_CURVATURE_3D) = Norm3D(K_xi);
 		im->FastGetSolutionStepValue(GAUSSIAN_CURVATURE) = (2*pi - theta_sum)/Sp;
 		
 		//Principal curvatures, taking care of square root term:
@@ -455,7 +462,8 @@ namespace Kratos
 		  im->FastGetSolutionStepValue(MEAN_CURVATURE_3D) = mean_curv/neigh_fs;
 	      }
 	      
-	      if ((im->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0) && (im->FastGetSolutionStepValue(TRIPLE_POINT) == 0.0))
+ 	      if ((im->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0) && (im->FastGetSolutionStepValue(TRIPLE_POINT) == 0.0))
+             // if ((im->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0) && (im->FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15))
 		im->FastGetSolutionStepValue(MEAN_CURVATURE_3D) = 0.0;
 	    }
 	KRATOS_CATCH("")
@@ -483,7 +491,8 @@ namespace Kratos
 		{
 		    if (neighb[i].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
 		    {
-		      if (neighnum == 0)
+ 		      if (neighnum == 0)
+                      //if (neighnum < 1e-15)
 		      {
 			xj = neighb[i].X();
 			yj = neighb[i].Y();
@@ -547,15 +556,15 @@ namespace Kratos
 		double xi = im->X();
 		double yi = im->Y();
 		double zi = im->Z();
-		/////double xj = 0.0;
-		/////double yj = 0.0;
-		/////double zj = 0.0;
+		double xj = 0.0;
+		double yj = 0.0;
+		double zj = 0.0;
 		double alfa = 0.0;
 		double beta = 0.0;
 		double kappaN_ij = 0.0;
-// 		double M = 0.0;
-// 		double N = 0.0;
-// 		double L = 0.0;
+		//double M = 0.0;
+		//double N = 0.0;
+		//double L = 0.0;
 		array_1d<double,6> terms_func = ZeroVector(6);
 		array_1d<double,10> terms_func_der = ZeroVector(10);
 		WeakPointerVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
@@ -627,18 +636,18 @@ namespace Kratos
 		}
 		
 		double a = 0.0;
-		double b ;
-		double c;
+		double b = 0.0;
+		double c = 0.0;
 		
 		//STEP 3: global system matrix is full. Now we solve the system
-// // // // // // // 		if(option == 1)
-// // // // // // // 		{
-// // // // // // // 		  //OPTION 1.1 - Meyer is right AND consider just first condition
-// // // // // // // 		  SolveSys2x2(b,c,LHSmat,RHSvec);
-// // // // // // // 		  a = 2.0*kappa_H - c;
-// // // // // // // 		}
-// // // // // // // 		else
-// // // // // // // 		{
+		if(option == 1)
+		{
+		  //OPTION 1.1 - Meyer is right AND consider just first condition
+		  SolveSys2x2(b,c,LHSmat,RHSvec);
+		  a = 2.0*kappa_H - c;
+		}
+		else
+		{
 		  //OPTION 2.1 - consider just first condition
 // 		  SolveSys3x3(a,b,c,LHSmat,RHSvec);
 // 		  SolveSys2x2(a,b,LHSmat,RHSvec);
@@ -648,7 +657,7 @@ namespace Kratos
                 NewtonMethod(terms_func,terms_func_der,a,kappa_H,kappa_G,kappaN_ij);
                 c = 2.0*kappa_H - a;
                 b = sqrt(a*(2.0*kappa_H - a) - kappa_G);
-		///////}
+		}
 		
 		//Regardless option choice, fill the curvature tensor
 		B(0,0) = a;
@@ -753,9 +762,9 @@ namespace Kratos
       Vector3D(x1,y1,z1,x2,y2,z2,r12);      
       
       double hpi = 3.14159265*0.5;
-      double alfa0; //angle at node 0
-      double alfa1; //angle at node 1
-      double alfa2; //angle at node 2
+      double alfa0 = 0.0; //angle at node 0
+      double alfa1 = 0.0; //angle at node 1
+      double alfa2 = 0.0; //angle at node 2
       
       alfa0 = Angle2vecs3D(r01,r02);
       r01[0] = -r01[0];
@@ -832,6 +841,7 @@ namespace Kratos
       double temp = 0.0;
 //       if (norm_a*norm_b > -1.0e-20 && norm_a*norm_b < 1.0e-20)
       if (norm_a*norm_b == 0.0)
+      //if (norm_a*norm_b < 1e-15)
 	temp = 0.0;
       else
 	temp = DotProduct3D(a,b)/(norm_a*norm_b);
@@ -846,7 +856,7 @@ namespace Kratos
     double NormalCurvature3D(const double xi, const double yi, const double zi,
 		  const double xj, const double yj, const double zj, array_1d<double,3>& n)
     {
-      double kappaN_ij;
+      double kappaN_ij = 0.0;
       array_1d<double,3> rji = ZeroVector(3);
       Vector3D(xj,yj,zj,xi,yi,zi,rji);
       double norm_rji = Norm3D(rji);
@@ -894,6 +904,7 @@ namespace Kratos
       }
       
       if (num_case == 0)
+      //if (num_case < 1e-15)
       {
 	mat_dx(0,0) = dij[0];
 	mat_dx(1,0) = dij[1];
@@ -1085,8 +1096,8 @@ namespace Kratos
     {
       double x0 = 1.0;			//initial guess
       double x1 = 0.0;			//next guess or solution
-      /////double fx = 0.0;			//function
-      /////double dfx = 0.0;      		//function derivative
+      double fx = 0.0;			//function
+      double dfx = 0.0;      		//function derivative
       double tol = 1.0e-7;		//tolerance for the solution
       double epsi = 1.0e-10;		//minimum value of function derivative
       unsigned int MaxIter = 20;	//maximum number of iterations
@@ -1094,8 +1105,8 @@ namespace Kratos
       for(unsigned int i = 0; i < MaxIter; i++)
       {
           
-          double fx;
-          double dfx;
+          double fx = 0.0;
+          double dfx = 0.0;
 
 	  fx = func_Newton(x0,terms_vec,kappa_H,kappa_G,kappaN_ij);
 	  dfx = dxfunc_Newton(x0,terms_vec_der,kappa_H,kappa_G,kappaN_ij);
@@ -1216,7 +1227,8 @@ namespace Kratos
 	  }
 	  else
 	  {
-	    if (neighnum == 0)
+ 	    if (neighnum == 0)
+            //if (neighnum < 1e-15)
 	    {
 	      x1 = neighb[i].X();
 	      y1 = neighb[i].Y();

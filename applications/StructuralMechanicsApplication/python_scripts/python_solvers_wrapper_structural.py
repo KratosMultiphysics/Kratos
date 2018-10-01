@@ -3,10 +3,10 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 
 
-def CreateSolver(main_model_part, custom_settings):
+def CreateSolver(model, custom_settings):
 
-    if (type(main_model_part) != KratosMultiphysics.ModelPart):
-        raise Exception("input is expected to be provided as a Kratos ModelPart object")
+    if (type(model) != KratosMultiphysics.Model):
+        raise Exception("input is expected to be provided as a Kratos Model object")
 
     if (type(custom_settings) != KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
@@ -36,9 +36,15 @@ def CreateSolver(main_model_part, custom_settings):
         elif (solver_type == "harmonic_analysis"):
             solver_module_name = "structural_mechanics_harmonic_analysis_solver"
 
+        elif (solver_type == "formfinding"):
+            solver_module_name = "structural_mechanics_formfinding_solver"
+
+        elif (solver_type == "adjoint_static"):
+            solver_module_name = "structural_mechanics_adjoint_static_solver"
+
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"static\", \"dynamic\", \"eigen_value\", \"harmonic_analysis\""
+            err_msg += "Available options are: \"static\", \"dynamic\", \"eigen_value\", \"harmonic_analysis\", \"formfinding\", \"adjoint_static\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism
@@ -69,6 +75,6 @@ def CreateSolver(main_model_part, custom_settings):
     custom_settings["solver_settings"].RemoveValue("time_integration_method") # does not throw even if the value is not existing
 
     solver_module = __import__(solver_module_name)
-    solver = solver_module.CreateSolver(main_model_part, custom_settings["solver_settings"])
+    solver = solver_module.CreateSolver(model, custom_settings["solver_settings"])
 
     return solver

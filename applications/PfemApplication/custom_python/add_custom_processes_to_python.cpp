@@ -7,177 +7,126 @@
 //
 //
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 
 // Project includes
 #include "custom_python/add_custom_processes_to_python.h"
 
+// Properties
+#include "includes/properties.h"
 
 // Processes
-#include "custom_processes/elemental_neighbours_search_process.hpp"
-#include "custom_processes/nodal_neighbours_search_process.hpp"
-#include "custom_processes/build_model_part_boundary_process.hpp"
-#include "custom_processes/model_volume_calculation_process.hpp"
+//#include "custom_processes/adaptive_time_interval_process.hpp"
+#include "custom_processes/split_elements_process.hpp"
+#include "custom_processes/set_active_flag_process.hpp"
+#include "custom_processes/assign_properties_to_nodes_process.hpp"
+#include "custom_processes/manage_isolated_nodes_process.hpp"
 
-// MeshModeler initialization and finalization processes
-#include "custom_processes/model_start_end_meshing_process.hpp"
+// Mesher initialization and finalization processes
+#include "custom_processes/settle_fluid_model_structure_process.hpp"
 
 // PreMeshing processes
-#include "custom_processes/refine_mesh_elements_on_threshold_process.hpp"
-#include "custom_processes/refine_mesh_elements_in_edges_process.hpp"
-#include "custom_processes/refine_mesh_boundary_process.hpp"
-#include "custom_processes/remove_mesh_nodes_process.hpp"
+#include "custom_processes/set_active_entities_mesher_process.hpp"
+#include "custom_processes/recover_volume_losses_mesher_process.hpp"
+#include "custom_processes/inlet_management_mesher_process.hpp"
+#include "custom_processes/insert_new_nodes_mesher_process.hpp"
+#include "custom_processes/remove_fluid_nodes_mesher_process.hpp"
 
 // MiddleMeshing processes
-#include "custom_processes/refine_mesh_elements_on_size_process.hpp"
-#include "custom_processes/print_output_mesh_process.hpp"
 
 // PostMeshing processes
-#include "custom_processes/generate_new_nodes_process.hpp"
-#include "custom_processes/select_mesh_elements_process.hpp"
-#include "custom_processes/build_mesh_elements_process.hpp"
-#include "custom_processes/build_mesh_boundary_process.hpp"
-
-// Kinematics
-#include "custom_processes/constant_rotation_process.h"
+#include "custom_processes/select_fluid_elements_mesher_process.hpp"
 
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
 
-typedef Process                        ProcessBaseType;
-typedef Process::Pointer                ProcessPointer;
-typedef std::vector<Process::Pointer> ProcessContainer;
-
-void Push_Back_Process( ProcessContainer& ThisProcessContainer,
-                        ProcessPointer ThisProcess )
-{
-  ThisProcessContainer.push_back( ThisProcess );
-}
-  	
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 
   using namespace pybind11;
 
-  //process container
-  class_<ProcessContainer>(m,"ProcessContainer")
-      .def( init<>() )
-      .def( "PushBack", Push_Back_Process )
+  //**********MODEL PROPERTIES*********//
+
+  /// Properties container. A vector set of properties with their Id's as key.
+  typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
+  typedef typename PropertiesContainerType::Pointer   PropertiesContainerPointerType;
+
+  //to define it as a variable
+  class_<Variable<PropertiesContainerPointerType>, VariableData>(m,"PropertiesVectorPointerVariable")
+      .def( "__repr__", &Variable<PropertiesContainerPointerType>::Info )
       ;
 
-
-  //***************NEIGHBOURS**************//
-      
-  class_<NodalNeighboursSearchProcess, Process>
-      (m,"NodalNeighboursSearch")
-      .def(init<ModelPart&, int, int, int>())
-      .def("CleanNeighbours", &NodalNeighboursSearchProcess::ClearNeighbours)
-      ;
-      
-  class_<ElementalNeighboursSearchProcess, Process>
-      (m,"ElementalNeighboursSearch")
-      .def(init<ModelPart&, int, int, int>())
-      .def("CleanNeighbours", &ElementalNeighboursSearchProcess::ClearNeighbours)
-      ;
+  //**********MODEL STRUCTURE*********//
+  class_<SettleFluidModelStructureProcess, SettleFluidModelStructureProcess::Pointer, SettleModelStructureProcess>
+      (m, "FluidModelStructure")
+      .def(init<ModelPart&, Flags, int>());
 
 
-  //***************BOUNDARY**************//
+  //**********MESHER PROCESSES*********//
 
-  class_<BuildModelPartBoundaryProcess, Process>
-      (m,"BuildModelPartBoundary")
-      .def(init<ModelPart&, std::string, int>())
-      .def("SearchConditionMasters", &BuildModelPartBoundaryProcess::SearchConditionMasters)
-      ;
+  class_<RemoveFluidNodesMesherProcess, RemoveFluidNodesMesherProcess::Pointer, MesherProcess>
+      (m, "RemoveFluidNodes")
+      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
+  class_<InsertNewNodesMesherProcess, InsertNewNodesMesherProcess::Pointer, MesherProcess>
+      (m, "InsertNewNodes")
+      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-  //**********MESH MODELLER PROCESS*********//
+  class_<SelectFluidElementsMesherProcess, SelectFluidElementsMesherProcess::Pointer, MesherProcess>
+      (m, "SelectFluidElements")
+      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
-  class_<ModelStartEndMeshingProcess, Process>
-      (m,"ModelMeshing")
-      .def(init<ModelPart&, Flags, int>())
-      ;
+  class_<SetActiveEntitiesMesherProcess, SetActiveEntitiesMesherProcess::Pointer, MesherProcess>
+      (m, "SetActiveEntities")
+      .def(init<ModelPart&, bool, bool, int>());
 
-
-  class_<RefineMeshElementsOnThresholdProcess, Process>
-      (m,"SetElementNodesToRefineOnThreshold")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
-      ;
-
-  class_<RefineMeshElementsInEdgesProcess, Process>
-      (m,"SetElementEdgesToRefine")
-      .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
-      ;
-      
-  class_<RefineMeshElementsOnSizeProcess, Process>
-      (m,"SetElementsToRefineOnSize")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
-      ;
-
-  class_<RefineMeshBoundaryProcess, Process>
-      (m,"RefineMeshBoundary")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
-      ;
-
-  class_<RemoveMeshNodesProcess, Process>
-      (m,"RemoveMeshNodes")
-      .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
-      ;
+  class_<InletManagementMesherProcess, InletManagementMesherProcess::Pointer, MesherProcess>
+      (m, "InletManagement")
+      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
 
-  class_<GenerateNewNodesProcess, Process>
-      (m,"GenerateNewNodes")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
-      ;
+  //*********SET SOLVER PROCESSES*************//
 
-  class_<SelectMeshElementsProcess, Process>
-      (m,"SelectMeshElements")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
-      ;
+  class_<SetActiveFlagProcess, SetActiveFlagProcess::Pointer, MesherProcess>
+      (m, "SetActiveFlagProcess")
+      .def(init<ModelPart&, bool, bool, int>());
 
-  class_<BuildMeshElementsProcess, Process>
-      (m,"BuildMeshElements")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>())
-      ;
+  class_<SplitElementsProcess, SplitElementsProcess::Pointer, Process>
+      (m,"SplitElementsProcess")
+      .def(init<ModelPart&, int>());
+
+  class_<AssignPropertiesToNodesProcess, AssignPropertiesToNodesProcess::Pointer, Process>
+      (m, "AssignPropertiesToNodes")
+      .def(init<ModelPart&, Parameters>())
+      .def(init<ModelPart&, Parameters&>());
+
+  //*********ADAPTIVE TIME STEP*************//
+
+  // class_<AdaptiveTimeIntervalProcess, AdaptiveTimeIntervalProcess::Pointer, Process>
+  //     (m, "AdaptiveTimeIntervalProcess")
+  //     .def(init<ModelPart&, int>());
 
 
-  class_<BuildMeshBoundaryProcess, BuildModelPartBoundaryProcess>
-      (m,"BuildMeshBoundary")
-      .def(init<ModelPart&, ModelerUtilities::MeshingParameters&, int>())
-      ;
+  //*********VOLUME RECOVETY PROCESS********//
+
+  class_<RecoverVolumeLossesMesherProcess, RecoverVolumeLossesMesherProcess::Pointer, MesherProcess>
+      (m, "RecoverVolumeLosses")
+      .def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
 
 
-  class_<PrintOutputMeshProcess, Process>
-      (m,"PrintOutputMeshProcess")
-      .def(init<ModelPart&,  ModelerUtilities::MeshingParameters&, std::string, int>())
-      ;
-      
+  //*********VOLUME RECOVETY PROCESS********//
+  class_<ManageIsolatedNodesProcess, ManageIsolatedNodesProcess::Pointer, Process>
+      (m, "ManageIsolatedNodesProcess")
+      .def(init<ModelPart&>());
 
-  //********MODEL VOLUME CALCULATION*********//
-
-  class_<ModelVolumeCalculationProcess, Process>
-      (m,"ModelVolumeCalculation")
-      .def(init<ModelPart&, bool, int>())
-      .def("ExecuteInitializeSolutionStep", &ModelVolumeCalculationProcess::ExecuteInitializeSolutionStep)
-      .def("ExecuteFinalizeSolutionStep", &ModelVolumeCalculationProcess::ExecuteFinalizeSolutionStep)
-      ;
-      
-  //********MODEL VOLUME CALCULATION*********//
-
-  class_<ConstantRotationProcess, Process>
-      (m,"ConstantRotationProcess")
-      .def(init<ModelPart&, const double, const double, const double, const double, const double, const double>())	 
-      .def(init< ModelPart&, Parameters& >())
-      ;
-      
-      
 }
- 
+
 }  // namespace Python.
 
 } // Namespace Kratos

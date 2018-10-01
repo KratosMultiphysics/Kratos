@@ -17,7 +17,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    class_<HDF5::XdmfConnectivitiesWriterProcess, Process>(m,"HDF5XdmfConnectivitiesWriterProcess")
+    class_<HDF5::XdmfConnectivitiesWriterProcess, HDF5::XdmfConnectivitiesWriterProcess::Pointer, Process>(m,"HDF5XdmfConnectivitiesWriterProcess")
     .def(init<const std::string&, const std::string&>())
     ;
 }

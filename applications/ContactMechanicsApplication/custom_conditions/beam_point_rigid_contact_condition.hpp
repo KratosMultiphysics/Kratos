@@ -49,7 +49,7 @@ namespace Kratos
  * Implements a Contact Point Load definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
-class BeamPointRigidContactCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) BeamPointRigidContactCondition
     : public Condition
 {
 public:
@@ -57,12 +57,12 @@ public:
     ///@name Type Definitions
 
     ///Tensor order 1 definition
-    //typedef bounded_vector<double, 3>        PointType;
+    //typedef BoundedVector<double, 3>        PointType;
     typedef array_1d<double, 3>                PointType;
 
     ///Type definition for beam utilities
     typedef BeamMathUtils<double>      BeamMathUtilsType;
- 
+
     ///@{
     // Counted pointer of BeamPointRigidContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( BeamPointRigidContactCondition );
@@ -81,27 +81,27 @@ protected:
 
 
     /**
-     * Parameters to be used in the Condition as they are. 
+     * Parameters to be used in the Condition as they are.
      */
 
    typedef struct
     {
         PointType Normal;        //normal direction
         PointType Tangent;       //tangent direction
-	   
+
     } SurfaceVector;
 
     typedef struct
     {
-        double Normal;        //normal component 
+        double Normal;        //normal component
         double Tangent;       //tangent component
-        	   
+
     } SurfaceScalar;
 
     typedef struct
     {
       Flags           Options;               //calculation options
-      
+
       //Geometrical gaps:
       SurfaceScalar   Gap;                   //normal and tangential gap
 
@@ -113,7 +113,7 @@ protected:
 
       //Geometric variables
       SurfaceVector   Surface;               //normal and tangent vector to the surface
-      
+
 
        //for axisymmetric use only
       double  CurrentRadius;
@@ -133,22 +133,22 @@ protected:
     struct LocalSystemComponents
     {
     private:
-      
-      //for calculation local system with compacted LHS and RHS 
+
+      //for calculation local system with compacted LHS and RHS
       MatrixType *mpLeftHandSideMatrix;
       VectorType *mpRightHandSideVector;
 
-      //for calculation local system with LHS and RHS components 
+      //for calculation local system with LHS and RHS components
       std::vector<MatrixType> *mpLeftHandSideMatrices;
       std::vector<VectorType> *mpRightHandSideVectors;
 
-      //LHS variable components 
+      //LHS variable components
       const std::vector< Variable< MatrixType > > *mpLeftHandSideVariables;
 
-      //RHS variable components 
+      //RHS variable components
       const std::vector< Variable< VectorType > > *mpRightHandSideVariables;
 
-    
+
     public:
 
       //calculation flags
@@ -159,23 +159,23 @@ protected:
        */
       void SetLeftHandSideMatrix( MatrixType& rLeftHandSideMatrix ) { mpLeftHandSideMatrix = &rLeftHandSideMatrix; };
       void SetLeftHandSideMatrices( std::vector<MatrixType>& rLeftHandSideMatrices ) { mpLeftHandSideMatrices = &rLeftHandSideMatrices; };
-      void SetLeftHandSideVariables(const std::vector< Variable< MatrixType > >& rLeftHandSideVariables ) { mpLeftHandSideVariables = &rLeftHandSideVariables; }; 
+      void SetLeftHandSideVariables(const std::vector< Variable< MatrixType > >& rLeftHandSideVariables ) { mpLeftHandSideVariables = &rLeftHandSideVariables; };
 
       void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
       void SetRightHandSideVectors( std::vector<VectorType>& rRightHandSideVectors ) { mpRightHandSideVectors = &rRightHandSideVectors; };
-      void SetRightHandSideVariables(const std::vector< Variable< VectorType > >& rRightHandSideVariables ) { mpRightHandSideVariables = &rRightHandSideVariables; }; 
+      void SetRightHandSideVariables(const std::vector< Variable< VectorType > >& rRightHandSideVariables ) { mpRightHandSideVariables = &rRightHandSideVariables; };
 
- 
+
       /**
        * returns the value of a specified pointer variable
        */
       MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
       std::vector<MatrixType>& GetLeftHandSideMatrices() { return *mpLeftHandSideMatrices; };
-      const std::vector< Variable< MatrixType > >& GetLeftHandSideVariables() { return *mpLeftHandSideVariables; }; 
+      const std::vector< Variable< MatrixType > >& GetLeftHandSideVariables() { return *mpLeftHandSideVariables; };
 
       VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
       std::vector<VectorType>& GetRightHandSideVectors() { return *mpRightHandSideVectors; };
-      const std::vector< Variable< VectorType > >& GetRightHandSideVariables() { return *mpRightHandSideVariables; }; 
+      const std::vector< Variable< VectorType > >& GetRightHandSideVariables() { return *mpRightHandSideVariables; };
 
     };
 
@@ -228,7 +228,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const;
 
 
@@ -370,12 +370,12 @@ public:
      * rDestinationVariable.
      * @param rRHSVector: input variable containing the RHS vector to be assembled
      * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
-     */      
-    virtual void AddExplicitContribution(const VectorType& rRHSVector, 
-					 const Variable<VectorType>& rRHSVariable, 
-					 Variable<array_1d<double,3> >& rDestinationVariable, 
+     */
+    virtual void AddExplicitContribution(const VectorType& rRHSVector,
+					 const Variable<VectorType>& rRHSVariable,
+					 Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo);
 
     //************************************************************************************
@@ -455,7 +455,7 @@ protected:
     /**
      * Initialize General Variables
      */
-    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
+    virtual void InitializeConditionVariables(ConditionVariables& rVariables,
 					    const ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -502,7 +502,7 @@ protected:
 
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
 					      ConditionVariables& rVariables,
@@ -574,4 +574,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_BEAM_POINT_RIGID_CONTACT_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_BEAM_POINT_RIGID_CONTACT_CONDITION_H_INCLUDED defined

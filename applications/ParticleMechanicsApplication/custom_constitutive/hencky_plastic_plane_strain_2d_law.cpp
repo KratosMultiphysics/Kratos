@@ -9,11 +9,13 @@
 //
 //  Main authors:    Ilaria Iaconeta
 //
+
+
 // System includes
 #include <iostream>
+#include <cmath>
 
 // External includes
-#include<cmath>
 
 // Project includes
 #include "includes/properties.h"
@@ -79,12 +81,10 @@ HenckyElasticPlasticPlaneStrain2DLaw::~HenckyElasticPlasticPlaneStrain2DLaw()
 void HenckyElasticPlasticPlaneStrain2DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
         Vector& rStrainVector )
 {
-
     //E= 0.5*(FT*F-1)
     rStrainVector[0] = 0.5 * ( rRightCauchyGreen( 0, 0 ) - 1.00 );
     rStrainVector[1] = 0.5 * ( rRightCauchyGreen( 1, 1 ) - 1.00 );
     rStrainVector[2] = rRightCauchyGreen( 0, 1 );
-
 }
 
 
@@ -94,8 +94,7 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateGreenLagrangeStrain( const M
 void HenckyElasticPlasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
         Vector& rStrainVector )
 {
-
-    // e= 0.5*(1-invbT*invb)
+    // E = 0.5*(1-invbT*invb)
     Matrix InverseLeftCauchyGreen ( rLeftCauchyGreen.size1(), rLeftCauchyGreen.size2() );
     double det_b=0;
     MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
@@ -105,34 +104,12 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix 
     rStrainVector[1] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 1, 1 ) );
     rStrainVector[2] = -InverseLeftCauchyGreen( 0, 1 );
 
-    //std::cout<<" in CalculateAlmansiStrain "<<std::endl;
-
-
 }
-
 
 Vector HenckyElasticPlasticPlaneStrain2DLaw::SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix)
 {
-    //std::cout<<" rStressMatrix " <<rStressMatrix<<std::endl;
     rStressVector = MathUtils<double>::StressTensorToVector( rStressMatrix, rStressVector.size() );
-    //if(rStressVector.size() == 6)
-    //{
-    //rStressVector = ZeroVector(6);
-    //rStressVector(0) = rStressMatrix(0,0);
-    //rStressVector(1) = rStressMatrix(1,1);
-    //rStressVector(2) = rStressMatrix(2,2);
-    //rStressVector(3) = rStressMatrix(0,1);
-    //}
-    //else
-    //{
-    //rStressVector = ZeroVector(3);
-    //rStressVector(0) = rStressMatrix(0,0);
-    //rStressVector(1) = rStressMatrix(1,1);
-    //rStressVector(2) = rStressMatrix(0,1);
-    //}
-    //std::cout<<" rStressVector " <<rStressVector<<std::endl;
     return rStressVector;
-
 }
 
 
@@ -142,33 +119,26 @@ Matrix HenckyElasticPlasticPlaneStrain2DLaw::SetConstitutiveMatrixToAppropiateDi
     {
         rConstitutiveMatrix = ZeroMatrix(6,6);
         rConstitutiveMatrix = rElastoPlasticTangentMatrix;
-        //std::cout<<" rConstitutiveMatrix " <<rConstitutiveMatrix<<std::endl;
     }
     else
     {
         rConstitutiveMatrix = ZeroMatrix(3,3);
-        //ilaria: it has been modified for the use of II mixed formulation
 
-        //std::cout<<" rElastoPlasticTangentMatrix " <<rElastoPlasticTangentMatrix<<std::endl;
         rConstitutiveMatrix(0, 0) = rElastoPlasticTangentMatrix(0, 0);
         rConstitutiveMatrix(0, 1) = rElastoPlasticTangentMatrix(0, 1);
         rConstitutiveMatrix(1, 0) = rElastoPlasticTangentMatrix(1, 0);
         rConstitutiveMatrix(1, 1) = rElastoPlasticTangentMatrix(1, 1);
 
-
         rConstitutiveMatrix(2, 0) = rElastoPlasticTangentMatrix(3, 0);
         rConstitutiveMatrix(2, 1) = rElastoPlasticTangentMatrix(3, 1);
         rConstitutiveMatrix(2, 2) = rElastoPlasticTangentMatrix(3, 3);
 
-
         rConstitutiveMatrix(0, 2) = rElastoPlasticTangentMatrix(0, 3);
         rConstitutiveMatrix(1, 2) = rElastoPlasticTangentMatrix(1, 3);
-        //std::cout<<" rConstitutiveMatrix " <<rConstitutiveMatrix<<std::endl;
     }
     return rConstitutiveMatrix;
 
 }
-
 
 
 void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matrix& rCauchyGreenMatrix,
@@ -191,6 +161,7 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matri
     EigenVectors(1,0) = AuxEigenVectors(1,0);
     EigenVectors(1,1) = AuxEigenVectors(1,1);
     EigenVectors(0,1) = AuxEigenVectors(0,1);
+
     // Positions known to be zero
     EigenVectors(0,2) = 0.0;
     EigenVectors(1,2) = 0.0;
@@ -202,24 +173,14 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matri
 
 
     Vector TrialEigenValues = ZeroVector(3);
-    TrialEigenValues(0) = AuxEigenValues(0);
-    TrialEigenValues(1) = AuxEigenValues(1);
-    TrialEigenValues(2) =  rCauchyGreenMatrix(2,2);
+    TrialEigenValues[0] = AuxEigenValues[0];
+    TrialEigenValues[1] = AuxEigenValues[1];
+    TrialEigenValues[2] = rCauchyGreenMatrix(2,2);
 
     for (unsigned int i = 0; i<3; i++)
-        rMainStrain(i) = 0.50*std::log(TrialEigenValues(i));
+        rMainStrain[i] = 0.50*std::log(TrialEigenValues[i]);
 
-    //std::cout<<" rCauchyGreenMatrix "<<rCauchyGreenMatrix<<std::endl;
-    //std::cout<<" EigenVectors "<<EigenVectors<<std::endl;
-    //std::cout<<" AuxEigenValues "<<AuxEigenValues<<std::endl;
-    //std::cout<<" rMainStrain "<<rMainStrain<<std::endl;
 }
-
-
-
-
-
-
 
 } // Namespace Kratos
 

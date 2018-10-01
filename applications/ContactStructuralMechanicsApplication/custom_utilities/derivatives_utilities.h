@@ -24,6 +24,7 @@
 #include "includes/mortar_classes.h"
 
 /* Utilities */
+#include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/math_utils.h"
 
@@ -41,6 +42,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    /// The definition of the size type
+    typedef std::size_t SizeType;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -49,14 +53,18 @@ namespace Kratos
 ///@name  Functions
 ///@{
 /**
- * @class DerivativesUtilities 
+ * @class DerivativesUtilities
  * @ingroup ContactStructuralMechanicsApplication
  * @brief This utilities are used in order to compute the directional derivatives during mortar contact
  * @details The derivatives take the same argument templates than the contact conditions
  * @author Vicente Mataix Ferrandiz
- * @author Gabriel Valdes Alonzo 
+ * @author Gabriel Valdes Alonzo
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNormalVariation If the normal variation is considered
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< std::size_t TDim, std::size_t TNumNodes, bool TFrictional, bool TNormalVariation>
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
 class DerivativesUtilities
 {
 public:
@@ -64,62 +72,65 @@ public:
     ///@{
 
     /// The vector considered
-    typedef Vector                                                                                     VectorType;
+    typedef Vector                                                                                                      VectorType;
 
     /// The dense matrix considered
-    typedef Matrix                                                                                     MatrixType;
+    typedef Matrix                                                                                                      MatrixType;
 
     /// The index type
-    typedef std::size_t                                                                                 IndexType;
+    typedef std::size_t                                                                                                  IndexType;
 
     /// The geometry of nodes
-    typedef Geometry<NodeType>                                                                       GeometryType;
+    typedef Geometry<NodeType>                                                                                        GeometryType;
 
     /// The array of nodes contained in a geometry
-    typedef Geometry<NodeType>::PointsArrayType                                                    NodesArrayType;
+    typedef Geometry<NodeType>::PointsArrayType                                                                     NodesArrayType;
 
     /// The Properties type
-    typedef Properties                                                                             PropertiesType;
+    typedef Properties                                                                                              PropertiesType;
 
     /// The belong type (for derivatives definition)
-    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
+    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type BelongType;
 
     /// The points used for derivatives definition
-    typedef PointBelong<TNumNodes>                                                                PointBelongType;
+    typedef PointBelong<TNumNodes, TNumNodesMaster>                                                                PointBelongType;
 
     /// A geometry defined by the point belongs (the points used for derivatives definition)
-    typedef Geometry<PointBelongType>                                                     GeometryPointBelongType;
+    typedef Geometry<PointBelongType>                                                                      GeometryPointBelongType;
 
     /// An array of belong point to define the geometries of belong points
-    typedef array_1d<PointBelongType,TDim>                                                     ConditionArrayType;
+    typedef array_1d<PointBelongType,TDim>                                                                      ConditionArrayType;
 
     /// The definition of an array pf conditions
-    typedef typename std::vector<ConditionArrayType>                                       ConditionArrayListType;
+    typedef typename std::vector<ConditionArrayType>                                                        ConditionArrayListType;
 
     /// The line definition
-    typedef Line2D2<PointType>                                                                           LineType;
+    typedef Line2D2<PointType>                                                                                            LineType;
 
     /// The triangle definition
-    typedef Triangle3D3<PointType>                                                                   TriangleType;
+    typedef Triangle3D3<PointType>                                                                                    TriangleType;
 
     /// The geometry for decomposition (line in 2D and triangle for 3D)
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                 DecompositionType;
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                                  DecompositionType;
 
     /// The derivative data type
-    typedef typename std::conditional<TFrictional == true, DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation>, DerivativeData<TDim, TNumNodes, TNormalVariation> >::type DerivativeDataType;
+    typedef typename std::conditional<TFrictional, DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> >::type DerivativeDataType;
 
     /// The kinematic variables
-    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes>                             GeneralVariables;
+    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>                             GeneralVariables;
 
     /// The dual LM operators
-    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation> AeData;
+    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster> AeData;
 
     /// The mortar operators
-    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation> MortarConditionMatrices;
+    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster> MortarConditionMatrices;
+
+    /// Definition of epsilon
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
     /// Pointer definition of DerivativesUtilities
     KRATOS_CLASS_POINTER_DEFINITION( DerivativesUtilities );
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -175,7 +186,7 @@ public:
             aux_cross_product /= rVariables.DetjSlave;
 //             aux_cross_product /= norm_2(aux_cross_product);
 
-            for ( IndexType i_node = 0; i_node < 2 * TNumNodes; ++i_node ) {
+            for ( IndexType i_node = 0; i_node < (TNumNodesMaster + TNumNodes); ++i_node ) {
                 for (IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                     const auto& local_delta_vertex = rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof];
                     array_1d<double, 3> aux_delta_cross_product1, aux_delta_cross_product2;
@@ -191,14 +202,14 @@ public:
 
     /**
      * @brief This method is used to compute the local increment of the normal
-     * @param Jacobian The jacobian on the GP
-     * @param DNDe The local gradient
+     * @param rJacobian The jacobian on the GP
+     * @param rDNDe The local gradient
      * @return The matrix containing the delta normals
      * @note Not the mean, look in the contact utilities
      */
-    static inline array_1d<array_1d<double, 3>, TDim * TNumNodes> GPDeltaNormal(
-        const Matrix& Jacobian,
-        const Matrix& DNDe
+    static inline array_1d<array_1d<double, 3>, TDim * TNumNodes> GPDeltaNormalSlave(
+        const Matrix& rJacobian,
+        const Matrix& rDNDe
         )
     {
         // Tangent directions
@@ -208,11 +219,11 @@ public:
         if (TDim == 2) {
             j1[2] = 1.0;
             for (IndexType i_dim = 0; i_dim < 2; ++i_dim)
-                j0[i_dim]  = Jacobian(i_dim, 0);
+                j0[i_dim]  = rJacobian(i_dim, 0);
         } else {
             for (IndexType i_dim = 0; i_dim < 3; ++i_dim) {
-                j0[i_dim] = Jacobian(i_dim, 0);
-                j1[i_dim] = Jacobian(i_dim, 1);
+                j0[i_dim] = rJacobian(i_dim, 0);
+                j1[i_dim] = rJacobian(i_dim, 1);
             }
         }
 
@@ -220,7 +231,7 @@ public:
         MathUtils<double>::CrossProduct(normal, j0, j1);
         const double area_normal_norm = norm_2(normal);
 
-        KRATOS_DEBUG_ERROR_IF(area_normal_norm < std::numeric_limits<double>::epsilon()) << "ZERO NORMAL: " << area_normal_norm << std::endl;
+        KRATOS_DEBUG_ERROR_IF(area_normal_norm < ZeroTolerance) << "ZERO NORMAL: " << area_normal_norm << std::endl;
 
         const array_1d<double, 3> unit_normal = normal/area_normal_norm;
 
@@ -234,9 +245,72 @@ public:
                 delta_j0 = zero_array;
                 delta_j1 = zero_array;
 
-                delta_j0[i_dim] += DNDe(i_node, 0);
-                if (TDim == 3) 
-                    delta_j1[i_dim] += DNDe(i_node, 1);
+                delta_j0[i_dim] += rDNDe(i_node, 0);
+                if (TDim == 3)
+                    delta_j1[i_dim] += rDNDe(i_node, 1);
+
+                array_1d<double, 3> aux_delta_normal0, aux_delta_normal1;
+                MathUtils<double>::CrossProduct(aux_delta_normal0, j0, delta_j1);
+                MathUtils<double>::CrossProduct(aux_delta_normal1, delta_j0, j1);
+                const array_1d<double, 3> aux_delta_normal = aux_delta_normal0 + aux_delta_normal1;
+                const double delta_norm = inner_prod(aux_delta_normal, normal);
+
+                delta_normal[i_dof] = (aux_delta_normal + unit_normal * delta_norm)/area_normal_norm;
+            }
+        }
+
+        return delta_normal;
+    }
+
+    /**
+     * @brief This method is used to compute the local increment of the normal
+     * @param rJacobian The jacobian on the GP
+     * @param rDNDe The local gradient
+     * @return The matrix containing the delta normals
+     * @note Not the mean, look in the contact utilities
+     * @note Hardcopied for performance
+     */
+    static inline array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> GPDeltaNormalMaster(
+        const Matrix& rJacobian,
+        const Matrix& rDNDe
+        )
+    {
+        // Tangent directions
+        array_1d<double,3> j0 = ZeroVector(3), j1 = ZeroVector(3);
+
+        // Using the Jacobian tangent directions
+        if (TDim == 2) {
+            j1[2] = 1.0;
+            for (IndexType i_dim = 0; i_dim < 2; ++i_dim)
+                j0[i_dim]  = rJacobian(i_dim, 0);
+        } else {
+            for (IndexType i_dim = 0; i_dim < 3; ++i_dim) {
+                j0[i_dim] = rJacobian(i_dim, 0);
+                j1[i_dim] = rJacobian(i_dim, 1);
+            }
+        }
+
+        array_1d<double, 3> normal;;
+        MathUtils<double>::CrossProduct(normal, j0, j1);
+        const double area_normal_norm = norm_2(normal);
+
+        KRATOS_DEBUG_ERROR_IF(area_normal_norm < ZeroTolerance) << "ZERO NORMAL: " << area_normal_norm << std::endl;
+
+        const array_1d<double, 3> unit_normal = normal/area_normal_norm;
+
+        array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> delta_normal;
+        array_1d<double,3> delta_j0, delta_j1;
+        const array_1d<double, 3> zero_array(3, 0.0);
+        for ( IndexType i_node = 0; i_node < TNumNodesMaster; ++i_node ) {
+            for(IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
+                const IndexType i_dof = i_node * TDim + i_dim;
+
+                delta_j0 = zero_array;
+                delta_j1 = zero_array;
+
+                delta_j0[i_dim] += rDNDe(i_node, 0);
+                if (TDim == 3)
+                    delta_j1[i_dim] += rDNDe(i_node, 1);
 
                 array_1d<double, 3> aux_delta_normal0, aux_delta_normal1;
                 MathUtils<double>::CrossProduct(aux_delta_normal0, j0, delta_j1);
@@ -270,7 +344,7 @@ public:
 
         // Now we compute the normal + DeltaNormal
         array_1d<double, 3> aux_delta_normal0 = ZeroVector(3);
-        const array_1d<array_1d<double, 3>, TDim * TNumNodes> aux_delta_normal_0 = GPDeltaNormal(jacobian, gradient);
+        const array_1d<array_1d<double, 3>, TDim * TNumNodes> aux_delta_normal_0 = GPDeltaNormalSlave(jacobian, gradient);
 
         for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
@@ -300,12 +374,11 @@ public:
     }
 
     /**
-     * @brief Calculates the increment of the normal and in the master condition
+     * @brief Calculates the increment of the normal and in the slave condition
      * @param rDeltaNormal The derivative of the normal
-     * @param rThisGeometry The geometry of the master side
+     * @param rThisGeometry The geometry of the salve side
      */
-
-    static inline void CalculateDeltaNormal(
+    static inline void CalculateDeltaNormalSlave(
         array_1d<BoundedMatrix<double, TNumNodes, TDim>, TNumNodes * TDim>& rDeltaNormal,
         GeometryType& rThisGeometry
         )
@@ -323,7 +396,7 @@ public:
             rThisGeometry.ShapeFunctionsLocalGradients( gradient, point_local );
 
             // We compute the delta normal of the node
-            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormal(jacobian, gradient);
+            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormalSlave(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
@@ -355,10 +428,78 @@ public:
 
             // Auxilary terms
             array_1d<double, TDim> aux_delta_normal;
-            
+
             // We compute the delta normal of the node
-            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormal(jacobian, gradient);
+            const array_1d<array_1d<double, 3>, TDim * TNumNodes> delta_normal_node = GPDeltaNormalSlave(jacobian, gradient);
             for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+                for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
+                    array_1d<double, TDim> aux_delta_normal = subrange(delta_normal_node[i_node * TDim + i_dof], 0, TDim);
+                    row(rDeltaNormal[i_node * TDim + i_dof], i_geometry) = prod(renormalizer_matrix, aux_delta_normal);
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief Calculates the increment of the normal and in the master condition
+     * @param rDeltaNormal The derivative of the normal
+     * @param rThisGeometry The geometry of the master side
+     * @note Hardcopied for performance
+     */
+    static inline void CalculateDeltaNormalMaster(
+        array_1d<BoundedMatrix<double, TNumNodesMaster, TDim>, TNumNodesMaster * TDim>& rDeltaNormal,
+        GeometryType& rThisGeometry
+        )
+    {
+        BoundedMatrix<double, TNumNodesMaster, TDim> aux_normal_geometry = MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(rThisGeometry,  NORMAL, 1);
+        BoundedMatrix<double, TNumNodesMaster, TDim> aux_delta_normal_geometry = ZeroMatrix(TNumNodesMaster, TDim);
+
+        for ( IndexType i_geometry = 0; i_geometry < TNumNodesMaster; ++i_geometry ) {
+            // We compute the gradient and jacobian
+            GeometryType::CoordinatesArrayType point_local;
+            rThisGeometry.PointLocalCoordinates( point_local, rThisGeometry[i_geometry].Coordinates( ) ) ;
+            Matrix jacobian;
+            jacobian = rThisGeometry.Jacobian( jacobian, point_local);
+            Matrix gradient;
+            rThisGeometry.ShapeFunctionsLocalGradients( gradient, point_local );
+
+            // We compute the delta normal of the node
+            const array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> delta_normal_node = GPDeltaNormalMaster(jacobian, gradient);
+            for ( IndexType i_node = 0; i_node < TNumNodesMaster; ++i_node) {
+                const array_1d<double, 3> delta_disp = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT, 1);
+                for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
+                    const array_1d<double, TDim>& aux_delta_normal = subrange(delta_normal_node[i_node * TDim + i_dof], 0, TDim);
+                    row(aux_delta_normal_geometry, i_geometry) += delta_disp[i_dof] * aux_delta_normal;
+                }
+            }
+        }
+
+        BoundedMatrix<double, TNumNodesMaster, TDim> calculated_normal_geometry = aux_delta_normal_geometry + aux_normal_geometry;
+        for ( IndexType i_geometry = 0; i_geometry < TNumNodesMaster; ++i_geometry )
+            row(calculated_normal_geometry, i_geometry) /= norm_2(row(calculated_normal_geometry, i_geometry));
+
+        // We compute the diff matrix to compute the auxiliar matrix later
+        const BoundedMatrix<double, TNumNodesMaster, TDim> diff_matrix = calculated_normal_geometry - aux_normal_geometry;
+
+        // We iterate over the nodes of the geometry
+        for ( IndexType i_geometry = 0; i_geometry < TNumNodesMaster; ++i_geometry ) {
+            // Computing auxiliar matrix
+            const BoundedMatrix<double, TDim, TDim> renormalizer_matrix = (TDim == 3) ? ComputeRenormalizerMatrix(diff_matrix, aux_delta_normal_geometry, i_geometry) : IdentityMatrix(2, 2);
+
+            // We compute the gradient and jacobian
+            GeometryType::CoordinatesArrayType point_local;
+            rThisGeometry.PointLocalCoordinates( point_local, rThisGeometry[i_geometry].Coordinates( ) ) ;
+            Matrix jacobian;
+            jacobian = rThisGeometry.Jacobian( jacobian, point_local);
+            Matrix gradient;
+            rThisGeometry.ShapeFunctionsLocalGradients( gradient, point_local );
+
+            // Auxilary terms
+            array_1d<double, TDim> aux_delta_normal;
+
+            // We compute the delta normal of the node
+            const array_1d<array_1d<double, 3>, TDim * TNumNodesMaster> delta_normal_node = GPDeltaNormalMaster(jacobian, gradient);
+            for ( IndexType i_node = 0; i_node < TNumNodesMaster; ++i_node) {
                 for ( IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                     array_1d<double, TDim> aux_delta_normal = subrange(delta_normal_node[i_node * TDim + i_dof], 0, TDim);
                     row(rDeltaNormal[i_node * TDim + i_dof], i_geometry) = prod(renormalizer_matrix, aux_delta_normal);
@@ -371,11 +512,11 @@ public:
      * @brief This method is used to compute the directional derivatives of the cell vertex
      * @param rVariables The kinematic variables
      * @param rDerivativeData The derivatives container
-     * @param TheseBelongs The belongs list used in the derivatives
+     * @param rTheseBelongs The belongs list used in the derivatives
      * @param ConsiderNormalVariation If consider the normal derivative
-     * @param SlaveGeometry The slave geometry
-     * @param MasterGeometry The master geometry
-     * @param Normal The normal vector of the slave geometry
+     * @param rSlaveGeometry The slave geometry
+     * @param rMasterGeometry The master geometry
+     * @param rNormal The normal vector of the slave geometry
      * @details The  procedure will be the following in order to compute the derivative of the clipping
      * The expression of the clipping is the following:
      *      xclipp = xs1 - num/denom * diff3
@@ -394,21 +535,21 @@ public:
     static inline void CalculateDeltaCellVertex(
         const GeneralVariables& rVariables,
         DerivativeDataType& rDerivativeData,
-        const array_1d<BelongType, TDim>& TheseBelongs,
+        const array_1d<BelongType, TDim>& rTheseBelongs,
         const NormalDerivativesComputation ConsiderNormalVariation,
-        GeometryType& SlaveGeometry,
-        GeometryType& MasterGeometry,
-        const array_1d<double, 3>& Normal
+        GeometryType& rSlaveGeometry,
+        GeometryType& rMasterGeometry,
+        const array_1d<double, 3>& rNormal
         )
     {
         // The Normal and delta Normal in the center of the element
-        const array_1d<array_1d<double, 3>, TDim * TNumNodes> all_delta_normal = DeltaNormalCenter(SlaveGeometry);
+        const array_1d<array_1d<double, 3>, TDim * TNumNodes> all_delta_normal = DeltaNormalCenter(rSlaveGeometry);
 	array_1d<double, 3> zero_array(3, 0.0);
         array_1d<double, 3> delta_normal;
 
         const double aux_nodes_coeff = static_cast<double>(TNumNodes);
 
-        const PointType slave_center = SlaveGeometry.Center();
+        const PointType slave_center = rSlaveGeometry.Center();
 
 //     #ifdef KRATOS_DEBUG
 //         for (unsigned i_triangle = 0; i_triangle < 3; ++i_triangle)
@@ -416,17 +557,17 @@ public:
 //     #endif
 
         for (IndexType i_triangle = 0; i_triangle < 3; ++i_triangle) {
-            if (TheseBelongs[i_triangle] >= 2 * TNumNodes) { // It belongs to an intersection
+            if (static_cast<IndexType>(rTheseBelongs[i_triangle]) >= (TNumNodesMaster + TNumNodes)) { // It belongs to an intersection
                 // We compute the indexes
                 IndexType belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end;
-                ConvertAuxHashIndex(static_cast<IndexType>(TheseBelongs[i_triangle]), belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end);
+                ConvertAuxHashIndex(static_cast<IndexType>(rTheseBelongs[i_triangle]), belong_index_slave_start, belong_index_slave_end, belong_index_master_start, belong_index_master_end);
 
                 // The coordinates should be in the projected plane
                 double distance;
-                const array_1d<double, 3> xs1 = MortarUtilities::FastProject(slave_center, SlaveGeometry[belong_index_slave_start], Normal, distance).Coordinates(); // Start coordinates of the first segment
-                const array_1d<double, 3> xe1 = MortarUtilities::FastProject(slave_center, SlaveGeometry[belong_index_slave_end], Normal, distance).Coordinates(); // End coordinates of the first segment
-                const array_1d<double, 3> xs2 = MortarUtilities::FastProject(slave_center, MasterGeometry[belong_index_master_start], Normal, distance).Coordinates(); // Start coordinates of the second segment
-                const array_1d<double, 3> xe2 = MortarUtilities::FastProject(slave_center, MasterGeometry[belong_index_master_end], Normal, distance).Coordinates(); // End coordinates of the second segment
+                const array_1d<double, 3> xs1 = GeometricalProjectionUtilities::FastProject(slave_center, rSlaveGeometry[belong_index_slave_start], rNormal, distance).Coordinates(); // Start coordinates of the first segment
+                const array_1d<double, 3> xe1 = GeometricalProjectionUtilities::FastProject(slave_center, rSlaveGeometry[belong_index_slave_end], rNormal, distance).Coordinates(); // End coordinates of the first segment
+                const array_1d<double, 3> xs2 = GeometricalProjectionUtilities::FastProject(slave_center, rMasterGeometry[belong_index_master_start], rNormal, distance).Coordinates(); // Start coordinates of the second segment
+                const array_1d<double, 3> xe2 = GeometricalProjectionUtilities::FastProject(slave_center, rMasterGeometry[belong_index_master_end], rNormal, distance).Coordinates(); // End coordinates of the second segment
 
                 // We define the array containing the indexes of the vertexes
                 array_1d<IndexType, 4> belong_indexes;
@@ -444,8 +585,8 @@ public:
                 array_1d<double, 3> aux_num, aux_denom;
                 MathUtils<double>::CrossProduct(aux_num,   diff1, diff2);
                 MathUtils<double>::CrossProduct(aux_denom, diff3, diff2);
-                const double num   = inner_prod(aux_num,   Normal);
-                const double denom = inner_prod(aux_denom, Normal);
+                const double num   = inner_prod(aux_num,   rNormal);
+                const double denom = inner_prod(aux_denom, rNormal);
 
                 for (IndexType i_belong = 0; i_belong < 4; ++i_belong) {
                     // The index of the node
@@ -453,7 +594,7 @@ public:
 
                     for (IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                         // We get the delta normal
-                        if (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION && belong_index < TNumNodes) delta_normal = all_delta_normal[belong_index * TDim + i_dof] * (1.0/aux_nodes_coeff);
+                        if ((ConsiderNormalVariation == ELEMENTAL_DERIVATIVES || ConsiderNormalVariation == NODAL_ELEMENTAL_DERIVATIVES) && belong_index < TNumNodes) delta_normal = all_delta_normal[belong_index * TDim + i_dof] * (1.0/aux_nodes_coeff);
                         else delta_normal = zero_array;
 
                         auto& local_delta_vertex = rDerivativeData.DeltaCellVertex[belong_index * TDim + i_dof];
@@ -461,10 +602,10 @@ public:
                         // Special cases (slave nodes)
                         if (i_belong == 0) { // First node of the slave
                             const double coeff = 1.0 + num/denom;
-                            noalias(row(local_delta_vertex, i_triangle)) += LocalDeltaVertex( Normal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, coeff);
+                            noalias(row(local_delta_vertex, i_triangle)) += LocalDeltaVertex( rNormal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, coeff);
                         } else if (i_belong == 1) { // Second node of the slave
                             const double coeff = - num/denom;
-                            noalias(row(local_delta_vertex, i_triangle)) += LocalDeltaVertex( Normal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, coeff);
+                            noalias(row(local_delta_vertex, i_triangle)) += LocalDeltaVertex( rNormal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, coeff);
                         }
 
                         // We define some auxiliar coefficients
@@ -472,27 +613,27 @@ public:
                         const double coeff2 = num/std::pow(denom, 2);
 
                         // We add the part corresponding purely to delta normal
-                        if (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION) {
+                        if (ConsiderNormalVariation == ELEMENTAL_DERIVATIVES || ConsiderNormalVariation == NODAL_ELEMENTAL_DERIVATIVES) {
                             noalias(row(local_delta_vertex, i_triangle)) += diff3 * coeff1 * inner_prod(aux_num,  delta_normal);
                             noalias(row(local_delta_vertex, i_triangle)) += diff3 * coeff2 * inner_prod(aux_denom, delta_normal);
                         }
 
                         // We compute the delta diffs
-                        const array_1d<double, 3> delta_diff1 = (i_belong == 0) ? LocalDeltaVertex(Normal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, 1.0) : (i_belong == 2) ? LocalDeltaVertex(Normal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, - 1.0) : zero_array;
-                        const array_1d<double, 3> delta_diff2 = (i_belong == 3) ? LocalDeltaVertex(Normal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, 1.0) : (i_belong == 2) ? LocalDeltaVertex(Normal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, - 1.0) : zero_array;
-                        const array_1d<double, 3> delta_diff3 = (i_belong == 1) ? LocalDeltaVertex(Normal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, 1.0) : (i_belong == 0) ? LocalDeltaVertex(Normal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, - 1.0) : zero_array;
+                        const array_1d<double, 3> delta_diff1 = (i_belong == 0) ? LocalDeltaVertex(rNormal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, 1.0) : (i_belong == 2) ? LocalDeltaVertex(rNormal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, - 1.0) : zero_array;
+                        const array_1d<double, 3> delta_diff2 = (i_belong == 3) ? LocalDeltaVertex(rNormal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, 1.0) : (i_belong == 2) ? LocalDeltaVertex(rNormal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, - 1.0) : zero_array;
+                        const array_1d<double, 3> delta_diff3 = (i_belong == 1) ? LocalDeltaVertex(rNormal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, 1.0) : (i_belong == 0) ? LocalDeltaVertex(rNormal, delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, - 1.0) : zero_array;
 
                         // We compute now the delta num and denom
                         array_1d<double, 3> aux_cross_product;
                         MathUtils<double>::CrossProduct(aux_cross_product, delta_diff1, diff2);
-                        double delta_num = inner_prod(aux_cross_product, Normal);
+                        double delta_num = inner_prod(aux_cross_product, rNormal);
                         MathUtils<double>::CrossProduct(aux_cross_product, diff1, delta_diff2);
-                        delta_num += inner_prod(aux_cross_product, Normal);
+                        delta_num += inner_prod(aux_cross_product, rNormal);
 
                         MathUtils<double>::CrossProduct(aux_cross_product, delta_diff3, diff2);
-                        double delta_denom = inner_prod(aux_cross_product, Normal);
+                        double delta_denom = inner_prod(aux_cross_product, rNormal);
                         MathUtils<double>::CrossProduct(aux_cross_product, diff3, delta_diff2);
-                        delta_denom += inner_prod(aux_cross_product, Normal);
+                        delta_denom += inner_prod(aux_cross_product, rNormal);
 
                         // Finally we add the contributions of delta num and denom
                         noalias(row(local_delta_vertex, i_triangle)) += coeff1 * diff3 * delta_num;
@@ -500,17 +641,17 @@ public:
                     }
                 }
             } else { // It belongs to a master/slave node
-                const IndexType belong_index = static_cast<IndexType>(TheseBelongs[i_triangle]);
+                const IndexType belong_index = static_cast<IndexType>(rTheseBelongs[i_triangle]);
 
                 for (unsigned i_dof = 0; i_dof < TDim; ++i_dof) {
                     // We get the delta normal
-                    if (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION && belong_index < TNumNodes) 
+                    if ((ConsiderNormalVariation == ELEMENTAL_DERIVATIVES || ConsiderNormalVariation == NODAL_ELEMENTAL_DERIVATIVES) && belong_index < TNumNodes)
                         delta_normal = all_delta_normal[belong_index * TDim + i_dof] * (1.0/aux_nodes_coeff);
-                    else 
+                    else
                         delta_normal = zero_array;
 
                     auto& local_delta_vertex = rDerivativeData.DeltaCellVertex[belong_index * TDim + i_dof];
-                    noalias(row(local_delta_vertex, i_triangle)) += LocalDeltaVertex( Normal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, SlaveGeometry, MasterGeometry);
+                    noalias(row(local_delta_vertex, i_triangle)) += LocalDeltaVertex( rNormal,  delta_normal, i_dof, belong_index, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry);
                 }
             }
         }
@@ -520,24 +661,23 @@ public:
      * @brief Calculates the increment of the shape functions
      * @param rVariables The kinematic variables
      * @param rDerivativeData The derivatives container
-     * @param SlaveGeometry The geometry of the slave side
-     * @param MasterGeometry The geometry of the master side
-     * @param SlaveNormal The normal of the slave side
-     * @param DecompGeom The triangle used to decompose the geometry
-     * @param LocalPointDecomp The local coordinates in the decomposed geometry
-     * @param LocalPointParent The local coordinates in the slave geometry
+     * @param rSlaveGeometry The geometry of the slave side
+     * @param rMasterGeometry The geometry of the master side
+     * @param rSlaveNormal The normal of the slave side
+     * @param rDecompGeom The triangle used to decompose the geometry
+     * @param rLocalPointDecomp The local coordinates in the decomposed geometry
+     * @param rLocalPointParent The local coordinates in the slave geometry
      * @param ConsiderNormalVariation If consider the normal derivative
      */
-
     static inline void CalculateDeltaN1(
         const GeneralVariables& rVariables,
         DerivativeDataType& rDerivativeData,
-        GeometryType& SlaveGeometry,
-        GeometryType& MasterGeometry,
-        const array_1d<double, 3> SlaveNormal,
-        const DecompositionType& DecompGeom,
-        const PointType& LocalPointDecomp,
-        const PointType& LocalPointParent,
+        GeometryType& rSlaveGeometry,
+        GeometryType& rMasterGeometry,
+        const array_1d<double, 3> rSlaveNormal,
+        const DecompositionType& rDecompGeom,
+        const PointType& rLocalPointDecomp,
+        const PointType& rLocalPointParent,
         const NormalDerivativesComputation ConsiderNormalVariation = NO_DERIVATIVES_COMPUTATION
         )
     {
@@ -545,45 +685,45 @@ public:
         const array_1d<double, 3> zero_array(3, 0.0);
 
         /* Shape functions */
-        const VectorType& N1 = rVariables.NSlave;
+        const VectorType& r_N1 = rVariables.NSlave;
 
         /* Local gradients */
-        const MatrixType& DNDe1 = rVariables.DNDeSlave;
+        const MatrixType& r_DNDe1 = rVariables.DNDeSlave;
 
         // The Normal and delta Normal in the center of the element
-        const array_1d<array_1d<double, 3>, TDim * TNumNodes> all_delta_normal = DeltaNormalCenter(SlaveGeometry);
+        const array_1d<array_1d<double, 3>, TDim * TNumNodes> all_delta_normal = DeltaNormalCenter(rSlaveGeometry);
 
         /* Shape function decomposition */
         VectorType N_decomp;
-        DecompGeom.ShapeFunctionsValues( N_decomp, LocalPointDecomp.Coordinates() );
+        rDecompGeom.ShapeFunctionsValues( N_decomp, rLocalPointDecomp.Coordinates() );
 
         if (TDim == 3) { // NOTE: This is not used in 2D
-            for ( IndexType i_node = 0; i_node < 2 * TNumNodes; ++i_node) {
+            for ( IndexType i_node = 0; i_node < (TNumNodesMaster + TNumNodes); ++i_node) {
                 for (IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                     // We get the delta normal
-                    const array_1d<double, 3> delta_normal = (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION && i_node < TNumNodes) ? all_delta_normal[i_node * TDim + i_dof] : zero_array;
+                    const array_1d<double, 3> delta_normal = ((ConsiderNormalVariation == ELEMENTAL_DERIVATIVES || ConsiderNormalVariation == NODAL_ELEMENTAL_DERIVATIVES) && i_node < TNumNodes) ? all_delta_normal[i_node * TDim + i_dof] : zero_array;
 
                     // We compute the residuals
                     array_1d<double, 3> aux_RHS1(3, 0.0);
 
                     // The vertex cell contribution
-                    const auto& local_delta_cell = rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof];
+                    const auto& r_local_delta_cell = rDerivativeData.DeltaCellVertex[i_node * TDim + i_dof];
                     for(std::size_t i_belong = 0; i_belong < 3; ++i_belong) {
-                        noalias(aux_RHS1) += N_decomp[i_belong] * row(local_delta_cell, i_belong);
+                        noalias(aux_RHS1) += N_decomp[i_belong] * row(r_local_delta_cell, i_belong);
                     }
 
                     // Local contribution
-                    const array_1d<double, 3> aux_delta_node = LocalDeltaVertex( SlaveNormal, delta_normal, i_dof, i_node, ConsiderNormalVariation, SlaveGeometry, MasterGeometry );
-                    if (i_node < TNumNodes) 
-                        noalias(aux_RHS1) -= N1[i_node] * aux_delta_node;
+                    const array_1d<double, 3> aux_delta_node = LocalDeltaVertex( rSlaveNormal, delta_normal, i_dof, i_node, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry );
+                    if (i_node < TNumNodes)
+                        noalias(aux_RHS1) -= r_N1[i_node] * aux_delta_node;
 
                     // We compute the delta coordinates
                     array_1d<double, 2> aux_delta_coords1;
-                    DeltaPointLocalCoordinates(aux_delta_coords1, aux_RHS1, rVariables.DNDeSlave, SlaveGeometry, SlaveNormal);
+                    DeltaPointLocalCoordinatesSlave(aux_delta_coords1, aux_RHS1, rVariables.DNDeSlave, rSlaveGeometry, rSlaveNormal);
 
                     // Now we can compute the delta shape functions
-                    auto& delta_n1 = rDerivativeData.DeltaN1[i_node * TDim + i_dof];
-                    noalias(delta_n1) = (aux_delta_coords1[0] * column(DNDe1, 0) + aux_delta_coords1[1] * column(DNDe1, 1));
+                    auto& r_delta_n1 = rDerivativeData.DeltaN1[i_node * TDim + i_dof];
+                    noalias(r_delta_n1) = (aux_delta_coords1[0] * column(r_DNDe1, 0) + aux_delta_coords1[1] * column(r_DNDe1, 1));
                 }
             }
         }
@@ -593,27 +733,26 @@ public:
      * @brief Calculates the increment of the shape functions
      * @param rVariables The kinematic variables
      * @param rDerivativeData The derivatives container
-     * @param SlaveGeometry The geometry of the slave side
-     * @param MasterGeometry The geometry of the master side
-     * @param SlaveNormal The normal of the slave side
-     * @param MasterNormal The normal of the master side
-     * @param DecompGeom The triangle used to decompose the geometry
-     * @param LocalPointDecomp The local coordinates in the decomposed geometry
-     * @param LocalPointParent The local coordinates in the slave geometry
+     * @param rSlaveGeometry The geometry of the slave side
+     * @param rMasterGeometry The geometry of the master side
+     * @param rSlaveNormal The normal of the slave side
+     * @param rMasterNormal The normal of the master side
+     * @param rDecompGeom The triangle used to decompose the geometry
+     * @param rLocalPointDecomp The local coordinates in the decomposed geometry
+     * @param rLocalPointParent The local coordinates in the slave geometry
      * @param ConsiderNormalVariation If consider the normal derivative
      * @param DualLM If the dual Lm formulation is considered
      */
-
     static inline void CalculateDeltaN(
         const GeneralVariables& rVariables,
         DerivativeDataType& rDerivativeData,
-        GeometryType& SlaveGeometry,
-        GeometryType& MasterGeometry,
-        const array_1d<double, 3> SlaveNormal,
-        const array_1d<double, 3> MasterNormal,
-        const DecompositionType& DecompGeom,
-        const PointType& LocalPointDecomp,
-        const PointType& LocalPointParent,
+        GeometryType& rSlaveGeometry,
+        GeometryType& rMasterGeometry,
+        const array_1d<double, 3>& rSlaveNormal,
+        const array_1d<double, 3>& rMasterNormal,
+        const DecompositionType& rDecompGeom,
+        const PointType& rLocalPointDecomp,
+        const PointType& rLocalPointParent,
         const NormalDerivativesComputation ConsiderNormalVariation = NO_DERIVATIVES_COMPUTATION,
         const bool DualLM = false
         )
@@ -622,37 +761,34 @@ public:
         const array_1d<double, 3> zero_array(3, 0.0);
 
         /* Shape functions */
-        const VectorType& N1 = rVariables.NSlave;
-        const VectorType& N2 = rVariables.NMaster;
+        const VectorType& r_N1 = rVariables.NSlave;
+        const VectorType& r_N2 = rVariables.NMaster;
 
         /* Local gradients */
-        const MatrixType& DNDe1 = rVariables.DNDeSlave;
-        const MatrixType& DNDe2 = rVariables.DNDeMaster;
+        const MatrixType& r_DNDe1 = rVariables.DNDeSlave;
+        const MatrixType& r_DNDe2 = rVariables.DNDeMaster;
 
         // The Normal and delta Normal in the center of the element
-        const array_1d<array_1d<double, 3>, TDim * TNumNodes> all_delta_normal = DeltaNormalCenter(SlaveGeometry);
+        const array_1d<array_1d<double, 3>, TDim * TNumNodes> all_delta_normal = DeltaNormalCenter(rSlaveGeometry);
 
         /* Shape function decomposition */
         VectorType N_decomp;
-        DecompGeom.ShapeFunctionsValues( N_decomp, LocalPointDecomp.Coordinates() );
-
-        /* Tolerance */
-        const double tolerance = std::numeric_limits<double>::epsilon();
+        rDecompGeom.ShapeFunctionsValues( N_decomp, rLocalPointDecomp.Coordinates() );
 
         if (TDim == 2) {
             array_1d<PointType, TNumNodes> projected_in_slave, projected_in_master;
 
             for (IndexType i_mortar_node = 0; i_mortar_node < TNumNodes; ++i_mortar_node) {
                 // Projecting points in opposite geometry, defining mortar nodes
-                MortarUtilities::FastProjectDirection( SlaveGeometry,  MasterGeometry[i_mortar_node], projected_in_slave[i_mortar_node],  SlaveNormal, MasterNormal );
-                MortarUtilities::FastProjectDirection( MasterGeometry, SlaveGeometry[i_mortar_node],  projected_in_master[i_mortar_node], MasterNormal, SlaveNormal );
+                GeometricalProjectionUtilities::FastProjectDirection( rSlaveGeometry,  rMasterGeometry[i_mortar_node], projected_in_slave[i_mortar_node],  rSlaveNormal, rMasterNormal );
+                GeometricalProjectionUtilities::FastProjectDirection( rMasterGeometry, rSlaveGeometry[i_mortar_node],  projected_in_master[i_mortar_node], rMasterNormal, rSlaveNormal );
             }
 
             for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 for (IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
 
-                    array_1d<double, TNumNodes> DeltaXi_slave  = ZeroVector(TNumNodes);
-                    array_1d<double, TNumNodes> DeltaXi_master = ZeroVector(TNumNodes);
+                    array_1d<double, TNumNodes> DeltaXi_slave(TNumNodes, 0.0);
+                    array_1d<double, TNumNodes> DeltaXi_master(TNumNodes, 0.0);
                     double DeltaXi1 = 0.0, DeltaXi2 = 0.0;
 
                     for (IndexType i_mortar_node = 0; i_mortar_node < TNumNodes; ++i_mortar_node) {
@@ -660,12 +796,12 @@ public:
                         PointType aux_point_slave, aux_point_master;
 
                         // Compute DeltaXi on the slave side if point is inside geometry (nodes of geometry excluded)
-                        if (SlaveGeometry.IsInside( projected_in_slave[i_mortar_node].Coordinates(), aux_point_slave.Coordinates() ) && (norm_2(projected_in_slave[i_mortar_node].Coordinates() - SlaveGeometry[0].Coordinates()) > tolerance) && (norm_2(projected_in_slave[i_mortar_node].Coordinates() - SlaveGeometry[1].Coordinates()) > tolerance))
-                            DeltaXi_slave[i_mortar_node] = LocalDeltaSegmentN1( all_delta_normal, SlaveNormal, SlaveGeometry, MasterGeometry, N1, DNDe1, i_mortar_node, i_node, i_dof, ConsiderNormalVariation );
+                        if (rSlaveGeometry.IsInside( projected_in_slave[i_mortar_node].Coordinates(), aux_point_slave.Coordinates() ) && (norm_2(projected_in_slave[i_mortar_node].Coordinates() - rSlaveGeometry[0].Coordinates()) > ZeroTolerance) && (norm_2(projected_in_slave[i_mortar_node].Coordinates() - rSlaveGeometry[1].Coordinates()) > ZeroTolerance))
+                            DeltaXi_slave[i_mortar_node] = LocalDeltaSegmentN1( all_delta_normal, rSlaveNormal, rSlaveGeometry, rMasterGeometry, r_N1, r_DNDe1, i_mortar_node, i_node, i_dof, ConsiderNormalVariation );
 
                         // Compute DeltaXi on the master side if point is inside geometry (nodes of geometry excluded)
-                        if (MasterGeometry.IsInside( projected_in_master[i_mortar_node].Coordinates(), aux_point_master.Coordinates() ) && (norm_2(projected_in_master[i_mortar_node].Coordinates() - MasterGeometry[0].Coordinates()) > tolerance) && (norm_2(projected_in_master[i_mortar_node].Coordinates() - MasterGeometry[1].Coordinates()) > tolerance))
-                            DeltaXi_master[i_mortar_node] = LocalDeltaSegmentN2( all_delta_normal, SlaveNormal, SlaveGeometry, MasterGeometry, N2, DNDe2, i_mortar_node, i_node, i_dof, ConsiderNormalVariation );
+                        if (rMasterGeometry.IsInside( projected_in_master[i_mortar_node].Coordinates(), aux_point_master.Coordinates() ) && (norm_2(projected_in_master[i_mortar_node].Coordinates() - rMasterGeometry[0].Coordinates()) > ZeroTolerance) && (norm_2(projected_in_master[i_mortar_node].Coordinates() - rMasterGeometry[1].Coordinates()) > ZeroTolerance))
+                            DeltaXi_master[i_mortar_node] = LocalDeltaSegmentN2( all_delta_normal, rSlaveNormal, rSlaveGeometry, rMasterGeometry, r_N2, r_DNDe2, i_mortar_node, i_node, i_dof, ConsiderNormalVariation );
                     }
 
                     // Evaluate DeltaXi1 expression
@@ -677,27 +813,27 @@ public:
                     // Multiply for DNDe for obtaining DeltaN
 
                     auto& delta_n1 = rDerivativeData.DeltaN1[i_node * TDim + i_dof];
-                    noalias(delta_n1) = DeltaXi1 * column(DNDe1, 0);
+                    noalias(delta_n1) = DeltaXi1 * column(r_DNDe1, 0);
 
                     auto& delta_n2 = rDerivativeData.DeltaN2[i_node * TDim + i_dof];
-                    noalias(delta_n2) = DeltaXi2 * column(DNDe2, 0);
+                    noalias(delta_n2) = DeltaXi2 * column(r_DNDe2, 0);
 
                     // The derivatives of the dual shape function
                     auto& delta_phi = rDerivativeData.DeltaPhi[i_node * TDim + i_dof];
-                    if (DualLM == true) {
+                    if (DualLM) {
                         noalias(delta_phi) = prod(rDerivativeData.Ae, delta_n1);
                         if (i_node >= TNumNodes)
-                            noalias(delta_phi) += prod(rDerivativeData.DeltaAe[i_node * TDim + i_dof], N1);
+                            noalias(delta_phi) += prod(rDerivativeData.DeltaAe[i_node * TDim + i_dof], r_N1);
                     } else {
                         noalias(delta_phi) = delta_n1;
                     }
                 }
             }
         } else {
-            for ( IndexType i_node = 0; i_node < 2 * TNumNodes; ++i_node) {
+            for ( IndexType i_node = 0; i_node < (TNumNodesMaster + TNumNodes); ++i_node) {
                 for (IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                     // We get the delta normal
-                    const array_1d<double, 3> delta_normal = (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION && i_node < TNumNodes) ? all_delta_normal[i_node * TDim + i_dof] : zero_array;
+                    const array_1d<double, 3> delta_normal = ((ConsiderNormalVariation == ELEMENTAL_DERIVATIVES || ConsiderNormalVariation == NODAL_ELEMENTAL_DERIVATIVES) && i_node < TNumNodes) ? all_delta_normal[i_node * TDim + i_dof] : zero_array;
 
                     // We compute the residuals
                     array_1d<double, 3> aux_RHS1(3, 0.0);
@@ -707,31 +843,32 @@ public:
                     for(std::size_t i_belong = 0; i_belong < 3; ++i_belong) {
                         noalias(aux_RHS1) += N_decomp[i_belong] * row(local_delta_cell, i_belong);
                     }
+                    // Copy
                     array_1d<double, 3> aux_RHS2 = aux_RHS1;
 
                     // Local contribution
-                    const array_1d<double, 3> aux_delta_node = LocalDeltaVertex( SlaveNormal, delta_normal, i_dof, i_node, ConsiderNormalVariation, SlaveGeometry, MasterGeometry );
-                    if (i_node < TNumNodes) 
-                        noalias(aux_RHS1) -= N1[i_node] * aux_delta_node;
-                    else 
-                        noalias(aux_RHS2) -= N2[i_node - TNumNodes] * aux_delta_node;
+                    const array_1d<double, 3> aux_delta_node = LocalDeltaVertex( rSlaveNormal, delta_normal, i_dof, i_node, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry );
+                    if (i_node < TNumNodes)
+                        noalias(aux_RHS1) -= r_N1[i_node] * aux_delta_node;
+                    else
+                        noalias(aux_RHS2) -= r_N2[i_node - TNumNodes] * aux_delta_node;
 
                     // We compute the delta coordinates
                     array_1d<double, 2> aux_delta_coords1, aux_delta_coords2;
-                    DeltaPointLocalCoordinates(aux_delta_coords1, aux_RHS1, rVariables.DNDeSlave, SlaveGeometry, SlaveNormal);
-                    DeltaPointLocalCoordinates(aux_delta_coords2, aux_RHS2, rVariables.DNDeMaster, MasterGeometry, SlaveNormal);
+                    DeltaPointLocalCoordinatesSlave(aux_delta_coords1, aux_RHS1, rVariables.DNDeSlave, rSlaveGeometry, rSlaveNormal);
+                    DeltaPointLocalCoordinatesMaster(aux_delta_coords2, aux_RHS2, rVariables.DNDeMaster, rMasterGeometry, rSlaveNormal);
 
                     // Now we can compute the delta shape functions
                     auto& delta_n1 = rDerivativeData.DeltaN1[i_node * TDim + i_dof];
-                    noalias(delta_n1) = (aux_delta_coords1[0] * column(DNDe1, 0) + aux_delta_coords1[1] * column(DNDe1, 1));
+                    noalias(delta_n1) = (aux_delta_coords1[0] * column(r_DNDe1, 0) + aux_delta_coords1[1] * column(r_DNDe1, 1));
 
                     auto& delta_n2 = rDerivativeData.DeltaN2[i_node * TDim + i_dof];
-                    noalias(delta_n2) = (aux_delta_coords2[0] * column(DNDe2, 0) + aux_delta_coords2[1] * column(DNDe2, 1));
+                    noalias(delta_n2) = (aux_delta_coords2[0] * column(r_DNDe2, 0) + aux_delta_coords2[1] * column(r_DNDe2, 1));
 
                     // The derivatives of the dual shape function
                     auto& delta_phi = rDerivativeData.DeltaPhi[i_node * TDim + i_dof];
-                    if (DualLM == true) {
-                        noalias(delta_phi) = prod(rDerivativeData.DeltaAe[i_node * TDim + i_dof], N1);
+                    if (DualLM) {
+                        noalias(delta_phi) = prod(rDerivativeData.DeltaAe[i_node * TDim + i_dof], r_N1);
                         noalias(delta_phi) += prod(rDerivativeData.Ae, delta_n1);
                     } else {
                         noalias(delta_phi) = delta_n1;
@@ -743,33 +880,33 @@ public:
 
     /**
      * @brief Returns a matrix with the increment of displacements, that can be used for compute the Jacobian reference (current) configuration
-     * @param DeltaPosition The matrix with the increment of displacements
-     * @param LocalCoordinates The array containing the local coordinates of the exact integration segment
+     * @param rDeltaPosition The matrix with the increment of displacements
+     * @param rThisGeometry The geometry considered
+     * @param rLocalCoordinates The array containing the local coordinates of the exact integration segment
      */
-
     Matrix& CalculateDeltaPosition(
-        Matrix& DeltaPosition,
-        const GeometryType& ThisGeometry,
-        const ConditionArrayType& LocalCoordinates
+        Matrix& rDeltaPosition,
+        const GeometryType& rThisGeometry,
+        const ConditionArrayType& rLocalCoordinates
         )
     {
         KRATOS_TRY;
 
-        DeltaPosition = ZeroMatrix(TDim, TDim);
+        rDeltaPosition = ZeroMatrix(TDim, TDim);
 
         for ( IndexType i_node = 0; i_node < TNumNodes; ++i_node ) {
-            const array_1d<double, 3 > delta_displacement = ThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - ThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
+            const array_1d<double, 3 > delta_displacement = rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT) - rThisGeometry[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);
 
             for ( IndexType j_node = 0; j_node < TDim; ++j_node ) {
                 Vector N;
-                ThisGeometry.ShapeFunctionsValues( N, LocalCoordinates[j_node].Coordinates() );
+                rThisGeometry.ShapeFunctionsValues( N, rLocalCoordinates[j_node].Coordinates() );
 
                 for ( IndexType j_dim = 0; j_dim < TDim; ++j_dim )
-                    DeltaPosition(j_node, j_dim) += N[i_node] * delta_displacement[j_dim];
+                    rDeltaPosition(j_node, j_dim) += N[i_node] * delta_displacement[j_dim];
             }
         }
 
-        return DeltaPosition;
+        return rDeltaPosition;
 
         KRATOS_CATCH( "" );
     }
@@ -803,26 +940,26 @@ public:
 
     /**
      * @brief Returns a vector with the increment of displacements
-     * @param DeltaPosition The resulting vector with the increment of position
-     * @param SlaveGeometry The slave geometry
-     * @param MasterGeometry The master geometry
+     * @param rDeltaPosition The resulting vector with the increment of position
+     * @param rSlaveGeometry The slave geometry
+     * @param rMasterGeometry The master geometry
      * @param IndexNode The node index
      */
 
     static inline void CalculateDeltaPosition(
-        VectorType& DeltaPosition,
-        const GeometryType& SlaveGeometry,
-        const GeometryType& MasterGeometry,
+        VectorType& rDeltaPosition,
+        const GeometryType& rSlaveGeometry,
+        const GeometryType& rMasterGeometry,
         const IndexType IndexNode
         )
     {
         KRATOS_TRY;
 
         if (IndexNode < TNumNodes) {
-            DeltaPosition = SlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT) - SlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT,1);
+            rDeltaPosition = rSlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT) - rSlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT,1);
         } else {
             const IndexType index_master = IndexNode - TNumNodes;
-            DeltaPosition = MasterGeometry[index_master].FastGetSolutionStepValue(DISPLACEMENT) - MasterGeometry[index_master].FastGetSolutionStepValue(DISPLACEMENT,1);
+            rDeltaPosition = rMasterGeometry[index_master].FastGetSolutionStepValue(DISPLACEMENT) - rMasterGeometry[index_master].FastGetSolutionStepValue(DISPLACEMENT,1);
         }
 
         KRATOS_CATCH( "" );
@@ -830,30 +967,30 @@ public:
 
     /**
      * @brief Returns a vector with the increment of displacements
-     * @param DeltaPosition The resulting vector with the increment of position
-     * @param SlaveGeometry The slave geometry
-     * @param MasterGeometry The master geometry
+     * @param rDeltaPosition The resulting vector with the increment of position
+     * @param rSlaveGeometry The slave geometry
+     * @param rMasterGeometry The master geometry
      * @param IndexNode The node index
      * @param iDoF The degree of freedom index
      */
 
     static inline void CalculateDeltaPosition(
-        VectorType& DeltaPosition,
-        const GeometryType& SlaveGeometry,
-        const GeometryType& MasterGeometry,
+        VectorType& rDeltaPosition,
+        const GeometryType& rSlaveGeometry,
+        const GeometryType& rMasterGeometry,
         const IndexType IndexNode,
         const IndexType iDoF
         )
     {
         KRATOS_TRY;
 
-        DeltaPosition = ZeroVector(3);
+        rDeltaPosition = ZeroVector(3);
 
         if (IndexNode < TNumNodes) {
-            DeltaPosition[iDoF] = (SlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT) - SlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
+            rDeltaPosition[iDoF] = (rSlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT) - rSlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
         } else {
             const IndexType index_master = IndexNode - TNumNodes;
-            DeltaPosition[iDoF] = (MasterGeometry[index_master].FastGetSolutionStepValue(DISPLACEMENT) - MasterGeometry[index_master].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
+            rDeltaPosition[iDoF] = (rMasterGeometry[index_master].FastGetSolutionStepValue(DISPLACEMENT) - rMasterGeometry[index_master].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
         }
 
         KRATOS_CATCH( "" );
@@ -861,17 +998,17 @@ public:
 
     /**
      * @brief Returns a double with the increment of displacements
-     * @param DeltaPosition The resulting double with the increment of position
-     * @param SlaveGeometry The slave geometry
-     * @param MasterGeometry The master geometry
+     * @param rDeltaPosition The resulting double with the increment of position
+     * @param rSlaveGeometry The slave geometry
+     * @param rMasterGeometry The master geometry
      * @param IndexNode The node index
      * @param iDoF The degree of freedom index
      */
 
     static inline void CalculateDeltaPosition(
-        double& DeltaPosition,
-        const GeometryType& SlaveGeometry,
-        const GeometryType& MasterGeometry,
+        double& rDeltaPosition,
+        const GeometryType& rSlaveGeometry,
+        const GeometryType& rMasterGeometry,
         const IndexType IndexNode,
         const IndexType iDoF
         )
@@ -879,10 +1016,10 @@ public:
         KRATOS_TRY;
 
         if (IndexNode < TNumNodes) {
-            DeltaPosition = (SlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT) - SlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
+            rDeltaPosition = (rSlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT) - rSlaveGeometry[IndexNode].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
         } else {
             const IndexType index_master = IndexNode - TNumNodes;
-            DeltaPosition = (MasterGeometry[index_master].FastGetSolutionStepValue(DISPLACEMENT) - MasterGeometry[index_master].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
+            rDeltaPosition = (rMasterGeometry[index_master].FastGetSolutionStepValue(DISPLACEMENT) - rMasterGeometry[index_master].FastGetSolutionStepValue(DISPLACEMENT,1))[iDoF];
         }
 
         KRATOS_CATCH( "" );
@@ -890,24 +1027,24 @@ public:
 
     /**
      * @brief Calculate Ae and DeltaAe matrices
-     * @param SlaveGeometry The geometry of the slave side
-     * @param SlaveNormal The normal of the slave side
-     * @param MasterGeometry The master side geometry
+     * @param rSlaveGeometry The geometry of the slave side
+     * @param rSlaveNormal The normal of the slave side
+     * @param rMasterGeometry The master side geometry
      * @param rDerivativeData The derivatives container
      * @param rVariables The kinematic variables
      * @param ConsiderNormalVariation If consider the normal derivative
-     * @param ConditionsPointsSlave The points that configure the exact decomposition of the geometry
+     * @param rConditionsPointsSlave The points that configure the exact decomposition of the geometry
      * @param ThisIntegrationMethod The integration method considered
      * @param AxiSymCoeff The axisymmetric coefficient
      */
     static inline bool CalculateAeAndDeltaAe(
-        GeometryType& SlaveGeometry,
-        const array_1d<double, 3>& SlaveNormal,
-        GeometryType& MasterGeometry,
+        GeometryType& rSlaveGeometry,
+        const array_1d<double, 3>& rSlaveNormal,
+        GeometryType& rMasterGeometry,
         DerivativeDataType& rDerivativeData,
         GeneralVariables& rVariables,
         const NormalDerivativesComputation ConsiderNormalVariation,
-        ConditionArrayListType& ConditionsPointsSlave,
+        ConditionArrayListType& rConditionsPointsSlave,
         IntegrationMethod ThisIntegrationMethod,
         const double AxiSymCoeff = 1.0
         )
@@ -921,19 +1058,19 @@ public:
         // Initialize general variables for the current master element
         rVariables.Initialize();
 
-        for (IndexType i_geom = 0; i_geom < ConditionsPointsSlave.size(); ++i_geom) {
-            std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+        for (IndexType i_geom = 0; i_geom < rConditionsPointsSlave.size(); ++i_geom) {
+            PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
             array_1d<BelongType, TDim> belong_array;
             for (IndexType i_node = 0; i_node < TDim; ++i_node) {
                 PointType global_point;
-                SlaveGeometry.GlobalCoordinates(global_point, ConditionsPointsSlave[i_geom][i_node]);
-                points_array[i_node] = PointType::Pointer( new PointType(global_point) );
-                belong_array[i_node] = ConditionsPointsSlave[i_geom][i_node].GetBelong();
+                rSlaveGeometry.GlobalCoordinates(global_point, rConditionsPointsSlave[i_geom][i_node]);
+                points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
+                belong_array[i_node] = rConditionsPointsSlave[i_geom][i_node].GetBelong();
             }
 
             DecompositionType decomp_geom( points_array );
 
-            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, SlaveGeometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
+            const bool bad_shape = (TDim == 2) ? MortarUtilities::LengthCheck(decomp_geom, rSlaveGeometry.Length() * 1.0e-12) : MortarUtilities::HeronCheck(decomp_geom);
 
             if (bad_shape == false) {
                 const GeometryType::IntegrationPointsArrayType integration_points_slave = decomp_geom.IntegrationPoints( ThisIntegrationMethod );
@@ -951,11 +1088,11 @@ public:
                     // Calculate the kinematic variables
                     // We compute the current configuration
                     decomp_geom.GlobalCoordinates(gp_global, local_point_decomp);
-                    SlaveGeometry.PointLocalCoordinates(local_point_parent, gp_global);
+                    rSlaveGeometry.PointLocalCoordinates(local_point_parent, gp_global);
 
                     // SLAVE KINEMATIC COMPUTATIONS
-                    SlaveGeometry.ShapeFunctionsValues( rVariables.NSlave, local_point_parent.Coordinates() );
-                    SlaveGeometry.ShapeFunctionsLocalGradients( rVariables.DNDeSlave, local_point_parent );
+                    rSlaveGeometry.ShapeFunctionsValues( rVariables.NSlave, local_point_parent.Coordinates() );
+                    rSlaveGeometry.ShapeFunctionsLocalGradients( rVariables.DNDeSlave, local_point_parent );
                     rVariables.PhiLagrangeMultipliers = rVariables.NSlave;
 
                     rVariables.jSlave = decomp_geom.Jacobian( rVariables.jSlave, local_point_decomp.Coordinates());
@@ -963,27 +1100,27 @@ public:
 
                     // MASTER KINEMATIC COMPUTATIONS
                     PointType projected_gp_global;
-                    array_1d<double,3> gp_normal = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, SlaveGeometry);
+                    array_1d<double,3> gp_normal = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, rSlaveGeometry);
 
                     GeometryType::CoordinatesArrayType slave_gp_global;
-                    SlaveGeometry.GlobalCoordinates( slave_gp_global, local_point_parent );
-                    MortarUtilities::FastProjectDirection( MasterGeometry, slave_gp_global, projected_gp_global, SlaveNormal, -gp_normal ); // The opposite direction
+                    rSlaveGeometry.GlobalCoordinates( slave_gp_global, local_point_parent );
+                    GeometricalProjectionUtilities::FastProjectDirection( rMasterGeometry, slave_gp_global, projected_gp_global, rSlaveNormal, -gp_normal ); // The opposite direction
 
                     GeometryType::CoordinatesArrayType projected_gp_local;
-                    MasterGeometry.PointLocalCoordinates( projected_gp_local, projected_gp_global.Coordinates( ) ) ;
+                    rMasterGeometry.PointLocalCoordinates( projected_gp_local, projected_gp_global.Coordinates( ) ) ;
 
-                    MasterGeometry.ShapeFunctionsValues( rVariables.NMaster,    projected_gp_local );
-                    MasterGeometry.ShapeFunctionsLocalGradients( rVariables.DNDeMaster, projected_gp_local );
-                    rVariables.jMaster = MasterGeometry.Jacobian( rVariables.jMaster, projected_gp_local);
+                    rMasterGeometry.ShapeFunctionsValues( rVariables.NMaster,    projected_gp_local );
+                    rMasterGeometry.ShapeFunctionsLocalGradients( rVariables.DNDeMaster, projected_gp_local );
+                    rVariables.jMaster = rMasterGeometry.Jacobian( rVariables.jMaster, projected_gp_local);
 
                     // Update the derivative of the integration vertex (just in 3D)
-                    if (TDim == 3) CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, ConsiderNormalVariation, SlaveGeometry, MasterGeometry, SlaveNormal);
+                    if (TDim == 3) CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, ConsiderNormalVariation, rSlaveGeometry, rMasterGeometry, rSlaveNormal);
 
                     // Update the derivative of DetJ
                     CalculateDeltaDetjSlave(decomp_geom, rVariables, rDerivativeData);
 
                     // Update the derivatives of the shape functions and the gap
-                    CalculateDeltaN1(rVariables, rDerivativeData, SlaveGeometry, MasterGeometry, SlaveNormal, decomp_geom, local_point_decomp, local_point_parent, ConsiderNormalVariation);
+                    CalculateDeltaN1(rVariables, rDerivativeData, rSlaveGeometry, rMasterGeometry, rSlaveNormal, decomp_geom, local_point_decomp, local_point_parent, ConsiderNormalVariation);
 
                     // Integrate
                     const double integration_weight = AxiSymCoeff * integration_points_slave[point_number].Weight();
@@ -1013,24 +1150,24 @@ private:
 
     /**
      * @brief This method is used to compute the directional derivatives of the cell vertex (locally)
-     * @param Normal The normal of the slave surface
-     * @param DeltaNormal The derivative of the normal vector
+     * @param rNormal The normal of the slave surface
+     * @param rDeltaNormal The derivative of the normal vector
      * @param iDoF The DoF computed index
      * @param iBelong The belong (intersection, node, etc..) index
      * @param ConsiderNormalVariation If the normal variation is considered
-     * @param SlaveGeometry The geometry of the slave side
-     * @param MasterGeometry The geometry of the master side
+     * @param rSlaveGeometry The geometry of the slave side
+     * @param rMasterGeometry The geometry of the master side
      * @param Coeff The coefficient considered in proportion
      * @return The local vertex derivative
      */
     static inline array_1d<double, 3> LocalDeltaVertex(
-        const array_1d<double, 3>& Normal,
-        const array_1d<double, 3>& DeltaNormal,
+        const array_1d<double, 3>& rNormal,
+        const array_1d<double, 3>& rDeltaNormal,
         const IndexType iDoF,
         const IndexType iBelong,
         const NormalDerivativesComputation ConsiderNormalVariation,
-        const GeometryType& SlaveGeometry,
-        const GeometryType& MasterGeometry,
+        const GeometryType& rSlaveGeometry,
+        const GeometryType& rMasterGeometry,
         double Coeff = 1.0
         )
     {
@@ -1041,8 +1178,8 @@ private:
         const double auxiliar_coeff = 1.0/static_cast<double>(TNumNodes);
 
         //  We initialize some values
-        const array_1d<double, 3> coords_center = SlaveGeometry.Center().Coordinates();
-        const array_1d<double, 3>& coords_node = (iBelong < TNumNodes) ? SlaveGeometry[iBelong].Coordinates() : MasterGeometry[iBelong - TNumNodes].Coordinates();
+        const array_1d<double, 3> coords_center = rSlaveGeometry.Center().Coordinates();
+        const array_1d<double, 3>& coords_node = (iBelong < TNumNodes) ? rSlaveGeometry[iBelong].Coordinates() : rMasterGeometry[iBelong - TNumNodes].Coordinates();
 
         // The corresponding part to the nodal coordinates
         array_1d<double, 3> aux_der = ZeroVector(3);
@@ -1050,40 +1187,40 @@ private:
         aux_delta_vertex += aux_der;
 
         // The corresponding part to the normal
-        const double coordsxdeltanormal = (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION) ? inner_prod(coords_node - coords_center, DeltaNormal) : 0.0;
+        const double coordsxdeltanormal = (ConsiderNormalVariation == ELEMENTAL_DERIVATIVES || ConsiderNormalVariation == NODAL_ELEMENTAL_DERIVATIVES) ? inner_prod(coords_node - coords_center, rDeltaNormal) : 0.0;
 
         const double factor_belong = (iBelong < TNumNodes) ? (1.0 - auxiliar_coeff) : 1.0;
-        const double deltacoordsxnormal =  factor_belong * Normal[iDoF];
-        aux_delta_vertex += - Normal * (deltacoordsxnormal + coordsxdeltanormal);
+        const double deltacoordsxnormal =  factor_belong * rNormal[iDoF];
+        aux_delta_vertex += - rNormal * (deltacoordsxnormal + coordsxdeltanormal);
 
         // The corresponding part to delta normal
-        const double coordsxnormal = - inner_prod(coords_node - coords_center, Normal);
-        if (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION) 
-            aux_delta_vertex += coordsxnormal * DeltaNormal;
+        const double coordsxnormal = - inner_prod(coords_node - coords_center, rNormal);
+        if (ConsiderNormalVariation == ELEMENTAL_DERIVATIVES || ConsiderNormalVariation == NODAL_ELEMENTAL_DERIVATIVES)
+            aux_delta_vertex += coordsxnormal * rDeltaNormal;
 
         return Coeff * aux_delta_vertex;
     }
 
     /**
      * @brief This method computes the auxiliar matrix used to keep unitary the normal
-     * @param DiffVector The auxiliar vector of difference of two normal vectors
-     * @param DeltaNormal The vector containing the delta normal
+     * @param rDiffVector The auxiliar vector of difference of two normal vectors
+     * @param rDeltaNormal The vector containing the delta normal
      * @return The auxiliar matrix computed
      */
     static inline BoundedMatrix<double, 3, 3> ComputeRenormalizerMatrix(
-        const array_1d<double, 3>& DiffVector,
-        const array_1d<double, 3>& DeltaNormal
+        const array_1d<double, 3>& rDiffVector,
+        const array_1d<double, 3>& rDeltaNormal
         )
     {
         for (IndexType itry = 0; itry < 3; ++itry) {
-            if (DeltaNormal[itry] > std::numeric_limits<double>::epsilon()) {
+            if (rDeltaNormal[itry] > ZeroTolerance) {
                 BoundedMatrix<double, 3, 3> aux_matrix;
 
                 const IndexType aux_index_1 = itry == 2 ? 0 : itry + 1;
                 const IndexType aux_index_2 = itry == 2 ? 1 : (itry == 1 ? 0 : 2);
 
-                const double diff = DeltaNormal[aux_index_1] + DeltaNormal[aux_index_2];
-                const double coeff = DeltaNormal[itry];
+                const double diff = rDeltaNormal[aux_index_1] + rDeltaNormal[aux_index_2];
+                const double coeff = rDeltaNormal[itry];
 
                 aux_matrix(0, aux_index_1) = 1.0;
                 aux_matrix(0, aux_index_2) = 1.0;
@@ -1092,9 +1229,9 @@ private:
                 aux_matrix(2, aux_index_1) = 1.0;
                 aux_matrix(2, aux_index_2) = 1.0;
 
-                aux_matrix(0, itry) = (DiffVector[0] - diff)/coeff;
-                aux_matrix(1, itry) = (DiffVector[1] - diff)/coeff;
-                aux_matrix(2, itry) = (DiffVector[2] - diff)/coeff;
+                aux_matrix(0, itry) = (rDiffVector[0] - diff)/coeff;
+                aux_matrix(1, itry) = (rDiffVector[1] - diff)/coeff;
+                aux_matrix(2, itry) = (rDiffVector[2] - diff)/coeff;
 
                 return aux_matrix;
             }
@@ -1105,26 +1242,26 @@ private:
 
     /**
      * @brief This method computes the auxiliar matrix used to keep unitary the normal
-     * @param DiffMatrix The auxiliar matrix of difference of two normal matrices
-     * @param DeltaNormal The matrix containing the delta normal
+     * @param rDiffMatrix The auxiliar matrix of difference of two normal matrices
+     * @param rDeltaNormal The matrix containing the delta normal
      * @param iGeometry The index of the node of the geometry computed
      * @return The auxiliar matrix computed
      */
     static inline BoundedMatrix<double, 3, 3> ComputeRenormalizerMatrix(
-        const BoundedMatrix<double, TNumNodes, TDim>& DiffMatrix,
-        const BoundedMatrix<double, TNumNodes, TDim>& DeltaNormal,
+        const BoundedMatrix<double, TNumNodes, TDim>& rDiffMatrix,
+        const BoundedMatrix<double, TNumNodes, TDim>& rDeltaNormal,
         const IndexType iGeometry
         )
     {
         for (IndexType itry = 0; itry < 3; ++itry) {
-            if (DeltaNormal(iGeometry, itry) > std::numeric_limits<double>::epsilon()) {
+            if (rDeltaNormal(iGeometry, itry) > ZeroTolerance) {
                 BoundedMatrix<double, 3, 3> aux_matrix;
 
                 const IndexType aux_index_1 = itry == 2 ? 0 : itry + 1;
                 const IndexType aux_index_2 = itry == 2 ? 1 : (itry == 1 ? 0 : 2);
 
-                const double diff = DeltaNormal(iGeometry, aux_index_1) + DeltaNormal(iGeometry, aux_index_2);
-                const double coeff = DeltaNormal(iGeometry, itry);
+                const double diff = rDeltaNormal(iGeometry, aux_index_1) + rDeltaNormal(iGeometry, aux_index_2);
+                const double coeff = rDeltaNormal(iGeometry, itry);
 
                 aux_matrix(0, aux_index_1) = 1.0;
                 aux_matrix(0, aux_index_2) = 1.0;
@@ -1133,9 +1270,9 @@ private:
                 aux_matrix(2, aux_index_1) = 1.0;
                 aux_matrix(2, aux_index_2) = 1.0;
 
-                aux_matrix(0, itry) = (DiffMatrix(iGeometry, 0) - diff)/coeff;
-                aux_matrix(1, itry) = (DiffMatrix(iGeometry, 1) - diff)/coeff;
-                aux_matrix(2, itry) = (DiffMatrix(iGeometry, 2) - diff)/coeff;
+                aux_matrix(0, itry) = (rDiffMatrix(iGeometry, 0) - diff)/coeff;
+                aux_matrix(1, itry) = (rDiffMatrix(iGeometry, 1) - diff)/coeff;
+                aux_matrix(2, itry) = (rDiffMatrix(iGeometry, 2) - diff)/coeff;
 
                 return aux_matrix;
             }
@@ -1147,21 +1284,21 @@ private:
     /**
      * @brief This method computes the normal in the previous configuration
      * @param rThisGeometry The geometry where compute
-     * @param PointLocal The local coordinates of the point
+     * @param rPointLocal The local coordinates of the point
      * @return The normal in the previous configuration
      */
     static inline array_1d<double, 3> PreviousNormalGeometry(
         const GeometryType& rThisGeometry,
-        const GeometryType::CoordinatesArrayType& PointLocal
+        const GeometryType::CoordinatesArrayType& rPointLocal
         )
     {
         // We compute the previous normal in the geometry
         Matrix previous_jacobian, delta_position;
         delta_position = CalculateDeltaPosition(delta_position, rThisGeometry);
-        previous_jacobian = rThisGeometry.Jacobian( previous_jacobian, PointLocal, delta_position);
+        previous_jacobian = rThisGeometry.Jacobian( previous_jacobian, rPointLocal, delta_position);
 
         // We define the normal and tangents
-        array_1d<double,3> tangent_xi = ZeroVector(3), tangent_eta = ZeroVector(3);
+        array_1d<double,3> tangent_xi(3, 0.0), tangent_eta(3, 0.0);
 
         // Using the Jacobian tangent directions
         if (TDim == 2) {
@@ -1179,7 +1316,7 @@ private:
         MathUtils<double>::CrossProduct(previous_normal, tangent_xi, tangent_eta);
         const double norm_normal = norm_2(previous_normal);
         previous_normal /= norm_normal;
-        KRATOS_ERROR_IF(norm_normal < std::numeric_limits<double>::epsilon()) << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
+        KRATOS_ERROR_IF(norm_normal < ZeroTolerance) << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
 
         return previous_normal;
     }
@@ -1187,67 +1324,65 @@ private:
     /**
      * @brief This method computes the equivalent indexes to the auxiliar hash
      * @param AuxIndex The auxiliar index to decompose
-     * @param iBelongSlaveStart The index of the first/slave segment and first node
-     * @param iBelongSlaveEnd The index of the first/slave segment and end node
-     * @param iBelongMasterStart The index of the second/master segment and first node
-     * @param iBelongMasterEnd The index of the second/master segment and end node
+     * @param riBelongSlaveStart The index of the first/slave segment and first node
+     * @param riBelongSlaveEnd The index of the first/slave segment and end node
+     * @param riBelongMasterStart The index of the second/master segment and first node
+     * @param riBelongMasterEnd The index of the second/master segment and end node
      */
     static inline void ConvertAuxHashIndex(
         const IndexType AuxIndex,
-        IndexType& iBelongSlaveStart,
-        IndexType& iBelongSlaveEnd,
-        IndexType& iBelongMasterStart,
-        IndexType& iBelongMasterEnd
+        IndexType& riBelongSlaveStart,
+        IndexType& riBelongSlaveEnd,
+        IndexType& riBelongMasterStart,
+        IndexType& riBelongMasterEnd
         )
     {
-        IndexType index_to_decompose = AuxIndex - 2 * TNumNodes;
+        IndexType index_to_decompose = AuxIndex - (TNumNodesMaster + TNumNodes);
 
-        iBelongMasterEnd = index_to_decompose/10000;
+        riBelongMasterEnd = index_to_decompose/10000;
         index_to_decompose = std::fmod(index_to_decompose, 10000);
-        iBelongMasterStart = index_to_decompose/1000;
+        riBelongMasterStart = index_to_decompose/1000;
         index_to_decompose = std::fmod(index_to_decompose, 1000);
-        iBelongSlaveEnd = index_to_decompose/100;
+        riBelongSlaveEnd = index_to_decompose/100;
         index_to_decompose = std::fmod(index_to_decompose, 100);
-        iBelongSlaveStart = index_to_decompose/10;
+        riBelongSlaveStart = index_to_decompose/10;
     }
 
     /**
      * @brief This method computes the increment of local coordinates
      * @param rResult The solution obtained
-     * @param DeltaPoint The increment of position in the points
-     * @param ThisGeometry The geometry considered
-     * @param ThisNormal The normal of the geometry
+     * @param rDeltaPoint The increment of position in the points
+     * @param rThisGeometry The geometry considered
+     * @param rThisNormal The normal of the geometry
+     * @note Hardcopied for performance
      */
-    static inline void DeltaPointLocalCoordinates(
+    static inline void DeltaPointLocalCoordinatesSlave(
         array_1d<double, 2>& rResult,
-        const array_1d<double, 3>& DeltaPoint,
+        const array_1d<double, 3>& rDeltaPoint,
         const MatrixType& rDNDe,
-        const GeometryType& ThisGeometry,
-        const array_1d<double, 3>& ThisNormal
+        const GeometryType& rThisGeometry,
+        const array_1d<double, 3>& rThisNormal
         )
     {
-        // Tolerance
-        const double tolerance = std::numeric_limits<double>::epsilon();
-
         BoundedMatrix<double, 3, TNumNodes> X;
         for(IndexType i = 0; i < TNumNodes; ++i) {
-            X(0, i) = ThisGeometry[i].X();
-            X(1, i) = ThisGeometry[i].Y();
-            X(2, i) = ThisGeometry[i].Z();
+            X(0, i) = rThisGeometry[i].X();
+            X(1, i) = rThisGeometry[i].Y();
+            X(2, i) = rThisGeometry[i].Z();
         }
 
         const BoundedMatrix<double, 3, 2> DN = prod(X, rDNDe);
 
         const BoundedMatrix<double, 2, 2> J = prod(trans(DN),DN);
         double det_j = MathUtils<double>::DetMat<BoundedMatrix<double, 2, 2>>(J);
-        const BoundedMatrix<double, 2, 2> invJ = (std::abs(det_j) < tolerance) ? ZeroMatrix(2,2) : MathUtils<double>::InvertMatrix<2>(J, det_j);
+        const BoundedMatrix<double, 2, 2> invJ = (std::abs(det_j) < ZeroTolerance) ? ZeroMatrix(2,2) : MathUtils<double>::InvertMatrix<2>(J, det_j);
 
     #ifdef KRATOS_DEBUG
-        if (std::abs(det_j) < tolerance) 
+        if (std::abs(det_j) < ZeroTolerance)
             KRATOS_WARNING("Jacobian invert") << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
     #endif
 
-        const array_1d<double, 2> res = prod(trans(DN), DeltaPoint);
+        const array_1d<double, 2> res = prod(trans(DN), rDeltaPoint);
         noalias(rResult) = prod(invJ, res);
 
 //         BoundedMatrix<double, 3, 3> L;
@@ -1263,19 +1398,57 @@ private:
 //         rResult[0] = aux[0];
 //         rResult[1] = aux[1];
 //         #ifdef KRATOS_DEBUG
-//             if (std::abs(det_L) < tolerance) 
+//             if (std::abs(det_L) < tolerance)
 //                 KRATOS_WARNING("Jacobian invert") << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
 //         #endif
     }
 
     /**
+     * @brief This method computes the increment of local coordinates
+     * @param rResult The solution obtained
+     * @param rDeltaPoint The increment of position in the points
+     * @param rThisGeometry The geometry considered (master)
+     * @param rThisNormal The normal of the geometry
+     * @note Hardcopied for performance
+     */
+    static inline void DeltaPointLocalCoordinatesMaster(
+        array_1d<double, 2>& rResult,
+        const array_1d<double, 3>& rDeltaPoint,
+        const MatrixType& rDNDe,
+        const GeometryType& rThisGeometry,
+        const array_1d<double, 3>& rThisNormal
+        )
+    {
+        BoundedMatrix<double, 3, TNumNodesMaster> X;
+        for(IndexType i = 0; i < TNumNodesMaster; ++i) {
+            X(0, i) = rThisGeometry[i].X();
+            X(1, i) = rThisGeometry[i].Y();
+            X(2, i) = rThisGeometry[i].Z();
+        }
+
+        const BoundedMatrix<double, 3, 2> DN = prod(X, rDNDe);
+
+        const BoundedMatrix<double, 2, 2> J = prod(trans(DN),DN);
+        double det_j = MathUtils<double>::DetMat<BoundedMatrix<double, 2, 2>>(J);
+        const BoundedMatrix<double, 2, 2> invJ = (std::abs(det_j) < ZeroTolerance) ? ZeroMatrix(2,2) : MathUtils<double>::InvertMatrix<2>(J, det_j);
+
+    #ifdef KRATOS_DEBUG
+        if (std::abs(det_j) < ZeroTolerance)
+            KRATOS_WARNING("Jacobian invert") << "WARNING: CANNOT INVERT JACOBIAN TO COMPUTE DELTA COORDINATES" << std::endl;
+    #endif
+
+        const array_1d<double, 2> res = prod(trans(DN), rDeltaPoint);
+        noalias(rResult) = prod(invJ, res);
+    }
+
+    /**
      * @brief This method is used to compute the directional derivatives of the mortar segment on the slave side
-     * @param DeltaNormal All derivatives of normals in points of both geometries
-     * @param SlaveNormal Normal in the center of slave geometry
-     * @param SlaveGeometry Slave geometry where to compute the value
-     * @param MasterGeometry Master node projected to the Slave Geometry
-     * @param N1 Shape function at SlaveGeometry
-     * @param DNDe1 Gradient of shape function N1
+     * @param rDeltaNormal All derivatives of normals in points of both geometries
+     * @param rSlaveNormal Normal in the center of slave geometry
+     * @param rSlaveGeometry Slave geometry where to compute the value
+     * @param rMasterGeometry Master node projected to the Slave Geometry
+     * @param rN1 Shape function at SlaveGeometry
+     * @param rDNDe1 Gradient of shape function N1
      * @param MortarNode Index of mortar node where computation is being carried
      * @param iNode Actual node where computation is being carried
      * @param iDoF Direction in which computation is carried
@@ -1283,12 +1456,12 @@ private:
      * @return The mortar node derivative
      */
     static inline double LocalDeltaSegmentN1(
-        const array_1d<array_1d<double, 3>, TDim * TNumNodes>& DeltaNormal,
-        const array_1d<double, 3> SlaveNormal,
-        const GeometryType& SlaveGeometry,
-        const GeometryType& MasterGeometry,
-        const VectorType& N1,
-        const MatrixType& DNDe1,
+        const array_1d<array_1d<double, 3>, TDim * TNumNodes>& rDeltaNormal,
+        const array_1d<double, 3>& rSlaveNormal,
+        const GeometryType& rSlaveGeometry,
+        const GeometryType& rMasterGeometry,
+        const VectorType& rN1,
+        const MatrixType& rDNDe1,
         const IndexType MortarNode,
         const IndexType iNode,
         const IndexType iDoF,
@@ -1300,8 +1473,8 @@ private:
         BoundedMatrix<double, 3, TNumNodes> n1, Dn1;
 
         // Projected node coordinates
-        Xa[0] = MasterGeometry[MortarNode].X();
-        Xa[1] = MasterGeometry[MortarNode].Y();
+        Xa[0] = rMasterGeometry[MortarNode].X();
+        Xa[1] = rMasterGeometry[MortarNode].Y();
 
         // Projected node derivatives
         DXa = ZeroVector(TDim);
@@ -1309,8 +1482,8 @@ private:
 
         // Slave element nodes coordinates and normals with respective derivatives
         for(IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-            X1(0, i_node) = SlaveGeometry[i_node].X();
-            X1(1, i_node) = SlaveGeometry[i_node].Y();
+            X1(0, i_node) = rSlaveGeometry[i_node].X();
+            X1(1, i_node) = rSlaveGeometry[i_node].Y();
 
             for(IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                if(i_dof == iDoF)
@@ -1319,25 +1492,25 @@ private:
                    DX1(i_dof, i_node) = 0.0;
             }
 
-            column(n1, i_node)  = SlaveNormal;
-            column(Dn1, i_node) = (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION) ? DeltaNormal[i_node * TDim + iDoF] : ZeroVector(3);
+            column(n1, i_node)  = rSlaveNormal;
+            column(Dn1, i_node) = (ConsiderNormalVariation == ELEMENTAL_DERIVATIVES || ConsiderNormalVariation == NODAL_ELEMENTAL_DERIVATIVES) ? rDeltaNormal[i_node * TDim + iDoF] : ZeroVector(3);
         }
 
         // Computation of DeltaXi_a
-        const double denom = -inner_prod(row(X1, 0), column(DNDe1, 0))*(N1[iNode]*n1(1,iNode)) + inner_prod(row(X1, 1), column(DNDe1,0))*(N1[iNode]*n1(0,iNode)) - (N1[iNode]*X1(0,iNode) - Xa[0])*inner_prod(row(n1, 1), column(DNDe1, 0)) + (N1[iNode]*X1(1,iNode) - Xa[1])*inner_prod(row(n1, 0), column(DNDe1, 0));
-        const double num = (N1[iNode]*DX1(0,iNode) - DXa[0])*(N1[iNode]*n1(1,iNode)) - (N1[iNode]*DX1(1,iNode) - DXa[1])*(N1[iNode]*n1(0,iNode)) + (N1[iNode]*X1(0,iNode) - Xa[0])*(N1[iNode]*Dn1(1,iNode)) - (N1[iNode]*X1(1,iNode) - Xa[1])*(N1[iNode]*Dn1(0,iNode));
+        const double denom = -inner_prod(row(X1, 0), column(rDNDe1, 0))*(rN1[iNode]*n1(1,iNode)) + inner_prod(row(X1, 1), column(rDNDe1,0))*(rN1[iNode]*n1(0,iNode)) - (rN1[iNode]*X1(0,iNode) - Xa[0])*inner_prod(row(n1, 1), column(rDNDe1, 0)) + (rN1[iNode]*X1(1,iNode) - Xa[1])*inner_prod(row(n1, 0), column(rDNDe1, 0));
+        const double num = (rN1[iNode]*DX1(0,iNode) - DXa[0])*(rN1[iNode]*n1(1,iNode)) - (rN1[iNode]*DX1(1,iNode) - DXa[1])*(rN1[iNode]*n1(0,iNode)) + (rN1[iNode]*X1(0,iNode) - Xa[0])*(rN1[iNode]*Dn1(1,iNode)) - (rN1[iNode]*X1(1,iNode) - Xa[1])*(rN1[iNode]*Dn1(0,iNode));
 
         return num/denom;
     }
 
     /**
      * @brief This method is used to compute the directional derivatives of the mortar segment on the master side
-     * @param DeltaNormal All derivatives of normals in points of both geometries
-     * @param SlaveNormal Normal in the center of slave geometry
-     * @param SlaveGeometry Slave geometry where to compute the value
-     * @param MasterGeometry Master node projected to the Slave Geometry
-     * @param N2 Shape function at MasterGeometry
-     * @param DNDe2 Gradient of shape function N2
+     * @param rDeltaNormal All derivatives of normals in points of both geometries
+     * @param rSlaveNormal Normal in the center of slave geometry
+     * @param rSlaveGeometry Slave geometry where to compute the value
+     * @param rMasterGeometry Master node projected to the Slave Geometry
+     * @param rN2 Shape function at MasterGeometry
+     * @param rDNDe2 Gradient of shape function N2
      * @param MortarNode Index of mortar node where computation is being carried
      * @param iNode Actual node where computation is being carried
      * @param iDoF Direction in which computation is carried
@@ -1345,12 +1518,12 @@ private:
      * @return The mortar node derivative
      */
      static inline double LocalDeltaSegmentN2(
-         const array_1d<array_1d<double, 3>, TDim * TNumNodes>& DeltaNormal,
-         const array_1d<double, 3> SlaveNormal,
-         const GeometryType& SlaveGeometry,
-         const GeometryType& MasterGeometry,
-         const VectorType& N2,
-         const MatrixType& DNDe2,
+         const array_1d<array_1d<double, 3>, TDim * TNumNodes>& rDeltaNormal,
+         const array_1d<double, 3>& rSlaveNormal,
+         const GeometryType& rSlaveGeometry,
+         const GeometryType& rMasterGeometry,
+         const VectorType& rN2,
+         const MatrixType& rDNDe2,
          const IndexType MortarNode,
          const IndexType iNode,
          const IndexType iDoF,
@@ -1359,24 +1532,24 @@ private:
      {
          array_1d<double, TDim> Xa, DXa;
          array_1d<double, 3>    na, Dna;
-         BoundedMatrix<double, TDim, TNumNodes> X2, DX2;
+         BoundedMatrix<double, TDim, TNumNodesMaster> X2, DX2;
 
          // Projected node coordinates
-         Xa[0] = SlaveGeometry[MortarNode].X();
-         Xa[1] = SlaveGeometry[MortarNode].Y();
+         Xa[0] = rSlaveGeometry[MortarNode].X();
+         Xa[1] = rSlaveGeometry[MortarNode].Y();
 
          // Projected node derivatives
          DXa = ZeroVector(TDim);
          DXa[iDoF] = 1.0;
 
          // Projected normal and derivative
-         na = SlaveNormal;
-         Dna = (ConsiderNormalVariation != NO_DERIVATIVES_COMPUTATION) ? DeltaNormal[MortarNode * TDim + iDoF]: ZeroVector(3);
+         na = rSlaveNormal;
+         Dna = (ConsiderNormalVariation == ELEMENTAL_DERIVATIVES || ConsiderNormalVariation == NODAL_ELEMENTAL_DERIVATIVES) ? rDeltaNormal[MortarNode * TDim + iDoF]: ZeroVector(3);
 
          // Slave element nodes coordinates and derivatives
-         for(IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-             X2(0, i_node) = MasterGeometry[i_node].X();
-             X2(1, i_node) = MasterGeometry[i_node].Y();
+         for(IndexType i_node = 0; i_node < TNumNodesMaster; ++i_node) {
+             X2(0, i_node) = rMasterGeometry[i_node].X();
+             X2(1, i_node) = rMasterGeometry[i_node].Y();
 
              for(IndexType i_dof = 0; i_dof < TDim; ++i_dof) {
                 if(i_dof == iDoF)
@@ -1387,8 +1560,8 @@ private:
          }
 
          // Computation of DeltaXi_a
-         const double lhs = -1.0/(inner_prod(row(X2, 0), column(DNDe2,0))*na[1] - inner_prod(row(X2, 1), column(DNDe2,0))*na[0]);
-         const double rhs = (N2[iNode]*DX2(0, iNode)-DXa[0])*na[1] - (N2[iNode]*DX2(1, iNode)-DXa[1])*na[0] + (N2[iNode]*X2(0, iNode)-Xa[0])*Dna[1] - (N2[iNode]*X2(1, iNode)-Xa[1])*Dna[0];
+         const double lhs = -1.0/(inner_prod(row(X2, 0), column(rDNDe2,0))*na[1] - inner_prod(row(X2, 1), column(rDNDe2,0))*na[0]);
+         const double rhs = (rN2[iNode]*DX2(0, iNode)-DXa[0])*na[1] - (rN2[iNode]*DX2(1, iNode)-DXa[1])*na[0] + (rN2[iNode]*X2(0, iNode)-Xa[0])*Dna[1] - (rN2[iNode]*X2(1, iNode)-Xa[1])*Dna[0];
 
          return lhs*rhs;
     }

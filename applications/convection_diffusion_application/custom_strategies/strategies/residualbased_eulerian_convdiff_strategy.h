@@ -1,11 +1,13 @@
-/* *********************************************************
-*
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2007-03-06 10:30:32 $
-*   Revision:            $Revision: 1.2 $
-*
-* ***********************************************************/
-
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+//
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Riccardo Rossi
+//
 
 #if !defined(KRATOS_RESIDUALBASED_EULERIAN_CONVECTION_DIFFUSION_STRATEGY )
 #define  KRATOS_RESIDUALBASED_EULERIAN_CONVECTION_DIFFUSION_STRATEGY
@@ -15,8 +17,6 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
@@ -392,7 +392,7 @@ protected:
 
   virtual void GenerateMeshPart(int dimension)
   {
-    mpConvectionModelPart = ModelPart::Pointer( new ModelPart("ConvectionPart",1) );
+    mpConvectionModelPart = Kratos::make_unique<ModelPart>("ConvectionPart",1);
 
 	mpConvectionModelPart->SetProcessInfo(  BaseType::GetModelPart().pGetProcessInfo() );
     mpConvectionModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize());
@@ -482,7 +482,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    ModelPart::Pointer mpConvectionModelPart;
+    Kratos::unique_ptr<ModelPart> mpConvectionModelPart;
     typename BaseType::Pointer mstep1;
     double mOldDt;
     int mdimension;

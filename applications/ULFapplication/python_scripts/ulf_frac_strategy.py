@@ -190,25 +190,25 @@ class ULFFracStrategyPython:
         time_ln190 = time.time()
 
         #(self.builder_and_solver).SavePressureIteration(self.model_part);
-        for node in self.model_part.Nodes:
-            if (node.GetSolutionStepValue(IS_STRUCTURE) == 0):
-                if (node.GetSolutionStepValue(IS_FREE_SURFACE) == 1.0 and node.GetSolutionStepValue(IS_LAGRANGIAN_INLET) != 1.0):
+        #for node in self.model_part.Nodes:
+            #if (node.GetSolutionStepValue(IS_STRUCTURE) == 0):
+                #if (node.GetSolutionStepValue(IS_FREE_SURFACE) == 1.0 and node.GetSolutionStepValue(IS_LAGRANGIAN_INLET) != 1.0):
 
-                    # and node.X>0.5):
-                    node.SetSolutionStepValue(PRESSURE,0,0.0)
-                    # print "FIXING PRESSURE AT THE OUTLET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                    node.Fix(PRESSURE)
-            # if the problem involves FSI, then the pressure at the FSI interface should be fixed also
-            # if (FSI==True):
-            # if (node.GetSolutionStepValue(IS_INTERFACE)==1):
-        # node.Fix(PRESSURE)
+                    ## and node.X>0.5):
+                    #node.SetSolutionStepValue(PRESSURE,0,0.0)
+                    ## print "FIXING PRESSURE AT THE OUTLET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                    #node.Fix(PRESSURE)
+            ## if the problem involves FSI, then the pressure at the FSI interface should be fixed also
+            ## if (FSI==True):
+            ## if (node.GetSolutionStepValue(IS_INTERFACE)==1):
+        ## node.Fix(PRESSURE)
 
-        self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);
-        self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);
+        #self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);
+        #self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);
 
-        self.PressureLinStrat.Solve()
-        self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);
-        self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);
+        #self.PressureLinStrat.Solve()
+        #self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);
+        #self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);
 
         time_ln212 = time.time()
         # if (self.domain_size==3):
@@ -271,7 +271,7 @@ class ULFFracStrategyPython:
             # reorder the list of degrees of freedom to identify fixity and system size
             self.builder_and_solver.SetUpSystem(self.model_part)
             # allocate memory for the system and preallocate the structure of the matrix
-            self.builder_and_solver.ResizeAndInitializeVectors(self.scheme, self.A, self.D, self.Dx, self.b, self.MPconsistent, self.MPinv, self.model_part.Elements, self.model_part.Conditions, self.model_part.ProcessInfo);
+            self.builder_and_solver.ResizeAndInitializeVectors(self.scheme, self.A, self.D, self.Dx, self.b, self.MPconsistent, self.MPinv, self.model_part);
             # auxiliary matrices (structure), needed SPECIFICALLY for the Quasi-Incompressible fluid
 
             self.builder_and_solver.ConstructMatrixStructure(self.A, self.model_part)

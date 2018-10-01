@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -68,10 +68,7 @@ THE SOFTWARE.
 #include <vector>
 #include <algorithm>
 #include <cmath>
-
-#include <boost/multi_array.hpp>
-#include <boost/circular_buffer.hpp>
-#include <boost/tuple/tuple.hpp>
+#include <tuple>
 
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
@@ -149,6 +146,7 @@ class lgmres {
                   abstol(std::numeric_limits<scalar_type>::min())
             { }
 
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, M),
                   AMGCL_PARAMS_IMPORT_VALUE(p, K),
@@ -159,7 +157,7 @@ class lgmres {
                   AMGCL_PARAMS_IMPORT_VALUE(p, tol),
                   AMGCL_PARAMS_IMPORT_VALUE(p, abstol)
             {
-                AMGCL_PARAMS_CHECK(p, (pside)(M)(K)(always_reset)(store_Av)(maxiter)(tol)(abstol));
+                check_params(p, {"pside", "M", "K", "always_reset", "store_Av", "maxiter", "tol", "abstol"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
@@ -172,6 +170,7 @@ class lgmres {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, tol);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, abstol);
             }
+#endif
         } prm;
 
         /// Preallocates necessary data structures for the system of size \p n.
@@ -182,8 +181,8 @@ class lgmres {
                 const InnerProduct &inner_product = InnerProduct()
              )
             : prm(prm), n(n),
-              H(boost::extents[prm.M + 1][prm.M]),
-              H0(boost::extents[prm.M + 1][prm.M]),
+              H(prm.M + 1, prm.M),
+              H0(prm.M + 1, prm.M),
               s(prm.M + 1), cs(prm.M + 1), sn(prm.M + 1),
               r( Backend::create_vector(n, bprm) ),
               ws(prm.M + prm.K), outer_v(prm.K), outer_Av(prm.K),
@@ -207,7 +206,7 @@ class lgmres {
 
         /* Computes the solution for the given system matrix \p A and the
          * right-hand side \p rhs.  Returns the number of iterations made and
-         * the achieved residual as a ``boost::tuple``. The solution vector
+         * the achieved residual as a ``std::tuple``. The solution vector
          * \p x provides initial approximation in input and holds the computed
          * solution on output.
          *
@@ -218,7 +217,7 @@ class lgmres {
          * good preconditioner for several subsequent time steps [DeSh12]_.
          */
         template <class Matrix, class Precond, class Vec1, class Vec2>
-        boost::tuple<size_t, scalar_type> operator()(
+        std::tuple<size_t, scalar_type> operator()(
                 Matrix  const &A,
                 Precond const &P,
                 Vec1    const &rhs,
@@ -238,7 +237,7 @@ class lgmres {
             scalar_type norm_rhs = norm(rhs);
             if (norm_rhs < amgcl::detail::eps<scalar_type>(n)) {
                 backend::clear(x);
-                return boost::make_tuple(0, norm_rhs);
+                return std::make_tuple(0, norm_rhs);
             }
 
             scalar_type norm_r = zero;
@@ -315,18 +314,18 @@ class lgmres {
                     }
 
                     for(unsigned k = 0; k <= j; ++k) {
-                        H0[k][j] = H[k][j] = inner_product(v_new, *vs[k]);
-                        backend::axpby(-H[k][j], *vs[k], one, v_new);
+                        H0(k, j) = H(k, j) = inner_product(v_new, *vs[k]);
+                        backend::axpby(-H(k, j), *vs[k], one, v_new);
                     }
-                    H0[j+1][j] = H[j+1][j] = norm(v_new);
+                    H0(j+1, j) = H(j+1, j) = norm(v_new);
 
-                    backend::axpby(math::inverse(H[j+1][j]), v_new, zero, v_new);
+                    backend::axpby(math::inverse(H(j+1, j)), v_new, zero, v_new);
 
                     for(unsigned k = 0; k < j; ++k)
-                        detail::apply_plane_rotation(H[k][j], H[k+1][j], cs[k], sn[k]);
+                        detail::apply_plane_rotation(H(k, j), H(k+1, j), cs[k], sn[k]);
 
-                    detail::generate_plane_rotation(H[j][j], H[j+1][j], cs[j], sn[j]);
-                    detail::apply_plane_rotation(H[j][j], H[j+1][j], cs[j], sn[j]);
+                    detail::generate_plane_rotation(H(j, j), H(j+1, j), cs[j], sn[j]);
+                    detail::apply_plane_rotation(H(j, j), H(j+1, j), cs[j], sn[j]);
                     detail::apply_plane_rotation(s[j], s[j+1], cs[j], sn[j]);
 
                     scalar_type inner_res = std::abs(s[j+1]);
@@ -339,9 +338,9 @@ class lgmres {
 
                 // -- GMRES terminated: eval solution
                 for (unsigned i = j; i --> 0; ) {
-                    s[i] /= H[i][i];
+                    s[i] /= H(i, i);
                     for (unsigned k = 0; k < i; ++k)
-                        s[k] -= H[k][i] * s[i];
+                        s[k] -= H(k, i) * s[i];
                 }
 
                 vector &dx = *r;
@@ -372,7 +371,7 @@ class lgmres {
                         for(unsigned k = 0; k <= j; ++k) {
                             coef_type sum = math::zero<coef_type>();
                             for(unsigned i = k ? k-1 : 0; i < j; ++i)
-                                sum += H0[k][i] * s[i];
+                                sum += H0(k, i) * s[i];
                             y[k] = sum * norm_dx;
                         }
 
@@ -382,18 +381,18 @@ class lgmres {
                 }
             }
 
-            return boost::make_tuple(iter, norm_r / norm_rhs);
+            return std::make_tuple(iter, norm_r / norm_rhs);
         }
 
         /* Computes the solution for the given right-hand side \p rhs. The
          * system matrix is the same that was used for the setup of the
          * preconditioner \p P.  Returns the number of iterations made and the
-         * achieved residual as a ``boost::tuple``. The solution vector \p x
+         * achieved residual as a ``std::tuple``. The solution vector \p x
          * provides initial approximation in input and holds the computed
          * solution on output.
          */
         template <class Precond, class Vec1, class Vec2>
-        boost::tuple<size_t, scalar_type> operator()(
+        std::tuple<size_t, scalar_type> operator()(
                 Precond const &P,
                 Vec1    const &rhs,
                 Vec2          &x
@@ -402,20 +401,44 @@ class lgmres {
             return (*this)(P.system_matrix(), P, rhs, x);
         }
 
+        size_t bytes() const {
+            size_t b = 0;
+
+            b += H.size() * sizeof(coef_type);
+            b += H0.size() * sizeof(coef_type);
+
+            b += backend::bytes(s);
+            b += backend::bytes(cs);
+            b += backend::bytes(sn);
+            b += backend::bytes(y);
+
+            b += backend::bytes(*r);
+
+            for(const auto &v : vs) b += backend::bytes(*v);
+
+            for(const auto &v : outer_v_data)  b += backend::bytes(*v);
+            for(const auto &v : outer_Av_data) b += backend::bytes(*v);
+
+            return b;
+        }
 
         friend std::ostream& operator<<(std::ostream &os, const lgmres &s) {
-            return os << "lgmres(" << s.prm.M << "," << s.prm.K << "): " << s.n << " unknowns";
+            return os
+                << "Type:             LGMRES(" << s.prm.M << "," << s.prm.K << ")"
+                << "\nUnknowns:         " << s.n
+                << "\nMemory footprint: " << human_readable_memory(s.bytes())
+                << std::endl;
         }
     private:
         size_t n;
 
-        mutable boost::multi_array<coef_type, 2> H, H0;
+        mutable multi_array<coef_type, 2> H, H0;
         mutable std::vector<coef_type> s, cs, sn, y;
         std::shared_ptr<vector> r;
         mutable std::vector< std::shared_ptr<vector> > vs, ws;
         mutable std::vector< std::shared_ptr<vector> > outer_v_data, outer_Av_data;
-        mutable boost::circular_buffer< std::shared_ptr<vector> > outer_v;
-        mutable boost::circular_buffer< std::shared_ptr<vector> > outer_Av;
+        mutable circular_buffer< std::shared_ptr<vector> > outer_v;
+        mutable circular_buffer< std::shared_ptr<vector> > outer_Av;
 
 
         InnerProduct inner_product;

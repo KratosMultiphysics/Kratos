@@ -71,8 +71,6 @@ void AnalyticModelPartFiller::FillAnalyticModelPartGivenFractionOfParticlesToTra
     // Adding replacements to model_part without repeating Ids, now that the old ones have been eliminated
     analytic_spheres_model_part.AddElements(elements_to_add.begin(), elements_to_add.end());
 
-    KRATOS_WATCH(spheres_model_part)
-    KRATOS_WATCH(analytic_spheres_model_part)
 }
 
 /// Turn back information as a string.

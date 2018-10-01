@@ -1,10 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:                 ilaria $
-//   Date:                $Date:                July 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
+
 
 #if !defined(KRATOS_UPDATED_LAGRANGIAN_QUADRILATERAL_H_INCLUDED )
 #define  KRATOS_UPDATED_LAGRANGIAN_QUADRILATERAL_H_INCLUDED
@@ -12,7 +17,6 @@
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -21,8 +25,6 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-//#include "custom_utilities/comparison_utilities.hpp"
-
 
 namespace Kratos
 {
@@ -409,7 +411,6 @@ public:
      * Called at the beginning of each solution step
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-    void IterativeExtrapolation(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
@@ -705,7 +706,6 @@ protected:
                                      ConstitutiveLaw::Parameters& rValues);
 
 
-
     /**
      * Initialize System Matrices
      */
@@ -831,7 +831,7 @@ protected:
     /**
      * Calculate local coordinated of a given point in 3 dimension
      */
-    virtual Vector& MPMLocalCoordinates(Vector& rResult, array_1d<double,3>& rPoint);
+    // virtual Vector& MPMLocalCoordinates(Vector& rResult, array_1d<double,3>& rPoint);
 
     /**
      * Calculation of the Volume Change of the Element

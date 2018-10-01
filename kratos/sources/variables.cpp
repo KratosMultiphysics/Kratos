@@ -26,8 +26,8 @@
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"
 #include "includes/geometrical_object.h"
+#include "includes/master_slave_constraint.h"
 
-#include "geometries/line_2d.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
@@ -61,6 +61,8 @@
 #include "includes/kratos_flags.h"
 
 namespace Kratos {
+typedef Node<3> NodeType;
+typedef Geometry<NodeType> GeometryType;
 typedef array_1d<double, 3> Vector3;
 
 //Create Variables by type:
@@ -166,6 +168,8 @@ KRATOS_CREATE_VARIABLE(double, PARTITION_INDEX)
 KRATOS_CREATE_VARIABLE(double, TEMPERATURE_OLD_IT)
 KRATOS_CREATE_VARIABLE(double, VISCOSITY)
 KRATOS_CREATE_VARIABLE(double, ERROR_RATIO)
+KRATOS_CREATE_VARIABLE(double, ENERGY_NORM_OVERALL )
+KRATOS_CREATE_VARIABLE(double, ERROR_OVERALL )
 KRATOS_CREATE_VARIABLE(double, RHS_WATER)
 KRATOS_CREATE_VARIABLE(double, RHS_AIR)
 KRATOS_CREATE_VARIABLE(double, WEIGHT_FATHER_NODES)
@@ -211,8 +215,13 @@ KRATOS_CREATE_VARIABLE(bool, UPDATE_SENSITIVITIES)
 //for Electric application
 
 // For MeshingApplication
-KRATOS_CREATE_VARIABLE(double, NODAL_ERROR)
+KRATOS_CREATE_VARIABLE(double, NODAL_ERROR )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(NODAL_ERROR_COMPONENTS)
+KRATOS_CREATE_VARIABLE(double, ELEMENT_ERROR )
+KRATOS_CREATE_VARIABLE(double, ELEMENT_H )
+KRATOS_CREATE_VARIABLE(Vector, RECOVERED_STRESS )
+KRATOS_CREATE_VARIABLE(double, ERROR_INTEGRATION_POINT )
+KRATOS_CREATE_VARIABLE(double, CONTACT_PRESSURE )
 
 //for PFEM fluids application:
 KRATOS_CREATE_VARIABLE(double, NODAL_AREA)
@@ -382,7 +391,7 @@ KRATOS_CREATE_VARIABLE(Vector, TANGENTIAL_STRESS)
 KRATOS_CREATE_VARIABLE(Vector, STRESSES)
 KRATOS_CREATE_VARIABLE(Vector, STRAIN)
 
-KRATOS_CREATE_VARIABLE(vector<int>, NEIGHBOURS_INDICES)
+KRATOS_CREATE_VARIABLE(DenseVector<int>, NEIGHBOURS_INDICES)
 
 //ALE Application
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DETERMINANT)
@@ -437,9 +446,9 @@ KRATOS_CREATE_VARIABLE(Matrix, INERTIA)
 //for General kratos application:
 KRATOS_CREATE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW)
 //NEIGHBOUR_NODES defined in node.h
-KRATOS_CREATE_VARIABLE(WeakPointerVector<Node<3> >, NEIGHBOUR_NODES)
+KRATOS_CREATE_VARIABLE(WeakPointerVector<NodeType >, NEIGHBOUR_NODES)
 //FATHER_NODES defined in node.h
-KRATOS_CREATE_VARIABLE(WeakPointerVector<Node<3> >, FATHER_NODES)
+KRATOS_CREATE_VARIABLE(WeakPointerVector<NodeType >, FATHER_NODES)
 //NEIGHBOR_ELEMENTS defined in element.h
 KRATOS_CREATE_VARIABLE(WeakPointerVector<Element>, NEIGHBOUR_ELEMENTS)
 //NEIGHBOR_CONDITIONS defined in condition.h
@@ -467,6 +476,7 @@ KRATOS_CREATE_VARIABLE(double, SEARCH_RADIUS)
 
 KRATOS_CREATE_VARIABLE(double, INTEGRATION_WEIGHT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
+KRATOS_CREATE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
 
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
@@ -474,116 +484,70 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
 
 KratosApplication::KratosApplication(const std::string ApplicationName)
     : mApplicationName(ApplicationName),
-      //point conditions
-      mPointCondition2D1N(
-          0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
-      mPointCondition3D1N(
-          0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(
-                 Condition::GeometryType::PointsArrayType(1)))),
-      //line conditions
-      mLineCondition2D2N(
-          0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(
-                 Element::GeometryType::PointsArrayType(2)))),
-      mLineCondition2D3N(
-          0, Element::GeometryType::Pointer(new Line2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mLineCondition3D2N(
-          0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
-                 Element::GeometryType::PointsArrayType(2)))),
-      mLineCondition3D3N(
-          0, Element::GeometryType::Pointer(new Line3D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      //surface conditions
-      mSurfaceCondition3D3N(
-          0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mSurfaceCondition3D6N(
-          0, Element::GeometryType::Pointer(new Triangle3D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
-      mSurfaceCondition3D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mSurfaceCondition3D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mSurfaceCondition3D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral3D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
+      // Point conditions
+      mPointCondition2D1N( 0, GeometryType::Pointer(new Point2D<NodeType >(GeometryType::PointsArrayType(1)))),
+      mPointCondition3D1N( 0, GeometryType::Pointer(new Point3D<NodeType >(GeometryType::PointsArrayType(1)))),
+      // Line conditions
+      mLineCondition2D2N( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
+      mLineCondition2D3N( 0, GeometryType::Pointer(new Line2D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mLineCondition3D2N( 0, GeometryType::Pointer(new Line3D2<NodeType >(GeometryType::PointsArrayType(2)))),
+      mLineCondition3D3N( 0, GeometryType::Pointer(new Line3D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      // Surface conditions
+      mSurfaceCondition3D3N( 0, GeometryType::Pointer(new Triangle3D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mSurfaceCondition3D6N( 0, GeometryType::Pointer(new Triangle3D6<NodeType >(GeometryType::PointsArrayType(6)))),
+      mSurfaceCondition3D4N( 0, GeometryType::Pointer(new Quadrilateral3D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mSurfaceCondition3D8N( 0, GeometryType::Pointer(new Quadrilateral3D8<NodeType >(GeometryType::PointsArrayType(8)))),
+      mSurfaceCondition3D9N( 0, GeometryType::Pointer(new Quadrilateral3D9<NodeType >(GeometryType::PointsArrayType(9)))),
 
-      //deprecated conditions start
-      mCondition2D(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(
-                          Element::GeometryType::PointsArrayType(2)))),
-      mCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(
-                            Element::GeometryType::PointsArrayType(2)))),
-      mCondition2D3N(0, Element::GeometryType::Pointer(new Line2D3<Node<3> >(
-                            Element::GeometryType::PointsArrayType(3)))),
-      mCondition3D(0,
-          Element::GeometryType::Pointer(new Triangle3D3<
-              Node<3> >(Element::GeometryType::PointsArrayType(
-              3)))),  // Note: Could be interesting to change the name to mCondition3D3N (conflict with quadratic line)
-      mCondition3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
-                            Element::GeometryType::PointsArrayType(2)))),
-      mCondition3D3N(0, Element::GeometryType::Pointer(new Line3D3<Node<3> >(
-                            Element::GeometryType::PointsArrayType(3)))),
-      mCondition3D6N(
-          0, Element::GeometryType::Pointer(new Triangle3D6<Node<3> >(
-                 Element::GeometryType::PointsArrayType(6)))),
-      mCondition3D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mCondition3D8N(
-          0, Element::GeometryType::Pointer(new Quadrilateral3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mCondition3D9N(
-          0, Element::GeometryType::Pointer(new Quadrilateral3D9<Node<3> >(
-                 Element::GeometryType::PointsArrayType(9)))),
-      //deprecated conditions end
+      // Master-Slave Constraint 
+      mMasterSlaveConstraint(),
+      mLinearMasterSlaveConstraint(),
 
-      mPeriodicCondition(
-          0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(
-                 Element::GeometryType::PointsArrayType(2)))),
-      mPeriodicConditionEdge(
-          0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mPeriodicConditionCorner(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(
-                          Element::GeometryType::PointsArrayType(2)))),
-      mElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                          Element::GeometryType::PointsArrayType(3)))),
-      mElement2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
-                          Element::GeometryType::PointsArrayType(2)))),
-      mElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-                          Element::GeometryType::PointsArrayType(3)))),
-      mElement3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mElement3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(
-                          Element::GeometryType::PointsArrayType(6)))),
-      mElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
-                          Element::GeometryType::PointsArrayType(8)))),
-      mElement3D10N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3> >(
-                 Element::GeometryType::PointsArrayType(10)))),
+      // Deprecated conditions start
+      mCondition2D( 0, GeometryType::Pointer(new Geometry<NodeType >(GeometryType::PointsArrayType(2)))),
+      mCondition2D2N( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
+      mCondition2D3N( 0, GeometryType::Pointer(new Line2D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mCondition3D( 0, GeometryType::Pointer(new Triangle3D3<NodeType >(GeometryType::PointsArrayType(3)))),  // Note: Could be interesting to change the name to mCondition3D3N (conflict with quadratic line)
+      mCondition3D2N( 0, GeometryType::Pointer(new Line3D2<NodeType >(GeometryType::PointsArrayType(2)))),
+      mCondition3D3N( 0, GeometryType::Pointer(new Line3D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mCondition3D6N( 0, GeometryType::Pointer(new Triangle3D6<NodeType >(GeometryType::PointsArrayType(6)))),
+      mCondition3D4N( 0, GeometryType::Pointer(new Quadrilateral3D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mCondition3D8N( 0, GeometryType::Pointer(new Quadrilateral3D8<NodeType >(GeometryType::PointsArrayType(8)))),
+      mCondition3D9N( 0, GeometryType::Pointer(new Quadrilateral3D9<NodeType >(GeometryType::PointsArrayType(9)))),
+      // Deprecated conditions end
+      
+      // Periodic conditions
+      mPeriodicCondition( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
+      mPeriodicConditionEdge( 0, GeometryType::Pointer(new Quadrilateral3D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mPeriodicConditionCorner( 0, GeometryType::Pointer(new Hexahedra3D8<NodeType >(GeometryType::PointsArrayType(8)))),
+      
+      // Elements
+      mElement2D2N( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
+      mElement2D3N( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mElement2D4N( 0, GeometryType::Pointer(new Quadrilateral2D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mElement3D2N( 0, GeometryType::Pointer(new Line3D2<NodeType >(GeometryType::PointsArrayType(2)))),
+      mElement3D3N( 0, GeometryType::Pointer(new Triangle3D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mElement3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mElement3D6N( 0, GeometryType::Pointer(new Prism3D6<NodeType >(GeometryType::PointsArrayType(6)))),
+      mElement3D8N( 0, GeometryType::Pointer(new Hexahedra3D8<NodeType >(GeometryType::PointsArrayType(8)))),
+      mElement3D10N( 0, GeometryType::Pointer(new Tetrahedra3D10<NodeType >(GeometryType::PointsArrayType(10)))),
+      
+      // Components
       mpVariableData(KratosComponents<VariableData>::pGetComponents()),
       mpIntVariables(KratosComponents<Variable<int> >::pGetComponents()),
-      mpUnsignedIntVariables(
-          KratosComponents<Variable<unsigned int> >::pGetComponents()),
+      mpUnsignedIntVariables(KratosComponents<Variable<unsigned int> >::pGetComponents()),
       mpDoubleVariables(KratosComponents<Variable<double> >::pGetComponents()),
-      mpArray1DVariables(
-          KratosComponents<Variable<array_1d<double, 3> > >::pGetComponents()),
-      mpQuaternionVariables(
-          KratosComponents<Variable<Quaternion<double> > >::pGetComponents()),
+      mpArray1DVariables(KratosComponents<Variable<array_1d<double, 3> > >::pGetComponents()),
+      mpArray1D4Variables(KratosComponents<Variable<array_1d<double, 4> > >::pGetComponents()),
+      mpArray1D6Variables(KratosComponents<Variable<array_1d<double, 6> > >::pGetComponents()),
+      mpArray1D9Variables(KratosComponents<Variable<array_1d<double, 9> > >::pGetComponents()),
+      mpQuaternionVariables(KratosComponents<Variable<Quaternion<double> > >::pGetComponents()),
       mpVectorVariables(KratosComponents<Variable<Vector> >::pGetComponents()),
       mpMatrixVariables(KratosComponents<Variable<Matrix> >::pGetComponents()),
-      mpArray1DVariableComponents(
-          KratosComponents<VariableComponent<VectorComponentAdaptor<
-              array_1d<double, 3> > > >::pGetComponents()),
+      mpArray1DVariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 3> > > >::pGetComponents()),
+      mpArray1D4VariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 4> > > >::pGetComponents()),
+      mpArray1D6VariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 6> > > >::pGetComponents()),
+      mpArray1D9VariableComponents(KratosComponents<VariableComponent<VectorComponentAdaptor< array_1d<double, 9> > > >::pGetComponents()),
       mpElements(KratosComponents<Element>::pGetComponents()),
       mpConditions(KratosComponents<Condition>::pGetComponents()),
       mpRegisteredObjects(&(Serializer::GetRegisteredObjects())),
@@ -792,6 +756,8 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(TEMPERATURE_OLD_IT)
     KRATOS_REGISTER_VARIABLE(VISCOSITY)
     KRATOS_REGISTER_VARIABLE(ERROR_RATIO)
+    KRATOS_REGISTER_VARIABLE(ENERGY_NORM_OVERALL)
+    KRATOS_REGISTER_VARIABLE(ERROR_OVERALL)
     KRATOS_REGISTER_VARIABLE(RHS_WATER)
     KRATOS_REGISTER_VARIABLE(RHS_AIR)
     KRATOS_REGISTER_VARIABLE(WEIGHT_FATHER_NODES)
@@ -871,7 +837,12 @@ void KratosApplication::RegisterVariables() {
     //--------------- Meshing ApplicationApplication -------------------//
 
     KRATOS_REGISTER_VARIABLE(NODAL_ERROR)
-    KRATOS_REGISTER_VARIABLE(NODAL_ERROR_COMPONENTS)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NODAL_ERROR_COMPONENTS)
+    KRATOS_REGISTER_VARIABLE(ELEMENT_ERROR )
+    KRATOS_REGISTER_VARIABLE(ELEMENT_H )
+    KRATOS_REGISTER_VARIABLE(RECOVERED_STRESS )
+    KRATOS_REGISTER_VARIABLE(ERROR_INTEGRATION_POINT )
+    KRATOS_REGISTER_VARIABLE(CONTACT_PRESSURE )
 
     //--------------- PFEM fluids Application -------------------//
 
@@ -1015,8 +986,11 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
 
+    KRATOS_REGISTER_VARIABLE(TABLE_UTILITY)
+
+
     //Register objects with general definition
-    Serializer::Register("Node", Node<3>());
+    Serializer::Register("Node", NodeType());
     Serializer::Register("Dof", Dof<double>());
     Serializer::Register("Element", Element());
     Serializer::Register("Condition", Condition());
@@ -1024,8 +998,10 @@ void KratosApplication::RegisterVariables() {
     Serializer::Register("GeometricalObject", GeometricalObject());
 
     //Register objects with specific definition ( non essential, must be deleted in future )
-    Serializer::Register("Node3D", Node<3>());
+    Serializer::Register("Node3D", NodeType());
     Serializer::Register("DofDouble", Dof<double>());
+
+    Serializer::Register("MasterSlaveConstraint", MasterSlaveConstraint());
 
     //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
 
@@ -1044,6 +1020,10 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D8N", mSurfaceCondition3D8N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D9N", mSurfaceCondition3D9N);
 
+    //master-slave constraints
+    KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
+    KRATOS_REGISTER_CONSTRAINT("LinearMasterSlaveConstraint",mLinearMasterSlaveConstraint);
+
     //deprecated conditions start
     KRATOS_REGISTER_CONDITION("Condition2D", mCondition2D);
     KRATOS_REGISTER_CONDITION("Condition2D2N", mCondition2D2N);
@@ -1060,8 +1040,7 @@ void KratosApplication::RegisterVariables() {
 
     KRATOS_REGISTER_CONDITION("PeriodicCondition", mPeriodicCondition)
     KRATOS_REGISTER_CONDITION("PeriodicConditionEdge", mPeriodicConditionEdge)
-    KRATOS_REGISTER_CONDITION(
-        "PeriodicConditionCorner", mPeriodicConditionCorner)
+    KRATOS_REGISTER_CONDITION("PeriodicConditionCorner", mPeriodicConditionCorner)
 
     //Register specific elements ( must be completed : elements defined in kratos_appliction.h)
     KRATOS_REGISTER_ELEMENT("Element2D2N", mElement2D2N)
@@ -1073,115 +1052,89 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_ELEMENT("Element3D6N", mElement3D6N)
     KRATOS_REGISTER_ELEMENT("Element3D8N", mElement3D8N)
     KRATOS_REGISTER_ELEMENT("Element3D10N", mElement3D10N)
+    
     //Register general geometries:
 
     //Points:
     Serializer::Register("Point", Point());
 
-    Point2D<Node<3> > Point2DPrototype(
-        Element::GeometryType::PointsArrayType(1));
+    Point2D<NodeType > Point2DPrototype(GeometryType::PointsArrayType(1));
     Serializer::Register("Point2D", Point2DPrototype);
 
-    Point3D<Node<3> > Point3DPrototype(
-        Element::GeometryType::PointsArrayType(1));
+    Point3D<NodeType > Point3DPrototype(GeometryType::PointsArrayType(1));
     Serializer::Register("Point3D", Point3DPrototype);
 
     //Sphere
-    Sphere3D1<Node<3> > Sphere3D1Prototype(
-        Element::GeometryType::PointsArrayType(1));
+    Sphere3D1<NodeType > Sphere3D1Prototype(GeometryType::PointsArrayType(1));
     Serializer::Register("Sphere3D1", Sphere3D1Prototype);
 
     //Lines:
-    Line2D<Node<3> > Line2DPrototype(Element::GeometryType::PointsArrayType(2));
-    Serializer::Register("Line2D", Line2DPrototype);
-
-    Line2D2<Node<3> > Line2D2Prototype(
-        Element::GeometryType::PointsArrayType(2));
+    Line2D2<NodeType > Line2D2Prototype(GeometryType::PointsArrayType(2));
     Serializer::Register("Line2D2", Line2D2Prototype);
 
-    Line2D3<Node<3> > Line2D3Prototype(
-        Element::GeometryType::PointsArrayType(3));
+    Line2D3<NodeType > Line2D3Prototype(GeometryType::PointsArrayType(3));
     Serializer::Register("Line2D3", Line2D3Prototype);
 
-    Line3D2<Node<3> > Line3D2Prototype(
-        Element::GeometryType::PointsArrayType(2));
+    Line3D2<NodeType > Line3D2Prototype(GeometryType::PointsArrayType(2));
     Serializer::Register("Line3D2", Line3D2Prototype);
 
-    Line3D3<Node<3> > Line3D3Prototype(
-        Element::GeometryType::PointsArrayType(3));
+    Line3D3<NodeType > Line3D3Prototype(GeometryType::PointsArrayType(3));
     Serializer::Register("Line3D3", Line3D3Prototype);
 
     //Triangles:
-    Triangle2D3<Node<3> > Triangle2D3Prototype(
-        Element::GeometryType::PointsArrayType(3));
+    Triangle2D3<NodeType > Triangle2D3Prototype(GeometryType::PointsArrayType(3));
     Serializer::Register("Triangle2D3", Triangle2D3Prototype);
 
-    Triangle2D6<Node<3> > Triangle2D6Prototype(
-        Element::GeometryType::PointsArrayType(6));
+    Triangle2D6<NodeType > Triangle2D6Prototype(GeometryType::PointsArrayType(6));
     Serializer::Register("Triangle2D6", Triangle2D6Prototype);
 
-    Triangle3D3<Node<3> > Triangle3D3Prototype(
-        Element::GeometryType::PointsArrayType(3));
+    Triangle3D3<NodeType > Triangle3D3Prototype(GeometryType::PointsArrayType(3));
     Serializer::Register("Triangle3D3", Triangle3D3Prototype);
 
-    Triangle3D6<Node<3> > Triangle3D6Prototype(
-        Element::GeometryType::PointsArrayType(6));
+    Triangle3D6<NodeType > Triangle3D6Prototype( GeometryType::PointsArrayType(6));
     Serializer::Register("Triangle3D6", Triangle3D6Prototype);
 
     //Quadrilaterals:
-    Quadrilateral2D4<Node<3> > Quadrilateral2D4Prototype(
-        Element::GeometryType::PointsArrayType(4));
+    Quadrilateral2D4<NodeType > Quadrilateral2D4Prototype( GeometryType::PointsArrayType(4));
     Serializer::Register("Quadrilateral2D4", Quadrilateral2D4Prototype);
 
-    Quadrilateral2D8<Node<3> > Quadrilateral2D8Prototype(
-        Element::GeometryType::PointsArrayType(8));
+    Quadrilateral2D8<NodeType > Quadrilateral2D8Prototype( GeometryType::PointsArrayType(8));
     Serializer::Register("Quadrilateral2D8", Quadrilateral2D8Prototype);
 
-    Quadrilateral2D9<Node<3> > Quadrilateral2D9Prototype(
-        Element::GeometryType::PointsArrayType(9));
+    Quadrilateral2D9<NodeType > Quadrilateral2D9Prototype( GeometryType::PointsArrayType(9));
     Serializer::Register("Quadrilateral2D9", Quadrilateral2D9Prototype);
 
-    Quadrilateral3D4<Node<3> > Quadrilateral3D4Prototype(
-        Element::GeometryType::PointsArrayType(4));
+    Quadrilateral3D4<NodeType > Quadrilateral3D4Prototype( GeometryType::PointsArrayType(4));
     Serializer::Register("Quadrilateral3D4", Quadrilateral3D4Prototype);
 
-    Quadrilateral3D8<Node<3> > Quadrilateral3D8Prototype(
-        Element::GeometryType::PointsArrayType(8));
+    Quadrilateral3D8<NodeType > Quadrilateral3D8Prototype( GeometryType::PointsArrayType(8));
     Serializer::Register("Quadrilateral3D8", Quadrilateral3D8Prototype);
 
-    Quadrilateral3D9<Node<3> > Quadrilateral3D9Prototype(
-        Element::GeometryType::PointsArrayType(9));
+    Quadrilateral3D9<NodeType > Quadrilateral3D9Prototype( GeometryType::PointsArrayType(9));
     Serializer::Register("Quadrilateral3D9", Quadrilateral3D9Prototype);
 
     //Tetrahedra:
-    Tetrahedra3D4<Node<3> > Tetrahedra3D4Prototype(
-        Element::GeometryType::PointsArrayType(4));
+    Tetrahedra3D4<NodeType > Tetrahedra3D4Prototype( GeometryType::PointsArrayType(4));
     Serializer::Register("Tetrahedra3D4", Tetrahedra3D4Prototype);
 
-    Tetrahedra3D10<Node<3> > Tetrahedra3D10Prototype(
-        Element::GeometryType::PointsArrayType(10));
+    Tetrahedra3D10<NodeType > Tetrahedra3D10Prototype( GeometryType::PointsArrayType(10));
     Serializer::Register("Tetrahedra3D10", Tetrahedra3D10Prototype);
 
     //Prisms:
-    Prism3D6<Node<3> > Prism3D6Prototype(
-        Element::GeometryType::PointsArrayType(6));
+    Prism3D6<NodeType > Prism3D6Prototype( GeometryType::PointsArrayType(6));
     Serializer::Register("Prism3D6", Prism3D6Prototype);
 
-    Prism3D15<Node<3> > Prism3D15Prototype(
-        Element::GeometryType::PointsArrayType(15));
+    Prism3D15<NodeType > Prism3D15Prototype( GeometryType::PointsArrayType(15));
     Serializer::Register("Prism3D15", Prism3D15Prototype);
 
     //Hexahedra:
-    Hexahedra3D8<Node<3> > Hexahedra3D8Prototype(
-        Element::GeometryType::PointsArrayType(8));
+    Hexahedra3D8<NodeType > Hexahedra3D8Prototype( GeometryType::PointsArrayType(8));
     Serializer::Register("Hexahedra3D8", Hexahedra3D8Prototype);
 
-    Hexahedra3D20<Node<3> > Hexahedra3D20Prototype(
-        Element::GeometryType::PointsArrayType(20));
+    Hexahedra3D20<NodeType > Hexahedra3D20Prototype( GeometryType::PointsArrayType(20));
     Serializer::Register("Hexahedra3D20", Hexahedra3D20Prototype);
 
-    Hexahedra3D27<Node<3> > Hexahedra3D27Prototype(
-        Element::GeometryType::PointsArrayType(27));
+    Hexahedra3D27<NodeType > Hexahedra3D27Prototype( GeometryType::PointsArrayType(27));
     Serializer::Register("Hexahedra3D27", Hexahedra3D27Prototype);
 
     // Register flags:

@@ -53,7 +53,7 @@ Imposition of the dirichlet conditions is naturally dealt with as the residual a
 
 
 /** @brief Solution Buider and Solver base class
- *  @details This is the base class for the building and solving the solution system 
+ *  @details This is the base class for the building and solving the solution system
  */
 template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
@@ -68,7 +68,7 @@ public:
 
   /// Pointer definition of SolutionBuilderAndSolver
   KRATOS_CLASS_POINTER_DEFINITION(SolutionBuilderAndSolver);
-  
+
   typedef SolverLocalFlags                                                   LocalFlagType;
 
   typedef ModelPart::DofsArrayType                                            DofsArrayType;
@@ -85,7 +85,7 @@ public:
   typedef typename SchemeType::Pointer                                    SchemePointerType;
 
   typedef typename TLinearSolver::Pointer                           LinearSolverPointerType;
-         
+
   ///@}
   ///@name Life Cycle
   ///@{
@@ -94,7 +94,7 @@ public:
   SolutionBuilderAndSolver() : Flags()
   {
     this->Set(LocalFlagType::DOFS_INITIALIZED, false);
-        
+
     mpLinearSystemSolver = nullptr;
     mEchoLevel = 0;
   }
@@ -103,13 +103,13 @@ public:
   SolutionBuilderAndSolver(LinearSolverPointerType pLinearSystemSolver) : Flags()
   {
     this->Set(LocalFlagType::DOFS_INITIALIZED, false);
-    
+
     mpLinearSystemSolver = pLinearSystemSolver;
     mEchoLevel = 0;
   }
 
   /// Destructor.
-  virtual ~SolutionBuilderAndSolver() {}
+  ~SolutionBuilderAndSolver() override {}
 
   ///@}
   ///@name Operators
@@ -140,7 +140,7 @@ public:
                         SystemVectorType& rb)
   {
   }
-  
+
   /**
    * @brief Function to perform the building of the LHS and RHS
    * @details Equivalent (but generally faster) then performing BuildLHS and BuildRHS
@@ -204,7 +204,7 @@ public:
 
   // /**
   //  * @brief Performs all the required operations to reform dofs
-  //  */  
+  //  */
   // virtual void SetSystemDofs(SchemePointerType pScheme,
   //                            ModelPart& rModelPart)
   // {
@@ -212,16 +212,16 @@ public:
 
   //   if (this->mEchoLevel >= 2)
   //     KRATOS_INFO(" Reform Dofs ") << " Flag = " <<this->mOptions.Is(LocalFlagType::REFORM_DOFS) << std::endl;
-                                                                                        
+
   //   //set up the system, operation performed just once unless it is required to reform the dof set at each iteration
-        
+
   //   //setting up the list of the DOFs to be solved
   //   double begin_time = OpenMPUtils::GetCurrentTime();
   //   this->SetUpDofSet(rModelPart);
   //   double end_time = OpenMPUtils::GetCurrentTime();
   //   if (this->mEchoLevel >= 2)
   //     KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
-      
+
   //   //shaping correctly the system
   //   begin_time = OpenMPUtils::GetCurrentTime();
   //   this->SetUpSystem();
@@ -231,8 +231,8 @@ public:
 
   //   KRATOS_CATCH("")
   // }
-  
-    
+
+
   /**
    * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
    * @details The list of dofs is stores insde the SolutionBuilderAndSolver as it is closely connected to the way the matrix and RHS are built
@@ -273,7 +273,7 @@ public:
                                       SystemVectorPointerType& pb)
   {
   }
-  
+
   /**
    * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
    * @details this function must be called only once per step.
@@ -287,7 +287,7 @@ public:
   }
 
   /**
-   * @brief Calculates system reactions 
+   * @brief Calculates system reactions
    * @details A flag controls if reactions must be calculated
    * @details An internal variable to store the reactions vector is needed
    */
@@ -308,16 +308,16 @@ public:
 
     if(this->mpReactionsVector != nullptr)
       TSparseSpace::Clear(this->mpReactionsVector);
-    
+
     if(this->mpLinearSystemSolver != nullptr)
       this->mpLinearSystemSolver->Clear();
-    
+
     if (this->mEchoLevel > 0)
     {
       KRATOS_INFO("Builder and Solver Cleared")  << "Clear Function called" << std::endl;
     }
   }
-  
+
 
   /**
    * This function is designed to be called once to perform all the checks needed
@@ -331,7 +331,7 @@ public:
     KRATOS_TRY
 
     return 0;
-    
+
     KRATOS_CATCH("")
   }
 
@@ -348,7 +348,7 @@ public:
     return mEquationSystemSize;
   }
 
-  
+
   /**
    * @brief Get linear solver
    */
@@ -374,12 +374,12 @@ public:
   {
     return mOptions;
   }
-  
+
 
   /**
    * @brief This sets the level of echo for the builder and solver
    * @param Level of echo for the builder and solver
-   * @details 
+   * @details
    * {
    * 0 -> Mute... no echo at all
    * 1 -> Printing time and basic informations
@@ -418,14 +418,14 @@ public:
       KRATOS_INFO("LHS") << "Matrix = " << rA << std::endl;
       KRATOS_INFO("Dx")  << "Solution = " << rDx << std::endl;
       KRATOS_INFO("RHS") << "Vector = " << rb << std::endl;
-            
+
     }
     else if (this->mEchoLevel == 4) //print to matrix market file
     {
       unsigned int iteration_number = 0;
       if( rModelPart.GetProcessInfo().Has(NL_ITERATION_NUMBER) )
         iteration_number = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-      
+
       std::stringstream matrix_market_name;
       matrix_market_name << "A_" << rModelPart.GetProcessInfo()[TIME] << "_" << iteration_number << ".mm";
       TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rA, false);
@@ -439,7 +439,7 @@ public:
 
   }
 
-  
+
   /**
    * @brief Allows to get the list of system Dofs
    */
@@ -447,7 +447,7 @@ public:
   {
     return mDofSet;
   }
-    
+
   ///@}
   ///@name Inquiry
   ///@{
@@ -461,11 +461,11 @@ public:
 protected:
   ///@name Protected static Member Variables
   ///@{
-  
+
   ///@}
   ///@name Protected member Variables
   ///@{
-   
+
   // Pointer to the LinearSolver.
   LinearSolverPointerType mpLinearSystemSolver;
 
@@ -483,7 +483,7 @@ protected:
 
   // Reactions vector
   SystemVectorPointerType mpReactionsVector;
-  
+
   ///@}
   ///@name Protected Operators
   ///@{
@@ -524,14 +524,14 @@ private:
   ///@name Un accessible methods
   ///@{
   ///@}
-  
+
 }; /// Class SolutionBuilderAndSolver
 
 ///@}
 
 ///@name Type Definitions
 ///@{
-  
+
 ///@}
 ///@name Input and output
 ///@{

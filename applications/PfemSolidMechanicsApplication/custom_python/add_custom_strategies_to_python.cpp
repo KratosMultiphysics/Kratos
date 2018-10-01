@@ -17,7 +17,6 @@
 
 // Schemes
 #include "custom_strategies/schemes/residual_based_bossak_scheme.hpp"
-#include "custom_strategies/schemes/residual_based_U_W_bossak_scheme.hpp"
 
 namespace Kratos
 {
@@ -34,7 +33,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   //custom scheme types
   typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >              ResidualBasedBossakSchemeType;
-  typedef ResidualBasedUWBossakScheme< SparseSpaceType, LocalSpaceType >          ResidualBasedUWBossakSchemeType;
 
       
   //*************************SHCHEME CLASSES****************************
@@ -44,17 +42,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   class_<ResidualBasedBossakSchemeType, typename ResidualBasedBossakSchemeType::Pointer, SchemeType>
       (m,"ResidualBasedBossakScheme")
       .def(init< double , double >())
-	
       .def("Initialize", &ResidualBasedBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
       ;
       
-
-  // Residual Based Bossak Scheme Type
-  class_<ResidualBasedUWBossakSchemeType, typename ResidualBasedUWBossakSchemeType::Pointer, SchemeType>
-      (m,"ResidualBasedUWBossakScheme")
-      .def(init< double , double >())
-      .def("Initialize", &ResidualBasedUWBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-      ;
                      
 }
 

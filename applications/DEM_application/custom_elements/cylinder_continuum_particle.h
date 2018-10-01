@@ -16,8 +16,8 @@
 
 namespace Kratos
 {
- 
-  class CylinderContinuumParticle: public SphericContinuumParticle
+
+  class KRATOS_API(DEM_APPLICATION) CylinderContinuumParticle: public SphericContinuumParticle
     {
     public:
 
@@ -55,27 +55,27 @@ namespace Kratos
     protected:
 
       CylinderContinuumParticle();
-      
+
       double CalculateVolume() override;
       double CalculateMomentOfInertia() override;
       void AddContributionToRepresentativeVolume(const double distance, const double radius_sum, const double contact_area) override ;
 
-      
+
     private:
 
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const override 
+      virtual void save(Serializer& rSerializer) const override
       {
           KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
       }
 
-      virtual void load(Serializer& rSerializer) override 
+      virtual void load(Serializer& rSerializer) override
       {
           KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
       }
-      
-    }; 
+
+    };
 
 
   /// input stream function

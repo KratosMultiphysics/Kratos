@@ -18,18 +18,18 @@
 namespace Kratos
 {
 
-  // specilization to array_1d
+  // other types
   template<class TVariableType, class TValueType>
   void StaticStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
   {
       KRATOS_TRY
 
       KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS in StaticStepRotationMethod " <<std::endl;
-	
+
       KRATOS_CATCH( "" )
   }
 
-  
+  // specilization to array_1d
   template<>
   void StaticStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode)
   {
@@ -41,45 +41,48 @@ namespace Kratos
       array_1d<double,3>& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,        0);
       array_1d<double,3>& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,        1);
 
-      // update delta variable      
+      // update delta variable
       array_1d<double,3> DeltaVariable;
       noalias(DeltaVariable) = CurrentVariable - PreviousVariable;
-      
+
       Quaternion<double> DeltaVariableQuaternion = Quaternion<double>::FromRotationVector(DeltaVariable);
 
       // linear delta variable
       array_1d<double,3> LinearDeltaVariable;
       noalias(LinearDeltaVariable) = -CurrentStepVariable;
-      
+
       // update step variable
       Quaternion<double> StepVariableQuaternion  = Quaternion<double>::FromRotationVector(CurrentStepVariable);
 
       StepVariableQuaternion = DeltaVariableQuaternion * StepVariableQuaternion;
-            
+
       StepVariableQuaternion.ToRotationVector(CurrentStepVariable);
 
       LinearDeltaVariable += CurrentStepVariable;
-      
+
       // update variable:
       Quaternion<double> VariableQuaternion = Quaternion<double>::FromRotationVector(PreviousVariable);
-      
+
       VariableQuaternion = DeltaVariableQuaternion * VariableQuaternion;
 
       VariableQuaternion.ToRotationVector( CurrentVariable );
 
       // update variable previous iteration instead of previous step
-      PreviousVariable     = CurrentVariable;   
+      PreviousVariable     = CurrentVariable;
 
       // update linear delta variable:
       VariableQuaternion  = StepVariableQuaternion.conjugate() * VariableQuaternion;
       LinearDeltaVariable = BeamMathUtils<double>::MapToCurrentLocalFrame( VariableQuaternion, LinearDeltaVariable );
-	      
-       
+
+
       KRATOS_CATCH( "" )
     }
 
-    template class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepRotationMethod< VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>, double>;
-    template class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepRotationMethod< Variable<array_1d<double,3>>, array_1d<double,3>>;
+    template class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepRotationMethod< VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>, double >;
+    template class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepRotationMethod< Variable<array_1d<double,3>>, array_1d<double,3> >;
+    template class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepRotationMethod< Variable<double>, double >;
+
+
 
 }  // namespace Kratos.
 

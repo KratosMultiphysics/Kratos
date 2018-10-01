@@ -20,7 +20,7 @@
 
 /* Project includes */
 #include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
-#include "includes/checks.h" 
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -39,40 +39,40 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class ResidualBasedBDFScheme
  * @ingroup KratosCore
  * @brief BDF integration scheme (for dynamic problems)
- * @details The \f$ n \f$ order Backward Differentiation Formula (BDF) method is a two step \f$ n \f$ order accurate method. 
+ * @details The \f$ n \f$ order Backward Differentiation Formula (BDF) method is a two step \f$ n \f$ order accurate method.
  * This scheme is designed to solve a system of the type:
  *\f[
  *   \mathbf{M} \frac{d^2(u_{n0})}{dt^2} + \mathbf{D} \frac{d(un0)}{dt} + \mathbf{K} u_{n0} = \mathbf{f}_{ext}
  * \f]
- * 
+ *
  * If we call:
- * 
- * - Second derivative: 
+ *
+ * - Second derivative:
  *      -# \f$ \ddot{u}_{ni} \f$ the second derivative at the step i
  * - First derivative:
  *      -# \f$ \dot{u}_{ni} \f$ the first derivative at the step i
  * - Third derivative:
  *      -# \f$ u_{ni} \f$ the variable  at the step i
- * 
+ *
  * Then we assume:
  *  \f[ \frac{d^2(u_{n0})}{dt^2} \|t_{n0} = \sum_i c_i \dot{u}_{ni} \f]
  *  \f[ \frac{d(u_{n0})}{dt} \|t_{n0} = \sum_i c_i u_{n0} \f]
  * with for order 2 (BDF2):
- *  -# \f$ c_0 = \frac{1.5}{dt} \f$ 
- *  -# \f$ c_1 = \frac{-2.0}{dt} \f$ 
- *  -# \f$ c_2 = \frac{0.5}{dt} \f$  
- * 
+ *  -# \f$ c_0 = \frac{1.5}{dt} \f$
+ *  -# \f$ c_1 = \frac{-2.0}{dt} \f$
+ *  -# \f$ c_2 = \frac{0.5}{dt} \f$
+ *
  * The LHS and RHS can be defined as:
  *      \f[ RHS = \mathbf{f}_{ext} - \mathbf{M} \frac{d(\dot{u}_{n0})}{dt} - \mathbf{D} \frac{d(u_{n0})}{dt} - \mathbf{K} u_{n0} \f]
- * and 
+ * and
  *      \f[ LHS = \frac{d(-RHS)}{d(u_{n0})} = c_0^2 \mathbf{M} + c_0 \mathbf{D} + K \f]
- * @note This implies that elements are expected to be written in terms 
+ * @note This implies that elements are expected to be written in terms
  * of a variable with two time derivatives
- * <a href="https://mediatum.ub.tum.de/doc/1223319/80942.pdf">Main reference</a> 
+ * <a href="https://mediatum.ub.tum.de/doc/1223319/80942.pdf">Main reference</a>
  * @todo Create a BibTeX file https://www.stack.nl/~dimitri/doxygen/manual/commands.html#cmdcite
  * @author Vicente Mataix Ferrandiz
  */
@@ -86,7 +86,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedBDFScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                                  BaseType;
-    
+
     typedef ResidualBasedImplicitTimeScheme<TSparseSpace,TDenseSpace> ImplicitBaseType;
 
     typedef typename ImplicitBaseType::TDataType                             TDataType;
@@ -116,24 +116,23 @@ public:
     ///@{
 
     /**
-     * Constructor.
-     * The BDF method
+     * @brief Constructor. The BDF method
      * @param Order The integration order
      * @todo The ideal would be to use directly the dof or the variable itself to identify the type of variable and is derivatives
      */
-    ResidualBasedBDFScheme(const std::size_t Order = 2)
+    explicit ResidualBasedBDFScheme(const std::size_t Order = 2)
         :ImplicitBaseType(),
          mOrder(Order)
     {
         // Allocate auxiliary memory
         const std::size_t num_threads = OpenMPUtils::GetNumThreads();
-        
+
         mVector.dotun0.resize(num_threads);
         mVector.dot2un0.resize(num_threads);
-        
+
         // Doing a minimal check
         KRATOS_ERROR_IF(mOrder < 1) << "ERROR:: Not possible to compute a BDF of order less than 1" << std::endl;
-        
+
         // We resize the BDF coefficients
         if (mBDF.size() != (mOrder + 1))
             mBDF.resize(mOrder + 1);
@@ -141,7 +140,7 @@ public:
 
     /** Copy Constructor.
      */
-    ResidualBasedBDFScheme(ResidualBasedBDFScheme& rOther)
+    explicit ResidualBasedBDFScheme(ResidualBasedBDFScheme& rOther)
         :ImplicitBaseType(rOther)
         ,mOrder(rOther.mOrder)
         ,mBDF(rOther.mBDF)
@@ -172,7 +171,7 @@ public:
 
     /**
      * @brief Performing the update of the solution
-     * @details Incremental update within newton iteration. It updates the state variables at the end of the time step 
+     * @details Incremental update within newton iteration. It updates the state variables at the end of the time step
      * \f[ u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u\f]
      * @param rModelPart The model of the problem to solve
      * @param rDofSet Set of all primary variables
@@ -186,22 +185,14 @@ public:
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
-        TSystemVectorType& b 
+        TSystemVectorType& b
         ) override
     {
         KRATOS_TRY;
 
         // Update of displacement (by DOF)
-        const int num_dof = static_cast<int>(rDofSet.size());
+        mpDofUpdater->UpdateDofs(rDofSet,Dx);
 
-        #pragma omp parallel for
-        for(int i = 0;  i < num_dof; ++i) {
-            auto it_dof = rDofSet.begin() + i;
-
-            if (it_dof->IsFree())
-                it_dof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx,it_dof->EquationId());
-        }
-        
         UpdateDerivatives(rModelPart, rDofSet,A, Dx, b);
 
         KRATOS_CATCH( "" );
@@ -240,7 +231,7 @@ public:
      * @param b RHS Vector
      * @todo I cannot find the formula for the higher orders with variable time step. I tried to deduce by myself but the result was very unstable
      */
-    
+
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
@@ -256,14 +247,14 @@ public:
 
         const double delta_time = current_process_info[DELTA_TIME];
         const double previous_delta_time = current_process_info.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-        
+
         // Calculate the BDF coefficients
         const double rho = previous_delta_time / delta_time;
         double time_coeff = 0.0;
         for (std::size_t i_rho = 0; i_rho < mOrder; ++i_rho)
             time_coeff += delta_time * std::pow(rho, i_rho);
         time_coeff = 1.0/time_coeff;
-        
+
         // We compute the BDF coefficients
         switch(mOrder) {
             case 1 : mBDF[0] =  time_coeff * rho; //coefficient for step n+1 (1Dt if Dt is constant)
@@ -301,7 +292,7 @@ public:
                      break;
             default : KRATOS_ERROR << "Methods with order > 6 are not zero-stable so they cannot be used" << std::endl;
         }
-        
+
         const double tolerance = 1.0e-24;
         if (mOrder > 2 && std::abs(delta_time - previous_delta_time) > tolerance)
             std::cout << "For higher orders than 2 the time step is assumed to be constant. Sorry for the inconveniences" << std::endl;
@@ -311,13 +302,13 @@ public:
         for (std::size_t i_order = 0; i_order < mOrder + 1; ++i_order)
             bdf_vector[i_order] = mBDF[i_order];
         current_process_info(BDF_COEFFICIENTS) = bdf_vector;
-        
+
         KRATOS_CATCH( "" );
     }
 
     /**
      * @brief This function is designed to be called once to perform all the checks needed
-     * on the input provided. 
+     * on the input provided.
      * @details Checks can be "expensive" as the function is designed
      * to catch user's errors.
      * @param rModelPart The model of the problem to solve
@@ -336,8 +327,14 @@ public:
         KRATOS_ERROR_IF(rModelPart.GetBufferSize() < mOrder + 1) << "Insufficient buffer size. Buffer size should be greater than" << mOrder + 1 << ". Current size is" << rModelPart.GetBufferSize() << std::endl;
 
         KRATOS_CATCH( "" );
-        
+
         return 0;
+    }
+
+    /// Free memory allocated by this class.
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
     }
 
     ///@}
@@ -370,7 +367,7 @@ protected:
         std::vector< Vector > dotun0; /// First derivative
         std::vector< Vector > dot2un0; /// Second derivative
     };
-    
+
     const std::size_t mOrder; /// The integration order
     Vector mBDF; /// The BDF coefficients
     GeneralVectors mVector; /// The structure containing the  derivatives
@@ -382,7 +379,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /**
      * @brief Performing the update of the derivatives
      * @param rModelPart The model of the problem to solve
@@ -405,17 +402,17 @@ protected:
         #pragma omp parallel for
         for(int i = 0;  i< num_nodes; ++i) {
             auto it_node = rModelPart.Nodes().begin() + i;
-            
+
             UpdateFirstDerivative(it_node);
             UpdateSecondDerivative(it_node);
         }
     }
-    
+
     /**
      * @brief Updating first time derivative (velocity)
      * @param itNode the node interator
      */
-    
+
     virtual inline void UpdateFirstDerivative(NodesArrayType::iterator itNode)
     {
         KRATOS_ERROR << "Calling base BDF class" << std::endl;
@@ -425,14 +422,14 @@ protected:
      * @brief Updating second time derivative (acceleration)
      * @param itNode the node interator
      */
-    
+
     virtual inline void UpdateSecondDerivative(NodesArrayType::iterator itNode)
     {
         KRATOS_ERROR << "Calling base BDF class" << std::endl;
     }
-    
+
     /**
-     * @brief It adds the dynamic LHS contribution of the elements 
+     * @brief It adds the dynamic LHS contribution of the elements
      * \f[ LHS = \frac{d(-RHS)}{d(u_{n0})} = c_0^2\mathbf{M} + c_0 \mathbf{D} + \mathbf{K} \f]
      * @param LHS_Contribution The dynamic contribution for the LHS
      * @param D The damping matrix
@@ -459,7 +456,7 @@ protected:
     }
 
     /**
-     * @brief It adds the dynamic RHS contribution of the objects 
+     * @brief It adds the dynamic RHS contribution of the objects
      * \f[ \mathbf{b} - \mathbf{M} a - \mathbf{D} v \f]
      * @param rObject The object to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
@@ -467,7 +464,7 @@ protected:
      * @param M The mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-        
+
     template <typename TObjectType>
     void TemplateAddDynamicsToRHS(
         TObjectType rObject,
@@ -478,7 +475,7 @@ protected:
         )
     {
         const std::size_t this_thread = OpenMPUtils::ThisThread();
-        
+
         // Adding inertia contribution
         if (M.size1() != 0) {
             rObject->GetSecondDerivativesVector(mVector.dot2un0[this_thread], 0);
@@ -491,9 +488,9 @@ protected:
             noalias(RHS_Contribution) -= prod(D, mVector.dotun0[this_thread]);
         }
     }
-    
+
     /**
-     * @brief It adds the dynamic RHS contribution of the elements 
+     * @brief It adds the dynamic RHS contribution of the elements
      * \f[ \mathbf{b} - \mathbf{M} a - \mathbf{D} v \f]
      * @param pElement The element to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
@@ -555,6 +552,9 @@ private:
     ///@name Member Variables
     ///@{
 
+    /// Utility class to perform the update after solving the system, will be different in MPI runs.
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -562,7 +562,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     ///@}
     ///@name Private  Access
     ///@{

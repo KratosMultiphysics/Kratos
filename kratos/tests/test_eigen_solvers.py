@@ -1,4 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
@@ -30,8 +30,6 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             for j in range(n):
                 if (i == j):
                     M[i, j] = 1.0
-                else:
-                    M[i, j] = 0.0
 
         # create result containers (they will be resized inside the solver)
         eigenvalues = KratosMultiphysics.Vector(n)
@@ -55,7 +53,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             import KratosMultiphysics.ExternalSolversApplication
         except:
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-            
+
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -83,7 +81,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             import KratosMultiphysics.ExternalSolversApplication
         except:
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-            
+
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -139,7 +137,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                 "test_list" : [
                     {
                         "solver_type": "eigen_eigensystem",
-                        "number_of_eigenvalues": 5,
+                        "number_of_eigenvalues": 3,
                         "max_iteration": 1000,
                         "tolerance": 1e-8,
                         "echo_level": 1
@@ -188,6 +186,8 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
         try:
             import KratosMultiphysics.EigenSolversApplication
+            if not hasattr(KratosMultiphysics.EigenSolversApplication, "ComplexPardisoLUSolver"):
+                self.skipTest("'ComplexPardisoLUSolver' is not available")
         except:
             self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
 

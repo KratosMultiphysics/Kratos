@@ -64,7 +64,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class DEM_FEM_Search : public SpatialSearch
+class KRATOS_API(DEM_APPLICATION) DEM_FEM_Search : public SpatialSearch
 {
     public:
       ///@name Type Definitions

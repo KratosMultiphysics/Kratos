@@ -139,13 +139,13 @@
     "contact_process_list" :[
     {
         "python_module"   : "alm_contact_process",
-        "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module"   : "ContactStructuralMechanicsApplication",
         "help"                  : "",
         "process_name"          : "ALMContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "contact_model_part"          : "Contact_Part",
-            "assume_master_slave"         : "Parts_Part_foundation",
+            "contact_model_part"          : { "0" : ["Contact_Part"]},
+            "assume_master_slave"         : { "0" : ["Parts_Part_foundation"]},
             "contact_type"                : "Frictionless"
         }
     }

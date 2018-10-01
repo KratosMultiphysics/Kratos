@@ -1,6 +1,7 @@
 //   $Author: Guillermo Casas
 
 // Project includes
+#include "analytic_face_watcher.h"
 
 // System includes
 #include <limits>
@@ -13,8 +14,11 @@
 #endif
 
 // Project includes
-#include "analytic_face_watcher.h"
 #include "DEM_application.h"
+
+// Project includes
+#include "includes/define.h"
+
 
 namespace Kratos
 {
@@ -29,15 +33,13 @@ void AnalyticFaceWatcher::ClearData()
     mMapOfFaceHistoryDatabases.clear();
 }
 
-void AnalyticFaceWatcher::MakeMeasurements(ModelPart& analytic_model_part)
+void AnalyticFaceWatcher::MakeMeasurements()
 {
-    const double current_time = analytic_model_part.GetProcessInfo()[TIME];
+    const double current_time = mrModelPart.GetProcessInfo()[TIME];
     CrossingsTimeStepDataBase time_step_database(current_time);
-
-    for (ConditionsIteratorType i_cond = analytic_model_part.ConditionsBegin(); i_cond != analytic_model_part.ConditionsEnd(); ++i_cond){
+    for (ConditionsIteratorType i_cond = mrModelPart.ConditionsBegin(); i_cond != mrModelPart.ConditionsEnd(); ++i_cond){
         AnalyticFace& face = dynamic_cast<Kratos::AnalyticRigidFace3D&>(*(*(i_cond.base())));
-        const int n_crossings = abs(face.GetNumberThroughput());
-
+        const int n_crossings = face.AreThereNewCrossings();
         if (n_crossings){
             const int id = int(i_cond->Id());
             FaceHistoryDatabase& face_database = GetFaceDataBase(id);
@@ -57,91 +59,100 @@ void AnalyticFaceWatcher::MakeMeasurements(ModelPart& analytic_model_part)
 }
 
 void AnalyticFaceWatcher::GetFaceData(int id,
-                                      std::list<double> times,
-                                      std::list<int> neighbour_ids,
-                                      std::list<double> masses,
-                                      std::list<double> normal_relative_vel,
-                                      std::list<double> tangential_relative_vel)
+                                      pybind11::list times,
+                                      pybind11::list neighbour_ids,
+                                      pybind11::list masses,
+                                      pybind11::list normal_relative_vel,
+                                      pybind11::list tangential_relative_vel)
 {
     mMapOfFaceHistoryDatabases[id].FillUpPythonLists(times, neighbour_ids, masses, normal_relative_vel, tangential_relative_vel);
 }
 
 void AnalyticFaceWatcher::GetAllFacesData(ModelPart& analytic_model_part,
-                                          std::list<double> times,
-                                          std::list<int> neighbour_ids,
-                                          std::list<double> masses,
-                                          std::list<double> normal_relative_vel,
-                                          std::list<double> tangential_relative_vel)
+                                          pybind11::list& times,
+                                          pybind11::list& neighbour_ids,
+                                          pybind11::list& masses,
+                                          pybind11::list& normal_relative_vel,
+                                          pybind11::list& tangential_relative_vel)
 {
-    times.clear();
-    neighbour_ids.clear();
-    masses.clear();
-    normal_relative_vel.clear();
-    tangential_relative_vel.clear();
+    times.attr("clear")();
+    neighbour_ids.attr("clear")();
+    masses.attr("clear")();
+    normal_relative_vel.attr("clear")();
+    tangential_relative_vel.attr("clear")();
 
     for (ConditionsIteratorType i_cond = analytic_model_part.ConditionsBegin(); i_cond != analytic_model_part.ConditionsEnd(); ++i_cond){
-        std::list<double> times_i;
-        std::list<int> neighbour_ids_i;
-        std::list<double> masses_i;
-        std::list<double> normal_relative_vel_i;
-        std::list<double> tangential_relative_vel_i;
-        
+        pybind11::list times_i;
+        pybind11::list neighbour_ids_i;
+        pybind11::list masses_i;
+        pybind11::list normal_relative_vel_i;
+        pybind11::list tangential_relative_vel_i;
+
         const int id = int(i_cond->Id());
-        
+
         GetFaceData(id, times_i, neighbour_ids_i, masses_i, normal_relative_vel_i, tangential_relative_vel_i);
 
-        times.insert(times.end(), times_i.begin(), times_i.end());
-        neighbour_ids.insert(neighbour_ids.end(), neighbour_ids_i.begin(), neighbour_ids_i.end());
-        masses.insert(masses.end(), masses_i.begin(), masses_i.end());
-        normal_relative_vel.insert(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
-        tangential_relative_vel.insert(tangential_relative_vel_i.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
-    }
+        times.append(times_i[id]);
+        neighbour_ids.append(neighbour_ids_i[id]);
+        masses.append(masses_i[id]);
+        normal_relative_vel.append(normal_relative_vel_i[id]);
+        tangential_relative_vel.append(tangential_relative_vel_i[id]);
+        //times.insert(times.end(), times_i.begin(), times_i.end());
+   }
 
 }
 
-void AnalyticFaceWatcher::GetTimeStepsData(std::list<int> ids,
-                                           std::list<int> neighbour_ids,
-                                           std::list<double> masses,
-                                           std::list<double> normal_relative_vel,
-                                           std::list<double> tangential_relative_vel)
+void AnalyticFaceWatcher::GetTimeStepsData(pybind11::list& ids,
+                                           pybind11::list& neighbour_ids,
+                                           pybind11::list& masses,
+                                           pybind11::list& normal_relative_vel,
+                                           pybind11::list& tangential_relative_vel)
 {
-    ids.clear();
-    neighbour_ids.clear();
-    masses.clear();
-    normal_relative_vel.clear();
-    tangential_relative_vel.clear();
+
+    ids.attr("clear")();
+    neighbour_ids.attr("clear")();
+    masses.attr("clear")();
+    normal_relative_vel.attr("clear")();
+    tangential_relative_vel.attr("clear")();
 
     const int n_time_steps = mVectorOfTimeStepDatabases.size();
 
     for (int i = 0; i < n_time_steps; ++i){
-        std::list<int> ids_i;
-        std::list<int> neighbour_ids_i;
-        std::list<double> masses_i;
-        std::list<double> normal_relative_vel_i;
-        std::list<double> tangential_relative_vel_i;
+        pybind11::list ids_i;
+        pybind11::list neighbour_ids_i;
+        pybind11::list masses_i;
+        pybind11::list normal_relative_vel_i;
+        pybind11::list tangential_relative_vel_i;
 
-        mVectorOfTimeStepDatabases[i].FillUpPythonLists(ids_i, neighbour_ids_i, masses_i, normal_relative_vel_i, tangential_relative_vel_i);
-        
-        ids.insert(ids.end(), ids_i.begin(), ids_i.end());
-        neighbour_ids.insert(neighbour_ids.end(), neighbour_ids_i.begin(), neighbour_ids_i.end());
-        masses.insert(masses.end(), masses_i.begin(), masses_i.end());
-        normal_relative_vel.insert(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
-        tangential_relative_vel.insert(tangential_relative_vel.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
-    }
+        mVectorOfTimeStepDatabases[i].FillUpPythonLists(ids_i,
+                                                        neighbour_ids_i,
+                                                        masses_i,
+                                                        normal_relative_vel_i,
+                                                        tangential_relative_vel_i);
+
+        ids.append(ids_i[i]);
+        neighbour_ids.append(neighbour_ids_i[i]);
+        masses.append(masses_i[i]);
+        normal_relative_vel.append(normal_relative_vel_i[i]);
+        tangential_relative_vel.append(tangential_relative_vel_i[i]);
+        //ids.insert(ids.end(), ids_i.begin(), ids_i.end());
+   }
 }
 
-void AnalyticFaceWatcher::GetTotalFlux(std::list<double> &times, std::list<int> &n_particles, std::list<double> &mass)
+void AnalyticFaceWatcher::GetTotalFlux(pybind11::list &times,
+                                       pybind11::list &n_particles,
+                                       pybind11::list &mass,
+                                       pybind11::list &vel_nr,
+                                       pybind11::list &vel_tg)
 {
-    times.clear();
-    n_particles.clear();
-    mass.clear();
-
     const int n_time_steps = mVectorOfTimeStepDatabases.size();
 
     for (int i = 0; i < n_time_steps; ++i){
-        times.push_back(mVectorOfTimeStepDatabases[i].GetTime());
-        n_particles.push_back(mVectorOfTimeStepDatabases[i].GetTotalThroughput());
-        mass.push_back(mVectorOfTimeStepDatabases[i].GetTotalMassThroughput());
+        times.append(mVectorOfTimeStepDatabases[i].GetTime());
+        n_particles.append(mVectorOfTimeStepDatabases[i].GetTotalThroughput());
+        mass.append(mVectorOfTimeStepDatabases[i].GetTotalMassThroughput());
+        vel_nr.append(mVectorOfTimeStepDatabases[i].GetRelVelNormalxMass());
+        vel_tg.append(mVectorOfTimeStepDatabases[i].GetRelVelTangentialxMass());
     }
 }
 

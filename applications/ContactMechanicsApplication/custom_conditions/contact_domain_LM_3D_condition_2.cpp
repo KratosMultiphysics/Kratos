@@ -65,9 +65,17 @@ namespace Kratos
 
   Condition::Pointer ContactDomainLM3DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
   {
-    return Condition::Pointer(new ContactDomainLM3DCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+    return Kratos::make_shared<ContactDomainLM3DCondition>(NewId, GetGeometry().Create( ThisNodes ), pProperties);
   }
 
+
+  //************************************CLONE*******************************************
+  //************************************************************************************
+
+  Condition::Pointer ContactDomainLM3DCondition::Clone( IndexType NewId, NodesArrayType const& ThisNodes ) const
+  {
+    return this->Create(NewId, ThisNodes, pGetProperties());
+  }
 
   //*******************************DESTRUCTOR*******************************************
   //************************************************************************************
@@ -117,12 +125,12 @@ namespace Kratos
     //order contains the relationship between contact element and body element condident nodes numeration
 
     if(slave>=0){
-	
+
 	// Clear nodes and slaves before push back quantities
 	mContactVariables.nodes.resize(0);
 	mContactVariables.slaves.resize(0);
 	mContactVariables.order.resize(0);
-	
+
 	bool iset = false;
 	for(unsigned int i=0; i<GetGeometry().PointsNumber(); i++)
 	{
@@ -137,10 +145,10 @@ namespace Kratos
 	    }
 
 	    if(iset==false){
-		mContactVariables.slaves.push_back(i);	
+		mContactVariables.slaves.push_back(i);
 	    }
 	}
-   
+
 
 
 	//Permute
@@ -155,7 +163,7 @@ namespace Kratos
 	permute[6]=2;
 
 
-	boost::numeric::ublas::matrix<unsigned int> lpofa; //points that define the faces
+	DenseMatrix<unsigned int> lpofa; //points that define the faces
 	GetGeometry().NodesInFaces(lpofa);
 
 	//reorder counter-clock-wise
@@ -182,7 +190,7 @@ namespace Kratos
 	      }
 	  }
 
-	  
+
 	  for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
 	  {
 	      if(rMasterNode.Id()==rMasterGeometry[j].Id())
@@ -240,7 +248,7 @@ namespace Kratos
 	  mContactVariables.nodes.push_back(mContactVariables.slaves.front());
 	  mContactVariables.nodes.push_back(mContactVariables.slaves.back());
 
-	  
+
 	  //check correct slave edge orientation:
 
 	  //Reference Position
@@ -277,7 +285,7 @@ namespace Kratos
 	  for(unsigned int i=0; i<GetValue(MASTER_NODES).size(); i++)
 	  {
 	      for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
-	      {	  
+	      {
 		  if(GetValue(MASTER_NODES)[i].Id()==rMasterGeometry[j].Id())
 		  {
 		      mContactVariables.order.push_back(j);

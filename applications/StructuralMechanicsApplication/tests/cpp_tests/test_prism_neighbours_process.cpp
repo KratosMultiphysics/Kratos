@@ -22,12 +22,12 @@
 /* Processes */
 #include "custom_processes/prism_neighbours_process.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
-        
+
         void PrismNeighboursProcessGiDIODebug(ModelPart& ThisModelPart)
         {
             GidIO<> gid_io("TEST_NEIGHBOUR_PRISM", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
@@ -63,7 +63,7 @@ namespace Kratos
             element_nodes_0[3] = p_node_4;
             element_nodes_0[4] = p_node_5;
             element_nodes_0[5] = p_node_6;
-            Prism3D6<NodeType> prism_0( element_nodes_0 );
+            Prism3D6<NodeType> prism_0( PointerVector<NodeType>{element_nodes_0} );
 
             Element::Pointer p_elem_0 = ThisModelPart.CreateNewElement("Element3D6N", 1, prism_0, p_elem_prop);
 
@@ -78,7 +78,7 @@ namespace Kratos
                 element_nodes_1[3] = p_node_5;
                 element_nodes_1[4] = p_node_6;
                 element_nodes_1[5] = p_node_10;
-                Prism3D6 <NodeType> prism_1( element_nodes_1 );
+                Prism3D6 <NodeType> prism_1( PointerVector<NodeType>{element_nodes_1} );
 
                 Element::Pointer p_elem_1 = ThisModelPart.CreateNewElement("Element3D6N", 2, prism_1, p_elem_prop);
             }
@@ -94,7 +94,7 @@ namespace Kratos
                 element_nodes_2[3] = p_node_4;
                 element_nodes_2[4] = p_node_5;
                 element_nodes_2[5] = p_node_11;
-                Prism3D6 <NodeType> prism_2( element_nodes_2 );
+                Prism3D6 <NodeType> prism_2( PointerVector<NodeType>{element_nodes_2} );
 
                 Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("Element3D6N", 3, prism_2, p_elem_prop);
             }
@@ -110,7 +110,7 @@ namespace Kratos
                 element_nodes_3[3] = p_node_4;
                 element_nodes_3[4] = p_node_6;
                 element_nodes_3[5] = p_node_12;
-                Prism3D6 <NodeType> prism_3( element_nodes_3 );
+                Prism3D6 <NodeType> prism_3( PointerVector<NodeType>{element_nodes_3} );
 
                 Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("Element3D6N", 4, prism_3, p_elem_prop);
             }
@@ -119,7 +119,7 @@ namespace Kratos
 //             PrismNeighboursProcessGiDIODebug(ThisModelPart);
         }
 
-        /** 
+        /**
         * Checks the correct work of the prism neighbour process
         * Test 3 neighbours
         */
@@ -188,9 +188,9 @@ namespace Kratos
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
-            
+
             PrismNeighboursProcessCreateModelPart(this_model_part, 0);
-                         
+
             PrismNeighboursProcess prism_neighbours_process = PrismNeighboursProcess(this_model_part);
             prism_neighbours_process.Execute();
 

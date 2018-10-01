@@ -34,7 +34,7 @@ namespace Kratos
 
       public:
 
-         typedef bounded_matrix<double,3,3> MatrixType;
+         typedef BoundedMatrix<double,3,3> MatrixType;
 
          typedef array_1d<double, 6> VectorType;
 
@@ -54,19 +54,19 @@ namespace Kratos
             double LodeCut = GetSmoothingLodeAngle( );
             if ( fabs( rLodeAngle) < LodeCut)
             {
-               rEffect = std::cos( rLodeAngle) - 1.0/sqrt(3.0) * std::sin(Friction) * std::sin(rLodeAngle); 
+               rEffect = std::cos( rLodeAngle) - 1.0/sqrt(3.0) * std::sin(Friction) * std::sin(rLodeAngle);
             } else {
                double A, B;
                GetSmoothingConstants(A, B, rLodeAngle, Friction);
                rEffect = A + B*std::sin(3.0*rLodeAngle);
             }
             rEffect /= ( sqrt(3)/6) * (3.0 - std::sin(Friction) );
-            return rEffect; 
+            return rEffect;
 
             KRATOS_CATCH("")
 
          }
-        
+
       protected:
 
          static inline void GetSmoothingConstants(double& rA, double& rB, const double& rLodeAngle, const double & rFriction)
@@ -87,7 +87,7 @@ namespace Kratos
 
 
          }
-         
+
          static inline double GetSmoothingLodeAngle()
          {
             return 27.0*Globals::Pi/180.0;

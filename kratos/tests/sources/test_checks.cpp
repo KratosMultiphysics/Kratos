@@ -51,6 +51,7 @@ namespace Kratos {
 
             model_part.AddNodalSolutionStepVariable(VELOCITY);
             model_part.AddNodalSolutionStepVariable(PRESSURE);
+            model_part.AddNodalSolutionStepVariable(REACTION);
 
             model_part.SetBufferSize(1);
 

@@ -202,19 +202,19 @@ protected:
 
     void GetNodalValues(ElementVariables& rVariables);
 
-    void GetElementValues(const bounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
+    void GetElementValues(const BoundedMatrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
 
     void ComputeAuxMatrices(
-            const bounded_matrix<double,TNumNodes, TNumNodes>& rNcontainer,
-            const bounded_matrix<double,TNumNodes,2>& rDN_DX,
+            const BoundedMatrix<double,TNumNodes, TNumNodes>& rNcontainer,
+            const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
             const ElementVariables& rVariables,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixScalar,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixVector,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarGrad,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiv,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarDiff,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiff,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rConvection );
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixScalar,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixVector,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rScalarGrad,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiv,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rScalarDiff,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiff,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rConvection );
 
     ///@}
     ///@name Protected  Access

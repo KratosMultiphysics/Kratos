@@ -15,8 +15,8 @@ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import trilinos_structural_mechanics_solver
 
 
-def CreateSolver(main_model_part, custom_settings):
-    return TrilinosImplicitMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return TrilinosImplicitMechanicalSolver(model, custom_settings)
 
 
 class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.TrilinosMechanicalSolver):
@@ -29,7 +29,7 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
     structural_mechanics_solver.py
     trilinos_structural_mechanics_solver.py
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
@@ -41,15 +41,15 @@ class TrilinosImplicitMechanicalSolver(trilinos_structural_mechanics_solver.Tril
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
         # Validate the remaining settings in the base class.
-        
+
         # Construct the base solver.
-        super(TrilinosImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(TrilinosImplicitMechanicalSolver, self).__init__(model, custom_settings)
 
     def AddVariables(self):
         super(TrilinosImplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
         self.print_on_rank_zero("::[TrilinosImplicitMechanicalSolver]:: Variables ADDED")
-    
+
     def AddDofs(self):
         super(TrilinosImplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()

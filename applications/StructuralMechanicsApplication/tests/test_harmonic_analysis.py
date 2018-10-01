@@ -219,13 +219,21 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         import structural_mechanics_analysis
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             #run simulation and write to hdf5 file
+            model = KratosMultiphysics.Model()
             project_parameter_file_name = "harmonic_analysis_test/harmonic_analysis_test_eigenproblem_parameters.json"
-            test = structural_mechanics_analysis.StructuralMechanicsAnalysis(project_parameter_file_name)
+            with open(project_parameter_file_name,'r') as parameter_file:
+                project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            test = structural_mechanics_analysis.StructuralMechanicsAnalysis(model,project_parameters)
             test.Run()
+
             #start new simulation and read from hdf5 file
+            model = KratosMultiphysics.Model()
             project_parameter_file_name = "harmonic_analysis_test/harmonic_analysis_test_parameters.json"
-            test = structural_mechanics_analysis.StructuralMechanicsAnalysis(project_parameter_file_name)
+            with open(project_parameter_file_name,'r') as parameter_file:
+                project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            test = structural_mechanics_analysis.StructuralMechanicsAnalysis(model,project_parameters)
             test.Run()
+
             # remove hdf5 file
             kratos_utils.DeleteFileIfExisting("harmonic_analysis_test/eigen_results.h5")
             kratos_utils.DeleteFileIfExisting("harmonic_analysis_test/harmonic_analysis_test.time")

@@ -26,7 +26,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
 #include "solving_strategies/schemes/scheme.h"
-#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "custom_strategies/builder_and_solvers/trilinos_elimination_builder_and_solver.h"
 // #include "convection_diffusion_application.h"
 /*#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"*/
@@ -185,7 +185,7 @@ public:
         //initializing fractional velocity solution step
         typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;
         typename SchemeType::Pointer pscheme = typename SchemeType::Pointer
-                                               (new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
+                                               (new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
         int guess_row_size = 30;
 

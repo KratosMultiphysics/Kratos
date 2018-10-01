@@ -664,17 +664,14 @@ namespace Kratos {
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
         OpenMPUtils::CreatePartition(mNumberOfThreads, pElements.size(), this->GetElementPartition());
 
-        #pragma omp parallel for
-        for (int k = 0; k < mNumberOfThreads; k++) {
-            ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-            ElementsArrayType::iterator it_end = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
-                (it)->FinalizeSolutionStep(r_process_info); //we use this function to call the set initial contacts and the add continuum contacts
-            } //loop over particles
-        } // loop over OpenMP threads
+         #pragma omp parallel for if(pElements.size()>100)
+        for (int k = 0; k < (int)pElements.size(); k++) {
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            (it)->FinalizeSolutionStep(r_process_info); //we use this function to call the set initial contacts and the add continuum contacts
+        } //loop over particles
 
         //if (true) AuxiliaryFunctions::ComputeReactionOnTopAndBottomSpheres(r_model_part);
+
 
         KRATOS_CATCH("")
     }
@@ -712,7 +709,7 @@ namespace Kratos {
             mListOfSphericParticles[i]->Initialize(r_process_info);
             total_mass += mListOfSphericParticles[i]->GetMass();
         }
-		//KRATOS_WATCH(total_mass)
+
 
         KRATOS_CATCH("")
     }
@@ -723,104 +720,102 @@ namespace Kratos {
 
         ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();
         ModelPart& fem_model_part = GetFemModelPart();
+        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
 
         if (fem_model_part.NumberOfSubModelParts()) {
             for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
                 ModelPart& submp = *sub_model_part;
+                NodesArrayType& pNodes = sub_model_part->Nodes();
 
-                if (!submp[FREE_BODY_MOTION]) {
+                #pragma omp parallel for
+                for (int i=0; i<(int)pTConditions.size(); i++) {
+                    ConditionsArrayType::iterator it = pTConditions.ptr_begin() + i;
+                    (it)->Initialize();
+                }
+
+                // Central Node
+                Node<3>::Pointer central_node;
+                Geometry<Node<3> >::PointsArrayType central_node_list;
+
+                array_1d<double, 3> reference_coordinates = ZeroVector(3);
+
+                if (submp.Has(RIGID_BODY_CENTER_OF_MASS)) {
+                    reference_coordinates[0] = submp[RIGID_BODY_CENTER_OF_MASS][0];
+                    reference_coordinates[1] = submp[RIGID_BODY_CENTER_OF_MASS][1];
+                    reference_coordinates[2] = submp[RIGID_BODY_CENTER_OF_MASS][2];
+                }
+
+                int Node_Id_1 = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(fem_model_part);
+
+                mpParticleCreatorDestructor->CentroidCreatorForRigidBodyElements(fem_model_part, central_node, Node_Id_1 + 1, reference_coordinates);
+
+                central_node_list.push_back(central_node);
+
+                int Element_Id_1 = mpParticleCreatorDestructor->FindMaxElementIdInModelPart(fem_model_part);
+
+                Properties::Pointer properties;
+                if (submp.Has(PROPERTIES_ID)) properties = fem_model_part.GetMesh().pGetProperties(submp[PROPERTIES_ID]);
+                else properties = fem_model_part.GetMesh().pGetProperties(fem_model_part.GetMesh(0).PropertiesBegin()->GetId()); // JIG: Backward compatibility, it should be removed in the future
+
+                std::string ElementNameString = "RigidBodyElement3D";
+
+                if (submp.Has(FLOATING_OPTION)) {
+                    if (submp[FLOATING_OPTION]) {
+                        ElementNameString = "ShipElement3D";
+                    }
+                }
+
+                const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
+                Element::Pointer RigidBodyElement3D_Kratos = r_reference_element.Create(Element_Id_1 + 1, central_node_list, properties);
+                RigidBodyElement3D* rigid_body_element = dynamic_cast<RigidBodyElement3D*>(RigidBodyElement3D_Kratos.get());
+
+                fem_model_part.AddElement(RigidBodyElement3D_Kratos); //, Element_Id + 1);
+
+                std::size_t element_id = Element_Id_1 + 1;
+                std::vector<std::size_t> ElementIds;
+                ElementIds.push_back(element_id);
+
+                if (submp.Has(FREE_BODY_MOTION)) { // JIG: Backward compatibility, it should be removed in the future
+                    if (submp[FREE_BODY_MOTION]) {
+
+                        std::vector<std::vector<Node<3>::Pointer> > thread_vectors_of_node_pointers;
+                        thread_vectors_of_node_pointers.resize(mNumberOfThreads);
+                        std::vector<std::vector<array_1d<double, 3> > > thread_vectors_of_coordinates;
+                        thread_vectors_of_coordinates.resize(mNumberOfThreads);
+
                         #pragma omp parallel for
-                        for (int i=0; i<(int)pTConditions.size(); i++) {
-                            ConditionsArrayType::iterator it = pTConditions.ptr_begin() + i;
-                            (it)->Initialize();
+                        for (int k = 0; k < (int)pNodes.size(); k++) {
+                            ModelPart::NodeIterator i = pNodes.ptr_begin() + k;
+                            thread_vectors_of_node_pointers[OpenMPUtils::ThisThread()].push_back(*(i.base())); //TODO: this could be raw pointers. It would be a lot faster here (same speed when reading later on)
+                            thread_vectors_of_coordinates[OpenMPUtils::ThisThread()].push_back(i->Coordinates() - reference_coordinates);
                         }
+                        for (int i = 0; i < mNumberOfThreads; i++) {
+                            rigid_body_element->mListOfNodes.insert(rigid_body_element->mListOfNodes.end(), thread_vectors_of_node_pointers[i].begin(), thread_vectors_of_node_pointers[i].end());
+                            rigid_body_element->mListOfCoordinates.insert(rigid_body_element->mListOfCoordinates.end(), thread_vectors_of_coordinates[i].begin(), thread_vectors_of_coordinates[i].end());
+                        }
+
+                        std::vector<std::vector<RigidFace3D*> > thread_vectors_of_rigid_faces;
+                        thread_vectors_of_rigid_faces.resize(mNumberOfThreads);
+
+                        #pragma omp parallel for
+                        for (int k = 0; k < (int)pTConditions.size(); k++) {
+                            ConditionsArrayType::iterator it = pTConditions.ptr_begin() + k;
+                            RigidFace3D* it_face = dynamic_cast<RigidFace3D*>(&(*it));
+                            thread_vectors_of_rigid_faces[OpenMPUtils::ThisThread()].push_back(it_face);
+                        }
+                        for (int i = 0; i < mNumberOfThreads; i++) {
+                            rigid_body_element->mListOfRigidFaces.insert(rigid_body_element->mListOfRigidFaces.end(), thread_vectors_of_rigid_faces[i].begin(), thread_vectors_of_rigid_faces[i].end());
+                        }
+                    }
                 }
-                else {
-                    InitializeFEMWallsAsRigidBodyElements(sub_model_part);
-                }
+
+                rigid_body_element->Initialize(r_process_info);
+                rigid_body_element->CustomInitialize(submp);
             }
         }
 
         KRATOS_CATCH("")
-    }
-
-    void ExplicitSolverStrategy::InitializeFEMWallsAsRigidBodyElements(ModelPart::SubModelPartsContainerType::iterator& sub_model_part) {
-
-        ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();
-        ModelPart& fem_model_part = GetFemModelPart();
-        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
-        ModelPart& submp = *sub_model_part;
-        NodesArrayType& pNodes = sub_model_part->Nodes();
-
-        #pragma omp parallel for
-        for (int i=0; i<(int)pTConditions.size(); i++) {
-            ConditionsArrayType::iterator it = pTConditions.ptr_begin() + i;
-            (it)->Initialize();
-        }
-
-        // Central Node
-        Node<3>::Pointer central_node;
-        Geometry<Node<3> >::PointsArrayType central_node_list;
-
-        array_1d<double, 3> reference_coordinates;
-        reference_coordinates[0] = submp[RIGID_BODY_CENTER_OF_MASS][0];
-        reference_coordinates[1] = submp[RIGID_BODY_CENTER_OF_MASS][1];
-        reference_coordinates[2] = submp[RIGID_BODY_CENTER_OF_MASS][2];
-
-        int Node_Id_1 = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(fem_model_part);
-
-        mpParticleCreatorDestructor->CentroidCreatorForRigidBodyElements(fem_model_part, central_node, Node_Id_1 + 1, reference_coordinates);
-
-        central_node_list.push_back(central_node);
-
-        int Element_Id_1 = mpParticleCreatorDestructor->FindMaxElementIdInModelPart(fem_model_part);
-
-        Properties::Pointer properties = fem_model_part.GetMesh().pGetProperties(0); ////This is Properties 0 ?????
-
-        std::string ElementNameString = "RigidBodyElement3D";
-        const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
-        Element::Pointer RigidBodyElement3D_Kratos = r_reference_element.Create(Element_Id_1 + 1, central_node_list, properties);
-        RigidBodyElement3D* rigid_body_element = dynamic_cast<RigidBodyElement3D*>(RigidBodyElement3D_Kratos.get());
-
-        fem_model_part.AddElement(RigidBodyElement3D_Kratos); //, Element_Id + 1);
-
-        std::size_t element_id = Element_Id_1 + 1;
-        std::vector<std::size_t> ElementIds;
-        ElementIds.push_back(element_id);
-
-
-        std::vector<std::vector<Node<3>::Pointer> > thread_vectors_of_node_pointers;
-        thread_vectors_of_node_pointers.resize(mNumberOfThreads);
-        std::vector<std::vector<array_1d<double, 3> > > thread_vectors_of_coordinates;
-        thread_vectors_of_coordinates.resize(mNumberOfThreads);
-
-        #pragma omp parallel for
-        for (int k = 0; k < (int)pNodes.size(); k++) {
-            ModelPart::NodeIterator i = pNodes.ptr_begin() + k;
-            thread_vectors_of_node_pointers[OpenMPUtils::ThisThread()].push_back(*(i.base())); //TODO: this could be raw pointers. It would be a lot faster here (same speed when reading later on)
-            thread_vectors_of_coordinates[OpenMPUtils::ThisThread()].push_back(i->Coordinates() - reference_coordinates);
-        }
-        for (int i = 0; i < mNumberOfThreads; i++) {
-            rigid_body_element->mListOfNodes.insert(rigid_body_element->mListOfNodes.end(), thread_vectors_of_node_pointers[i].begin(), thread_vectors_of_node_pointers[i].end());
-            rigid_body_element->mListOfCoordinates.insert(rigid_body_element->mListOfCoordinates.end(), thread_vectors_of_coordinates[i].begin(), thread_vectors_of_coordinates[i].end());
-        }
-
-
-        std::vector<std::vector<RigidFace3D*> > thread_vectors_of_rigid_faces;
-        thread_vectors_of_rigid_faces.resize(mNumberOfThreads);
-
-        #pragma omp parallel for
-        for (int k = 0; k < (int)pTConditions.size(); k++) {
-            ConditionsArrayType::iterator it = pTConditions.ptr_begin() + k;
-            RigidFace3D* it_face = dynamic_cast<RigidFace3D*>(&(*it));
-            thread_vectors_of_rigid_faces[OpenMPUtils::ThisThread()].push_back(it_face);
-        }
-        for (int i = 0; i < mNumberOfThreads; i++) {
-            rigid_body_element->mListOfRigidFaces.insert(rigid_body_element->mListOfRigidFaces.end(), thread_vectors_of_rigid_faces[i].begin(), thread_vectors_of_rigid_faces[i].end());
-        }
-
-        rigid_body_element->Initialize(r_process_info);
     }
 
     void ExplicitSolverStrategy::CalculateConditionsRHSAndAdd() {
@@ -845,13 +840,16 @@ namespace Kratos {
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) { //each iteration refers to a different triangle or quadrilateral
 
                 Condition::GeometryType& geom = it->GetGeometry();
+
                 //double Element_Area = geom.Area();
 
                 it->CalculateRightHandSide(rhs_cond, r_process_info);
                 DEMWall* p_wall = dynamic_cast<DEMWall*> (&(*it));
                 p_wall->CalculateElasticForces(rhs_cond_elas, r_process_info);
-                array_1d<double, 3> Normal_to_Element;
-                p_wall->CalculateNormal(Normal_to_Element);
+                array_1d<double, 3> Normal_to_Element = ZeroVector(3);
+
+                if (geom.size()>2) p_wall->CalculateNormal(Normal_to_Element);
+
                 const unsigned int& dim = geom.WorkingSpaceDimension();
 
                 for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition
@@ -1052,50 +1050,45 @@ namespace Kratos {
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
             ModelPart& submp = *sub_model_part;
-            if (!submp[FREE_BODY_MOTION]) break;
-
-            double vel_start = 0.0, vel_stop = std::numeric_limits<double>::max();
-            if ((*sub_model_part).Has(VELOCITY_START_TIME)) {
-                vel_start = (*sub_model_part)[VELOCITY_START_TIME];
-            }
-            if ((*sub_model_part).Has(VELOCITY_STOP_TIME)) {
-                vel_stop = (*sub_model_part)[VELOCITY_STOP_TIME];
-            }
-
-            if (time < vel_start || time > vel_stop) continue;
 
             ElementsArrayType& pElements = mpFem_model_part->Elements();
             ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
 
-            if ((*sub_model_part).Has(IMPOSED_VELOCITY_X_VALUE)) {
-                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = (*sub_model_part)[IMPOSED_VELOCITY_X_VALUE];
-            }
-            if ((*sub_model_part).Has(IMPOSED_VELOCITY_Y_VALUE)) {
-                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = (*sub_model_part)[IMPOSED_VELOCITY_Y_VALUE];
-            }
-            if ((*sub_model_part).Has(IMPOSED_VELOCITY_Z_VALUE)) {
-                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = (*sub_model_part)[IMPOSED_VELOCITY_Z_VALUE];
-            }
-            if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) {
-                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_X_VALUE];
-            }
-            if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) {
-                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_Y_VALUE];
-            }
-            if ((*sub_model_part).Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) {
-                rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
-                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = (*sub_model_part)[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
-            }
-
             rigid_body_elements_counter++;
-        }
 
+            if (submp.Has(FREE_BODY_MOTION)) { // JIG: Backward compatibility, it should be removed in the future
+                if (submp[FREE_BODY_MOTION]) {
+                    double vel_start = 0.0, vel_stop = std::numeric_limits<double>::max();
+                    if (submp.Has(VELOCITY_START_TIME)) vel_start = submp[VELOCITY_START_TIME];
+                    if (submp.Has(VELOCITY_STOP_TIME)) vel_stop = submp[VELOCITY_STOP_TIME];
+
+                    if (time > vel_start && time < vel_stop) {
+                        if (submp.Has(IMPOSED_VELOCITY_X_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = submp[IMPOSED_VELOCITY_X_VALUE];
+                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, false);
+                        if (submp.Has(IMPOSED_VELOCITY_Y_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = submp[IMPOSED_VELOCITY_Y_VALUE];
+                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, false);
+                        if (submp.Has(IMPOSED_VELOCITY_Z_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = submp[IMPOSED_VELOCITY_Z_VALUE];
+                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, false);
+                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_X_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[0] = submp[IMPOSED_ANGULAR_VELOCITY_X_VALUE];
+                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, false);
+                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Y_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[1] = submp[IMPOSED_ANGULAR_VELOCITY_Y_VALUE];
+                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+                        if (submp.Has(IMPOSED_ANGULAR_VELOCITY_Z_VALUE)) rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = submp[IMPOSED_ANGULAR_VELOCITY_Z_VALUE];
+                        else rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+                    }
+
+                    else {
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_X, true);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Y, true);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_VEL_Z, true);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_X, true);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Y, true);
+                        rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
+                    }
+                }
+            }
+        }
         KRATOS_CATCH("")
     }
 
@@ -1134,9 +1127,6 @@ namespace Kratos {
 
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = fem_model_part.SubModelPartsBegin(); sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
 
-            ModelPart& submp = *sub_model_part;
-            if (!submp[FREE_BODY_MOTION]) break;
-
             ElementsArrayType& pElements = mpFem_model_part->Elements();
             ElementsArrayType::iterator it = pElements.ptr_begin() + rigid_body_elements_counter;
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
@@ -1159,8 +1149,6 @@ namespace Kratos {
             if ((*sub_model_part).Has(INITIAL_ANGULAR_VELOCITY_Z_VALUE)) {
                 rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY)[2] = (*sub_model_part)[INITIAL_ANGULAR_VELOCITY_Z_VALUE];
             }
-
-            if (submp[FREE_BODY_MOTION]) rigid_body_element.CustomInitialize(submp);
 
             rigid_body_elements_counter++;
         }

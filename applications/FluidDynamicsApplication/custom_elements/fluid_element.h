@@ -50,6 +50,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+// Forward decalration of auxiliary class
+namespace Internals {
+template <class TElementData, bool TDataKnowsAboutTimeIntegration>
+class FluidElementTimeIntegrationDetail;
+}
+
 template <class TElementData>
 class FluidElement : public Element
 {
@@ -86,7 +92,11 @@ public:
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     /// Type for shape function values container
+    #ifdef KRATOS_USE_AMATRIX
+    typedef AMatrix::MatrixRow< Matrix > ShapeFunctionsType;
+    #else
     typedef boost::numeric::ublas::matrix_row< Matrix > ShapeFunctionsType;
+    #endif
 
     /// Type for a matrix containing the shape function gradients
     typedef Kratos::Matrix ShapeFunctionDerivativesType;
@@ -464,6 +474,12 @@ private:
 
     //// Constitutive relation for the element
     ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    friend class Internals::FluidElementTimeIntegrationDetail<TElementData, TElementData::ElementManagesTimeIntegration>;
 
     ///@}
     ///@name Serialization

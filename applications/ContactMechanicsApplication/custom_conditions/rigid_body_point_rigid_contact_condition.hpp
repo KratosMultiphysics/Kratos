@@ -40,7 +40,7 @@ namespace Kratos
  * Implements a Contact Point Load definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
-class RigidBodyPointRigidContactCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointRigidContactCondition
     : public PointRigidContactCondition
 {
 public:
@@ -48,7 +48,7 @@ public:
     ///@name Type Definitions
 
     ///Tensor order 1 definition
-    //typedef bounded_vector<double, 3>     PointType;
+    //typedef BoundedVector<double, 3>     PointType;
     typedef array_1d<double, 3>             PointType;
 
     ///@{

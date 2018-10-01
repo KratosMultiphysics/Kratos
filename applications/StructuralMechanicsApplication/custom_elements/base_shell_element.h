@@ -65,6 +65,8 @@ public:
 
     typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
+    using SizeType = std::size_t;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -125,6 +127,8 @@ public:
 
     void ResetConstitutiveLaw() override;
 
+    void Initialize() override;
+
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
@@ -133,8 +137,64 @@ public:
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
 	                            ProcessInfo& rCurrentProcessInfo) override;
+
+    // GetValueOnIntegrationPoints are TEMPORARY until they are removed!!!
+    // They will be removed from the derived elements; i.e. the implementation
+    // should be in CalculateOnIntegrationPoints!
+    // Adding these functions here is bcs GiD calls GetValueOnIntegrationPoints
+    void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+					     std::vector<bool>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override
+    {
+        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
+
+    void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
+					     std::vector<int>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override
+    {
+        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
+
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+					     std::vector<double>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override
+    {
+        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
+
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+					     std::vector<array_1d<double, 3 > >& rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override
+    {
+        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
+
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+					     std::vector<array_1d<double, 6 > >& rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override
+    {
+        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
+
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+					     std::vector<Vector>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override
+    {
+        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
+
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+					     std::vector<Matrix>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo) override
+    {
+        CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
 
     /**
     * This method provides the place to perform checks on the completeness of the input
@@ -215,9 +275,9 @@ protected:
     {
     }
 
-    std::size_t GetNumberOfDofs();
+    SizeType GetNumberOfDofs();
 
-    std::size_t GetNumberOfGPs();
+    SizeType GetNumberOfGPs();
 
     void SetBaseMembers();
 

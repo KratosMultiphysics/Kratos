@@ -3,7 +3,7 @@ Begin ModelPartData
 End ModelPartData
 
 Begin Properties 0
-WALL_FRICTION 0.3
+FRICTION 0.3
 WALL_COHESION 0.0
 COMPUTE_WEAR 0
 SEVERITY_OF_WEAR 0.001
@@ -7682,21 +7682,11 @@ Begin Conditions RigidFace3D3N // GUI DEM-FEM-Wall group identifier: FEM
 5047  0  2608 2615 2595
 End Conditions
 
-Begin SubModelPart 1 // GUI DEM-FEM-Wall group identifier: FEM
+Begin SubModelPart FEM // GUI DEM-FEM-Wall group identifier: FEM
   Begin SubModelPartData // GUI DEM-FEM-Wall group identifier: FEM
-  VELOCITY [3] (0.0,0.0,0.0)
-  VELOCITY_PERIOD 0.0
-  ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
-  ROTATION_CENTER [3] (0.0,0.0,0.0)
-  ANGULAR_VELOCITY_PERIOD 0.0
-  VELOCITY_START_TIME 0.0
-  VELOCITY_STOP_TIME 1000.0
-  ANGULAR_VELOCITY_START_TIME 0.0
-  ANGULAR_VELOCITY_STOP_TIME 1000.0
-  FIXED_MESH_OPTION 0
+  PROPERTIES_ID 0
+  RIGID_BODY_MOTION 0
   IDENTIFIER FEM
-  TOP 0
-  BOTTOM 0
   FORCE_INTEGRATION_GROUP 0
   End SubModelPartData
   Begin SubModelPartNodes

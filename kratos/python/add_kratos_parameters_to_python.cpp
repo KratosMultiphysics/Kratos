@@ -55,27 +55,6 @@ void Append(Parameters &rParameters, const T& obj) {
     rParameters.Append(obj);
 }
 
-// void Append(Parameters &rParameters, PyObject *type) {
-//   if (PyLong_CheckExact(type))
-//     rParameters.Append(boost::python::extract<int>(type));
-//   else if (PyBool_Check(type))
-//     rParameters.Append(boost::python::extract<bool>(type));
-//   else if (PyUnicode_Check(type))
-//     rParameters.Append(boost::python::extract<std::string>(type));
-//   else if (boost::python::arg_from_python<Vector>(type).convertible())
-//     rParameters.Append(boost::python::extract<Vector>(type));
-//   else if (boost::python::arg_from_python<Matrix>(type).convertible())
-//     rParameters.Append(boost::python::extract<Matrix>(type));
-//   else if (boost::python::arg_from_python<Parameters>(type).convertible())
-//     rParameters.Append(boost::python::extract<Parameters>(type));
-//   else if (boost::python::arg_from_python<double>(type).convertible())
-//     rParameters.Append(boost::python::extract<double>(type));
-//   else
-//     KRATOS_ERROR
-//         << " python object type not accepted to append in parameters Array "
-//         << std::endl;
-// }
-
 
 void  AddKratosParametersToPython(pybind11::module& m)
 {
@@ -84,7 +63,8 @@ void  AddKratosParametersToPython(pybind11::module& m)
 
 
     class_<Parameters, Parameters::Pointer >(m,"Parameters")
-    .def(init<const std::string>()) //init<rapidjson::Value& >())
+    .def(init<>())
+    .def(init<const std::string&>())
     .def(init<Parameters const&>())
     .def("WriteJsonString", &Parameters::WriteJsonString)
     .def("PrettyPrintJsonString", &Parameters::PrettyPrintJsonString)

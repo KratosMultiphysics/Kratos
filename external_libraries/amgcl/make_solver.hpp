@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ THE SOFTWARE.
  * \brief  Tie an iterative solver and a preconditioner in a single class.
  */
 
-#include <boost/type_traits.hpp>
+#include <type_traits>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>
 
@@ -43,13 +43,11 @@ template <
     class IterativeSolver
     >
 class make_solver {
-    BOOST_STATIC_ASSERT_MSG(
-            (
-             backend::backends_compatible<
-                 typename IterativeSolver::backend_type,
-                 typename Precond::backend_type
-                 >::value
-            ),
+    static_assert(
+            backend::backends_compatible<
+                typename IterativeSolver::backend_type,
+                typename Precond::backend_type
+            >::value,
             "Backends for preconditioner and iterative solver should be compatible"
             );
     public:
@@ -71,11 +69,12 @@ class make_solver {
 
             params() {}
 
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, precond),
                   AMGCL_PARAMS_IMPORT_CHILD(p, solver)
             {
-                AMGCL_PARAMS_CHECK(p, (precond)(solver));
+                check_params(p, {"precond", "solver"});
             }
 
             void get( boost::property_tree::ptree &p,
@@ -85,6 +84,7 @@ class make_solver {
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, precond);
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, solver);
             }
+#endif
         } prm;
 
         /** Sets up the preconditioner and creates the iterative solver. */
@@ -113,7 +113,7 @@ class make_solver {
 
         /** Computes the solution for the given system matrix \p A and the
          * right-hand side \p rhs.  Returns the number of iterations made and
-         * the achieved residual as a ``boost::tuple``. The solution vector
+         * the achieved residual as a ``std::tuple``. The solution vector
          * \p x provides initial approximation in input and holds the computed
          * solution on output.
          *
@@ -126,34 +126,19 @@ class make_solver {
          * \endrst
          */
         template <class Matrix, class Vec1, class Vec2>
-        boost::tuple<size_t, scalar_type> operator()(
-                Matrix  const &A,
-                Vec1    const &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2          &x
-#else
-                Vec2          &&x
-#endif
-                ) const
+        std::tuple<size_t, scalar_type> operator()(
+                const Matrix &A, const Vec1 &rhs, Vec2 &&x) const
         {
             return S(A, P, rhs, x);
         }
 
         /** Computes the solution for the given right-hand side \p rhs.
          * Returns the number of iterations made and the achieved residual as a
-         * ``boost::tuple``. The solution vector \p x provides initial
+         * ``std::tuple``. The solution vector \p x provides initial
          * approximation in input and holds the computed solution on output.
          */
         template <class Vec1, class Vec2>
-        boost::tuple<size_t, scalar_type> operator()(
-                Vec1    const &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2          &x
-#else
-                Vec2          &&x
-#endif
-                ) const
-        {
+        std::tuple<size_t, scalar_type> operator()(const Vec1 &rhs, Vec2 &&x) const {
             return S(P, rhs, x);
         }
 
@@ -182,15 +167,7 @@ class make_solver {
          * \endrst
          */
         template <class Vec1, class Vec2>
-        void apply(
-                const Vec1 &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2       &x
-#else
-                Vec2       &&x
-#endif
-                ) const
-        {
+        void apply(const Vec1 &rhs, Vec2 &&x) const {
             backend::clear(x);
             (*this)(rhs, x);
         }
@@ -206,22 +183,34 @@ class make_solver {
         }
 
         /// Returns the system matrix in the backend format.
+        std::shared_ptr<typename Precond::matrix> system_matrix_ptr() const {
+            return P.system_matrix_ptr();
+        }
+
         typename Precond::matrix const& system_matrix() const {
             return P.system_matrix();
         }
 
+#ifndef AMGCL_NO_BOOST
         /// Stores the parameters used during construction into the property tree \p p.
         void get_params(boost::property_tree::ptree &p) const {
             prm.get(p);
         }
+#endif
 
         /// Returns the size of the system matrix.
         size_t size() const {
             return n;
         }
 
+        size_t bytes() const {
+            return backend::bytes(S) + backend::bytes(P);
+        }
+
         friend std::ostream& operator<<(std::ostream &os, const make_solver &p) {
-            return os << p.S << std::endl << p.P;
+            return os
+                << "Solver\n======\n" << p.S << std::endl
+                << "Preconditioner\n==============\n" << p.P;
         }
     private:
         size_t           n;
@@ -348,8 +337,6 @@ class make_scaling_solver {
                 const backend_params &bprm = backend_params()
                 )
         {
-            typedef typename backend::row_iterator<Matrix>::type row_iterator;
-
             const ptrdiff_t n = backend::rows(A);
             std::vector<value_type> w(n);
 
@@ -357,7 +344,7 @@ class make_scaling_solver {
             for(ptrdiff_t i = 0; i < n; ++i) {
                 scalar_type sum = math::zero<scalar_type>();
 
-                for(row_iterator a = backend::row_begin(A, i); a; ++a)
+                for(auto a = backend::row_begin(A, i); a; ++a)
                     sum += a.value() * a.value();
 
                 w[i] = 1 / sqrt(sqrt(sum));
@@ -369,31 +356,15 @@ class make_scaling_solver {
         }
 
         template <class Vec1, class Vec2>
-        boost::tuple<size_t, scalar_type> operator()(
-                Vec1    const &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2          &x
-#else
-                Vec2          &&x
-#endif
-                ) const
-        {
+        std::tuple<size_t, scalar_type> operator()(Vec1 const &rhs, Vec2 &&x) const {
             backend::vmul(math::identity<scalar_type>(), *W, rhs, math::zero<scalar_type>(), *t);
-            boost::tuple<size_t, scalar_type> c = (*S)(*t, x);
+            std::tuple<size_t, scalar_type> c = (*S)(*t, x);
             backend::vmul(math::identity<scalar_type>(), *W, x, math::zero<scalar_type>(), x);
             return c;
         }
 
         template <class Vec1, class Vec2>
-        void apply(
-                const Vec1 &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2       &x
-#else
-                Vec2       &&x
-#endif
-                ) const
-        {
+        void apply(const Vec1 &rhs, Vec2 &&x) const {
             backend::clear(x);
             backend::vmul(math::identity<scalar_type>(), *W, rhs, math::zero<scalar_type>(), *t);
             (*this)(*t, x);
@@ -412,7 +383,16 @@ class make_scaling_solver {
         std::shared_ptr<vector> t;
 };
 
+namespace backend {
 
+template <class P, class S>
+struct bytes_impl< make_solver<P, S> > {
+    static size_t get(const make_solver<P, S> &s) {
+        return s.bytes();
+    }
+};
+
+} // namespace backend
 } // namespace amgcl
 
 #endif

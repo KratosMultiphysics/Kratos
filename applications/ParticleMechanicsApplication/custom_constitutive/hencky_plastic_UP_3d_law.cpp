@@ -10,11 +10,12 @@
 //  Main authors:    Ilaria Iaconeta
 //
 
+
 // System includes
 #include <iostream>
+#include <cmath>
 
 // External includes
-#include<cmath>
 
 // Project includes
 #include "includes/properties.h"
@@ -82,192 +83,158 @@ HenckyElasticPlasticUP3DLaw::~HenckyElasticPlasticUP3DLaw()
 void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables, Parameters& rValues, const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
 {
 
-    const Properties& MaterialProperties   = rValues.GetMaterialProperties();
-    const double& Young       = MaterialProperties[YOUNG_MODULUS];
-    const double& Nu = MaterialProperties[POISSON_RATIO];
+    const Properties& material_properties  = rValues.GetMaterialProperties();
+    const double& young_modulus            = material_properties[YOUNG_MODULUS];
+    const double& poisson_ratio            = material_properties[POISSON_RATIO];
+    const double shear_modulus             = young_modulus/(2*(1 + poisson_ratio));
 
-    double ShearModulus = Young/(2*(1 + Nu));
-
-    //1- calculate the deviatoric elastic streches eigenvalues
-    Vector MainStrain      = ZeroVector(3);
-    //const GeometryType&  DomainGeometry =  rElasticVariables.GetElementGeometry();
+    // Calculate the deviatoric elastic streches eigen_values
+    Vector main_strain      = ZeroVector(3);
     for (unsigned int i = 0; i<3; ++i)
     {
-        MainStrain[i] = rNewElasticLeftCauchyGreen(i,i);
+        main_strain[i] = rNewElasticLeftCauchyGreen(i,i);
     }
-    //std::cout<<" rMainStrain in up cl "<<MainStrain<<std::endl;
-    Vector DeviatoricMainStrain = ZeroVector(3);
 
-    double TracePrincipalStrain = MainStrain[0] + MainStrain[1] + MainStrain[2];
-    //std::cout<<" TracePrincipalStrain in up cl "<<TracePrincipalStrain<<std::endl;
-    Vector DeviatoricPrincipalStress = ZeroVector(3);
+    Vector deviatoric_main_strain      = ZeroVector(3);
+    Vector deviatoric_principal_stress = ZeroVector(3);
 
-
+    // First, calculate hydrostatic strain
+    const double trace_main_strain = main_strain[0] + main_strain[1] + main_strain[2];
+    const double hydrostatic_strain = trace_main_strain/3.0;
     for (unsigned int i=0; i<3 ; i++)
     {
-        DeviatoricMainStrain[i] = MainStrain[i] -TracePrincipalStrain/3;
-        DeviatoricPrincipalStress[i] = 2 * ShearModulus * DeviatoricMainStrain[i];
+        deviatoric_main_strain[i] = main_strain[i] - hydrostatic_strain;
+        deviatoric_principal_stress[i] = 2.0 * shear_modulus * deviatoric_main_strain[i];
     }
-    //std::cout<<" DeviatoricMainStrain in up cl "<<DeviatoricMainStrain<<std::endl;
-    //std::cout<<" DeviatoricPrincipalStress in up cl "<<DeviatoricPrincipalStress<<std::endl;
-    //now I have to transform the principal deviaric stress in cartesian stress
-    //such that I can add them to the volumetric stress
 
-
-    Vector auxN = ZeroVector(3);
-    Matrix auxM = ZeroMatrix(3,3);
+    // We have to transform the principal deviatoric stress in cartesian stress
+    Vector aux_N = ZeroVector(3);
+    Matrix aux_M = ZeroMatrix(3,3);
     for (unsigned int i = 0; i<3; ++i)
     {
         for (unsigned int j = 0; j<3; ++j)
         {
-            auxN(j) = rReturnMappingVariables.MainDirections(i,j);
+            aux_N[j] = rReturnMappingVariables.MainDirections(i,j);
         }
-        //std::cout<<" auxN in up cl "<<auxN<<std::endl;
-        auxM = MathUtils<double>::TensorProduct3(auxN, auxN);
-        rStressMatrix += DeviatoricPrincipalStress(i)*auxM;
-        //std::cout<<" rStressMatrix in up cl "<<rStressMatrix<<std::endl;
+        aux_M = MathUtils<double>::TensorProduct3(aux_N, aux_N);
+        rStressMatrix += deviatoric_principal_stress[i]*aux_M;
     }
 
-    //if(DomainGeometry[0].Id() == 2295 && DomainGeometry[1].Id() == 2315 && DomainGeometry[2].Id() == 2313)
-    //{
-
-    ////std::cout<<" MainStrain "<<MainStrain<<std::endl;
-    //std::cout<<" rStressMatrix dev"<<rStressMatrix<<std::endl;
-
-    //}
-    //std::cout<<" rStressMatrix dev"<<rStressMatrix<<std::endl;
-    double Pressure = 0;
-    GetDomainPressure( Pressure, rElasticVariables);
-    //std::cout<<" Pressure in up cl "<<Pressure<<std::endl;
+    double pressure = 0;
+    GetDomainPressure( pressure, rElasticVariables);
 
     for (unsigned int i = 0; i < 3; ++i)
-        rStressMatrix(i,i) += Pressure * rElasticVariables.DeterminantF;
-    //std::cout<<" total rStressMatrix in up cl "<<rStressMatrix<<std::endl;
-    //if(DomainGeometry[0].Id() == 2295 && DomainGeometry[1].Id() == 2315 && DomainGeometry[2].Id() == 2313)
-    //{
-    //std::cout<<" Pressure "<<Pressure<<std::endl;
-    //std::cout<<" rStressMatrix tot"<<rStressMatrix<<std::endl;
+        rStressMatrix(i,i) += pressure * rElasticVariables.DeterminantF;
 
-    //}
-
-    //Now I have to apply the spectral theorem
-    Matrix EigenVectors  = ZeroMatrix(3,3);
-    Vector EigenValues   = ZeroVector(3);
+    // Now We have to apply the spectral theorem
+    Matrix eigen_vectors  = ZeroMatrix(3,3);
+    Vector eigen_values   = ZeroVector(3);
 
     double tol = 1e-9;
     int iter = 100;
-    //std::cout<<" rCauchyGreenMatrix "<<rCauchyGreenMatrix<<std::endl;
-    SolidMechanicsMathUtilities<double>::EigenVectors(rStressMatrix, EigenVectors, EigenValues, tol, iter);
-    //std::cout<<" EigenValues in up cl "<<EigenValues<<std::endl;
-
+    SolidMechanicsMathUtilities<double>::EigenVectors(rStressMatrix, eigen_vectors, eigen_values, tol, iter);
 
     rStressMatrix.clear();
     for(unsigned int i=0; i<3; i++)
     {
-        rStressMatrix(i,i) = EigenValues(i);
+        rStressMatrix(i,i) = eigen_values[i];
     }
-    //if(DomainGeometry[0].Id() == 2304 && DomainGeometry[1].Id() == 2326 && DomainGeometry[2].Id() == 2311)
-    //{
 
-    //std::cout<<" MainStrain "<<MainStrain<<std::endl;
-    //std::cout<<" rStressMatrix"<<rStressMatrix<<std::endl;
-
-    //}
-    //std::cout<<" principal rStressMatrix in up cl "<<rStressMatrix<<std::endl;
 }
 
 void HenckyElasticPlasticUP3DLaw::CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables & rElasticVariables)
 {
-    //const GeometryType&  DomainGeometry =  rElasticVariables.GetElementGeometry();
-    double MeanPressure = 0.0;
+    // Take out the hydrostatic term from stress matrix
+    double mean_pressure = 0.0;
     for (unsigned int i = 0; i < 3; ++i)
-        MeanPressure += rStressMatrix(i,i);
-
-    MeanPressure /=3.0;
-    //if ( fabs(MeanPressure) > 1.0E-4)
-    //   std::cout << " UNCORRECTED PRESSURE " << MeanPressure << std::endl;
-
+        mean_pressure += rStressMatrix(i,i);
+    mean_pressure /=3.0;
+    
     for (unsigned int i = 0; i < 3; ++i)
-        rStressMatrix(i,i) -= MeanPressure;
+        rStressMatrix(i,i) -= mean_pressure;
 
-
-    double Pressure = 0;
-    GetDomainPressure( Pressure, rElasticVariables);
+    // Get New pressure from interpolation and add to diagonal term of stress matrix
+    double pressure = 0;
+    GetDomainPressure( pressure, rElasticVariables);
 
     for (unsigned int i = 0; i < 3; ++i)
-        rStressMatrix(i,i) += Pressure * rElasticVariables.DeterminantF;
-
-
-
-    //std::cout << " THIS DET " << rElasticVariables.DeterminantF << std::endl;
+        rStressMatrix(i,i) += pressure * rElasticVariables.DeterminantF;
 
 }
 
 void HenckyElasticPlasticUP3DLaw::GetDomainPressure( double& rPressure, const MaterialResponseVariables& rElasticVariables)
 {
-
+    // Interpolate pressure from nodes to particle quadrature
     rPressure = 0.0;
-    const GeometryType&  DomainGeometry =  rElasticVariables.GetElementGeometry();
-    const Vector& ShapeFunctionsValues  =  rElasticVariables.GetShapeFunctionsValues();
+    const GeometryType&  gomain_geometry =  rElasticVariables.GetElementGeometry();
+    const Vector& shape_functions  =  rElasticVariables.GetShapeFunctionsValues();
 
-    const unsigned int number_of_nodes  =  DomainGeometry.size();
+    const unsigned int number_of_nodes  =  gomain_geometry.size();
 
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
-        rPressure += ShapeFunctionsValues[j] * DomainGeometry[j].FastGetSolutionStepValue(PRESSURE); //NOOOOO
+        rPressure += shape_functions[j] * gomain_geometry[j].FastGetSolutionStepValue(PRESSURE);
     }
 
 }
 
 void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables )
 {
-
     mpMPMFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix);
-    // ADDING THE K TERMS
-    double Pressure;
-    //GetDomainPressure( Pressure, rElasticVariables);
-    GetDomainPressure( Pressure, rElasticVariables);
+    
+    // Obtain the domain pressure
+    double pressure;
+    GetDomainPressure( pressure, rElasticVariables);
 
-    Pressure *= rElasticVariables.DeterminantF;
+    pressure *= rElasticVariables.DeterminantF;
 
-    double Young = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
-    double Nu = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
+    // Material parameters
+    const double young_modulus = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
+    const double poisson_ratio    = mpYieldCriterion->GetHardeningLaw().GetProperties()[POISSON_RATIO];
 
-    double K = Young / (3.0 * (1.0 - 2.0*Nu));
+    // Bulk modulus
+    double bulk_modulus = young_modulus / (3.0 * (1.0 - 2.0*poisson_ratio));
 
+    // Check if Bulk Modulus is not NaN
+    if (bulk_modulus != bulk_modulus)
+        bulk_modulus = 1.e16;
+
+    // Subtract the Dep with Bulk Modulus to obtain Dep_deviatoric
     for (unsigned int i = 0; i < 3; ++i)
     {
         for (unsigned int j = 0; j < 3 ; ++j)
         {
-            rElastoPlasticTangentMatrix(i,j)  -= K;
+            // TODO: Check whether this is correct or not
+            rElastoPlasticTangentMatrix(i,j)  -= bulk_modulus;
         }
     }
 
-    Matrix FourthOrderIdentity = ZeroMatrix(6,6);
+    // Adding the pressure contribution
+    Matrix fourth_order_identity = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<3; ++i)
-        FourthOrderIdentity(i,i) = 1.0;
+        fourth_order_identity(i,i) = 1.0;
 
     for (unsigned int i = 3; i<6; ++i)
-        FourthOrderIdentity(i,i) = 0.50;
-    // VOIGT NOTATION AND NOT KELVIN
+        fourth_order_identity(i,i) = 0.50;
 
-    Matrix IdentityCross = ZeroMatrix(6,6);
+    Matrix identity_cross = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<3; ++i)
     {
         for (unsigned int j = 0; j<3; ++j)
         {
-            IdentityCross(i,j) = 1.0;
+            identity_cross(i,j) = 1.0;
         }
     }
 
-    rElastoPlasticTangentMatrix += Pressure* ( IdentityCross - 2.0 * FourthOrderIdentity);
-
+    rElastoPlasticTangentMatrix += pressure * ( identity_cross - 2.0 * fourth_order_identity);
 }
+
+//***********************COMPUTE TOTAL STRAIN*****************************************
+//************************************************************************************
 
 void HenckyElasticPlasticUP3DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
         Vector& rStrainVector )
 {
-
     //E= 0.5*(FT*F-1)
     rStrainVector[0] = 0.5 * ( rRightCauchyGreen( 0, 0 ) - 1.00 );
     rStrainVector[1] = 0.5 * ( rRightCauchyGreen( 1, 1 ) - 1.00 );
@@ -275,20 +242,14 @@ void HenckyElasticPlasticUP3DLaw::CalculateGreenLagrangeStrain( const Matrix & r
     rStrainVector[3] = rRightCauchyGreen( 0, 1 ); // xy
     rStrainVector[4] = rRightCauchyGreen( 1, 2 ); // yz
     rStrainVector[5] = rRightCauchyGreen( 0, 2 ); // xz
-
 }
 
-
-
-//***********************COMPUTE TOTAL STRAIN*****************************************
-//************************************************************************************
 void HenckyElasticPlasticUP3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
         Vector& rStrainVector )
 {
-
-    // e = 0.5*(1-invFT*invF) or e = 0.5*(1-inv(b))
-
-    //Calculating the inverse of the jacobian
+    // E = 0.5*(1-invFT*invF) or e = 0.5*(1-inv(b))
+    
+    // Calculating the inverse of the jacobian
     Matrix InverseLeftCauchyGreen ( 3, 3 );
     double det_b=0;
     MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
@@ -300,6 +261,7 @@ void HenckyElasticPlasticUP3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCa
     rStrainVector[4] = - InverseLeftCauchyGreen( 1, 2 ); // yz
     rStrainVector[5] = - InverseLeftCauchyGreen( 0, 2 ); // xz
 }
+
 void HenckyElasticPlasticUP3DLaw::GetLawFeatures(Features& rFeatures)
 {
     //Set the type of law
@@ -318,6 +280,5 @@ void HenckyElasticPlasticUP3DLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 
 }
-
 
 } // namespace Kratos

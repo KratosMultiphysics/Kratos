@@ -20,7 +20,7 @@
 		"KratosMultiphysics.KINEMATIC_HARDENING_MODULUS": 1.2924e2,
 		"KratosMultiphysics.HARDENING_EXPONENT": 16.93,
 		"KratosMultiphysics.REFERENCE_HARDENING_MODULUS": 450,
-		"KratosMultiphysics.INFINITY_HARDENING_MODULUS": 715		
+		"KratosMultiphysics.INFINITY_HARDENING_MODULUS": 715
             },
 	    "tables": {
 		"table1": {

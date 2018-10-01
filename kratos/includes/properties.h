@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -89,7 +89,7 @@ public:
 
     typedef Table<double> TableType;
 
-	typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
+    typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
 
 
     ///@}
@@ -97,7 +97,7 @@ public:
     ///@{
 
     /// Default constructor.
-	Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables() {}
+    Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables() {}
 
     /// Copy constructor.
     Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables) {}
@@ -233,10 +233,10 @@ public:
     template<class TVariableType>
     void SetValue(TVariableType const& rV, typename TVariableType::Type const& rValue)
     {
-        mData.GetValue(rV) = rValue;
+        mData.SetValue(rV, rValue);
     }
 
-    bool const HasVariables()
+    bool HasVariables()
     {
         return !mData.IsEmpty();
     }
@@ -244,7 +244,7 @@ public:
     template<class TXVariableType, class TYVariableType>
     TableType& GetTable(const TXVariableType& XVariable, const TYVariableType& YVariable)
     {
-		return mTables[Key(XVariable.Key(), YVariable.Key())];
+        return mTables[Key(XVariable.Key(), YVariable.Key())];
     }
 
     template<class TXVariableType, class TYVariableType>
@@ -256,25 +256,25 @@ public:
     template<class TXVariableType, class TYVariableType>
     void SetTable(const TXVariableType& XVariable, const TYVariableType& YVariable, TableType const& rThisTable)
     {
-		mTables[Key(XVariable.Key(), YVariable.Key())] = rThisTable;
+        mTables[Key(XVariable.Key(), YVariable.Key())] = rThisTable;
     }
 
-    bool const HasTables()
+    bool HasTables()
     {
         return !mTables.empty();
     }
 
-    bool const IsEmpty()
+    bool IsEmpty()
     {
         return !( HasVariables() || HasTables() );
     }
 
     int64_t Key(std::size_t XKey, std::size_t YKey) const
     {
-		int64_t result_key = XKey;
-		result_key = result_key << 32;
-		result_key |= YKey; // I know that the key is less than 2^32 so I don't need zeroing the upper part
-		return result_key;
+        int64_t result_key = XKey;
+        result_key = result_key << 32;
+        result_key |= YKey; // I know that the key is less than 2^32 so I don't need zeroing the upper part
+        return result_key;
     }
 
     ///@}
@@ -297,17 +297,17 @@ public:
     ///@name Inquiry
     ///@{
 
-	template<class TVariableType>
-	bool Has(TVariableType const& rThisVariable) const
-	{
-		return mData.Has(rThisVariable);
-	}
+    template<class TVariableType>
+    bool Has(TVariableType const& rThisVariable) const
+    {
+        return mData.Has(rThisVariable);
+    }
 
-	template<class TXVariableType, class TYVariableType>
-	bool HasTable(const TXVariableType& XVariable, const TYVariableType& YVariable) const
-	{
-		return (mTables.find(Key(XVariable.Key(), YVariable.Key())) != mTables.end());
-	}
+    template<class TXVariableType, class TYVariableType>
+    bool HasTable(const TXVariableType& XVariable, const TYVariableType& YVariable) const
+    {
+        return (mTables.find(Key(XVariable.Key(), YVariable.Key())) != mTables.end());
+    }
 
 
     ///@}
@@ -330,7 +330,7 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
         mData.PrintData(rOStream);
-		rOStream << "This properties contains " << mTables.size() << " tables";
+        rOStream << "This properties contains " << mTables.size() << " tables";
     }
 
 
@@ -388,7 +388,7 @@ private:
     ///@{
 
     ContainerType mData;
-	TablesContainerType mTables;
+    TablesContainerType mTables;
 
     ///@}
     ///@name Private Operators

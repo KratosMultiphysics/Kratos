@@ -35,7 +35,7 @@ namespace Kratos
    EPPointRigidContactPenalty3DCondition::EPPointRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
       : PointRigidContactPenalty3DCondition(NewId, pGeometry, pProperties)
    {
-      //DO NOT ADD DOFS HERE!!!    
+      //DO NOT ADD DOFS HERE!!!
    }
 
 
@@ -56,7 +56,7 @@ namespace Kratos
       mCurrentInfo( rOther.mCurrentInfo),
       mSavedInfo( rOther.mSavedInfo)
    {
-      //DO NOT ADD DOFS HERE!!! 
+      //DO NOT ADD DOFS HERE!!!
    }
 
    //************************************************************************************
@@ -64,7 +64,7 @@ namespace Kratos
 
    Condition::Pointer EPPointRigidContactPenalty3DCondition::Create(IndexType NewId, const NodesArrayType& ThisNodes, PropertiesType::Pointer pProperties) const
    {
-      return Condition::Pointer(new EPPointRigidContactPenalty3DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
+     return Kratos::make_shared<EPPointRigidContactPenalty3DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
    }
 
    //************************************CLONE*******************************************
@@ -73,12 +73,12 @@ namespace Kratos
    Condition::Pointer EPPointRigidContactPenalty3DCondition::Clone(IndexType NewId, const NodesArrayType& ThisNodes) const
    {
       EPPointRigidContactPenalty3DCondition NewCondition( NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
-      NewCondition.mCurrentInfo = this->mCurrentInfo; 
+      NewCondition.mCurrentInfo = this->mCurrentInfo;
       NewCondition.mSavedInfo   = this->mSavedInfo;
 
       NewCondition.mpFrictionLaw = this->mpFrictionLaw->Clone();
 
-      return Condition::Pointer( new EPPointRigidContactPenalty3DCondition( NewCondition)  ); 
+      return Kratos::make_shared<EPPointRigidContactPenalty3DCondition>(NewCondition);
 
    }
 
@@ -245,12 +245,12 @@ namespace Kratos
                CS[j] = 0;
             }
          }
-      } 
+      }
 
       PointRigidContactCondition::FinalizeSolutionStep( rCurrentProcessInfo);
       mpFrictionLaw->FinalizeSolutionStep();
 
-      mSavedInfo = mCurrentInfo; 
+      mSavedInfo = mCurrentInfo;
 
 
       KRATOS_CATCH( "" )
@@ -290,7 +290,7 @@ namespace Kratos
          distance /= counter;
 
       if( distance == 0 )
-         distance = 1;           
+         distance = 1;
 
 
       rVariables.ContributoryFactor = distance;
@@ -354,7 +354,7 @@ namespace Kratos
          array_1d<double, 3> &ContactNormal  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_NORMAL);
 
          for(unsigned int i=0; i<3; i++)
-            ContactNormal[i] = rVariables.Surface.Normal[i];	 
+            ContactNormal[i] = rVariables.Surface.Normal[i];
 
          GetGeometry()[i].UnSetLock();
       }
@@ -391,7 +391,7 @@ namespace Kratos
             if ( mImplex ) {
                noalias(rLeftHandSideMatrix) += rVariables.Penalty.Tangent * ( IdentityMatrix(3,3) - outer_prod( rVariables.Surface.Normal, rVariables.Surface.Normal) ) * rIntegrationWeight;
 
-               noalias(rLeftHandSideMatrix) -= rVariables.Penalty.Tangent * ConstVariables.TangentTangentMatrix * ConstVariables.TangentForceRatio * ( IdentityMatrix(3,3) - outer_prod( rVariables.Surface.Normal, rVariables.Surface.Normal) - outer_prod( ConstVariables.ForceDirection, ConstVariables.ForceDirection) ) * rIntegrationWeight; 
+               noalias(rLeftHandSideMatrix) -= rVariables.Penalty.Tangent * ConstVariables.TangentTangentMatrix * ConstVariables.TangentForceRatio * ( IdentityMatrix(3,3) - outer_prod( rVariables.Surface.Normal, rVariables.Surface.Normal) - outer_prod( ConstVariables.ForceDirection, ConstVariables.ForceDirection) ) * rIntegrationWeight;
 
             } else {
 
@@ -429,7 +429,7 @@ namespace Kratos
       Vector TangentForceVector;
 
       this->CalculateFrictionLaw( rVariables, ConstVariables, TangentForceVector);
-      TangentForceVector *= rIntegrationWeight; 
+      TangentForceVector *= rIntegrationWeight;
 
 
 
@@ -457,7 +457,7 @@ namespace Kratos
       }
       if ( GetGeometry()[0].SolutionStepsDataHas( EFFECTIVE_CONTACT_FORCE) ) {
 
-         double NormalForceModulus = 0; 
+         double NormalForceModulus = 0;
          NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables);
 
          double Area = this->CalculateSomeSortOfArea();
@@ -505,22 +505,22 @@ namespace Kratos
 
       // 1. Compute the deformation gradient and the push forward of the previous force
       Vector PreviousNormal  = mSavedInfo.n;
-      Vector PreviousT1 = mSavedInfo.t1; 
-      Vector PreviousT2 = mSavedInfo.t2; 
+      Vector PreviousT1 = mSavedInfo.t1;
+      Vector PreviousT2 = mSavedInfo.t2;
 
       // if the bounding box does not have the parametric directions implemented use some sort of guess
-      Vector Normal = rVariables.Surface.Normal; 
+      Vector Normal = rVariables.Surface.Normal;
       Vector T1 = rVariables.Surface.Tangent;
 
       if ( MathUtils<double>::Dot(T1, PreviousT1) < 0)
-         T1 *= (-1.0); 
+         T1 *= (-1.0);
 
       Vector T2 = ZeroVector(3);
-      T2(0) =  Normal(1) * T1(2) - Normal(2)*T1(1); 
-      T2(1) = -Normal(0) * T1(2) + Normal(2)*T1(0); 
-      T2(2) =  Normal(0) * T1(1) - Normal(1)*T1(0); 
+      T2(0) =  Normal(1) * T1(2) - Normal(2)*T1(1);
+      T2(1) = -Normal(0) * T1(2) + Normal(2)*T1(0);
+      T2(2) =  Normal(0) * T1(1) - Normal(1)*T1(0);
 
-      { 
+      {
          // Get the real parametrization of the Box (if exists)
          SpatialBoundingBox::BoundingBoxParameters BoxParameters( this->GetGeometry()[0] ) ;
          this->mpRigidWall->GetParametricDirections( BoxParameters, T1, T2);
@@ -549,15 +549,15 @@ namespace Kratos
 
       Vector ForceDirection = TrialTangentForce;
       if ( ForceModulus > 1e-15)
-         ForceDirection /= ForceModulus; 
+         ForceDirection /= ForceModulus;
 
       // 2.a Prepare information
       double NormalForceModulus = 0;
-      NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables ); 
+      NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables );
 
 
       double Area = this->CalculateSomeSortOfArea();
-      double EffectiveNormalForce = CalculateEffectiveNormalForceModulus( NormalForceModulus, Area); 
+      double EffectiveNormalForce = CalculateEffectiveNormalForceModulus( NormalForceModulus, Area);
       if ( EffectiveNormalForce < 0.0)
          EffectiveNormalForce = 0.0;
 
@@ -568,7 +568,7 @@ namespace Kratos
       FrictionVariables.Initialize( rVariables.Penalty.Tangent, mpFrictionLaw->GetPlasticSlip(), Area, mImplex);
 
       // ConstitutiveParameters
-      FrictionVariables.FrictionCoefficient = GetProperties()[MU_DYNAMIC]; 
+      FrictionVariables.FrictionCoefficient = GetProperties()[MU_DYNAMIC];
       if (FrictionVariables.FrictionCoefficient == 0)
       {
          if ( GetProperties().Has(CONTACT_FRICTION_ANGLE) )
@@ -586,7 +586,7 @@ namespace Kratos
       {
          FrictionVariables.FrictionCoefficient = 0.0;
       }
-      FrictionVariables.Alpha = 0; 
+      FrictionVariables.Alpha = 0;
       //FrictionVariables.Adhesion = 0;
       if ( GetProperties().Has(VISCOSITY) )
       {
@@ -609,8 +609,8 @@ namespace Kratos
       // 3. Save geometrical information
       mCurrentInfo.PreviousStepForceVector = MathUtils<double>::StressTensorToVector( ForceModulus * (outer_prod( rVariables.Surface.Normal, ForceDirection) + outer_prod( ForceDirection, rVariables.Surface.Normal) ), mSavedInfo.PreviousStepForceVector.size() );
 
-      mCurrentInfo.n = rVariables.Surface.Normal; 
-      mCurrentInfo.t1 = T1; 
+      mCurrentInfo.n = rVariables.Surface.Normal;
+      mCurrentInfo.t1 = T1;
       mCurrentInfo.t2 = T2;
 
 
@@ -645,7 +645,7 @@ namespace Kratos
          const Geometry< Node < 3 > > & rElemGeom = rNeighbourElements[el].GetGeometry();
          unsigned int nBoundary = 0;
 
-         std::vector< unsigned int > BoundaryNodes; 
+         std::vector< unsigned int > BoundaryNodes;
          for ( unsigned int i = 0; i < rElemGeom.size(); i++) {
 
             if ( rElemGeom[i].Is(BOUNDARY) ) {
@@ -690,9 +690,9 @@ namespace Kratos
    {
 
       double EffectiveForce = rNormalForceModulus;
-      //double EffectiveForce2; 
+      //double EffectiveForce2;
 
-      double WaterForce; 
+      double WaterForce;
       if ( GetGeometry()[0].HasDofFor(WATER_PRESSURE) )
       {
          WaterForce = GetGeometry()[0].FastGetSolutionStepValue( WATER_PRESSURE );
@@ -709,7 +709,7 @@ namespace Kratos
       if ( false ) // this is the unbalanced normal load of the deformable body in the node. f = Int( B*sigma dV)
       {
 
-         /*  std::vector< Vector > aux1, aux2, aux3; 
+         /*  std::vector< Vector > aux1, aux2, aux3;
              ProcessInfo SomeProcessInfo;
              WeakPointerVector<Element > rN = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
              Vector WaterForceVector = ZeroVector(2);
@@ -723,7 +723,7 @@ namespace Kratos
 
              if (aux1[0].size() == 0)  {
          //std::cout << " in this exit " << std::endl;
-         return EffectiveForce; 
+         return EffectiveForce;
          }
 
          for (unsigned int se = 0; se < 3; se++)
@@ -761,7 +761,7 @@ namespace Kratos
             return EffectiveForce2; */
       }
 
-      return EffectiveForce; 
+      return EffectiveForce;
 
    }
 
@@ -788,6 +788,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
-
-

@@ -127,7 +127,7 @@ ShellThickElement3D4N::MITC4Params::MITC4Params(
   Cy = -LCS.Y1() - LCS.Y2() + LCS.Y3() + LCS.Y4();
 
   double Alpha = std::atan(Ay / Ax);
-  double Beta = 3.141592653589793 * 0.5 - std::atan(Cx / Cy);
+  double Beta = Globals::Pi * 0.5 - std::atan(Cx / Cy);
 
   Transformation(0, 0) = std::sin(Beta);
   Transformation(0, 1) = -std::sin(Alpha);
@@ -416,9 +416,7 @@ Element::Pointer
 ShellThickElement3D4N::Create(IndexType NewId, NodesArrayType const &ThisNodes,
                               PropertiesType::Pointer pProperties) const {
   GeometryType::Pointer newGeom(GetGeometry().Create(ThisNodes));
-  return Element::Pointer(
-      new ShellThickElement3D4N(NewId, newGeom, pProperties,
-                                mpCoordinateTransformation->Create(newGeom)));
+  return Kratos::make_shared<ShellThickElement3D4N>(NewId, newGeom, pProperties,mpCoordinateTransformation->Create(newGeom));
 }
 
 void ShellThickElement3D4N::Initialize() {
@@ -449,7 +447,7 @@ void ShellThickElement3D4N::Initialize() {
     if (props.Has(SHELL_CROSS_SECTION)) {
       theSection = props[SHELL_CROSS_SECTION];
     } else {
-      theSection = ShellCrossSection::Pointer(new ShellCrossSection());
+      theSection = Kratos::make_shared<ShellCrossSection>();
       theSection->BeginStack();
       theSection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
       theSection->EndStack();
@@ -643,8 +641,7 @@ int ShellThickElement3D4N::Check(const ProcessInfo &rCurrentProcessInfo) {
                          "wrong THICKNESS value provided for element ",
                          this->Id());
 
-    ShellCrossSection::Pointer dummySection =
-        ShellCrossSection::Pointer(new ShellCrossSection());
+    ShellCrossSection::Pointer dummySection = Kratos::make_shared<ShellCrossSection>();
     dummySection->BeginStack();
     dummySection->AddPly(props[THICKNESS], 0.0, 5, this->pGetProperties());
     dummySection->EndStack();

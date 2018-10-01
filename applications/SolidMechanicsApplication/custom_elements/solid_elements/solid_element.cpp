@@ -24,6 +24,7 @@ namespace Kratos
  */
 KRATOS_CREATE_LOCAL_FLAG( SolidElement, COMPUTE_RHS_VECTOR,                 0 );
 KRATOS_CREATE_LOCAL_FLAG( SolidElement, COMPUTE_LHS_MATRIX,                 1 );
+KRATOS_CREATE_LOCAL_FLAG( SolidElement, FINALIZED_STEP,                     2 );
 
 
 //******************************CONSTRUCTOR*******************************************
@@ -49,6 +50,7 @@ SolidElement::SolidElement( IndexType NewId, GeometryType::Pointer pGeometry )
 SolidElement::SolidElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     :Element( NewId, pGeometry, pProperties )
 {
+    this->Set(SOLID);
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 }
 
@@ -91,8 +93,7 @@ SolidElement&  SolidElement::operator=(SolidElement const& rOther)
 Element::Pointer SolidElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
     KRATOS_ERROR << " calling the default method Create for a solid element " << std::endl;
-
-    return Element::Pointer( new SolidElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Kratos::make_shared< SolidElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -105,23 +106,28 @@ Element::Pointer SolidElement::Clone( IndexType NewId, NodesArrayType const& rTh
 
     SolidElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
-    
+
     NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
 
 
     if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
       {
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-	
+
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
 	  KRATOS_ERROR << " constitutive law not has the correct size solid element " << std::endl;
 
       }
-    
+
+    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+      {
+	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
+      }
+
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
-       
-    return Element::Pointer( new SolidElement(NewElement) );
+
+    return Kratos::make_shared< SolidElement >(NewElement);
 }
 
 
@@ -141,7 +147,7 @@ SolidElement::IntegrationMethod SolidElement::GetIntegrationMethod() const
     return mThisIntegrationMethod;
 }
 
-  
+
 //************************************************************************************
 //************************************************************************************
 
@@ -149,18 +155,18 @@ void SolidElement::IncreaseIntegrationMethod(IntegrationMethod& rThisIntegration
 {
   int IntMethod = int(rThisIntegrationMethod);
   IntMethod += increment;
-  rThisIntegrationMethod = IntegrationMethod(IntMethod); 
+  rThisIntegrationMethod = IntegrationMethod(IntMethod);
 }
-  
+
 //************************************************************************************
 //************************************************************************************
 
 void SolidElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
-{     
+{
     rElementalDofList.resize( 0 );
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
-    for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+    for ( SizeType i = 0; i < GetGeometry().size(); i++ )
     {
         rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
         rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
@@ -175,15 +181,15 @@ void SolidElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& r
 
 void SolidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * dimension;
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
+    unsigned int       dofs_size       = GetDofsSize();
 
     if ( rResult.size() != dofs_size )
         rResult.resize( dofs_size, false );
 
     unsigned int index = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
         index = i * dimension;
         rResult[index]     = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
@@ -199,15 +205,15 @@ void SolidElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo&
 
 void SolidElement::GetValuesVector( Vector& rValues, int Step )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * dimension;
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
+    unsigned int       dofs_size       = GetDofsSize();
 
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
     unsigned int index = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
         index = i * dimension;
         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
@@ -225,15 +231,15 @@ void SolidElement::GetValuesVector( Vector& rValues, int Step )
 
 void SolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * dimension;
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
+    unsigned int       dofs_size       = GetDofsSize();
 
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
-    unsigned int index = 0;    
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    unsigned int index = 0;
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
         index = i * dimension;
         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
@@ -249,15 +255,15 @@ void SolidElement::GetFirstDerivativesVector( Vector& rValues, int Step )
 
 void SolidElement::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int       dofs_size       = number_of_nodes * dimension;
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
+    unsigned int       dofs_size       = GetDofsSize();
 
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
     unsigned int index = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
         index = i * dimension;
         rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
@@ -322,7 +328,7 @@ void SolidElement::SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::
         const ProcessInfo& rCurrentProcessInfo )
 {
   if(rVariable == CONSTITUTIVE_LAW)  //returns a vector of pointers, it do not clones the constitutives laws (it is not a copy)
-    { 
+    {
         if ( mConstitutiveLawVector.size() != rValues.size() )
         {
             mConstitutiveLawVector.resize(rValues.size());
@@ -436,7 +442,7 @@ void SolidElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariabl
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
     }
-    else if ( rVariable == DEFORMATION_GRADIENT ) 
+    else if ( rVariable == DEFORMATION_GRADIENT )
     {
 
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
@@ -508,7 +514,7 @@ void SolidElement::InitializeConstitutiveLaw()
     {
         mConstitutiveLawVector.resize( integration_points.size() );
     }
-    
+
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
@@ -542,16 +548,16 @@ void SolidElement::ResetConstitutiveLaw()
 
     KRATOS_CATCH( "" )
 }
-  
+
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::InitializeElementVariables (ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void SolidElement::InitializeElementData (ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int voigt_size      = dimension * (dimension +1) * 0.5;
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
+    const unsigned int voigt_size   = dimension * (dimension +1) * 0.5;
 
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
 
@@ -565,7 +571,7 @@ void SolidElement::InitializeElementVariables (ElementVariables& rVariables, con
 
     //set process info
     rVariables.SetProcessInfo(rCurrentProcessInfo);
-    
+
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
@@ -574,19 +580,19 @@ void SolidElement::InitializeElementVariables (ElementVariables& rVariables, con
 //*********************************COMPUTE KINETICS***********************************
 //************************************************************************************
 
-void SolidElement::CalculateKinetics(ElementVariables& rVariables, const double& rPointNumber)
+void SolidElement::CalculateKinetics(ElementDataType& rVariables, const double& rPointNumber)
 {
     KRATOS_TRY
 
-    this->CalculateKinematics(rVariables,rPointNumber);  
-      
+    this->CalculateKinematics(rVariables,rPointNumber);
+
     KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::TransformElementVariables(ElementVariables& rVariables, const double& rPointNumber)
+void SolidElement::TransformElementData(ElementDataType& rVariables, const double& rPointNumber)
 {
   // to be used when different reference configuration is used
 }
@@ -597,14 +603,14 @@ void SolidElement::TransformElementVariables(ElementVariables& rVariables, const
 unsigned int SolidElement::GetDofsSize()
 {
   KRATOS_TRY
-     
-  const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-  const unsigned int number_of_nodes = GetGeometry().PointsNumber();    
-  
+
+  const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
+  const SizeType number_of_nodes = GetGeometry().PointsNumber();
+
   unsigned int size = number_of_nodes * dimension; //usual size for displacement based elements
-  
-  return size;   
-  
+
+  return size;
+
   KRATOS_CATCH( "" )
 }
 
@@ -620,7 +626,7 @@ void SolidElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 
     //resizing as needed the LHS
     const unsigned int MatSize = this->GetDofsSize();
-    
+
     if ( rCalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
         if ( rLeftHandSideMatrix.size1() != MatSize )
@@ -635,21 +641,41 @@ void SolidElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
     {
         if ( rRightHandSideVector.size() != MatSize )
 	    rRightHandSideVector.resize( MatSize, false );
-      
+
 	noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
-	  
+
     }
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::SetElementVariables(ElementVariables& rVariables,
+void SolidElement::SetElementData(ElementDataType& rVariables,
 				       ConstitutiveLaw::Parameters& rValues,
 				       const int & rPointNumber)
 {
 
 }
+
+
+//************************************************************************************
+//************************************************************************************
+
+void SolidElement::CalculateMaterialResponse(ElementDataType& rVariables,
+                                             ConstitutiveLaw::Parameters& rValues,
+                                             const int & rPointNumber)
+{
+    KRATOS_TRY
+
+    //set general variables to constitutivelaw parameters
+    this->SetElementData(rVariables,rValues,rPointNumber);
+
+    //compute stresses and constitutive parameters
+    mConstitutiveLawVector[rPointNumber]->CalculateMaterialResponse(rValues, rVariables.StressMeasure);
+
+    KRATOS_CATCH( "" )
+}
+
 
 //************************************************************************************
 //************************************************************************************
@@ -660,8 +686,8 @@ void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
     KRATOS_TRY
 
     //create and initialize element variables:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
 
     //create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -674,46 +700,42 @@ void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
 
     //reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-    double IntegrationWeight = 1;
-    
+
     //auxiliary terms
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     Vector VolumeForce(dimension);
     noalias(VolumeForce) = ZeroVector(dimension);
-    
+
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
         //compute element kinematic variables B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
-        //set general variables to constitutivelaw parameters
-        this->SetElementVariables(Variables,Values,PointNumber);
-
-        //compute stresses and constitutive parameters
-        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
+        //calculate material response
+        this->CalculateMaterialResponse(Variables,Values,PointNumber);
 
 	//some transformation of the configuration can be needed (UL element specially)
-        this->TransformElementVariables(Variables,PointNumber);
+        this->TransformElementData(Variables,PointNumber);
 
         //calculating weights for integration on the "reference configuration"
-        IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-        IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+        Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+        Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
 
         if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
             //contributions to stiffness matrix calculated on the reference config
-	    this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
+	    this->CalculateAndAddLHS ( rLocalSystem, Variables, Variables.IntegrationWeight );
         }
 
         if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
             //contribution to external forces
             VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables );
-	 
-	    this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, IntegrationWeight );
+
+	    this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, Variables.IntegrationWeight );
         }
-	
+
 	//for debugging purposes
 	//this->PrintElementCalculation(rLocalSystem,Variables);
 
@@ -734,67 +756,66 @@ void SolidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
 
 
     IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
-    
-    if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) ){
 
-      if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true){
+    if( rCurrentProcessInfo.Has(COMPUTE_CONSISTENT_MASS_MATRIX) ){
+
+      if(rCurrentProcessInfo[COMPUTE_CONSISTENT_MASS_MATRIX] == true){
 	//full quadrature integration:
 	this->IncreaseIntegrationMethod(mThisIntegrationMethod,1);
       }
-    }      
+    }
 
     //create and initialize element variables:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
 
-    
+
     //reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-    double IntegrationWeight = 1;
-    
+
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
         //compute element kinetic variables B, F, DN_DX ...
         this->CalculateKinetics(Variables, PointNumber);
-      
+
         //calculating weights for integration on the "reference configuration"
-        IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-        IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+        Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+        Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
 
         if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
-	  MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
-	  this->CalculateAndAddDynamicLHS ( rLeftHandSideMatrix, Variables, rCurrentProcessInfo, IntegrationWeight );
+	  MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
+	  this->CalculateAndAddDynamicLHS ( rLeftHandSideMatrix, Variables, rCurrentProcessInfo, Variables.IntegrationWeight );
 
         }
 
         if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
-	  VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
-	  this->CalculateAndAddDynamicRHS ( rRightHandSideVector, Variables, rCurrentProcessInfo, IntegrationWeight );
+	  VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+	  this->CalculateAndAddDynamicRHS ( rRightHandSideVector, Variables, rCurrentProcessInfo, Variables.IntegrationWeight );
         }
-	
+
 	//for debugging purposes
 	//this->PrintElementCalculation(rLocalSystem,Variables);
 
     }
 
     mThisIntegrationMethod = ThisIntegrationMethod;
-    
+
     KRATOS_CATCH( "" )
 }
 
 
 //************************************************************************************
 //************************************************************************************
-void SolidElement::PrintElementCalculation(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables)
+void SolidElement::PrintElementCalculation(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables)
 {
     KRATOS_TRY
-  
+
     std::cout<<" Element: "<<this->Id()<<std::endl;
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    SizeType number_of_nodes = GetGeometry().PointsNumber();
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	array_1d<double, 3 > & CurrentPosition      = GetGeometry()[i].Coordinates();
 	array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -803,19 +824,19 @@ void SolidElement::PrintElementCalculation(LocalSystemComponents& rLocalSystem, 
 	std::cout<<" Previous  Position  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<std::endl;
       }
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
 	std::cout<<" Current  Position  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentPosition<<std::endl;
       }
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 	std::cout<<" Previous Displacement  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousDisplacement<<std::endl;
       }
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 	std::cout<<" Current  Displacement  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentDisplacement<<std::endl;
@@ -827,7 +848,7 @@ void SolidElement::PrintElementCalculation(LocalSystemComponents& rLocalSystem, 
     std::cout<<" F0 "<<rVariables.F0<<" detF0 "<<rVariables.detF0<<std::endl;
     std::cout<<" ConstitutiveMatrix "<<rVariables.ConstitutiveMatrix<<std::endl;
     std::cout<<" K "<<rLocalSystem.GetLeftHandSideMatrix()<<std::endl;
-    std::cout<<" f "<<rLocalSystem.GetRightHandSideVector()<<std::endl;	
+    std::cout<<" f "<<rLocalSystem.GetRightHandSideVector()<<std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -835,41 +856,20 @@ void SolidElement::PrintElementCalculation(LocalSystemComponents& rLocalSystem, 
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+void SolidElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
 {
     KRATOS_TRY
-       
-    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
+
+    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
     // operation performed: add Km to the rLefsHandSideMatrix
     this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     // operation performed: add Kg to the rLefsHandSideMatrix
     this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     //KRATOS_WATCH( rLeftHandSideMatrix )
-  
-    KRATOS_CATCH( "" )  
-}
 
-
-//************************************************************************************
-//************************************************************************************
-
-void SolidElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
-{
-    KRATOS_TRY
-      
-    //contribution of the internal and external forces
-     
-    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
-    
-    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-    this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
-    
-    // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-    this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
-    
     KRATOS_CATCH( "" )
 }
 
@@ -877,46 +877,67 @@ void SolidElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, Eleme
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void SolidElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+{
+    KRATOS_TRY
+
+    //contribution of the internal and external forces
+
+    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
+
+    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+    this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+
+    // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+    this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
+
+    KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void SolidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
   KRATOS_TRY
-    
+
   //mass matrix
-  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  const SizeType number_of_nodes = GetGeometry().PointsNumber();
+  const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
   const unsigned int MatSize = this->GetDofsSize();
-    
+
   if(rLeftHandSideMatrix.size1() != MatSize)
     rLeftHandSideMatrix.resize (MatSize, MatSize, false);
 
   //compute volume change
   double VolumeChange = 1;
   VolumeChange = this->CalculateVolumeChange( VolumeChange, rVariables );
-      
+
   double CurrentDensity = VolumeChange * GetProperties()[DENSITY];
 
 
   unsigned int indexi = 0;
   unsigned int indexj = 0;
 
-  for ( unsigned int i = 0; i < number_of_nodes; i++ )
+  for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
-      for ( unsigned int k = 0; k < dimension; k++ )
-	{	  
+      for ( SizeType k = 0; k < dimension; k++ )
+	{
 	  indexj = 0;
-	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
+	  for ( SizeType j = 0; j < number_of_nodes; j++ )
 	    {
-	      
+
 	      rLeftHandSideMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rIntegrationWeight;
 	      indexj += dimension;
 	    }
 
 	}
-      
+
       indexi += dimension;
     }
 
-  
+
     KRATOS_CATCH( "" )
 }
 
@@ -924,29 +945,29 @@ void SolidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, El
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+void SolidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
 {
   KRATOS_TRY
-      
+
   //mass matrix
-  const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  const SizeType number_of_nodes = GetGeometry().PointsNumber();
+  const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
   const unsigned int MatSize = this->GetDofsSize();
-  
+
   MatrixType MassMatrix( MatSize, MatSize );
   noalias(MassMatrix) = ZeroMatrix( MatSize, MatSize );
-  
+
   //compute volume change
   double VolumeChange = 1;
   VolumeChange = this->CalculateVolumeChange( VolumeChange, rVariables );
-      
+
   double CurrentDensity = VolumeChange * GetProperties()[DENSITY];
 
   //acceleration vector
   Vector CurrentAccelerationVector(MatSize);
   noalias(CurrentAccelerationVector) = ZeroVector( MatSize );
   this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
-  
+
   double AlphaM = 0.0;
   if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
     AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
@@ -956,31 +977,31 @@ void SolidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, E
     CurrentAccelerationVector *= (1.0-AlphaM);
     CurrentAccelerationVector +=  AlphaM * (PreviousAccelerationVector);
   }
-   
+
   unsigned int indexi = 0;
   unsigned int indexj = 0;
 
-  for ( unsigned int i = 0; i < number_of_nodes; i++ )
+  for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
-      for ( unsigned int k = 0; k < dimension; k++ )
-	{	  
+      for ( SizeType k = 0; k < dimension; k++ )
+	{
 	  indexj = 0;
-	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
+	  for ( SizeType j = 0; j < number_of_nodes; j++ )
 	    {
-	      
+
 	      MassMatrix(indexi+k,indexj+k) += rVariables.N[i] * rVariables.N[j] * CurrentDensity * rIntegrationWeight;
 	      indexj += dimension;
 	    }
 
 	}
-      
+
       indexi += dimension;
     }
 
 
   noalias(rRightHandSideVector) = prod( MassMatrix, CurrentAccelerationVector );
-    
-  KRATOS_CATCH( "" )    
+
+  KRATOS_CATCH( "" )
 }
 
 
@@ -990,8 +1011,8 @@ void SolidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, E
 double& SolidElement::CalculateIntegrationWeight(double& rIntegrationWeight)
 {
     KRATOS_TRY
-      
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     if( dimension == 2 ){
       if ( this->GetProperties().Has( THICKNESS ) )
@@ -1010,7 +1031,7 @@ double& SolidElement::CalculateIntegrationWeight(double& rIntegrationWeight)
 void SolidElement::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-      
+
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -1040,7 +1061,7 @@ void SolidElement::CalculateRightHandSide( VectorType& rRightHandSideVector, Pro
 void SolidElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-      
+
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -1069,7 +1090,7 @@ void SolidElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, Proce
 void SolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-      
+
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -1089,9 +1110,9 @@ void SolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, Vector
 
     bool test_tangent = false;
     if( test_tangent ){
-      
+
       //std::cout<<" ["<<this->Id()<<"] MATRIX "<<rLeftHandSideMatrix<<std::endl;
-    
+
       MatrixType PerturbedLeftHandSideMatrix( rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2() );
       noalias(PerturbedLeftHandSideMatrix) = ZeroMatrix( rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2() );
 
@@ -1116,7 +1137,7 @@ void SolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, Vector
 void SolidElement::CalculatePerturbedLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-      
+
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -1155,7 +1176,7 @@ void SolidElement::CalculatePerturbedLeftHandSide( MatrixType& rLeftHandSideMatr
 	value = original + deltavalue;
 	this->CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 	VectorType RightHandSideVectorI = RightHandSideVector;
-	
+
 	//Calculate elemental system
 	RightHandSideVector.resize(RightHandSideVector.size(),false);
 	noalias(RightHandSideVector) = ZeroVector(RightHandSideVector.size());
@@ -1184,7 +1205,7 @@ void SolidElement::CalculatePerturbedLeftHandSide( MatrixType& rLeftHandSideMatr
 void SolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-      
+
     InitializeExplicitContributions();
 
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
@@ -1221,8 +1242,8 @@ void SolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     KRATOS_TRY
 
     //create and initialize element variables:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
 
     //create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -1240,7 +1261,7 @@ void SolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
         this->CalculateKinematics(Variables,PointNumber);
 
         //set general variables to constitutivelaw parameters
-        this->SetElementVariables(Variables,Values,PointNumber);
+        this->SetElementData(Variables,Values,PointNumber);
 
         //call the constitutive law to update material variables
         mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponse(Values, Variables.StressMeasure);
@@ -1263,7 +1284,7 @@ void SolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::FinalizeStepVariables( ElementVariables & rVariables, const double& rPointNumber )
+void SolidElement::FinalizeStepVariables( ElementDataType & rVariables, const double& rPointNumber )
 {
   //to update the internal element variables
 }
@@ -1272,7 +1293,7 @@ void SolidElement::FinalizeStepVariables( ElementVariables & rVariables, const d
 //************************************************************************************
 
 void SolidElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-				       ElementVariables& rVariables,
+				       ElementDataType& rVariables,
 				       double& rIntegrationWeight)
 {
     KRATOS_TRY
@@ -1289,31 +1310,31 @@ void SolidElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 
 void SolidElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-				       ElementVariables& rVariables,
+				       ElementDataType& rVariables,
 				       double& rIntegrationWeight)
 
 {
 
 }
 
-  
+
 //************************************************************************************
 //************************************************************************************
 
 void SolidElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						 ElementVariables& rVariables,
+						 ElementDataType& rVariables,
 						 Vector& rVolumeForce,
 						 double& rIntegrationWeight)
 
 {
     KRATOS_TRY
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
+
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
         int index = dimension * i;
-        for ( unsigned int j = 0; j < dimension; j++ )
+        for ( SizeType j = 0; j < dimension; j++ )
         {
 	  rRightHandSideVector[index + j] += rIntegrationWeight * rVariables.N[i] * rVolumeForce[j];
         }
@@ -1327,7 +1348,7 @@ void SolidElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVecto
 //************************************************************************************
 
 void SolidElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-        ElementVariables & rVariables,
+        ElementDataType & rVariables,
         double& rIntegrationWeight
                                                             )
 {
@@ -1343,12 +1364,12 @@ void SolidElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVecto
 //************************************************************************************
 //************************************************************************************
 
-void SolidElement::InitializeExplicitContributions()  
+void SolidElement::InitializeExplicitContributions()
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
       if( GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_FORCE) && GetGeometry()[i].SolutionStepsDataHas(INTERNAL_FORCE) ){
 
@@ -1369,27 +1390,27 @@ void SolidElement::InitializeExplicitContributions()
 //***********************************************************************************
 //***********************************************************************************
 
-void SolidElement::AddExplicitContribution(const VectorType& rRHSVector, 
-						       const Variable<VectorType>& rRHSVariable, 
-						       Variable<array_1d<double,3> >& rDestinationVariable, 
+void SolidElement::AddExplicitContribution(const VectorType& rRHSVector,
+						       const Variable<VectorType>& rRHSVariable,
+						       Variable<array_1d<double,3> >& rDestinationVariable,
 						       const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_FORCE )
       {
 
-	for(unsigned int i=0; i< number_of_nodes; i++)
+	for(SizeType i=0; i< number_of_nodes; i++)
 	  {
 	    int index = dimension * i;
 
 	    GetGeometry()[i].SetLock();
 
 	    array_1d<double, 3 > &ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
-	    for(unsigned int j=0; j<dimension; j++)
+	    for(SizeType j=0; j<dimension; j++)
 	      {
 		ExternalForce[j] += rRHSVector[index + j];
 	      }
@@ -1401,14 +1422,14 @@ void SolidElement::AddExplicitContribution(const VectorType& rRHSVector,
     if( rRHSVariable == INTERNAL_FORCES_VECTOR && rDestinationVariable == INTERNAL_FORCE )
       {
 
-	for(unsigned int i=0; i< number_of_nodes; i++)
+	for(SizeType i=0; i< number_of_nodes; i++)
 	  {
 	    int index = dimension * i;
 
 	    GetGeometry()[i].SetLock();
 
 	    array_1d<double, 3 > &InternalForce = GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
-	    for(unsigned int j=0; j<dimension; j++)
+	    for(SizeType j=0; j<dimension; j++)
 	      {
 		InternalForce[j] += rRHSVector[index + j];
 	      }
@@ -1421,7 +1442,7 @@ void SolidElement::AddExplicitContribution(const VectorType& rRHSVector,
     if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
       {
 
-	for(unsigned int i=0; i< number_of_nodes; i++)
+	for(SizeType i=0; i< number_of_nodes; i++)
 	  {
 	    int index = dimension * i;
 
@@ -1429,7 +1450,7 @@ void SolidElement::AddExplicitContribution(const VectorType& rRHSVector,
 
 	    array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-	    for(unsigned int j=0; j<dimension; j++)
+	    for(SizeType j=0; j<dimension; j++)
 	      {
 		ForceResidual[j] += rRHSVector[index + j];
 	      }
@@ -1441,52 +1462,21 @@ void SolidElement::AddExplicitContribution(const VectorType& rRHSVector,
     KRATOS_CATCH( "" )
 }
 
-  
+
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
 
 
-void SolidElement::CalculateKinematics(ElementVariables& rVariables, const double& rPointNumber)
+void SolidElement::CalculateKinematics(ElementDataType& rVariables, const double& rPointNumber)
 {
     KRATOS_TRY
-     
+
     KRATOS_ERROR << " calling the default method CalculateKinematics for a solid element " << std::endl;
-    
-    KRATOS_CATCH( "" )
-}
-
-
-//****************************COMPUTE VELOCITY GRADIENT*******************************
-//************************************************************************************
-
-void SolidElement::CalculateVelocityGradient(const Matrix& rDN_DX, Matrix& rDF )
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-
-    rDF=zero_matrix<double> ( dimension );
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        //Displacement from the reference to the current configuration
-        array_1d<double, 3 > & CurrentVelocity  = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            for ( unsigned int k = 0; k < dimension; k++ )
-            {
-                rDF ( j , k ) += CurrentVelocity[j]*rDN_DX ( i , k );
-            }
-
-        }
-
-    }
 
     KRATOS_CATCH( "" )
 }
+
+
 
 //*************************COMPUTE DELTA POSITION*************************************
 //************************************************************************************
@@ -1496,21 +1486,9 @@ Matrix& SolidElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeometry = GetGeometry();
 
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
-        }
-    }
+    ElementUtilities::CalculateDeltaPosition(rDeltaPosition,rGeometry);
 
     return rDeltaPosition;
 
@@ -1524,26 +1502,14 @@ Matrix& SolidElement::CalculateTotalDeltaPosition(Matrix & rDeltaPosition)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const GeometryType& rGeometry = GetGeometry();
 
-    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            rDeltaPosition(i,j) = CurrentDisplacement[j];
-        }
-    }
-
+    ElementUtilities::CalculateTotalDeltaPosition(rDeltaPosition,rGeometry);
     return rDeltaPosition;
 
     KRATOS_CATCH( "" )
 }
-  
+
 
 //************************************CALCULATE TOTAL MASS****************************
 //************************************************************************************
@@ -1552,31 +1518,30 @@ double& SolidElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo&
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
+
     //Compute the Volume Change acumulated:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
-    double IntegrationWeight = 1;
     double VolumeChange = 1;
-    
+
     //reading integration points
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
 	//compute element kinematic variables
 	this->CalculateKinematics(Variables,PointNumber);
-	
+
 	//getting informations for integration
-        IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
+        Variables.IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
 
 	//compute point volume changes
 	VolumeChange = 1;
 	VolumeChange = this->CalculateVolumeChange( VolumeChange, Variables );
-	
-	rTotalMass += VolumeChange * GetProperties()[DENSITY] * IntegrationWeight;
+
+	rTotalMass += VolumeChange * GetProperties()[DENSITY] * Variables.IntegrationWeight;
 
       }
 
@@ -1594,12 +1559,12 @@ double& SolidElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo&
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
 
-double& SolidElement::CalculateVolumeChange( double& rVolumeChange, ElementVariables& rVariables )
+double& SolidElement::CalculateVolumeChange( double& rVolumeChange, ElementDataType& rVariables )
 {
     KRATOS_TRY
 
     rVolumeChange = 1; //no change (reference configuration considered by default)
-    
+
     return rVolumeChange;
 
     KRATOS_CATCH( "" )
@@ -1609,23 +1574,23 @@ double& SolidElement::CalculateVolumeChange( double& rVolumeChange, ElementVaria
 //************************************CALCULATE VOLUME ACCELERATION*******************
 //************************************************************************************
 
-Vector& SolidElement::CalculateVolumeForce( Vector& rVolumeForce, ElementVariables& rVariables )
+Vector& SolidElement::CalculateVolumeForce( Vector& rVolumeForce, ElementDataType& rVariables )
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     if(rVolumeForce.size() != dimension)
       rVolumeForce.resize(dimension,false);
-    
+
     noalias(rVolumeForce) = ZeroVector(dimension);
 
-    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    for ( SizeType j = 0; j < number_of_nodes; j++ )
     {
       if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ){ // it must be checked once at the begining only
 	array_1d<double, 3 >& VolumeAcceleration = GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-	for( unsigned int i = 0; i < dimension; i++ )
+	for( SizeType i = 0; i < dimension; i++ )
 	  rVolumeForce[i] += rVariables.N[j] * VolumeAcceleration[i] ;
       }
     }
@@ -1651,24 +1616,24 @@ void SolidElement::CalculateFirstDerivativesContributions(MatrixType& rLeftHandS
     this->CalculateDampingMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
 
     const unsigned int MatSize = this->GetDofsSize();
-  
+
     //2.-Calculate Inertial Forces:
     if ( rRightHandSideVector.size() != MatSize )
       rRightHandSideVector.resize( MatSize, false );
-      
+
     noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
 
     //acceleration vector
     Vector CurrentVelocityVector(MatSize);
     noalias(CurrentVelocityVector) = ZeroVector( MatSize );
     this->GetFirstDerivativesVector(CurrentVelocityVector, 0);
-      
+
     noalias(rRightHandSideVector) = prod( rLeftHandSideMatrix, CurrentVelocityVector );
-      
+
 
     KRATOS_CATCH( "" )
 }
-  
+
 //************************************************************************************
 //************************************************************************************
 
@@ -1690,17 +1655,17 @@ void SolidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHand
       //create local system components
       LocalSystemComponents LocalSystem;
 
-      //calculation flags 
+      //calculation flags
       LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_RHS_VECTOR);
       LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_LHS_MATRIX);
-    
+
       //Initialize sizes for the system components:
       this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
 
       //Set Variables to Local system components
       LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
       LocalSystem.SetRightHandSideVector(rRightHandSideVector);
-	
+
       //Calculate elemental system
       CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
 
@@ -1715,14 +1680,14 @@ void SolidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHand
       //2.-Calculate Inertial Forces:
       if ( rRightHandSideVector.size() != MatSize )
 	rRightHandSideVector.resize( MatSize, false );
-      
+
       noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
 
       //acceleration vector
       Vector CurrentAccelerationVector(MatSize);
       noalias(CurrentAccelerationVector) = ZeroVector( MatSize );
       this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
-      
+
       double AlphaM = 0.0;
       if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
 	AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
@@ -1734,7 +1699,7 @@ void SolidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHand
       }
 
       noalias(rRightHandSideVector) = prod( rLeftHandSideMatrix, CurrentAccelerationVector );
-      
+
     }
 
 
@@ -1748,31 +1713,31 @@ void SolidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHand
 void SolidElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-      
+
     bool ComputeDynamicTangent = false;
     if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) )
       if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
 	ComputeDynamicTangent = true;
-    
+
     if( ComputeDynamicTangent == true ){
 
       //create local system components
       LocalSystemComponents LocalSystem;
 
-      //calculation flags   
+      //calculation flags
       LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_LHS_MATRIX);
 
       VectorType RightHandSideVector = Vector();
 
       //Initialize sizes for the system components:
       this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector,  LocalSystem.CalculationFlags );
-	
+
       //Set Variables to Local system components
       LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
       LocalSystem.SetRightHandSideVector(RightHandSideVector);
-	
+
       //Calculate elemental system
-      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );    
+      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
 
     }
     else{
@@ -1796,7 +1761,7 @@ void SolidElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVecto
     if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) )
       if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
 	ComputeDynamicTangent = true;
-    
+
     if( ComputeDynamicTangent == true ){
 
       //create local system components
@@ -1816,7 +1781,7 @@ void SolidElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVecto
 
       //Calculate elemental system
       CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
- 
+
     }
     else{
 
@@ -1826,36 +1791,36 @@ void SolidElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVecto
       this->CalculateMassMatrix( LeftHandSideMatrix, rCurrentProcessInfo );
 
       const unsigned int MatSize = this->GetDofsSize();
-      
+
       //2.-Calculate Inertial Forces:
       if ( rRightHandSideVector.size() != MatSize )
 	rRightHandSideVector.resize( MatSize, false );
-      
+
       noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
-      
+
       //acceleration vector
       Vector CurrentAccelerationVector   = ZeroVector( MatSize );
       this->GetSecondDerivativesVector(CurrentAccelerationVector, 0);
-      
+
       double AlphaM = 0.0;
       if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
 	AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
 	Vector PreviousAccelerationVector( MatSize );
-	noalias(PreviousAccelerationVector) = ZeroVector( MatSize );	
+	noalias(PreviousAccelerationVector) = ZeroVector( MatSize );
 	this->GetSecondDerivativesVector(PreviousAccelerationVector, 1);
 	CurrentAccelerationVector *= (1.0-AlphaM);
 	CurrentAccelerationVector +=  AlphaM * (PreviousAccelerationVector);
       }
-      
+
       noalias(rRightHandSideVector) = prod( LeftHandSideMatrix, CurrentAccelerationVector );
-      
+
     }
 
 
-    KRATOS_CATCH( "" )   
+    KRATOS_CATCH( "" )
 }
 
-  
+
 //************************************************************************************
 //************************************************************************************
 
@@ -1874,27 +1839,27 @@ void SolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rC
       //create local system components
       LocalSystemComponents LocalSystem;
 
-      //calculation flags   
+      //calculation flags
       LocalSystem.CalculationFlags.Set(SolidElement::COMPUTE_LHS_MATRIX);
 
       VectorType RightHandSideVector = Vector();
 
       //Initialize sizes for the system components:
       this->InitializeSystemMatrices( rMassMatrix, RightHandSideVector,  LocalSystem.CalculationFlags );
-	
+
       //Set Variables to Local system components
       LocalSystem.SetLeftHandSideMatrix(rMassMatrix);
       LocalSystem.SetRightHandSideVector(RightHandSideVector);
-	
+
       //Calculate elemental system
-      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );    
+      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
 
     }
     else{
 
       //lumped
-      unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
+      const SizeType number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int MatSize = this->GetDofsSize();
       if ( rMassMatrix.size1() != MatSize )
         rMassMatrix.resize( MatSize, MatSize, false );
@@ -1903,17 +1868,17 @@ void SolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rC
 
       double TotalMass = 0;
       TotalMass = this->CalculateTotalMass(TotalMass,rCurrentProcessInfo);
-    
+
       Vector LumpFact(number_of_nodes);
-      noalias(LumpFact) = ZeroVector(number_of_nodes);      
+      noalias(LumpFact) = ZeroVector(number_of_nodes);
 
       LumpFact  = GetGeometry().LumpingFactors( LumpFact );
 
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  double temp = LumpFact[i] * TotalMass;
 
-	  for ( unsigned int j = 0; j < dimension; j++ )
+	  for ( SizeType j = 0; j < dimension; j++ )
 	    {
 	      unsigned int index = i * dimension + j;
 	      rMassMatrix( index, index ) = temp;
@@ -1944,20 +1909,7 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
     noalias( rDampingMatrix ) = ZeroMatrix( MatSize, MatSize );
 
 
-    //1.-Calculate StiffnessMatrix:
-
-    MatrixType StiffnessMatrix  = Matrix();
-
-    this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
-
-    //2.-Calculate MassMatrix:
-
-    MatrixType MassMatrix  = Matrix();
-
-    this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
-    
-    
-    //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    //1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) ){
       alpha = GetProperties()[RAYLEIGH_ALPHA];
@@ -1974,12 +1926,27 @@ void SolidElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessIn
       beta = rCurrentProcessInfo[RAYLEIGH_BETA];
     }
 
-    //4.-Compose the Damping Matrix:
-   
-    //Rayleigh Damping Matrix: alpha*M + beta*K
-    rDampingMatrix  = alpha * MassMatrix;
-    rDampingMatrix += beta  * StiffnessMatrix;
+    if( alpha != 0 || beta != 0){
 
+      //1.-Calculate StiffnessMatrix:
+
+      MatrixType StiffnessMatrix  = Matrix();
+
+      this->CalculateLeftHandSide( StiffnessMatrix, rCurrentProcessInfo );
+
+      //2.-Calculate MassMatrix:
+
+      MatrixType MassMatrix  = Matrix();
+
+      this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
+
+      //3.-Compose the Damping Matrix:
+
+      //Rayleigh Damping Matrix: alpha*M + beta*K
+      rDampingMatrix  = alpha * MassMatrix;
+      rDampingMatrix += beta  * StiffnessMatrix;
+
+    }
 
     KRATOS_CATCH( "" )
 }
@@ -2002,8 +1969,8 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
     if ( rVariable == DAMAGE_VARIABLE)
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -2020,18 +1987,18 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
             this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
+            this->SetElementData(Variables,Values,PointNumber);
 
             //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateValue(Values,rVariable,rOutput[PointNumber]);
 
         }
-    }    
+    }
     if ( rVariable == VON_MISES_STRESS )
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -2049,20 +2016,19 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
             this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
+            this->SetElementData(Variables,Values,PointNumber);
 
             //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
-            ComparisonUtilities EquivalentStress;
-            rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);
+            rOutput[PointNumber] =  ElementUtilities::CalculateVonMises(Variables.StressVector);
         }
     }
     else if ( rVariable == NORM_ISOCHORIC_STRESS )
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -2080,21 +2046,20 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
             this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
+            this->SetElementData(Variables,Values,PointNumber);
 
             //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
-	    ComparisonUtilities EquivalentStress;
-            rOutput[PointNumber] =  EquivalentStress.CalculateStressNorm(Variables.StressVector);
+            rOutput[PointNumber] =  ElementUtilities::CalculateStressNorm(Variables.StressVector);
         }
 
     }
     else if (rVariable == PRESSURE)
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -2104,20 +2069,20 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-	unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-	
+	const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
+
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
             //compute element kinematic variables B, F, DN_DX ...
-	    this->CalculateKinematics(Variables,PointNumber);	
+	    this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
+            this->SetElementData(Variables,Values,PointNumber);
 
 	    //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
-	    
+
 	    if( dimension == 2)
             {
                 rOutput[PointNumber] = 0.5 * (Variables.StressVector[0] + Variables.StressVector[1]);
@@ -2131,15 +2096,15 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
     else if (rVariable == STRAIN_ENERGY)
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
-	
+
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY);
 
@@ -2147,16 +2112,15 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
 	double StrainEnergy = 0;
-	double IntegrationWeight = 1;
-	
+
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
             //compute element kinematic variables B, F, DN_DX ...
-	    this->CalculateKinematics(Variables,PointNumber);	
+	    this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
+            this->SetElementData(Variables,Values,PointNumber);
 
 	    //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
@@ -2165,10 +2129,10 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
 	    StrainEnergy = 0;
 	    mConstitutiveLawVector[PointNumber]->GetValue(STRAIN_ENERGY,StrainEnergy);
 
-	    IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-	    IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );	    
-	    
-	    rOutput[PointNumber] = StrainEnergy * IntegrationWeight;
+	    Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
+	    Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
+
+	    rOutput[PointNumber] = StrainEnergy * Variables.IntegrationWeight;
         }
     }
     else
@@ -2193,12 +2157,12 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariab
 
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number );
-   
-    if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR )  
+
+    if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR )
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -2215,14 +2179,14 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariab
 	    this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
+            this->SetElementData(Variables,Values,PointNumber);
 
 	    //call the constitutive law to update material variables
             if( rVariable == CAUCHY_STRESS_VECTOR)
               mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
             else
 	      mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
-	    
+
 	    if ( rOutput[PointNumber].size() != Variables.StressVector.size() )
                 rOutput[PointNumber].resize( Variables.StressVector.size(), false );
 
@@ -2249,7 +2213,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
     KRATOS_TRY
 
     const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number );
@@ -2295,8 +2259,8 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
     else if ( rVariable == CONSTITUTIVE_MATRIX )
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //create constitutive law parameters:
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -2313,7 +2277,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
             this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
-            this->SetElementVariables(Variables,Values,PointNumber);
+            this->SetElementData(Variables,Values,PointNumber);
 
             //call the constitutive law to update material variables
 	    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
@@ -2329,8 +2293,8 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
     else if ( rVariable == DEFORMATION_GRADIENT )
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -2374,7 +2338,7 @@ int  SolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-      
+
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
     KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
 
@@ -2392,21 +2356,6 @@ int  SolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
     KRATOS_CHECK_VARIABLE_KEY(DEFORMATION_GRADIENT);
     KRATOS_CHECK_VARIABLE_KEY(STRAIN_ENERGY);
 
-    
-    // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
-    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
-      {
-	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
-	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
-	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
-	
-	// Nodal dofs
-	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);
-	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rNode);
-	if( rCurrentProcessInfo[SPACE_DIMENSION] == 3)
-	  KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rNode);
-      }
 
     // Check that the constitutive law exists
     if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
@@ -2414,16 +2363,16 @@ int  SolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
       KRATOS_ERROR << "constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
     }
     else{
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      
-      if( dimension == 3 &&  this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )	
+      const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
+
+      if( dimension == 3 &&  this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )
 	KRATOS_ERROR <<  "wrong constitutive law used. This is a 3D element. Expected strain size is 6 :: element id " << this->Id() << std::endl;
 
       // Check constitutive law
       this->GetProperties().GetValue( CONSTITUTIVE_LAW )->Check( this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo );
 
     }
-    
+
     return ErrorCode;
 
     KRATOS_CATCH( "" )
@@ -2451,5 +2400,3 @@ void SolidElement::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

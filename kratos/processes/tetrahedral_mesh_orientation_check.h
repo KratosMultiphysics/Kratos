@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 #ifndef KRATOS_TETRAHEDRAL_MESH_ORIENTATION_CHECK_H
@@ -43,13 +43,13 @@ class TetrahedralMeshOrientationCheck: public Process
 public:
     ///@name Type Definitions
     ///@{
-    
+
     //DEFINITION OF FLAGS TO CONTROL THE BEHAVIOUR
     KRATOS_DEFINE_LOCAL_FLAG(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS);
     KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_NODAL_NORMALS);
     KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_CONDITION_NORMALS);
     KRATOS_DEFINE_LOCAL_FLAG(MAKE_VOLUMES_POSITIVE);
-    
+
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedralMeshOrientationCheck);
 
@@ -67,7 +67,7 @@ public:
      */
     TetrahedralMeshOrientationCheck(ModelPart& rModelPart,
                                     bool ThrowErrors,
-                                    Flags options = NOT_COMPUTE_NODAL_NORMALS & NOT_COMPUTE_CONDITION_NORMALS & NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+                                    Flags options = NOT_COMPUTE_NODAL_NORMALS | NOT_COMPUTE_CONDITION_NORMALS | NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
                                     ):
         Process(),
         mrModelPart(rModelPart),
@@ -76,9 +76,9 @@ public:
 
     {
     }
-    
+
     TetrahedralMeshOrientationCheck(ModelPart& rModelPart,
-                                    Flags options = NOT_COMPUTE_NODAL_NORMALS & NOT_COMPUTE_CONDITION_NORMALS & NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+                                    Flags options = NOT_COMPUTE_NODAL_NORMALS | NOT_COMPUTE_CONDITION_NORMALS | NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
                                     ):
         Process(),
         mrModelPart(rModelPart),
@@ -111,19 +111,19 @@ public:
     void Execute() override
     {
         KRATOS_TRY;
-        
+
         if(mrOptions.Is(COMPUTE_NODAL_NORMALS))
         {
-            if(mrModelPart.NodesBegin()->SolutionStepsDataHas(NORMAL) == false) 
+            if(mrModelPart.NodesBegin()->SolutionStepsDataHas(NORMAL) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,"missing NORMAL variable on solution step data","");
             for(ModelPart::NodesContainerType::iterator itNode = mrModelPart.NodesBegin(); itNode != mrModelPart.NodesEnd(); itNode++)
             {
                 noalias(itNode->FastGetSolutionStepValue(NORMAL)) = ZeroVector(3);
             }
-            
+
         }
-        
-        
+
+
 
         //********************************************************
         //begin by orienting all of the elements in the volume
@@ -250,8 +250,8 @@ public:
                             FaceNormal3D(FaceNormal,rFaceGeom);
                         else if ( rFaceGeom.GetGeometryType()  == GeometryData::Kratos_Line2D2 )
                             FaceNormal2D(FaceNormal,rFaceGeom);
-                        
-                        
+
+
 
                         //do a dotproduct with the DenseVector that goes from
                         //"outer_node_index" to any of the nodes in aux;
@@ -266,10 +266,10 @@ public:
                         {
                             rFaceGeom(0).swap(rFaceGeom(1));
                             FaceNormal = -FaceNormal;
-      
+
                             CondSwitchCount++;
                         }
-                        
+
                         if(mrOptions.Is(COMPUTE_NODAL_NORMALS))
                         {
                             double factor = 1.0/static_cast<double>(rFaceGeom.size());
@@ -332,7 +332,7 @@ public:
                 rGeom(0).swap(rGeom(1));
         }
     }
-    
+
     void SwapNegativeElements()
     {
         for (ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); itElem++)
@@ -395,7 +395,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;    
+    ModelPart& mrModelPart;
     const bool mThrowErrors;
     Flags mrOptions;
 

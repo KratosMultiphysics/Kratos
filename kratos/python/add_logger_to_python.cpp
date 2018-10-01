@@ -34,7 +34,7 @@ namespace Python {
 void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity severity, bool useKwargLabel) {
     if(len(args) == 0)
         std::cout << "ERROR" << std::endl;
-    
+
     std::stringstream buffer;
     Logger::Severity severityOption = severity;
     Logger::Category categoryOption = Logger::Category::STATUS;
@@ -54,7 +54,7 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
         label = str(args[0]); //if the kwargs label is false, consider the first entry of the args as the label
         to_skip = 1;
     }
-    
+
     unsigned int counter = 0;
     for(auto item : args)
     {
@@ -66,16 +66,6 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
         }
         counter++;
     }
-        
-
-//     // Extract the pybind11::args part
-//     for(int i = (useKwargLabel ? 0 : 1); i < len(args); ++i) {
-//         object curArg = args[i];
-//         if(curArg) {
-//             buffer << (str(args[i])) << ((i != len(args)) ? " " : "");
-// //             buffer << extract<const char *>(boost::python::str(args[i])) << ((i != len(args)) ? " " : "");
-//         }
-//     }
 
     // Extract the options
     if(kwargs.contains("severity")) {
@@ -95,8 +85,8 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
 
 /**
  * Prints the arguments from the python script using the Kratos Logger class. Default function uses INFO severity.
- * @args pybind11::args boost::python::object representing the arguments of the function The first argument is the label
- * @kwargs pybind11::dictionary of boost::python::objects resenting key-value pairs for
+ * @args pybind11::args pybind11::object representing the arguments of the function The first argument is the label
+ * @kwargs pybind11::dictionary of pybind11::objects resenting key-value pairs for
  * name arguments
  **/
 void printDefault(pybind11::args args, pybind11::kwargs kwargs) {
@@ -105,8 +95,8 @@ void printDefault(pybind11::args args, pybind11::kwargs kwargs) {
 
 /**
  * Prints the arguments from the python script using the Kratos Logger class using INFO severity.
- * @args pybind11::args boost::python::object representing the arguments of the function The first argument is the label
- * @kwargs pybind11::dictionary of boost::python::objects resenting key-value pairs for
+ * @args pybind11::args pybind11::object representing the arguments of the function The first argument is the label
+ * @kwargs pybind11::dictionary of pybind11::objects resenting key-value pairs for
  * name arguments
  **/
 void printInfo(pybind11::args args, pybind11::kwargs kwargs) {
@@ -115,8 +105,8 @@ void printInfo(pybind11::args args, pybind11::kwargs kwargs) {
 
 /**
  * Prints the arguments from the python script using the Kratos Logger class using WARNING severity.
- * @args pybind11::args boost::python::object representing the arguments of the function The first argument is the label
- * @kwargs pybind11::dictionary of boost::python::objects resenting key-value pairs for
+ * @args pybind11::args pybind11::object representing the arguments of the function The first argument is the label
+ * @kwargs pybind11::dictionary of pybind11::objects resenting key-value pairs for
  * name arguments
  **/
 void printWarning(pybind11::args args, pybind11::kwargs kwargs) {
@@ -139,6 +129,7 @@ void  AddLoggerToPython(pybind11::module& m) {
     logger_scope.def_static("Print", printDefault); // raw_function(printDefault,1))
     logger_scope.def_static("PrintInfo",printInfo); // raw_function(printInfo,1))
     logger_scope.def_static("PrintWarning", printWarning); //raw_function(printWarning,1))
+    logger_scope.def_static("Flush", Logger::Flush);
     logger_scope.def_static("GetDefaultOutput", &Logger::GetDefaultOutputInstance, return_value_policy::reference); //_internal )
     ;
 

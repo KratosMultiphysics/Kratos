@@ -16,8 +16,8 @@ import structural_mechanics_solver
 
 
 
-def CreateSolver(main_model_part, custom_settings):
-    return ExplicitMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return ExplicitMechanicalSolver(model, custom_settings)
 
 class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     """The structural mechanics explicit dynamic solver.
@@ -29,7 +29,7 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     See structural_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
          # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
@@ -44,7 +44,7 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
 
         # Construct the base solver.
-        super(ExplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(ExplicitMechanicalSolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: Construction finished")
 
     def AddVariables(self):

@@ -78,7 +78,7 @@ namespace Kratos
       ///@}
       ///@name Operators
       ///@{
-      void AddModelPart(ModelPart::Pointer pModelPart); //TODO: change this conveniently
+      void AddModelPart(ModelPart* pModelPart); //TODO: change this conveniently
 
       ModelPart& GetModelPart(const std::string& rFullModelPartName);
 

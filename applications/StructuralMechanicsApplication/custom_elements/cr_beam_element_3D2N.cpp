@@ -38,6 +38,13 @@ CrBeamElement3D2N::Create(IndexType NewId, NodesArrayType const &rThisNodes,
                                                 pProperties);
 }
 
+Element::Pointer
+CrBeamElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
+                          PropertiesType::Pointer pProperties) const {
+  return Kratos::make_shared<CrBeamElement3D2N>(NewId, pGeom,
+                                                pProperties);
+}
+
 CrBeamElement3D2N::~CrBeamElement3D2N() {}
 
 void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType &rResult,
@@ -625,6 +632,7 @@ CrBeamElement3D2N::CalculateInitialLocalCS() {
       direction_vector_x /= vector_norm;
 
     direction_vector_y = this->GetValue(LOCAL_AXIS_2);
+
     direction_vector_z[0] = direction_vector_x[1] * direction_vector_y[2] -
                             direction_vector_x[2] * direction_vector_y[1];
     direction_vector_z[1] = direction_vector_x[2] * direction_vector_y[0] -
@@ -838,7 +846,7 @@ CrBeamElement3D2N::UpdateRotationMatrixLocal(Vector &Bisectrix,
   Vector rotated_nx0 = ZeroVector(msDimension);
   Vector rotated_ny0 = ZeroVector(msDimension);
   Vector rotated_nz0 = ZeroVector(msDimension);
-  for (SizeType i = 0; i < msDimension; ++i) {
+  for (IndexType i = 0; i < msDimension; ++i) {
     rotated_nx0[i] = reference_transformation(i, 0);
     rotated_ny0[i] = reference_transformation(i, 1);
     rotated_nz0[i] = reference_transformation(i, 2);
@@ -1260,8 +1268,8 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     for (int i = 0; i < 3; ++i)
       rOutput[i] = ZeroVector(3);
 
-    for (SizeType i = 0; i < 3; ++i) {
-      for (SizeType j = 0; j < 3; ++j) {
+    for (IndexType i = 0; i < 3; ++i) {
+      for (IndexType j = 0; j < 3; ++j) {
         rOutput[i][j] = transformation_matrix(j, i);
       }
     }
@@ -1513,86 +1521,85 @@ CrBeamElement3D2N::GetIntegrationMethod() const {
 void CrBeamElement3D2N::AddExplicitContribution(
     const VectorType &rRHSVector, const Variable<VectorType> &rRHSVariable,
     Variable<array_1d<double, 3>> &rDestinationVariable,
-    const ProcessInfo &rCurrentProcessInfo) {
-  KRATOS_TRY;
+    const ProcessInfo &rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
 
-  BoundedVector<double, msElementSize> damping_residual_contribution =
-      ZeroVector(msElementSize);
-  // calculate damping contribution to residual -->
-  if ((this->GetProperties().Has(RAYLEIGH_ALPHA) ||
-       this->GetProperties().Has(RAYLEIGH_BETA)) &&
-      (rDestinationVariable != NODAL_INERTIA)) {
-    Vector current_nodal_velocities = ZeroVector(msElementSize);
-    this->GetFirstDerivativesVector(current_nodal_velocities);
-    Matrix damping_matrix = ZeroMatrix(msElementSize, msElementSize);
-    ProcessInfo temp_process_information; // cant pass const ProcessInfo
-    this->CalculateDampingMatrix(damping_matrix, temp_process_information);
-    // current residual contribution due to damping
-    noalias(damping_residual_contribution) =
-        prod(damping_matrix, current_nodal_velocities);
-  }
+    BoundedVector<double, msElementSize> damping_residual_contribution = ZeroVector(msElementSize);
+    // Calculate damping contribution to residual -->
+    if ((this->GetProperties().Has(RAYLEIGH_ALPHA) ||
+        this->GetProperties().Has(RAYLEIGH_BETA)) &&
+        (rDestinationVariable != NODAL_INERTIA)) {
+        Vector current_nodal_velocities = ZeroVector(msElementSize);
+        this->GetFirstDerivativesVector(current_nodal_velocities);
+        Matrix damping_matrix = ZeroMatrix(msElementSize, msElementSize);
+        ProcessInfo temp_process_information; // cant pass const ProcessInfo
+        this->CalculateDampingMatrix(damping_matrix, temp_process_information);
+        // current residual contribution due to damping
+        noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+    }
 
-  if (rRHSVariable == RESIDUAL_VECTOR &&
+    if (rRHSVariable == RESIDUAL_VECTOR &&
       rDestinationVariable == FORCE_RESIDUAL) {
 
-    for (SizeType i = 0; i < msNumberOfNodes; ++i) {
-      SizeType index = msLocalSize * i;
+        for (IndexType i = 0; i < msNumberOfNodes; ++i) {
+            const SizeType index = msLocalSize * i;
 
-      array_1d<double, 3> &r_force_residual =
-          GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+            array_1d<double, 3> &r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-      for (SizeType j = 0; j < msDimension; ++j) {
-#pragma omp atomic
-        r_force_residual[j] +=
-            rRHSVector[index + j] - damping_residual_contribution[index + j];
-      }
-    }
-  }
-
-  if (rRHSVariable == RESIDUAL_VECTOR &&
-      rDestinationVariable == MOMENT_RESIDUAL) {
-
-    for (SizeType i = 0; i < msNumberOfNodes; ++i) {
-      SizeType index = (msLocalSize * i) + msDimension;
-
-      array_1d<double, 3> &r_moment_residual =
-          GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
-
-      for (SizeType j = 0; j < msDimension; ++j) {
-#pragma omp atomic
-        r_moment_residual[j] +=
-            rRHSVector[index + j] - damping_residual_contribution[index + j];
-      }
-    }
-  }
-
-  if (rDestinationVariable == NODAL_INERTIA) {
-
-    Matrix element_mass_matrix = ZeroMatrix(msElementSize, msElementSize);
-    ProcessInfo temp_info; // Dummy
-    this->CalculateMassMatrix(element_mass_matrix, temp_info);
-
-    for (SizeType i = 0; i < msNumberOfNodes; ++i) {
-      GetGeometry()[i].SetLock();
-      double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-      array_1d<double, msDimension> &r_nodal_inertia =
-          GetGeometry()[i].GetValue(NODAL_INERTIA);
-      SizeType index = i * msLocalSize;
-
-      for (SizeType j = 0; j < msElementSize; ++j) {
-        r_nodal_mass += element_mass_matrix(index, j);
-
-        for (SizeType k = 0; k < msDimension; ++k) {
-          r_nodal_inertia[k] += element_mass_matrix(index + msDimension + k, j);
+            for (IndexType j = 0; j < msDimension; ++j) {
+                #pragma omp atomic
+                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+            }
         }
-      }
-      for (SizeType k = 0; k < msDimension; ++k)
-        r_nodal_inertia[k] = std::abs(r_nodal_inertia[k]);
-
-      GetGeometry()[i].UnSetLock();
     }
-  }
-  KRATOS_CATCH("")
+
+    if (rRHSVariable == RESIDUAL_VECTOR &&
+        rDestinationVariable == MOMENT_RESIDUAL) {
+
+        for (IndexType i = 0; i < msNumberOfNodes; ++i) {
+            const SizeType index = (msLocalSize * i) + msDimension;
+
+            array_1d<double, 3> &r_moment_residual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
+
+            for (IndexType j = 0; j < msDimension; ++j) {
+                #pragma omp atomic
+                r_moment_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+            }
+        }
+    }
+
+    if (rDestinationVariable == NODAL_INERTIA) {
+        Matrix element_mass_matrix = ZeroMatrix(msElementSize, msElementSize);
+        ProcessInfo temp_info; // Dummy
+        this->CalculateMassMatrix(element_mass_matrix, temp_info);
+
+        for (IndexType i = 0; i < msNumberOfNodes; ++i) {
+            double aux_nodal_mass = 0.0;
+            array_1d<double, 3> aux_nodal_inertia(3, 0.0);
+
+            const SizeType index = i * msLocalSize;
+
+            for (IndexType j = 0; j < msElementSize; ++j) {
+                aux_nodal_mass += element_mass_matrix(index, j);
+                for (IndexType k = 0; k < msDimension; ++k) {
+                    aux_nodal_inertia[k] += element_mass_matrix(index + msDimension + k, j);
+                }
+            }
+
+            #pragma omp atomic
+            GetGeometry()[i].GetValue(NODAL_MASS) += aux_nodal_mass;
+
+            array_1d<double, 3>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
+            for (IndexType k = 0; k < msDimension; ++k) {
+                #pragma omp atomic
+                r_nodal_inertia[k] += std::abs(aux_nodal_inertia[k]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
 }
 
 double CrBeamElement3D2N::CalculateShearModulus() {
@@ -1686,6 +1693,41 @@ int CrBeamElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
     KRATOS_ERROR << "I33 not provided for this element" << this->Id()
                  << std::endl;
   }
+
+  if (this->Has(LOCAL_AXIS_2)) {
+    array_1d<double, msDimension> direction_vector_x = ZeroVector(msDimension);
+    array_1d<double, msDimension> direction_vector_y = ZeroVector(msDimension);
+    array_1d<double, msLocalSize> reference_coordinates = ZeroVector(msLocalSize);
+
+    reference_coordinates[0] = this->GetGeometry()[0].X0();
+    reference_coordinates[1] = this->GetGeometry()[0].Y0();
+    reference_coordinates[2] = this->GetGeometry()[0].Z0();
+    reference_coordinates[3] = this->GetGeometry()[1].X0();
+    reference_coordinates[4] = this->GetGeometry()[1].Y0();
+    reference_coordinates[5] = this->GetGeometry()[1].Z0();
+
+    for (unsigned int i = 0; i < msDimension; ++i) {
+    direction_vector_x[i] =
+        (reference_coordinates[i + msDimension] - reference_coordinates[i]);
+    }
+
+    const double vector_norm = MathUtils<double>::Norm(direction_vector_x);
+    if (vector_norm > numerical_limit)
+      direction_vector_x /= vector_norm;
+
+    direction_vector_y = this->GetValue(LOCAL_AXIS_2);
+
+    KRATOS_ERROR_IF(MathUtils<double>::Norm(direction_vector_y)<numerical_limit)
+      << "Given LOCAL_AXIS_2 has length 0 for element " << this->Id() << std::endl;
+
+    // a tollerance of 1e-3 allows for a rough deviation of 0.06 degrees from 90.0 degrees
+    KRATOS_ERROR_IF(std::abs(MathUtils<double>::Dot(direction_vector_x,direction_vector_y))>1e-3)
+      << "LOCAL_AXIS_1 is not perpendicular to LOCAL_AXIS_2 for element " << this->Id() << std::endl;
+  }
+
+
+
+
   return 0;
 
   KRATOS_CATCH("")

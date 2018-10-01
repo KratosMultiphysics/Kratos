@@ -53,7 +53,7 @@ public:
     IsotropicDamageModifiedMisesPlaneStrain2DLaw();
 
 
-    IsotropicDamageModifiedMisesPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    IsotropicDamageModifiedMisesPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -76,7 +76,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~IsotropicDamageModifiedMisesPlaneStrain2DLaw();
+    ~IsotropicDamageModifiedMisesPlaneStrain2DLaw() override;
 
     /**
      * Operators

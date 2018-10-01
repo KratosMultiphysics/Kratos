@@ -60,12 +60,10 @@ ConstitutiveLaw::SizeType Newtonian3DLaw::GetStrainSize() {
 void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues) {
     const Flags& options = rValues.GetOptions();
     
-    const Properties& material_properties = rValues.GetMaterialProperties(); 
-
     const Vector& r_strain_rate = rValues.GetStrainVector();
     Vector& r_viscous_stress = rValues.GetStressVector();
 
-    const double mu = material_properties[DYNAMIC_VISCOSITY];
+    const double mu = ComputeEffectiveViscosity(rValues);
 
     const double trace = r_strain_rate[0] + r_strain_rate[1] + r_strain_rate[2];
     const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
@@ -104,6 +102,10 @@ std::string Newtonian3DLaw::Info() const {
 double Newtonian3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
     // We are abusing the fact that C(5,5) = mu
     return rParameters.GetConstitutiveMatrix()(5,5);
+}
+
+double Newtonian3DLaw::ComputeEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
+    return rParameters.GetMaterialProperties()[DYNAMIC_VISCOSITY];
 }
 
 void Newtonian3DLaw::save(Serializer& rSerializer) const {

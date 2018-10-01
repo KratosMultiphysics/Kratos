@@ -37,8 +37,13 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
 
             self.modify_parameters(ProjectParameters)
 
+            # To avoid many prints
+            if (ProjectParameters["problem_data"]["echo_level"].GetInt() == 0):
+                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
             # Creating the test
-            self.test = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParameters)
+            model = KratosMultiphysics.Model()
+            self.test = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
@@ -50,7 +55,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
     def test_execution(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.RunMainTemporalLoop()
+            self.test.RunSolutionLoop()
 
     def tearDown(self):
         # Within this location context:
@@ -168,6 +173,18 @@ class Simple3D2NTrussLinearTest(StructuralMechanicsTestFactory):
 class Simple3D2NTrussDynamicTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/dynamic_3D2NTruss_test"
 
+class Simple3D2NTrussLinearCompressionPlasticTest(StructuralMechanicsTestFactory):
+    file_name = "truss_test/linear_3D2NTruss_plastic_compression_test"
+
+class Simple3D2NTrussLinearTensionPlasticTest(StructuralMechanicsTestFactory):
+    file_name = "truss_test/linear_3D2NTruss_plastic_tension_test"
+
+class Simple3D2NTrussNonLinearSnapthroughPlasticTest(StructuralMechanicsTestFactory):
+    file_name = "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test"
+
+class Simple3D2NTrussNonLinearTensionPlasticTest(StructuralMechanicsTestFactory):
+    file_name = "truss_test/nonlinear_3D2NTruss_plastic_tension_test"
+
 class Simple3D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_3D2NBeamCr_test"
 
@@ -209,6 +226,9 @@ class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests(StructuralMechanic
 
 class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate_lumped"
+
+class RigidFaceTestWithImposeRigidMovementProcess(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/rigid_test"
 
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):

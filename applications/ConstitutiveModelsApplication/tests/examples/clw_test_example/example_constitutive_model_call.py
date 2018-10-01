@@ -56,7 +56,7 @@ cl_options.Set(ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
 #cl_options.Set(ConstitutiveLaw.FINALIZE_MATERIAL_RESPONSE, False)
 
 ##from here below it should be an output not an input
-#cl_options.Set(ConstitutiveLaw.FINITE_STRAINS, False) 
+#cl_options.Set(ConstitutiveLaw.FINITE_STRAINS, False)
 #cl_options.Set(ConstitutiveLaw.INFINITESIMAL_STRAINS, False)
 #cl_options.Set(ConstitutiveLaw.PLANE_STRAIN_LAW, False)
 #cl_options.Set(ConstitutiveLaw.PLANE_STRESS_LAW, False)

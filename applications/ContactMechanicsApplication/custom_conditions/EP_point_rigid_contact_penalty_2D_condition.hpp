@@ -51,7 +51,7 @@ public:
    ///@name Type Definitions
 
     ///Tensor order 1 definition
-    typedef bounded_vector<double, 3>    PointType;
+    typedef BoundedVector<double, 3>    PointType;
 
     ///@{
     // Counted pointer of EPPointRigidContactPenalty3DCondition

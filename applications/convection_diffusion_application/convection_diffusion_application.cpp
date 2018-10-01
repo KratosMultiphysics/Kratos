@@ -1,10 +1,14 @@
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: anonymous $
-//   Date:                $Date: 2008-12-15 15:41:36 $
-//   Revision:            $Revision: 1.6 $
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
+
 
 // System includes
 
@@ -25,77 +29,38 @@
 
 namespace Kratos {
 
-KRATOS_CREATE_VARIABLE(double, MELT_TEMPERATURE_1)
-KRATOS_CREATE_VARIABLE(double, MELT_TEMPERATURE_2)
-KRATOS_CREATE_VARIABLE(double, BFECC_ERROR)
-KRATOS_CREATE_VARIABLE(double, BFECC_ERROR_1)
 
-KRATOS_CREATE_VARIABLE(double, MEAN_SIZE)
-KRATOS_CREATE_VARIABLE(double, PROJECTED_SCALAR1)
-KRATOS_CREATE_VARIABLE(double, DELTA_SCALAR1)  //
-KRATOS_CREATE_VARIABLE(double, MEAN_VEL_OVER_ELEM_SIZE)
-
-KRATOS_CREATE_VARIABLE(double, THETA)
-
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 
 KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
     : KratosApplication("ConvectionDiffusionApplication"),
-      mEulerianConvDiff2D(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mEulerianConvDiff2D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mEulerianConvDiff3D(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mEulerianConvDiff3D8N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mEulerianDiffusion2D(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mEulerianDiffusion3D(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mConvDiff2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                         Element::GeometryType::PointsArrayType(3)))),
-      mConvDiff3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                         Element::GeometryType::PointsArrayType(4)))),
-      mLaplacian2D3N(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mLaplacian3D4N(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))),
-      mLaplacian3D8N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(
-                 Element::GeometryType::PointsArrayType(8)))),
-      mLaplacian3D27N(
-          0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(
-                 Element::GeometryType::PointsArrayType(27)))),
-      mThermalFace2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(
-                            Element::GeometryType::PointsArrayType(2)))),
-      mThermalFace3D(
-          0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mFluxCondition2D2N(
-          0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(
-                 Element::GeometryType::PointsArrayType(2)))),
-      mFluxCondition3D3N(
-          0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mFluxCondition3D4N(
-          0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))) {}
+      mEulerianConvDiff2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mEulerianConvDiff2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mEulerianConvDiff3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mEulerianConvDiff3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+      mEulerianDiffusion2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mEulerianDiffusion3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mConvDiff2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mConvDiff3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mLaplacian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mLaplacian3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mLaplacian3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+      mLaplacian3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27)))),
+      mThermalFace2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+      mThermalFace3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mFluxCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+      mFluxCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mFluxCondition3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))) {}
 
 void KratosConvectionDiffusionApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    std::cout << "Initializing KratosConvectionDiffusionApplication... "
-              << std::endl;
+    KRATOS_INFO("") << 
+    " KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ " << std::endl <<
+    "       / __/ _ || || | | / /__|   |_ _| __| __|" << std::endl <<
+    "      | (_| (_) | .` || V /___| |) | || _|| _| " << std::endl <<
+    "       |___|___/|_||_| |_/    |___/___|_| |_|  APPLICATION" << std::endl;
 
+    // Registering variables
     KRATOS_REGISTER_VARIABLE(MELT_TEMPERATURE_1)
     KRATOS_REGISTER_VARIABLE(MELT_TEMPERATURE_2)
     KRATOS_REGISTER_VARIABLE(BFECC_ERROR)

@@ -57,7 +57,7 @@ namespace Kratos
   Condition::Pointer EPPointRigidContactPenalty2DCondition::Create(IndexType NewId, NodesArrayType
 								 const& ThisNodes,  PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new EPPointRigidContactPenalty2DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<EPPointRigidContactPenalty2DCondition>(NewId,GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -67,13 +67,13 @@ namespace Kratos
    Condition::Pointer EPPointRigidContactPenalty2DCondition::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
    {
       EPPointRigidContactPenalty2DCondition NewCondition( NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall);
-      NewCondition.mCurrentInfo = this->mCurrentInfo; 
+      NewCondition.mCurrentInfo = this->mCurrentInfo;
       NewCondition.mSavedInfo   = this->mSavedInfo;
 
       // in the constructor of NewCondition I create a new friction law and here I clone the this->
       NewCondition.mpFrictionLaw = this->mpFrictionLaw->Clone();
 
-      return Condition::Pointer( new EPPointRigidContactPenalty2DCondition( NewCondition)  ); 
+      return Kratos::make_shared<EPPointRigidContactPenalty2DCondition>(NewCondition);
    }
 
   //************************************************************************************
@@ -83,7 +83,7 @@ namespace Kratos
 
    }
 
- 
+
 
    //**************************** CalculateSomeSortOfArea ******************************
    //***********************************************************************************
@@ -105,7 +105,7 @@ namespace Kratos
         const Geometry< Node < 3 > > & rElemGeom = rNeighbourElements[el].GetGeometry();
         unsigned int nBoundary = 0;
 
-        std::vector< unsigned int > BoundaryNodes; 
+        std::vector< unsigned int > BoundaryNodes;
         for ( unsigned int i = 0; i < rElemGeom.size(); i++) {
 
            if ( rElemGeom[i].Is(BOUNDARY) ) {
@@ -114,7 +114,7 @@ namespace Kratos
                if ( ( fabs(CN[0]) + fabs(CN[1]) ) > 0.01) {
               BoundaryNodes.push_back( i );
               nBoundary += 1;
-              if ( nBoundary == 2)  
+              if ( nBoundary == 2)
                  break;
                }
            }
@@ -142,16 +142,16 @@ namespace Kratos
 
 
 
-  
+
   //***********************************************************************************
   //************************************************************************************
 
   double& EPPointRigidContactPenalty2DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
-  { 
+  {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if ( this->GetProperties().Has(THICKNESS) ) {
-       if ( dimension == 2 && GetProperties()[THICKNESS]>0 ) 
+       if ( dimension == 2 && GetProperties()[THICKNESS]>0 )
           rIntegrationWeight *= GetProperties()[THICKNESS];
     }
 
@@ -160,6 +160,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
-
-

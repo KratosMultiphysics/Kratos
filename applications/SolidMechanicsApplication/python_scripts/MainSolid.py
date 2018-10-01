@@ -44,7 +44,7 @@ class Solution(object):
         self._set_parallel_size(num_threads)
 
         print(" ")
-        print("::[KSM Simulation]:: [OMP USING",num_threads,"THREADS ]")
+        print(self._class_prefix()+" [OMP USING",num_threads,"THREADS ]")
 
 
     def Run(self):
@@ -81,6 +81,9 @@ class Solution(object):
 
         sys.stdout.flush()
 
+        # Set time settings
+        self._get_time_settings()
+
         # Initialize Solver
         computing_model_part = self.model.GetComputingModelPart()
         self.solver.SetComputingModelPart(computing_model_part)
@@ -116,14 +119,7 @@ class Solution(object):
                 print(properties)
 
         print(" ")
-        print("::[KSM Simulation]:: Analysis -START- ")
-
-        # Set time settings
-        self.step       = self.process_info[KratosMultiphysics.STEP]
-        self.time       = self.process_info[KratosMultiphysics.TIME]
-
-        self.delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
-        self.end_time   = self.solver.GetEndTime()
+        print(self._class_prefix()+" Analysis -START- ")
 
         sys.stdout.flush()
 
@@ -137,7 +133,8 @@ class Solution(object):
             self.SolveSolutionStep()
             self.FinalizeSolutionStep()
 
-            sys.stdout.flush()
+            if(self.echo_level>=0):
+                sys.stdout.flush()
 
     def InitializeSolutionStep(self):
 
@@ -153,15 +150,13 @@ class Solution(object):
 
         self.main_model_part.CloneTimeStep(self.time)
 
-        print("  [STEP:",self.step," TIME:","{0:1.{1}f}".format(self.time,6),"]")
+        if(self.echo_level >= 0):
+            print("  [STEP:",self.step," TIME:","{0:1.{1}f}".format(self.time,6),"]")
 
         # Processes to be executed at the begining of the solution step
         self.processes.ExecuteInitializeSolutionStep()
 
         self.output.ExecuteInitializeSolutionStep()
-
-        # Step by step (1)
-        #self.solver.InitializeSolutionStep()
 
         self._stop_time_measuring(self.clock_time,"Initialize Step", self.report);
 
@@ -170,11 +165,17 @@ class Solution(object):
 
         self.clock_time = self._start_time_measuring();
 
+        # All steps included (1)(2)(3)
+        self.solver.Solve()
+
+        # Step by step (1)
+        #self.solver.InitializeSolutionStep()
+
         # Step by step (2)
         #self.solver.SolveSolutionStep()
 
-        # All steps included (1)(2)(3)
-        self.solver.Solve()
+        # Step by step (3)
+        #self.solver.FinalizeSolutionStep()
 
         self._stop_time_measuring(self.clock_time,"Solve Step", self.report);
 
@@ -182,9 +183,6 @@ class Solution(object):
     def FinalizeSolutionStep(self):
 
         self.clock_time = self._start_time_measuring();
-
-        # Step by step (3)
-        #self.solver.FinalizeSolutionStep()
 
         self.output.ExecuteFinalizeSolutionStep()
 
@@ -210,7 +208,7 @@ class Solution(object):
 
         self.processes.ExecuteFinalize()
 
-        print("::[KSM Simulation]:: Analysis -END- ")
+        print(self._class_prefix()+" Analysis -END- ")
         print(" ")
 
         # Check solving information for any problem
@@ -222,7 +220,7 @@ class Solution(object):
         # Measure wall time
         tfw = timer.time()
 
-        print("::[KSM Simulation]:: [Elapsed Time = %.2f" % (tfw - self.t0w),"seconds] (%.2f" % (tfp - self.t0p),"seconds of cpu/s time)")
+        print(self._class_prefix()+" [Elapsed Time = %.2f" % (tfw - self.t0w),"seconds] (%.2f" % (tfp - self.t0p),"seconds of cpu/s time)")
         print(timer.ctime())
 
 
@@ -281,6 +279,32 @@ class Solution(object):
         solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
         return (solver_module.CreateSolver(self.ProjectParameters["solver_settings"]["Parameters"]))
 
+    def _get_time_settings(self):
+
+        # Get time parameters
+        if( self._is_not_restarted() ):
+            if( self.ProjectParameters.Has("time_settings") ):
+                time_settings = self.ProjectParameters["time_settings"]
+                time_increment = 1.0
+                if( self.ProjectParameters["time_settings"].Has("time_step") ):
+                    time_increment = time_settings["time_step"].GetDouble()
+                    self.process_info.SetValue(KratosMultiphysics.DELTA_TIME, time_increment)
+                initial_time = 0.0
+                if( self.ProjectParameters["time_settings"].Has("start_time") ):
+                    initial_time = time_settings["start_time"].GetDouble()
+                self.process_info.SetValue(KratosMultiphysics.TIME, initial_time)
+
+        # Set time parameters
+        self.step       = self.process_info[KratosMultiphysics.STEP]
+        self.time       = self.process_info[KratosMultiphysics.TIME]
+
+        self.delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
+
+        self.end_time   = self.time + self.delta_time
+        if( self.ProjectParameters.Has("time_settings") ):
+            if( self.ProjectParameters["time_settings"].Has("end_time") ):
+                self.end_time = self.ProjectParameters["time_settings"]["end_time"].GetDouble()
+
     def _import_materials(self):
         # Assign material to model_parts (if Materials.json exists)
         import process_factory
@@ -310,35 +334,40 @@ class Solution(object):
 
             constitutive_law.Initialize();
 
-            problem_path = os.getcwd()
-
             self.model.CleanModel()
 
-            print("   Reading constitutive law from file :" + os.path.join(problem_path, "materials") + ".py ")
+            print("::[-----Material------]:: Reading file: materials.py ")
 
         else:
-            print(" No Materials.json or Materials.py found ")
+            print("No Materials.json or Materials.py found ")
 
 
     def _get_processes(self):
         # Obtain the list of the processes to be applied
         import process_handler
 
-        process_parameters = KratosMultiphysics.Parameters("{}")
-        process_parameters.AddEmptyValue("echo_level").SetInt(self.echo_level)
-        if( self.ProjectParameters.Has("constraints_process_list") ):
-            process_parameters.AddValue("constraints_process_list", self.ProjectParameters["constraints_process_list"])
-        if( self.ProjectParameters.Has("loads_process_list") ):
-            process_parameters.AddValue("loads_process_list", self.ProjectParameters["loads_process_list"])
-        if( self.ProjectParameters.Has("problem_process_list") ):
-            process_parameters.AddValue("problem_process_list", self.ProjectParameters["problem_process_list"])
-        if( self.ProjectParameters.Has("output_process_list") ):
-            process_parameters.AddValue("output_process_list", self.ProjectParameters["output_process_list"])
-        if( self.ProjectParameters.Has("check_process_list") ):
-            process_parameters.AddValue("check_process_list", self.ProjectParameters["check_process_list"])
+        # get processes parameters
+        processes_parameters = self._get_processes_parameters()
 
         domain_model = self.model.GetModel()
-        return (process_handler.ProcessHandler(domain_model, process_parameters))
+        return (process_handler.ProcessHandler(domain_model, processes_parameters))
+
+    def _get_processes_parameters(self):
+
+        processes_parameters = KratosMultiphysics.Parameters("{}")
+        processes_parameters.AddEmptyValue("echo_level").SetInt(self.echo_level)
+        if( self.ProjectParameters.Has("constraints_process_list") ):
+            processes_parameters.AddValue("constraints_process_list", self.ProjectParameters["constraints_process_list"])
+        if( self.ProjectParameters.Has("loads_process_list") ):
+            processes_parameters.AddValue("loads_process_list", self.ProjectParameters["loads_process_list"])
+        if( self.ProjectParameters.Has("problem_process_list") ):
+            processes_parameters.AddValue("problem_process_list", self.ProjectParameters["problem_process_list"])
+        if( self.ProjectParameters.Has("output_process_list") ):
+            processes_parameters.AddValue("output_process_list", self.ProjectParameters["output_process_list"])
+        if( self.ProjectParameters.Has("check_process_list") ):
+            processes_parameters.AddValue("check_process_list", self.ProjectParameters["check_process_list"])
+
+        return processes_parameters
 
     def _get_graphical_output(self, output_model_part):
         # Output settings start
@@ -350,10 +379,10 @@ class Solution(object):
                 problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()
             else:
                 print(" problem name not supplied -> generic name used : results_output ")
-            print("::[KSM Simulation]:: Output Ready [File: "+problem_name+".*.post.* ]")
+            print(self._class_prefix()+" Output Ready [File: "+problem_name+".*.post.* ]")
             return (gid_output_process.GiDOutputProcess(output_model_part,problem_name,self.output_settings))
         else:
-            print("::[KSM Simulation]:: No Output")
+            print(self._class_prefix()+" No Output")
             return (KratosMultiphysics.Process())
 
     def _set_severity_level(self):
@@ -398,8 +427,12 @@ class Solution(object):
         time_fp = timer.clock()
         if( report ):
             used_time = time_fp - time_ip
-            print("::[KSM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
+            print(self._class_prefix()+" [ %.2f" % round(used_time,2),"s", process," ] ")
 
+    @classmethod
+    def _class_prefix(self):
+        header = "::[---KSM Simulation--]::"
+        return header
 
 if __name__ == "__main__":
     Solution().Run()

@@ -61,13 +61,13 @@ class ModelManager(object):
 
         self._add_variables()
 
-        #print("::[Model_Manager]:: Importing model part.")
+        #print(self._class_prefix()+" Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["input_file_settings"]["name"].GetString()
 
         if(self.settings["input_file_settings"]["type"].GetString() == "mdpa"):
             # Import model part from mdpa file.
-            print("  (reading file: "+ input_filename + ".mdpa)")
+            print(self._class_prefix()+" Reading file: "+ input_filename + ".mdpa")
             #print("   " + os.path.join(problem_path, input_filename) + ".mdpa ")
             sys.stdout.flush()
 
@@ -118,8 +118,9 @@ class ModelManager(object):
             raise Exception("Other input options are not yet implemented.")
 
 
-        #print ("::[Model_Manager]:: Finished importing model part")
-        print ("::[Model_Manager]:: Model Ready")
+        dofs = self.main_model_part.NumberOfNodes() * self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
+        #print (self._class_prefix()+" Finished importing model part")
+        print (self._class_prefix()+" Model Ready (DOFs:"+str(dofs)+")")
 
 
     def ExportModel(self):
@@ -191,7 +192,7 @@ class ModelManager(object):
             #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
 
         #print(self.nodal_variables)
-        #print("::[Model_Manager]:: General Variables ADDED")
+        #print(self._class_prefix()+" General Variables ADDED")
 
 
     def _set_input_variables(self):
@@ -232,7 +233,7 @@ class ModelManager(object):
             self.main_model_part.CreateSubModelPart(body_model_part_name)
             body_model_part = self.main_model_part.GetSubModelPart(body_model_part_name)
 
-            print("::[Model_Prepare]::Body Created :", body_model_part_name)
+            print(self._class_prefix()+" Body Created: "+body_model_part_name)
             body_model_part.ProcessInfo = self.main_model_part.ProcessInfo
             body_model_part.Properties  = self.main_model_part.Properties
 
@@ -247,15 +248,18 @@ class ModelManager(object):
             for part in body_parts_list:
                 entity_type = "Nodes"
                 if (body_model_part_type=="Fluid"):
+                    part.Set(KratosMultiphysics.FLUID)
                     assign_flags = [KratosMultiphysics.FLUID]
                     transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                     transfer_process.Execute()
                 elif (body_model_part_type=="Solid"):
+                    part.Set(KratosMultiphysics.SOLID)
                     assign_flags = [KratosMultiphysics.SOLID]
                     transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                     transfer_process.Execute()
                 elif (body_model_part_type=="Rigid"):
-                    assign_flags = [KratosMultiphysics.RIGID,KratosMultiphysics.BOUNDARY]
+                    part.Set(KratosMultiphysics.RIGID)
+                    assign_flags = [KratosMultiphysics.RIGID]
                     transfer_process = KratosSolid.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                     transfer_process.Execute()
 
@@ -276,15 +280,6 @@ class ModelManager(object):
                 body_model_part.Set(KratosMultiphysics.RIGID)
                 rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
 
-        #add walls in fluid domains:
-        transfer_flags = [KratosMultiphysics.RIGID,KratosMultiphysics.NOT_FLUID]
-
-        entity_type = "Nodes"
-        for fluid_part in fluid_body_model_parts:
-            for rigid_part in rigid_body_model_parts:
-                transfer_process = KratosSolid.TransferEntitiesProcess(fluid_part,rigid_part,entity_type,transfer_flags)
-                transfer_process.Execute()
-
 
     #
     def _build_computing_domain(self):
@@ -294,9 +289,19 @@ class ModelManager(object):
         sub_model_part_names       = self.settings["domain_parts_list"]
         processes_model_part_names = self.settings["processes_parts_list"]
 
+        fluid_parts = False
+        solid_parts = False
         domain_parts = []
         for i in range(sub_model_part_names.size()):
-            domain_parts.append(self.main_model_part.GetSubModelPart(sub_model_part_names[i].GetString()))
+            domain_part = self.main_model_part.GetSubModelPart(sub_model_part_names[i].GetString())
+            if( domain_part.Is(KratosMultiphysics.FLUID) ):
+                fluid_parts = True
+            elif( domain_part.Is(KratosMultiphysics.SOLID) ):
+                solid_parts = True
+
+            domain_parts.append(domain_part)
+
+
         processes_parts = []
         for i in range(processes_model_part_names.size()):
             processes_parts.append(self.main_model_part.GetSubModelPart(processes_model_part_names[i].GetString()))
@@ -305,8 +310,12 @@ class ModelManager(object):
         computing_model_part.ProcessInfo = self.main_model_part.ProcessInfo
         computing_model_part.Properties  = self.main_model_part.Properties
 
-        #set flag to identify the solid model part :: solid application
-        computing_model_part.Set(KratosMultiphysics.SOLID)
+        #set flag to identify the fluid/solid body parts in the computing domain
+        if( solid_parts ):
+            computing_model_part.Set(KratosMultiphysics.SOLID)
+        if( fluid_parts ):
+            computing_model_part.Set(KratosMultiphysics.FLUID)
+
         #set flag to identify the computing model part
         computing_model_part.Set(KratosMultiphysics.ACTIVE)
 
@@ -362,7 +371,7 @@ class ModelManager(object):
                 body_parts_name_list = bodies_list[i]["parts_list"]
                 for j in range(body_parts_name_list.size()):
                     self.main_model_part.RemoveSubModelPart(body_parts_name_list[j].GetString())
-                    print("::[Model_Prepare]::Body Part Removed:", body_parts_name_list[j].GetString())
+                    #print(self._class_prefix()+" Body Part Removed: "+ body_parts_name_list[j].GetString())
 
     #
     def _has_bodies(self):
@@ -384,3 +393,8 @@ class ModelManager(object):
                     os.remove(f)
                 except OSError:
                     pass
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[---Model_Manager---]::"
+        return header

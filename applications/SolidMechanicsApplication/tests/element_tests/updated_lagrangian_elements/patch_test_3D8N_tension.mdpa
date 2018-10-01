@@ -5,11 +5,11 @@ End ModelPartData
 Begin Properties 0
 End Properties
 Begin Properties 6
-    DENSITY   1.00000E+03 
-    YOUNG_MODULUS   1.00000E+03 
-    POISSON_RATIO   3.00000E-01 
+    DENSITY   1.00000E+03
+    YOUNG_MODULUS   1.00000E+03
+    POISSON_RATIO   3.00000E-01
     C10    192.30769
-    BULK_MODULUS 833.333333    
+    BULK_MODULUS 833.333333
 End Properties
 
 Begin Nodes
@@ -33,11 +33,11 @@ End Nodes
 
 
 Begin Elements UpdatedLagrangianElement3D8N// GUI group identifier: Parts Auto2
-         1          6          8          3         10         15         14          6         12         16 
-         2          6          4          8         15         11          7         14         16         13 
-         3          6          2          4         11          9          1          7         13          5 
-         4          6          2          3         10          9          4          8         15         11 
-         5          6          1          6         12          5          2          3         10          9 
+         1          6          8          3         10         15         14          6         12         16
+         2          6          4          8         15         11          7         14         16         13
+         3          6          2          4         11          9          1          7         13          5
+         4          6          2          3         10          9          4          8         15         11
+         5          6          1          6         12          5          2          3         10          9
 End Elements
 
 Begin Conditions SurfaceLoadCondition3D4N// GUI group identifier: Load on surfaces Auto1

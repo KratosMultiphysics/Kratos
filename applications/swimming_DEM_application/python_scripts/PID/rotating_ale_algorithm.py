@@ -11,6 +11,9 @@ class Algorithm(BaseAlgorithm):
     def __init__(self, varying_parameters = Parameters("{}")):
         BaseAlgorithm.__init__(self, varying_parameters)
         self.SetRotator()
+        self.time_full_flow = 0.05
+        self.inlet_group_number = 4
+        self.inlet_velocity = - 9.06
 
     def SetRotator(self):
         self.rotator = MeshRotationUtility(self.pp.CFD_DEM)
@@ -68,6 +71,7 @@ class Algorithm(BaseAlgorithm):
             BaseAlgorithm.SetFluidLoader(self)
 
     def FluidSolve(self, time='None', solve_system=True):
+        self.SetInletVelocity(time)
         rotated_stationary_flow_option = self.pp.CFD_DEM["rotated_stationary_flow_option"].GetBool()
         averaging_has_already_been_done = self.pp.CFD_DEM["averaging_has_already_been_done"].GetBool()
 
@@ -79,3 +83,13 @@ class Algorithm(BaseAlgorithm):
 
         if rotated_stationary_flow_option and not solve_system:
             self.rotator.RotateFluidVelocities(time)
+
+    def SetInletVelocity(self, time):
+        if time <= self.time_full_flow:
+            alpha = math.sin(0.5 * math.pi * time / self.time_full_flow)
+            self.fluid_model_part.GetProperties()[self.inlet_group_number][IMPOSED_VELOCITY_Z_VALUE] = alpha * self.inlet_velocity
+
+            for node in self.fluid_model_part.GetMesh(self.inlet_group_number).Nodes:
+                node.SetSolutionStepValue(VELOCITY_Z, alpha * self.inlet_velocity)
+        else:
+            pass

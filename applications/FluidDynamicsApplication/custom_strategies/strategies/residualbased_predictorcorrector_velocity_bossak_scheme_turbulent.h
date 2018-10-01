@@ -30,6 +30,7 @@
 #include "includes/cfd_variables.h"
 #include "containers/array_1d.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/dof_updater.h"
 #include "utilities/coordinate_transformation_utilities.h"
 #include "processes/process.h"
 
@@ -139,7 +140,6 @@ namespace Kratos {
          */
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
             double NewAlphaBossak,
-            double MoveMeshStrategy,
             unsigned int DomainSize,
             const Variable<int>& rPeriodicIdVar)
         :
@@ -151,7 +151,7 @@ namespace Kratos {
             mAlphaBossak = NewAlphaBossak;
             mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
             mGammaNewmark = 0.5 - mAlphaBossak;
-            mMeshVelocity = MoveMeshStrategy;
+            mMeshVelocity = 0.0;
 
 
             //Allocate auxiliary memory
@@ -247,7 +247,7 @@ namespace Kratos {
 
             mRotationTool.RotateVelocities(r_model_part);
 
-            BasicUpdateOperations(r_model_part, rDofSet, A, Dv, b);
+            mpDofUpdater->UpdateDofs(rDofSet,Dv);
 
             mRotationTool.RecoverVelocities(r_model_part);
 
@@ -257,37 +257,6 @@ namespace Kratos {
         }
 
         //***************************************************************************
-
-        virtual void BasicUpdateOperations(ModelPart& rModelPart,
-                                           DofsArrayType& rDofSet,
-                                           TSystemMatrixType& A,
-                                           TSystemVectorType& Dv,
-                                           TSystemVectorType& b)
-        {
-            KRATOS_TRY
-
-            int NumThreads = OpenMPUtils::GetNumThreads();
-            OpenMPUtils::PartitionVector DofSetPartition;
-            OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
-
-            //update of velocity (by DOF)
-            #pragma omp parallel
-            {
-                int k = OpenMPUtils::ThisThread();
-
-                typename DofsArrayType::iterator DofSetBegin = rDofSet.begin() + DofSetPartition[k];
-                typename DofsArrayType::iterator DofSetEnd = rDofSet.begin() + DofSetPartition[k + 1];
-
-                for (typename DofsArrayType::iterator itDof = DofSetBegin; itDof != DofSetEnd; itDof++) {
-                    if (itDof->IsFree()) {
-                        itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dv, itDof->EquationId());
-                    }
-                }
-
-            }
-
-            KRATOS_CATCH("")
-        }
 
         void AdditionalUpdateOperations(ModelPart& rModelPart,
                                         DofsArrayType& rDofSet,
@@ -321,26 +290,20 @@ namespace Kratos {
 
                     if (mMeshVelocity == 2)//Lagrangian
                     {
-                        array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
-                        array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-
-                        array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
-
-    
-                        
                         if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
-			{
-			    noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
-			    UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
-			}
-			else
-			{
-			  itNode->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
-			  itNode->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
-			  itNode->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
-			  itNode->FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
-			}
-			
+                        {
+                            array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
+                            array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+                            array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
+
+                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
+                            UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
+                        }
+                        else
+                        {
+                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
+                            noalias(itNode->FastGetSolutionStepValue(DISPLACEMENT)) = ZeroVector(3);
+                        }
                     }
                 }
             }
@@ -635,8 +598,7 @@ namespace Kratos {
                 }//end of loop over nodes
 
                 //loop on nodes to compute ADVPROJ   CONVPROJ NODALAREA
-                array_1d<double, 3 > output(3,0.0);
-
+                array_1d<double, 3 > output = ZeroVector(3);
 
                 const int nel = static_cast<int>(rModelPart.Elements().size());
                 auto elbegin = rModelPart.ElementsBegin();
@@ -684,6 +646,13 @@ namespace Kratos {
             {
                 auto itNode = rModelPart.NodesBegin() + k;
                 (itNode->FastGetSolutionStepValue(REACTION)).clear();
+
+                // calculating relaxed acceleration
+                const array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 0);
+                const array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
+                const array_1d<double, 3> relaxed_acceleration = (1 - mAlphaBossak) * CurrentAcceleration
+                                                                    + mAlphaBossak * OldAcceleration;
+                (itNode)->SetValue(RELAXED_ACCELERATION, relaxed_acceleration);
             }
 
             //for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
@@ -751,6 +720,12 @@ namespace Kratos {
         //************************************************************************************************
         //************************************************************************************************
 
+        /// Free memory allocated by this object.
+        void Clear() override
+        {
+            this->mpDofUpdater->Clear();
+        }
+
         /*@} */
         /**@name Operations */
         /*@{ */
@@ -804,90 +779,87 @@ namespace Kratos {
         /**@name Protected Operators*/
         /*@{ */
 
-
         /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
          * both sides of the boundary. This is done using the conditions and the non-historical nodal data containers as follows:\n
          * 1- The partition that owns the PeriodicCondition adds the values on both nodes to their non-historical containers.\n
-         * 2- The non-historical containers are added across processes, transmiting the right value from the condition owner to all partitions.\n
+         * 2- The non-historical containers are added across processes, communicating the right value from the condition owner to all partitions.\n
          * 3- The value on all periodic nodes is replaced by the one received in step 2.
          */
         void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
         {
-            if (mrPeriodicIdVar.Key() != 0)
-            {
-                for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
-                {
-                    ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
-                    if (rGeom.PointsNumber() == 2)
-                    {
-                        Node<3>& rNode0 = rGeom[0];
-                        int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
+            const int num_nodes = rModelPart.NumberOfNodes();
+            const int num_conditions = rModelPart.NumberOfConditions();
 
-                        Node<3>& rNode1 = rGeom[1];
-                        int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
+            #pragma omp parallel for
+            for (int i = 0; i < num_nodes; i++) {
+                auto it_node = rModelPart.NodesBegin() + i;
 
-                        // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
-                        if ( ( static_cast<int>(rNode0.Id()) == Node1Pair ) && (static_cast<int>(rNode1.Id()) == Node0Pair ) )
-                        {
-                            double NodalArea = rNode0.FastGetSolutionStepValue(NODAL_AREA) + rNode1.FastGetSolutionStepValue(NODAL_AREA);
-                            array_1d<double,3> AdvProj = rNode0.FastGetSolutionStepValue(ADVPROJ) + rNode1.FastGetSolutionStepValue(ADVPROJ);
-                            double DivProj = rNode0.FastGetSolutionStepValue(DIVPROJ) + rNode1.FastGetSolutionStepValue(DIVPROJ);
+                it_node->SetValue(NODAL_AREA,0.0);
+                it_node->SetValue(ADVPROJ,ZeroVector(3));
+                it_node->SetValue(DIVPROJ,0.0);
+            }
 
-                            rNode0.GetValue(NODAL_AREA) = NodalArea;
-                            rNode0.GetValue(ADVPROJ) = AdvProj;
-                            rNode0.GetValue(DIVPROJ) = DivProj;
+            #pragma omp parallel for
+            for (int i = 0; i < num_conditions; i++) {
+                auto it_cond = rModelPart.ConditionsBegin() + i;
 
-                            rNode1.GetValue(NODAL_AREA) = NodalArea;
-                            rNode1.GetValue(ADVPROJ) = AdvProj;
-                            rNode1.GetValue(DIVPROJ) = DivProj;
-                        }
-                    }
-                    else if (rGeom.PointsNumber() == 4)
-                    {
-                        double NodalArea = 0.0;
-                        array_1d<double,3> AdvProj(3,0.0);
-                        double DivProj = 0.0;
-                        for ( unsigned int i = 0; i < 4; i++ )
-                        {
-                            NodalArea += rGeom[i].FastGetSolutionStepValue(NODAL_AREA);
-                            AdvProj += rGeom[i].FastGetSolutionStepValue(ADVPROJ);
-                            DivProj += rGeom[i].FastGetSolutionStepValue(DIVPROJ);
-                        }
-
-                        for ( unsigned int i = 0; i < 4; i++ )
-                        {
-                            rGeom[i].GetValue(NODAL_AREA) = NodalArea;
-                            rGeom[i].GetValue(ADVPROJ) = AdvProj;
-                            rGeom[i].GetValue(DIVPROJ) = DivProj;
-                        }
-
-                    }
+                if(it_cond->Is(PERIODIC)) {
+                    this->AssemblePeriodicContributionToProjections(it_cond->GetGeometry());
                 }
+            }
 
-                rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
-                rModelPart.GetCommunicator().AssembleNonHistoricalData(ADVPROJ);
-                rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
+            rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
+            rModelPart.GetCommunicator().AssembleNonHistoricalData(ADVPROJ);
+            rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
 
-                for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
-                {
-                    if (itNode->GetValue(NODAL_AREA) != 0.0)
-                    {
-                        itNode->FastGetSolutionStepValue(NODAL_AREA) = itNode->GetValue(NODAL_AREA);
-                        itNode->FastGetSolutionStepValue(ADVPROJ) = itNode->GetValue(ADVPROJ);
-                        itNode->FastGetSolutionStepValue(DIVPROJ) = itNode->GetValue(DIVPROJ);
-
-                        // reset for next iteration
-                        itNode->GetValue(NODAL_AREA) = 0.0;
-                        itNode->GetValue(ADVPROJ) = array_1d<double,3>(3,0.0);
-                        itNode->GetValue(DIVPROJ) = 0.0;
-                    }
-                }
+            #pragma omp parallel for
+            for (int i = 0; i < num_nodes; i++) {
+                auto it_node = rModelPart.NodesBegin() + i;
+                this->CorrectContributionsOnPeriodicNode(*it_node);
             }
         }
 
+        void AssemblePeriodicContributionToProjections(Geometry< Node<3> >& rGeometry)
+        {
+            unsigned int nodes_in_cond = rGeometry.PointsNumber();
 
+            double nodal_area = 0.0;
+            array_1d<double,3> momentum_projection = ZeroVector(3);
+            double mass_projection = 0.0;
+            for ( unsigned int i = 0; i < nodes_in_cond; i++ )
+            {
+                auto& r_node = rGeometry[i];
+                nodal_area += r_node.FastGetSolutionStepValue(NODAL_AREA);
+                noalias(momentum_projection) += r_node.FastGetSolutionStepValue(ADVPROJ);
+                mass_projection += r_node.FastGetSolutionStepValue(DIVPROJ);
+            }
 
+            for ( unsigned int i = 0; i < nodes_in_cond; i++ )
+            {
+                auto& r_node = rGeometry[i];
+                /* Note that this loop is expected to be threadsafe in normal conditions,
+                * since each node should belong to a single periodic link. However, I am
+                * setting the locks for openmp in case that we try more complicated things
+                * in the future (like having different periodic conditions for different
+                * coordinate directions).
+                */
+                r_node.SetLock();
+                r_node.GetValue(NODAL_AREA) = nodal_area;
+                noalias(r_node.GetValue(ADVPROJ)) = momentum_projection;
+                r_node.GetValue(DIVPROJ) = mass_projection;
+                r_node.UnSetLock();
+            }
+        }
 
+        void CorrectContributionsOnPeriodicNode(Node<3>& rNode)
+        {
+            if (rNode.GetValue(NODAL_AREA) != 0.0) // Only periodic nodes will have a non-historical NODAL_AREA set.
+            {
+                rNode.FastGetSolutionStepValue(NODAL_AREA) = rNode.GetValue(NODAL_AREA);
+                noalias(rNode.FastGetSolutionStepValue(ADVPROJ)) = rNode.GetValue(ADVPROJ);
+                rNode.FastGetSolutionStepValue(DIVPROJ) = rNode.GetValue(DIVPROJ);
+            }
+        }
 
 
         //*********************************************************************************
@@ -910,7 +882,7 @@ namespace Kratos {
                                 const array_1d<double, 3 > & DeltaVel,
                                 const array_1d<double, 3 > & OldAcceleration)
         {
-            noalias(CurrentAcceleration) = ma0 * DeltaVel + ma2*OldAcceleration;
+            noalias(CurrentAcceleration) = ma0 * DeltaVel + ma2 * OldAcceleration;
         }
 
 
@@ -1028,6 +1000,8 @@ namespace Kratos {
         const Variable<int>& mrPeriodicIdVar;
 
         Process::Pointer mpTurbulenceModel;
+
+        typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
         /*@} */
         /**@name Private Operators*/

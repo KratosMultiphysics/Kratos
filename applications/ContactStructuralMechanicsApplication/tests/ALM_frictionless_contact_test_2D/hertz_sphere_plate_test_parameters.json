@@ -73,7 +73,7 @@
     }],
     "loads_process_list"       : [{
         "python_module"   : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module" : "ContactStructuralMechanicsApplication",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "AssignVectorByDirectionToConditionProcess",
         "Parameters"            : {
@@ -87,13 +87,13 @@
     "contact_process_list" :[
     {
         "python_module"   : "alm_contact_process",
-        "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module"   : "ContactStructuralMechanicsApplication",
         "help"                  : "",
         "process_name"          : "ALMContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "assume_master_slave"         : "Parts_parts_hemisphere",
-            "contact_model_part"          : "Contact_Part",
+            "assume_master_slave"         : { "0" : ["Parts_parts_hemisphere"]},
+            "contact_model_part"          : { "0" : ["Contact_Part"]},
             "contact_type"                : "Frictionless"
         }
     }],

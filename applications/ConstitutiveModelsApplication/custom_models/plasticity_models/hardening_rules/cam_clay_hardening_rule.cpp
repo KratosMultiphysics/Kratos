@@ -50,7 +50,7 @@ namespace Kratos
 
   HardeningRule::Pointer CamClayHardeningRule::Clone() const
   {
-    return ( HardeningRule::Pointer(new CamClayHardeningRule(*this)) );
+    return Kratos::make_shared<CamClayHardeningRule>(*this);
   }
 
 
@@ -85,10 +85,10 @@ namespace Kratos
     rHardening = -rFirstPreconsolidationPressure*(std::exp (-rVolumetricPlasticDeformation/(rOtherSlope-rSwellingSlope)) ) ;
 
     return rHardening;
-	
+
     KRATOS_CATCH(" ")
   }
-  
+
 
 
   //*******************************CALCULATE HARDENING DERIVATIVE***********************
@@ -97,7 +97,7 @@ namespace Kratos
   double& CamClayHardeningRule::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
   {
     KRATOS_TRY
-      
+
     const ModelDataType & rModelData = rVariables.GetModelData();
     const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
     const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
@@ -116,7 +116,7 @@ namespace Kratos
     rDeltaHardening = (2.0*MeanStress-PreconsolidationStress) ;
     rDeltaHardening *= (-MeanStress);
     rDeltaHardening *= PreconsolidationStress/ ( rOtherSlope - rSwellingSlope);
-    return rDeltaHardening;	
+    return rDeltaHardening;
 
     KRATOS_CATCH(" ")
   }

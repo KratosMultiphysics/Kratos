@@ -1,0 +1,182 @@
+{
+    "model_settings"           : {
+	"model_name": "Main_Domain",
+	"dimension"       : 2,
+	"bodies_list":[
+	    {
+		"body_type": "Solid",
+		"body_name": "Solid_group_DeformableBodies-auto-1",
+		"parts_list": ["group_DeformableBodies-auto-1"]
+	    },
+	    {
+		"body_type": "Rigid",
+		"body_name": "Rigid_group_RigidBodies-auto-1",
+		"parts_list": ["group_RigidBodies-auto-1"]
+	    }
+	],
+	"domain_parts_list" : [
+	    "group_DeformableBodies-auto-1",
+	    "group_RigidBodies-auto-1"
+	],
+	"processes_parts_list" : [
+	    "group_LINEAR_MOVEMENT-auto-1",
+	    "group_LINEAR_MOVEMENT-auto-2",
+	    "group_LINEAR_MOVEMENT-auto-3",
+	    "line-to-test"
+	]
+    },
+    "solver_settings"          : {
+	"solver_type" : "solid_mechanics_static_solver",
+	"Parameters"  : {
+	    "time_settings"             : {
+		"time_step"  : 0.01,
+		"start_time" : 0.0,
+		"end_time"   : 0.1
+	    },
+	    "time_integration_settings" : {
+		"solution_type"         : "Static",
+		"integration_method"    : "Non-Linear"
+	    },
+	    "linear_solver_settings"   : {
+		"solver_type"    : "SuperLUSolver",
+		"scaling"        : false
+	    }
+	}
+    },
+    "problem_process_list" : [
+	{
+	    "help"            : "This process applies parametric walls and search contact",
+	    "kratos_module"   : "KratosMultiphysics.ContactMechanicsApplication",
+	    "python_module"   : "parametric_walls_process",
+	    "process_name"    : "ParametricWallsProcess",
+	    "Parameters"      : {
+		"model_part_name"      : "Main_Domain",
+		"search_control_type"  : "step",
+		"search_frequency"     : 0.0,
+		"parametric_walls" : [
+		    {
+			"python_module": "parametric_wall",
+			"model_part_name" : "Rigid_group_RigidBodies-auto-1",
+			"rigid_body_settings":{
+			    "rigid_body_element_type": "TranslatoryRigidBodyElement2D1N",
+			    "fixed_body": true,
+			    "compute_body_parameters": false,
+			    "rigid_body_model_part_name": "Rigid_group_RigidBodies-auto-1",
+			    "rigid_body_parameters":{
+				"center_of_gravity": [0,0,0],
+				"mass": 0,
+				"main_inertias": [0, 0, 0],
+				"main_axes": [ [1,0,0], [0,1,0], [0,0,1] ]
+			    }
+			},
+			"bounding_box_settings":{
+			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+			    "bounding_box_type": "PlaneBoundingBox",
+			    "bounding_box_parameters":{
+				"parameters_list":[
+				    {
+					"point": [0, 1, 0],
+					"normal": [0, -1, 0],
+					"convexity": 1
+				    }
+				],
+				"velocity" : [0,0,0],
+				"plane_size": 1.0
+			    }
+			},
+			"contact_search_settings":{
+			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+			    "contact_search_type": "ParametricWallContactSearch",
+			    "contact_parameters":{
+				"contact_condition_type": "EPPointContactPenaltyCondition2D1N",
+				"kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+				"friction_law_type": "HardeningCoulombFrictionLaw",
+				"variables_of_properties":{
+				    "FRICTION_ACTIVE": true,
+				    "MU_STATIC": 0.0,
+				    "MU_DYNAMIC": 0.0,
+				    "PENALTY_PARAMETER": 10,
+				    "TANGENTIAL_PENALTY_RATIO": 0.1,
+				    "TAU_STAB": 1
+				}
+			    }
+			}
+		    }
+		]
+	    }
+	}],
+    "constraints_process_list" : [
+	{
+	    "help"            : "This process imposes a vector constraint",
+	    "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+	    "python_module"   : "assign_vector_components_to_nodes_process",
+	    "process_name"    : "AssignVectorComponentsToNodesProcess",
+	    "Parameters"      : {
+		"model_part_name" : "group_LINEAR_MOVEMENT-auto-1",
+		"variable_name"   : "DISPLACEMENT",
+		"interval"        : [0.0, "End"],
+		"value"           : [
+		    0.0,
+		    0.0,
+		    0.0
+		]
+	    }
+	},
+	{
+	    "help"            : "This process imposes a vector constraint",
+	    "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+	    "python_module"   : "assign_vector_components_to_nodes_process",
+	    "process_name"    : "AssignVectorComponentsToNodesProcess",
+	    "Parameters"      : {
+		"model_part_name" : "group_LINEAR_MOVEMENT-auto-2",
+		"variable_name"   : "DISPLACEMENT",
+		"interval"        : [0.0, "End"],
+		"value"           : [
+		    0.0,
+		    "-t",
+		    0.0
+		]
+	    }
+	},
+	{
+	    "help"            : "This process imposes a vector constraint",
+	    "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+	    "python_module"   : "assign_vector_components_to_nodes_process",
+	    "process_name"    : "AssignVectorComponentsToNodesProcess",
+	    "Parameters"      : {
+		"model_part_name" : "group_LINEAR_MOVEMENT-auto-3",
+		"variable_name"   : "DISPLACEMENT",
+		"interval"        : [0.0, "End"],
+		"value"           : [
+		    0.0,
+		    null,
+		    0.0
+		]
+	    }
+	}
+    ],
+    "check_process_list" : [
+	{
+            "python_module"   : "check_scalar_on_nodes_process",
+            "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+            "process_name"    : "CheckScalarOnNodesProcess",
+            "Parameters"      : {
+		"model_part_name" : "line-to-test",
+		"variable_name"   : "DISPLACEMENT_Y",
+		"interval"        : [0.0, "End"],
+		"value"           : "-t",
+		"tolerance_rank"  : 3
+            }
+	},
+	{
+            "python_module"   : "check_scalar_on_elements_process",
+            "kratos_module"   : "KratosMultiphysics.ContactMechanicsApplication",
+            "process_name"    : "CheckScalarOnElementsProcess",
+            "Parameters"      : {
+		"model_part_name" : "group_DeformableBodies-auto-1",
+		"variable_name"   : "CAUCHY_STRESS_TENSOR",
+		"tolerance_rank"  : 3
+            }
+	}
+    ]
+}

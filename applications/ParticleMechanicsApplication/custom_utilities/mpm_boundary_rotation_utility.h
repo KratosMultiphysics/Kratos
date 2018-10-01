@@ -27,7 +27,7 @@
 
 namespace Kratos {
 
-///@addtogroup FluidDynamicsApplication
+///@addtogroup ParticleMechanicsApplication
 ///@{
 
 ///@name Kratos Globals
@@ -78,8 +78,9 @@ public:
 	 */
 	MPMBoundaryRotationUtility(
         const unsigned int DomainSize,
+		const unsigned int BlockSize,
 		const Variable<double>& rVariable):
-    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,DomainSize,rVariable,0.0)
+    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,rVariable,0.0)
 	{}
 
 	/// Destructor.
@@ -107,8 +108,17 @@ public:
 		TLocalVectorType& rLocalVector,
 		GeometryType& rGeometry) const override
 	{
-        if (this->GetDomainSize() == 2) this->template RotateAuxPure<2>(rLocalMatrix,rLocalVector,rGeometry);
-        else if (this->GetDomainSize() == 3) this->template RotateAuxPure<3>(rLocalMatrix,rLocalVector,rGeometry);
+		if (this->GetBlockSize() == this->GetDomainSize()) // irreducible case
+		{
+			if (this->GetDomainSize() == 2) this->template RotateAuxPure<2>(rLocalMatrix,rLocalVector,rGeometry);
+			else if (this->GetDomainSize() == 3) this->template RotateAuxPure<3>(rLocalMatrix,rLocalVector,rGeometry);
+		}
+		else // mixed formulation case
+		{
+			if (this->GetDomainSize() == 2) this->template RotateAux<2,3>(rLocalMatrix,rLocalVector,rGeometry);
+			else if (this->GetDomainSize() == 3) this->template RotateAux<3,4>(rLocalMatrix,rLocalVector,rGeometry);
+		}
+
 	}
 
 	/// RHS only version of Rotate
@@ -159,7 +169,7 @@ public:
 						rLocalMatrix(j,i) = 0.0;
 					}
 
-					rLocalVector(j) = inner_prod(rN,Displacement);
+					rLocalVector[j] = inner_prod(rN,Displacement);
 					rLocalMatrix(j,j) = 1.0;
 				}
 			}
@@ -177,7 +187,7 @@ public:
 				if( this->IsSlip(rGeometry[itNode]) )
 				{
 					// We fix the first momentum dof (normal component) for each rotated block
-					unsigned int j = itNode * this->GetBlockSize(); // +1 assumes DOF ordering as density-momentum-energy
+					unsigned int j = itNode * this->GetBlockSize(); // +1 
 
 					// Get the displacement of the boundary mesh, this does not assume that the mesh is moving.
 					// If the mesh is moving, need to consider the displacement of the moving mesh into account.
@@ -200,7 +210,7 @@ public:
 		TLocalVectorType Tmp(this->GetDomainSize());
 
 		ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
-#pragma omp parallel for firstprivate(displacement,Tmp)
+		#pragma omp parallel for firstprivate(displacement,Tmp)
 		for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
 		{
 			ModelPart::NodeIterator itNode = it_begin+iii;
@@ -239,7 +249,7 @@ public:
 		TLocalVectorType Tmp(this->GetDomainSize());
 
 		ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
-#pragma omp parallel for firstprivate(displacement,Tmp)
+		#pragma omp parallel for firstprivate(displacement,Tmp)
 		for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
 		{
 			ModelPart::NodeIterator itNode = it_begin+iii;

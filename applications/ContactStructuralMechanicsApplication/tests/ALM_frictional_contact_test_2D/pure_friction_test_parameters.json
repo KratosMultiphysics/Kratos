@@ -27,6 +27,7 @@
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 20,
+        "buffer_size"                        : 3,
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","CONTACT_Contact_Auto1","LineLoad2D_Load_on_lines_Auto1"],
         "contact_settings"                   : {
@@ -61,13 +62,13 @@
     }],
     "contact_process_list"     : [{
         "python_module" : "alm_contact_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module" : "ContactStructuralMechanicsApplication",
         "help"          : "This process computes the contact between different surfaces",
         "process_name"  : "ALMContactProcess",
         "Parameters"    : {
             "model_part_name"             : "Structure",
-            "assume_master_slave"         : "Parts_Parts_Auto2",
-            "contact_model_part"          : "CONTACT_Contact_Auto1",
+            "assume_master_slave"         : { "0" : ["Parts_Parts_Auto2"]},
+            "contact_model_part"          : { "0" : ["CONTACT_Contact_Auto1"]},
             "contact_type"                : "Frictional"
         }
     }],

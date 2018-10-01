@@ -127,6 +127,10 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     static std::unordered_set<std::string>&
     GetApplicationsList();
 
+    static std::string Version();
+
+    static std::string BuildType();
+
     ///@}
    protected:
    private:

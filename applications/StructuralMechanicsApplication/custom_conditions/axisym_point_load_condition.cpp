@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -21,10 +21,10 @@ namespace Kratos
 {
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
-    
-    AxisymPointLoadCondition::AxisymPointLoadCondition( 
+
+    AxisymPointLoadCondition::AxisymPointLoadCondition(
         IndexType NewId,
-        GeometryType::Pointer pGeometry 
+        GeometryType::Pointer pGeometry
         )
             : PointLoadCondition( NewId, pGeometry )
     {
@@ -34,10 +34,10 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    AxisymPointLoadCondition::AxisymPointLoadCondition( 
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry, 
-        PropertiesType::Pointer pProperties 
+    AxisymPointLoadCondition::AxisymPointLoadCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties
         )
             : PointLoadCondition( NewId, pGeometry, pProperties )
     {
@@ -45,11 +45,23 @@ namespace Kratos
 
     //********************************* CREATE *******************************************
     //************************************************************************************
-    
-    Condition::Pointer AxisymPointLoadCondition::Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes, 
-        PropertiesType::Pointer pProperties 
+
+    Condition::Pointer AxisymPointLoadCondition::Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const
+    {
+        return Kratos::make_shared<AxisymPointLoadCondition>( NewId, pGeom, pProperties );
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    Condition::Pointer AxisymPointLoadCondition::Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const
     {
         return Kratos::make_shared<AxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
@@ -57,7 +69,7 @@ namespace Kratos
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
-    
+
     AxisymPointLoadCondition::~AxisymPointLoadCondition()
     {
     }
@@ -68,14 +80,14 @@ namespace Kratos
 
     double AxisymPointLoadCondition::GetPointLoadIntegrationWeight()
     {
-        // We calculate the axisymmetric coefficient 
+        // We calculate the axisymmetric coefficient
         const double Radius = StructuralMechanicsMathUtilities::CalculateRadiusPoint(GetGeometry());
         const double Thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
         const double AxiSymCoefficient = 2.0 * Globals::Pi * Radius/Thickness;
-        
+
         return AxiSymCoefficient;
     }
-    
+
 
     //************************************************************************************
     //************************************************************************************
@@ -85,10 +97,10 @@ namespace Kratos
         rSerializer.save( "Name", "AxisymPointLoadCondition" );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PointLoadCondition );
     }
-    
+
     //************************************************************************************
     //************************************************************************************
-    
+
     void AxisymPointLoadCondition::load( Serializer& rSerializer )
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PointLoadCondition );

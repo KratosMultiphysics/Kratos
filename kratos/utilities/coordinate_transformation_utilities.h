@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:   
-//                    
+//  Main authors:
+//
 //
 
 
@@ -591,7 +591,7 @@ protected:
 		BoundedMatrix<double,TBlockSize,TBlockSize>& rRot,
 		GeometryType::PointType& rThisPoint) const
 	{
-		noalias(rRot) = IdentityMatrix(TBlockSize,TBlockSize);
+		noalias(rRot) = IdentityMatrix(TBlockSize);
 
 		// Get the normal evaluated at the node
 		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
@@ -610,12 +610,12 @@ protected:
 		BoundedMatrix<double,TBlockSize,TBlockSize>& rRot,
 		GeometryType::PointType& rThisPoint) const
 	{
-		noalias(rRot) = IdentityMatrix(TBlockSize,TBlockSize);
+		noalias(rRot) = IdentityMatrix(TBlockSize);
 
 		// Get the normal evaluated at the node
 		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
 
-		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1];
+		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1] + rNormal[2]*rNormal[2];
 		aux = sqrt(aux);
 		rRot(TSkip,TSkip  ) = rNormal[0]/aux;
 		rRot(TSkip,TSkip+1) = rNormal[1]/aux;
@@ -627,7 +627,7 @@ protected:
 		rT1(0) = 1.0;
 		rT1(1) = 0.0;
 		rT1(2) = 0.0;
-		double dot = rRot(0,0);//this->Dot(rN,rT1);
+		double dot = rRot(TSkip,TSkip);//this->Dot(rN,rT1);
 
 		// It is possible that the normal is aligned with (1,0,0), resulting in norm(rT1) = 0
 		// If this is the case, repeat the procedure using (0,1,0)
@@ -637,13 +637,13 @@ protected:
 			rT1(1) = 1.0;
 			rT1(2) = 0.0;
 
-			dot = rRot(0,1); //this->Dot(rN,rT1);
+			dot = rRot(TSkip,TSkip+1); //this->Dot(rN,rT1);
 		}
 
 		// calculate projection and normalize
-		rT1[0] -= dot*rRot(0,0);
-		rT1[1] -= dot*rRot(0,1);
-		rT1[2] -= dot*rRot(0,2);
+		rT1[0] -= dot*rRot(TSkip,TSkip);
+		rT1[1] -= dot*rRot(TSkip,TSkip+1);
+		rT1[2] -= dot*rRot(TSkip,TSkip+2);
 		this->Normalize(rT1);
 		rRot(TSkip+1,TSkip  ) = rT1[0];
 		rRot(TSkip+1,TSkip+1) = rT1[1];
@@ -936,7 +936,7 @@ private:
 			}
 		}
 	}
-	
+
 	///@}
 	///@name Private  Access
 	///@{

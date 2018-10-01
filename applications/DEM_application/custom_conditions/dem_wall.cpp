@@ -142,7 +142,7 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
 
  
 double DEMWall::GetYoung()                                                      { return GetProperties()[YOUNG_MODULUS]; }
-double DEMWall::GetTgOfFrictionAngle()                                          { return GetProperties()[WALL_FRICTION]; }
+double DEMWall::GetTgOfFrictionAngle()                                          { return GetProperties()[FRICTION]; }
 double DEMWall::GetPoisson()                                                    { return GetProperties()[POISSON_RATIO]; }
  
 

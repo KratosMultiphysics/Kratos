@@ -35,7 +35,7 @@
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "includes/matrix_market_interface.h"
-
+#include "utilities/dof_updater.h"
 
 namespace Kratos
 {
@@ -129,6 +129,13 @@ public:
     typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+    template<typename T> using compressed_matrix = boost::numeric::ublas::compressed_matrix<T>;
+#endif // ifdef KRATOS_USE_AMATRIX
+
+    typedef DofUpdater< UblasSpace<TDataType,TMatrixType,TVectorType> > DofUpdaterType;
+    typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -187,20 +194,27 @@ public:
     }
 
     /// rXi = rMij
+	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+	template<typename TColumnType>
+	static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+	{
+		if (rX.size() != rM.size1())
+			rX.resize(rM.size1(), false);
 
-    static void GetColumn(unsigned int j, MatrixType& rM, VectorType& rX)
-    {
-        rX = column(rM, j);
-    }
+		for (std::size_t i = 0; i < rM.size1(); i++) {
+			rX[i] = rM(i, j);
+		}
+	}
 
+	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+	template<typename TColumnType>
+	static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+	{
+		for (std::size_t i = 0; i < rM.size1(); i++) {
+			rM(i,j) = rX[i];
+		}
+	}
 
-    ///////////////////////////////// TODO: Take a close look to this method!!!!!!!!!!!!!!!!!!!!!!!!!
-    /// rMij = rXi
-
-    static void SetColumn(unsigned int j, MatrixType& rM, VectorType& rX)
-    {
-        rX = row(rM, j);
-    }
 
     /// rY = rX
 
@@ -276,7 +290,7 @@ public:
 #endif
         return std::sqrt(aux_sum);
     }
-    
+
     /**
      * This method computes the Jacobi norm
      * @param rA The matrix to compute the Jacobi norm
@@ -285,13 +299,13 @@ public:
     static TDataType JacobiNorm(MatrixType const& rA)
     {
         TDataType aux_sum = TDataType();
-        
+
 #ifndef _OPENMP
         for (int i = 0; i < static_cast<int>(rA.size1()); i++)
         {
             for (int j = 0; j < static_cast<int>(rA.size2()); j++)
             {
-                if (i != j) 
+                if (i != j)
                 {
                     aux_sum += std::abs(rA(i,j));
                 }
@@ -303,7 +317,7 @@ public:
         {
             for (int j = 0; j < static_cast<int>(rA.size2()); j++)
             {
-                if (i != j) 
+                if (i != j)
                 {
                     aux_sum += std::abs(rA(i,j));
                 }
@@ -330,7 +344,7 @@ public:
 
     static void TransposeMult(MatrixType& rA, VectorType& rX, VectorType& rY)
     {
-        axpy_prod(rX, rA, rY, true);
+		boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
     } // rY = rAT * rX
 
     static inline SizeType GraphDegree(IndexType i, TMatrixType& A)
@@ -716,13 +730,13 @@ public:
 
     //***********************************************************************
 
-    inline static double GetValue(const VectorType& x, std::size_t I)
+    inline static TDataType GetValue(const VectorType& x, std::size_t I)
     {
         return x[I];
     }
     //***********************************************************************
 
-    static void GatherValues(const VectorType& x, const std::vector<std::size_t>& IndexArray, double* pValues)
+    static void GatherValues(const VectorType& x, const std::vector<std::size_t>& IndexArray, TDataType* pValues)
     {
         KRATOS_TRY
 
@@ -733,17 +747,23 @@ public:
     }
 
     template< class TOtherMatrixType >
-    static bool WriteMatrixMarketMatrix(const char *FileName, TOtherMatrixType &M, bool Symmetric)
+    static bool WriteMatrixMarketMatrix(const char* pFileName, /*const*/ TOtherMatrixType& rM, const bool Symmetric)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
-        return Kratos::WriteMatrixMarketMatrix(FileName,M,Symmetric);
+        return Kratos::WriteMatrixMarketMatrix(pFileName, rM, Symmetric);
     }
 
     template< class VectorType >
-    static bool WriteMatrixMarketVector(const char *FileName, VectorType& V)
+    static bool WriteMatrixMarketVector(const char* pFileName, const VectorType& rV)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
-        return Kratos::WriteMatrixMarketVector(FileName,V);
+        return Kratos::WriteMatrixMarketVector(pFileName, rV);
+    }
+
+    static DofUpdaterPointerType CreateDofUpdater()
+    {
+        DofUpdaterType tmp;
+        return tmp.Create();
     }
 
     ///@}

@@ -68,34 +68,40 @@ void WriteMesh( GidIO<>& dummy, GidIO<>::MeshType& rThisMesh )
 }
 
 
-void DoublePrintOnGaussPoints( GidIO<>& dummy, const Variable<double>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+void FlagsPrintOnGaussPoints( GidIO<>& dummy, Kratos::Flags rFlag, std::string rFlagName,
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintFlagsOnGaussPoints( rFlag, rFlagName, rModelPart, SolutionTag );
+}
+
+void DoublePrintOnGaussPoints( GidIO<>& dummy, const Variable<double>& rVariable,
+                               ModelPart& rModelPart, double SolutionTag )
+{
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void IntPrintOnGaussPoints( GidIO<>& dummy, const Variable<int>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void Array1DPrintOnGaussPoints( GidIO<>& dummy, const Variable<array_1d<double,3> >& rVariable,
-                                ModelPart& r_model_part, double SolutionTag )
+                                ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void VectorPrintOnGaussPoints( GidIO<>& dummy, const Variable<Vector>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void MatrixPrintOnGaussPoints( GidIO<>& dummy, const Variable<Matrix>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 
@@ -140,15 +146,15 @@ void (GidIO<>::*local_axes_write_nodal_results_NH)( Variable<array_1d<double, 3>
 	= &GidIO<>::WriteLocalAxesOnNodesNonHistorical;
 
 //         void (GidIO::*pointer_to_double_cond_print_on_gauss_points)(const Variable<double>& rVariable,
-//               ModelPart& r_model_part, double SolutionTag) = &GidIO::CondPrintOnGaussPoints;
+//               ModelPart& rModelPart, double SolutionTag) = &GidIO::CondPrintOnGaussPoints;
 //         void (GidIO<>::*pointer_to_double_print_on_gauss_points)(const Variable<double >& rVariable,
-//               ModelPart& r_model_part, double SolutionTag)
+//               ModelPart& rModelPart, double SolutionTag)
 //                 = &GidIO<>::PrintOnGaussPoints;
 //         void (GidIO<>::*pointer_to_matrix_print_on_gauss_points)(const Variable<Matrix >& rVariable,
-//               ModelPart& r_model_part, double SolutionTag)
+//               ModelPart& rModelPart, double SolutionTag)
 //                 = &GidIO<>::PrintOnGaussPoints;
 //         void (GidIO<>::*pointer_to_vector_print_on_gauss_points)(const Variable<Vector >& rVariable,
-//               ModelPart& r_model_part, double SolutionTag)
+//               ModelPart& rModelPart, double SolutionTag)
 //                 = &GidIO<>::PrintOnGaussPoints;
 
 void ReadInitialValues1(IO& IO, IO::NodesContainerType& rThisNodes, IO::ElementsContainerType& rThisElements, IO::ConditionsContainerType& rThisConditions){ IO.ReadInitialValues(rThisNodes, rThisElements, rThisConditions);}
@@ -245,6 +251,7 @@ void  AddIOToPython(pybind11::module& m)
     .def("WriteLocalAxesOnNodesNonHistorical",local_axes_write_nodal_results_NH)
 
 //                     .def("PrintOnGaussPoints", pointer_to_double_print_on_gauss_points)
+    .def("PrintFlagsOnGaussPoints", FlagsPrintOnGaussPoints)
     .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
     .def("PrintOnGaussPoints", IntPrintOnGaussPoints)
     .def("PrintOnGaussPoints", Array1DPrintOnGaussPoints)

@@ -45,6 +45,14 @@ Element::Pointer IsotropicShellElement::Create(IndexType NewId, NodesArrayType c
     return Kratos::make_shared< IsotropicShellElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
+//************************************************************************************
+//************************************************************************************
+
+Element::Pointer IsotropicShellElement::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
+{
+    return Kratos::make_shared< IsotropicShellElement >(NewId, pGeom, pProperties);
+}
+
 IsotropicShellElement::~IsotropicShellElement()
 {
 }

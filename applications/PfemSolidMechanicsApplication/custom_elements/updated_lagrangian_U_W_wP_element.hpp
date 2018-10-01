@@ -52,6 +52,10 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef UpdatedLagrangianElement::ElementDataType ElementDataType;
 
     /// Counted pointer of LargeDisplacementUPElement
     KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUWwPElement );
@@ -208,21 +212,21 @@ protected:
      */
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
+                                    ElementDataType& rVariables,
                                     double& rIntegrationWeight) override;
 
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
      */
     virtual void CalculateAndAddKuum(MatrixType& rK,
-                                     ElementVariables & rVariables,
+                                     ElementDataType & rVariables,
                                      double& rIntegrationWeight
                                     ) override;
     /**
      * Calculation of the water Material Stiffness Matrix. 
      */
     virtual void CalculateAndAddKWwP(MatrixType& rK,
-                                     ElementVariables & rVariables,
+                                     ElementDataType & rVariables,
                                      double& rIntegrationWeight
                                     );
 
@@ -230,7 +234,7 @@ protected:
      * Calculation of the water pressure contrib to the internal forces 
      */
     virtual void CalculateAndAddKUwP(MatrixType& rK,
-                                     ElementVariables & rVariables,
+                                     ElementDataType & rVariables,
                                      double& rIntegrationWeight
                                     );
     /**
@@ -238,7 +242,7 @@ protected:
      */
 
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
+                                    ElementDataType& rVariables,
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight) override;
 
@@ -246,7 +250,7 @@ protected:
      * Calculation of the Internal Forces due to sigma. Fi = B * sigma
      */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           ) override;
 
@@ -254,7 +258,7 @@ protected:
      * Volumetric loads
      */
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           Vector & rVolumeForces,
           double& rIntegrationWeight
           ) override;
@@ -262,23 +266,39 @@ protected:
      * Fluid Linear Momentum balance equation
      */
     void CalculateAndAddFluidLinearMomentum(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           );
     /**
      * Mass balance for the mixture
      */
     void CalculateAndAddMassBalanceEquation(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           );
 
+
+    /**
+     * Part of the mass matrix due to the stabilization
+     */
+    virtual void CalculateAndAddMassStabilizationMatrix(MatrixType& rMassMatrix,
+          ElementDataType & rVariables,
+          double& rIntegrationWeight
+          );
+
+    /**
+     * Part of the damping matrix due to the stabilization
+     */
+    virtual void CalculateAndAddDampingStabilizationMatrix(MatrixType& rDampingMatrix,
+          ElementDataType & rVariables,
+          double& rIntegrationWeight
+          );
 
 
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    virtual void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -293,7 +313,7 @@ protected:
     /**
       * Calculate an estimate of the stabilization factor
       */
-    double & CalculateStabilizationFactor( ElementVariables & rVariables, double & rStabilizationFactor);
+    double & CalculateStabilizationFactor( ElementDataType & rVariables, double & rStabilizationFactor);
 
     ///@}
     ///@name Protected  Access

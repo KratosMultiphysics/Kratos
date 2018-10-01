@@ -2,6 +2,10 @@
     "input_settings":{
 	"materials_file_name" : "element_tests/beam_elements/beam_bending_materials.json"
     },
+    "time_settings" : {
+        "time_step"  : 1.0,
+        "end_time"   : 4
+    },
     "model_settings"           : {
         "domain_parts_list"    : ["Parts_Parts_Auto1"],
         "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto1","ROTATION_Rotation_Auto1","PointMoment3D_Moment_on_points_Auto1"]
@@ -9,20 +13,16 @@
     "solver_settings"          : {
         "solver_type" : "solid_mechanics_static_solver",
         "Parameters"  : {
-            "time_settings"             : {
-                "time_step"  : 1.0,
-                "end_time"   : 4
-            },
             "time_integration_settings" : {
                 "solution_type"      : "Static",
-                "integration_method" : "RotationStatic"
+                "integration_method" : "StaticStep"
             },
-            "solving_strategy_settings" : {
+            "convergence_criterion_settings" : {
                 "convergence_criterion"       : "Residual_criterion",
                 "residual_relative_tolerance" : 1e-6,
                 "residual_absolute_tolerance" : 1e-9
             },
-	    "dofs" : ["ROTATION"]
+	    "dofs" : ["DISPLACEMENT","ROTATION"]
         }
     },
     "constraints_process_list" : [{
