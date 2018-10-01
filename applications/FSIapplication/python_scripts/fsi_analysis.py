@@ -157,10 +157,10 @@ class FSIAnalysis(AnalysisStage):
         # Fluid domain processes
         # Note 1: gravity is constructed first. Outlet process might need its information.
         # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-        self._list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["gravity"] )
-        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["initial_conditions_process_list"] )
-        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["boundary_conditions_process_list"] )
-        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["auxiliar_process_list"] )
+        self._list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["processes"]["gravity"] )
+        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["processes"]["initial_conditions_process_list"] )
+        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["processes"]["boundary_conditions_process_list"] )
+        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["processes"]["auxiliar_process_list"] )
 
         # Structure domain processes
         self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["structure_solver_settings"]["constraints_process_list"] )
