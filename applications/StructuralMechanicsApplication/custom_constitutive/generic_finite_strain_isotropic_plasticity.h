@@ -107,10 +107,10 @@ public:
         : BaseType(rOther),
           mPlasticDissipation(rOther.mPlasticDissipation),
           mThreshold(rOther.mThreshold),
-          mPlasticStrain(rOther.mPlasticStrain),
+          mPlasticDeformationGradient(rOther.mPlasticDeformationGradient),
           mNonConvPlasticDissipation(rOther.mNonConvPlasticDissipation),
           mNonConvThreshold(rOther.mNonConvThreshold),
-          mNonConvPlasticStrain(rOther.mNonConvPlasticStrain),
+          mNonConvPlasticDeformationGradient(rOther.mNonConvPlasticDeformationGradient),
           mUniaxialStress(rOther.mUniaxialStress)
     {
     }
@@ -251,6 +251,18 @@ public:
         ) override;
 
     /**
+     * @brief Sets the value of a specified variable (Matrix)
+     * @param rThisVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<Matrix> &rThisVariable,
+        const Matrix& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
      * @brief Returns the value of a specified variable (double)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
@@ -273,13 +285,13 @@ public:
         ) override;
 
     /**
-     * @brief Returns the value of a specified variable (matrix)
+     * @brief Returns the value of a specified variable (Matrix)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
     Matrix& GetValue(
-        const Variable<Matrix>& rThisVariable,
+        const Variable<Matrix> &rThisVariable,
         Matrix& rValue
         ) override;
 
@@ -368,19 +380,19 @@ protected:
 
     double& GetThreshold() { return mThreshold; }
     double& GetPlasticDissipation() { return mPlasticDissipation; }
-    Vector& GetPlasticStrain() { return mPlasticStrain; }
+    Matrix& GetPlasticDeformationGradient() { return mPlasticDeformationGradient; }
 
     double& GetNonConvThreshold() { return mNonConvThreshold; }
     double& GetNonConvPlasticDissipation() { return mNonConvPlasticDissipation; }
-    Vector& GetNonConvPlasticStrain() { return mNonConvPlasticStrain; }
+    Matrix& GetNonConvPlasticDeformationGradient() { return mNonConvPlasticDeformationGradient; }
 
     void SetThreshold(const double Threshold) { mThreshold = Threshold; }
     void SetPlasticDissipation(const double PlasticDissipation) { mPlasticDissipation = PlasticDissipation; }
-    void SetPlasticStrain(const array_1d<double, VoigtSize>& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
+    void SetPlasticDeformationGradient(const Matrix& rmPlasticDeformationGradient) { mPlasticDeformationGradient = rmPlasticDeformationGradient; }
 
     void SetNonConvThreshold(const double NonConvThreshold) { mNonConvThreshold = NonConvThreshold; }
     void SetNonConvPlasticDissipation(const double NonConvPlasticDissipation) { mNonConvPlasticDissipation = NonConvPlasticDissipation; }
-    void SetNonConvPlasticStrain(const array_1d<double, VoigtSize>& rNonConvPlasticStrain) { mNonConvPlasticStrain = rNonConvPlasticStrain; }
+    void SetNonConvPlasticDeformationGradient(const Matrix& rNonConvPlasticDeformationGradient) { mNonConvPlasticDeformationGradient = rNonConvPlasticDeformationGradient; }
 
     ///@}
     ///@name Protected Operations
@@ -410,12 +422,12 @@ protected:
     // Converged values
     double mPlasticDissipation = 0.0;
     double mThreshold = 0.0;
-    Vector mPlasticStrain = ZeroVector(VoigtSize);
+    Matrix mPlasticDeformationGradient = ZeroMatrix(Dimension, Dimension);
 
     // Non Converged values
     double mNonConvPlasticDissipation = 0.0;
     double mNonConvThreshold = 0.0;
-    Vector mNonConvPlasticStrain = ZeroVector(VoigtSize);
+    Matrix mNonConvPlasticDeformationGradient = ZeroMatrix(Dimension, Dimension);
 
     // Auxiliar to print (NOTE: Alejandro do we need this now?)
     double mUniaxialStress = 0.0;
@@ -455,10 +467,10 @@ protected:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("PlasticDissipation", mPlasticDissipation);
         rSerializer.save("Threshold", mThreshold);
-        rSerializer.save("PlasticStrain", mPlasticStrain);
+        rSerializer.save("PlasticDeformationGradient", mPlasticDeformationGradient);
         rSerializer.save("NonConvPlasticDissipation", mNonConvPlasticDissipation);
         rSerializer.save("NonConvThreshold", mNonConvThreshold);
-        rSerializer.save("NonConvPlasticStrain", mNonConvPlasticStrain);
+        rSerializer.save("NonConvPlasticDeformationGradient", mNonConvPlasticDeformationGradient);
     }
 
     void load(Serializer &rSerializer) override
@@ -466,10 +478,10 @@ protected:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("PlasticDissipation", mPlasticDissipation);
         rSerializer.load("Threshold", mThreshold);
-        rSerializer.load("PlasticStrain", mPlasticStrain);
+        rSerializer.load("PlasticDeformationGradient", mPlasticDeformationGradient);
         rSerializer.load("NonConvPlasticDissipation", mNonConvPlasticDissipation);
         rSerializer.load("NonConvThreshold", mNonConvThreshold);
-        rSerializer.load("NonConvPlasticStrain", mNonConvPlasticStrain);
+        rSerializer.load("NonConvPlasticDeformationGradient", mNonConvPlasticDeformationGradient);
     }
 
     ///@}
