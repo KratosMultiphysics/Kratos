@@ -65,8 +65,8 @@ void TestStatisticsUtilitiesInitializeModelPart(
 }
 
 class MakeSamplerAtLocalCoordinate {
-    static std::function<double> Get(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, Variable<double> rVariable) {
-        return [&rGeometry, &rShapeFunctions, &rVariable]() -> double {
+    static std::function<double> ValueGetter(Variable<double> rVariable) {
+        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> double {
             KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeFunctions.size())
             double value = 0.0;
             for (unsigned int i =  0; i < rGeometry.size(); i++) {
@@ -77,8 +77,8 @@ class MakeSamplerAtLocalCoordinate {
     }
 
 
-    static std::function< array_1d<double,3> > Get(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, Variable<array_1d<double,3>> rVariable) {
-        return [&rGeometry, &rShapeFunctions, &rVariable]() -> double {
+    static std::function< array_1d<double,3> > ValueGetter(Variable<array_1d<double,3>> rVariable) {
+        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> array_1d<double,3> {
             KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeFunctions.size())
             array_1d<double,3> value = ZeroVector(3);
             for (unsigned int i =  0; i < rGeometry.size(); i++) {
@@ -88,14 +88,45 @@ class MakeSamplerAtLocalCoordinate {
         }
     }
 
-    static std::function< Matrix > Get(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, Variable<Matrix> rVariable) {
-        return [&rGeometry, &rShapeFunctions, &rVariable]() -> double {
+    static std::function< Matrix > ValueGetter(Variable<Matrix> rVariable) {
+        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> Matrix {
             KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeFunctions.size())
             Matrix value = ZeroVector(3);
             for (unsigned int i =  0; i < rGeometry.size(); i++) {
                 value += rGeometry[i].FastGetSolutionStepValue(rVariable) * rShapeFunctions[i];
             }
             return value;
+        }
+    }
+
+
+    static std::function< array_1d<double,3> > GradientGetter(Variable<double> rVariable) {
+        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> array_1d<double,3> {
+            KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeDerivatives.size1())
+            array_1d<double,3> gradient = ZeroVector(3);
+            for (unsigned int n =  0; n < rGeometry.size(); n++) {
+                const auto& value = rGeometry[n].FastGetSolutionStepValue(rVariable)
+                for (unsigned int i = 0; i < rShapeDerivatives.size2(); i++)
+                    gradient[i] += value * rShapeDerivatives[n];
+            }
+            return gradient;
+        }
+    }
+
+
+    static std::function< Matrix > GradientGetter(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, Variable<array_1d<double,3>> rVariable) {
+        return [&rGeometry, &rVariable](const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> Matrix {
+            KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeDerivatives.size1())
+            Matrix gradient = ZeroMatrix(3,3);
+            for (unsigned int n =  0; n < rGeometry.size(); n++) {
+                const auto& value = rGeometry[n].FastGetSolutionStepValue(rVariable)
+                for (unsigned int i = 0; i < rShapeDerivatives.size2(); i++)
+                {
+                    for (unsigned int j = 0; j < rShapeDerivatives.size2(); j++)
+                        gradient(i,j) += value[i] * rShapeDerivatives(n,j); //dui/dxj
+                }
+            }
+            return gradient;
         }
     }
 }
