@@ -17,6 +17,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <functional>
 
 // External includes
 
@@ -46,6 +47,106 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+class StatisticsSampler
+{
+public:
+
+StatisticsSampler(unsigned int NumValues, unsigned int Offset):
+    mNumValues(NumValues),
+    mOffset(Offset)
+{}
+
+virtual ~StatisticsSampler() {}
+
+virtual void SampleDataPoint(std::vector<double>::iterator& BufferIterator)
+{}
+
+unsigned int GetSize() const {
+    return mNumValues;
+}
+
+unsigned int GetValueOffset() const
+{
+    KRATOS_ERROR << "Method not implemented" << std::endl;
+}
+
+unsigned int GetComponentOffset(unsigned int i) const
+{
+    KRATOS_ERROR << "Method not implemented" << std::endl;
+}
+
+unsigned int GetComponentOffset(unsigned int i, unsigned int j) const
+{
+    KRATOS_ERROR << "Method not implemented" << std::endl;
+}
+
+protected:
+
+unsigned int GetOffset() const
+{
+    return mOffset;
+}
+
+private:
+
+unsigned int mNumValues;
+
+unsigned int mOffset;
+
+};
+
+class ScalarAverageSampler: public StatisticsSampler
+{
+public:
+
+ScalarSampler(unsigned int Offset, std::function<double> Getter):
+  StatisticsSampler(1, Offset),
+  mGetter(Getter)
+{}
+
+~ScalarSampler() override {}
+
+void SampleDataPoint(std::vector<double>::iterator& BufferIterator, const std::vector<double>& rData)
+{
+    *BufferIterator = mGetter();
+    ++BufferIterator;
+}
+
+unsigned int GetValueOffset() const override {
+    return this->GetOffset();
+}
+
+private:
+
+std::function<double> mGetter;
+
+};
+
+template< class VectorType >
+class VectorAverageSampler: public StatisticsSampler
+{
+public:
+
+VectorSampler(std::function<VectorType> Getter, unsigned int VectorSize):
+    StatisticsSampler(VectorSize),
+    mGetter(Getter)
+{}
+
+~VectorSampler() override {}
+
+void SampleDataPoint(std::vector<double>::iterator& BufferIterator) override {
+    TVectorType result = mGetter();
+    for (unsigned int i = 0; i < this->GetSize(); i++) {
+        *BufferIterator = result[i];
+        ++BufferIterator;
+    }
+}
+
+private:
+
+std::function<VectorType> mGetter;
+};
 
 /// Short class definition.
 /** Detail class definition.
