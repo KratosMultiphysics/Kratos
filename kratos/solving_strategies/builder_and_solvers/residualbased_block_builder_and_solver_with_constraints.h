@@ -198,7 +198,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         for (int k = 0; k < n_constraints; k++)
         {
             auto it = constraints_begin + k;
-            it->InitializeSolutionStep(); // Here each constraint constructs and stores its T and C matrices. Also its equation ids.
+            it->InitializeSolutionStep(rModelPart.GetProcessInfo()); // Here each constraint constructs and stores its T and C matrices. Also its equation ids.
         }
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to initialize solution step.")
@@ -219,7 +219,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         for (int k = 0; k < n_constraints; k++)
         {
             auto it = constraints_begin + k;
-            it->FinalizeSolutionStep();
+            it->FinalizeSolutionStep(rModelPart.GetProcessInfo());
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to finalize solution step.")
     }
