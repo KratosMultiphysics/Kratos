@@ -235,11 +235,11 @@ public:
         )
     {
         // Ask to the container for the list of candidate elements
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rCoordinates, ItResultBegin, MaxNumberOfResults);
+        int results_found = mpBinsObjectDynamic->SearchObjectsInCell(rCoordinates, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
             // Loop over the candidate elements and check if the particle falls within
-            for (IndexType i = 0; i < results_found; i++) {
+            for (IndexType i = 0; i < static_cast<IndexType>(results_found); ++i) {
                 GeometryType& geom = (*(ItResultBegin + i))->GetGeometry();
 
                 // Find local position
