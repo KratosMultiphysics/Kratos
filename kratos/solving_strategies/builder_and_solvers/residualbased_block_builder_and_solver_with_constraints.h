@@ -583,15 +583,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
         const ModelPart::MasterSlaveConstraintContainerType::iterator constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
         ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
-        //contributions to the system
-        LocalSystemMatrixType relation_matrix;
-        LocalSystemVectorType constant_vector;
-        EquationIdVectorType slave_equation_ids;
-        EquationIdVectorType master_equation_ids;
 
-//#pragma omp parallel for schedule(guided, 512) private (relation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
-        // TODO: this pragma should be commented in only once the pointer vector set is working with.
-        //          if not it will cause seg fault as two threads cannot access the same unique pointer. This will work with a shared pointer though.
+#pragma omp parallel for schedule(guided, 512)
         for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin;
@@ -604,11 +597,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
             if (constraint_is_active)
             {
-                it->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
-                //calculate constraint's T and b matrices
-                it->CalculateLocalSystem(relation_matrix, constant_vector, r_current_process_info);
                 //assemble the Constraint contribution
-                AssembleSlaves(slave_equation_ids, master_equation_ids, relation_matrix);
+                #pragma omp critical
+                AssembleConstraint(*it, r_current_process_info);
             }
         }
         const double stop_formulate = OpenMPUtils::GetCurrentTime();
@@ -619,41 +610,44 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 
 
     /**
-     * @brief   this method assembles the given list of slave equation ids and corresponding master equation ids
-     * @param   rSlaveEquationIdVector list of slave equation ids to be assembled.
-     * @param   rMasterEquationIdVector list of corresponding master equation ids.
-     * @param   rRelationMatrix the matrix relating the rSlaveEquationIdVector with rMasterEquationIdVector
+     * @brief   this method assembles the given master slave constraint to the auxiliary global master slave constraints
+     * @param   rMasterSlaveConstraint object of the master slave constraint to be assembled.
+     * @param   rCurrentProcessInfo current process info.
      */
-    void AssembleSlaves(EquationIdVectorType& rSlaveEquationIdVector, EquationIdVectorType& rMasterEquationIdVector, LocalSystemMatrixType& rRelationMatrix)
+    void AssembleConstraint(ModelPart::MasterSlaveConstraintType& rMasterSlaveConstraint, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         int slave_count = 0;
-        for (auto slave_equation_id : rSlaveEquationIdVector)
+        LocalSystemMatrixType relation_matrix(0,0);
+        LocalSystemVectorType constant_vector(0);
+        EquationIdVectorType slave_equation_ids(0);
+        EquationIdVectorType master_equation_ids(0);
+
+        //get the equation Ids of the constraint
+        rMasterSlaveConstraint.EquationIdVector(slave_equation_ids, master_equation_ids, rCurrentProcessInfo);
+        //calculate constraint's T and b matrices
+        rMasterSlaveConstraint.CalculateLocalSystem(relation_matrix, constant_vector, rCurrentProcessInfo);
+
+        for (auto slave_equation_id : slave_equation_ids)
         {
-            /*int master_count = 0;
-            auto global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
-            if (global_constraint == mGlobalMasterSlaveConstraints.end())
-            {
-                mGlobalMasterSlaveConstraints.insert(mGlobalMasterSlaveConstraints.begin(), Kratos::make_shared<AuxiliaryGlobalMasterSlaveConstraintType>(slave_equation_id));
-                global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
-            }*/
             int master_count = 0;
             auto global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
             if (global_constraint == mGlobalMasterSlaveConstraints.end())
             {
                 mGlobalMasterSlaveConstraints[slave_equation_id] = Kratos::make_unique<AuxiliaryGlobalMasterSlaveConstraintType>(slave_equation_id);
-                global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
             }
 
-            for (auto master_equation_id : rMasterEquationIdVector)
+            global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
+            for (auto master_equation_id : master_equation_ids)
             {
-                global_constraint->second->AddMaster(master_equation_id, rRelationMatrix(slave_count, master_count));
-                master_count++;
+                    global_constraint->second->AddMaster(master_equation_id, relation_matrix(slave_count, master_count));
+                    master_count++;
             }
             slave_count++;
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::AssembleSlaves failed ...");
     }
+
 
 
     /**
