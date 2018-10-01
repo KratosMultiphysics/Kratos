@@ -213,7 +213,7 @@ namespace Kratos
         Vector element_stress;
 
         Element& r_element = rModelPart.GetElement(mpTracedElement->Id());
-        StressCalculation::CalculateStressOnGP(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
+        StressCalculation::CalculateStressOnNode(r_element, mTracedStressType, element_stress, rModelPart.GetProcessInfo());
 
         const SizeType num_ele_nodes = mpTracedElement->GetGeometry().PointsNumber();
 

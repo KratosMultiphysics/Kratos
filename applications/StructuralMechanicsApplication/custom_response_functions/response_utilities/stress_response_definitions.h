@@ -20,8 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "utilities/compare_elements_and_conditions_utility.h"
-#include "structural_mechanics_application_variables.h"
+#include "includes/element.h"
 
 namespace Kratos
 {
