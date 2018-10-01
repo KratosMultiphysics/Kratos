@@ -391,6 +391,10 @@ struct LocalIndices
     VectorIndexType internal_index_vector; // indicies corresponding to internal DOFs
     VectorIndexType master_index_vector; // indicies corresponding to master DOFs
     VectorIndexType slave_index_vector; // indicies corresponding to slave DOFs
+
+    std::vector<double> container_master_weights; // list of master weights in the order in which they are processed
+    std::vector<IndexType> container_master_slaves; // list of slave indices corresponding to each master processed
+    std::vector<IndexType> processed_master_indices; // list of master indices in the order in which they are processed.
 };
 
 ///@}
@@ -529,12 +533,13 @@ public:
         IndexType total_number_of_masters = rEquationIds.size() - initial_sys_size;
         // Calculating the local indices corresponding to internal, master, slave dofs of this container
         CalculateLocalIndices(rEquationIds, mLocalIndices, total_number_of_masters);
-
         // resizing the matrices to the new required length
         ResizeAndInitializeLocalMatrices(rLHSContribution, rRHSContribution, rEquationIds.size());
 
-        // Calculating the K = T' * K *T and F = T'*(F-K*g) which are local to this container
-        ModifyMatrices(rLHSContribution, rRHSContribution, rEquationIds);
+        // Calculating the F = T'*(F-K*g) which is local to this container
+        ModifyRHS(rLHSContribution, rRHSContribution, rEquationIds);
+        // Calculating the K = T' * K *T which is local to this container
+        ModifyLHS(rLHSContribution, rRHSContribution, rEquationIds);
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints:: Applying Multipoint constraints failed ..");
     }
@@ -568,21 +573,83 @@ private:
     ///@{
 
     /**
-     * @brief   This function does two operations : K = T' * K * T and F = T'*(F-K*b). Both these operations are done in place.
+     * @brief   This function does two operations : K = T' * K * T . This operations are done in place.
+     *          Meaning that there is no memory duplication and no explicit matrix and matrix or matrix vector multiplication.
+     *          Individual entries of K and F are modified to achieve the result.
+     * @param   rLHSContribution The lhs matrix of the container
+     * @param   rRHSContribution The rhs vector of the container
+     * @param   rEquationIds the list of equation ids (extended with the masters).
+     */
+    void ModifyLHS(MatrixType &rLHSContribution, VectorType& rRHSContribution, EquationIdVectorType &rEquationIds)
+    {
+        mLocalIndices.container_master_weights.reserve(mLocalIndices.master_index_vector.size());
+        mLocalIndices.container_master_slaves.reserve(mLocalIndices.master_index_vector.size());
+        mLocalIndices.processed_master_indices.reserve(mLocalIndices.master_index_vector.size());
+        IndexType slave_equation_id;
+        EquationIdVectorType master_equation_ids;
+        VectorType master_weights_vector;
+        double slave_constant;
+
+        for (auto& slave_index : mLocalIndices.slave_index_vector) { // Loop over all the slaves for this container
+            // Get the global equation for this constraint
+            auto global_master_slave_constraint = mrGlobalMasterSlaveConstraints.find(rEquationIds[slave_index]);
+            // Get the tranformation matrix and constant_vector from the current slave
+            global_master_slave_constraint->second->EquationIdsVector(slave_equation_id, master_equation_ids);
+            global_master_slave_constraint->second->CalculateLocalSystem(master_weights_vector, slave_constant);
+
+            IndexType master_index = 0;
+            double master_weight = 0.0;
+            IndexType i_master = 0;
+            for (auto&  master_eq_id : master_equation_ids)
+            { // Loop over all the masters the slave has
+                master_index = std::distance(rEquationIds.begin(), std::find(rEquationIds.begin(), rEquationIds.end(), master_eq_id));
+                //master_weight = mTransformationMatrixLocal(slave_index,master_index);
+                master_weight = master_weights_vector(i_master);
+                for (auto& internal_index : mLocalIndices.internal_index_vector) {
+                    // For K(m,u) and K(u,m)
+                    rLHSContribution(internal_index, master_index) += rLHSContribution(internal_index, slave_index) * master_weight;
+                    rLHSContribution(master_index, internal_index) += rLHSContribution(slave_index, internal_index) * master_weight;
+                }
+
+                mLocalIndices.container_master_weights.push_back( master_weight );
+                mLocalIndices.container_master_slaves.push_back( slave_index );
+                mLocalIndices.processed_master_indices.push_back( master_index );
+                i_master++;
+            } // Loop over all the masters the slave has
+        }
+
+        //Adding contribution from slave to Kmm
+        IndexType master_i = 0;
+        for (auto& master_index : mLocalIndices.processed_master_indices) {
+            IndexType master_i_other = 0;
+            for (auto& master_index_other : mLocalIndices.processed_master_indices) {
+                rLHSContribution(master_index, master_index_other) += mLocalIndices.container_master_weights[master_i] *
+                                                                        rLHSContribution(mLocalIndices.container_master_slaves[master_i], mLocalIndices.container_master_slaves[master_i_other])
+                                                                        * mLocalIndices.container_master_weights[master_i_other];
+                master_i_other++;
+            }
+            master_i++;
+        }
+
+        // For K(u,s) and K(s,u). This is to be done at the end only
+        for (auto& slave_index : mLocalIndices.slave_index_vector) {
+            for (auto internal_index : mLocalIndices.internal_index_vector) {
+                rLHSContribution(slave_index, internal_index) = 0.0;
+                rLHSContribution(internal_index, slave_index) = 0.0;
+            }
+        }
+    }
+
+    /**
+     * @brief   This function does two operation : F = T'*(F-K*b). This operation is done in place.
      *          Meaning that there is no memory duplication and no explicit matrix and matrix or matrix vector multiplication.
      *          Individual entries of K and F are modified to achieve the result. 
      * @param   rLHSContribution The lhs matrix of the container
      * @param   rRHSContribution The rhs vector of the container
      * @param   rEquationIds the list of equation ids (extended with the masters).
      */
-    void ModifyMatrices(MatrixType &rLHSContribution, VectorType& rRHSContribution, EquationIdVectorType &rEquationIds)
+    void ModifyRHS(MatrixType &rLHSContribution, VectorType& rRHSContribution, EquationIdVectorType &rEquationIds)
     {
-        std::vector<double> container_master_weights;
-        container_master_weights.reserve(mLocalIndices.master_index_vector.size());
-        std::vector<IndexType> container_master_slaves;
-        container_master_slaves.reserve(mLocalIndices.master_index_vector.size());
-        std::vector<IndexType> processed_master_indices;
-        processed_master_indices.reserve(mLocalIndices.master_index_vector.size());
         IndexType slave_equation_id;
         EquationIdVectorType master_equation_ids;
         VectorType master_weights_vector;
@@ -607,9 +674,6 @@ private:
                 master_weight = master_weights_vector(i_master);
                 for (auto& internal_index : mLocalIndices.internal_index_vector) {
                     rRHSContribution(internal_index) += -rLHSContribution(internal_index, slave_index) * slave_constant;
-                    // For K(m,u) and K(u,m)
-                    rLHSContribution(internal_index, master_index) += rLHSContribution(internal_index, slave_index) * master_weight;
-                    rLHSContribution(master_index, internal_index) += rLHSContribution(slave_index, internal_index) * master_weight;
                 }
                 // For RHS(m) += A'*LHS(s,s)*B
                 for (auto& slave_index_other : mLocalIndices.slave_index_vector) {
@@ -620,36 +684,14 @@ private:
                 // Changing the RHS side of the equation
                 rRHSContribution(master_index) += master_weight * rRHSContribution(slave_index);
 
-                container_master_weights.push_back( master_weight );
-                container_master_slaves.push_back( slave_index );
-                processed_master_indices.push_back( master_index );
                 i_master++;
             } // Loop over all the masters the slave has
 
             rRHSContribution(slave_index) = 0.0;
         }
-
-        //Adding contribution from slave to Kmm
-        IndexType master_i = 0;
-        for (auto& master_index : processed_master_indices) {
-            IndexType master_i_other = 0;
-            for (auto& master_index_other : processed_master_indices) {
-                rLHSContribution(master_index, master_index_other) += container_master_weights[master_i] *
-                                                                        rLHSContribution(container_master_slaves[master_i], container_master_slaves[master_i_other])
-                                                                        * container_master_weights[master_i_other];
-                master_i_other++;
-            }
-            master_i++;
-        }
-
-        // For K(u,s) and K(s,u)
-        for (auto& slave_index : mLocalIndices.slave_index_vector) {
-            for (auto internal_index : mLocalIndices.internal_index_vector) {
-                rLHSContribution(slave_index, internal_index) = 0.0;
-                rLHSContribution(internal_index, slave_index) = 0.0;
-            }
-        }
     }
+
+
 
 
     /**
