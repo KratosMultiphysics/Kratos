@@ -9,7 +9,7 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
-        "analysis_type"                      : "non_linear",
+        "analysis_type"                      : "linear",
         "model_part_name" : "structure",
         "domain_size"     : 3,
         "time_stepping" : {
