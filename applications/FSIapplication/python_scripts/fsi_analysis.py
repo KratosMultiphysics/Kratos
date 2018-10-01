@@ -157,23 +157,22 @@ class FSIAnalysis(AnalysisStage):
         # Fluid domain processes
         # Note 1: gravity is constructed first. Outlet process might need its information.
         # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-        self._list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["gravity"] )
-        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["initial_conditions_process_list"] )
-        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["boundary_conditions_process_list"] )
-        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["fluid_solver_settings"]["auxiliar_process_list"] )
+        fluid_process_list = self.project_parameters["fluid_solver_settings"]["processes"]
+        self._list_of_processes =  factory.ConstructListOfProcesses(fluid_process_list["gravity"])
+        self._list_of_processes += factory.ConstructListOfProcesses(fluid_process_list["initial_conditions_process_list"])
+        self._list_of_processes += factory.ConstructListOfProcesses(fluid_process_list["boundary_conditions_process_list"])
+        self._list_of_processes += factory.ConstructListOfProcesses(fluid_process_list["auxiliar_process_list"])
 
         # Structure domain processes
-        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["structure_solver_settings"]["constraints_process_list"] )
-        self._list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["structure_solver_settings"]["loads_process_list"] )
+        structure_process_list = self.project_parameters["structure_solver_settings"]["processes"]
+        self._list_of_processes += factory.ConstructListOfProcesses(structure_process_list["constraints_process_list"])
+        self._list_of_processes += factory.ConstructListOfProcesses(structure_process_list["loads_process_list"])
 
-        #TODO this should be generic
-        # Initialize fluid and structure GiD I/O
-        self.fluid_output, self.structure_output = self._SetUpGiDOutput()
-
-        if self.fluid_output is not None:
-            self._list_of_processes += [self.fluid_output,]
-        if self.structure_output is not None:
-            self._list_of_processes += [self.structure_output,]
+        # Output processes
+        fluid_output_process_list = self.project_parameters["fluid_solver_settings"]["output_processes"]["gid_output"]
+        structure_output_process_list = self.project_parameters["structure_solver_settings"]["output_processes"]["gid_output"]
+        self._list_of_processes += factory.ConstructListOfProcesses(fluid_output_process_list)
+        self._list_of_processes += factory.ConstructListOfProcesses(structure_output_process_list)
 
     def _SetUpAnalysis(self):
         '''
@@ -214,37 +213,6 @@ class FSIAnalysis(AnalysisStage):
             fluid_start_time = self.project_parameters["fluid_solver_settings"]["problem_data"]["start_time"].GetDouble()
             structure_start_time = self.project_parameters["structure_solver_settings"]["problem_data"]["start_time"].GetDouble()
             self.time = min(fluid_start_time, structure_start_time)
-
-
-    def _SetUpGiDOutput(self):
-        '''Initialize fluid and structure outputs as GiD output instances.'''
-        self.fluid_has_output = self.project_parameters["fluid_solver_settings"].Has("output_configuration")
-        self.structure_has_output = self.project_parameters["structure_solver_settings"].Has("output_configuration")
-
-        # Check if there is any output to import the output utilities
-        if self.fluid_has_output or self.structure_has_output:
-            if self.parallel_type == "OpenMP":
-                from gid_output_process import GiDOutputProcess as OutputProcess
-            elif self.parallel_type == "MPI":
-                from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
-
-        # Check if there exists fluid output
-        if self.fluid_has_output:
-            fluid_output_filename = self.project_parameters["fluid_solver_settings"]["problem_data"]["problem_name"].GetString() + '_fluid'
-            fluid_output = OutputProcess(
-                self._GetSolver().GetFluidComputingModelPart(),
-                fluid_output_filename,
-                self.project_parameters["fluid_solver_settings"]["output_configuration"])
-
-        # Check if there exists structure output
-        if self.structure_has_output:
-            structure_output_filename = self.project_parameters["structure_solver_settings"]["problem_data"]["problem_name"].GetString() + '_structure'
-            structure_output = OutputProcess(
-                self._GetSolver().GetStructureComputingModelPart(),
-                structure_output_filename,
-                self.project_parameters["structure_solver_settings"]["output_configuration"])
-
-        return fluid_output, structure_output
 
     def _SetUpRestart(self):
         """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""
