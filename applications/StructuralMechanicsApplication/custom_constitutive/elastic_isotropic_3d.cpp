@@ -192,6 +192,7 @@ Vector& ElasticIsotropic3D::CalculateValue(
 
         // We compute the stress
         this->CalculateMaterialResponseCauchy(rParameterValues);
+        rValue = rParameterValues.GetStressVector();
 
         // Previous flags restored
         r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
