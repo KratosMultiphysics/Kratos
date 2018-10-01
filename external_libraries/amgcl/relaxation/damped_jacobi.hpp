@@ -131,20 +131,13 @@ struct damped_jacobi {
     {
         backend::vmul(math::identity<scalar_type>(), *dia, rhs, math::zero<scalar_type>(), x);
     }
-};
 
-} // namespace relaxation
-
-namespace backend {
-
-template <class Backend>
-struct bytes_impl< relaxation::damped_jacobi<Backend> > {
-    static size_t get(const relaxation::damped_jacobi<Backend> &R) {
-        return backend::bytes(*R.dia);
+    size_t bytes() const {
+        return backend::bytes(*dia);
     }
 };
 
-} // namespace backend
+} // namespace relaxation
 } // namespace amgcl
 
 #endif
