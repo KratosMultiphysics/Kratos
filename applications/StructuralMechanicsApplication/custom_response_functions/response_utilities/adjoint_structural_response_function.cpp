@@ -71,16 +71,17 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        this->Clear();
+        ModelPart& r_model_part = this->GetModelPart();
+
+        /*this->Clear();
         this->Check();
 
-        ModelPart& r_model_part = this->GetModelPart();
         ModelPart& r_sensitivity_model_part = r_model_part.GetSubModelPart(mSensitivityModelPartName);
 
         // Initialize flags.
         VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, r_sensitivity_model_part.Nodes());
         VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, r_sensitivity_model_part.Elements());
-        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, r_sensitivity_model_part.Conditions());
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true, r_sensitivity_model_part.Conditions());*/
 
     if(mGradientMode == 1)
     {
