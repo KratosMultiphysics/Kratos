@@ -62,8 +62,10 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_isotropic_damage_3D_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_damage_factory.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/small_strain_isotropic_plasticity_factory.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/finite_strain_isotropic_plasticity_factory.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_isotropic_damage.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_isotropic_plasticity.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_finite_strain_isotropic_plasticity.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_viscoplasticity_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/viscous_generalized_kelvin.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/viscous_generalized_maxwell.cpp
