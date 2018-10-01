@@ -47,8 +47,10 @@ namespace Kratos
 /**
  * @class GenericFiniteStrainIsotropicPlasticity
  * @ingroup StructuralMechanicsApplication
- * @brief This class is the base class which define all the constitutive laws for plasticity in small deformation
- * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity
+ * @brief This class is the base class which define all the constitutive laws for plasticity in large deformation
+ * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity, as well as hyper elastic law to compute the prediction
+ * This implementation is based on the multiplicative elastoplasticity kinematics (COMPUTATIONAL METHODS FOR PLASTICITY THEORY AND APPLICATIONS. EA de Souza Neto,D Perić, DRJ Owen pag. 603).
+ * The main hypothesis underlying the finite strain elastoplasticity constitutive framework described here is the multiplicative decomposition of the deformation gradient, F , into elastic and plastic contributions; that is, it is assumed that the deformation gradient can be decomposed as the product F = Fe x Fp, where F and F are named, respectively, the elastic and plastic deformation gradients.
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
  * @param TElasticBehaviourLaw Defines the elastic behaviour of the constitutive law (can be hyperelastic or just linear elastic, or any desired elastic behaviour)
  * @author Vicente Mataix Ferrandiz
