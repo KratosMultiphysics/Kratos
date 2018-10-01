@@ -6,7 +6,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 
 def GetFilePath(fileName):
-    return os.path.dirname(__file__) + "/" + fileName
+    return os.path.join(os.path.dirname(__file__), fileName)
 
 
 class Kratos@{APP_NAME_CAMEL}GeneralTests(KratosUnittest.TestCase):
