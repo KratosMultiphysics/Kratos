@@ -31,16 +31,16 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
         self.assertEqual(dimension, 900)
 
-        b_exp = KratosMultiphysics.Vector(dimension) # [1, 2, ..., dimension-1, dimension]
+        b_exp = EigenSolversApplication.UblasVector(dimension) # [1, 2, ..., dimension-1, dimension]
 
         for i in range(dimension):
             b_exp[i] = i + 1
 
-        x = KratosMultiphysics.Vector(dimension)
+        x = EigenSolversApplication.UblasVector(dimension)
 
         solver.Solve(a, x, b_exp)
 
-        b_act = KratosMultiphysics.Vector(dimension)
+        b_act = EigenSolversApplication.UblasVector(dimension)
         space.Mult(a, x, b_act)
 
         for i in range(dimension):
