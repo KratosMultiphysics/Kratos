@@ -589,7 +589,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         EquationIdVectorType slave_equation_ids;
         EquationIdVectorType master_equation_ids;
 
-#pragma omp parallel for schedule(guided, 512) private (relation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
+//#pragma omp parallel for schedule(guided, 512) private (relation_matrix, constant_vector, slave_equation_ids, master_equation_ids)
+        // TODO: this pragma should be commented in only once the pointer vector set is working with.
+        //          if not it will cause seg fault as two threads cannot access the same unique pointer. This will work with a shared pointer though.
         for (int i_constraints = 0; i_constraints < number_of_constraints; i_constraints++)
         {
             ModelPart::MasterSlaveConstraintContainerType::iterator it = constraints_begin;
