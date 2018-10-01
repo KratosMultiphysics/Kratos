@@ -70,12 +70,18 @@ class AdjointResponseFunction(AdjointResponseFunctionBase):
     primal_analysis : Primal analysis object of the response function
     adjoint_analysis : Adjoint analysis object of the response function
     """
-    def __init__(self, identifier, project_parameters, model, solve_primal = True):
+    def __init__(self, identifier, project_parameters, model):
         self.identifier = identifier
 
-        self.solve_primal = solve_primal
+        self.solve_primal = True
+        if project_parameters["primal_source"].GetString() == "HDF5":
+            self.solve_primal = False
+        elif project_parameters["primal_source"].GetString() == "ComputeYourself":
+            pass
+        else:
+             raise NameError("Source of primal solution is not valid. Possibilities are: 'HDF5 and 'ComputeYourself'" )
 
-        if solve_primal:
+        if self.solve_primal:
             # Create the primal solver
             with open(project_parameters["primal_settings"].GetString(),'r') as parameter_file:
                 ProjectParametersPrimal = Parameters( parameter_file.read() )
