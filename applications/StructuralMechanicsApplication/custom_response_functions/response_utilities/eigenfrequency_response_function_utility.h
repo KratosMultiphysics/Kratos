@@ -283,7 +283,7 @@ protected:
             for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                 DetermineEigenvectorOfElement(elem_i, mTracedEigenfrequencyIds[i], eigenvectors_of_element[i], CurrentProcessInfo);
 
-            std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> coord_directions = {SHAPE_X, SHAPE_Y, SHAPE_Z};
+            const std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> coord_directions = {SHAPE_X, SHAPE_Y, SHAPE_Z};
 
             // Computation of derivative of state equation w.r.t. node coordinates
             for(auto& node_i : elem_i.GetGeometry())

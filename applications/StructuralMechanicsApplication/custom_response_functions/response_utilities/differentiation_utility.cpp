@@ -243,15 +243,15 @@ namespace Kratos
 
     std::size_t DifferentiationUtility::GetCoordinateDirection(const array_1d_component_type& rDesignVariable)
     {
-        IndexType coord_dir = 0;
         if( rDesignVariable == SHAPE_X )
-            coord_dir = 0;
+            return 0;
         else if( rDesignVariable == SHAPE_Y )
-            coord_dir = 1;
+            return 1;
         else if( rDesignVariable == SHAPE_Z )
-            coord_dir = 2;
-
-        return coord_dir;
+            return 2;
+        else
+            KRATOS_ERROR << "Invalid valiable component: " << rDesignVariable.Name() <<
+                "Available is only 'SHAPE_X','SHAPE_Y' and 'SHAPE_Z' " << std::endl;
     }
 
 }  // namespace Kratos.

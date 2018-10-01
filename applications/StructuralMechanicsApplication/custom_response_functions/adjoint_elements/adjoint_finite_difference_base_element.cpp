@@ -284,9 +284,9 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable);
-    ProcessInfo copy_process_info = rCurrentProcessInfo;
+    ProcessInfo process_info = rCurrentProcessInfo;
     // Get pseudo-load from utility
-    DifferentiationUtility::CalculateRigthHandSideDerivative(*pGetPrimalElement(), rDesignVariable, delta, rOutput, copy_process_info);
+    DifferentiationUtility::CalculateRigthHandSideDerivative(*pGetPrimalElement(), rDesignVariable, delta, rOutput, process_info);
 
     KRATOS_CATCH("")
 }
@@ -297,7 +297,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
     KRATOS_TRY;
 
     const double delta = this->GetPerturbationSize(rDesignVariable);
-    ProcessInfo copy_process_info = rCurrentProcessInfo;
+    ProcessInfo process_info = rCurrentProcessInfo;
 
     if( rDesignVariable == SHAPE )
     {
@@ -305,7 +305,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
         const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
         const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
         const SizeType local_size = number_of_nodes * num_dofs_per_node;
-        std::vector<array_1d_component_type> coord_directions = {SHAPE_X, SHAPE_Y, SHAPE_Z};
+        const std::vector<array_1d_component_type> coord_directions = {SHAPE_X, SHAPE_Y, SHAPE_Z};
         Vector derived_RHS;
 
         if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) )
@@ -318,7 +318,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
             {
                 // Get pseudo-load contribution from utility
                 DifferentiationUtility::CalculateRigthHandSideDerivative(*pGetPrimalElement(), coord_directions[coord_dir_i],
-                                                                            node_i, delta, derived_RHS, copy_process_info);
+                                                                            node_i, delta, derived_RHS, process_info);
 
                 KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
 
