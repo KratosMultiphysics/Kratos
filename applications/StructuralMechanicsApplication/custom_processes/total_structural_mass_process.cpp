@@ -35,7 +35,7 @@ void TotalStructuralMassProcess::Execute()
 {
     KRATOS_TRY
 
-    // We initialize the element mass
+    // initialize the element mass
     double element_mass = 0.0;
 
     const std::size_t dimension = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -93,17 +93,15 @@ void TotalStructuralMassProcess::Execute()
             element_mass = density * thickness * volume;
         }
 
+        it_elem->SetValue(NODAL_MASS, element_mass);
+
         // We restore the current configuration and compute the nodal mass
         for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
             noalias(r_this_geometry[i_node].Coordinates()) = current_coordinates[i_node];
-            r_this_geometry[i_node].GetValue(NODAL_MASS) += element_mass / number_of_nodes;
         }
     }
 
-    // The contributions of the NODAL_MASS can also affect ghost-nodes, therefore assembling (summing)
-    // them before making the sum across the partitions
-    mrThisModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_MASS);
-    const double total_mass = VariableUtils().SumNonHistoricalNodeScalarVariable(NODAL_MASS, mrThisModelPart);
+    const double total_mass = VariableUtils().SumElementScalarVariable(NODAL_MASS, mrThisModelPart);
 
     std::stringstream info_stream;
     info_stream << "Total Mass of ModelPart \"" << mrThisModelPart.Name() << "\"";
