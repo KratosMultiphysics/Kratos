@@ -27,7 +27,7 @@
 #include "processes/process.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
-#include "utilities/binbased_fast_point_locator_on_conditions.h"
+#include "utilities/binbased_fast_point_locator_conditions.h"
 
 
 
@@ -58,8 +58,13 @@ class ApplyPeriodicConditionProcess : public Process
     typedef Vector VectorType;
     typedef Geometry<NodeType> GeometryType;
 
-    ApplyPeriodicConditionProcess(ModelPart &model_part,
-                                  Parameters rParameters) : Process(Flags()), mrMainModelPart(model_part), mParameters(rParameters)
+    /**
+     * @brief Constructor of the process to apply periodic boundary condition
+     * @param rModelPart The main model part where the boundary conditions are applied.
+     * @param rParameters parameters for the periodic condition to be applied
+     */
+    ApplyPeriodicConditionProcess(ModelPart &rModelPart,
+                                  Parameters rParameters) : Process(Flags()), mrMainModelPart(rModelPart), mParameters(rParameters)
     {
         Parameters default_parameters(R"(
                                             {
@@ -106,10 +111,17 @@ class ApplyPeriodicConditionProcess : public Process
         CalculateTransformationMatrix();
         mIsInitialized = false;
     }
+
+    /**
+     * @brief Destructor of the process class
+     */
     ~ApplyPeriodicConditionProcess()
     {
     }
 
+    /**
+     * @brief  Function to remove the nodes of axis modelpart from the slave modelpart
+     */
     void RemoveAxisFromSlave()
     {
         if(!mParameters["axis_sub_model_part_name"].GetString().empty())
@@ -124,6 +136,9 @@ class ApplyPeriodicConditionProcess : public Process
         }
     }
 
+    /**
+     * @brief Function initializes the solution step
+     */
     void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY;
@@ -148,6 +163,9 @@ class ApplyPeriodicConditionProcess : public Process
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief Function to print the information about this current process
+     */
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream <<"ApplyPeriodicConditionProcess Process "<<std::endl;
@@ -157,7 +175,7 @@ class ApplyPeriodicConditionProcess : public Process
     MatrixType mTransformationMatrix; // This can be either for rotating or for translating the master or slave
     ModelPart &mrMainModelPart;       // the MainModelPart to which the master-slave constraints are added.
     Parameters mParameters;          // parameters
-    ModelPart mpRotatedMasterModelPart; // This is new modelpart
+    ModelPart mpTransformedMasterModelPart; // This is new modelpart
     double mTheta;
     bool mIsInitialized;
     std::vector<double> mCenterOfRotation;
@@ -167,7 +185,7 @@ class ApplyPeriodicConditionProcess : public Process
     std::vector<double> mDirOfTranslation;
 
     /**
-     * @brief   The function to figure out how the master and slave model parts relate together and add master-slave constraints 
+     * @brief   The function to figure out how the master and slave model parts relate together and add master-slave constraints
      *          to the rModelPart
      */
     template <int TDim>
@@ -175,15 +193,15 @@ class ApplyPeriodicConditionProcess : public Process
     {
         ModelPart &r_slave_model_part = mrMainModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
         const int num_vars = mParameters["variable_names"].size();
-        ModelPart &r_master_model_part = mrMainModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
-        BinBasedFastPointLocatorOnConditions<TDim> bin_based_point_locator(mpRotatedMasterModelPart);
+        //ModelPart &r_master_model_part = mrMainModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+        BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(mpTransformedMasterModelPart);
         bin_based_point_locator.UpdateSearchDatabase();
 
         // for bin based point locator
 		VectorType shape_function_values;
 		const int max_results = 10000;
-		typename BinBasedFastPointLocatorOnConditions<TDim>::ResultContainerType results(max_results);
-        typename BinBasedFastPointLocatorOnConditions<TDim>::ResultIteratorType result_begin = results.begin();
+		typename BinBasedFastPointLocatorConditions<TDim>::ResultContainerType results(max_results);
+        typename BinBasedFastPointLocatorConditions<TDim>::ResultIteratorType result_begin = results.begin();
 
         const int num_slave_nodes = r_slave_model_part.NumberOfNodes();
         const ModelPart::NodeIterator it_slave_node_begin = r_slave_model_part.NodesBegin();
@@ -191,23 +209,27 @@ class ApplyPeriodicConditionProcess : public Process
         int num_slaves_found = 0;
         for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
         {
-            Condition::Pointer p_host_elem;
+            Condition::Pointer p_host_cond;
             ModelPart::NodeIterator it_slave_node = it_slave_node_begin;
             std::advance(it_slave_node, i_node);
             //array_1d<double, 3 > rotated_slave_coordinates;
             //TransformNode(it_slave_node->Coordinates(), rotated_slave_coordinates);
 
             // Finding the host element for this node
-            bool is_found = bin_based_point_locator.FindPointOnMesh(it_slave_node->Coordinates(), shape_function_values, p_host_elem, result_begin, max_results);
+            bool is_found = bin_based_point_locator.FindPointOnMesh(it_slave_node->Coordinates(), shape_function_values, p_host_cond, result_begin, max_results);
             if(is_found)
             {
                 ++num_slaves_found;
                 for (int j = 0; j < num_vars; j++)
                 {
                     const std::string var_name = mParameters["variable_names"][j].GetString();
+                    // Checking if the variable is a vector variable
                     if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name + "_X"))
-                    {       // Checking if the variable is a vector variable
-                        ConstraintSlaveNodeWithElement<TDim>(*it_slave_node, p_host_elem->GetGeometry() , shape_function_values, var_name);
+                    {
+                        ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
+                    } else if (KratosComponents<VariableType>::Has(var_name))
+                    {
+                        ConstraintSlaveNodeWithConditionForScalarVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
                     }
                 }
             }
@@ -215,8 +237,17 @@ class ApplyPeriodicConditionProcess : public Process
         std::cout<<"Number of slave nodes found : "<<num_slaves_found<<std::endl;
     }
 
+    /**
+     * @brief   The function add the linear master-slave constraint to rModelPart. This function is specifically for applying
+     *          periodic conditions for vector variable. This distinction is because, for vector variables the variable should also be
+     *          transformed according to the transfromation specified in the settings.
+     * @param rSalveNode The slave node which is to be connected to the rHostGeometry.
+     * @param rHostedGeometry the Host geometry which has the rSlaveNode.
+     * @param rWeights The weights with which the rSlaveNode is connected to the rHostedGeometry's nodes.
+     * @param rVarName The name of the vector variable on which periodic boundary condition can be applied.
+     */
     template <int TDim>
-    void ConstraintSlaveNodeWithElement(NodeType& rSalveNode, GeometryType& rHostedGeometry, VectorType& rWeights, const std::string& rVarName )
+    void ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSalveNode, GeometryType& rHostedGeometry, VectorType& rWeights, const std::string& rVarName )
     {
         VariableComponentType r_var_x = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_X"));
         VariableComponentType r_var_y = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Y"));
@@ -255,6 +286,34 @@ class ApplyPeriodicConditionProcess : public Process
     }
 
     /**
+     * @brief   The function add the linear master-slave constraint to rModelPart. This function is specifically for applying
+     *          periodic conditions for scalar variable. This distinction is because, for scalar variables the variable need NOT be
+     *          transformed according to the transfromation specified in the settings.
+     * @param rSalveNode The slave node which is to be connected to the rHostGeometry.
+     * @param rHostedGeometry the Host geometry which has the rSlaveNode.
+     * @param rWeights The weights with which the rSlaveNode is connected to the rHostedGeometry's nodes.
+     * @param rVarName The name of the scalar variable on which periodic boundary condition can be applied.
+     */
+    template <int TDim>
+    void ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSalveNode, GeometryType& rHostedGeometry, VectorType& rWeights, const std::string& rVarName )
+    {
+        VariableType r_var = KratosComponents<VariableType>::Get(rVarName);
+
+        IndexType master_index = 0;
+        for (auto& master_node : rHostedGeometry)
+        {
+            int current_num_constraint = mrMainModelPart.NumberOfMasterSlaveConstraints();
+            auto& actual_master_node = mrMainModelPart.GetNode(master_node.Id());
+
+            double master_weight = rWeights(master_index);
+            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var, rSalveNode, r_var, master_weight, 0.0);
+
+            master_index++;
+        }
+    }
+
+
+    /**
      * @brief   Fuctions calculates the transformation matrix to account for the moving the two periodic condition modelparts together.
      */
     void CalculateTransformationMatrix()
@@ -287,7 +346,7 @@ class ApplyPeriodicConditionProcess : public Process
 
     /**
      * @brief   Calculates the transformation matrix which rotates the given vector around mAxisOfRotationVector and mCenterOfRotation
-     *          by mTheta
+     *          by mTheta. The following code is generated from MATLAB and is adapted here.
      */
     void CalculateRotationMatrix()
     {
@@ -342,8 +401,10 @@ class ApplyPeriodicConditionProcess : public Process
 
     /*
      * @brief Rotates a given point(node_cords) in space around a given mAxisOfRotationVector by an angle thetha
+     * @param rCoordinates The original coordinates which have to be transformed
+     * @param rTransformedCoordinates The new coordinates which are transformed with rTransformationMatrix.
      */
-    void TransformNode(array_1d<double, 3 >& rCoordinates, array_1d<double, 3 >& rRotatedCoordinates)
+    void TransformNode(array_1d<double, 3 >& rCoordinates, array_1d<double, 3 >& rTransformedCoordinates)
     {
         std::vector<double> originalNode(4, 0.0f);
         std::vector<double> rotatedNode(4, 0.0f);
@@ -358,11 +419,13 @@ class ApplyPeriodicConditionProcess : public Process
             }
         }
 
-        rRotatedCoordinates(0) = rotatedNode[0]; rRotatedCoordinates(1) = rotatedNode[1]; rRotatedCoordinates(2) = rotatedNode[2];
+        rTransformedCoordinates(0) = rotatedNode[0]; rTransformedCoordinates(1) = rotatedNode[1]; rTransformedCoordinates(2) = rotatedNode[2];
     }
 
     /*
      * @brief Function transforms the given master modelpart with the above calculated transformation matrix.
+     *          The transformed modelpart is stored in mpTransformedMasterModelPart
+     * @param rMasterModelPart The modelpart which is to be transformed with rTransformationMatrix
      */
     template <int TDim>
     void TransformMasterModelPart(ModelPart &rMasterModelPart)
@@ -373,7 +436,7 @@ class ApplyPeriodicConditionProcess : public Process
         {
             ModelPart::NodesContainerType::iterator iparticle = (rMasterModelPart).NodesBegin() + i;
             Node<3>::Pointer pnode = *(iparticle.base());
-            mpRotatedMasterModelPart.CreateNewNode(pnode->Id(), *pnode);
+            mpTransformedMasterModelPart.CreateNewNode(pnode->Id(), *pnode);
         }
 
         // iterating over slave nodes to find thecorresponding masters
@@ -384,10 +447,10 @@ class ApplyPeriodicConditionProcess : public Process
             ModelPart::ElementsContainerType::iterator iparticle = (rMasterModelPart).ElementsBegin() + i;
             for (unsigned int ii = 0; ii < (*iparticle).GetGeometry().size(); ii++)
             {
-                newNodesArray.push_back(mpRotatedMasterModelPart.pGetNode((*iparticle).GetGeometry()[ii].Id()));
+                newNodesArray.push_back(mpTransformedMasterModelPart.pGetNode((*iparticle).GetGeometry()[ii].Id()));
             }
             Element::Pointer pElem = (*iparticle).Clone((*iparticle).Id(), newNodesArray);
-            mpRotatedMasterModelPart.AddElement(pElem);
+            mpTransformedMasterModelPart.AddElement(pElem);
         }
 
         long int n_master_cond = rMasterModelPart.Conditions().size();
@@ -397,16 +460,16 @@ class ApplyPeriodicConditionProcess : public Process
             ModelPart::ConditionsContainerType::iterator iparticle = (rMasterModelPart).ConditionsBegin() + i;
             for (unsigned int ii = 0; ii < (*iparticle).GetGeometry().size(); ii++)
             {
-                newNodesArray.push_back(mpRotatedMasterModelPart.pGetNode((*iparticle).GetGeometry()[ii].Id()));
+                newNodesArray.push_back(mpTransformedMasterModelPart.pGetNode((*iparticle).GetGeometry()[ii].Id()));
             }
             Condition::Pointer pCond = (*iparticle).Clone((*iparticle).Id(), newNodesArray);
-            mpRotatedMasterModelPart.AddCondition(pCond);
+            mpTransformedMasterModelPart.AddCondition(pCond);
         }
 
         // Rotating the nodes
         for (int i = 0; i < n_master_nodes; i++)
         {
-            ModelPart::NodesContainerType::iterator iparticle = mpRotatedMasterModelPart.NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator iparticle = mpTransformedMasterModelPart.NodesBegin() + i;
             Node<3>::Pointer p_master_node = *(iparticle.base());
 
             array_1d<double, 3 > rotatedMasterNode;
@@ -425,8 +488,6 @@ class ApplyPeriodicConditionProcess : public Process
             }
         }
     }
-
-
 
 };
 
