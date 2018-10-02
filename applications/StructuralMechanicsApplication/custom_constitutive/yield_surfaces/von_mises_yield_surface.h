@@ -254,6 +254,15 @@ public:
         return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
+	/**
+     * @brief This method returns true if the yield
+	 * surfacecompares with the tension tield stress
+     */
+    static bool IsWorkingWithTensionThreshold()
+    {
+        return true;
+    }
+		
     ///@}
     ///@name Access
     ///@{

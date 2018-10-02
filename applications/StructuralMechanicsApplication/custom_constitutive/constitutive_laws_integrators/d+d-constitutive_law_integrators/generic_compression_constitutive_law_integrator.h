@@ -127,46 +127,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericCompressionConstitutiv
         const double CharacteristicLength
         )
     {
-
-    }
-
-    /**
-     * @brief This computes the damage variable according to exponential softening
-     * @param UniaxialStress The equivalent uniaxial stress
-     * @param Threshold The maximum uniaxial stress achieved previously
-     * @param rDamage The internal variable of the damage model
-     * @param rValues Parameters of the constitutive law
-     * @param CharacteristicLength The equivalent length of the FE
-     */
-    static void CalculateExponentialDamage(
-        const double UniaxialStress,
-        const double Threshold,
-        const double DamageParameter,
-        const double CharacteristicLength,
-        ConstitutiveLaw::Parameters& rValues,
-        double& rDamage
-        )
-    {
-    }
-
-    /**
-     * @brief This computes the damage variable according to linear softening
-     * @param UniaxialStress The equivalent uniaxial stress
-     * @param Threshold The maximum uniaxial stress achieved previously
-     * @param rDamage The internal variable of the damage model
-     * @param rValues Parameters of the constitutive law
-     * @param CharacteristicLength The equivalent length of the FE
-     */
-    static void CalculateLinearDamage(
-        const double UniaxialStress,
-        const double Threshold,
-        const double DamageParameter,
-        const double CharacteristicLength,
-        ConstitutiveLaw::Parameters& rValues,
-        double& rDamage
-        )
-    {
- 
+        
     }
 
     /**
@@ -179,7 +140,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericCompressionConstitutiv
         double& rThreshold
         )
     {
-        
+        ConstitutiveLaw::Parameters modified_ones = rValues;
+
+        // This is done to allow tension-driven yields to work as compression yields
+        if (TConstLawIntegratorCompressionType::YieldSurfaceType::IsWorkingWithTensionThreshold()) {
+            const double yield_compression = modified_ones.GetMaterialProperties()[YIELD_STRESS_COMPRESSION];
+            Properties material_props = modified_ones.GetMaterialProperties();
+            material_props.SetValue(YIELD_STRESS_TENSION, yield_compression);
+            modified_ones.SetMaterialProperties(material_props);
+        }
+        TConstLawIntegratorCompressionType::GetInitialUniaxialThreshold(modified_ones, initial_threshold_compression);        
     }
 
     /**

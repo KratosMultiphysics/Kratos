@@ -329,6 +329,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
         return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
+	/**
+     * @brief This method returns true if the yield
+	 * surfacecompares with the tension tield stress
+     */
+    static bool IsWorkingWithTensionThreshold()
+    {
+        return false;
+    }
+		
     ///@}
     ///@name Access
     ///@{

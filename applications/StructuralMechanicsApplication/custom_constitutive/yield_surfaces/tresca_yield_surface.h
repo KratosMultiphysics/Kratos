@@ -145,7 +145,7 @@ public:
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
         const double yield_tension = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        rThreshold = std::abs(yield_tension); // TODO Check
+        rThreshold = std::abs(yield_tension); 
     }
 
     /**
@@ -273,6 +273,15 @@ public:
         return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
+	/**
+     * @brief This method returns true if the yield
+	 * surfacecompares with the tension tield stress
+     */
+    static bool IsWorkingWithTensionThreshold()
+    {
+        return true;
+    }
+    
     ///@}
     ///@name Access
     ///@{

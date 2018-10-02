@@ -627,7 +627,7 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
             rProjectionOperatorTensor += outer_prod(sigma_tension_vector, sigma_tension_vector);
         }
     }
-   
+
     double h_i = 0.0, h_j = 0.0;
     Matrix cross_p_ij_tensor;
     Vector cross_p_ij_vector;

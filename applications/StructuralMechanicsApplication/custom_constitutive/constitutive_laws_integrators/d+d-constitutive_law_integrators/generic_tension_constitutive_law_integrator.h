@@ -127,7 +127,25 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericTensionConstitutiveLaw
         const double CharacteristicLength
         )
     {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
 
+        const int softening_type = r_material_properties[SOFTENING_TYPE];
+        double damage_parameter;
+        TYieldSurfaceType::CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
+
+        switch (softening_type)
+        {
+        case static_cast<int>(SofteningType::Linear):
+            CalculateLinearDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
+            break;
+        case static_cast<int>(SofteningType::Exponential):
+            CalculateExponentialDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
+            break;
+        default:
+            KRATOS_ERROR << "SOFTENING_TYPE not defined or wrong..." << softening_type << std::endl;
+            break;
+        }
+        rPredictiveStressVector *= (1.0 - rDamage);
     }
 
     /**
@@ -147,6 +165,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericTensionConstitutiveLaw
         double& rDamage
         )
     {
+        double initial_threshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
+        rDamage = 1.0 - (initial_threshold / UniaxialStress) * std::exp(DamageParameter *
+                 (1.0 - UniaxialStress / initial_threshold));
     }
 
     /**
@@ -166,7 +188,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericTensionConstitutiveLaw
         double& rDamage
         )
     {
- 
+        double initial_threshold;
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
+        rDamage = (1.0 - initial_threshold / UniaxialStress) / (1.0 + DamageParameter);
     }
 
     /**
@@ -179,7 +203,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericTensionConstitutiveLaw
         double& rThreshold
         )
     {
-        
+        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, rThreshold);
     }
 
     /**

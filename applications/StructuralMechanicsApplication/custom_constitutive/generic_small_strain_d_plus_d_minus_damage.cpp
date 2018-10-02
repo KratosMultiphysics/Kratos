@@ -245,7 +245,16 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     TConstLawIntegratorTensionType::GetInitialUniaxialThreshold(aux_param, initial_threshold_tension);
     this->SetTensionThreshold(initial_threshold_tension);
 
-    TConstLawIntegratorCompressionType::GetInitialUniaxialThreshold(aux_param, initial_threshold_compression);
+    ConstitutiveLaw::Parameters modified_ones = aux_param;
+    // This is done to allow tension-driven yields to work as compression yields
+    if (TConstLawIntegratorCompressionType::YieldSurfaceType::IsWorkingWithTensionThreshold()) {
+		const double yield_compression = modified_ones.GetMaterialProperties()[YIELD_STRESS_COMPRESSION];
+		Properties material_props = modified_ones.GetMaterialProperties();
+		material_props.SetValue(YIELD_STRESS_TENSION, yield_compression);
+		modified_ones.SetMaterialProperties(material_props);
+    }
+    
+    TConstLawIntegratorCompressionType::GetInitialUniaxialThreshold(modified_ones, initial_threshold_compression);
     this->SetCompressionThreshold(initial_threshold_compression);
 }
 
