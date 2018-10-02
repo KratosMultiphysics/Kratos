@@ -1216,7 +1216,8 @@ public:
      * @param rStressVector the given stress vector
      * @return the corresponding stress tensor in matrix form
      */
-    static inline MatrixType StressVectorToTensor(const Vector& rStressVector)
+    template<class TVector, class TMatrixType = MatrixType>
+    static inline TMatrixType StressVectorToTensor(const TVector& rStressVector)
     {
         KRATOS_TRY
         Matrix StressTensor;
