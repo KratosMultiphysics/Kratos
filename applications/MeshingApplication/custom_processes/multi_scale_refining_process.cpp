@@ -114,8 +114,6 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
 
     // Check and prepare the interface
     IdentifyCurrentInterface();
-    // CreateNewInterface(cond_id);
-    // RemoveOldInterface();
 
     // Execute the refinement
     int divisions = mrRefinedModelPart.GetValue(SUBSCALE_INDEX) * mDivisionsAtSubscale;
@@ -140,8 +138,6 @@ void MultiScaleRefiningProcess::ExecuteCoarsening()
     IdentifyElementsToErase();
     IdentifyConditionsToErase();
     IdentifyRefinedNodesToErase();
-
-    ClearInterfaceSet();
 
     mUniformRefinement.RemoveRefinedEntities(TO_ERASE);
 
@@ -821,139 +817,6 @@ void MultiScaleRefiningProcess::UpdateRefinedInterface()
         }
         if (is_refined_interface)
             mRefinedInterfaceContainer.push_back(NodeType::SharedPointer(*node.base()));
-    }
-}
-
-
-void MultiScaleRefiningProcess::CreateNewInterface(IndexType& rCondId)
-{
-    // ModelPart& coarse_interface = mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName);
-    // Properties::Pointer property = mrCoarseModelPart.ElementsBegin()->pGetProperties();
-    // 0. Reset the flags
-    
-    // 1. Identify the nodes which define the boundary
-    const int nelems = static_cast<int>(mrCoarseModelPart.Elements().size());
-    ModelPart::ElementsContainerType::iterator elem_begin = mrCoarseModelPart.ElementsBegin();
-
-    // The number of nodes of the elements
-    const IndexType element_nodes = elem_begin->GetGeometry().size();
-
-    // The number of edges or faces
-    // IndexType cond_nodes;
-    // const IndexType dimension = elem_begin->GetGeometry().Dimension();
-    // if (dimension == 2)
-    //     cond_nodes = elem_begin->GetGeometry().Edges()[0].PointsNumber();
-    // else
-    //     cond_nodes = elem_begin->GetGeometry().Faces()[0].PointsNumber();
-
-    // Identify the current interface: set the nodes and create the base conditions
-    // Look for the elements which are not to refine and have some nodes to refine
-    for (int i = 0; i < nelems; i++)
-    {
-        auto elem = elem_begin + i;
-        if (elem->IsNot(MeshingFlags::REFINED))
-        {
-            // set the nodal flags
-            for (IndexType node = 0; node < element_nodes; node++)
-            {
-                if (elem->GetGeometry()[node].Is(MeshingFlags::REFINED))
-                    elem->GetGeometry()[node].Set(INTERFACE, true);
-            }
-            
-            // Create the condition if needed
-            // for (auto edge : elem->GetGeometry().Edges())
-            // {
-            //     bool is_interface = true;
-            //     IndexVectorType interface_key(cond_nodes);
-            //     for (IndexType i = 0; i < cond_nodes; i++)
-            //     {
-            //         if (edge[i].IsNot(INTERFACE))
-            //             is_interface = false;
-            //         interface_key[i] = edge[i].Id();
-            //     }
-            //     if (is_interface)
-            //     {
-            //         // Create the condition if it does not exist
-            //         std::sort(interface_key.begin(), interface_key.end());
-            //         auto search = mCoarseInterfacesSet.find(interface_key);
-            //         if (search == mCoarseInterfacesSet.end())
-            //         {                        
-            //             // Condition creation
-            //             auto aux_cond = coarse_interface.CreateNewCondition(
-            //                 mInterfaceConditionName,
-            //                 ++rCondId,
-            //                 edge,
-            //                 property);
-            //             aux_cond->Set(TO_REFINE, true);
-
-            //             // Storing the condition key
-            //             mCoarseInterfacesSet.insert(interface_key);
-            //         }
-            //     }
-            // }
-        }
-    }
-}
-
-
-void MultiScaleRefiningProcess::RemoveOldInterface()
-{
-    ModelPart& coarse_interface = mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName);
-    ModelPart& refined_interface = mrRefinedModelPart.GetSubModelPart(mRefinedInterfaceName);
-
-    const int num_coarse = static_cast<int>(coarse_interface.Conditions().size());
-    ModelPart::ConditionIterator coarse_begin = coarse_interface.ConditionsBegin();
-    
-    #pragma omp parallel for
-    for (int i = 0; i < num_coarse; i++)
-    {
-        auto coarse_cond = coarse_begin + i;
-        if (coarse_cond->IsNot(INTERFACE))
-            coarse_cond->Set(TO_ERASE);
-    }
-
-    ClearInterfaceSet();
-
-    const int num_refined = static_cast<int>(refined_interface.Conditions().size());
-    ModelPart::ConditionIterator refined_begin = refined_interface.ConditionsBegin();
-
-    #pragma omp parallel for
-    for (int i = 0; i < num_refined; i++)
-    {
-        auto refined_cond = refined_begin + i;
-        if (refined_cond->GetValue(FATHER_CONDITION)->Is(TO_ERASE))
-            refined_cond->Set(TO_ERASE);
-    }
-
-    mrCoarseModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
-    mrRefinedModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
-    mrVisualizationModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
-}
-
-
-void MultiScaleRefiningProcess::ClearInterfaceSet()
-{
-    ModelPart& coarse_interface = mrCoarseModelPart.GetSubModelPart(mRefinedInterfaceName);
-
-    if (coarse_interface.Conditions().size() > 0) // just avoiding segfault in case of an empty interface model part
-    {
-        const IndexType cond_size = coarse_interface.ConditionsBegin()->GetGeometry().PointsNumber();
-
-        for (ModelPart::ConditionIterator cond = coarse_interface.ConditionsBegin(); cond < coarse_interface.ConditionsEnd(); cond++)
-        {
-            if (cond->Is(TO_ERASE))
-            {
-                // Get the key and remove it from the set
-                IndexVectorType interface_key(cond_size);
-                for (IndexType i = 0; i < cond_size; i++)
-                    interface_key[i] = cond->GetGeometry()[i].Id();
-                
-                std::sort(interface_key.begin(), interface_key.end());
-                auto search = mCoarseInterfacesSet.find(interface_key);
-                if (search != mCoarseInterfacesSet.end())
-                    mCoarseInterfacesSet.erase(search);
-            }
-        }
     }
 }
 

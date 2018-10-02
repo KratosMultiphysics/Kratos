@@ -109,11 +109,6 @@ public:
     typedef std::unordered_map<IndexType, std::vector<std::string>> IndexStringMapType;
     typedef std::unordered_map<IndexType, std::vector<IndexType>> IndexVectorMapType;
 
-    /**
-     * Map type to locate created refining interface conditions
-     */
-    typedef std::set<IndexVectorType> IndexVectorSetType;
-
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of MultiScaleRefiningProcess
@@ -258,7 +253,6 @@ public:
 
     std::string mRefinedInterfaceName;
     std::string mInterfaceConditionName;
-    IndexVectorSetType mCoarseInterfacesSet;
 
     IndexStringMapType mCollections;  /// For AssignUniqueModelCollectionTagUtility
 
@@ -426,25 +420,6 @@ public:
      * @brief This method stores the refined nodes which are inside the interface on a container
      */
     void UpdateRefinedInterface();
-
-    /**
-     * @brief CreateNewInterface identify the refining interface before to execute the refinement
-     * @detail This method should be executed before calling the re-mesher
-     * @brief rCondId this id will identify the new conditions
-     */
-    void CreateNewInterface(IndexType& rCondId);
-
-    /**
-     * @brief RemoveOldInterface
-     * @detail This method should be executed after CreateNewInterface
-     * @see CreateNewInterace
-     */
-    void RemoveOldInterface();
-
-    /**
-     * @brief ClearInterfaceSet free the memory before to execute the coarsening
-     */
-    void ClearInterfaceSet();
 
     /**
      * @brief GetLastId gets the absolute root model part and looks for the maximum id's
