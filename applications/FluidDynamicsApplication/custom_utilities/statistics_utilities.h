@@ -64,7 +64,7 @@ KRATOS_CLASS_POINTER_DEFINITION(StatisticsSampler);
 
 virtual ~StatisticsSampler() {}
 
-virtual void SampleDataPoint(std::vector<double>::iterator& BufferIterator)
+virtual void SampleDataPoint(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives, std::vector<double>::iterator& BufferIterator)
 {}
 
 unsigned int GetSize() const {
@@ -115,7 +115,7 @@ ScalarAverageSampler(unsigned int Offset, std::function<double(const Geometry< N
 
 ~ScalarAverageSampler() override {}
 
-void SampleDataPoint(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives, std::vector<double>::iterator& BufferIterator, const std::vector<double>& rData)
+void SampleDataPoint(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives, std::vector<double>::iterator& BufferIterator) override
 {
     *BufferIterator = mGetter(rGeometry,rShapeFunctions,rShapeDerivatives);
     ++BufferIterator;

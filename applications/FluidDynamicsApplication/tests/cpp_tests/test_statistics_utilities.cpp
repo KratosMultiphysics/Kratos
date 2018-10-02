@@ -147,8 +147,11 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
     auto average_pressure_getter = Internals::MakeSamplerAtLocalCoordinate::ValueGetter(PRESSURE);
     StatisticsSampler::Pointer average_pressure = Kratos::make_shared<ScalarAverageSampler>(0,average_pressure_getter);
     p_turbulence_statistics->AddResult(average_pressure);
-    //auto average_velocity = MakeSamplerAtLocalCoordinate::ValueGetter(VELOCITY);
-    //p_turbulence_statistics->AddQuantity(average_velocity);
+    auto average_velocity_getter = Internals::MakeSamplerAtLocalCoordinate::ValueGetter(VELOCITY);
+    auto average_velocity_sampler = VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3);
+    StatisticsSampler::Pointer average_velocity = StatisticsSampler::Pointer(new VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3));
+    //StatisticsSampler::Pointer average_velocity = Kratos::make_shared<VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3);
+    p_turbulence_statistics->AddResult(average_velocity);
     //auto uu_correlation = SecondOrderMoment(average_velocity.GetComponent(0),average_velocity.GetComponent(0));
     //p_turbulence_statistics->AddQuantity(uu_correlation);
     //auto up_correlation = SecondOrderMoment(average_velocity.GetComponent(0),average_pressure.GetValue());
