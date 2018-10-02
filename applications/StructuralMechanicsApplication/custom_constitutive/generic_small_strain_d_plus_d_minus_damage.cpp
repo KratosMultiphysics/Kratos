@@ -73,7 +73,6 @@ template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompres
 void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-
     // Integrate Stress Damage
     Vector& integrated_stress_vector = rValues.GetStressVector();
     array_1d<double, VoigtSize> auxiliar_integrated_stress_vector = integrated_stress_vector;
@@ -100,16 +99,90 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
 
-        // S0 = C:E
+        DamageParameters damage_parameters;
+        damage_parameters.ThresholdTension = this->GetTensionThreshold();
+        damage_parameters.DamageTension    = this->GetTensionDamage();
+        damage_parameters.ThresholdCompression = this->GetCompressionThreshold();
+        damage_parameters.DamageCompression    = this->GetCompressionDamage();
+
+        // S0 = C0:E
         array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
-    
-        double& tension_threshold = this->GetTensionThreshold();
-        double& tension_damage    = this->GetTensionDamage();
-        double& compression_threshold = this->GetCompressionThreshold();
-        double& compression_damage    = this->GetCompressionDamage();
+
+        // Perform the separation of the Stress in tension and compression
+        array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
+        ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector, predictive_stress_vector_tension, predictive_stress_vector_compression);
+
+        // Initialize Plastic Parameters
+        double uniaxial_stress_tension, uniaxial_stress_compression;
+        TConstLawIntegratorTensionType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector_tension, r_strain_vector, uniaxial_stress_tension, rValues);
+        TConstLawIntegratorCompressionType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector_compression, r_strain_vector, uniaxial_stress_compression, rValues);
+
+        const double F_tension     = uniaxial_stress_tension - damage_parameters.ThresholdTension;
+        const double F_compression = uniaxial_stress_compression - damage_parameters.ThresholdCompression;
+
+        this->IntegrateStressTensionIfNecessary(F_tension, damage_parameters, predictive_stress_vector_tension, rValues);
+        this->IntegrateStressCompressionIfNecessary(F_compression, damage_parameters, predictive_stress_vector_compression, rValues);
+            
+        if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            this->CalculateTangentTensor(rValues);
+            noalias(r_tangent_tensor) = rValues.GetConstitutiveMatrix();
+        }
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
+void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
+    IntegrateStressTensionIfNecessary(
+        const double F_tension, 
+        DamageParameters& Parameters, 
+        array_1d<double, VoigtSize>& IntegratedStressVectorTension,
+        ConstitutiveLaw::Parameters& rValues)
+{
+    if (F_tension <= 0.0) { // Elastic case
+        this->SetNonConvTensionDamage(Parameters.DamageTension);
+        this->SetNonConvTensionThreshold(Parameters.ThresholdTension);
+        IntegratedStressVectorTension *= (1.0 - Parameters.DamageTension);
+    } else { // Increasing damage...
+        const double characteristic_length = rValues.GetElementGeometry().Length();
+        double uniaxial_stress_tension;
+
+        // This routine updates the IntegratedStressVectorTension to verify the yield surf
+        TConstLawIntegratorTensionType::IntegrateStressVector(IntegratedStressVectorTension, uniaxial_stress_tension, 
+            Parameters.DamageTension, Parameters.ThresholdTension, rValues, characteristic_length);
+        this->SetNonConvTensionDamage(Parameters.DamageTension);
+        this->SetNonConvTensionThreshold(Parameters.ThresholdTension);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
+void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
+    IntegrateStressCompressionIfNecessary(
+        const double F_compression, 
+        DamageParameters& Parameters, 
+        array_1d<double, VoigtSize>& IntegratedStressVectorCompression,
+        ConstitutiveLaw::Parameters& rValues)
+{
+    if (F_compression <= 0.0) { // Elastic case
+        this->SetNonConvCompressionDamage(Parameters.DamageCompression);
+        this->SetNonConvCompressionThreshold(Parameters.ThresholdCompression);
+        IntegratedStressVectorCompression *= (1.0 - Parameters.DamageCompression);
+    } else { // Increasing damage...
+        const double characteristic_length = rValues.GetElementGeometry().Length();
+        double uniaxial_stress_Compression;
+
+        // This routine updates the IntegratedStressVectorCompression to verify the yield surf
+        TConstLawIntegratorCompressionType::IntegrateStressVector(IntegratedStressVectorCompression, uniaxial_stress_Compression, 
+            Parameters.DamageCompression, Parameters.ThresholdCompression, rValues, characteristic_length);
+        this->SetNonConvCompressionDamage(Parameters.DamageCompression);
+        this->SetNonConvCompressionThreshold(Parameters.ThresholdCompression);
+    }
+}
 /***********************************************************************************/
 /***********************************************************************************/
 

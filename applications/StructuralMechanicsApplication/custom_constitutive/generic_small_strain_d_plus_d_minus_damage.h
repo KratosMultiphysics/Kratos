@@ -59,7 +59,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainDplusDminus
 public:
     ///@name Type Definitions
     ///@{
-
+    struct DamageParameters {
+        double DamageTension = 0.0;
+        double DamageCompression = 0.0;
+        double ThresholdTension = 0.0;
+        double ThresholdCompression = 0.0;
+	};
     /// The define the working dimension size, already defined in the integrator
     static constexpr SizeType Dimension = TConstLawIntegratorTensionType::Dimension;
 
@@ -154,6 +159,28 @@ public:
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
+
+    /**
+     * @brief Integrates the predictive tension stress vector if necessary
+     * @param F_compression = uniaxial_stress_tension - threshold
+     */
+    void IntegrateStressTensionIfNecessary(
+        const double F_tension, 
+        DamageParameters& Parameters, 
+        array_1d<double, VoigtSize>& IntegratedStressVectorTension,
+        ConstitutiveLaw::Parameters& rValues
+        );
+
+    /**
+     * @brief Integrates the predictive tension stress vector if necessary
+     * @param F_compression = uniaxial_stress_compression - threshold
+     */
+    void IntegrateStressCompressionIfNecessary(
+        const double F_compression, 
+        DamageParameters& Parameters,
+        array_1d<double, VoigtSize>& IntegratedStressVectorCompression,
+        ConstitutiveLaw::Parameters& rValues
+        );
 
     /**
      * @brief This is to be called at the very beginning of the calculation

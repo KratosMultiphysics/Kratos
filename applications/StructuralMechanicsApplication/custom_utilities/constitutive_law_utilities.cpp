@@ -649,9 +649,9 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
 
 template<>
 void ConstitutiveLawUtilities<6>::SpectralDecomposition(
-    const Vector& rStressVector,
-    Vector& rStressVectorTension,
-    Vector& rStressVectorCompression
+    const array_1d<double, VoigtSize>& rStressVector,
+    array_1d<double, VoigtSize>& rStressVectorTension,
+    array_1d<double, VoigtSize>& rStressVectorCompression
     )
 {
     rStressVectorTension     = ZeroVector(6);
@@ -686,9 +686,9 @@ void ConstitutiveLawUtilities<6>::SpectralDecomposition(
 
 template<>
 void ConstitutiveLawUtilities<3>::SpectralDecomposition(
-    const Vector& rStressVector,
-    Vector& rStressVectorTension,
-    Vector& rStressVectorCompression
+    const array_1d<double, VoigtSize>& rStressVector,
+	array_1d<double, VoigtSize>& rStressVectorTension,
+	array_1d<double, VoigtSize>& rStressVectorCompression
     )
 {
     rStressVectorTension     = ZeroVector(3);
