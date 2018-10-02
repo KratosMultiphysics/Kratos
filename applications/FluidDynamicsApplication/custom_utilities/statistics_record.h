@@ -167,7 +167,7 @@ class StatisticsRecord
     ///@name Static Member Variables
     ///@{
 
-    std::vector<double> mUpdateBuffer;
+    static std::vector<double> mUpdateBuffer;
     #pragma omp threadprivate(mUpdateBuffer)
 
     ///@}
@@ -183,6 +183,16 @@ class StatisticsRecord
     std::vector<StatisticsSampler::Pointer> mAverageData;
 
     std::vector<StatisticsSampler::Pointer> mHigherOrderData;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const {}
+
+    void load(Serializer& rSerializer) {}
 
     ///@}
     ///@name Private Operators
@@ -205,7 +215,7 @@ class StatisticsRecord
     ///@{
 
     /// Assignment operator.
-    StatisticsRecord &operator=(StatisticsRecord const &rOther) {}
+    StatisticsRecord &operator=(StatisticsRecord const &rOther) = delete;
 
     /// Copy constructor.
     StatisticsRecord(StatisticsRecord const &rOther) {}
@@ -225,7 +235,10 @@ class StatisticsRecord
 
 /// input stream function
 inline std::istream &operator>>(std::istream &rIStream,
-                                StatisticsRecord &rThis) {}
+                                StatisticsRecord &rThis)
+{
+    return rIStream;
+}
 
 /// output stream function
 inline std::ostream &operator<<(std::ostream &rOStream,

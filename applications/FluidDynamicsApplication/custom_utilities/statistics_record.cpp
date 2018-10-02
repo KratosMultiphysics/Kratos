@@ -6,10 +6,12 @@
 
 namespace Kratos {
 
-KRATOS_CREATE_VARIABLE( StatisticsRecord::Pointer, TURBULENCE_STATISTICS)
+KRATOS_CREATE_VARIABLE( StatisticsRecord::Pointer, STATISTICS_CONTAINER)
 
 //TODO move somewhere else
 typedef typename StatisticsData<std::vector<double>>::Pointer StatisticsDataPointerType;
 KRATOS_CREATE_VARIABLE( StatisticsDataPointerType, TURBULENCE_STATISTICS_DATA)
+
+std::vector<double> StatisticsRecord::mUpdateBuffer = std::vector<double>();
 
 }

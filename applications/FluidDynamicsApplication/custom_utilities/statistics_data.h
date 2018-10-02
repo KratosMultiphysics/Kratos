@@ -50,7 +50,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
   */
-template< class ValueContainterType >
+template< class ValueContainerType >
 class StatisticsData
 {
 public:
@@ -78,23 +78,15 @@ public:
     ///@name Operations
     ///@{
 
-    void AddQuantity(StatisticsSampler::Pointer pAverage) {
-        KRATOS_ERROR_IF(mInitialized) << "Trying to add more statistics quantities after initialization" << std::endl;
-        mAverages.push_back(pAverage);
-    }
-
-    void AddQuantity(HigherOrderStatistic::Pointer pHigherOrderStatistic)  {
-        KRATOS_ERROR_IF(mInitialized) << "Trying to add more statistics quantities after initialization" << std::endl;
-        mHigherOrderStatistics.push_back(pHigherOrderStatistic);
-    }
-
     void Initialize() {}
 
     void Update(const ValueContainerType& rMeasurement) {}
 
     void Combine(const StatisticsData& rOther) {}
 
-    ValueContainerType Output() {}
+    ValueContainerType Output() {
+        return mData;
+    }
 
     void LoadFromFile() {}
 
@@ -170,9 +162,17 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<StatisticsSampler::Pointer> mAverages;
+    ValueContainerType mData;
 
-    std::vector<HigherOrderStatistic::Pointer> mHigherOrderStatistics;
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const {}
+
+    void load(Serializer& rSerializer) {}
 
     ///@}
     ///@name Private Operators
@@ -215,7 +215,10 @@ private:
 
 /// input stream function
 inline std::istream &operator>>(std::istream &rIStream,
-                                StatisticsData< std::vector<double> > &rThis) {}
+                                StatisticsData< std::vector<double> > &rThis)
+{
+    return rIStream;
+}
 
 /// output stream function
 inline std::ostream &operator<<(std::ostream &rOStream,

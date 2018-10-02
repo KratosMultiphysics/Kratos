@@ -11,8 +11,8 @@
 //                   Author2 Fullname
 //
 
-#ifndef KRATOS_STATISTICAL_UTILITIES_H_INCLUDED
-#define KRATOS_STATISTICAL_UTILITIES_H_INCLUDED
+#ifndef KRATOS_STATISTICS_UTILITIES_H_INCLUDED
+#define KRATOS_STATISTICS_UTILITIES_H_INCLUDED
 
 // System includes
 #include <string>
@@ -23,6 +23,9 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/node.h"
+#include "geometries/geometry.h"
+#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -52,7 +55,7 @@ class StatisticsSampler
 {
 public:
 
-StatisticsSampler(unsigned int NumValues, unsigned int Offset):
+StatisticsSampler(unsigned int NumValues, unsigned int Offset = 0):
     mNumValues(NumValues),
     mOffset(Offset)
 {}
@@ -68,27 +71,30 @@ unsigned int GetSize() const {
     return mNumValues;
 }
 
-unsigned int GetValueOffset() const
+virtual unsigned int GetValueOffset() const
 {
     KRATOS_ERROR << "Method not implemented" << std::endl;
 }
 
-unsigned int GetComponentOffset(unsigned int i) const
+virtual unsigned int GetComponentOffset(unsigned int i) const
 {
     KRATOS_ERROR << "Method not implemented" << std::endl;
 }
 
-unsigned int GetComponentOffset(unsigned int i, unsigned int j) const
+virtual unsigned int GetComponentOffset(unsigned int i, unsigned int j) const
 {
     KRATOS_ERROR << "Method not implemented" << std::endl;
 }
-
-protected:
 
 unsigned int GetOffset() const
 {
     return mOffset;
 }
+
+void SetOffset(std::size_t Offset) {
+    mOffset = Offset;
+}
+
 
 private:
 
@@ -102,16 +108,16 @@ class ScalarAverageSampler: public StatisticsSampler
 {
 public:
 
-ScalarSampler(unsigned int Offset, std::function<double> Getter):
+ScalarAverageSampler(unsigned int Offset, std::function<double(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter):
   StatisticsSampler(1, Offset),
   mGetter(Getter)
 {}
 
-~ScalarSampler() override {}
+~ScalarAverageSampler() override {}
 
-void SampleDataPoint(std::vector<double>::iterator& BufferIterator, const std::vector<double>& rData)
+void SampleDataPoint(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives, std::vector<double>::iterator& BufferIterator, const std::vector<double>& rData)
 {
-    *BufferIterator = mGetter();
+    *BufferIterator = mGetter(rGeometry,rShapeFunctions,rShapeDerivatives);
     ++BufferIterator;
 }
 
@@ -121,7 +127,7 @@ unsigned int GetValueOffset() const override {
 
 private:
 
-std::function<double> mGetter;
+std::function<double(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> mGetter;
 
 };
 
@@ -130,15 +136,15 @@ class VectorAverageSampler: public StatisticsSampler
 {
 public:
 
-VectorSampler(std::function<VectorType> Getter, unsigned int VectorSize):
+VectorAverageSampler(std::function<VectorType(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter, unsigned int VectorSize):
     StatisticsSampler(VectorSize),
     mGetter(Getter)
 {}
 
-~VectorSampler() override {}
+~VectorAverageSampler() override {}
 
-void SampleDataPoint(std::vector<double>::iterator& BufferIterator) override {
-    TVectorType result = mGetter();
+void SampleDataPoint(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives, std::vector<double>::iterator& BufferIterator) override {
+    VectorType result = mGetter(rGeometry,rShapeFunctions,rShapeDerivatives);
     for (unsigned int i = 0; i < this->GetSize(); i++) {
         *BufferIterator = result[i];
         ++BufferIterator;
@@ -147,165 +153,8 @@ void SampleDataPoint(std::vector<double>::iterator& BufferIterator) override {
 
 private:
 
-std::function<VectorType> mGetter;
+std::function<VectorType(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> mGetter;
 };
-
-/// Short class definition.
-/** Detail class definition.
-  */
-template< class ValueContainterType >
-class StatisticsUtilities
-{
-public:
-    ///@name Type Definitions
-    ///@{
-
-    /// Pointer definition of StatisticsUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(StatisticsUtilities);
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructor.
-    StatisticsUtilities() {}
-
-    /// Destructor.
-    virtual ~StatisticsUtilities() {}
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    void AddQuantity(StatisticsSampler::Pointer pAverage) {
-        KRATOS_ERROR_IF(mInitialized) << "Trying to add more statistics quantities after initialization" << std::endl;
-        mAverages.push_back(pAverage);
-    }
-
-    void AddQuantity(HigherOrderStatistic::Pointer pHigherOrderStatistic)  {
-        KRATOS_ERROR_IF(mInitialized) << "Trying to add more statistics quantities after initialization" << std::endl;
-        mHigherOrderStatistics.push_back(pHigherOrderStatistic);
-    }
-
-    void Initialize() {}
-
-    void Update(const ValueContainerType& rMeasurement) {}
-
-    void Combine(const StatisticsUtilities& rOther) {}
-
-    ValueContainerType Output() {}
-
-    void LoadFromFile() {}
-
-    void SaveToFile() {}
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "StatisticsUtilities";
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream &rOStream) const { rOStream << "StatisticsUtilities"; }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream &rOStream) const {}
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    std::vector<StatisticsSampler::Pointer> mAverages;
-
-    std::vector<HigherOrderStatistic::Pointer> mHigherOrderStatistics;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    StatisticsUtilities &operator=(StatisticsUtilities const &rOther) {}
-
-    /// Copy constructor.
-    StatisticsUtilities(StatisticsUtilities const &rOther) {}
-
-    ///@}
-
-}; // Class StatisticsUtilities
 
 ///@}
 
@@ -316,24 +165,10 @@ private:
 ///@name Input and output
 ///@{
 
-/// input stream function
-inline std::istream &operator>>(std::istream &rIStream,
-                                StatisticsUtilities &rThis) {}
-
-/// output stream function
-inline std::ostream &operator<<(std::ostream &rOStream,
-                                const StatisticsUtilities &rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 ///@}
 
 ///@} addtogroup block
 
 } // namespace Kratos.
 
-#endif // KRATOS_STATISTICAL_UTILITIES_H_INCLUDED  defined
+#endif // KRATOS_STATISTICS_UTILITIES_H_INCLUDED  defined

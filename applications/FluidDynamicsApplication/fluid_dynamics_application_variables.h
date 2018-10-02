@@ -26,6 +26,9 @@
 #include "includes/dem_variables.h"  //TODO: must be removed eventually
 #include "includes/legacy_structural_app_vars.h"  //TODO: must be removed eventually
 
+#include "custom_utilities/statistics_record.h"
+#include "custom_utilities/statistics_data.h"
+
 namespace Kratos
 {
 KRATOS_DEFINE_APPLICATION_VARIABLE( FLUID_DYNAMICS_APPLICATION, int,PATCH_INDEX)
@@ -66,7 +69,7 @@ KRATOS_DEFINE_APPLICATION_VARIABLE( FLUID_DYNAMICS_APPLICATION, double, REACTION
 KRATOS_DEFINE_APPLICATION_VARIABLE( FLUID_DYNAMICS_APPLICATION, double, MACH)
 
 // Turbulence statistics
-KRATOS_DEFINE_APPLICATION_VARIABLE( FLUID_DYNAMICS_APPLICATION, StatisticsRecord::Pointer, TURBULENCE_STATISTICS)
+KRATOS_DEFINE_APPLICATION_VARIABLE( FLUID_DYNAMICS_APPLICATION, StatisticsRecord::Pointer, STATISTICS_CONTAINER)
 KRATOS_DEFINE_APPLICATION_VARIABLE( FLUID_DYNAMICS_APPLICATION, typename StatisticsData<std::vector<double>>::Pointer, TURBULENCE_STATISTICS_DATA)
 KRATOS_DEFINE_APPLICATION_VARIABLE( FLUID_DYNAMICS_APPLICATION, double, COMPUTE_STATISTICS )
 }
