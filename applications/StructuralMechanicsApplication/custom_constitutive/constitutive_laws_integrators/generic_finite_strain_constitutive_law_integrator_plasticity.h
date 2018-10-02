@@ -392,22 +392,33 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
         double& rHardeningParameter
         )
     {
-        // TODO: Finish me
-//         rHardeningParameter = -SlopeThreshold;
-//         double aux = 0.0;
-//
-//         for (IndexType i = 0; i < VoigtSize; ++i) {
-//             aux += rHCapa[i] * rDerivativePlasticPotential[i];
-//         }
-//         if (aux != 0.0)
-//             rHardeningParameter *= aux;
+        rHardeningParameter = -SlopeThreshold;
+        double aux = 0.0;
+
+        for (IndexType i = 0; i < Dimension; ++i) {
+            for (IndexType j = 0; j < Dimension; ++j) {
+                if (i == j) {
+                    aux += rHCapa[i] * rDerivativePlasticPotential(i, j);
+                } else {
+                    IndexType index;
+                    if (i < j) {
+                        index = i == 1 ? index = 4 : j == 1 ? index = 3 : index = 5;
+                    } else {
+                        index = j == 1 ? index = 4 : i == 1 ? index = 3 : index = 5;
+                    }
+                    aux +=  0.5 * rHCapa[index] * rDerivativePlasticPotential(i, j);
+                }
+            }
+        }
+        if (aux != 0.0)
+            rHardeningParameter *= aux;
     }
 
     /**
      * @brief This method computes the plastic denominator needed
      * to compute the plastic consistency factor
-     * @param rFflux The derivative of the yield surface
-     * @param rGflux The derivative of the plastic potential
+     * @param rDerivativeYieldSurface The derivative of the yield surface
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
      * @param rConstitutiveMatrix The elastic constitutive matrix
      * @param rHardeningParameter The hardening parameter needed for the algorithm
      * @param rPlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
@@ -420,23 +431,54 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
         double& rPlasticDenominator
         )
     {
-        // TODO: Finish me
-//         const BoundedArrayType delta_vector = prod(rDerivativePlasticPotential, rConstitutiveMatrix);
-//         double A1 = 0.0;
-//
-//         for (IndexType i = 0; i < VoigtSize; ++i) {
-//             A1 += rDerivativeYieldSurface[i] * delta_vector[i];
-//         }
-//
-//         const double A2 = 0.0; // Only for isotropic hard
-//         const double A3 = rHardeningParameter;
-//         if (std::abs(A1 + A2 + A3) > tolerance)
-//             rPlasticDenominator = 1.0 / (A1 + A2 + A3);
-//         else {
-//             rPlasticDenominator = 1.0e-3 * std::numeric_limits<double>::max(); // TODO: Discuss this!!!
-// //             rPlasticDenominator = 1.0;
-// //             KRATOS_WARNING("GenericFiniteStrainConstitutiveLawIntegratorPlasticity") << "Problem computing plastic denominator. Zero division avoided" << std::endl;
-//         }
+        Vector aux_array(VoigtSize);
+        if (VoigtSize == 3) {
+            aux_array[0] = rDerivativePlasticPotential(0,0);
+            aux_array[1] = rDerivativePlasticPotential(1,1);
+            aux_array[2] = rDerivativePlasticPotential(0,1);
+        } else if (VoigtSize == 6) {
+            aux_array[0] = rDerivativePlasticPotential(0,0);
+            aux_array[1] = rDerivativePlasticPotential(1,1);
+            aux_array[2] = rDerivativePlasticPotential(2,2);
+            aux_array[3] = rDerivativePlasticPotential(0,1);
+            aux_array[4] = rDerivativePlasticPotential(1,2);
+            aux_array[5] = rDerivativePlasticPotential(0,2);
+        }
+
+        Vector delta_vector = 0.5 * prod(aux_array, rConstitutiveMatrix);
+
+        if (VoigtSize == 3) {
+            aux_array[0] = rDerivativePlasticPotential(0,0);
+            aux_array[1] = rDerivativePlasticPotential(1,1);
+            aux_array[2] = rDerivativePlasticPotential(1,0);
+        } else if (VoigtSize == 6) {
+            aux_array[0] = rDerivativePlasticPotential(0,0);
+            aux_array[1] = rDerivativePlasticPotential(1,1);
+            aux_array[2] = rDerivativePlasticPotential(2,2);
+            aux_array[3] = rDerivativePlasticPotential(1,0);
+            aux_array[4] = rDerivativePlasticPotential(2,1);
+            aux_array[5] = rDerivativePlasticPotential(2,0);
+        }
+
+        delta_vector += 0.5 * prod(aux_array, rConstitutiveMatrix);
+
+        const Matrix delta_matrix = MathUtils<double>::StressVectorToTensor(delta_vector);
+
+        double A1 = 0.0;
+
+        for (IndexType i = 0; i < Dimension; ++i) {
+            for (IndexType j = 0; j < Dimension; ++j) {
+                A1 += rDerivativeYieldSurface(i, j) * delta_matrix(i, j);
+            }
+        }
+
+        const double A2 = 0.0; // Only for isotropic hard
+        const double A3 = rHardeningParameter;
+        if (std::abs(A1 + A2 + A3) > tolerance)
+            rPlasticDenominator = 1.0 / (A1 + A2 + A3);
+        else {
+            rPlasticDenominator = 1.0e-3 * std::numeric_limits<double>::max();
+        }
     }
 
     /**
