@@ -144,22 +144,64 @@ public:
     void Execute() override {}
 
     /**
-     * ExecuteRefinement transfers the entities TO_REFINE from the coarse to the refined model part and executes the refinement
+     * ExecuteRefinement transfers the entities TO_REFINE from the
+     * coarse to the refined model part and executes the refinement
      */
     void ExecuteRefinement();
 
     /**
-     * ExecuteCoarsening deletes the entities of the refined model part which in the coarse model part are not TO_REFINE
+     * ExecuteCoarsening deletes the entities of the refined model
+     * part which in the coarse model part are not TO_REFINE
      */
     void ExecuteCoarsening();
 
     /**
-     * @brief InitializeNewModelPart is an auxiliary function to copy properties, variables, tables and sub model parts
+     * @brief InitializeNewModelPart is an auxiliary function to
+     * copy properties, variables, tables and sub model parts
      * @param rReferenceModelPart
      * @param rNewModelPart
      */
     static void InitializeNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart);
 
+    /**
+     * @brief Copies all the last nodal step data from the refined
+     * model part to the coarse one
+     */
+    void TransferLastStepToCoarseModelPart();
+
+    /**
+     * @brief Copies the nodal step data with a linear interpolation
+     * between the last nodal steps of the given variable
+     * @tparam TVarType The variable type
+     * @param rVariable The variable to transfer
+     * @param rSubstepFraction 0 means the previous time step,
+     * 1 means the last time step, an intermediate value means
+     * the interpolation factor
+     */
+    template<class TVarType>
+    void TransferSubstepToRefinedModelPart(TVarType& rVariable, const double& rSubstepFraction);
+
+    /**
+     * @brief Copies the nodal step data with a linear interpolation
+     * between the last nodal steps of the given variable
+     * @tparam TVarType The variable type
+     * @param rVariable The variable to transfer
+     * @param rSubstepFraction 0 means the previous time step,
+     * 1 means the last time step, an intermediate value means
+     * the interpolation factor
+     */
+    template<class TVarType>
+    void TransferSubstepToRefinedInterface(TVarType& rVariable, const double& rSubstepFraction);
+
+    /**
+     * @brief Applies fixity forthe given variable at the nodes
+     * which define the interface
+     * @tparam TVarType The variable type
+     * @param rVariable The variable to apply fixity
+     * @param IsFixed
+     */
+    template<class TVarType>
+    void FixRefinedInterFace(TVarType& rVariable, bool IsFixed);
 
     ///@}
     ///@name Access
@@ -243,6 +285,7 @@ public:
 
     unsigned int mEchoLevel;
     int mDivisionsAtSubscale;
+    IndexType mStepDataSize;
 
     UniformRefineUtility<2> mUniformRefinement; /// The utility to perform the refinement
 
@@ -294,31 +337,36 @@ public:
 
     /**
      * @brief InitializeRefinedModelPart creates the refined sub model part
-     * @detail The method copy the model part hierarchy from the coarse to the refined model part
+     * @detail The method copy the model part hierarchy from the coarse to
+     * the refined model part
      * @param rNames The vector containing the sub model part names
      */
     void InitializeRefinedModelPart(const StringVectorType& rNames);
 
     /**
-     * @brief InitializeVisualizationModelPart adds all the nodes, elements and conditions to the visualization model part
+     * @brief InitializeVisualizationModelPart adds all the nodes, elements
+     * and conditions to the visualization model part
      * @param rNemes The vector containing the sub model part names
      */
     void InitializeVisualizationModelPart(const StringVectorType& rNames); 
 
     /**
-     * @brief AddVariablesToRefinedModelPart copies the variables from the coarse to the refined model part
+     * @brief AddVariablesToRefinedModelPart copies the variables from the
+     * coarse to the refined model part
      */
     void AddVariablesToRefinedModelPart();
 
     /**
-     * @brief AddAllPropertiesToModelPart adds all properties from an origin model part to a destination model part
+     * @brief AddAllPropertiesToModelPart adds all properties from an origin
+     * model part to a destination model part
      * @param rOriginModelPart
      * @param pDestinationModelPart
      */
     static void AddAllPropertiesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart);
 
     /**
-     * @brief AddAllTablesToModelPart adds all tables from an origin model part to a destination model part
+     * @brief AddAllTablesToModelPart adds all tables from an origin model
+     * part to a destination model part
      * @param rOriginModelPart
      * @param pDestinationModelPart
      */
@@ -326,21 +374,24 @@ public:
 
     /**
      * @brief This function sets the elements TO_REFINE depending on the nodal flags
-     * @detail An element is TO_REFINE if all the nodes are TO_REFINE and, at least one node is NEW_ENTITY
+     * @detail An element is TO_REFINE if all the nodes are TO_REFINE and,
+     * at least one node is NEW_ENTITY
      * @see CloneNodesToRefine
      */
     void MarkElementsFromNodalFlag();
 
     /**
      * @brief This function sets the conditions TO_REFINE depending on the nodal flags
-     * @detail An condition is TO_REFINE if all the nodes are TO_REFINE and, at least one node is NEW_ENTITY
+     * @detail An condition is TO_REFINE if all the nodes are TO_REFINE and,
+     * at least one node is NEW_ENTITY
      * @see CloneNodesToRefine
      */
     void MarkConditionsFromNodalFlag();
 
     /**
      * @brief This function creates a copy of the nodes on the refined sub model part
-     * @detail Only are copied (NEW_ENTITY) the nodes which are not already present in the refined sub model part
+     * @detail Only are copied (NEW_ENTITY) the nodes which are not already
+     * present in the refined sub model part
      * @param rNodeId the node Id will be ++rNodeId
      */
     void CloneNodesToRefine(IndexType& rNodeId);
@@ -358,7 +409,8 @@ public:
     void CreateConditionsToRefine(IndexType& rCondId, IndexIndexMapType& rCondTag);
 
     /**
-     * @brief This method makes a substitution on the visualization model part: removes the coarse entities and adds the refined ones
+     * @brief This method makes a substitution on the visualization model part:
+     * Removes the coarse entities and adds the refined ones
      */
     void UpdateVisualizationAfterRefinement();
 
@@ -368,61 +420,74 @@ public:
     void UpdateVisualizationAfterCoarsening();
 
     /**
-     * @brief IdentifyNodesToErase looks for the nodes which should be removed from the refined model part
-     * @detail When a node is not TO_REFINE and is currently refined, sets OLD_ENTITY flag in the coarse
+     * @brief IdentifyNodesToErase looks for the nodes which should be
+     * removed from the refined model part
+     * @detail When a node is not TO_REFINE and is currently refined,
+     * sets OLD_ENTITY flag in the coarse
      * model part and remove it from the unordered_maps
      * @see CloneNodesToRefine
      */
     void IdentifyParentNodesToErase();
 
     /**
-     * @brief IdentifyElementsToErase looks for the elements which should be removed from the refined model part
-     * @detail Sets TO_ERASE flag in the refined model part when a node in the coarse model part is OLD_ENTITY
+     * @brief IdentifyElementsToErase looks for the elements which should
+     * be removed from the refined model part
+     * @detail Sets TO_ERASE flag in the refined model part when a node in
+     * the coarse model part is OLD_ENTITY
      * @see IdentifyParentNodesToErase
      */
     void IdentifyElementsToErase();
 
     /**
-     * @brief IdentifyConditionsToErase looks for the condtions which should be removed from the refined model part
-     * @detail Sets TO_ERASE flag in the refined model part when a node in the coarse model part is OLD_ENTITY
+     * @brief IdentifyConditionsToErase looks for the condtions which should
+     * be removed from the refined model part
+     * @detail Sets TO_ERASE flag in the refined model part when a node
+     * in the coarse model part is OLD_ENTITY
      * @see IdentifyParentNodesToRefine
      */
     void IdentifyConditionsToErase();
 
     /**
-     * @brief IdentifyrefinedNodesToErase looks for the nodes which should be removed from the refiend model part
-     * @detail When a refined element is TO_ERASE, sets TO_ERASE flag to all its nodes.
+     * @brief IdentifyrefinedNodesToErase looks for the nodes which should
+     * be removed from the refiend model part
+     * @detail When a refined element is TO_ERASE, sets TO_ERASE flag to
+     * all its nodes.
      * If a node is TO_REFINE (e.g. the refining interface), the element is not TO_ERASE
      * @see IdentifyElementsToErase
      */
     void IdentifyRefinedNodesToErase();
 
     /**
-     * @brief FinalizeRefinement resets the flags on the nodes and elements and conditions
+     * @brief FinalizeRefinement resets the flags on the nodes and elements
+     * and conditions
      * @detail NEW_ENTITY is set to false
      * @see CloneNodesToRefine
      */
     void FinalizeRefinement();
 
     /**
-     * @brief FinalizeCoarsening resets the flags on the nodes, elements and conditions
+     * @brief FinalizeCoarsening resets the flags on the nodes, elements
+     * and conditions
      * @detail MeshingFlags::TO_COARSEN
      */
     void FinalizeCoarsening();
 
     /**
-     * @brief Identify the nodes in the coarse model part defining the boundary with the subscale
+     * @brief Identify the nodes in the coarse model part defining the
+     * boundary with the subscale
      * @detail INTERFACE
      */
     void IdentifyCurrentInterface();
 
     /**
-     * @brief This method stores the refined nodes which are inside the interface on a container
+     * @brief This method stores the refined nodes which are inside the
+     * interface on a container
      */
     void UpdateRefinedInterface();
 
     /**
-     * @brief GetLastId gets the absolute root model part and looks for the maximum id's
+     * @brief GetLastId gets the absolute root model part and looks for
+     * the maximum id's
      */
     void GetLastId(IndexType& rNodesId, IndexType& rElemsId, IndexType& rCondsId);
 
