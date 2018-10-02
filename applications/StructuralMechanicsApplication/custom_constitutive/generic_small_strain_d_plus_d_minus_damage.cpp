@@ -112,21 +112,25 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
         ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector, predictive_stress_vector_tension, predictive_stress_vector_compression);
 
-        // Initialize Plastic Parameters
-        double uniaxial_stress_tension, uniaxial_stress_compression;
-        TConstLawIntegratorTensionType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector_tension, r_strain_vector, uniaxial_stress_tension, rValues);
-        TConstLawIntegratorCompressionType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector_compression, r_strain_vector, uniaxial_stress_compression, rValues);
+        damage_parameters.TensionStressVector     = predictive_stress_vector_tension;
+        damage_parameters.CompressionStressVector = predictive_stress_vector_compression;
+        
+        TConstLawIntegratorTensionType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector_tension, r_strain_vector,
+            damage_parameters.UniaxialTensionStress, rValues);
+        TConstLawIntegratorCompressionType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector_compression, r_strain_vector,
+            damage_parameters.UniaxialCompressionStress, rValues);
 
-        const double F_tension     = uniaxial_stress_tension - damage_parameters.ThresholdTension;
-        const double F_compression = uniaxial_stress_compression - damage_parameters.ThresholdCompression;
+        const double F_tension = damage_parameters.UniaxialTensionStress - damage_parameters.ThresholdTension;
+        const double F_compression = damage_parameters.UniaxialCompressionStress - damage_parameters.ThresholdCompression;
 
         this->IntegrateStressTensionIfNecessary(F_tension, damage_parameters, predictive_stress_vector_tension, rValues);
         this->IntegrateStressCompressionIfNecessary(F_compression, damage_parameters, predictive_stress_vector_compression, rValues);
-            
+  
         if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             this->CalculateTangentTensor(rValues);
             noalias(r_tangent_tensor) = rValues.GetConstitutiveMatrix();
         }
+		this->CalculateIntegratedStressVector(integrated_stress_vector, damage_parameters, rValues);
     }
 }
 
@@ -137,23 +141,22 @@ template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompres
 void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     IntegrateStressTensionIfNecessary(
         const double F_tension, 
-        DamageParameters& Parameters, 
+        DamageParameters& rParameters, 
         array_1d<double, VoigtSize>& IntegratedStressVectorTension,
         ConstitutiveLaw::Parameters& rValues)
 {
     if (F_tension <= 0.0) { // Elastic case
-        this->SetNonConvTensionDamage(Parameters.DamageTension);
-        this->SetNonConvTensionThreshold(Parameters.ThresholdTension);
-        IntegratedStressVectorTension *= (1.0 - Parameters.DamageTension);
+        this->SetNonConvTensionDamage(rParameters.DamageTension);
+        this->SetNonConvTensionThreshold(rParameters.ThresholdTension);
+        IntegratedStressVectorTension *= (1.0 - rParameters.DamageTension);
     } else { // Increasing damage...
         const double characteristic_length = rValues.GetElementGeometry().Length();
-        double uniaxial_stress_tension;
 
         // This routine updates the IntegratedStressVectorTension to verify the yield surf
-        TConstLawIntegratorTensionType::IntegrateStressVector(IntegratedStressVectorTension, uniaxial_stress_tension, 
-            Parameters.DamageTension, Parameters.ThresholdTension, rValues, characteristic_length);
-        this->SetNonConvTensionDamage(Parameters.DamageTension);
-        this->SetNonConvTensionThreshold(Parameters.ThresholdTension);
+        TConstLawIntegratorTensionType::IntegrateStressVector(IntegratedStressVectorTension, rParameters.UniaxialTensionStress, 
+            rParameters.DamageTension, rParameters.ThresholdTension, rValues, characteristic_length);
+        this->SetNonConvTensionDamage(rParameters.DamageTension);
+        this->SetNonConvTensionThreshold(rParameters.UniaxialTensionStress);
     }
 }
 
@@ -164,25 +167,54 @@ template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompres
 void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     IntegrateStressCompressionIfNecessary(
         const double F_compression, 
-        DamageParameters& Parameters, 
+        DamageParameters& rParameters, 
         array_1d<double, VoigtSize>& IntegratedStressVectorCompression,
         ConstitutiveLaw::Parameters& rValues)
 {
     if (F_compression <= 0.0) { // Elastic case
-        this->SetNonConvCompressionDamage(Parameters.DamageCompression);
-        this->SetNonConvCompressionThreshold(Parameters.ThresholdCompression);
-        IntegratedStressVectorCompression *= (1.0 - Parameters.DamageCompression);
+        this->SetNonConvCompressionDamage(rParameters.DamageCompression);
+        this->SetNonConvCompressionThreshold(rParameters.ThresholdCompression);
+        IntegratedStressVectorCompression *= (1.0 - rParameters.DamageCompression);
     } else { // Increasing damage...
         const double characteristic_length = rValues.GetElementGeometry().Length();
-        double uniaxial_stress_Compression;
 
         // This routine updates the IntegratedStressVectorCompression to verify the yield surf
-        TConstLawIntegratorCompressionType::IntegrateStressVector(IntegratedStressVectorCompression, uniaxial_stress_Compression, 
-            Parameters.DamageCompression, Parameters.ThresholdCompression, rValues, characteristic_length);
-        this->SetNonConvCompressionDamage(Parameters.DamageCompression);
-        this->SetNonConvCompressionThreshold(Parameters.ThresholdCompression);
+        TConstLawIntegratorCompressionType::IntegrateStressVector(IntegratedStressVectorCompression, rParameters.UniaxialCompressionStress, 
+            rParameters.DamageCompression, rParameters.ThresholdCompression, rValues, characteristic_length);
+        this->SetNonConvCompressionDamage(rParameters.DamageCompression);
+        this->SetNonConvCompressionThreshold(rParameters.UniaxialCompressionStress);
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
+void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
+    CalculateIntegratedStressVector(
+        Vector& rIntegratedStressVector,
+        const DamageParameters& rParameters,
+        ConstitutiveLaw::Parameters& rValues)
+{
+    // Matrix projection_operator, A;
+    // const Vector strain_vector = rValues.GetStrainVector();
+    // const Matrix strain_tensor = MathUtils<double>::StrainVectorToTensor(strain_vector);
+    // ConstitutiveLawUtilities<VoigtSize>::CalculateProjectionOperator(strain_vector, projection_operator);
+    // Matrix identity_matrix = IdentityMatrix(Dimension, Dimension);
+
+    // A = std::sqrt(1.0 - rParameters.DamageTension) * projection_operator + std::sqrt(1.0 - rParameters.DamageCompression) * (identity_matrix - projection_operator);
+
+    // const Properties material_props = rValues.GetMaterialProperties();
+    // const double E  = material_props[YOUNG_MODULUS];
+    // const double nu = material_props[POISSON_RATIO];
+    // Matrix constitutive_tensor = ZeroMatrix(Dimension, Dimension);
+	// this->CalculateLinearElasticMatrix(constitutive_tensor, E, nu);
+
+    // Provisional!!!! todo convertir A en voigt y S = A*D*A*E
+    rIntegratedStressVector = (1.0 - rParameters.DamageTension) * rParameters.TensionStressVector +
+                              (1.0 - rParameters.DamageCompression) * rParameters.CompressionStressVector;
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -200,10 +232,9 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
 template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
 void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     InitializeMaterial(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues
-    )
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const Vector& rShapeFunctionsValues)
 {
     // We construct the CL parameters
     ProcessInfo dummy_process_info;
@@ -478,7 +509,32 @@ int GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLa
 
 /***********************************************************************************/
 /***********************************************************************************/
+template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
+void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
+    CalculateLinearElasticMatrix(Matrix& rLinearElasticMatrix, const double YoungModulus, const double PoissonCoefficient)
+{
+    rLinearElasticMatrix.clear();
 
+    rLinearElasticMatrix(0, 0) = (YoungModulus * (1.0 - PoissonCoefficient) / ((1.0 + PoissonCoefficient) * (1.0 - 2.0 * PoissonCoefficient)));
+    rLinearElasticMatrix(1, 1) = rLinearElasticMatrix(0, 0);
+    rLinearElasticMatrix(2, 2) = rLinearElasticMatrix(0, 0);
+
+    rLinearElasticMatrix(3, 3) = rLinearElasticMatrix(0, 0) * (1.0 - 2.0 * PoissonCoefficient) / (2.0 * (1.0 - PoissonCoefficient));
+    rLinearElasticMatrix(4, 4) = rLinearElasticMatrix(3, 3);
+    rLinearElasticMatrix(5, 5) = rLinearElasticMatrix(3, 3);
+
+    rLinearElasticMatrix(0, 1) = rLinearElasticMatrix(0, 0) * PoissonCoefficient / (1.0 - PoissonCoefficient);
+    rLinearElasticMatrix(1, 0) = rLinearElasticMatrix(0, 1);
+
+    rLinearElasticMatrix(0, 2) = rLinearElasticMatrix(0, 1);
+    rLinearElasticMatrix(2, 0) = rLinearElasticMatrix(0, 1);
+
+    rLinearElasticMatrix(1, 2) = rLinearElasticMatrix(0, 1);
+    rLinearElasticMatrix(2, 1) = rLinearElasticMatrix(0, 1);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template class GenericSmallStrainDplusDminusDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>,
     GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;

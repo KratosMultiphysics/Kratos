@@ -59,12 +59,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainDplusDminus
 public:
     ///@name Type Definitions
     ///@{
-    struct DamageParameters {
-        double DamageTension = 0.0;
-        double DamageCompression = 0.0;
-        double ThresholdTension = 0.0;
-        double ThresholdCompression = 0.0;
-	};
+
     /// The define the working dimension size, already defined in the integrator
     static constexpr SizeType Dimension = TConstLawIntegratorTensionType::Dimension;
 
@@ -86,6 +81,16 @@ public:
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
+	struct DamageParameters {
+		double DamageTension = 0.0;
+		double DamageCompression = 0.0;
+		double ThresholdTension = 0.0;
+		double ThresholdCompression = 0.0;
+		array_1d<double, VoigtSize> TensionStressVector;
+		array_1d<double, VoigtSize> CompressionStressVector;
+        double UniaxialTensionStress = 0.0;
+        double UniaxialCompressionStress = 0.0;
+	};
     ///@}
     ///@name Life Cycle
     ///@{
@@ -179,6 +184,15 @@ public:
         const double F_compression, 
         DamageParameters& Parameters,
         array_1d<double, VoigtSize>& IntegratedStressVectorCompression,
+        ConstitutiveLaw::Parameters& rValues
+        );
+
+    /**
+     * @brief Computes the inetgarted stress vector S = A:D0:A:E
+     */
+    void CalculateIntegratedStressVector(
+        Vector& IntegratedStressVectorTension,
+        const DamageParameters& Parameters,
         ConstitutiveLaw::Parameters& rValues
         );
 
@@ -352,6 +366,18 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief This method computes the elastic tensor
+     * @param rLinearElasticMatrix The elastic tensor
+     * @param YoungModulus The properties of the material
+     * @param PoissonCoefficient The poisson coefficient
+     * @return 0 if OK, 1 otherwise
+     */
+    void CalculateLinearElasticMatrix(
+        Matrix& rLinearElasticMatrix, 
+        const double YoungModulus, 
+        const double PoissonCoefficient
+        );
     ///@}
     ///@name Access
     ///@{
