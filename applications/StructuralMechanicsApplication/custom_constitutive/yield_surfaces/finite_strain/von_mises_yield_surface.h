@@ -146,7 +146,7 @@ public:
         double& rThreshold
         )
     {
-        SmallStrainYieldSurface::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+        SmallStrainYieldSurface::GetInitialUniaxialThreshold(rValues, rThreshold);
     }
 
     /**
@@ -161,7 +161,7 @@ public:
         const double CharacteristicLength
         )
     {
-        SmallStrainYieldSurface::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+        SmallStrainYieldSurface::CalculateDamageParameter(rValues, rAParameter, CharacteristicLength);
     }
 
     /**

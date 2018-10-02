@@ -78,7 +78,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainModifiedMohrCoulo
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
     
     /// The definition of the Voigt array type
-    typedef BoundedArrayType BoundedArrayType;
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
 
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;

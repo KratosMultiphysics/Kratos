@@ -11,8 +11,8 @@
 //                   Lucia Barbu
 //
 
-#if !defined(KRATOS_SIMO_JU_YIELD_SURFACE_H_INCLUDED)
-#define KRATOS_SIMO_JU_YIELD_SURFACE_H_INCLUDED
+#if !defined(KRATOS_FINITE_STRAIN_SIMO_JU_YIELD_SURFACE_H_INCLUDED)
+#define KRATOS_FINITE_STRAIN_SIMO_JU_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 
@@ -76,7 +76,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainSimoJuYieldSurfac
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
     
     /// The definition of the Voigt array type
-    typedef BoundedArrayType BoundedArrayType;
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
 
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
@@ -131,7 +131,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainSimoJuYieldSurfac
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        SmallStrainYieldSurfaceCalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+        SmallStrainYieldSurface::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
     }
 
     /**
@@ -144,7 +144,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainSimoJuYieldSurfac
         double& rThreshold
         )
     {
-        SmallStrainYieldSurfaceGetInitialUniaxialThreshold(rValues, rThreshold);
+        SmallStrainYieldSurface::GetInitialUniaxialThreshold(rValues, rThreshold);
     }
 
     /**
@@ -159,7 +159,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainSimoJuYieldSurfac
         const double CharacteristicLength
         )
     {
-        SmallStrainYieldSurfaceCalculateDamageParameter(rValues, rAParameter, CharacteristicLength);
+        SmallStrainYieldSurface::CalculateDamageParameter(rValues, rAParameter, CharacteristicLength);
     }
 
     /**
@@ -209,7 +209,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainSimoJuYieldSurfac
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        return SmallStrainYieldSurfaceCheck(rMaterialProperties);
+        return SmallStrainYieldSurface::Check(rMaterialProperties);
     }
 
     ///@}

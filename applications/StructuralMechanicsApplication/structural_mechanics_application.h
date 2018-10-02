@@ -105,8 +105,8 @@
 // Advanced Constitutive laws
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
-#include "custom_constitutive/isotropic_plasticity_factory.h"
-#include "custom_constitutive/generic_isotropic_plasticity.h"
+#include "custom_constitutive/finite_strain_isotropic_plasticity_factory.h"
+#include "custom_constitutive/generic_finite_strain_isotropic_plasticity.h"
 #include "custom_constitutive/generic_small_strain_isotropic_damage.h"
 #include "custom_constitutive/small_strain_isotropic_damage_factory.h"
 #include "custom_constitutive/viscous_generalized_kelvin.h"
@@ -116,7 +116,7 @@
 // Integrators
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_finite_strain_constitutive_law_integrator_plasticity.h"
 
 /* Small strain */ // TODO: Move to independent folder and rename
 // Yield surfaces

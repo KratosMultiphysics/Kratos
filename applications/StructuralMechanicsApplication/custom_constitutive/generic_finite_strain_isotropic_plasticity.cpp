@@ -17,8 +17,8 @@
 #include "utilities/math_utils.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
-#include "custom_constitutive/generic_isotropic_plasticity.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+#include "custom_constitutive/generic_finite_strain_isotropic_plasticity.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_finite_strain_constitutive_law_integrator_plasticity.h"
 
 // Hyperelastic behaviours
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
@@ -48,7 +48,6 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     // Integrate Stress plasticity
     Vector& integrated_stress_vector = rValues.GetStressVector();
     Matrix& tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
-    const double characteristic_length = rValues.GetElementGeometry().Length();
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
     // We get the strain vector
@@ -108,15 +107,11 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
         // Initialize Plastic Parameters
         double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-        BoundedArrayType yield_surface_derivative = ZeroVector(VoigtSize); // DF/DS
-        BoundedArrayType plastic_potential_derivative = ZeroVector(VoigtSize); // DG/DS
-        BoundedArrayType plastic_deformation_gradient = ZeroVector(VoigtSize);
+        BoundedMatrixType yield_surface_derivative = ZeroMatrix(Dimension, Dimension); // DF/DS
+        BoundedMatrixType plastic_potential_derivative = ZeroMatrix(Dimension, Dimension); // DG/DS
+        const BoundedArrayType dummy_plastic_strain_increment = ZeroVector(VoigtSize);
 
-        TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, r_strain_vector,
-                                                        uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation,
-                                                        plastic_deformation_gradient, r_constitutive_matrix, rValues, characteristic_length);
-
-        const double plastic_indicator = uniaxial_stress - r_threshold;
+        const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, dummy_plastic_strain_increment, rValues);
 
         if (plastic_indicator <= std::abs(1.0e-4 * r_threshold)) { // Elastic case
             noalias(integrated_stress_vector) = predictive_stress_vector;
@@ -131,10 +126,8 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         } else { // Plastic case
             // while loop backward euler
             /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
-            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, r_strain_vector,
-                                                        uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
-                                                        r_plastic_dissipation, plastic_deformation_gradient, r_constitutive_matrix, plastic_strain,
-                                                        rValues, characteristic_length);
+            TConstLawIntegratorType::IntegrateStressVector(*this, KIRCHHOFF_STRESS_VECTOR, ALMANSI_STRAIN_VECTOR, predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, r_plastic_deformation_gradient, rValues);
+
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
             this->SetNonConvPlasticDissipation(r_plastic_dissipation);
@@ -235,9 +228,9 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         double uniaxial_stress = 0.0, plastic_denominator = 0.0;
         BoundedMatrixType yield_surface_derivative = ZeroMatrix(Dimension, Dimension); // DF/DS
         BoundedMatrixType plastic_potential_derivative = ZeroMatrix(Dimension, Dimension); // DG/DS
-        BoundedMatrixType plastic_deformation_gradient_increment = ZeroMatrix(Dimension, Dimension); // DG/DS
+        const BoundedArrayType dummy_plastic_strain_increment = ZeroVector(VoigtSize);
 
-        const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, plastic_deformation_gradient_increment, rValues);
+        const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, dummy_plastic_strain_increment, rValues);
 
         if (plastic_indicator <= std::abs(1.0e-4 * r_threshold)) { // Elastic case
             noalias(integrated_stress_vector) = predictive_stress_vector;
@@ -252,7 +245,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         } else { // Plastic case
             // while loop backward euler
             /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
-            TConstLawIntegratorType::IntegrateStressVector(*this, PK2_STRESS_VECTOR, GREEN_LAGRANGE_STRAIN_VECTOR, predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, plastic_deformation_gradient_increment, r_plastic_deformation_gradient, rValues);
+            TConstLawIntegratorType::IntegrateStressVector(*this, PK2_STRESS_VECTOR, GREEN_LAGRANGE_STRAIN_VECTOR, predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, r_plastic_deformation_gradient, rValues);
 
             noalias(integrated_stress_vector) = predictive_stress_vector;
 

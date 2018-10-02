@@ -53,7 +53,9 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This object integrates the predictive stress using the plasticity theory by means of
  * linear/exponential softening or hardening + softening evolution laws
- * @details The definitions of these classes is completely static, the derivation is done in a static way
+ * @details The crucial difference between the discretisation of the large strain problem and the infinitesimal one lies in the numerical approximation of the plastic flow equation. The structure of the plastic flow equation makes algorithms based on exponential map integrators
+ideal for numerical approximation. (COMPUTATIONAL METHODS FOR PLASTICITY THEORY AND APPLICATIONS. EA de Souza Neto,D Perić, DRJ Owen pag. 616).
+ * The definitions of these classes is completely static, the derivation is done in a static way
  * @tparam TYieldSurfaceType The yield surface considered
  * The plasticity integrator requires the definition of the following properties:
  * - SOFTENING_TYPE: The softening behaviour considered (linear, exponential,etc...)
@@ -159,7 +161,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
      * @param rYieldSurfaceDerivative The derivative of the yield surface
      * @param rPlasicPotentialDerivative The derivative of the plastic potential
      * @param rPlasticDissipation The internal variable of energy dissipation due to plasticity
-     * @param rPlasticDeformationGradientIncrement The increment of plastic deformation gradient of this time step
      * @param rPlasticDeformationGradient The plastic deformation gradient
      * @param rValues Parameters of the constitutive law
      */
@@ -174,7 +175,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
         BoundedMatrixType& rYieldSurfaceDerivative,
         BoundedMatrixType& rPlasicPotentialDerivative,
         double& rPlasticDissipation,
-        BoundedMatrixType& rPlasticDeformationGradientIncrement,
         Matrix& rPlasticDeformationGradient,
         ConstitutiveLaw::Parameters& rValues
         )
@@ -184,31 +184,35 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
 
         // Some values initialization
         IndexType iteration = 0, max_iter = 100;
-        double plastic_consistency_factor_increment, threshold_indicator;
+        double plastic_consistency_factor_increment;
+        double threshold_indicator = 1.0;
         Matrix aux_plastic_deformation_gradient;
         Vector delta_sigma = ZeroVector(VoigtSize);
         Vector delta_plastic_strain = ZeroVector(VoigtSize);
 
+        // Initialize the
+        BoundedMatrixType plastic_deformation_gradient_increment;
+
         // Backward Euler
         while (iteration <= max_iter) {
-            threshold_indicator = rUniaxialStress - rThreshold;
+            plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
+            noalias(plastic_deformation_gradient_increment) = plastic_consistency_factor_increment * rPlasicPotentialDerivative;
+
+            // The increment of the deformation is not added but multiplied in finite strain
+            aux_plastic_deformation_gradient = prod(plastic_deformation_gradient_increment, rPlasticDeformationGradient);
+            noalias(rPlasticDeformationGradient) = aux_plastic_deformation_gradient;
+            rValues.SetDeformationGradientF(plastic_deformation_gradient_increment);
+            rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, delta_plastic_strain);
+            rConstitutiveLaw.CalculateValue(rValues, rStressVariable, delta_sigma);
+            noalias(rPredictiveStressVector) -= delta_sigma;
+
+            threshold_indicator = CalculatePlasticParameters(rPredictiveStressVector, rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative, rPlasicPotentialDerivative, rPlasticDissipation, delta_plastic_strain, rValues);
+
             if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 break;
             } else {
                 ++iteration;
             }
-            plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
-            noalias(rPlasticDeformationGradientIncrement) = plastic_consistency_factor_increment * rPlasicPotentialDerivative;
-
-            // The increment of the deformation is not added but multiplied in finite strain
-            aux_plastic_deformation_gradient = prod(rPlasticDeformationGradientIncrement, rPlasticDeformationGradient);
-            noalias(rPlasticDeformationGradient) = aux_plastic_deformation_gradient;
-            rValues.SetDeformationGradientF(rPlasticDeformationGradientIncrement);
-            this->CalculateValue(rValues, rStrainVariable, delta_plastic_strain);
-            this->CalculateValue(rValues, rStressVariable, delta_sigma);
-            noalias(rPredictiveStressVector) -= delta_sigma;
-
-            CalculatePlasticParameters(rPredictiveStressVector, rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative, rPlasicPotentialDerivative, rPlasticDissipation, delta_plastic_strain, rValues);
         }
 
         rValues = values_backup;
@@ -340,7 +344,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        SmallStrainIntegratorType::CalculateIndicatorsFactors(rPredictiveStressVector, TensileIndicatorFactor, CompressionIndicatorFactor, rPlasticStrainIncrement, PlasticDissipation, rHCapa, rValues);
+        SmallStrainIntegratorType::CalculateIndicatorsFactors(rPredictiveStressVector, TensileIndicatorFactor, CompressionIndicatorFactor, rPlasticStrainIncrement, rPlasticDissipation, rHCapa, rValues);
     }
 
     /**
@@ -381,7 +385,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
      * @param rHardeningParameter The hardening parameter needed for the algorithm
      */
     static void CalculateHardeningParameter(
-        const BoundedArrayType& rDerivativePlasticPotential,
+        const BoundedMatrixType& rDerivativePlasticPotential,
         const double SlopeThreshold,
         const BoundedArrayType& rHCapa,
         double& rHardeningParameter
@@ -416,7 +420,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
         )
     {
         // TODO: Finish me
-//         //const Vector delta_vector = prod(C, rDerivativePlasticPotential);
 //         const BoundedArrayType delta_vector = prod(rDerivativePlasticPotential, rConstitutiveMatrix);
 //         double A1 = 0.0;
 //

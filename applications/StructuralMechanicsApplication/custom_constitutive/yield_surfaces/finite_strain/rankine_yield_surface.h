@@ -78,7 +78,7 @@ public:
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
     
     /// The definition of the Voigt array type
-    typedef BoundedArrayType BoundedArrayType;
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
 
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
@@ -142,7 +142,7 @@ public:
      */
     static void GetInitialUniaxialThreshold(ConstitutiveLaw::Parameters& rValues, double& rThreshold)
     {
-        SmallStrainYieldSurface::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+        SmallStrainYieldSurface::GetInitialUniaxialThreshold(rValues, rThreshold);
     }
 
     /**
@@ -154,9 +154,10 @@ public:
     static void CalculateDamageParameter(
         ConstitutiveLaw::Parameters& rValues,
         double& rAParameter,
-        const double CharacteristicLength)
+        const double CharacteristicLength
+        )
     {
-        SmallStrainYieldSurface::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rEquivalentStress, rValues);
+        SmallStrainYieldSurface::CalculateDamageParameter(rValues, rAParameter, CharacteristicLength);
     }
 
     /**
