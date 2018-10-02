@@ -30,7 +30,6 @@
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 #include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
-#include "structural_mechanics_application_variables.h"
 
 // ==============================================================================
 

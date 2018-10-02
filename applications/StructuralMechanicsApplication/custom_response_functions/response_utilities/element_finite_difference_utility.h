@@ -33,13 +33,15 @@ namespace Kratos
  * This class calculates the derivatives of different element quantities (e.g. RHS, LHS, mass-matrix, ...)
  * with respect to a design variable (e.g. nodal-coordinate, property).
  */
+
+typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+
 class ElementFiniteDifferenceUtility
 {
 public:
 
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> array_1d_component_type;
 
     static void CalculateRightHandSideDerivative(Element& rElement,
                                                 const Variable<double>& rDesignVariable,
