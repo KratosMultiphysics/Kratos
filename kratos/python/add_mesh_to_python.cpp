@@ -1,8 +1,8 @@
-//    |  /           |             
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
 //  License:         BSD License
 //                     Kratos default license: kratos/license.txt
@@ -53,12 +53,13 @@ typename TVariableType::Type GetValueHelperFunction(TContainerType& el, const TV
 typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 typedef MeshType::NodeType NodeType;
 typedef MeshType::NodesContainerType NodesContainerType;
-typedef Geometry<Node<3> >::PointsArrayType NodesArrayType;
-typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
+typedef Geometry<Node<3> > GeometryType;
+typedef GeometryType::PointsArrayType NodesArrayType;
+typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 typedef Point::CoordinatesArrayType CoordinatesArrayType;
 
 array_1d<double,3> GetNormalFromCondition(
-    Condition& dummy, 
+    Condition& dummy,
     CoordinatesArrayType& LocalCoords
     )
 {
@@ -100,6 +101,16 @@ void SetPropertiesFromCondition( Condition& pcond, Properties::Pointer pProperti
      pcond.SetProperties(pProperties) ;
 }
 
+GeometryType::Pointer GetGeometryFromElement( Element& pelem )
+{
+    return pelem.pGetGeometry();
+}
+
+GeometryType::Pointer GetGeometryFromCondition( Condition& pcond )
+{
+    return pcond.pGetGeometry();
+}
+
 NodeType::Pointer GetNodeFromElement( Element& dummy, unsigned int index )
 {
     return( dummy.GetGeometry().pGetPoint(index) );
@@ -120,7 +131,7 @@ NodeType::Pointer GetNodeFromCondition( Condition& dummy, unsigned int index )
     return( dummy.GetGeometry().pGetPoint(index) );
 }
 
-void ConditionCalculateLocalSystemStandard( Condition& dummy, 
+void ConditionCalculateLocalSystemStandard( Condition& dummy,
                                                 Matrix& rLeftHandSideMatrix,
                                                 Vector& rRightHandSideVector,
                                                 ProcessInfo& rCurrentProcessInfo)
@@ -250,7 +261,7 @@ void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>&
 
     if(values.size() != integration_points.size())
         KRATOS_ERROR << "size of values is : " << values.size() << " while the integration points size is " << integration_points.size() << std::endl;
-    
+
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
@@ -441,6 +452,7 @@ void  AddMeshToPython(pybind11::module& m)
     class_<Element, Element::Pointer, Element::BaseType, Flags  >(m,"Element")
     .def(init<Kratos::Element::IndexType>())
     .def_property("Properties", GetPropertiesFromElement, SetPropertiesFromElement)
+    .def_property_readonly("Geometry", GetGeometryFromElement)
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 3>  > >)
@@ -567,6 +579,7 @@ void  AddMeshToPython(pybind11::module& m)
     class_<Condition, Condition::Pointer, Condition::BaseType, Flags  >(m,"Condition")
     .def(init<Kratos::Condition::IndexType>())
     .def_property("Properties", GetPropertiesFromCondition, SetPropertiesFromCondition)
+    .def_property_readonly("Geometry", GetGeometryFromCondition)
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
