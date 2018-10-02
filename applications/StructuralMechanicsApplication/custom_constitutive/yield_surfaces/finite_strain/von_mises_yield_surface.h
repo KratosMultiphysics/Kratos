@@ -202,17 +202,11 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-//         BoundedArrayType first_vector, second_vector, third_vector;
-//
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-//
-//         const double c1 = 0.0;
-//         const double c2 = std::sqrt(3.0);
-//         const double c3 = 0.0;
-//
-//         noalias(rDerivativeYieldSurface) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        BoundedArrayType aux;
+
+        SmallStrainYieldSurface::CalculateYieldSurfaceDerivative(rPredictiveStressVector, rDeviator, J2, aux, rValues);
+
+        noalias(rDerivativeYieldSurface) = MathUtils<double>::StressVectorToTensor<BoundedArrayType, BoundedMatrixType>(aux);
     }
 
     /**
