@@ -93,6 +93,11 @@ public:
     typedef std::vector<std::string> StringVectorType;
 
     /**
+     * Node containers definition
+     */
+    typedef ModelPart::NodesContainerType NodesArrayType;
+
+    /**
      * Map types to locate nodes in the mesh
      */
     typedef std::unordered_map<IndexType, NodeType::Pointer> IndexNodeMapType;
@@ -245,6 +250,8 @@ public:
     int mDivisionsAtSubscale;
 
     UniformRefineUtility<2> mUniformRefinement; /// The utility to perform the refinement
+
+    NodesArrayType mRefinedInterfaceContainer;
 
     IndexNodeMapType mCoarseToRefinedNodesMap; /// Mapping from coarse to refined
     IndexNodeMapType mRefinedToCoarseNodesMap; /// Mapping from refined to coarse
@@ -414,6 +421,11 @@ public:
      * @detail INTERFACE
      */
     void IdentifyCurrentInterface();
+
+    /**
+     * @brief This method stores the refined nodes which are inside the interface on a container
+     */
+    void UpdateRefinedInterface();
 
     /**
      * @brief CreateNewInterface identify the refining interface before to execute the refinement

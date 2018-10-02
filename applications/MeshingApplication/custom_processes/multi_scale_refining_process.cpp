@@ -123,6 +123,9 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
     mUniformRefinement.Refine(divisions);
     mUniformRefinement.GetLastCreatedIds(node_id, elem_id, cond_id);
 
+    // Update the refined interface after creation
+    UpdateRefinedInterface();
+
     // Update the visualization model part
     UpdateVisualizationAfterRefinement();
 
@@ -797,6 +800,27 @@ void MultiScaleRefiningProcess::IdentifyCurrentInterface()
                     elem->GetGeometry()[node].Set(INTERFACE, true);
             }
         }
+    }
+}
+
+
+void MultiScaleRefiningProcess::UpdateRefinedInterface()
+{
+    mRefinedInterfaceContainer.clear();
+
+    ModelPart::NodeIterator refined_begin = mrRefinedModelPart.NodesBegin();
+    for (int i = 0; i < static_cast<int>(mrRefinedModelPart.Nodes().size()); i++)
+    {
+        auto node = refined_begin + i;
+        bool is_refined_interface = true;
+        WeakPointerVector<NodeType>& father_nodes = node->GetValue(FATHER_NODES);
+        for (auto father_node = father_nodes.begin(); father_node < father_nodes.end(); father_node++)
+        {
+            if (father_node->IsNot(INTERFACE))
+                is_refined_interface = false;
+        }
+        if (is_refined_interface)
+            mRefinedInterfaceContainer.push_back(NodeType::SharedPointer(*node.base()));
     }
 }
 
