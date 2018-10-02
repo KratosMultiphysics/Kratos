@@ -281,10 +281,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateDerivativeYieldSurface(
-        BoundedArrayType& rPredictiveStressVector,
+        const BoundedArrayType& rPredictiveStressVector,
         const BoundedArrayType& rDeviator,
         const double J2,
-        BoundedArrayType& rDerivativeYieldSurface,
+        BoundedMatrixType& rDerivativeYieldSurface,
         ConstitutiveLaw::Parameters& rValues
         )
     {
@@ -344,7 +344,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        SmallStrainIntegratorType::CalculateIndicatorsFactors(rPredictiveStressVector, TensileIndicatorFactor, CompressionIndicatorFactor, rPlasticStrainIncrement, rPlasticDissipation, rHCapa, rValues);
+        const double characteristic_length = rValues.GetElementGeometry().Length();
+        SmallStrainIntegratorType::CalculatePlasticDissipation(rPredictiveStressVector, TensileIndicatorFactor, CompressionIndicatorFactor, rPlasticStrainIncrement, rPlasticDissipation, rHCapa, rValues, characteristic_length);
     }
 
     /**

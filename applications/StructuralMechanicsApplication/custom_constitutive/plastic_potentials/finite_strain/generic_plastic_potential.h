@@ -119,14 +119,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainGenericPlasticPot
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
-     * @param rGFlux The derivative of the plastic potential
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedArrayType& rPredictiveStressVector,
+        const BoundedArrayType& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rGFlux,
+        BoundedMatrixType& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {

@@ -117,24 +117,24 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedArrayType& rPredictiveStressVector,
+        const BoundedArrayType& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rGFlux,
+        BoundedMatrixType& rGFlux,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
-
-        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-
-        const double c1 = 0.0;
-        const double c2 = std::sqrt(3.0);
-        const double c3 = 0.0;
-
-        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+//         BoundedArrayType first_vector, second_vector, third_vector;
+//
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
+//
+//         const double c1 = 0.0;
+//         const double c2 = std::sqrt(3.0);
+//         const double c3 = 0.0;
+//
+//         noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
 
     /**

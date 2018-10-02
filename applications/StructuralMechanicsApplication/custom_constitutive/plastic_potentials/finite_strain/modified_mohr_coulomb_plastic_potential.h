@@ -118,73 +118,73 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainModifiedMohrCoulo
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
-     * @param rGFlux The derivative of the plastic potential
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedArrayType& rPredictiveStressVector,
+        const BoundedArrayType& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rGFlux,
+        BoundedMatrixType& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        const Properties& r_material_properties = rValues.GetMaterialProperties();
-
-        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
-
-        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-
-        double J3, lode_angle;
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
-
-        const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
-
-        const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
-        const double sin_dil = std::sin(dilatancy);
-        const double cos_dil = std::cos(dilatancy);
-        const double sin_theta = std::sin(lode_angle);
-        const double cos_theta = std::cos(lode_angle);
-        const double cos_3theta = std::cos(3.0 * lode_angle);
-        const double tan_theta = std::tan(lode_angle);
-        const double tan_3theta = std::tan(3.0 * lode_angle);
-        const double Root3 = std::sqrt(3.0);
-
-        const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
-        const double compr_yield = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
-        const double tensi_yield = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        const double n = compr_yield / tensi_yield;
-
-        const double angle_phi = (Globals::Pi * 0.25) + dilatancy * 0.5;
-        const double alpha = n / (std::tan(angle_phi) * std::tan(angle_phi));
-
-        const double CFL = 2.0 * std::tan(angle_phi) / cos_dil;
-
-        const double K1 = 0.5 * (1 + alpha) - 0.5 * (1 - alpha) * sin_dil;
-        const double K2 = 0.5 * (1 + alpha) - 0.5 * (1 - alpha) / sin_dil;
-        const double K3 = 0.5 * (1 + alpha) * sin_dil - 0.5 * (1 - alpha);
-
-        double c1, c2, c3;
-        if (std::abs(sin_dil) > tolerance)
-            c1 = CFL * K3 / 3.0;
-        else
-            c1 = 0.0; // check
-
-        if (checker < 29.0) {
-            c2 = cos_theta * CFL * (K1 * (1 + tan_theta * tan_3theta) + K2 * sin_dil * (tan_3theta - tan_theta) / Root3);
-            c3 = CFL * (K1 * Root3 * sin_theta + K2 * sin_dil * cos_theta) / (2.0 * J2 * cos_3theta);
-        } else {
-            c3 = 0.0;
-            double Aux = 1.0;
-            if (std::abs(lode_angle) > tolerance)
-                Aux = -1.0;
-            c2 = 0.5 * CFL * (K1 * Root3 + Aux * K2 * sin_dil / Root3);
-        }
-
-        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+//         const Properties& r_material_properties = rValues.GetMaterialProperties();
+//
+//         BoundedArrayType first_vector, second_vector, third_vector;
+//
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
+//
+//         double J3, lode_angle;
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
+//
+//         const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
+//
+//         const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
+//         const double sin_dil = std::sin(dilatancy);
+//         const double cos_dil = std::cos(dilatancy);
+//         const double sin_theta = std::sin(lode_angle);
+//         const double cos_theta = std::cos(lode_angle);
+//         const double cos_3theta = std::cos(3.0 * lode_angle);
+//         const double tan_theta = std::tan(lode_angle);
+//         const double tan_3theta = std::tan(3.0 * lode_angle);
+//         const double Root3 = std::sqrt(3.0);
+//
+//         const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
+//         const double compr_yield = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
+//         const double tensi_yield = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
+//         const double n = compr_yield / tensi_yield;
+//
+//         const double angle_phi = (Globals::Pi * 0.25) + dilatancy * 0.5;
+//         const double alpha = n / (std::tan(angle_phi) * std::tan(angle_phi));
+//
+//         const double CFL = 2.0 * std::tan(angle_phi) / cos_dil;
+//
+//         const double K1 = 0.5 * (1 + alpha) - 0.5 * (1 - alpha) * sin_dil;
+//         const double K2 = 0.5 * (1 + alpha) - 0.5 * (1 - alpha) / sin_dil;
+//         const double K3 = 0.5 * (1 + alpha) * sin_dil - 0.5 * (1 - alpha);
+//
+//         double c1, c2, c3;
+//         if (std::abs(sin_dil) > tolerance)
+//             c1 = CFL * K3 / 3.0;
+//         else
+//             c1 = 0.0; // check
+//
+//         if (checker < 29.0) {
+//             c2 = cos_theta * CFL * (K1 * (1 + tan_theta * tan_3theta) + K2 * sin_dil * (tan_3theta - tan_theta) / Root3);
+//             c3 = CFL * (K1 * Root3 * sin_theta + K2 * sin_dil * cos_theta) / (2.0 * J2 * cos_3theta);
+//         } else {
+//             c3 = 0.0;
+//             double Aux = 1.0;
+//             if (std::abs(lode_angle) > tolerance)
+//                 Aux = -1.0;
+//             c2 = 0.5 * CFL * (K1 * Root3 + Aux * K2 * sin_dil / Root3);
+//         }
+//
+//         noalias(rDerivativePlasticPotential) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
 
     /**

@@ -115,36 +115,36 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainDruckerPragerPlas
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the rDeviator
-     * @param rGFlux The derivative of the plastic potential
+     * @param rDerivativePlasticPOtential The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedArrayType& rPredictiveStressVector,
+        const BoundedArrayType& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rGFlux,
+        BoundedMatrixType& rDerivativePlasticPOtential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        const Properties& r_material_properties = rValues.GetMaterialProperties();
-
-        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
-
-        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-
-        const double c3 = 0.0;
-
-        const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
-        const double sin_dil = std::sin(dilatancy);
-        const double Root3 = std::sqrt(3.0);
-
-        const double CFL = -Root3 * (3.0 - sin_dil) / (3.0 * sin_dil - 3.0);
-        const double c1 = CFL * 2.0 * sin_dil / (Root3 * (3.0 - sin_dil));
-        const double c2 = CFL;
-
-        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+//         const Properties& r_material_properties = rValues.GetMaterialProperties();
+//
+//         BoundedArrayType first_vector, second_vector, third_vector;
+//
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
+//
+//         const double c3 = 0.0;
+//
+//         const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
+//         const double sin_dil = std::sin(dilatancy);
+//         const double Root3 = std::sqrt(3.0);
+//
+//         const double CFL = -Root3 * (3.0 - sin_dil) / (3.0 * sin_dil - 3.0);
+//         const double c1 = CFL * 2.0 * sin_dil / (Root3 * (3.0 - sin_dil));
+//         const double c2 = CFL;
+//
+//         noalias(rDerivativePlasticPOtential) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
 
     /**

@@ -112,41 +112,41 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainTrescaPlasticPote
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
-     * @param rGFlux The derivative of the plastic potential
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedArrayType& rPredictiveStressVector,
+        const BoundedArrayType& rDeviator,
         const double J2,
-        array_1d<double, VoigtSize>& rGFlux,
+        BoundedMatrixType& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
-
-        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-
-        double J3, lode_angle;
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
-
-        const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
-
-        const double c1 = 0.0;
-        double c2, c3;
-
-        if (checker < 29.0) {
-            c2 = 2.0 * (std::cos(lode_angle) + std::sin(lode_angle) * std::tan(3.0 * lode_angle));
-            c3 = std::sqrt(3.0) * std::sin(lode_angle) / (J2 * std::cos(3.0 * lode_angle));
-        } else {
-            c2 = std::sqrt(3.0);
-            c3 = 0.0;
-        }
-
-        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+//         BoundedArrayType first_vector, second_vector, third_vector;
+//
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
+//
+//         double J3, lode_angle;
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
+//         ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
+//
+//         const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
+//
+//         const double c1 = 0.0;
+//         double c2, c3;
+//
+//         if (checker < 29.0) {
+//             c2 = 2.0 * (std::cos(lode_angle) + std::sin(lode_angle) * std::tan(3.0 * lode_angle));
+//             c3 = std::sqrt(3.0) * std::sin(lode_angle) / (J2 * std::cos(3.0 * lode_angle));
+//         } else {
+//             c2 = std::sqrt(3.0);
+//             c3 = 0.0;
+//         }
+//
+//         noalias(rDerivativePlasticPotential) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
 
     /**
