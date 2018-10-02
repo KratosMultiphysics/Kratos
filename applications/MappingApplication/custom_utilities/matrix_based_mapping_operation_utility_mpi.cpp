@@ -39,13 +39,29 @@ void Assemble_Vectors(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
                                   MappingWeightsVector& rMappingWeights)
 {
     const int ierr = rpMdo->SumIntoGlobalValues(
-        rDestinationIds.size(), rDestinationIds.data(),
+        // rDestinationIds.size(), rDestinationIds.data(),
+        1, rDestinationIds.data(),
         rOriginIds.size(),      rOriginIds.data(),
         rMappingWeights.data(),
         Epetra_FECrsMatrix::ROW_MAJOR );
 
-    KRATOS_ERROR_IF( ierr < 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
+    KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
         << "Error code: " << ierr << std::endl;
+}
+void Assemble_VectorsOneByOne(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
+                                  EquationIdVectorType& rOriginIds,
+                                  EquationIdVectorType& rDestinationIds,
+                                  MappingWeightsVector& rMappingWeights)
+{
+    // for (std::size_t i=0; i<rMappingWeights.size(), ++i)
+    // const int ierr = rpMdo->SumIntoGlobalValues(
+    //     1, &rDestinationIds[i],
+    //     1, &rOriginIds[i],
+    //     &rMappingWeights[i],
+    //     Epetra_FECrsMatrix::ROW_MAJOR );
+
+    // KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
+    //     << "Error code: " << ierr << std::endl;
 }
 
 void Assemble_SerialDenseObjs(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
@@ -133,8 +149,12 @@ void UtilityType::ResizeAndInitializeVectors(
     }
 
     // Construct vectors containing all the indices this processor contributes to
-    std::vector<int> row_indices(num_local_nodes_dest*2); // using number of nodes as size estimation
-    std::vector<int> col_indices(num_local_nodes_orig*2);
+    // TODO improve this!
+    std::vector<int> row_indices; // using number of nodes as size estimation
+    std::vector<int> col_indices;
+
+    row_indices.reserve(num_local_nodes_dest*2);
+    col_indices.reserve(num_local_nodes_orig*2);
 
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
@@ -151,6 +171,8 @@ void UtilityType::ResizeAndInitializeVectors(
         row_indices.reserve( row_indices.size() + destination_ids.size() );
         row_indices.insert( row_indices.end(), destination_ids.begin(), destination_ids.end() );
     }
+    col_indices.shrink_to_fit(); // TODO remove ...?
+    row_indices.shrink_to_fit();
 
     // "Uniqueify" the vectors
     std::sort( col_indices.begin(), col_indices.end() );
@@ -158,11 +180,11 @@ void UtilityType::ResizeAndInitializeVectors(
     std::sort( row_indices.begin(), row_indices.end() );
     row_indices.erase( std::unique( row_indices.begin(), row_indices.end() ), row_indices.end() );
 
-    rModelPartOrigin.GetCommunicator().Barrier();
-    std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " row_indices:\n" << row_indices << std::endl;
-    std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " col_indices:\n" << col_indices << std::endl;
-    std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " global_elements_dest:\n" << global_elements_dest << std::endl;
-    std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " global_elements_orig:\n" << global_elements_orig << std::endl;
+    // rModelPartOrigin.GetCommunicator().Barrier();
+    // std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " row_indices: " << row_indices << std::endl;
+    // std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " col_indices: " << col_indices << std::endl;
+    // std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " global_elements_dest: " << global_elements_dest << std::endl;
+    // std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " global_elements_orig: " << global_elements_orig << std::endl << std::endl << std::endl;
 
     // Epetra_Map (long long NumGlobalElements, int NumMyElements, const long long *MyGlobalElements, int IndexBase, const Epetra_Comm &Comm)
 
@@ -193,12 +215,15 @@ void UtilityType::ResizeAndInitializeVectors(
                                 index_base,
                                 epetra_comm);
 
-    rModelPartOrigin.GetCommunicator().Barrier();
-    std::cout << "COL_MAP\n" << epetra_col_map << std::endl;
-    std::cout << "\n\n\nROW_MAP\n" << epetra_row_map << std::endl;
-    std::cout << "\n\n\nDOMAIN_MAP\n" << epetra_domain_map << std::endl;
-    std::cout << "\n\n\nRANGE_MAP\n" << epetra_range_map << std::endl;
-
+    // rModelPartOrigin.GetCommunicator().Barrier();
+    // std::cout << "COL_MAP\n" << epetra_col_map << std::endl;
+    // rModelPartOrigin.GetCommunicator().Barrier();
+    // std::cout << "\n\n\nROW_MAP\n" << epetra_row_map << std::endl;
+    // rModelPartOrigin.GetCommunicator().Barrier();
+    // std::cout << "\n\n\nDOMAIN_MAP\n" << epetra_domain_map << std::endl;
+    // rModelPartOrigin.GetCommunicator().Barrier();
+    // std::cout << "\n\n\nRANGE_MAP\n" << epetra_range_map << std::endl;
+    // rModelPartOrigin.GetCommunicator().Barrier();
 
     // explanation in here: https://trilinos.org/docs/dev/packages/epetra/doc/html/classEpetra__CrsGraph.html
     const int num_indices_per_row = 5; // TODO this is to be tested => set to zero maybe ...
@@ -233,10 +258,11 @@ void UtilityType::ResizeAndInitializeVectors(
     KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsGraph.GlobalAssemble. "
         << "Error code: " << ierr << std::endl;
 
-    epetra_graph.OptimizeStorage();
+    epetra_graph.OptimizeStorage(); // TODO is an extra-call needed?
 
-    rModelPartOrigin.GetCommunicator().Barrier();
-    std::cout << "GRAPH\n" << epetra_graph << std::endl;
+    // rModelPartOrigin.GetCommunicator().Barrier();
+    // std::cout << "GRAPH\n" << epetra_graph << std::endl;
+    // rModelPartOrigin.GetCommunicator().Barrier();
 
     // // TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );
     // // https://trilinos.org/docs/dev/packages/epetra/doc/html/Epetra__DataAccess_8h.html#ad1a985e79f94ad63030815a0d7d90928
@@ -248,7 +274,9 @@ void UtilityType::ResizeAndInitializeVectors(
     // rpQd->GlobalAssemble();
     MappingWeightsVector mapping_weights;
 
-    std::cout << "Before Assembly\n" << *p_Mdo << std::endl;
+    // rModelPartOrigin.GetCommunicator().Barrier();
+    // std::cout << "Before Assembly\n" << *p_Mdo << std::endl;
+    // rModelPartOrigin.GetCommunicator().Barrier();
 
     for (auto& rp_local_sys : rMapperLocalSystems)
     {
@@ -258,11 +286,6 @@ void UtilityType::ResizeAndInitializeVectors(
             << "OriginID vector size mismatch" << std::endl;
         KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != destination_ids.size())
             << "DestinationID vector size mismatch" << std::endl;
-
-        KRATOS_WATCH(mapping_weights)
-        KRATOS_WATCH(origin_ids)
-        KRATOS_WATCH(destination_ids)
-        std::cout << std::endl;
 
         if (mapping_weights.size() > 0)
         {
@@ -281,15 +304,15 @@ void UtilityType::ResizeAndInitializeVectors(
         rp_local_sys->Clear();
     }
 
-    rModelPartOrigin.GetCommunicator().Barrier();
+    // rModelPartOrigin.GetCommunicator().Barrier();
 
-    std::cout << "After Assembly\n" << *p_Mdo << std::endl;
+    // std::cout << "After Assembly\n" << *p_Mdo << std::endl;
 
-    p_Mdo->GlobalAssemble(epetra_domain_map, epetra_range_map);
+    // p_Mdo->GlobalAssemble(epetra_domain_map, epetra_range_map);
 
-    rModelPartOrigin.GetCommunicator().Barrier();
+    // rModelPartOrigin.GetCommunicator().Barrier();
 
-    std::cout << "After GlobalAssemble\n" << *p_Mdo << std::endl;
+    // std::cout << "After GlobalAssemble\n" << *p_Mdo << std::endl;
 
     if (GetEchoLevel() > 2)
         SparseSpaceType::WriteMatrixMarketMatrix("TrilinosMappingMatrix", *p_Mdo, false);
