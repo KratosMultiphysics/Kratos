@@ -253,7 +253,7 @@ void CompositeCondition::EquationIdVector( EquationIdVectorType& rResult, Proces
 //*********************************SET VALUE TO CHILDREN******************************
 //************************************************************************************
 
-bool CompositeCondition::IsActive(ConditionIterator iChildCondition, const ProcessInfo& rCurrentProcessInfo )
+bool CompositeCondition::IsActive( ConditionIterator iChildCondition, const ProcessInfo& rCurrentProcessInfo )
 {
   if(rCurrentProcessInfo.Is(THERMAL) && iChildCondition->Is(THERMAL))
     return true;
@@ -593,10 +593,10 @@ void CompositeCondition::AddExplicitContribution(const VectorType& rRHS,
 void CompositeCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
   rLeftHandSideMatrix.clear();
-  rLeftHandSideMatrix.resize(0,0);
+  rLeftHandSideMatrix.resize(0,0,false);
 
   rRightHandSideVector.clear();
-  rRightHandSideVector.resize(0);
+  rRightHandSideVector.resize(0,false);
 
   //std::cout<<" Calculate local system Skin "<<std::endl;
   VectorType LocalRightHandSideVector;
@@ -698,7 +698,7 @@ void CompositeCondition::CalculateRightHandSide( VectorType& rRightHandSideVecto
 void CompositeCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
   rLeftHandSideMatrix.clear();
-  rLeftHandSideMatrix.resize(0,0);
+  rLeftHandSideMatrix.resize(0,0,false);
 
   MatrixType LocalLeftHandSideMatrix;
   for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
@@ -740,7 +740,7 @@ void CompositeCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
 void CompositeCondition::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
   rMassMatrix.clear();
-  rMassMatrix.resize(0,0);
+  rMassMatrix.resize(0,0,false);
 
   // MatrixType LocalMassMatrix;
   // for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
@@ -758,7 +758,7 @@ void CompositeCondition::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInf
 void CompositeCondition::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
   rDampingMatrix.clear();
-  rDampingMatrix.resize(0,0);
+  rDampingMatrix.resize(0,0,false);
 
   // MatrixType LocalDampingMatrix;
   // for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)

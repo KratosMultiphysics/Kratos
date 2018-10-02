@@ -2,16 +2,9 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 
-def CreateSolver(model, custom_settings):
+def CreateSolverByParameters(model, solver_settings, parallelism):
 
-    if (not isinstance(model, KratosMultiphysics.Model)):
-        raise Exception("input is expected to be provided as a Kratos Model object")
-
-    if (not isinstance(custom_settings, KratosMultiphysics.Parameters)):
-        raise Exception("input is expected to be provided as a Kratos Parameters object")
-
-    parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
-    solver_type = custom_settings["solver_settings"]["solver_type"].GetString()
+    solver_type = solver_settings["solver_type"].GetString()
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
@@ -47,6 +40,19 @@ def CreateSolver(model, custom_settings):
         raise Exception(err_msg)
 
     solver_module = __import__(solver_module_name)
-    solver = solver_module.CreateSolver(model, custom_settings["solver_settings"])
+    solver = solver_module.CreateSolver(model, solver_settings)
 
     return solver
+
+def CreateSolver(model, custom_settings):
+
+    if (type(model) != KratosMultiphysics.Model):
+        raise Exception("input is expected to be provided as a Kratos Model object")#
+
+    if (type(custom_settings) != KratosMultiphysics.Parameters):
+        raise Exception("input is expected to be provided as a Kratos Parameters object")
+
+    solver_settings = custom_settings["solver_settings"]
+    parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
+
+    return CreateSolverByParameters(model, solver_settings, parallelism)

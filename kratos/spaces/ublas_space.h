@@ -723,7 +723,7 @@ public:
 
     //***********************************************************************
 
-    inline static bool IsDistributed()
+    inline static constexpr bool IsDistributed()
     {
         return false;
     }
