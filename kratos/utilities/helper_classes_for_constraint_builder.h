@@ -281,12 +281,14 @@ class AuxiliaryGlobalMasterSlaveConstraint : public IndexedObject
      */
     void Reset()
     {
-        this->mLhsValue = 0.0;
-        this->mRhsValue = 0.0;
+#pragma omp atomic
+        this->mLhsValue *= 0.0;
+#pragma omp atomic
+        this->mRhsValue *= 0.0;
     }
 
     /**
-     * @brief This method returns the correspondin EquationId for the master
+     * @brief This method returns the corresponding EquationId for the master
      */
     int GetMasterEquationIdPosition(const IndexType MasterEquationId) const
     {
