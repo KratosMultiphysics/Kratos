@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "statistics_utilities.h"
 
 namespace Kratos
 {
@@ -82,11 +83,22 @@ class StatisticsRecord
     ///@{
 
     void AddResult(StatisticsSampler::Pointer pResult) {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(mInitialized) << "Trying to add statistical data after Initialization of the internal storage." << std::endl;
+
         std::size_t result_size = pResult->GetSize();
         pResult->SetOffset(mDataBufferSize);
 
         mDataBufferSize += result_size;
         mAverageData.push_back(pResult);
+
+        KRATOS_CATCH("")
+    }
+
+    void InitializeStorage() {
+        mUpdateBuffer.resize(mDataBufferSize);
+        mInitialized = true;
     }
 
     ///@}
