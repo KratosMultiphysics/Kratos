@@ -1495,7 +1495,7 @@ void MmgProcess<TDim>::InitVerbosity()
     /* We set the MMG verbosity */
     int verbosity_mmg;
     if (mEchoLevel == 0)
-        verbosity_mmg = 0;
+        verbosity_mmg = -1;
     else if (mEchoLevel == 1)
         verbosity_mmg = 0; // NOTE: This way just the essential info from MMG will be printed, but the custom message will appear
     else if (mEchoLevel == 2)
