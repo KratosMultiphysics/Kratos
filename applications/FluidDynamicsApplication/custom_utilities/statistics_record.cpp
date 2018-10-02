@@ -13,5 +13,6 @@ typedef typename StatisticsData<std::vector<double>>::Pointer StatisticsDataPoin
 KRATOS_CREATE_VARIABLE( StatisticsDataPointerType, TURBULENCE_STATISTICS_DATA)
 
 std::vector<double> StatisticsRecord::mUpdateBuffer = std::vector<double>();
+std::vector<double> StatisticsRecord::mMeasurementBuffer = std::vector<double>();
 
 }

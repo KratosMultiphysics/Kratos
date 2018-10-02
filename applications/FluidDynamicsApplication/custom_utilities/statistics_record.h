@@ -98,6 +98,7 @@ class StatisticsRecord
 
     void InitializeStorage() {
         mUpdateBuffer.resize(mDataBufferSize);
+        mMeasurementBuffer.resize(mDataBufferSize);
         mInitialized = true;
     }
 
@@ -169,6 +170,9 @@ class StatisticsRecord
 
     static std::vector<double> mUpdateBuffer;
     #pragma omp threadprivate(mUpdateBuffer)
+
+    static std::vector<double> mMeasurementBuffer;
+    #pragma omp threadprivate(mMeasurementBuffer)
 
     ///@}
     ///@name Member Variables

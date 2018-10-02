@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/element.h"
 
 namespace Kratos
 {
@@ -78,9 +79,35 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize() {}
+    void Initialize(std::size_t BufferSize)
+    {
+        mData.clear();
+        mData.resize(BufferSize);
+        for (auto iter = mData.begin(); iter != mData.end(); ++iter)
+        {
+            *iter = 0.0;
+        }
+    }
 
-    void Update(const ValueContainerType& rMeasurement) {}
+    void CalculateUpdateDelta(
+        const Element* pElement,
+        const std::vector<StatisticsSampler::Pointer>& rStatisticsSamplers,
+        ValueContainerType& rMeasurements,
+        std::size_t NumMeasurements)
+    {
+        const Geometry< Node<3> >& r_geometry = pElement->GetGeometry();
+        const GeometryData::IntegrationMethod integration_method = pElement->GetIntegrationMethod();
+        Matrix shape_functions;
+        typename Geometry<Node<3>>::ShapeFunctionsGradientsType shape_gradients;
+        this->CalculateGeometryData(r_geometry,integration_method,shape_functions,shape_gradients);
+
+        auto it_measurement_buffer = rMeasurements.begin();
+        for (auto it_sampler = rStatisticsSamplers.begin(); it_sampler != rStatisticsSamplers.end(); ++it_sampler) {
+            (**it_sampler).SampleDataPoint(r_geometry,shape_functions,shape_gradients,it_measurement_buffer);
+        }
+    }
+
+    void AddMeasurement(const ValueContainerType& rMeasurement, std::size_t NumSteps) {}
 
     void Combine(const StatisticsData& rOther) {}
 
@@ -139,6 +166,22 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    void CalculateGeometryData(
+        const Geometry<Node<3>>& rGeometry,
+        const GeometryData::IntegrationMethod IntegrationMethod,
+        Matrix &rN,
+        typename Geometry<Node<3>>::ShapeFunctionsGradientsType &rDN_DX) const
+    {
+        const unsigned int number_of_nodes = rGeometry.PointsNumber();
+        const unsigned int number_of_gauss_points = rGeometry.IntegrationPointsNumber(IntegrationMethod);
+
+        Vector det_J;
+        rGeometry.ShapeFunctionsIntegrationPointsGradients(rDN_DX,det_J,IntegrationMethod);
+
+        rN.resize(number_of_gauss_points,number_of_nodes,false);
+        rN = rGeometry.ShapeFunctionsValues(IntegrationMethod);
+    }
 
     ///@}
     ///@name Protected  Access
