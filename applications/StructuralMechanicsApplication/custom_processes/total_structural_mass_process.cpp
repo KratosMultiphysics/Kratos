@@ -43,9 +43,6 @@ void TotalStructuralMassProcess::Execute()
     // Now we iterate over the elements to calculate the total mass
     ElementsArrayType& elements_array = mrThisModelPart.GetCommunicator().LocalMesh().Elements();
 
-    // setting the NODAL_MASS on local- AND ghost-nodes, bcs the local elements might have ghost nodes!
-    VariableUtils().SetNonHistoricalVariable(NODAL_MASS, 0.0, mrThisModelPart.Nodes()); // local- AND ghost-nodes
-
     // Making this loop omp-parallel requires locking all the geometries & nodes, which
     // is most probably not worth the effort
     for(int i = 0; i < static_cast<int>(elements_array.size()); ++i){
