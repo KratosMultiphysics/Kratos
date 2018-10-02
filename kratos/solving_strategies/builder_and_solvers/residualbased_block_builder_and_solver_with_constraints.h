@@ -192,13 +192,18 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         KRATOS_TRY
 
         BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
+	
+	// Getting process info
+	ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+	
+	// Computing constraints
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
 #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
         for (int k = 0; k < n_constraints; k++)
         {
             auto it = constraints_begin + k;
-            it->InitializeSolutionStep(); // Here each constraint constructs and stores its T and C matrices. Also its equation ids.
+            it->InitializeSolutionStep(r_process_info); // Here each constraint constructs and stores its T and C matrices. Also its equation ids.
         }
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to initialize solution step.")
@@ -213,13 +218,18 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     {
         KRATOS_TRY
         BaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
+	
+	// Getting process info
+	ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+	
+	// Computing constraints
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         const auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
 #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
         for (int k = 0; k < n_constraints; k++)
         {
             auto it = constraints_begin + k;
-            it->FinalizeSolutionStep();
+            it->FinalizeSolutionStep(r_process_info);
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints failed to finalize solution step.")
     }
@@ -647,6 +657,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::AssembleSlaves failed ...");
     }
+
 
 
     /**

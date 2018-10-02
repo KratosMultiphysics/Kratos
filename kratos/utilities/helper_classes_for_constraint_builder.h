@@ -251,9 +251,6 @@ class AuxiliaryGlobalMasterSlaveConstraint : public IndexedObject
         //clearing the contents
         mMasterEquationIdVector.clear();
         mMasterWeightsVector.clear();
-        //shrinking the memory
-        mMasterEquationIdVector.shrink_to_fit();
-        mMasterWeightsVector.shrink_to_fit();
     }
 
     /**
@@ -391,8 +388,12 @@ struct LocalIndices
     }
 
     VectorIndexType internal_index_vector; // indicies corresponding to internal DOFs
-    VectorIndexType master_index_vector;   // indicies corresponding to master DOFs
-    VectorIndexType slave_index_vector;    // indicies corresponding to slave DOFs
+    VectorIndexType master_index_vector; // indicies corresponding to master DOFs
+    VectorIndexType slave_index_vector; // indicies corresponding to slave DOFs
+
+    std::vector<double> container_master_weights; // list of master weights in the order in which they are processed
+    std::vector<IndexType> container_master_slaves; // list of slave indices corresponding to each master processed
+    std::vector<IndexType> processed_master_indices; // list of master indices in the order in which they are processed.
 };
 
 ///@}
@@ -531,11 +532,12 @@ public:
         IndexType total_number_of_masters = rEquationIds.size() - initial_sys_size;
         // Calculating the local indices corresponding to internal, master, slave dofs of this container
         CalculateLocalIndices(rEquationIds, mLocalIndices, total_number_of_masters);
-
         // resizing the matrices to the new required length
         ResizeAndInitializeLocalMatrices(rLHSContribution, rRHSContribution, rEquationIds.size());
 
+        // Calculating the F = T'*(F-K*g) which is local to this container
         ModifyRHS(rLHSContribution, rRHSContribution, rEquationIds);
+        // Calculating the K = T' * K *T which is local to this container
         ModifyLHS(rLHSContribution, rRHSContribution, rEquationIds);
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints:: Applying Multipoint constraints failed ..");
@@ -678,6 +680,111 @@ public:
 
 
     /**
+     * @brief   This function does two operations : K = T' * K * T . This operations are done in place.
+     *          Meaning that there is no memory duplication and no explicit matrix and matrix or matrix vector multiplication.
+     *          Individual entries of K and F are modified to achieve the result.
+     * @param   rLHSContribution The lhs matrix of the container
+     * @param   rRHSContribution The rhs vector of the container
+     * @param   rEquationIds the list of equation ids (extended with the masters).
+     */
+    void ModifyLHS(MatrixType &rLHSContribution, VectorType& rRHSContribution, EquationIdVectorType &rEquationIds)
+    {
+        mLocalIndices.container_master_weights.reserve(mLocalIndices.master_index_vector.size());
+        mLocalIndices.container_master_slaves.reserve(mLocalIndices.master_index_vector.size());
+        mLocalIndices.processed_master_indices.reserve(mLocalIndices.master_index_vector.size());
+        IndexType slave_equation_id;
+        EquationIdVectorType master_equation_ids;
+        VectorType master_weights_vector;
+        double slave_constant;
+
+        for (auto& slave_index : mLocalIndices.slave_index_vector) { // Loop over all the slaves for this container
+            // Get the global equation for this constraint
+            auto global_master_slave_constraint = mrGlobalMasterSlaveConstraints.find(rEquationIds[slave_index]);
+            // Get the tranformation matrix and constant_vector from the current slave
+            global_master_slave_constraint->second->EquationIdsVector(slave_equation_id, master_equation_ids);
+                mLocalIndices.container_master_slaves.push_back( slave_index );
+                mLocalIndices.processed_master_indices.push_back( master_index );
+                i_master++;
+            } // Loop over all the masters the slave has
+        }
+
+        //Adding contribution from slave to Kmm
+        IndexType master_i = 0;
+        for (auto& master_index : mLocalIndices.processed_master_indices) {
+            IndexType master_i_other = 0;
+            for (auto& master_index_other : mLocalIndices.processed_master_indices) {
+                rLHSContribution(master_index, master_index_other) += mLocalIndices.container_master_weights[master_i] *
+                                                                        rLHSContribution(mLocalIndices.container_master_slaves[master_i], mLocalIndices.container_master_slaves[master_i_other])
+                                                                        * mLocalIndices.container_master_weights[master_i_other];
+                master_i_other++;
+            }
+            master_i++;
+        }
+
+        // For K(u,s) and K(s,u). This is to be done at the end only
+        for (auto& slave_index : mLocalIndices.slave_index_vector) {
+            for (auto internal_index : mLocalIndices.internal_index_vector) {
+                rLHSContribution(slave_index, internal_index) = 0.0;
+                rLHSContribution(internal_index, slave_index) = 0.0;
+            }
+        }
+    }
+
+    /**
+     * @brief   This function does two operation : F = T'*(F-K*b). This operation is done in place.
+     *          Meaning that there is no memory duplication and no explicit matrix and matrix or matrix vector multiplication.
+     *          Individual entries of K and F are modified to achieve the result. 
+     * @param   rLHSContribution The lhs matrix of the container
+     * @param   rRHSContribution The rhs vector of the container
+     * @param   rEquationIds the list of equation ids (extended with the masters).
+     */
+    void ModifyRHS(MatrixType &rLHSContribution, VectorType& rRHSContribution, EquationIdVectorType &rEquationIds)
+    {
+        IndexType slave_equation_id;
+        EquationIdVectorType master_equation_ids;
+        VectorType master_weights_vector;
+        double slave_constant;
+        VectorType master_weights_vector_other;
+        double constant_other;
+
+        for (auto& slave_index : mLocalIndices.slave_index_vector) { // Loop over all the slaves for this container
+            // Get the global equation for this constraint
+            auto global_master_slave_constraint = mrGlobalMasterSlaveConstraints.find(rEquationIds[slave_index]);
+            // Get the tranformation matrix and constant_vector from the current slave
+            global_master_slave_constraint->second->EquationIdsVector(slave_equation_id, master_equation_ids);
+            global_master_slave_constraint->second->CalculateLocalSystem(master_weights_vector, slave_constant);
+
+            IndexType master_index = 0;
+            double master_weight = 0.0;
+            IndexType i_master = 0;
+            for (auto&  master_eq_id : master_equation_ids)
+            { // Loop over all the masters the slave has
+                master_index = std::distance(rEquationIds.begin(), std::find(rEquationIds.begin(), rEquationIds.end(), master_eq_id));
+                //master_weight = mTransformationMatrixLocal(slave_index,master_index);
+                master_weight = master_weights_vector(i_master);
+                for (auto& internal_index : mLocalIndices.internal_index_vector) {
+                    rRHSContribution(internal_index) += -rLHSContribution(internal_index, slave_index) * slave_constant;
+                }
+                // For RHS(m) += A'*LHS(s,s)*B
+                for (auto& slave_index_other : mLocalIndices.slave_index_vector) {
+                    auto global_master_slave_constraint_other = mrGlobalMasterSlaveConstraints.find(rEquationIds[slave_index_other]);
+                    global_master_slave_constraint_other->second->CalculateLocalSystem(master_weights_vector_other, constant_other);
+                    rRHSContribution(master_index) -= rLHSContribution(slave_index, slave_index_other) * master_weight * constant_other;
+                }
+                // Changing the RHS side of the equation
+                rRHSContribution(master_index) += master_weight * rRHSContribution(slave_index);
+
+                i_master++;
+            } // Loop over all the masters the slave has
+
+            rRHSContribution(slave_index) = 0.0;
+        }
+    }
+
+
+
+
+    /**
      * @brief   Resets the member vectors and matrices to zero and zero size
      */
     void Reset()
@@ -686,75 +793,7 @@ public:
         mTransformationMatrixLocal.resize(0,0, false);
         mConstantVectorLocal.resize(0, false);
         mMasterEquationIds.clear();
-        mMasterEquationIds.shrink_to_fit();
         mContainerDofs.clear();
-        mContainerDofs.shrink_to_fit();
-    }
-    /**
-     * @brief   This function calculates the local transformation matrix and the constant vector for each
-     *          each element or condition. The T matrix and C vector for each element or condition for the slaves they contain .
-     * @param   rLocalIndices object of Struct LocalIndicesType containing the local internal, master and slave indices
-     * @param   rTransformationMatrixLocal reference to the tranformation matrix which is to be calculated.
-     * @param   rEquationIds the list of equation ids.
-     */
-    void CalculateLocalTransformationMatrix(LocalIndicesType &rLocalIndices,
-                                            MatrixType &rTransformationMatrixLocal,
-                                            EquationIdVectorType &rEquationIds)
-    {
-        KRATOS_TRY
-        IndexType slave_equation_id;
-        EquationIdVectorType master_equation_ids;
-        VectorType mMasterWeightsVector;
-        double slave_constant;
-        int i_masters_total = rEquationIds.size();
-        for (const auto &slave_index : rLocalIndices.slave_index_vector)
-        {
-            auto global_master_slave_constraint = mrGlobalMasterSlaveConstraints.find(rEquationIds[slave_index]);
-            KRATOS_DEBUG_ERROR_IF(global_master_slave_constraint == mrGlobalMasterSlaveConstraints.end()) << "No master slave constraint equation found for atleast one of the dofs .. !" << std::endl;
-            global_master_slave_constraint->second->EquationIdsVector(slave_equation_id, master_equation_ids);
-            global_master_slave_constraint->second->CalculateLocalSystem(mMasterWeightsVector, slave_constant);
-            for (IndexType i_master = 0; i_master < master_equation_ids.size(); ++i_master)
-            {
-                rTransformationMatrixLocal(slave_index, i_masters_total) += mMasterWeightsVector(i_master);
-                i_masters_total++;
-            }
-        }
-        for (const auto &master_index : rLocalIndices.master_index_vector)
-            rTransformationMatrixLocal(master_index, master_index) = 1.0;
-
-        for (const auto &internal_index : rLocalIndices.internal_index_vector)
-            rTransformationMatrixLocal(internal_index, internal_index) = 1.0;
-
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalTransformationMatrix failed ..");
-    }
-
-    /**
-     * @brief   This function calculates the local constant vector for each
-     *          each element or condition. C vector for each element or condition for the slaves they contain .
-     * @param   rLocalSlaveIndexVector vector of slave indices
-     * @param   rConstantVectorLocal reference to the constant vector to be calculated
-     * @param   rEquationIds the list of equation ids.
-     */
-    void CalculateLocalConstantVector(LocalIndicesType &rLocalIndexStructure,
-                                      VectorType &rConstantVectorLocal,
-                                      EquationIdVectorType &rEquationIds)
-    {
-        KRATOS_TRY
-        VectorType mMasterWeightsVector;
-        double slave_constant;
-
-        for (const auto &slave_index : rLocalIndexStructure.slave_index_vector)
-        {
-            auto global_master_slave_constraint = mrGlobalMasterSlaveConstraints.find(rEquationIds[slave_index]);
-            if (global_master_slave_constraint != mrGlobalMasterSlaveConstraints.end())
-            {
-                global_master_slave_constraint->second->CalculateLocalSystem(mMasterWeightsVector, slave_constant);
-                rConstantVectorLocal(slave_index) = slave_constant;
-            }
-            else
-                KRATOS_ERROR << "No master slave constraint equation found for atleast one of the dofs .. !" << std::endl;
-        }
-        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints::CalculateLocalConstantVector failed ..");
     }
 
     /**
