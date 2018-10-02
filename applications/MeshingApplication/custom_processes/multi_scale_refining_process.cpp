@@ -60,6 +60,8 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
 
     Check();
 
+    mStepDataSize = mrCoarseModelPart.GetNodalSolutionStepDataSize();
+
     // Initialize the coarse model part
     InitializeCoarseModelPart();
 
@@ -817,6 +819,24 @@ void MultiScaleRefiningProcess::UpdateRefinedInterface()
         }
         if (is_refined_interface)
             mRefinedInterfaceContainer.push_back(NodeType::SharedPointer(*node.base()));
+    }
+}
+
+
+void MultiScaleRefiningProcess::TransferLastStepToCoarseModelPart()
+{
+    ModelPart::NodeIterator refined_begin = mrRefinedModelPart.NodesBegin();
+    for (int i = 0; i < static_cast<int>(mrRefinedModelPart.Nodes().size()); i++)
+    {
+        auto refined_node = refined_begin + i;
+        if (refined_node->GetValue(FATHER_NODES).size() == 1)
+        {
+            double* dest_data = refined_node->GetValue(FATHER_NODES)[0].SolutionStepData().Data(0); // Current step only
+            const double* src_data = refined_node->SolutionStepData().Data(0);
+
+            for (IndexType j = 0; j < mStepDataSize; j++)
+                dest_data[j] = src_data[j];
+        }
     }
 }
 
