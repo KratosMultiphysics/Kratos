@@ -528,13 +528,20 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
             new_node_data[variable] = 0.5 * node_data_0[variable] + 0.5 * node_data_1[variable];
     }
 
-    pNewNode->GetValue(FATHER_NODES).resize(0);
-    for (auto node = pNode0->GetValue(FATHER_NODES).begin(); node != pNode0->GetValue(FATHER_NODES).end(); node++)
-        pNewNode->GetValue(FATHER_NODES).push_back(*(node.base()));
-    for (auto node = pNode1->GetValue(FATHER_NODES).begin(); node != pNode1->GetValue(FATHER_NODES).end(); node++)
-        pNewNode->GetValue(FATHER_NODES).push_back(*(node.base()));
-    auto last = std::unique(pNewNode->GetValue(FATHER_NODES).begin(), pNewNode->GetValue(FATHER_NODES).end());
-    pNewNode->GetValue(FATHER_NODES).erase(last, pNewNode->GetValue(FATHER_NODES).end());
+    WeakPointerVector<NodeType>& r_new_father_nodes = pNewNode->GetValue(FATHER_NODES);
+    r_new_father_nodes.clear();
+    r_new_father_nodes = pNode0->GetValue(FATHER_NODES);
+    for (auto other = pNode1->GetValue(FATHER_NODES).begin(); other != pNode1->GetValue(FATHER_NODES).end(); other++)
+    {
+        bool other_is_found = false;
+        for (auto father = r_new_father_nodes.begin(); father != r_new_father_nodes.end(); father++)
+        {
+            if (other->Id() == father->Id())
+                other_is_found = true;
+        }
+        if (!other_is_found)
+            r_new_father_nodes.push_back(*(other.base()));
+    }
 }
 
 
