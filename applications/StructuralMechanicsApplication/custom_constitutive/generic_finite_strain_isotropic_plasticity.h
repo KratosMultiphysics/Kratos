@@ -7,7 +7,8 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-//  Collaborator:    Alejandro Cornejo & Lucia Barbu
+//  Collaborator:    Alejandro Cornejo
+//                   Lucia Barbu
 //
 
 #if !defined(KRATOS_GENERIC_FINITE_STRAIN_ISOTROPIC_PLASTICITY_3D_H_INCLUDED)
@@ -71,6 +72,12 @@ public:
     
     /// Definition of the base class
     typedef TElasticBehaviourLaw BaseType;
+
+    /// The definition of the Voigt array type
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
+
+    /// The definition of the bounded matrix type
+    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
 
     /// Counted pointer of GenericFiniteStrainIsotropicPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericFiniteStrainIsotropicPlasticity);
