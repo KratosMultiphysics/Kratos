@@ -26,14 +26,11 @@
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
 
-#include "contact_mechanics_application_variables.h"
 #include "solid_mechanics_application_variables.h"
+#include "contact_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -52,7 +49,7 @@ namespace Kratos
 
   //solution
 
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( WATER_DISPLACEMENT_REACTION )
+  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( PFEM_SOLID_MECHANICS_APPLICATION, WATER_DISPLACEMENT_REACTION )
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_SOLID_MECHANICS_APPLICATION, double, WATER_PRESSURE_VELOCITY )
 
   KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_SOLID_MECHANICS_APPLICATION, double, JACOBIAN )

@@ -221,6 +221,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<>())
       .def_readonly_static("INITIALIZED", &SolverLocalFlags::INITIALIZED)
       .def_readonly_static("CONVERGED", &SolverLocalFlags::CONVERGED)
+      .def_readonly_static("ADAPTIVE_SOLUTION", &SolverLocalFlags::ADAPTIVE_SOLUTION)
       .def_readonly_static("MOVE_MESH", &SolverLocalFlags::MOVE_MESH)
       .def_readonly_static("UPDATE_VARIABLES", &SolverLocalFlags::UPDATE_VARIABLES)
       .def_readonly_static("REFORM_DOFS", &SolverLocalFlags::REFORM_DOFS)
@@ -282,7 +283,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   // Solid Mechanics Newton Raphson Line Search Strategy
   class_<LineSearchStrategyType, typename LineSearchStrategyType::Pointer, NewtonRaphsonStrategyType>(m,"LineSearchStrategy")
       .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int, unsigned int>())
       .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int, unsigned int>())
       ;
 
   // Solid Mechanics Explicit Strategy
