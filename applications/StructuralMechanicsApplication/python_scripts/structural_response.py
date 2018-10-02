@@ -34,9 +34,8 @@ class ResponseFunctionBase(object):
     solving of primal (and adjoint) analysis ...
     """
 
-    def __init___(model_part, response_settings):
-        self._model_part = None
-        self._response_settings = None
+    _model_part = None
+    _response_settings = None
 
     @property
     def model_part(self):
@@ -46,7 +45,6 @@ class ResponseFunctionBase(object):
 
     @model_part.setter
     def model_part(self, value):
-        Logger.PrintInfo("#####SETTER")
         self._model_part = value
 
     @property
