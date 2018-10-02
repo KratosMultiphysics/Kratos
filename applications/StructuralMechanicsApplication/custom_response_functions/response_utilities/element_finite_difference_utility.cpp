@@ -73,7 +73,7 @@ namespace Kratos
     }
 
     void ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(Element& rElement,
-                                                const array_1d_component_type& rDesignVariable,
+                                                const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Vector& rOutput,
@@ -129,7 +129,7 @@ namespace Kratos
     }
 
     void ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative(Element& rElement,
-                                                const array_1d_component_type& rDesignVariable,
+                                                const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
@@ -186,7 +186,7 @@ namespace Kratos
     }
 
     void ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative(Element& rElement,
-                                                const array_1d_component_type& rDesignVariable,
+                                                const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,

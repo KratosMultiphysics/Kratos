@@ -50,21 +50,21 @@ public:
                                                 ProcessInfo& rCurrentProcessInfo);
 
     static void CalculateRightHandSideDerivative(Element& rElement,
-                                                const array_1d_component_type& rDesignVariable,
+                                                const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Vector& rOutput,
                                                 ProcessInfo& rCurrentProcessInfo);
 
     static void CalculateLeftHandSideDerivative(Element& rElement,
-                                                const array_1d_component_type& rDesignVariable,
+                                                const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
                                                 ProcessInfo& rCurrentProcessInfo);
 
     static void CalculateMassMatrixDerivative(Element& rElement,
-                                                const array_1d_component_type& rDesignVariable,
+                                                const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >& rDesignVariable,
                                                 Node<3>& rNode,
                                                 const double& rPertubationSize,
                                                 Matrix& rOutput,
