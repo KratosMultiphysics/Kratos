@@ -1,0 +1,123 @@
+{
+    "su2_interface_settings" : {
+        "su2_related": {
+            "config_file"                : "CFD_ubend_flow.cfg",
+            "number_of_cores"            : 12,
+            "gradient_method"            : "DISCRETE_ADJOINT",
+            "mesh_file"                  : "CFD_ubend.su2",
+            "mesh_motion_file"           : "mesh_motion.dat",
+            "use_restart_in_adjoint_run" : "NO",
+            "design_surface_tag"         : "BOGEN"
+        },
+        "kratos_related": {
+            "mdpa_file"      : "CFD_ubend.mdpa",
+            "write_elements" : false
+        },
+        "echo_level" : 2
+    },
+    "mapper_settings": {
+        "mapper_type" : "nearest_element",
+        "echo_level"  : 1
+    },
+    "csm_response_settings":{
+        "response_type"          : "strain_energy",
+        "primal_settings"        : "CSM_parameters.json",
+        "gradient_mode"          : "semi_analytic",
+        "step_size"              : 1e-8,
+        "consider_discretization": false
+    },
+    "mesh_motion_settings" : {
+        "problem_data" : {
+            "echo_level" : 0,
+            "time_step" : 1.1,
+            "start_time" : 0.0,
+            "end_time" : 1.0,
+            "domain_size" : 3,
+            "model_part_name" : "CSM_model_thin",
+            "parallel_type" : "OpenMP"
+        },
+        "solver_settings" : {
+            "solver_type": "mesh_solver_structural_similarity",
+            "model_import_settings"              : {
+                "input_type"     : "use_input_model_part",
+                "input_filename" : "CSM_model_thin"
+            },
+            "mesh_motion_linear_solver_settings"  : {
+                "solver_type" : "eigen_pardiso_llt"
+            },
+            "compute_reactions"     : true
+        }
+    },
+    "optimization_settings" : {
+        "objectives" : [{
+                "identifier" : "strain_energy",
+                "type"       : "minimization",
+                "use_kratos" : false,
+                "project_gradient_on_surface_normals" : false
+        }],
+        "constraints" : [],
+        "design_variables" : {
+            "type"                               : "vertex_morphing",
+            "optimization_model_part_name"       : "CFD_ubend",
+            "design_surface_sub_model_part_name" : "BOGEN",
+            "domain_size"                        : 3,
+            "filter" : {
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 0.02,
+                "max_nodes_in_filter_radius" : 50000,
+                "matrix_free_filtering"      : false
+            },
+            "damping" : {
+                "perform_damping" : true,
+                "damping_regions" : [{
+                        "sub_model_part_name"   : "fix_nodes",
+                        "damp_X"                : true,
+                        "damp_Y"                : true,
+                        "damp_Z"                : true,
+                        "damping_function_type" : "cosine",
+                        "damping_radius"        : 0.02
+                    }
+                ]
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
+        "optimization_algorithm" : {
+            "name"                : "steepest_descent",
+            "max_iterations"      : 100,
+            "relative_tolerance"  : -1e-1,
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : true,
+                "step_size"                  : 0.0005
+            }
+        },
+        "output" : {
+            "output_directory"        : "Optimization_Results",
+            "design_history_filename" : "design_history",
+            "response_log_filename"   : "response_log",
+            "design_output_mode"      : "WriteDesignSurface",
+            "nodal_results"           : [ "DF1DX",
+                                          "DF1DX_MAPPED",
+                                          "SEARCH_DIRECTION",
+                                          "CONTROL_POINT_UPDATE",
+                                          "CONTROL_POINT_CHANGE",
+                                          "SHAPE_UPDATE",
+                                          "SHAPE_CHANGE",
+                                          "NORMALIZED_SURFACE_NORMAL",
+                                          "COUPLING_VARIABLE_1" ],
+            "output_format" : {
+                "name"              : "gid",
+                "gid_configuration" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary"
+                        },
+                        "output_frequency"    : 1.0
+                    }
+                }
+            }
+        }
+    }
+}

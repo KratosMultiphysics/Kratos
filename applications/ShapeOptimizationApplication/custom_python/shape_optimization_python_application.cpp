@@ -92,6 +92,9 @@ using namespace pybind11;
 
     // For mapping
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MAPPING_ID);
+
+    // For couplilng
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COUPLING_VARIABLE_1);
   }
 
 

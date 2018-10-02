@@ -18,7 +18,7 @@ import SU2
 from itertools import islice
 import shutil
 from contextlib import contextmanager
-import sys, os
+import sys, os, csv
 
 # Functions
 @contextmanager
@@ -152,10 +152,10 @@ class InterfaceSU2():
     # --------------------------------------------------------------------------
     def ComputeValues(self, list_of_response_ids, update_mesh, design_number):
         if self.interface_parameters["echo_level"].GetInt()==2:
-            return self.project.f (list_of_response_ids, update_mesh, design_number)
+            return self.project.f(list_of_response_ids, update_mesh, design_number)
         else:
             with suppress_stdout():
-                return self.project.f (list_of_response_ids, update_mesh, design_number)
+                return self.project.f(list_of_response_ids, update_mesh, design_number)
 
     # --------------------------------------------------------------------------
     def ComputeGradient(self, response_id, update_mesh, design_number):
@@ -177,6 +177,19 @@ class InterfaceSU2():
         self.project.config["RESTART_SOL"] = direct_restart_option
 
         return kratos_gradient
+
+    # --------------------------------------------------------------------------
+    def ReadNodalValueFromCSVFile(self, filename, collum_with_node_id, collum_to_read, has_file_header):
+        values = {}
+        with open(filename, newline='') as csvfile:
+            csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+            if has_file_header:
+                csvfile.readline()
+            for row in csv_reader:
+                su2_node_id = int(row[collum_with_node_id])
+                kratos_node_id = self.node_id_su2_to_kratos[su2_node_id]
+                values[kratos_node_id] = float(row[collum_to_read])
+        return values
 
     # --------------------------------------------------------------------------
     def __ReadSU2Mesh(self):

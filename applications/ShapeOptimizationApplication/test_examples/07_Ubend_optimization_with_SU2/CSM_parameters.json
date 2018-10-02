@@ -1,0 +1,82 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "CSM_model_thin",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 1
+    },
+    "solver_settings" : {
+        "solver_type"     : "Static",
+        "echo_level"      : 1,
+        "analysis_type"   : "linear",
+        "model_part_name" : "CSM_model_thin",
+        "domain_size"     : 3,
+        "time_stepping" : {
+            "time_step"       : 1.0
+        },
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "CSM_model_thin"
+        },
+            "material_import_settings" :{
+            "materials_filename": "CSM_material_data.json"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "linear_solver_settings"             : {
+            "solver_type"         : "eigen_pardiso_llt"
+        },
+        "problem_domain_sub_model_part_list" : ["solid_part"],
+        "processes_sub_model_part_list"      : ["supports","loaded_surface","wet_surface"],
+        "rotation_dofs"                      : false
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "Parameters"    : {
+            "model_part_name" : "CSM_model_thin.supports",
+            "variable_name"   : "DISPLACEMENT",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0]
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorByDirectionProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "CSM_model_thin.loaded_surface",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : 0.0,
+            "direction"       : [1.0,0.0,0.0]
+        }
+    }],
+    "list_other_processes"     : [],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","POINT_LOAD","SHAPE_SENSITIVITY","MESH_DISPLACEMENT","MESH_CHANGE"],
+            "gauss_point_results" : ["VON_MISES_STRESS"]
+        },
+        "point_data_configuration"  : []
+    }
+}

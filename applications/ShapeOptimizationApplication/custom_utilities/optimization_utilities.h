@@ -123,7 +123,7 @@ public:
             max_norm_search_dir = std::sqrt(max_norm_search_dir);
 
             // Normalize by max norm
-            if(max_norm_search_dir>1e-10)
+            if(max_norm_search_dir!=0.0)
             {
                 for (auto & node_i : mrDesignSurface.Nodes())
                 {
@@ -132,7 +132,7 @@ public:
                 }
             }
             else
-                std::cout << "> WARNING: Normalization of search direction by max norm activated but max norm is < 1e-10. Hence normalization is ommited!" << std::endl;
+                std::cout << "> WARNING: Normalization of search direction by max norm activated but max norm is 0. Hence normalization is ommited!" << std::endl;
         }
 
         // Compute update

@@ -16,6 +16,16 @@ def WriteDictionaryDataOnNodalVariable(data, model_part, nodal_variable):
         model_part.Nodes[node_id].SetSolutionStepValue(nodal_variable, 0, tmp_gradient)
 
 # ------------------------------------------------------------------------------
+def ReadNodalVariableToDictionary(model_part, nodal_variable):
+    variable_values_dict = {}
+
+    for node in model_part.Nodes:
+        tmp_values = node.GetSolutionStepValue(nodal_variable)
+        variable_values_dict[node.Id] = tmp_values
+
+    return variable_values_dict
+
+# ------------------------------------------------------------------------------
 def ReadNodalVariableToList(model_part, nodal_variable):
     variable_values_list = [0.0]*model_part.NumberOfNodes()*3
 

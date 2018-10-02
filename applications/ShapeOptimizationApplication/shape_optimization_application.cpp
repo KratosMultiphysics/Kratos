@@ -83,6 +83,9 @@ namespace Kratos
     // For Mapping
     KRATOS_CREATE_VARIABLE(int,MAPPING_ID);
 
+    // For coupling
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(COUPLING_VARIABLE_1);
+
     // Eof variables
 
     KratosShapeOptimizationApplication::KratosShapeOptimizationApplication() :
@@ -144,6 +147,9 @@ namespace Kratos
 
         // For mapping
         KRATOS_REGISTER_VARIABLE(MAPPING_ID);
+
+        // For coupling
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(COUPLING_VARIABLE_1);
 
         // Register conditions
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D3N", mShapeOptimizationCondition3D3N );
