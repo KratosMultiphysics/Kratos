@@ -531,17 +531,7 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
     WeakPointerVector<NodeType>& r_new_father_nodes = pNewNode->GetValue(FATHER_NODES);
     r_new_father_nodes.clear();
     r_new_father_nodes = pNode0->GetValue(FATHER_NODES);
-    for (auto other = pNode1->GetValue(FATHER_NODES).begin(); other != pNode1->GetValue(FATHER_NODES).end(); other++)
-    {
-        bool other_is_found = false;
-        for (auto father = r_new_father_nodes.begin(); father != r_new_father_nodes.end(); father++)
-        {
-            if (other->Id() == father->Id())
-                other_is_found = true;
-        }
-        if (!other_is_found)
-            r_new_father_nodes.push_back(*(other.base()));
-    }
+    AddOtherFatherNodes(r_new_father_nodes, pNode1->GetValue(FATHER_NODES));
 }
 
 
@@ -569,17 +559,33 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
                                       0.25 * node_data_2[variable] + 0.25 * node_data_3[variable];
     }
 
-    pNewNode->GetValue(FATHER_NODES).resize(0);
-    for (auto node = pNode0->GetValue(FATHER_NODES).begin(); node != pNode0->GetValue(FATHER_NODES).end(); node++)
-        pNewNode->GetValue(FATHER_NODES).push_back(*(node.base()));
-    for (auto node = pNode1->GetValue(FATHER_NODES).begin(); node != pNode1->GetValue(FATHER_NODES).end(); node++)
-        pNewNode->GetValue(FATHER_NODES).push_back(*(node.base()));
-    for (auto node = pNode2->GetValue(FATHER_NODES).begin(); node != pNode2->GetValue(FATHER_NODES).end(); node++)
-        pNewNode->GetValue(FATHER_NODES).push_back(*(node.base()));
-    for (auto node = pNode3->GetValue(FATHER_NODES).begin(); node != pNode3->GetValue(FATHER_NODES).end(); node++)
-        pNewNode->GetValue(FATHER_NODES).push_back(*(node.base()));
-    auto last = std::unique(pNewNode->GetValue(FATHER_NODES).begin(), pNewNode->GetValue(FATHER_NODES).end());
-    pNewNode->GetValue(FATHER_NODES).erase(last, pNewNode->GetValue(FATHER_NODES).end());
+    WeakPointerVector<NodeType>& r_new_father_nodes = pNewNode->GetValue(FATHER_NODES);
+    r_new_father_nodes.clear();
+    r_new_father_nodes = pNode0->GetValue(FATHER_NODES);
+    AddOtherFatherNodes(r_new_father_nodes, pNode1->GetValue(FATHER_NODES));
+    AddOtherFatherNodes(r_new_father_nodes, pNode2->GetValue(FATHER_NODES));
+    AddOtherFatherNodes(r_new_father_nodes, pNode3->GetValue(FATHER_NODES));
+}
+
+
+/// Add the father nodes which does not exist in the current father nodes
+template<unsigned int TDim>
+void UniformRefineUtility<TDim>::AddOtherFatherNodes(
+    WeakPointerVector<NodeType>& rThisFatherNodes,
+    WeakPointerVector<NodeType>& rOtherFatherNodes
+)
+{
+    for (auto other = rOtherFatherNodes.begin(); other != rOtherFatherNodes.end(); other++)
+    {
+        bool other_is_found = false;
+        for (auto father = rThisFatherNodes.begin(); father != rThisFatherNodes.end(); father++)
+        {
+            if (other->Id() == father->Id())
+                other_is_found = true;
+        }
+        if (!other_is_found)
+            rThisFatherNodes.push_back(*(other.base()));
+    }
 }
 
 

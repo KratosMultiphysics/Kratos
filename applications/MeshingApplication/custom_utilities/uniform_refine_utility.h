@@ -301,7 +301,7 @@ private:
         const NodeType::Pointer pNode1
         );
 
-      /**
+    /**
      * @brief CalculateNodalStepData calculates the nodal data as the mean of the father nodes
      * @detail The destination node is assumed to be at the mid point among the origin nodes
      * @param pNewNode The destination node
@@ -309,14 +309,25 @@ private:
      * @param pNode1 The second origin node
      * @param pNode2 The third origin node
      * @param pNode3 The fourth origin node
-       */
-      void CalculateNodalStepData(
-          NodeType::Pointer pNewNode,
-          const NodeType::Pointer pNode0,
-          const NodeType::Pointer pNode1,
-          const NodeType::Pointer pNode2,
-          const NodeType::Pointer pNode3
-          );
+     */
+    void CalculateNodalStepData(
+        NodeType::Pointer pNewNode,
+        const NodeType::Pointer pNode0,
+        const NodeType::Pointer pNode1,
+        const NodeType::Pointer pNode2,
+        const NodeType::Pointer pNode3
+        );
+
+    /**
+     * @brief Add the other father nodes if they does not exist in the current father nodes vector
+     * @see CalculateNodalStepData
+     * @param rThisFatherNodes the current father nodes
+     * @param rOtherFatherNodes the father nodes to insert
+     */
+    void AddOtherFatherNodes(
+        WeakPointerVector<NodeType>& rThisFatherNodes,
+        WeakPointerVector<NodeType>& rOtherFatherNodes
+        );
 
     /**
      * @brief CreateElement creates an element from an origin element
