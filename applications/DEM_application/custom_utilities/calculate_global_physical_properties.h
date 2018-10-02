@@ -534,7 +534,7 @@ class SphericElementGlobalPhysicsCalculator
         static size_t gravity_number = 0;
         double elapsed_time = r_model_part.GetProcessInfo()[TIME] - current_reference_time;
         // Minimum time span to wait between gravity shifts to ensure that the powder realocates
-        const double delta_security_time = 0.5;
+        const double delta_security_time = 100.5;
         // We choose the maximum velocity admissible in order to change the gravity vector
         const double maximum_squared_velocity_module = 0.05 * 0.05; // squares will be compared
         static bool is_time_to_change_gravity_value = true;

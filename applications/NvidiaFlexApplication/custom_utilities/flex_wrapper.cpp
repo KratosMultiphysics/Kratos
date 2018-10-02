@@ -148,6 +148,7 @@ namespace Kratos {
         }
 
         if (transfer_walls) {
+
             mFlexFemPositions->map();
             mFlexFemConnectivities->map();
 
@@ -254,14 +255,10 @@ namespace Kratos {
         
         // We obtain both friction and coefficient of restitution from the mdpa
         Element* p_element = mrSpheresModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin()->get();
+        if (!p_element) return;
         SphericParticle* p_spheric_particle = dynamic_cast<SphericParticle*> (p_element);
         mFlexParameters.staticFriction = mFlexParameters.particleFriction = mFlexParameters.dynamicFriction = (float) p_spheric_particle->GetProperties()[PARTICLE_FRICTION];
         mFlexParameters.restitution = (float) p_spheric_particle->GetProperties()[COEFFICIENT_OF_RESTITUTION];
-
-        KRATOS_WATCH(mFlexParameters.dynamicFriction)
-        KRATOS_WATCH(mFlexParameters.particleFriction)
-        KRATOS_WATCH(mFlexParameters.staticFriction)
-        KRATOS_WATCH(mFlexParameters.restitution)
         
         //check that all radii are the same!!
         const double tolerance = 1.0e-6;
@@ -279,15 +276,12 @@ namespace Kratos {
         }
 
         mFlexParameters.viscosity = 0.0f;
-        //mFlexParameters.dynamicFriction = 0.25f; //0.5f; //0.25f;
-        //mFlexParameters.staticFriction = 0.25f; //0.5f; //0.25f;
-        //mFlexParameters.particleFriction = 0.25f; //0.5f; //0.25f;
         mFlexParameters.freeSurfaceDrag = 0.0f;
         mFlexParameters.drag = 0.0f;
         mFlexParameters.lift = 0.0f;
-        mFlexParameters.numIterations = 3; //30; //3;
+        mFlexParameters.numIterations = 3;
         mFlexParameters.fluidRestDistance = 0.9 * mFlexParameters.radius; //0.0f;
-        mFlexParameters.solidRestDistance = 0.9 * mFlexParameters.radius; //0.0f;
+        mFlexParameters.solidRestDistance = 1.0 * mFlexParameters.radius; //0.9 * mFlexParameters.radius; //0.0f;
 
         mFlexParameters.anisotropyScale = 1.0f;
         mFlexParameters.anisotropyMin = 0.1f;
@@ -298,10 +292,9 @@ namespace Kratos {
         mFlexParameters.damping = 0.0f; //1.0f; //0.0f;
         mFlexParameters.particleCollisionMargin = mFlexParameters.radius * 0.05f; //0.5f; //0.05f;
         mFlexParameters.collisionDistance = mFlexParameters.radius * 0.5f;
-        mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance * 0.05f; //1,0f; // * 0.05f;
-        mFlexParameters.sleepThreshold = 0.0f;
+        mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance * 0.05f; //1.0f; // * 0.05f;
+        mFlexParameters.sleepThreshold = 0.0f; //0.005f; //0.0f;
         mFlexParameters.shockPropagation = 0.0f;
-        //mFlexParameters.restitution = 0.05f; //0.0f; //0.5f;
 
         mFlexParameters.maxSpeed = 100.0f; //FLT_MAX;
         mFlexParameters.maxAcceleration = 100.0f; // approximately 10x gravity
@@ -309,7 +302,7 @@ namespace Kratos {
         mFlexParameters.relaxationMode = eNvFlexRelaxationLocal;
         mFlexParameters.relaxationFactor = 1.0f;
         mFlexParameters.solidPressure = 0.0f; //1.0f;
-        mFlexParameters.adhesion = 0.0f;
+        mFlexParameters.adhesion = 0.1f; //0.1f; // This adhesion value works OK for spheres of diameter 0.01m
         mFlexParameters.cohesion = 0.0f; //0.025f; //0.0f; //0.025f;
         mFlexParameters.surfaceTension = 0.0f;
         mFlexParameters.vorticityConfinement = 0.0f;
@@ -322,16 +315,16 @@ namespace Kratos {
 
         // planes created after particles
         //MAC: TODO: ALL of this can be done a lot simpler if high node and low node are in some Kratos processinfo.
-        const array_1d<double, 3 >& low_point = mrParticleCreatorDestructor.GetLowNode();
-        const array_1d<double, 3 >& high_point = mrParticleCreatorDestructor.GetHighNode();
+        const array_1d<double, 3>& low_point = mrParticleCreatorDestructor.GetLowNode();
+        const array_1d<double, 3>& high_point = mrParticleCreatorDestructor.GetHighNode();
 
         mFlexParameters.numPlanes = 6;
-        (Vec4&)mFlexParameters.planes[0] = Vec4(0.0f, 1.0f, 0.0f, (float)1.0 * -low_point[1]);
-        (Vec4&)mFlexParameters.planes[1] = Vec4(0.0f, 0.0f, 1.0f, (float)1.0 * -low_point[2]);
-        (Vec4&)mFlexParameters.planes[2] = Vec4(1.0f, 0.0f, 0.0f, (float)1.0 * -low_point[0]);
-        (Vec4&)mFlexParameters.planes[3] = Vec4(-1.0f, 0.0f, 0.0f, (float)1.0 * high_point[0]);
-        (Vec4&)mFlexParameters.planes[4] = Vec4(0.0f, 0.0f, -1.0f, (float)1.0 * high_point[2]);
-        (Vec4&)mFlexParameters.planes[5] = Vec4(0.0f, -1.0f, 0.0f, (float)1.0 * high_point[1]);
+        (Vec4&)mFlexParameters.planes[0] = Vec4(0.0f, 1.0f, 0.0f, (float)10.0); // * -low_point[1]);
+        (Vec4&)mFlexParameters.planes[1] = Vec4(0.0f, 0.0f, 1.0f, (float)10.0); // * -low_point[2]);
+        (Vec4&)mFlexParameters.planes[2] = Vec4(1.0f, 0.0f, 0.0f, (float)10.0); //* -low_point[0]);
+        (Vec4&)mFlexParameters.planes[3] = Vec4(-1.0f, 0.0f, 0.0f, (float)10.0); // * high_point[0]);
+        (Vec4&)mFlexParameters.planes[4] = Vec4(0.0f, 0.0f, -1.0f, (float)10.0); // * high_point[2]);
+        (Vec4&)mFlexParameters.planes[5] = Vec4(0.0f, -1.0f, 0.0f, (float)10.0); // * high_point[1]);
 
         if (mFlexParameters.solidRestDistance == 0.0f) mFlexParameters.solidRestDistance = mFlexParameters.radius;
 
@@ -363,7 +356,7 @@ namespace Kratos {
         mFlexVelocities->map();
 
         const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
-        for (size_t i=0; i< number_of_nodes; i++) {
+        for (size_t i = 0; i < number_of_nodes; i++) {
             const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
 
             //positions
@@ -416,7 +409,7 @@ namespace Kratos {
         static size_t gravity_number = 0;
         float elapsed_time = mrSpheresModelPart.GetProcessInfo()[TIME] - current_reference_time;
         // Minimum time span to wait between gravity shifts to ensure that the powder realocates
-        const float delta_security_time = 10.5f;
+        const float delta_security_time = 100.5f;
         const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
         // We choose the maximum velocity admissible in order to change the gravity vector
         const float maximum_squared_velocity_module = 0.05f * 0.05f; // squares will be compared
