@@ -127,7 +127,25 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericCompressionConstitutiv
         const double CharacteristicLength
         )
     {
-        
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const double peak_stress_compression = r_material_properties[MAXIMUM_STRESS];
+
+        double initial_threshold;
+        this->GetInitialUniaxialThreshold(rValues, initial_threshold);
+
+        const double Ad = (peak_stress_compression - initial_threshold) / initial_threshold;
+
+        if (UniaxialStress <= peak_stress_compression) { // Polinomic path
+            rDamage = Ad * (initial_threshold / UniaxialStress) * ((UniaxialStress - initial_threshold) / (peak_stress_compression - initial_threshold));
+        } else { // Exponential softening
+            const double Gf = r_material_properties[FRACTURE_ENERGY];
+            const double E = r_material_properties[YOUNG_MODULUS];
+            const double Ad_hat = Ad * (std::pow(peak_stress_compression, 3) - 3.0 * peak_stress_compression * std::pow(initial_threshold, 2) + 2.0 * std::pow(initial_threshold, 3)) /
+                                  (6.0 * initial_threshold * std::pow((peak_stress_compression - initial_threshold), 2));
+            const double Hd = 0.5 / (E * 100 * Gf / initial_threshold / CharacteristicLength - 0.5 * peak_stress_compression / initial_threshold - Ad_hat);
+            rDamage = 1.0 - initial_threshold / UniaxialStress * std::exp(2.0 * Hd * (peak_stress_compression - UniaxialStress) / initial_threshold);
+        }
+        rPredictiveStressVector *= (1.0 - rDamage);
     }
 
     /**
@@ -158,9 +176,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericCompressionConstitutiv
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        KRATOS_CHECK_VARIABLE_KEY(SOFTENING_TYPE);
+        KRATOS_CHECK_VARIABLE_KEY(MAXIMUM_STRESS);
 
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "HARDENING_CURVE is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "MAXIMUM_STRESS is not a defined value" << std::endl;
 
         return TYieldSurfaceType::Check(rMaterialProperties);
     }
