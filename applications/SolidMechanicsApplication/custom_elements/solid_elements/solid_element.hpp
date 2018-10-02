@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_flags.h"
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "custom_utilities/element_utilities.hpp"
@@ -198,9 +199,9 @@ protected:
 	  DeltaPosition.resize(number_of_nodes, dimension,false);
 
 	  noalias(B)  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
-	  noalias(H)  = IdentityMatrix(dimension,dimension);
-	  noalias(F)  = IdentityMatrix(dimension,dimension);
-	  noalias(F0) = IdentityMatrix(dimension,dimension);
+	  noalias(H)  = IdentityMatrix(dimension);
+	  noalias(F)  = IdentityMatrix(dimension);
+	  noalias(F0) = IdentityMatrix(dimension);
 	  noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
 	  noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
 	  noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
@@ -757,8 +758,19 @@ protected:
     /**
      * Get element size from the dofs
      */
-    virtual unsigned int GetDofsSize();
+    virtual SizeType GetDofsSize();
 
+
+    /**
+     * Get element calculation flag
+     */
+    bool IsSliver()
+    {
+      if( this->IsDefined(SELECTED) )
+        return this->Is(SELECTED);
+      else
+        return false;
+    }
 
     /**
      * Initialize System Matrices

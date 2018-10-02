@@ -175,8 +175,10 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
     //KRATOS_INFO("") << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::Category::STATUS;
 
     //set up the system
-    if(this->mOptions.Is(LocalFlagType::REFORM_DOFS))
+    if(this->mOptions.Is(LocalFlagType::REFORM_DOFS)){
+      this->Clear();
       this->SetSystemDofs();
+    }
 
     //setting up the vectors involved to the correct size
     double begin_time = OpenMPUtils::GetCurrentTime();
@@ -213,17 +215,6 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
     //finalize scheme anb builder and solver
     mpScheme->FinalizeSolutionStep(this->GetModelPart());
     mpBuilderAndSolver->FinalizeSolutionStep(mpScheme, this->GetModelPart(), mpA, mpDx, mpb);
-
-    if(this->mOptions.Is(LocalFlagType::REFORM_DOFS)){
-      //deallocate the systemvectors
-      SparseSpaceType::Clear(mpA);
-      SparseSpaceType::Clear(mpDx);
-      SparseSpaceType::Clear(mpb);
-
-      this->Clear();
-    }
-
-    //this->Finalize();
 
     KRATOS_CATCH("")
   }
@@ -298,6 +289,7 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
     // if the preconditioner is saved between solves, it should be cleared here.
     mpBuilderAndSolver->GetLinearSystemSolver()->Clear();
 
+    //deallocate the systemvectors
     if(mpA != nullptr)
       SparseSpaceType::Clear(mpA);
     if(mpDx != nullptr)
