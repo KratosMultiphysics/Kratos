@@ -84,7 +84,7 @@ namespace Kratos
         if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
         {
             KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
-                << "This function is not thread safe for shape derivatives!" << std::endl;
+                << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
 
             #pragma omp critical
             {
@@ -140,7 +140,7 @@ namespace Kratos
         if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
         {
             KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
-                << "This function is not thread safe for shape derivatives!" << std::endl;
+                << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
 
             #pragma omp critical
             {
@@ -197,7 +197,7 @@ namespace Kratos
         if( rDesignVariable == SHAPE_X || rDesignVariable == SHAPE_Y || rDesignVariable == SHAPE_Z )
         {
             KRATOS_WARNING_IF("ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative", OpenMPUtils::IsInParallel() != 0)
-                << "This function is not thread safe for shape derivatives!" << std::endl;
+                << "The call of this non omp-parallelized function within a parallel section should be avoided for efficiency reasons!" << std::endl;
 
             #pragma omp critical
             {
