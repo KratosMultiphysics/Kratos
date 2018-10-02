@@ -299,7 +299,7 @@ public:
      * @brief This method returns the number of subproperties
      * @return The current number of subproperties
      */
-    virtual std::size_t NumberOfSubproperties()
+    std::size_t NumberOfSubproperties()
     {
         return mSubPropetiesList.size();
     }
@@ -308,7 +308,7 @@ public:
      * @brief This method insert a new property into the list of subproperties
      * @param pNewSubProperty The new property to be added
      */
-    virtual void AddSubProperty(Properties::Pointer pNewSubProperty)
+    void AddSubProperty(Properties::Pointer pNewSubProperty)
     {
         mSubPropetiesList.insert(mSubPropetiesList.begin(), pNewSubProperty);
     }
@@ -318,16 +318,26 @@ public:
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return The pointer to the subproperty of interest
      */
-    virtual Properties::Pointer GetSubProperty(IndexType SubPropertyIndex)
+    Properties::Pointer GetSubProperty(IndexType SubPropertyIndex)
     {
         return mSubPropetiesList(SubPropertyIndex);
+    }
+
+    /**
+     * @brief This method gets the subproperty from the index corresponding to the property id
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The pointer to the subproperty of interest
+     */
+    Properties& GetSubProperty(IndexType SubPropertyIndex) const
+    {
+        return *(mSubPropetiesList.find(SubPropertyIndex));
     }
 
     /**
      * @brief This method returns the whole list of subproperties
      * @return The whole lis of subproperties
      */
-    virtual PropertiesContainerType& GetSubProperties()
+    PropertiesContainerType& GetSubProperties()
     {
         return SubPropetiesList();
     }
@@ -336,7 +346,7 @@ public:
      * @brief This method returns the whole list of subproperties
      * @return The whole lis of subproperties
      */
-    virtual PropertiesContainerType const& GetSubProperties() const
+    PropertiesContainerType const& GetSubProperties() const
     {
         return SubPropetiesList();
     }
@@ -345,7 +355,7 @@ public:
      * @brief This method set the whole list of subproperties
      * @param rSubPropetiesList The list of subproperties
      */
-    virtual void SetSubProperties(PropertiesContainerType& rSubPropetiesList)
+    void SetSubProperties(PropertiesContainerType& rSubPropetiesList)
     {
         mSubPropetiesList = rSubPropetiesList;
     }
@@ -376,7 +386,7 @@ public:
      * @brief This method returns the whole list of subproperties (constant)
      * @return The whole lis of subproperties
      */
-    virtual PropertiesContainerType& SubPropetiesList()
+    PropertiesContainerType& SubPropetiesList()
     {
         return mSubPropetiesList;
     }
@@ -385,7 +395,7 @@ public:
      * @brief This method returns the whole list of subproperties (constant)
      * @return The whole lis of subproperties
      */
-    virtual PropertiesContainerType const& SubPropetiesList() const
+    PropertiesContainerType const& SubPropetiesList() const
     {
         return mSubPropetiesList;
     }
