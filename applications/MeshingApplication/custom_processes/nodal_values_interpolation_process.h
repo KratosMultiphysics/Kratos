@@ -29,6 +29,7 @@
 
 /* Utilities */
 #include "utilities/binbased_fast_point_locator.h"
+#include "utilities/openmp_utils.h"
 
 /* Tree structures */
 // #include "spatial_containers/bounding_volume_tree.h" // k-DOP
@@ -201,7 +202,7 @@ private:
  * @author Vicente Mataix Ferrandiz
  */
 template<SizeType TDim>
-class KRATOS_API(KRATOS_MESHING_APPLICATION) NodalValuesInterpolationProcess
+class NodalValuesInterpolationProcess
     : public Process
 {
 public:

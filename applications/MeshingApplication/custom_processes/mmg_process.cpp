@@ -331,7 +331,7 @@ void MmgProcess<TDim>::InitializeMeshData()
 
         /* Conditions */
         std::size_t num_tri = 0, num_quad = 0;
-        #pragma omp parallel for reduction(+:num_tetra,num_prisms)
+        #pragma omp parallel for reduction(+:num_tri,num_quad)
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
             auto it_cond = conditions_array.begin() + i;
 
@@ -427,17 +427,14 @@ void MmgProcess<TDim>::InitializeMeshData()
 
     /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
     // First we add the main model part
-    bool to_check_cond = false, to_check_elem = false;
     if (conditions_array.size() > 0) {
         const std::string type_name = (TDim == 2) ? "Condition2D2N" : "Condition3D";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
         mpRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), conditions_array.begin()->pGetProperties());
 //         mpRefCondition[0] = conditions_array.begin()->Create(0, conditions_array.begin()->GetGeometry(), conditions_array.begin()->pGetProperties());
-        to_check_cond = true;
     }
     if (elements_array.size() > 0) {
         mpRefElement[0] = elements_array.begin()->Create(0, elements_array.begin()->GetGeometry(), elements_array.begin()->pGetProperties());
-        to_check_elem = true;
     }
 
     // Now we add the reference elements and conditions
@@ -1171,6 +1168,10 @@ ConditionType::Pointer MmgProcess<2>::CreateCondition0(
     bool SkipCreation
     )
 {
+    // Sometimes MMG creates conditions where there are not, then we skip
+    if (mpRefCondition[PropId] == nullptr) return nullptr;
+    
+    // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
     int edge_0, edge_1, is_ridge;
@@ -1205,6 +1206,10 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition0(
     bool SkipCreation
     )
 {
+    // Sometimes MMG creates conditions where there are not, then we skip
+    if (mpRefCondition[PropId] == nullptr) return nullptr;
+    
+    // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
     int vertex_0, vertex_1, vertex_2;
@@ -1490,7 +1495,7 @@ void MmgProcess<TDim>::InitVerbosity()
     /* We set the MMG verbosity */
     int verbosity_mmg;
     if (mEchoLevel == 0)
-        verbosity_mmg = 0;
+        verbosity_mmg = -1;
     else if (mEchoLevel == 1)
         verbosity_mmg = 0; // NOTE: This way just the essential info from MMG will be printed, but the custom message will appear
     else if (mEchoLevel == 2)

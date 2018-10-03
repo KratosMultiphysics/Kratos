@@ -9,7 +9,7 @@
     "solver_settings"          : {
         "solver_type"                        : "static",
         "echo_level"                         : 0,
-        "analysis_type"                      : "non_linear",
+        "analysis_type"                      : "linear",
         "model_part_name" : "3D_Shell",
         "domain_size"     : 3,
         "time_stepping" : {

@@ -208,10 +208,8 @@ class ConjugateHeatTransferSolver(PythonSolver):
         print("finished predict")
 
     def SolveSolutionStep(self):
-        print("aaa")
         # Solve the buoyancy solver
         self.fluid_solver.SolveSolutionStep()
-        print("bbb")
 
         max_iteration = self.settings["coupling_settings"]["max_iteration"].GetInt()
         relaxation_factor = self.settings["coupling_settings"]["relaxation_factor"].GetDouble()

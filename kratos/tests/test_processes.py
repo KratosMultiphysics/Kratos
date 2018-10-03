@@ -797,7 +797,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
-        kratos_utils.DeleteDirectoryIfExisting(os.path.join("test_parent_folder","test_parent_folder"))
+        kratos_utils.DeleteDirectoryIfExisting("test_parent_folder")
 
     def test_point_output_process_element(self):
         model_part = ModelPart("Main")

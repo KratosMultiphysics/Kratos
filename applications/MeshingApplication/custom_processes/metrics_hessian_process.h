@@ -54,7 +54,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template<SizeType TDim, class TVarType>
-class KRATOS_API(KRATOS_MESHING_APPLICATION) ComputeHessianSolMetricProcess
+class ComputeHessianSolMetricProcess
     : public Process
 {
 public:

@@ -645,8 +645,8 @@ public:
         double sum_value = 0.0;
 
         #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
-            NodesContainerType::iterator it_node = rModelPart.NodesBegin() + k;
+        for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfNodes()); ++k) {
+            NodesContainerType::iterator it_node = rModelPart.GetCommunicator().LocalMesh().NodesBegin() + k;
             sum_value += it_node->GetValue(rVar);
         }
 
@@ -687,8 +687,8 @@ public:
         double sum_value = 0.0;
 
         #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
-            NodesContainerType::iterator it_node = rModelPart.NodesBegin() + k;
+        for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfNodes()); ++k) {
+            NodesContainerType::iterator it_node = rModelPart.GetCommunicator().LocalMesh().NodesBegin() + k;
             sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
         }
 
@@ -727,8 +727,8 @@ public:
         double sum_value = 0.0;
 
         #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfConditions()); ++k) {
-            ConditionsContainerType::iterator it_cond = rModelPart.ConditionsBegin() + k;
+        for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfConditions()); ++k) {
+            ConditionsContainerType::iterator it_cond = rModelPart.GetCommunicator().LocalMesh().ConditionsBegin() + k;
             sum_value += it_cond->GetValue(rVar);
         }
 
@@ -767,8 +767,8 @@ public:
         double sum_value = 0.0;
 
         #pragma omp parallel for reduction(+:sum_value)
-        for (int k = 0; k < static_cast<int>(rModelPart.NumberOfElements()); ++k) {
-            ElementsContainerType::iterator it_elem = rModelPart.ElementsBegin() + k;
+        for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfElements()); ++k) {
+            ElementsContainerType::iterator it_elem = rModelPart.GetCommunicator().LocalMesh().ElementsBegin() + k;
             sum_value += it_elem->GetValue(rVar);
         }
 
