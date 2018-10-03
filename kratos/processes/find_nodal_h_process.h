@@ -209,14 +209,14 @@ private:
      * @param rNode The node iterator to be get
      * @return The current value of NODAL_H
      */
-    double& GetValue(NodeType& rNode);
+    double& GetHValue(NodeType& rNode);
     
     /**
      * @brief This method sets the current value of the NODAL_H to the given one
      * @param rNode The node iterator to be get
      * @param Value The current value of NODAL_H
      */
-    void SetValue(
+    void SetHValue(
         NodeType& rNode,
         const double Value
         );

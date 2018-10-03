@@ -66,7 +66,7 @@ void FindNodalHProcess<THistorical>::Execute()
 /***********************************************************************************/
 
 template<>
-double& FindNodalHProcess<true>::GetValue(NodeType& rNode)
+double& FindNodalHProcess<true>::GetHValue(NodeType& rNode)
 {
     return rNode.FastGetSolutionStepValue(NODAL_H);
 }
@@ -75,7 +75,7 @@ double& FindNodalHProcess<true>::GetValue(NodeType& rNode)
 /***********************************************************************************/
 
 template<>
-double& FindNodalHProcess<false>::GetValue(NodeType& rNode)
+double& FindNodalHProcess<false>::GetHValue(NodeType& rNode)
 {
     return rNode.GetValue(NODAL_H);
 }
@@ -84,7 +84,7 @@ double& FindNodalHProcess<false>::GetValue(NodeType& rNode)
 /***********************************************************************************/
 
 template<>
-void FindNodalHProcess<true>::SetValue(
+void FindNodalHProcess<true>::SetHValue(
     NodeType& rNode,
     const double Value
     )
@@ -96,7 +96,7 @@ void FindNodalHProcess<true>::SetValue(
 /***********************************************************************************/
 
 template<>
-void FindNodalHProcess<false>::SetValue(
+void FindNodalHProcess<false>::SetHValue(
     NodeType& rNode,
     const double Value
     )
