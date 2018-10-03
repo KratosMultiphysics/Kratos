@@ -78,7 +78,7 @@ class MeshSolverBase(PythonSolver):
         if self.model.HasModelPart(model_part_name):
             self.mesh_model_part = self.model.GetModelPart(model_part_name)
         else:
-            self.mesh_model_part = KratosMultiphysics.ModelPart(model_part_name)
+            self.mesh_model_part = model.CreateModelPart(model_part_name)
 
         domain_size = self.settings["domain_size"].GetInt()
         if domain_size == -1:
