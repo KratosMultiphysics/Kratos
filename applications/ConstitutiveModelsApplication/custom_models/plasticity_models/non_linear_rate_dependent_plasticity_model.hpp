@@ -101,13 +101,13 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override
+    ConstitutiveModel::Pointer Clone() const override
     {
       return Kratos::make_shared<NonLinearRateDependentPlasticityModel>(*this);
     }
 
     /// Destructor.
-    virtual ~NonLinearRateDependentPlasticityModel() {}
+    ~NonLinearRateDependentPlasticityModel() override {}
 
 
     ///@}
@@ -135,7 +135,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "NonLinearRateDependentPlasticityModel" ;
@@ -143,13 +143,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "NonLinearRateDependentPlasticityModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "NonLinearRateDependentPlasticityModel Data";
     }
@@ -179,8 +179,8 @@ namespace Kratos
     ///@{
 
 
-    // calculate ratial return
-    virtual bool CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
+    // calculate return mapping
+    bool CalculateReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -189,7 +189,7 @@ namespace Kratos
       //Start 1rst Newton Raphson iteration
       rVariables.State().Set(ConstitutiveModelData::PLASTIC_RATE_REGION,true);
       rVariables.RateFactor=1; //plastic rate region on
-      converged = CalculateRateDependentRadialReturn(rVariables,rStressMatrix);
+      converged = CalculateRateDependentReturnMapping(rVariables,rStressMatrix);
 
       // if(!converged)
       //   std::cout<<" ConstitutiveLaw did not converge on the rate dependent return mapping"<<std::endl;
@@ -215,7 +215,7 @@ namespace Kratos
 	rVariables.State().Set(ConstitutiveModelData::PLASTIC_RATE_REGION,false);
 	rVariables.RateFactor=0; //plastic rate region on
 
-	converged = CalculateRateIndependentRadialReturn(rVariables,rStressMatrix);
+	converged = CalculateRateIndependentReturnMapping(rVariables,rStressMatrix);
 
 	// if(!converged)
 	//   std::cout<<" ConstitutiveLaw did not converge on the rate independent return mapping"<<std::endl;
@@ -228,7 +228,7 @@ namespace Kratos
     }
 
 
-    bool CalculateRateDependentRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    bool CalculateRateDependentReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
 
@@ -296,7 +296,7 @@ namespace Kratos
     }
 
 
-    bool CalculateRateIndependentRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    bool CalculateRateIndependentReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
 
@@ -357,7 +357,7 @@ namespace Kratos
 
 
     // implex protected methods
-    virtual void CalculateImplexRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
+    void CalculateImplexReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -547,12 +547,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
     }

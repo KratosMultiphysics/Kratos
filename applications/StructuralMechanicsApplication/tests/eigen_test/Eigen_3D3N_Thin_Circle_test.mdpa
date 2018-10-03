@@ -793,7 +793,7 @@ Begin Elements ShellThinElement3D3N// GUI group identifier: plate
 497	4	116	96	120
 498	4	96	99	120
 499	4	96	76	99
-500	4	76	81	99 
+500	4	76	81	99
 End Elements
 
 Begin SubModelPart Parts_plate // Group plate // Subtree Parts

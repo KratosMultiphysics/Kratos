@@ -24,8 +24,15 @@ namespace Kratos
 {
 
 AdjointFiniteDifferencingBaseElement::AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement)
-                    : Element(pPrimalElement->Id(), pPrimalElement->pGetGeometry(), pPrimalElement->pGetProperties()),
-                        mpPrimalElement(pPrimalElement)
+                    : Element(pPrimalElement->Id(), pPrimalElement->pGetGeometry(), pPrimalElement->pGetProperties())
+                    , mpPrimalElement(pPrimalElement)
+{
+}
+
+AdjointFiniteDifferencingBaseElement::AdjointFiniteDifferencingBaseElement(Element::Pointer pPrimalElement, bool HasRotationDofs)
+                    : Element(pPrimalElement->Id(), pPrimalElement->pGetGeometry(), pPrimalElement->pGetProperties())
+                    , mpPrimalElement(pPrimalElement)
+                    , mHasRotationDofs(HasRotationDofs)
 {
 }
 
@@ -39,7 +46,7 @@ void AdjointFiniteDifferencingBaseElement::EquationIdVector(EquationIdVectorType
 
     const SizeType number_of_nodes = geom.PointsNumber();
     const SizeType dimension = geom.WorkingSpaceDimension();
-    const SizeType num_dofs_per_node = dimension * 2;
+    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
 
     if(rResult.size() != num_dofs)
@@ -54,9 +61,12 @@ void AdjointFiniteDifferencingBaseElement::EquationIdVector(EquationIdVectorType
         rResult[index + 1] = iNode.GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
         rResult[index + 2] = iNode.GetDof(ADJOINT_DISPLACEMENT_Z).EquationId();
 
-        rResult[index + 3] = iNode.GetDof(ADJOINT_ROTATION_X).EquationId();
-        rResult[index + 4] = iNode.GetDof(ADJOINT_ROTATION_Y).EquationId();
-        rResult[index + 5] = iNode.GetDof(ADJOINT_ROTATION_Z).EquationId();
+        if(mHasRotationDofs)
+        {
+            rResult[index + 3] = iNode.GetDof(ADJOINT_ROTATION_X).EquationId();
+            rResult[index + 4] = iNode.GetDof(ADJOINT_ROTATION_Y).EquationId();
+            rResult[index + 5] = iNode.GetDof(ADJOINT_ROTATION_Z).EquationId();
+        }
     }
     KRATOS_CATCH("")
 }
@@ -70,7 +80,7 @@ void AdjointFiniteDifferencingBaseElement::GetDofList(DofsVectorType& rElemental
 
     const SizeType number_of_nodes = geom.PointsNumber();
     const SizeType dimension =  geom.WorkingSpaceDimension();
-    const SizeType num_dofs_per_node = dimension * 2;
+    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
 
     if (rElementalDofList.size() != num_dofs)
@@ -83,9 +93,12 @@ void AdjointFiniteDifferencingBaseElement::GetDofList(DofsVectorType& rElemental
         rElementalDofList[index + 1] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y);
         rElementalDofList[index + 2] = GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z);
 
-        rElementalDofList[index + 3] = GetGeometry()[i].pGetDof(ADJOINT_ROTATION_X);
-        rElementalDofList[index + 4] = GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Y);
-        rElementalDofList[index + 5] = GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Z);
+        if(mHasRotationDofs)
+        {
+            rElementalDofList[index + 3] = GetGeometry()[i].pGetDof(ADJOINT_ROTATION_X);
+            rElementalDofList[index + 4] = GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Y);
+            rElementalDofList[index + 5] = GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Z);
+        }
     }
     KRATOS_CATCH("")
 }
@@ -98,7 +111,7 @@ void AdjointFiniteDifferencingBaseElement::GetValuesVector(Vector& rValues, int 
 
     const SizeType number_of_nodes = geom.PointsNumber();
     const SizeType dimension =  geom.WorkingSpaceDimension();
-    const SizeType num_dofs_per_node = dimension * 2;
+    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
 
     if(rValues.size() != num_dofs)
@@ -108,16 +121,19 @@ void AdjointFiniteDifferencingBaseElement::GetValuesVector(Vector& rValues, int 
     {
         const NodeType & iNode = geom[i];
         const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
-        const array_1d<double,3>& rot = iNode.FastGetSolutionStepValue(ADJOINT_ROTATION, Step);
 
         const IndexType index = i * num_dofs_per_node;
         rValues[index]     = disp[0];
         rValues[index + 1] = disp[1];
         rValues[index + 2] = disp[2];
 
-        rValues[index + 3] = rot[0];
-        rValues[index + 4] = rot[1];
-        rValues[index + 5] = rot[2];
+        if(mHasRotationDofs)
+        {
+            const array_1d<double,3>& rot = iNode.FastGetSolutionStepValue(ADJOINT_ROTATION, Step);
+            rValues[index + 3] = rot[0];
+            rValues[index + 4] = rot[1];
+            rValues[index + 5] = rot[2];
+        }
     }
     KRATOS_CATCH("")
 }
@@ -170,12 +186,15 @@ void AdjointFiniteDifferencingBaseElement::Calculate(const Variable<Matrix >& rV
         }
     }
     else
+    {
+        KRATOS_WARNING("AdjointFiniteDifferencingBaseElement") << "Calculate function called for unknown variable: " << rVariable << std::endl;
         rOutput.clear();
+    }
 
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferencingBaseElement::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+void AdjointFiniteDifferencingBaseElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                     std::vector<double>& rValues,
                     const ProcessInfo& rCurrentProcessInfo)
 {
@@ -206,19 +225,25 @@ int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProce
 {
     KRATOS_TRY
 
+    int return_value = Element::Check(rCurrentProcessInfo);
+
     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
     GeometryType& r_geom = GetGeometry();
 
     // verify that the variables are correctly initialized
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
     KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
     KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
+
+    if(mHasRotationDofs)
+    {
+        KRATOS_CHECK_VARIABLE_KEY(ROTATION);
+        KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
+    }
 
     // TODO generic way of doing these checks without checking the dofs..
 
@@ -228,19 +253,23 @@ int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProce
         auto& r_node = r_geom[i];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, r_node);
 
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node);
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Y, r_node);
-        KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Z, r_node);
+
+        if(mHasRotationDofs)
+        {
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Y, r_node);
+            KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Z, r_node);
+        }
     }
 
-    return 0;
+    return return_value;
 
     KRATOS_CATCH("")
 }
@@ -324,7 +353,8 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 
         const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
         const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
-        const SizeType local_size = number_of_nodes * dimension * 2;
+        const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
+        const SizeType local_size = number_of_nodes * num_dofs_per_node;
 
         if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) )
             rOutput.resize(dimension * number_of_nodes, local_size);
@@ -381,13 +411,17 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative
 
     const SizeType num_nodes = mpPrimalElement->GetGeometry().PointsNumber();
     const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
-    const SizeType num_dofs_per_node = dimension * 2; // TODO generalize
+    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
     const SizeType num_dofs = num_nodes * num_dofs_per_node;
     Vector initial_state_variables;
     Vector stress_derivatives_vector;
 
     // TODO first calculation only to get the size of the stress vector
-    this->Calculate(rStressVariable, stress_derivatives_vector, rCurrentProcessInfo);
+    TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+    if (rStressVariable == STRESS_ON_GP)
+        StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
+    else
+        StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
     rOutput.resize(num_dofs, stress_derivatives_vector.size() );
     rOutput.clear();
     initial_state_variables.resize(num_dofs);
@@ -398,13 +432,17 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative
     primal_solution_variable_list.push_back(DISPLACEMENT_X);
     primal_solution_variable_list.push_back(DISPLACEMENT_Y);
     primal_solution_variable_list.push_back(DISPLACEMENT_Z);
-    primal_solution_variable_list.push_back(ROTATION_X);
-    primal_solution_variable_list.push_back(ROTATION_Y);
-    primal_solution_variable_list.push_back(ROTATION_Z);
+
+    if(mHasRotationDofs)
+    {
+        primal_solution_variable_list.push_back(ROTATION_X);
+        primal_solution_variable_list.push_back(ROTATION_Y);
+        primal_solution_variable_list.push_back(ROTATION_Z);
+    }
 
     // TODO Find a better way of doing this check
     KRATOS_ERROR_IF(rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
-        << "Stress displacement derivative computation is currently only available for linear cases !" << std::endl;
+        << "This stress displacement derivative computation is only usable for linear cases!" << std::endl;
 
     for (IndexType i = 0; i < num_nodes; ++i)
     {
@@ -422,7 +460,11 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDisplacementDerivative
         {
             mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = 1.0;
 
-            this->Calculate(rStressVariable, stress_derivatives_vector, rCurrentProcessInfo);
+            TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+            if (rStressVariable == STRESS_ON_GP)
+                StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
+            else
+                StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_derivatives_vector, rCurrentProcessInfo);
 
             for(IndexType k = 0; k < stress_derivatives_vector.size(); ++k)
                 rOutput(index+j, k) = stress_derivatives_vector[k];
@@ -453,7 +495,11 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
     Vector stress_vector_dist;
 
     // Compute stress on GP before perturbation
-    this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+    TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+    if (rStressVariable == STRESS_ON_GP)
+        StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
+    else
+        StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
 
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable);
@@ -475,7 +521,11 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
         p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
 
         // Compute stress on GP after perturbation
-        this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+        if (rStressVariable == STRESS_ON_GP)
+            StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_vector_dist, rCurrentProcessInfo);
+        else
+            StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_dist, rCurrentProcessInfo);
 
         // Compute derivative of stress w.r.t. design variable with finite differences
         for(size_t j = 0; j < stress_vector_size; ++j)
@@ -509,7 +559,11 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
         const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
         // Compute stress on GP before perturbation
-        this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+        if (rStressVariable == STRESS_ON_GP)
+            StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
+        else
+            StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_undist, rCurrentProcessInfo);
 
         const SizeType stress_vector_size = stress_vector_undist.size();
         rOutput.resize(dimension * number_of_nodes, stress_vector_size);
@@ -525,7 +579,11 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
                 node_i[coord_dir_i] += delta;
 
                 // Compute stress on GP after perturbation
-                this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+                TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
+                if (rStressVariable == STRESS_ON_GP)
+                    StressCalculation::CalculateStressOnGP(*pGetPrimalElement(), traced_stress_type, stress_vector_dist, rCurrentProcessInfo);
+                else
+                    StressCalculation::CalculateStressOnNode(*pGetPrimalElement(), traced_stress_type, stress_vector_dist, rCurrentProcessInfo);
 
                 // Compute derivative of stress w.r.t. design variable with finite differences
                 for(IndexType i = 0; i < stress_vector_size; ++i)
@@ -549,7 +607,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateStressDesignVariableDerivati
 }
 
 // private
-const double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Variable<double>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Variable<double>& rDesignVariable)
 {
     const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
     const double delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
@@ -557,7 +615,7 @@ const double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Var
     return delta;
 }
 
-const double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable)
+double AdjointFiniteDifferencingBaseElement::GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable)
 {
     const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
     const double delta = this->GetValue(PERTURBATION_SIZE) * correction_factor;
@@ -584,9 +642,15 @@ double AdjointFiniteDifferencingBaseElement::GetPerturbationSizeModificationFact
 {
     KRATOS_TRY;
 
+    // For shape derivatives the size of the element (length, area, ...) is used as default perturbation size modification factor.
+    // Later on this value is multiplied with a user defined factor. This product is then used as final perturbation size for computing
+    // derivatives with finite differences.
     if(rDesignVariable == SHAPE)
     {
-        KRATOS_ERROR << "GetPerturbationSizeModificationFactor NOT_IMPLEMENTED" << std::endl;
+        const double domain_size = mpPrimalElement->GetGeometry().DomainSize();
+        KRATOS_DEBUG_ERROR_IF(domain_size <= 0.0)
+            << "Pertubation size for shape derivatives of element" << this->Id() << "<= 0.0" << std::endl;
+        return domain_size;
     }
     else
         return 1.0;

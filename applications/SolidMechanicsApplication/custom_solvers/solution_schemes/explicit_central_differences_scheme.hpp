@@ -127,7 +127,7 @@ namespace Kratos
     }
 
     /// Destructor
-    virtual ~ExplicitCentralDifferencesScheme() override {}
+    ~ExplicitCentralDifferencesScheme() override {}
 
     ///@}
     ///@name Operators
@@ -138,7 +138,7 @@ namespace Kratos
     ///@{
 
 
-    virtual void Initialize(ModelPart& rModelPart) override
+    void Initialize(ModelPart& rModelPart) override
     {
       KRATOS_TRY
 
@@ -375,7 +375,7 @@ namespace Kratos
      * @param rModelPart
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& rModelPart) override
+    int Check(ModelPart& rModelPart) override
     {
       KRATOS_TRY
 

@@ -22,9 +22,9 @@
 /* Processes */
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
 

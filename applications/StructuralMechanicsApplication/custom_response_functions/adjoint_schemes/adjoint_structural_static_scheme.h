@@ -75,12 +75,15 @@ public:
 
         Parameters default_params(R"(
         {
-            "scheme_type": "adjoint_structural"
+            "scheme_type": "adjoint_structural",
+            "rotation_dofs": false
         })");
 
         rParameters.ValidateAndAssignDefaults(default_params);
 
         mpResponseFunction = pResponseFunction;
+
+        mHasRotationDofs = rParameters["rotation_dofs"].GetBool();
 
         KRATOS_CATCH("");
     }
@@ -133,7 +136,16 @@ public:
         {
             auto it_node = rModelPart.NodesBegin() + k;
             noalias(it_node->FastGetSolutionStepValue(ADJOINT_DISPLACEMENT)) = ADJOINT_DISPLACEMENT.Zero();
-            noalias(it_node->FastGetSolutionStepValue(ADJOINT_ROTATION)) = ADJOINT_ROTATION.Zero();
+        }
+
+        if(mHasRotationDofs)
+        {
+            #pragma omp parallel for
+            for (int k = 0; k< static_cast<int> (rModelPart.Nodes().size()); ++k)
+            {
+                auto it_node = rModelPart.NodesBegin() + k;
+                noalias(it_node->FastGetSolutionStepValue(ADJOINT_ROTATION)) = ADJOINT_ROTATION.Zero();
+            }
         }
 
         mpResponseFunction->InitializeSolutionStep();
@@ -213,12 +225,13 @@ public:
         KRATOS_ERROR_IF(domain_size != 2 && domain_size != 3) << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
         KRATOS_ERROR_IF(domain_size != working_space_dimension) << "DOMAIN_SIZE != WorkingSpaceDimension()" << std::endl;
 
-        KRATOS_ERROR_IF_NOT( rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_DISPLACEMENT) )
-             << "Nodal solution steps data missing variable: " << ADJOINT_DISPLACEMENT << std::endl;
-
-        KRATOS_ERROR_IF_NOT( rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_ROTATION) )
-             << "Nodal solution steps data missing variable: " << ADJOINT_ROTATION << std::endl;
-           // ---> but what is e.g. for solid elements, where no rotation dofs exist???????????????
+        for(auto& rnode : rModelPart.Nodes())
+           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, rnode)
+        if(mHasRotationDofs)
+        {
+            for(auto& rnode : rModelPart.Nodes())
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, rnode)
+        }
 
         return BaseType::Check(rModelPart); // check elements and conditions
         KRATOS_CATCH("");
@@ -248,7 +261,7 @@ public:
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // Calculate system contributions in residual form.
-        pCurrentElement->GetValuesVector(mAdjointValues[thread_id]); //-----------------> rework member function in SA-element
+        pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
@@ -374,6 +387,7 @@ private:
 
     AdjointStructuralResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointValues;
+    bool mHasRotationDofs;
 
     ///@}
     ///@name Private Operators

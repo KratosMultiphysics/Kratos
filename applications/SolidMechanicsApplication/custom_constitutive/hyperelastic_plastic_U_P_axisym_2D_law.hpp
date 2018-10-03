@@ -82,7 +82,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElasticPlasticUPAxisym2DLaw();
+    ~HyperElasticPlasticUPAxisym2DLaw() override;
 
     /**
      * Operators

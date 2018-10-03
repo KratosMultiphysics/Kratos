@@ -69,10 +69,10 @@ namespace Kratos
     SimoLinearHardeningRule& operator=(SimoLinearHardeningRule const& rOther);
 
     /// Clone.
-    virtual HardeningRule::Pointer Clone() const override;
+    HardeningRule::Pointer Clone() const override;
 
     /// Destructor.
-    ~SimoLinearHardeningRule();
+    ~SimoLinearHardeningRule() override;
 
     ///@}
     ///@name Operators
@@ -88,7 +88,7 @@ namespace Kratos
      * Calculate Hardening function derivatives
      */
 
-    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening) override;
+    double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening) override;
 
 
     ///@}
@@ -106,7 +106,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "SimoLinearHardeningRule" ;
@@ -114,13 +114,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "SimoLinearHardeningRule";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "SimoLinearHardeningRule Data";
     }
@@ -149,12 +149,12 @@ namespace Kratos
     /**
      * Calculate Hardening functions
      */
-    virtual double& CalculateAndAddIsotropicHardening(const PlasticDataType& rVariables, double& rIsotropicHardening) override;
+    double& CalculateAndAddIsotropicHardening(const PlasticDataType& rVariables, double& rIsotropicHardening) override;
 
     /**
      * Calculate Hardening function derivatives
      */
-    virtual double& CalculateAndAddDeltaIsotropicHardening(const PlasticDataType& rVariables, double& rDeltaIsotropicHardening) override;
+    double& CalculateAndAddDeltaIsotropicHardening(const PlasticDataType& rVariables, double& rDeltaIsotropicHardening) override;
 
     ///@}
     ///@name Protected Operations
@@ -207,12 +207,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SimoExponentialHardeningRule )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SimoExponentialHardeningRule )
     }

@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics 
+import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -61,37 +61,37 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
 
     def _set_cl_options(self, dict_options):
         cl_options = KratosMultiphysics.Flags()
-        if ("USE_ELEMENT_PROVIDED_STRAIN" in dict_options): 
+        if ("USE_ELEMENT_PROVIDED_STRAIN" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN, dict_options["USE_ELEMENT_PROVIDED_STRAIN"])
-        if ("COMPUTE_STRESS" in dict_options): 
+        if ("COMPUTE_STRESS" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRESS, dict_options["COMPUTE_STRESS"])
-        if ("COMPUTE_CONSTITUTIVE_TENSOR" in dict_options): 
+        if ("COMPUTE_CONSTITUTIVE_TENSOR" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, dict_options["COMPUTE_CONSTITUTIVE_TENSOR"])
-        if ("COMPUTE_STRAIN_ENERGY" in dict_options): 
+        if ("COMPUTE_STRAIN_ENERGY" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRAIN_ENERGY, dict_options["COMPUTE_STRAIN_ENERGY"])
-        if ("ISOCHORIC_TENSOR_ONLY" in dict_options): 
+        if ("ISOCHORIC_TENSOR_ONLY" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.ISOCHORIC_TENSOR_ONLY, dict_options["ISOCHORIC_TENSOR_ONLY"])
-        if ("VOLUMETRIC_TENSOR_ONLY" in dict_options): 
+        if ("VOLUMETRIC_TENSOR_ONLY" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.VOLUMETRIC_TENSOR_ONLY, dict_options["VOLUMETRIC_TENSOR_ONLY"])
-        if ("FINALIZE_MATERIAL_RESPONSE" in dict_options): 
+        if ("FINALIZE_MATERIAL_RESPONSE" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.FINALIZE_MATERIAL_RESPONSE, dict_options["FINALIZE_MATERIAL_RESPONSE"])
 
         # From here below it should be an otput not an input
-        if ("FINITE_STRAINS" in dict_options): 
-            cl_options.Set(KratosMultiphysics.ConstitutiveLaw.FINITE_STRAINS, dict_options["FINITE_STRAINS"]) 
-        if ("INFINITESIMAL_STRAINS" in dict_options): 
+        if ("FINITE_STRAINS" in dict_options):
+            cl_options.Set(KratosMultiphysics.ConstitutiveLaw.FINITE_STRAINS, dict_options["FINITE_STRAINS"])
+        if ("INFINITESIMAL_STRAINS" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.INFINITESIMAL_STRAINS, dict_options["INFINITESIMAL_STRAINS"])
-        if ("PLANE_STRAIN_LAW" in dict_options): 
+        if ("PLANE_STRAIN_LAW" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.PLANE_STRAIN_LAW, dict_options["PLANE_STRAIN_LAW"])
-        if ("PLANE_STRESS_LAW" in dict_options): 
+        if ("PLANE_STRESS_LAW" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.PLANE_STRESS_LAW, dict_options["PLANE_STRESS_LAW"])
-        if ("AXISYMMETRIC_LAW" in dict_options): 
+        if ("AXISYMMETRIC_LAW" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.AXISYMMETRIC_LAW, dict_options["AXISYMMETRIC_LAW"])
-        if ("U_P_LAW" in dict_options): 
+        if ("U_P_LAW" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.U_P_LAW, dict_options["U_P_LAW"])
-        if ("ISOTROPIC" in dict_options): 
+        if ("ISOTROPIC" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.ISOTROPIC, dict_options["ISOTROPIC"])
-        if ("ANISOTROPIC" in dict_options): 
+        if ("ANISOTROPIC" in dict_options):
             cl_options.Set(KratosMultiphysics.ConstitutiveLaw.ANISOTROPIC, dict_options["ANISOTROPIC"])
         return cl_options
 
@@ -172,8 +172,10 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
 
             stress = cl_params.GetStressVector()
 
+            tolerance = 1.0e-4
             for j in range(cl.GetStrainSize()):
-                self.assertAlmostEqual(reference_stress[j], stress[j], 2)
+                if (abs(stress[j]) > tolerance):
+                    self.assertAlmostEqual((reference_stress[j] - stress[j])/stress[j], 0.0, msg=("Error checking solution " + str(stress[j]) + " different from " + str(reference_stress[j]) + " with tolerance of " + str(tolerance)), delta=tolerance)
 
     def test_Uniaxial_KirchhoffSaintVenant_3D(self):
         # Define a model
@@ -300,6 +302,14 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         model_part = KratosMultiphysics.ModelPart("test")
 
         deformation_test = DeformationLinearIsotropicDamage3D()
+
+        self._generic_constitutive_law_test(model_part, deformation_test)
+
+    def test_Isotropic_Damage_Plane_Strain_2D(self):
+        # Define a model
+        model_part = KratosMultiphysics.ModelPart("test")
+
+        deformation_test = DeformationLinearIsotropicDamagePlaneStrain2D()
 
         self._generic_constitutive_law_test(model_part, deformation_test)
 
@@ -682,6 +692,34 @@ class DeformationLinearIsotropicDamage3D(DeformationLinearIsotropicDamage):
     def get_reference_stress(self, i):
         return self.reference_stress[i]
 
+class DeformationLinearIsotropicDamagePlaneStrain2D(DeformationLinearIsotropicDamage):
+    def __init__(self):
+        DeformationLinearIsotropicDamage.__init__(self)
+        self.cl = LinearIsotropicDamagePlaneStrain2D()
+
+    def initialize_reference_stress(self, strain_size):
+        self.initial_strain = KratosMultiphysics.Vector(strain_size)
+        self.initial_strain[0] = 0.001
+        self.initial_strain[1] = 0.001
+        self.initial_strain[2] = 0.001
+
+        r_stress = []
+        for i in range(self.nr_timesteps):
+            r_stress.append(KratosMultiphysics.Vector(strain_size))
+        r_stress[0][0] = 0.57692; r_stress[0][1] = 0.57692; r_stress[0][2] = 0.11538;
+        r_stress[1][0] = 1.15384; r_stress[1][1] = 1.15384; r_stress[1][2] = 0.23077;
+        r_stress[2][0] = 1.73076; r_stress[2][1] = 1.73076; r_stress[2][2] = 0.34615;
+        r_stress[3][0] = 2.00123; r_stress[3][1] = 2.00123; r_stress[3][2] = 0.40025;
+        r_stress[4][0] = 2.17431; r_stress[4][1] = 2.17431; r_stress[4][2] = 0.43486;
+        r_stress[5][0] = 2.34738; r_stress[5][1] = 2.34738; r_stress[5][2] = 0.46948;
+        r_stress[6][0] = 2.52046; r_stress[6][1] = 2.52046; r_stress[6][2] = 0.50409;
+        r_stress[7][0] = 2.69354; r_stress[7][1] = 2.69354; r_stress[7][2] = 0.53871;
+        r_stress[8][0] = 2.80484; r_stress[8][1] = 2.80484; r_stress[8][2] = 0.56097;
+        r_stress[9][0] = 2.80484; r_stress[9][1] = 2.80484; r_stress[9][2] = 0.56097;
+        self.reference_stress = r_stress
+
+    def get_reference_stress(self, i):
+        return self.reference_stress[i]
 
 # todo -****************************
 class DeformationSmallStrainIsotropicPlasticity3D(DeformationLinearIsotropicDamage):
@@ -848,6 +886,15 @@ class LinearIsotropicDamage3D(LinearIsotropicDamage):
     @staticmethod
     def create_constitutive_Law():
         return StructuralMechanicsApplication.LinearIsotropicDamage3DLaw()
+
+class LinearIsotropicDamagePlaneStrain2D(LinearIsotropicDamage):
+    def __init__(self):
+        LinearIsotropicDamage.__init__(self)
+        self.dim = 2
+
+    @staticmethod
+    def create_constitutive_Law():
+        return StructuralMechanicsApplication.LinearIsotropicDamagePlaneStrain2DLaw()
 
 if __name__ == '__main__':
     KratosUnittest.main()

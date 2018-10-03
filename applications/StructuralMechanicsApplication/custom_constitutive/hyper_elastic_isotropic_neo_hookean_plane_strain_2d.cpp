@@ -12,49 +12,46 @@
 #include <iostream>
 
 // External includes
-// #include<cmath>
 
 // Project includes
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
-
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
-//******************************CONSTRUCTOR*******************************************
-//************************************************************************************
+/******************************CONSTRUCTOR******************************************/
+/***********************************************************************************/
 
 HyperElasticIsotropicNeoHookeanPlaneStrain2D::HyperElasticIsotropicNeoHookeanPlaneStrain2D()
-    : HyperElasticIsotropicNeoHookean3D()
+    : BaseType()
 {
 }
 
-//******************************COPY CONSTRUCTOR**************************************
-//************************************************************************************
+/******************************COPY CONSTRUCTOR*************************************/
+/***********************************************************************************/
 
 HyperElasticIsotropicNeoHookeanPlaneStrain2D::HyperElasticIsotropicNeoHookeanPlaneStrain2D(const HyperElasticIsotropicNeoHookeanPlaneStrain2D& rOther)
-    : HyperElasticIsotropicNeoHookean3D(rOther)
+    : BaseType(rOther)
 {
 }
 
-//********************************CLONE***********************************************
-//************************************************************************************
+/********************************CLONE**********************************************/
+/***********************************************************************************/
 
 ConstitutiveLaw::Pointer HyperElasticIsotropicNeoHookeanPlaneStrain2D::Clone() const
 {
-    HyperElasticIsotropicNeoHookeanPlaneStrain2D::Pointer p_clone(new HyperElasticIsotropicNeoHookeanPlaneStrain2D(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticIsotropicNeoHookeanPlaneStrain2D>(*this);
 }
 
-//*******************************DESTRUCTOR*******************************************
-//************************************************************************************
+/*******************************DESTRUCTOR******************************************/
+/***********************************************************************************/
 
 HyperElasticIsotropicNeoHookeanPlaneStrain2D::~HyperElasticIsotropicNeoHookeanPlaneStrain2D()
 {
 };
 
-//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
-//************************************************************************************
+/*************************CONSTITUTIVE LAW GENERAL FEATURES ************************/
+/***********************************************************************************/
 
 void HyperElasticIsotropicNeoHookeanPlaneStrain2D::GetLawFeatures(Features& rFeatures)
 {
@@ -66,7 +63,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::GetLawFeatures(Features& rFea
     //Set strain measure required by the consitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_GreenLagrange);
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-    
+
     //Set the strain size
     rFeatures.mStrainSize = GetStrainSize();
 
@@ -74,69 +71,65 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::GetLawFeatures(Features& rFea
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
-//************************************************************************************
-//************************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixPK2(
-    Matrix& ConstitutiveMatrix,
+    Matrix& rConstitutiveMatrix,
     const Matrix& InverseCTensor,
-    const double& DeterminantF,
-    const double& LameLambda,
-    const double& LameMu
+    const double DeterminantF,
+    const double LameLambda,
+    const double LameMu
     )
 {
-    ConstitutiveMatrix.clear();
-    
+    rConstitutiveMatrix.clear();
+
     const double log_j = std::log(DeterminantF);
-    
-    for(unsigned int i = 0; i < 3; i++)
-    {
-        const unsigned int& i0 = this->msIndexVoigt2D3C[i][0];
-        const unsigned int& i1 = this->msIndexVoigt2D3C[i][1];
-            
-        for(unsigned int j = 0; j < 3; j++)
-        {
-            const unsigned int& j0 = this->msIndexVoigt2D3C[j][0];
-            const unsigned int& j1 = this->msIndexVoigt2D3C[j][1];
-            
-            ConstitutiveMatrix(i, j) = (LameLambda*InverseCTensor(i0,i1)*InverseCTensor(j0,j1)) + ((LameMu-LameLambda * log_j) * (InverseCTensor(i0,j0) * InverseCTensor(i1,j1) + InverseCTensor(i0,j1) * InverseCTensor(i1,j0)));
+
+    for(IndexType i = 0; i < 3; ++i) {
+        const IndexType i0 = this->msIndexVoigt2D3C[i][0];
+        const IndexType i1 = this->msIndexVoigt2D3C[i][1];
+
+        for(IndexType j = 0; j < 3; ++j) {
+            const IndexType j0 = this->msIndexVoigt2D3C[j][0];
+            const IndexType j1 = this->msIndexVoigt2D3C[j][1];
+
+            rConstitutiveMatrix(i, j) = (LameLambda*InverseCTensor(i0,i1)*InverseCTensor(j0,j1)) + ((LameMu-LameLambda * log_j) * (InverseCTensor(i0,j0) * InverseCTensor(i1,j1) + InverseCTensor(i0,j1) * InverseCTensor(i1,j0)));
         }
     }
 }
 
-//************************************************************************************
-//************************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixKirchhoff(
-    Matrix& ConstitutiveMatrix,
-    const double& DeterminantF,
-    const double& LameLambda,
-    const double& LameMu
+    Matrix& rConstitutiveMatrix,
+    const double DeterminantF,
+    const double LameLambda,
+    const double LameMu
     )
 {
-    ConstitutiveMatrix.clear();
-    
+    rConstitutiveMatrix.clear();
+
     const double log_j = std::log(DeterminantF);
-    
-    for(unsigned int i = 0; i < 3; i++)
-    {
-        const unsigned int& i0 = this->msIndexVoigt2D3C[i][0];
-        const unsigned int& i1 = this->msIndexVoigt2D3C[i][1];
-            
-        for(unsigned int j = 0; j < 3; j++)
-        {
-            const unsigned int& j0 = this->msIndexVoigt2D3C[j][0];
-            const unsigned int& j1 = this->msIndexVoigt2D3C[j][1];
-            
-            ConstitutiveMatrix(i,j) = (LameLambda*((i0 == i1) ? 1.0 : 0.0)*((j0 == j1) ? 1.0 : 0.0)) + ((LameMu-LameLambda * log_j) * (((i0 == j0) ? 1.0 : 0.0) * ((i1 == j1) ? 1.0 : 0.0) + ((i0 == j1) ? 1.0 : 0.0) * ((i1 == j0) ? 1.0 : 0.0)));
+
+    for(IndexType i = 0; i < 3; ++i) {
+        const IndexType i0 = this->msIndexVoigt2D3C[i][0];
+        const IndexType i1 = this->msIndexVoigt2D3C[i][1];
+
+        for(IndexType j = 0; j < 3; ++j) {
+            const IndexType j0 = this->msIndexVoigt2D3C[j][0];
+            const IndexType j1 = this->msIndexVoigt2D3C[j][1];
+
+            rConstitutiveMatrix(i,j) = (LameLambda*((i0 == i1) ? 1.0 : 0.0)*((j0 == j1) ? 1.0 : 0.0)) + ((LameMu-LameLambda * log_j) * (((i0 == j0) ? 1.0 : 0.0) * ((i1 == j1) ? 1.0 : 0.0) + ((i0 == j1) ? 1.0 : 0.0) * ((i1 == j0) ? 1.0 : 0.0)));
         }
     }
 }
 
-//************************************************************************************
-//************************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
-void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateCauchyGreenStrain(
+void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateGreenLagrangianStrain(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
     )
@@ -146,14 +139,14 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateCauchyGreenStrain(
 
     // e = 0.5*(inv(C) - I)
     Matrix C_tensor = prod(trans(F),F);
-    
+
     rStrainVector[0] = 0.5 * ( C_tensor( 0, 0 ) - 1.00 );
     rStrainVector[1] = 0.5 * ( C_tensor( 1, 1 ) - 1.00 );
     rStrainVector[2] = C_tensor( 0, 1 );
 }
 
-//************************************************************************************
-//************************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateAlmansiStrain(
     ConstitutiveLaw::Parameters& rValues,

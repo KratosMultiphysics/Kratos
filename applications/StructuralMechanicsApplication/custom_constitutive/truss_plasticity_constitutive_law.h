@@ -107,6 +107,10 @@ public:
                 const Variable<Vector>& rThisVariable,
                 Vector& rValue) override;
 
+    array_1d<double, 3 > & CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 > & rValue) override;
+
     void CalculateMaterialResponse(const Vector& rStrainVector,
                                     const Matrix& rDeformationGradient,
                                     Vector& rStressVector,

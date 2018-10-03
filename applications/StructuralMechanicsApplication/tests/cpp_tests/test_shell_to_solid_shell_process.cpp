@@ -23,12 +23,12 @@
 /* Processes */
 #include "custom_processes/shell_to_solid_shell_process.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
-        
+
         void ShellToSolidShellProcessGiDIODebug(ModelPart& ThisModelPart)
         {
             GidIO<> gid_io("TEST_SHELL_TO_SOLID", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditions);

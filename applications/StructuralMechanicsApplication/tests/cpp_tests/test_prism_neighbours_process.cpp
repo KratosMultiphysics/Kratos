@@ -22,12 +22,12 @@
 /* Processes */
 #include "custom_processes/prism_neighbours_process.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
-        
+
         void PrismNeighboursProcessGiDIODebug(ModelPart& ThisModelPart)
         {
             GidIO<> gid_io("TEST_NEIGHBOUR_PRISM", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
@@ -119,7 +119,7 @@ namespace Kratos
 //             PrismNeighboursProcessGiDIODebug(ThisModelPart);
         }
 
-        /** 
+        /**
         * Checks the correct work of the prism neighbour process
         * Test 3 neighbours
         */
@@ -188,9 +188,9 @@ namespace Kratos
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
-            
+
             PrismNeighboursProcessCreateModelPart(this_model_part, 0);
-                         
+
             PrismNeighboursProcess prism_neighbours_process = PrismNeighboursProcess(this_model_part);
             prism_neighbours_process.Execute();
 

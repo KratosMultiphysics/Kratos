@@ -15,15 +15,19 @@ from __future__ import print_function, absolute_import, division
 # ==============================================================================
 class OptimizationAlgorithm:
     # --------------------------------------------------------------------------
+    def CheckApplicability( self ):
+        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> CheckApplicability << .")
+
+    # --------------------------------------------------------------------------
     def InitializeOptimizationLoop( self ):
-        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> initializeOptimizationLoop << .")
+        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> InitializeOptimizationLoop << .")
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop( self ):
-        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> runOptimizationLoop << .")
+        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> RunOptimizationLoop << .")
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop( self ):
-        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> finalizeOptimizationLoop << .")
+        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> FinalizeOptimizationLoop << .")
 
 # ==============================================================================

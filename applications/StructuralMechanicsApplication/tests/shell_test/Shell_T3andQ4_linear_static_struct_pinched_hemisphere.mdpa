@@ -28,31 +28,31 @@ End Nodes
 
 
 Begin Elements ShellThinElementCorotational3D3N// GUI group identifier: Surace_T3_thin
-         1          0         17         15         13 
-         2          0         13         14          9 
-         3          0         13         15         14 
-         4          0         15         19         14 
+         1          0         17         15         13
+         2          0         13         14          9
+         3          0         13         15         14
+         4          0         15         19         14
 End Elements
 
 Begin Elements ShellThickElementCorotational3D3N// GUI group identifier: Surface_T3_thick
-         5          0          6         10          7 
-         6          0          7         13          9 
-         7          0          7         10         13 
-         8          0         10         17         13 
+         5          0          6         10          7
+         6          0          7         13          9
+         7          0          7         10         13
+         8          0         10         17         13
 End Elements
 
 Begin Elements ShellThickElementCorotational3D4N// GUI group identifier: Surface_Q4_thick
-         9          0         16         12         14         19 
-        10          0         18         11         12         16 
-        11          0         12          8          9         14 
-        12          0         11          5          8         12 
+         9          0         16         12         14         19
+        10          0         18         11         12         16
+        11          0         12          8          9         14
+        12          0         11          5          8         12
 End Elements
 
 Begin Elements ShellThinElementCorotational3D4N// GUI group identifier: Surface_Q4_thin
-        13          0          2          4          3          1 
-        14          0          6          7          4          2 
-        15          0          4          8          5          3 
-        16          0          7          9          8          4 
+        13          0          2          4          3          1
+        14          0          6          7          4          2
+        15          0          4          8          5          3
+        16          0          7          9          8          4
 End Elements
 
 Begin Conditions PointLoadCondition3D1N// GUI group identifier: neumann_x

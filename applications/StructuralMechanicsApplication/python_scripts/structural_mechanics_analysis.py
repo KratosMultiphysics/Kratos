@@ -33,6 +33,22 @@ class StructuralMechanicsAnalysis(AnalysisStage):
     def __init__(self, model, project_parameters):
         # Making sure that older cases still work by properly initalizing the parameters
         solver_settings = project_parameters["solver_settings"]
+
+        if solver_settings.Has("domain_size") and project_parameters["problem_data"].Has("domain_size"):
+            warn_msg  = '"domain_size" defined both in "problem_data" and "solver_settings"!'
+            warn_msg += 'the definition in the "solver_settings" will be employed'
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+
+        if solver_settings.Has("model_part_name") and project_parameters["problem_data"].Has("model_part_name"):
+            warn_msg  = '"model_part_name" defined both in problem_data" and "solver_settings"!'
+            warn_msg += 'the definition in the "solver_sett"ings" will be employed'
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+
+        if solver_settings.Has("time_stepping") and project_parameters["problem_data"].Has("time_Step"):
+            warn_msg  = '"time_stepping" defined both in "problem_data" and "solver_settings"!'
+            warn_msg += 'the definition in the "solver_settings" will be employed'
+            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", warn_msg)
+
         if not solver_settings.Has("time_stepping"):
             KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to pass the time_step, this will be removed!")
             time_stepping_params = KratosMultiphysics.Parameters("{}")
@@ -75,7 +91,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",
                 "json_check_process", "check_analytic_results_process", "contact_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
+                info_msg  = "Using the old way to create the processes, this will be removed!\n"
+                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                info_msg += "for a description of the new format"
+                KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", info_msg)
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
@@ -87,7 +107,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                         raise Exception("Mixing of process initialization is not alowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
-                #KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
+                info_msg  = "Using the old way to create the gid-output, this will be removed!\n"
+                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                info_msg += "for a description of the new format"
+                KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", info_msg)
                 gid_output= self._SetUpGiDOutput()
                 list_of_processes += [gid_output,]
         else:

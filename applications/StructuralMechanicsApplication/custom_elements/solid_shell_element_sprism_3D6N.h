@@ -444,6 +444,11 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    // GetValueOnIntegrationPoints are TEMPORARY until they are removed!!!
+    // They will be removed from the derived elements; i.e. the implementation
+    // should be in CalculateOnIntegrationPoints!
+    // Adding these functions here is bcs GiD calls GetValueOnIntegrationPoints
+
     /**
      * @brief Get on rVariable a double Value from the Element Constitutive Law
      * @param rVariable The internal variables in the element
@@ -481,6 +486,7 @@ public:
         ) override;
 
     /**
+     * @todo To be renamed to CalculateOnIntegrationPoints!!!
      * @brief Get a Constitutive Law Value
      * @param rVariable The internal variables in the element
      * @param rValues Values of the ContstitutiveLaw
@@ -1430,16 +1436,6 @@ protected:
     void GetHistoricalVariables(
         GeneralVariables& rVariables,
         const IndexType rPointNumber
-        );
-
-    /**
-     * @brief Calculation of the Hencky strain tensor:
-     * @param rC The right Cauchy tensor
-     * @param rStrainVector The Hencky strain tensor
-     */
-    void CalculateHenckyStrain(
-        const Vector& rC,
-        Vector& rStrainVector
         );
 
     /**

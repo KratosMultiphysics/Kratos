@@ -7,7 +7,7 @@
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "parallel_type"   : "OpenMP",
-        "echo_level"      : 1
+        "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "static",
@@ -15,11 +15,11 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/Beam_structure"
+            "input_filename" : "Beam_structure"
         },
 
         "material_import_settings" :{
-            "materials_filename": "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n/materials_beam.json"
+            "materials_filename": "materials_beam.json"
         },
 		"line_search"                        : false,
         "compute_reactions"					 : true,
@@ -79,7 +79,7 @@
             "model_part_output_settings" : {
                 "prefix" : "/ModelData"
             },
-            "nodal_results_settings" : {
+            "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["DISPLACEMENT", "ROTATION"]
             }
         }

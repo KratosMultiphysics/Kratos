@@ -16,7 +16,7 @@
         "nodal_sensitivity_variables"  : ["SHAPE"],
         "element_sensitivity_variables"  : [],
         "condition_sensitivity_variables"  : [],
-        "step_size"         : 1.0e-6,
+        "step_size"         : 1.0e-5,
         "primal_settings"  : "rectangular_plate_parameters.json",
         "adjoint_settings"  : "rectangular_plate_adjoint_parameters.json"
     }

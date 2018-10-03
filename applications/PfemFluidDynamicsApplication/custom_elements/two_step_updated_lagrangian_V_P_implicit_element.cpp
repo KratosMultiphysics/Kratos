@@ -11,7 +11,7 @@
 // System includes
 
 // External includes
- 
+
 // Project includes
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_element.h"
 #include "includes/cfd_variables.h"
@@ -26,7 +26,7 @@ namespace Kratos {
 
     TwoStepUpdatedLagrangianVPImplicitElement NewElement(NewId, this->GetGeometry().Create( rThisNodes ), this->pGetProperties() );
     return Element::Pointer( new TwoStepUpdatedLagrangianVPImplicitElement(NewElement) );
-    
+
     KRATOS_CATCH("");
 
   }
@@ -36,7 +36,7 @@ namespace Kratos {
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 									     VectorType& rRightHandSideVector,
 									     ProcessInfo& rCurrentProcessInfo)
-  { 
+  {
     KRATOS_TRY;
 
     switch ( rCurrentProcessInfo[FRACTIONAL_STEP] )
@@ -65,7 +65,7 @@ namespace Kratos {
   template< unsigned int TDim >
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
   {
-    KRATOS_TRY; 
+    KRATOS_TRY;
 
     GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -76,9 +76,9 @@ namespace Kratos {
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != LocalSize )
-      rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+      rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(LocalSize,LocalSize);
+    rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 
     if( rRightHandSideVector.size() != LocalSize )
       rRightHandSideVector.resize(LocalSize);
@@ -104,14 +104,14 @@ namespace Kratos {
     double DeviatoricCoeff = 0;
     double VolumetricCoeff = 0;
     // this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep);
- 
+
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
       {
 	const double GaussWeight = GaussWeights[g];
 	totalVolume+=GaussWeight;
 	const ShapeFunctionsType& N = row(NContainer,g);
-	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g]; 
+	const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
 
 	double Pressure=0;
 	double OldPressure=0;
@@ -120,7 +120,7 @@ namespace Kratos {
 
 	this->EvaluateInPoint(OldPressure,PRESSURE,N,1);
 
-	rElementalVariables.MeanPressure=OldPressure*(1-theta)+Pressure*theta;  
+	rElementalVariables.MeanPressure=OldPressure*(1-theta)+Pressure*theta;
 
 	bool computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,rDN_DX,g);
 
@@ -130,7 +130,7 @@ namespace Kratos {
 
 	// std::vector<double> rOutput;
 	// this->GetElementalValueForOutput(YIELDED,rOutput);
-	
+
 	if(computeElement==true){
 	  // Add integration point contribution to the local mass matrix
 	  // double DynamicWeight=GaussWeight*Density;
@@ -141,15 +141,15 @@ namespace Kratos {
 	  this->AddInternalForces(rRightHandSideVector,rDN_DX,rElementalVariables,GaussWeight);
 
 	  // double lumpedDynamicWeight=GaussWeight*Density;
-	  // this->ComputeLumpedMassMatrix(MassMatrix,lumpedDynamicWeight,MeanValueMass);   
+	  // this->ComputeLumpedMassMatrix(MassMatrix,lumpedDynamicWeight,MeanValueMass);
 
 	  // double MeanValueMaterial=0.0;
-	  // this->ComputeMeanValueMaterialTangentMatrix(rElementalVariables,MeanValueMaterial,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight,MeanValueMass,TimeStep);    
+	  // this->ComputeMeanValueMaterialTangentMatrix(rElementalVariables,MeanValueMaterial,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight,MeanValueMass,TimeStep);
 	  // double deviatoricCoeffTemp=DeviatoricCoeff;
 	  // DeviatoricCoeff=0;
 	  // // Add viscous term
 	  // this->ComputeCompleteTangentTerm(rElementalVariables,rLeftHandSideMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
-	  
+
 	  // double staticFrictionCoefficient=0.34;
 	  // double dynamicFrictionCoefficient=0.6;
 	  // double inertialNumberZero=0.279;
@@ -168,7 +168,7 @@ namespace Kratos {
       }
 
     double lumpedDynamicWeight=totalVolume*Density;
-    this->ComputeLumpedMassMatrix(MassMatrix,lumpedDynamicWeight,MeanValueMass);    
+    this->ComputeLumpedMassMatrix(MassMatrix,lumpedDynamicWeight,MeanValueMass);
 
     double BulkReductionCoefficient=1.0;
     double MeanValueStiffness=0.0;
@@ -181,7 +181,7 @@ namespace Kratos {
       for (unsigned int g = 0; g < NumGauss; g++)
     	{
     	  const double GaussWeight = GaussWeights[g];
-    	  const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g]; 
+    	  const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
     	  this->ComputeCompleteTangentTerm(rElementalVariables,StiffnessMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
     	}
     }
@@ -191,16 +191,16 @@ namespace Kratos {
     VectorType VelocityValues = ZeroVector(LocalSize);
     VectorType AccelerationValues = ZeroVector(LocalSize);
 
-    // //1st order 
+    // //1st order
     // this->GetVelocityValues(VelocityValues,0);
     // AccelerationValues = VelocityValues/TimeStep;
     // this->GetAccelerationValues(LastAccValues,0);
     // this->GetVelocityValues(VelocityValues,1);
-    // AccelerationValues += -VelocityValues/TimeStep; 
+    // AccelerationValues += -VelocityValues/TimeStep;
     // noalias( rRightHandSideVector ) += -prod(MassMatrix,AccelerationValues);
     // noalias( rLeftHandSideMatrix ) +=  MassMatrix/TimeStep;
 
-    //2nd order 
+    //2nd order
     this->GetAccelerationValues(AccelerationValues,0);
     this->GetVelocityValues(VelocityValues,0);
     noalias(AccelerationValues)+=-2.0*VelocityValues/TimeStep;
@@ -215,28 +215,28 @@ namespace Kratos {
     // VectorType UpdatedAccelerations = ZeroVector(LocalSize);
     // VectorType LastAccValues = ZeroVector(LocalSize);
 
-    // // //1st order 
+    // // //1st order
     // // this->GetVelocityValues(VelocityValues,0);
     // // UpdatedAccelerations = VelocityValues/TimeStep;
     // // this->GetAccelerationValues(LastAccValues,0);
     // // this->GetVelocityValues(VelocityValues,1);
-    // // UpdatedAccelerations += -VelocityValues/TimeStep; 
+    // // UpdatedAccelerations += -VelocityValues/TimeStep;
     // // // UpdatedAccelerations =LastAccValues;
     // // noalias( rRightHandSideVector ) += -prod(MassMatrix,UpdatedAccelerations);
     // // noalias( rLeftHandSideMatrix ) +=  MassMatrix/TimeStep;
 
-    // //2nd order 
+    // //2nd order
     // this->GetVelocityValues(VelocityValues,0);
     // UpdatedAccelerations = 2.0*VelocityValues/TimeStep;
     // this->GetAccelerationValues(LastAccValues,0);
     // this->GetVelocityValues(VelocityValues,1);
-    // UpdatedAccelerations += -2.0*VelocityValues/TimeStep - LastAccValues; 
+    // UpdatedAccelerations += -2.0*VelocityValues/TimeStep - LastAccValues;
     // noalias( rRightHandSideVector ) += -prod(MassMatrix,UpdatedAccelerations);
     // noalias( rLeftHandSideMatrix ) +=  StiffnessMatrix;
     // noalias( rLeftHandSideMatrix ) +=  MassMatrix*2/TimeStep;
 
     KRATOS_CATCH( "" );
- 
+
   }
 
 
@@ -252,7 +252,7 @@ namespace Kratos {
     if ( rVariable == FLOW_INDEX)
       {
 	rValues[0]=this->GetValue(FLOW_INDEX);
-      }	
+      }
   }
 
   template<>
@@ -300,7 +300,7 @@ namespace Kratos {
         FirstCol += 2;
       }
   }
- 
+
 
   template<>
   void TwoStepUpdatedLagrangianVPImplicitElement<3>::ComputeCompleteTangentTerm(ElementalVariables & rElementalVariables,
@@ -310,7 +310,7 @@ namespace Kratos {
 										const double bulkModulus,
 										const double theta,
 										const double Weight){
-    
+
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     const double FourThirds = 4.0 / 3.0;
     const double nTwoThirds = -2.0 / 3.0;
@@ -327,7 +327,7 @@ namespace Kratos {
 	    double lagDNZi=rDN_DX(i,0)*rElementalVariables.InvFgrad(0,2)+rDN_DX(i,1)*rElementalVariables.InvFgrad(1,2)+rDN_DX(i,2)*rElementalVariables.InvFgrad(2,2);
 	    double lagDNXj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,0)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,0)+rDN_DX(j,2)*rElementalVariables.InvFgrad(2,0);
 	    double lagDNYj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,1)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,1)+rDN_DX(j,2)*rElementalVariables.InvFgrad(2,1);
-	    double lagDNZj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,2)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,2)+rDN_DX(j,2)*rElementalVariables.InvFgrad(2,2);	 
+	    double lagDNZj=rDN_DX(j,0)*rElementalVariables.InvFgrad(0,2)+rDN_DX(j,1)*rElementalVariables.InvFgrad(1,2)+rDN_DX(j,2)*rElementalVariables.InvFgrad(2,2);
 	    // lagDNXi=rDN_DX(i,0);
 	    // lagDNYi=rDN_DX(i,1);
 	    // lagDNZi=rDN_DX(i,2);
@@ -349,7 +349,7 @@ namespace Kratos {
             rDampingMatrix(FirstRow+2,FirstCol)   += Weight * ( (nTwoThirds * secondLame + bulkModulus) * lagDNZi * lagDNXj + lagDNXi * lagDNZj *  secondLame )*theta;
             rDampingMatrix(FirstRow+2,FirstCol+1) += Weight * ( (nTwoThirds* secondLame + bulkModulus)  * lagDNZi * lagDNYj + lagDNYi * lagDNZj *  secondLame )*theta;
             rDampingMatrix(FirstRow+2,FirstCol+2) += Weight * ( (FourThirds * secondLame + bulkModulus) * lagDNZi * lagDNZj + (lagDNXi * lagDNXj + lagDNYi * lagDNYj) * secondLame )*theta;
-	   
+
 	    // Update Counter
             FirstRow += 3;
 	  }
@@ -381,8 +381,8 @@ namespace Kratos {
       KRATOS_THROW_ERROR(std::invalid_argument,"BODY_FORCE Key is 0. Check that the application was correctly registered.","");
     if(DENSITY.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check that the application was correctly registered.","");
-    if(VISCOSITY.Key() == 0)
-      KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check that the application was correctly registered.","");
+    if(DYNAMIC_VISCOSITY.Key() == 0)
+      KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_VISCOSITY Key is 0. Check that the application was correctly registered.","");
     if(DELTA_TIME.Key() == 0)
       KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check that the application was correctly registered.","");
 
@@ -397,8 +397,8 @@ namespace Kratos {
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing BODY_FORCE variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY) == false)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing DENSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
-        if(this->GetGeometry()[i].SolutionStepsDataHas(VISCOSITY) == false)
-	  KRATOS_THROW_ERROR(std::invalid_argument,"missing VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
+        if(this->GetGeometry()[i].SolutionStepsDataHas(DYNAMIC_VISCOSITY) == false)
+	  KRATOS_THROW_ERROR(std::invalid_argument,"missing DYNAMIC_VISCOSITY variable on solution step data for node ",this->GetGeometry()[i].Id());
         if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
            this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
            this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
@@ -406,7 +406,7 @@ namespace Kratos {
         if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
 	  KRATOS_THROW_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
       }
-    
+
     // If this is a 2D problem, check that nodes are in XY plane
     if (this->GetGeometry().WorkingSpaceDimension() == 2)
       {

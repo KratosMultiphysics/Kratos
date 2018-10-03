@@ -24,12 +24,11 @@ import communicator_factory
 import algorithm_factory
 
 # ==============================================================================
-def CreateOptimizer(parameters, optimization_mdpa, external_analyzer=EmptyAnalyzer()):
-    optimization_settings = parameters["optimization_settings"]
+def CreateOptimizer(optimization_settings, optimization_mdpa, external_analyzer=EmptyAnalyzer()):
 
     model_part_controller = model_part_controller_factory.CreateController(optimization_settings, optimization_mdpa)
 
-    analyzer = analyzer_factory.CreateAnalyzer(parameters, model_part_controller, external_analyzer)
+    analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer)
 
     communicator = communicator_factory.CreateCommunicator(optimization_settings)
 
@@ -51,21 +50,30 @@ class VertexMorphingMethod:
 
     # --------------------------------------------------------------------------
     def __AddNodalVariablesNeededForOptimization(self):
-        optimization_mdpa = self.model_part_controller.GetOptimizationModelPart()
-        optimization_mdpa.AddNodalSolutionStepVariable(NORMAL)
-        optimization_mdpa.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
-        optimization_mdpa.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
-        optimization_mdpa.AddNodalSolutionStepVariable(OBJECTIVE_SURFACE_SENSITIVITY)
-        optimization_mdpa.AddNodalSolutionStepVariable(MAPPED_OBJECTIVE_SENSITIVITY)
-        optimization_mdpa.AddNodalSolutionStepVariable(CONSTRAINT_SENSITIVITY)
-        optimization_mdpa.AddNodalSolutionStepVariable(CONSTRAINT_SURFACE_SENSITIVITY)
-        optimization_mdpa.AddNodalSolutionStepVariable(MAPPED_CONSTRAINT_SENSITIVITY)
-        optimization_mdpa.AddNodalSolutionStepVariable(CONTROL_POINT_UPDATE)
-        optimization_mdpa.AddNodalSolutionStepVariable(CONTROL_POINT_CHANGE)
-        optimization_mdpa.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
-        optimization_mdpa.AddNodalSolutionStepVariable(SHAPE_UPDATE)
-        optimization_mdpa.AddNodalSolutionStepVariable(SHAPE_CHANGE)
-        optimization_mdpa.AddNodalSolutionStepVariable(MESH_CHANGE)
+        model_part = self.model_part_controller.GetOptimizationModelPart()
+        number_of_objectives = self.optimization_settings["objectives"].size()
+        number_of_constraints = self.optimization_settings["constraints"].size()
+
+        for itr in range(1,number_of_objectives+1):
+            nodal_variable = KratosGlobals.GetVariable("DF"+str(itr)+"DX")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+            nodal_variable = KratosGlobals.GetVariable("DF"+str(itr)+"DX_MAPPED")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+
+        for itr in range(1,number_of_constraints+1):
+            nodal_variable = KratosGlobals.GetVariable("DC"+str(itr)+"DX")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+            nodal_variable = KratosGlobals.GetVariable("DC"+str(itr)+"DX_MAPPED")
+            model_part.AddNodalSolutionStepVariable(nodal_variable)
+
+        model_part.AddNodalSolutionStepVariable(CONTROL_POINT_UPDATE)
+        model_part.AddNodalSolutionStepVariable(CONTROL_POINT_CHANGE)
+        model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
+        model_part.AddNodalSolutionStepVariable(SHAPE_UPDATE)
+        model_part.AddNodalSolutionStepVariable(SHAPE_CHANGE)
+        model_part.AddNodalSolutionStepVariable(MESH_CHANGE)
+        model_part.AddNodalSolutionStepVariable(NORMAL)
+        model_part.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
 
     # --------------------------------------------------------------------------
     def Optimize(self):
@@ -75,16 +83,14 @@ class VertexMorphingMethod:
         print("> ", Timer().GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithm_name)
         print("> ==============================================================================================================\n")
 
-        if self.model_part_controller.IsOptimizationModelPartAlreadyImported():
-            print("> Skipping import of optimization model part as already done by another application. ")
-        else:
-            self.model_part_controller.ImportOptimizationModelPart()
+        self.model_part_controller.ImportOptimizationModelPart()
 
-        algorithm = algorithm_factory.CreateAlgorithm(self.optimization_settings,
-                                                      self.model_part_controller,
-                                                      self.analyzer,
-                                                      self.communicator)
+        algorithm = algorithm_factory.CreateOptimizationAlgorithm(self.optimization_settings,
+                                                                  self.analyzer,
+                                                                  self.communicator,
+                                                                  self.model_part_controller)
 
+        algorithm.CheckApplicability()
         algorithm.InitializeOptimizationLoop()
         algorithm.RunOptimizationLoop()
         algorithm.FinalizeOptimizationLoop()

@@ -98,13 +98,13 @@ namespace Kratos
             }
 
             /// Clone.
-            virtual ConstitutiveModel::Pointer Clone() const override
+            ConstitutiveModel::Pointer Clone() const override
             {
                return Kratos::make_shared<NonAssociativePlasticityModel>(*this);
             }
 
             /// Destructor.
-            virtual ~NonAssociativePlasticityModel() {}
+            ~NonAssociativePlasticityModel() override {}
 
 
             ///@}
@@ -120,7 +120,7 @@ namespace Kratos
              * Calculate Stresses
              */
 
-            virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
+            void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
             {
                KRATOS_TRY
 
@@ -137,7 +137,7 @@ namespace Kratos
             /**
              * Calculate Constitutive Tensor
              */
-            virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
+            void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
             {
                KRATOS_TRY
 
@@ -153,7 +153,7 @@ namespace Kratos
             //*******************************************************************************
             //*******************************************************************************
             // Calculate Stress and constitutive tensor
-            virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
+            void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
             {
                KRATOS_TRY
 
@@ -234,7 +234,7 @@ namespace Kratos
             ///@{
 
             /// Turn back information as a string.
-            virtual std::string Info() const override
+            std::string Info() const override
             {
                std::stringstream buffer;
                buffer << "NonAssociativePlasticityModel" ;
@@ -242,13 +242,13 @@ namespace Kratos
             }
 
             /// Print information about this object.
-            virtual void PrintInfo(std::ostream& rOStream) const override
+            void PrintInfo(std::ostream& rOStream) const override
             {
                rOStream << "NonAssociativePlasticityModel";
             }
 
             /// Print object's data.
-            virtual void PrintData(std::ostream& rOStream) const override
+            void PrintData(std::ostream& rOStream) const override
             {
                rOStream << "NonAssociativePlasticityModel Data";
             }
@@ -322,7 +322,7 @@ namespace Kratos
 	       Matrix ExtraMatrix(6,6);
 	       noalias(ExtraMatrix)= ZeroMatrix(6,6);
                MatrixType Identity;
-	       noalias(Identity) = identity_matrix<double>(3);
+	       noalias(Identity) = IdentityMatrix(3);
 
                unsigned int indexi, indexj;
                for (unsigned int i = 0; i < 3; i++) {
@@ -798,10 +798,10 @@ namespace Kratos
 
                MatrixType DeformationGradientReference;
                MatrixType DeformationGradientFinal;
-               MatrixType IdentityMatrix = identity_matrix<double>(3);
+               MatrixType Identity = IdentityMatrix(3);
 
-               DeformationGradientReference = rReferenceConfiguration * rDeltaDeformationMatrix + (1.0 - rReferenceConfiguration) * IdentityMatrix;
-               DeformationGradientFinal     = rFinalConfiguration * rDeltaDeformationMatrix + (1.0 - rFinalConfiguration) * IdentityMatrix;
+               DeformationGradientReference = rReferenceConfiguration * rDeltaDeformationMatrix + (1.0 - rReferenceConfiguration) * Identity;
+               DeformationGradientFinal     = rFinalConfiguration * rDeltaDeformationMatrix + (1.0 - rFinalConfiguration) * Identity;
 
                double det;
                rSubstepDeformationGradient.clear();
@@ -847,7 +847,7 @@ namespace Kratos
                else if(  rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
 
                   if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left ) {
-                     rVariables.StrainMatrix = identity_matrix<double>(3);
+                     rVariables.StrainMatrix = IdentityMatrix(3);
                   }
                   else{
                      KRATOS_ERROR << "calling initialize PlasticityModel .. StrainMeasure provided is inconsistent" << std::endl;
@@ -962,14 +962,14 @@ namespace Kratos
             ///@{
             friend class Serializer;
 
-            virtual void save(Serializer& rSerializer) const override
+            void save(Serializer& rSerializer) const override
             {
                KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
                   rSerializer.save("InternalVariables",mInternal);
                rSerializer.save("PreviousInternalVariables",mPreviousInternal);
             }
 
-            virtual void load(Serializer& rSerializer) override
+            void load(Serializer& rSerializer) override
             {
                KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
                   rSerializer.load("InternalVariables",mInternal);

@@ -77,7 +77,7 @@ public:
     KratosMappingApplication();
 
     /// Destructor.
-    virtual ~KratosMappingApplication() {}
+    ~KratosMappingApplication() override {}
 
 
     ///@}

@@ -11,7 +11,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,        
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
@@ -72,10 +72,8 @@
         "process_name"          : "MeshTyingProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "assume_master_slave"         : "Parts_Parts_Auto2",
-            "mesh_tying_model_part"       : "Contact_Part",
-            "assume_master_slave"         : "Parts_Parts_Auto1",
-            "geometry_element"            : "Hexahedron"
+            "mesh_tying_model_part"       : {"0":["Contact_Part"]},
+            "assume_master_slave"         : {"0":["Parts_Parts_Auto1"]}
         }
     }
     ],

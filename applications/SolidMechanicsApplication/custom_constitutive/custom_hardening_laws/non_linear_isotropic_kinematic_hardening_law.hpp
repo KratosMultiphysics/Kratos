@@ -69,7 +69,7 @@ public:
     NonLinearIsotropicKinematicHardeningLaw& operator=(NonLinearIsotropicKinematicHardeningLaw const& rOther);
 
     /// Destructor.
-    ~NonLinearIsotropicKinematicHardeningLaw();
+    ~NonLinearIsotropicKinematicHardeningLaw() override;
 
     ///@}
     ///@name Operators

@@ -69,7 +69,7 @@ public:
 
     AdjointSemiAnalyticBaseCondition(
         Condition::Pointer pPrimalCondition
-        ): Condition( pPrimalCondition->Id(), pPrimalCondition->pGetGeometry() ),
+        ): Condition( pPrimalCondition->Id(), pPrimalCondition->pGetGeometry(), pPrimalCondition->pGetProperties() ),
            mpPrimalCondition(pPrimalCondition)
         {
         }
@@ -319,7 +319,7 @@ public:
     }
 
     /**
-     * Calculates the pseudo-load contribution of the condition w.r.t.  a scalar design variable. 
+     * Calculates the pseudo-load contribution of the condition w.r.t.  a scalar design variable.
      */
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
@@ -329,7 +329,7 @@ public:
     }
 
     /**
-     * Calculates the pseudo-load contribution of the condition w.r.t.  a vector design variable. 
+     * Calculates the pseudo-load contribution of the condition w.r.t.  a vector design variable.
      */
     void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,

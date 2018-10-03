@@ -1,0 +1,90 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "3D_Shell",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
+        "time_step"       : 1.1,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "optimization_settings" : {
+        "objectives" : [{
+            "identifier" : "mass",
+            "type"       : "minimization",
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "response_type"          : "mass",
+                "material_import_settings" :{
+                    "materials_filename": "materials.json"
+                },
+                "model_import_settings"    : {
+                    "input_type"       : "use_input_model_part",
+                    "input_filename"   : "3D_Shell"
+                },
+                "gradient_mode"          : "finite_differencing",
+                "step_size"              : 1e-6,
+                "consider_discretization": false
+            },
+            "project_gradient_on_surface_normals" : false
+        }],
+        "constraints" : [{
+            "identifier" : "y_value_893",
+            "type"       : ">",
+            "reference"  : "specified_value",
+            "reference_value" : 11,
+            "use_kratos" : false,
+            "project_gradient_on_surface_normals" : false
+        },
+        {
+            "identifier"      : "distance_1861",
+            "type"            : "=",
+            "reference"       : "specified_value",
+            "reference_value" : 0,
+            "use_kratos"      : false,
+            "project_gradient_on_surface_normals" : false
+        }],
+        "design_variables" : {
+            "type"                               : "vertex_morphing",
+            "optimization_model_part_name"       : "3D_Shell",
+            "design_surface_sub_model_part_name" : "design_surface",
+            "domain_size"                        : 3,
+            "filter" : {
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 4.0,
+                "max_nodes_in_filter_radius" : 10000,
+                "matrix_free_filtering"      : false
+            },
+            "damping" : {
+                "perform_damping" : false
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
+        "optimization_algorithm" : {
+            "name"                    : "trust_region",
+            "max_iterations"          : 3,
+            "max_step_length"         : 0.5
+        },
+        "output" : {
+            "output_directory"        : "Optimization_Results",
+            "design_history_filename" : "design_history",
+            "response_log_filename"   : "response_log",
+            "design_output_mode"      : "WriteDesignSurface",
+            "nodal_results"           : [ "SHAPE_CHANGE" ],
+            "output_format" : {
+                "name"              : "gid",
+                "gid_configuration" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary"
+                        },
+                        "output_frequency"    : 1.0
+                    }
+                }
+            }
+        }
+    }
+}
