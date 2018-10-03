@@ -4,6 +4,8 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
+import json
+
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -186,7 +188,7 @@ class DamMechanicalSolver(object):
         print ("Initialization of DamMechanicalSolver finished")
 
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
+        return self.main_model_part.GetSubModelPart(self.mechanical_model_part_name)
 
     def GetOutputVariables(self):
         pass
@@ -241,13 +243,30 @@ class DamMechanicalSolver(object):
 
     def _ExecuteAfterReading(self):
 
-        self.computing_model_part_name = "mechanical_computing_domain"
+        self.mechanical_model_part_name = "mechanical_computing_domain"
 
-        # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcessDamMechanical
+        # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
+        self.body_domain_sub_sub_model_part_list = []
+        for i in range(self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"].size()):
+            self.body_domain_sub_sub_model_part_list.append("sub_"+self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"][i].GetString())
+        self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.body_domain_sub_sub_model_part_list))
+
+        self.loads_sub_sub_model_part_list = []
+        for i in range(self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"].size()):
+            self.loads_sub_sub_model_part_list.append("sub_"+self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"][i].GetString())
+        self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.loads_sub_sub_model_part_list))
+
+        # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
         aux_params = KratosMultiphysics.Parameters("{}")
-        aux_params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
+        aux_params.AddEmptyValue("mechanical_model_part_name").SetString(self.mechanical_model_part_name)
+        aux_params.AddValue("mechanical_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["problem_domain_sub_model_part_list"])
+        aux_params.AddValue("mechanical_loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["mechanical_loads_sub_model_part_list"])
+        aux_params.AddValue("body_domain_sub_model_part_list",self.settings["mechanical_solver_settings"]["body_domain_sub_model_part_list"])
+        aux_params.AddValue("body_domain_sub_sub_model_part_list",self.body_domain_sub_sub_model_part_list)
+        aux_params.AddValue("loads_sub_model_part_list",self.settings["mechanical_solver_settings"]["loads_sub_model_part_list"])
+        aux_params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
 
-        # CheckAndPrepareModelProcessDamMechanical creates the solid_computational_model_part
+        # CheckAndPrepareModelProcess creates the solid_computational_model_part
         import check_and_prepare_model_process_dam_mechanical
         check_and_prepare_model_process_dam_mechanical.CheckAndPrepareModelProcessDamMechanical(self.main_model_part, aux_params).Execute()
 
