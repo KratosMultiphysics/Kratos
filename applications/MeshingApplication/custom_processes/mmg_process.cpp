@@ -331,7 +331,7 @@ void MmgProcess<TDim>::InitializeMeshData()
 
         /* Conditions */
         std::size_t num_tri = 0, num_quad = 0;
-        #pragma omp parallel for reduction(+:num_tetra,num_prisms)
+        #pragma omp parallel for reduction(+:num_tri,num_quad)
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
             auto it_cond = conditions_array.begin() + i;
 
