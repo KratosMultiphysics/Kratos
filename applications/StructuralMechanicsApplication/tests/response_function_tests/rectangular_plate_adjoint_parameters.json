@@ -1,8 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "rectangular_plate_structure",
-        "model_part_name" : "rectangular_plate_structure",
-        "domain_size"     : 3,
         "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
@@ -19,6 +17,8 @@
             "scheme_type"              : "adjoint_structural"
         },
         "echo_level"                         : 0,
+        "model_part_name" : "rectangular_plate_structure",
+        "domain_size"     : 3,
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "rectangular_plate_structure",

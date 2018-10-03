@@ -66,6 +66,11 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         if KratosMPI.mpi.rank == 0:
             KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
+    def print_warning_on_rank_zero(self, *args):
+        KratosMPI.mpi.world.barrier()
+        if KratosMPI.mpi.rank == 0:
+            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
+
     #### Private functions ####
 
     def _create_epetra_communicator(self):
@@ -84,6 +89,9 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def _create_builder_and_solver(self):
         if self.settings["multi_point_constraints_used"].GetBool():
             raise Exception("MPCs not yet implemented in MPI")
+
+        if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
+            self.print_warning_on_rank_zero("Constraints are not yet implemented in MPI and will therefore not be considered!")
 
         linear_solver = self.get_linear_solver()
         epetra_communicator = self.get_epetra_communicator()

@@ -51,11 +51,26 @@ namespace Kratos
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtility
 {
-  public:
+public:
+    ///@name Type Definitions
+    ///@{
+
     /// Pointer definition of TangentOperatorCalculatorUtility
     KRATOS_CLASS_POINTER_DEFINITION(TangentOperatorCalculatorUtility);
 
+    /// Definition of the zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
+    // Definition of the perturbation coefficients
+    static constexpr double PerturbationCoefficient1 = 1.0e-5;
+    static constexpr double PerturbationCoefficient2 = 1.0e-10;
+
+    // Definition of the perturbation threshold
+    static constexpr double PerturbationThreshold = 1.0e-8;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     /// Constructor
     TangentOperatorCalculatorUtility()
@@ -64,6 +79,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtil
 
     /// Destructor.
     virtual ~TangentOperatorCalculatorUtility() {}
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
      * @brief Main method that computes the tangent tensor
@@ -83,12 +106,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtil
 
         const std::size_t num_components = strain_vector_gp.size();
         // Loop over components of the strain
+        Vector& perturbed_strain = rValues.GetStrainVector();
         for (std::size_t i_component = 0; i_component < num_components; ++i_component) {
-            Vector &perturbed_strain = rValues.GetStrainVector();
-
+            // Calculate the perturbation
             double pertubation;
             CalculatePerturbation(perturbed_strain, i_component, pertubation);
+
+            // We check that the perturbation has a threshold value of PerturbationThreshold
+            if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
+
+            // Apply the perturbation
             PerturbateStrainVector(perturbed_strain, strain_vector_gp, pertubation, i_component);
+
+            // We continue with the calculations
             IntegratePerturbedStrain(rValues, pConstitutiveLaw);
 
             Vector& perturbed_integrated_stress = rValues.GetStressVector(); // now integrated
@@ -110,29 +140,36 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtil
     static void CalculatePerturbation(
         const Vector& rStrainVector,
         const std::size_t Component,
-        double& rPerturbation)
+        double& rPerturbation
+        )
     {
-        static constexpr double perturbation_coefficient_1 = 1.0e-5;
-        static constexpr double perturbation_coefficient_2 = 1.0e-10;
         double perturbation_1, perturbation_2;
         if (std::abs(rStrainVector[Component]) > tolerance) {
-            perturbation_1 = perturbation_coefficient_1 * rStrainVector[Component];
+            perturbation_1 = PerturbationCoefficient1 * rStrainVector[Component];
         } else {
             double min_strain_component;
             GetMinAbsValue(rStrainVector, min_strain_component);
-            perturbation_1 = perturbation_coefficient_1 * min_strain_component;
+            perturbation_1 = PerturbationCoefficient1 * min_strain_component;
         }
         double max_strain_component;
         GetMaxAbsValue(rStrainVector, max_strain_component);
-        perturbation_2 = perturbation_coefficient_2 * max_strain_component;
+        perturbation_2 = PerturbationCoefficient2 * max_strain_component;
         rPerturbation = std::max(perturbation_1, perturbation_2);
     }
 
+    /**
+     * @brief This method perturbates the strain vector
+     * @param rPerturbedStrainVector The strain vector to be perturbated
+     * @param rStrainVectorGP It is the original strain vector
+     * @param Perturbation The perturbation to be applied
+     * @param Component Component of the vector to be perturbated
+     */
     static void PerturbateStrainVector(
-        Vector &rPerturbedStrainVector,
+        Vector& rPerturbedStrainVector,
         const Vector& rStrainVectorGP,
         const double Perturbation,
-        const int Component)
+        const int Component
+        )
     {
         rPerturbedStrainVector = rStrainVectorGP;
         rPerturbedStrainVector[Component] += Perturbation;

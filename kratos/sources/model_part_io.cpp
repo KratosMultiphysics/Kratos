@@ -4401,7 +4401,7 @@ namespace Kratos
 
         for(SizeType i_partition = 0 ; i_partition < NumberOfPartitions ; i_partition++)
         {
-            vector<int> neighbours_indices = row(DomainsColoredGraph, i_partition);
+            DenseVector<int> neighbours_indices = row(DomainsColoredGraph, i_partition);
 
             for(SizeType i = 0 ; i <  neighbours_indices.size() ; i++)
                 if(SizeType(neighbours_indices[i]) < NumberOfPartitions)
@@ -4716,7 +4716,7 @@ namespace Kratos
         mpStream.swap(newStream);
     }
 
-    inline void ModelPartIO::CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
+    inline void ModelPartIO::CreatePartition(unsigned int number_of_threads,const int number_of_rows, DenseVector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads+1);
         int partition_size = number_of_rows / number_of_threads;
