@@ -28,7 +28,7 @@ THE SOFTWARE.
 /**
  * \file   amgcl/relaxation/as_preconditioner.hpp
  * \author Denis Demidov <dennis.demidov@gmail.com>
- * \brief  Use an amgcl smoother as standalone preconditioner.
+ * \brief  Use an amgcl smoother as a standalone preconditioner.
  */
 
 #include <vector>

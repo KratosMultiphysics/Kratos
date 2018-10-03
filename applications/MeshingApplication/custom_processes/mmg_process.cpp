@@ -1168,6 +1168,10 @@ ConditionType::Pointer MmgProcess<2>::CreateCondition0(
     bool SkipCreation
     )
 {
+    // Sometimes MMG creates conditions where there are not, then we skip
+    if (mpRefCondition[PropId] == nullptr) return nullptr;
+    
+    // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
     int edge_0, edge_1, is_ridge;
@@ -1202,6 +1206,10 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition0(
     bool SkipCreation
     )
 {
+    // Sometimes MMG creates conditions where there are not, then we skip
+    if (mpRefCondition[PropId] == nullptr) return nullptr;
+    
+    // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
     int vertex_0, vertex_1, vertex_2;
@@ -1487,7 +1495,7 @@ void MmgProcess<TDim>::InitVerbosity()
     /* We set the MMG verbosity */
     int verbosity_mmg;
     if (mEchoLevel == 0)
-        verbosity_mmg = 0;
+        verbosity_mmg = -1;
     else if (mEchoLevel == 1)
         verbosity_mmg = 0; // NOTE: This way just the essential info from MMG will be printed, but the custom message will appear
     else if (mEchoLevel == 2)
