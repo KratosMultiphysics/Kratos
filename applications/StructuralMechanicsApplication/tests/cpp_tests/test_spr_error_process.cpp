@@ -198,8 +198,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSPRErrorProcess1, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main",2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -247,8 +247,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSPRErrorProcess2, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main",2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);

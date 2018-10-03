@@ -212,11 +212,6 @@ class MassResponseFunction(ResponseFunctionBase):
 
     def Initialize(self):
         import read_materials_process
-<<<<<<< HEAD
-        # Create a dictionary of model parts.
-        model = Model()
-        #model.AddModelPart(self.model_part)
-=======
 
         if self.model_part_needs_to_be_imported:
             # import model part
@@ -224,7 +219,6 @@ class MassResponseFunction(ResponseFunctionBase):
             self.model_part.ProcessInfo.SetValue(DOMAIN_SIZE, 3)
             model_part_io.ReadModelPart(self.model_part)
 
->>>>>>> master
         # Add constitutive laws and material properties from json file to model parts.
         read_materials_process.ReadMaterialsProcess(self.model, self.response_settings["material_import_settings"])
         self.response_function_utility.Initialize()
