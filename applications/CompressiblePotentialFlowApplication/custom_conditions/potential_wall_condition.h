@@ -209,13 +209,13 @@ public:
     void Initialize() override
     {
         KRATOS_TRY;
+     
+        // const array_1d<double, 3> &rNormal = this->GetValue(NORMAL);
 
-        const array_1d<double, 3> &rNormal = this->GetValue(NORMAL);
-
-        KRATOS_ERROR_IF(norm_2(rNormal) < std::numeric_limits<double>::epsilon())
-            << "Error on condition -> " << this->Id() << "\n"
-            << "NORMAL must be calculated before using this condition." << std::endl;
-
+        // KRATOS_ERROR_IF(norm_2(rNormal) < std::numeric_limits<double>::epsilon())
+        //     << "Error on condition -> " << this->Id() << "\n"
+        //     << "NORMAL must be calculated before using this condition." << std::endl;
+       
         if (mInitializeWasPerformed)
             return;
 
@@ -256,7 +256,7 @@ public:
         if (rRightHandSideVector.size() != TNumNodes)
             rRightHandSideVector.resize(TNumNodes, false);
         rLeftHandSideMatrix.clear();
-
+        
         array_1d<double, 3> An;
         if (TDim == 2)
             CalculateNormal2D(An);
