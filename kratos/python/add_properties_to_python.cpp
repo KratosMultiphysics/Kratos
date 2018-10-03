@@ -71,7 +71,7 @@ Properties::Pointer GetSubProperty1(
     IndexType Index
     )
 {
-    return rProperties.GetSubProperty(Index);
+    return rProperties.pGetSubProperty(Index);
 }
 
 void SetArrayValue(
