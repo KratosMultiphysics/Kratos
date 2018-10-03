@@ -25,6 +25,7 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/variable_utils.h"
 #include "custom_utilities/uniform_refine_utility.h"
 
 
@@ -176,7 +177,7 @@ public:
      * 1 means the last time step, an intermediate value means
      * the interpolation factor
      */
-    void TransferSubstepToRefinedInterface(const double& rSubstepFraction);
+    // void TransferSubstepToRefinedInterface(const double& rSubstepFraction);
 
     /**
      * @brief Copies the nodal step data with a linear interpolation
@@ -188,7 +189,32 @@ public:
      * the interpolation factor
      */
     template<class TVarType>
-    void TransferSubstepToRefinedInterface(const TVarType& rVariable, const double& rSubstepFraction);
+    void TransferSubstepToRefinedInterface(const TVarType& rVariable, const double& rSubstepFraction)
+    {
+        ModelPart::NodeIterator refined_begin = mRefinedInterfaceContainer.begin();
+        for (int i = 0; i < static_cast<int>(mRefinedInterfaceContainer.size()); i++)
+        {
+            auto refined_node = refined_begin + i;
+            WeakPointerVector<NodeType>& father_nodes = refined_node->GetValue(FATHER_NODES);
+            IndexType number_of_father_nodes = father_nodes.size();
+            std::vector<double> weight(number_of_father_nodes);
+            ComputeWeights(refined_node->Coordinates(), father_nodes, weight);
+
+            // Transfer the data
+            auto& value = refined_node->FastGetSolutionStepValue(rVariable);
+            value = weight[0] * rSubstepFraction * father_nodes[0].FastGetSolutionStepValue(rVariable);
+            value += weight[0] * (1-rSubstepFraction) * father_nodes[0].FastGetSolutionStepValue(rVariable, 1);
+
+            if (number_of_father_nodes > 1)
+            {
+                for (IndexType j = 1; j < number_of_father_nodes; j++)
+                {
+                    value += weight[j] * rSubstepFraction * father_nodes[j].FastGetSolutionStepValue(rVariable);
+                    value += weight[j] * (1-rSubstepFraction) * father_nodes[j].FastGetSolutionStepValue(rVariable, 1);
+                }
+            }
+        }
+    }
 
     /**
      * @brief Applies fixity forthe given variable at the nodes
@@ -198,7 +224,10 @@ public:
      * @param IsFixed
      */
     template<class TVarType>
-    void FixRefinedInterFace(TVarType& rVariable, bool IsFixed);
+    void FixRefinedInterface(const TVarType& rVariable, bool IsFixed)
+    {
+        VariableUtils().ApplyFixity(rVariable, IsFixed, mRefinedInterfaceContainer);
+    }
 
     ///@}
     ///@name Access
@@ -207,6 +236,21 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    ModelPart& GetCoarseModelPart()
+    {
+        return mrCoarseModelPart;
+    }
+
+    ModelPart& GetRefinedModelPart()
+    {
+        return mrRefinedModelPart;
+    }
+
+    ModelPart& GetVisualizationModelPart()
+    {
+        return mrVisualizationModelPart;
+    }
 
     ///@}
     ///@name Input and output
