@@ -11,7 +11,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/unique_modelpart_pointer_wrapper.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
@@ -75,12 +74,14 @@ public:
         Process(),
         mrReferenceModelPart(rModelPart),
         mpLinearSolver(pLinearSolver),
-        mDomainSize(DomainSize),
-        mModelPartWrapper(rModelPart.GetOwnerModel(), "StokesModelPart")
+        mDomainSize(DomainSize)
     {
         KRATOS_TRY;
 
-        ModelPart& r_stokes_part = mModelPartWrapper.GetModelPart();
+        if(!mrReferenceModelPart.GetOwnerModel().HasModelPart("StokesModelPart"))
+            mrReferenceModelPart.GetOwnerModel().DeleteModelPart("StokesModelPart");
+
+        ModelPart& r_stokes_part = mrReferenceModelPart.GetOwnerModel().CreateModelPart("StokesModelPart");
 
         r_stokes_part.GetNodalSolutionStepVariablesList() = mrReferenceModelPart.GetNodalSolutionStepVariablesList();
         r_stokes_part.SetBufferSize(1);
@@ -144,6 +145,7 @@ public:
 
     ~StokesInitializationProcess() override
     {
+        mrReferenceModelPart.GetOwnerModel().DeleteModelPart("StokesModelPart");
        // mpSolutionStrategy->Clear();
     }
 
@@ -182,10 +184,11 @@ public:
     ///@name Access
     ///@{
 
-    void SetConditions(ModelPart::ConditionsContainerType::Pointer pConditions)
+    void SetConditions(ModelPart& rStokesPart, ModelPart::ConditionsContainerType::Pointer pConditions)
     {
-        ModelPart& r_stokes_part = mModelPartWrapper.GetModelPart();    
-        r_stokes_part.SetConditions(pConditions);
+        
+        ModelPart& r_stokes_part = mrReferenceModelPart.GetOwnerModel().GetModelPart("StokesModelPart");    
+        rStokesPart.SetConditions(pConditions);
         r_stokes_part.GetCommunicator().LocalMesh().SetConditions(pConditions);
     }
 
@@ -242,8 +245,6 @@ protected:
     typename TLinearSolver::Pointer mpLinearSolver;
 
     unsigned int mDomainSize;
-
-    UniqueModelPartPointerWrapper mModelPartWrapper;
 
     typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpSolutionStrategy;
 

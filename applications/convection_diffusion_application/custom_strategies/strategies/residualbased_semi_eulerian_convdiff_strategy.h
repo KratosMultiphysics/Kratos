@@ -120,13 +120,15 @@ public:
         int dimension = 3
     )
         : 
-        mModelPartWrapper(model_part.GetOwnerModel(), "ConvectionPart",1),
+        mrReferenceModelPart(model_part),
         SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
     {
         KRATOS_TRY
 
+        if(mrReferenceModelPart.GetOwnerModel().HasModelPart("ConvectionDiffusionPart"))
+            KRATOS_ERROR << "ConvectionDiffusionPart already exists when constructing ResidualBasedSemiEulerianConvectionDiffusionStrategy" << std::endl;
+
 		GenerateMeshPart(dimension);
-        KRATOS_WATCH(*mpConvectionModelPart);
 		mdimension = dimension;
         mOldDt = 0.00;
 
@@ -170,7 +172,10 @@ public:
 
     /** Destructor.
     */
-    virtual ~ResidualBasedSemiEulerianConvectionDiffusionStrategy() {}
+    virtual ~ResidualBasedSemiEulerianConvectionDiffusionStrategy() 
+    {
+        mrReferenceModelPart.GetOwnerModel().DeleteModelPart("ConvectionDiffusionPart");
+    }
 
     /** Destructor.
     */
@@ -411,7 +416,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    UniqueModelPartPointerWrapper mModelPartWrapper;
+    ModelPart& mrReferenceModelPart;
     ModelPart* mpConvectionModelPart;
     typename BaseType::Pointer mstep1;
     double mOldDt;
@@ -431,6 +436,11 @@ private:
 
   void GenerateMeshPart(int dimension)
   {
+    if(!mrReferenceModelPart.GetOwnerModel().HasModelPart("ConvectionDiffusionPart"))
+        mrReferenceModelPart.GetOwnerModel().DeleteModelPart("ConvectionDiffusionPart");
+
+    mpConvectionModelPart = &(mrReferenceModelPart.GetOwnerModel().CreateModelPart("ConvectionDiffusionPart"));
+
 	mpConvectionModelPart->SetProcessInfo(  BaseType::GetModelPart().pGetProcessInfo() );
     mpConvectionModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize());
 

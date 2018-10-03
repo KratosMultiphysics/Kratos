@@ -85,16 +85,17 @@ public:
         ModelPart& rReferenceModelPart = BaseType::mrReferenceModelPart;
         typename TLinearSolver::Pointer& pLinearSolver = BaseType::mpLinearSolver;
         unsigned int DomainSize = BaseType::mDomainSize;
-        ModelPart*& pStokesModelPart = BaseType::mModelPartWrapper.GetModelPart();
         typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer& pSolutionStrategy = BaseType::mpSolutionStrategy;
 
         // Initialize new model part (same nodes, new elements, no conditions)
-        pStokesModelPart = &(Kernel::GetModel().CreateModelPart("StokesModelPart"));
-        pStokesModelPart->GetNodalSolutionStepVariablesList() = rReferenceModelPart.GetNodalSolutionStepVariablesList();
-        pStokesModelPart->SetBufferSize(1);
-        pStokesModelPart->SetNodes( rReferenceModelPart.pNodes() );
-        pStokesModelPart->SetProcessInfo( rReferenceModelPart.pGetProcessInfo() );
-        pStokesModelPart->SetProperties( rReferenceModelPart.pProperties() );
+        if(rModelPart.GetOwnerModel().HasModelPart("StokesModelPart"))
+            rModelPart.GetOwnerModel().DeleteModelPart("StokesModelPart");
+        ModelPart& rStokesModelPart = rModelPart.GetOwnerModel().CreateModelPart("StokesModelPart");
+        rStokesModelPart.GetNodalSolutionStepVariablesList() = rReferenceModelPart.GetNodalSolutionStepVariablesList();
+        rStokesModelPart.SetBufferSize(1);
+        rStokesModelPart.SetNodes( rReferenceModelPart.pNodes() );
+        rStokesModelPart.SetProcessInfo( rReferenceModelPart.pGetProcessInfo() );
+        rStokesModelPart.SetProperties( rReferenceModelPart.pProperties() );
 
         // Create a communicator for the new model part and copy the partition information about nodes.
         Communicator& rReferenceComm = rReferenceModelPart.GetCommunicator();
@@ -110,7 +111,7 @@ public:
             pStokesMPIComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
             pStokesMPIComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
         }
-        pStokesModelPart->SetCommunicator( pStokesMPIComm );
+        rStokesModelPart.SetCommunicator( pStokesMPIComm );
 
         // Retrieve Stokes element model
         std::string ElementName;
@@ -125,8 +126,8 @@ public:
         for (ModelPart::ElementsContainerType::iterator itElem = rReferenceModelPart.ElementsBegin(); itElem != rReferenceModelPart.ElementsEnd(); itElem++)
         {
             Element::Pointer pElem = rReferenceElement.Create(itElem->Id(), itElem->GetGeometry(), itElem->pGetProperties() );
-            pStokesModelPart->Elements().push_back(pElem);
-            pStokesModelPart->GetCommunicator().LocalMesh().Elements().push_back(pElem);
+            rStokesModelPart.Elements().push_back(pElem);
+            rStokesModelPart.GetCommunicator().LocalMesh().Elements().push_back(pElem);
         }
 
         // Solution scheme: Linear static scheme
@@ -144,7 +145,7 @@ public:
         bool ReformDofSetFlag = false;
         bool CalculateNormDxFlag = false;
         bool MoveMeshFlag = false;
-        pSolutionStrategy = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(*pStokesModelPart,
+        pSolutionStrategy = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(rStokesModelPart,
                                                                                                                          pScheme,
                                                                                                                          pLinearSolver,
                                                                                                                          pBuildAndSolver,

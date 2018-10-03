@@ -155,7 +155,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self.main_model_part = self.model[model_part_name]
             self.solver_imports_model_part = False
         else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name) # Model.CreateodelPart()
+            self.main_model_part = self.model.CreateModelPart(model_part_name) # Model.CreateodelPart()
             domain_size = self.settings["domain_size"].GetInt()
             if domain_size < 0:
                 raise Exception('Please specify a "domain_size" >= 0!')
@@ -276,10 +276,6 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
         
             self._set_and_fill_buffer()
-
-        # This will be removed once the Model is fully supported! => It wont e necessary anymore
-        if not self.model.HasModelPart(self.main_model_part.Name):
-            self.model.AddModelPart(self.main_model_part)
             
         if (self.settings["echo_level"].GetInt() > 0):
             self.print_on_rank_zero(self.model)

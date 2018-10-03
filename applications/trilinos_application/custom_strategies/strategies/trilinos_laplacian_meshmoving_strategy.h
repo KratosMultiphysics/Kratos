@@ -95,10 +95,13 @@ public:
                                         bool CalculateMeshVelocities = true,
                                         int EchoLevel = 0)
         : 
-        mModelPartWrapper(model_part.GetOwnerModel(), "MeshPart", 1),
+        mrReferenceModelPart(model_part),
         SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
     {
         KRATOS_TRY
+
+        if(mrReferenceModelPart.GetOwnerModel().HasModelPart("LaplacianMeshMovingPart"))
+            KRATOS_ERROR << "LaplacianMeshMovingPart already existing when constructing TrilinosLaplacianMeshMovingStrategy";
 
         // Passed variables
         m_reform_dof_set_at_each_step = ReformDofSetAtEachStep;
@@ -138,6 +141,7 @@ public:
     */
     virtual ~TrilinosLaplacianMeshMovingStrategy()
     {
+        mrReferenceModelPart.GetOwnerModel().DeleteModelPart("LaplacianMeshMovingPart");
     }
 
     /** Destructor.
@@ -334,7 +338,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    UniqueModelPartPointerWrapper mModelPartWrapper;
+    ModelPart& mrReferenceModelPart;
     ModelPart* mpmesh_model_part;
 
     typename BaseType::Pointer mstrategy;
@@ -355,8 +359,10 @@ private:
 
     void GenerateMeshPart()
     {
-        // Initialize auxiliary model part storing the mesh elements
-        mpmesh_model_part = &mModelPartWrapper.GetModelPart();
+        if(!mrReferenceModelPart.GetOwnerModel().HasModelPart("LaplacianMeshMovingPart"))
+            mrReferenceModelPart.GetOwnerModel().DeleteModelPart("LaplacianMeshMovingPart");
+
+        mpmesh_model_part  = &mrReferenceModelPart.GetOwnerModel().CreateModelPart("LaplacianMeshMovingPart");
 
         // Initializing mesh nodes
         mpmesh_model_part->Nodes() = BaseType::GetModelPart().Nodes();

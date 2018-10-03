@@ -20,7 +20,6 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "containers/unique_modelpart_pointer_wrapper.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -137,7 +136,7 @@ public:
         int dimension = 3
     )
         : 
-        mModelPartWrapper(model_part.GetOwnerModel(), "ConvectionPart",1),
+        mrModelPart(model_part),
         SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
     {
         KRATOS_TRY
@@ -186,7 +185,11 @@ public:
 
     /** Destructor.
     */
-    virtual ~ResidualBasedEulerianConvectionDiffusionStrategy() {}
+    virtual ~ResidualBasedEulerianConvectionDiffusionStrategy() 
+    {
+        Model& current_model = mrModelPart.GetOwnerModel();
+        current_model.DeleteModelPart("ConvDiffPart");
+    }
 
     /** Destructor.
     */
@@ -395,7 +398,13 @@ protected:
 
   virtual void GenerateMeshPart(int dimension)
   {
-    mpConvectionModelPart = &mModelPartWrapper.GetModelPart();
+    Model& current_model = mrModelPart.GetOwnerModel();
+    if(current_model.HasModelPart("ConvDiffPart"))
+        current_model.DeleteModelPart("ConvDiffPart");
+        
+    // Generate
+    mpConvectionModelPart = &(current_model.CreateModelPart("ConvDiffPart"));
+
 
 	mpConvectionModelPart->SetProcessInfo(  BaseType::GetModelPart().pGetProcessInfo() );
     mpConvectionModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize());
@@ -485,7 +494,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    UniqueModelPartPointerWrapper mModelPartWrapper;
+    ModelPart& mrModelPart;
     ModelPart* mpConvectionModelPart;
     typename BaseType::Pointer mstep1;
     double mOldDt;
