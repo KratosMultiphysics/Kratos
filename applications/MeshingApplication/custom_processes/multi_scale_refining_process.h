@@ -172,14 +172,11 @@ public:
     /**
      * @brief Copies the nodal step data with a linear interpolation
      * between the last nodal steps of the given variable
-     * @tparam TVarType The variable type
-     * @param rVariable The variable to transfer
      * @param rSubstepFraction 0 means the previous time step,
      * 1 means the last time step, an intermediate value means
      * the interpolation factor
      */
-    template<class TVarType>
-    void TransferSubstepToRefinedModelPart(TVarType& rVariable, const double& rSubstepFraction);
+    void TransferSubstepToRefinedInterface(const double& rSubstepFraction);
 
     /**
      * @brief Copies the nodal step data with a linear interpolation
@@ -191,7 +188,7 @@ public:
      * the interpolation factor
      */
     template<class TVarType>
-    void TransferSubstepToRefinedInterface(TVarType& rVariable, const double& rSubstepFraction);
+    void TransferSubstepToRefinedInterface(const TVarType& rVariable, const double& rSubstepFraction);
 
     /**
      * @brief Applies fixity forthe given variable at the nodes
@@ -490,6 +487,19 @@ public:
      * the maximum id's
      */
     void GetLastId(IndexType& rNodesId, IndexType& rElemsId, IndexType& rCondsId);
+
+    /**
+     * @brief Auxiliary method to get the weights of a node from the father nodes
+     * @see TransferSubstepToRefinedInterface
+     * @param rPoint
+     * @param rFatherNodes
+     * @param rWeights
+     */
+    void ComputeWeights(
+        const array_1d<double, 3>& rPoint,
+        const WeakPointerVector<NodeType>& rFatherNodes,
+        std::vector<double>& rWeights
+    );
 
     ///@}
     ///@name Private Operations

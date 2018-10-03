@@ -21,6 +21,7 @@
 #include "custom_processes/multi_scale_refining_process.h"
 #include "geometries/point.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
+#include "utilities/variable_utils.h"
 #include "utilities/sub_model_parts_list_utility.h"
 #include "custom_utilities/meshing_flags.h"
 
@@ -838,6 +839,103 @@ void MultiScaleRefiningProcess::TransferLastStepToCoarseModelPart()
                 dest_data[j] = src_data[j];
         }
     }
+}
+
+
+void MultiScaleRefiningProcess::TransferSubstepToRefinedInterface(const double& rSubstepFraction)
+{
+    ModelPart::NodeIterator refined_begin = mRefinedInterfaceContainer.begin();
+    for (int i = 0; i < static_cast<int>(mRefinedInterfaceContainer.size()); i++)
+    {
+        auto refined_node = refined_begin + i;
+        WeakPointerVector<NodeType>& father_nodes = refined_node->GetValue(FATHER_NODES);
+        IndexType number_of_father_nodes = father_nodes.size();
+        std::vector<double> weight(number_of_father_nodes);
+        ComputeWeights(refined_node->Coordinates(), father_nodes, weight);
+
+        // Transfer the data
+        double* dest_data = refined_node->SolutionStepData().Data(0); // To the current step
+
+        for (IndexType j = 0; j < mStepDataSize; j++)
+        {
+            dest_data[j] = 0.0;
+            for (IndexType n = 0; n < number_of_father_nodes; n++)
+            {
+                const double* src_data_0 = father_nodes[n].SolutionStepData().Data(0);
+                const double* src_data_1 = father_nodes[n].SolutionStepData().Data(1);
+                dest_data[j] += weight[n] * (rSubstepFraction * src_data_0[j] + (1-rSubstepFraction) * src_data_1[j]);
+            }
+        }
+    }
+}
+
+
+template<class TVarType>
+void MultiScaleRefiningProcess::TransferSubstepToRefinedInterface(
+    const TVarType& rVariable,
+    const double& rSubstepFraction)
+{
+    ModelPart::NodeIterator refined_begin = mRefinedInterfaceContainer.begin();
+    for (int i = 0; i < static_cast<int>(mRefinedInterfaceContainer.size()); i++)
+    {
+        auto refined_node = refined_begin + i;
+        WeakPointerVector<NodeType>& father_nodes = refined_node->GetValue(FATHER_NODES);
+        IndexType number_of_father_nodes = father_nodes.size();
+        std::vector<double> weight(number_of_father_nodes);
+        ComputeWeights(refined_node->Coordinates(), father_nodes, weight);
+
+        // Transfer the data
+        auto& value = refined_node->FastGetSolutionStepValue(rVariable);
+        value = weight[0] * rSubstepFraction * father_nodes[0].FastGetSolutionStepValue(rVariable);
+        value += weight[0] * (1-rSubstepFraction) * father_nodes[0].FastGetSolutionStepValue(rVariable, 1);
+
+        if (number_of_father_nodes > 1)
+        {
+            for (IndexType j = 1; j < number_of_father_nodes; j++)
+            {
+                value += weight[j] * rSubstepFraction * father_nodes[j].FastGetSolutionStepValue(rVariable);
+                value += weight[j] * (1-rSubstepFraction) * father_nodes[j].FastGetSolutionStepValue(rVariable, 1);
+            }
+        }
+    }
+}
+
+
+void MultiScaleRefiningProcess::ComputeWeights(
+    const array_1d<double, 3>& rPoint,
+    const WeakPointerVector<NodeType>& rFatherNodes,
+    std::vector<double>& rWeights
+)
+{
+    // Initialize the output
+    IndexType number_of_father_nodes = rFatherNodes.size();
+    if (rWeights.size() != number_of_father_nodes)
+        rWeights.resize(number_of_father_nodes);
+
+    if (number_of_father_nodes == 1)
+    {
+        rWeights[0] = 1;
+    }
+    else
+    {
+        // Computing the distances
+        for (IndexType j = 0; j < number_of_father_nodes; j++)
+        {
+            array_1d<double, 3> a = rPoint - rFatherNodes[j].Coordinates();
+            rWeights[j] = norm_2(a);
+        }
+        // Get the nodal weights
+        double total_weight = std::accumulate(rWeights.begin(), rWeights.end(), 0.0);
+        for (IndexType j = 0; j < number_of_father_nodes; j++)
+            rWeights[j] /= total_weight;
+    }
+}
+
+
+template<class TVarType>
+void MultiScaleRefiningProcess::FixRefinedInterFace(TVarType& rVariable, bool IsFixed)
+{
+    VariableUtils::ApplyFixity(rVariable, IsFixed, mRefinedInterfaceContainer);
 }
 
 
