@@ -318,7 +318,7 @@ public:
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return The pointer to the subproperty of interest
      */
-    Properties::Pointer GetSubProperty(IndexType SubPropertyIndex)
+    Properties::Pointer pGetSubProperty(IndexType SubPropertyIndex)
     {
         return mSubPropetiesList(SubPropertyIndex);
     }
@@ -326,7 +326,17 @@ public:
     /**
      * @brief This method gets the subproperty from the index corresponding to the property id
      * @param SubPropertyIndex The index of the subproperty to be get
-     * @return The pointer to the subproperty of interest
+     * @return The reference to the subproperty of interest
+     */
+    Properties& GetSubProperty(IndexType SubPropertyIndex)
+    {
+        return *(mSubPropetiesList(SubPropertyIndex));
+    }
+
+    /**
+     * @brief This method gets the subproperty from the index corresponding to the property id
+     * @param SubPropertyIndex The index of the subproperty to be get
+     * @return The reference to the subproperty of interest
      */
     Properties& GetSubProperty(IndexType SubPropertyIndex) const
     {
