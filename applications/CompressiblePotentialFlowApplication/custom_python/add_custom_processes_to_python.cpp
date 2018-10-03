@@ -20,6 +20,7 @@
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/kutta_condition_process.h"
+#include "custom_processes/compute_lift_level_set_process.h"
 
 
 
@@ -36,6 +37,12 @@ namespace Python
         (m, "KuttaConditionProcess")
         .def(init<ModelPart&>())
         .def("Execute",&KuttaConditionProcess::Execute)
+            ;
+
+        class_<ComputeLiftLevelSetProcess, ComputeLiftLevelSetProcess::Pointer, Process >
+        (m, "ComputeLiftLevelSetProcess")
+        .def(init<ModelPart&,Vector&>())
+        .def("Execute",&ComputeLiftLevelSetProcess::Execute)
             ;
   }
 

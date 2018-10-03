@@ -28,6 +28,8 @@
 #include "includes/kratos_flags.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/divide_triangle_2d_3.h"
+#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "utilities/enrichment_utilities.h"
 namespace Kratos
 {
@@ -284,16 +286,14 @@ public:
         ProcessInfo& rCurrentProcessInfo) override
     {
         ElementalData<NumNodes,Dim> data;
-
+        array_1d<double,NumNodes> elemental_distance;
         //calculate shape functions
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
         //gather nodal data
         for(unsigned int i=0; i<NumNodes; i++)
-        {
             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-        }
-        
+
         
         //TEST:
         bool kutta_element = false;
@@ -306,19 +306,47 @@ public:
 
         if(this->IsNot(MARKER))//normal element (non-wake) - eventually an embedded
         {
-            if(rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
-                rLeftHandSideMatrix.resize(NumNodes,NumNodes,false);
-            if(rRightHandSideVector.size() != NumNodes)
-                rRightHandSideVector.resize(NumNodes,false);
+            if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
+                rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
+            if (rRightHandSideVector.size() != NumNodes)
+                rRightHandSideVector.resize(NumNodes, false);
             rLeftHandSideMatrix.clear();
 
-            ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);
+            if (this->Is(BOUNDARY)){
+                for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
+                    elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(NODAL_H);
+
+                const Vector& r_elemental_distances=elemental_distance;
+                Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
+                Matrix positive_side_sh_func;
+                ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
+                Vector positive_side_weights;
+                triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
+                    positive_side_sh_func,
+                    positive_side_sh_func_gradients,
+                    positive_side_weights,
+                    GeometryData::GI_GAUSS_2);
+
+                    for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
+                        MatrixType aux_matrix;
+                        bounded_matrix<double,NumNodes,Dim> DN_DX;
+                        DN_DX=positive_side_sh_func_gradients(i_gauss);
                         
+                        //reading properties and conditions
+                        aux_matrix=prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);  // Bt D B
+
+                        noalias(rLeftHandSideMatrix) += aux_matrix;                       
+                    }
+                noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
+            }
+            else //if (this->Is(FLUID) || this->IsNotDefined(FLUID)){
+                ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);          
             noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
             
         }
         else //it is a wake element
-        {
+        {   
+            if(this->Is(BOUNDARY)) std::cout<<"Element Wake & LevelSet:"<<this->Id()<<std::endl;
             GetWakeDistances(data.distances);
             
             //note that the lhs and rhs have double the size!!
@@ -650,25 +678,47 @@ protected:
     void ComputeVelocityNormalElement(array_1d<double,Dim>& velocity)
     {
         ElementalData<NumNodes, Dim> data;
-
-        //calculate shape functions
-        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-        //gather nodal data
         for (unsigned int i = 0; i < NumNodes; i++)
             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
 
-        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
+        if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
+            // calculate shape functions
+            GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);    
+
+            noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
+        }
+        else if (this->Is(BOUNDARY)){
+            array_1d<double,NumNodes> elemental_distance;
+            for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
+                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(NODAL_H);
+      
+            const Vector& r_elemental_distances=elemental_distance;
+            Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
+            Matrix positive_side_sh_func;
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
+            Vector positive_side_weights;
+            triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
+                positive_side_sh_func,
+                positive_side_sh_func_gradients,
+                positive_side_weights,
+                GeometryData::GI_GAUSS_2);
+            for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
+                array_1d<double,Dim> aux_matrix;
+                bounded_matrix<double,NumNodes,Dim> DN_DX;
+                DN_DX=positive_side_sh_func_gradients(i_gauss);            
+            
+                aux_matrix=-prod(trans(DN_DX),data.phis)*positive_side_weights(i_gauss);  // Bt D B
+
+                noalias(velocity) += aux_matrix;         
+            }
+        }
     }
 
     void ComputeVelocityUpperWakeElement(array_1d<double,Dim>& velocity)
     {
-        ElementalData<NumNodes, Dim> data;
-
-        //calculate shape functions
-        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
         array_1d<double, NumNodes> distances;
+        ElementalData<NumNodes, Dim> data;
         GetWakeDistances(distances);
 
         //taking only positive part
@@ -679,16 +729,44 @@ protected:
             else
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
         }
+        
+        if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
+            // calculate shape functions
+            
+            GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
+            noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
+        }
+        else if (this->Is(BOUNDARY)){
+            array_1d<double,NumNodes> elemental_distance;
+            for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
+                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(NODAL_H);
+      
+            const Vector& r_elemental_distances=elemental_distance;
+            Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
+            Matrix positive_side_sh_func;
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
+            Vector positive_side_weights;
+            triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
+                positive_side_sh_func,
+                positive_side_sh_func_gradients,
+                positive_side_weights,
+                GeometryData::GI_GAUSS_2);
+            for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
+                array_1d<double,Dim> aux_matrix;
+                bounded_matrix<double,NumNodes,Dim> DN_DX;
+                DN_DX=positive_side_sh_func_gradients(i_gauss);            
+            
+                aux_matrix=-prod(trans(DN_DX),data.phis)*positive_side_weights(i_gauss);  // Bt D B
+
+                noalias(velocity) += aux_matrix;         
+            }
+        }
     }
 
     void ComputeVelocityLowerWakeElement(array_1d<double,Dim>& velocity)
     {
         ElementalData<NumNodes, Dim> data;
-
-        //calculate shape functions
-        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
         array_1d<double, NumNodes> distances;
         GetWakeDistances(distances);
@@ -702,7 +780,38 @@ protected:
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
         }
 
-        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
+        if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
+            // calculate shape functions
+            
+            GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+            noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
+        }
+        else if (this->Is(BOUNDARY)){
+            array_1d<double,NumNodes> elemental_distance;
+            for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
+                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(NODAL_H);
+      
+            const Vector& r_elemental_distances=elemental_distance;
+            Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
+            Matrix positive_side_sh_func;
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
+            Vector positive_side_weights;
+            triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
+                positive_side_sh_func,
+                positive_side_sh_func_gradients,
+                positive_side_weights,
+                GeometryData::GI_GAUSS_2);
+            for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
+                array_1d<double,Dim> aux_matrix;
+                bounded_matrix<double,NumNodes,Dim> DN_DX;
+                DN_DX=positive_side_sh_func_gradients(i_gauss);            
+            
+                aux_matrix=-prod(trans(DN_DX),data.phis)*positive_side_weights(i_gauss);  // Bt D B
+
+                noalias(velocity) += aux_matrix;         
+            }
+        }
     }
 
     void CheckWakeCondition()
