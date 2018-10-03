@@ -1,16 +1,21 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:            Duan Wenjie $
-//   Date:                $Date:                March 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Duan Wenjie
 //
+
 
 // System includes
 #include <iostream>
+#include <cmath>
 
 // External includes
-#include<cmath>
 
 // Project includes
 #include "includes/properties.h"
@@ -331,7 +336,7 @@ void HyperElasticViscoplastic3DLaw::CalculateMaterialResponseKirchhoff (Paramete
     //3.-Compute Incremental DeformationGradientF_bar
     double detF = DeterminantF / mDeterminantF0;
 
-    ElasticVariables.J_pow13 = pow(detF,1.0/3.0);
+    ElasticVariables.J_pow13 = std::pow(detF,1.0/3.0);
 
     ElasticVariables.DeformationGradientF = DeformationGradientF;
 
@@ -360,7 +365,7 @@ void HyperElasticViscoplastic3DLaw::CalculateMaterialResponseKirchhoff (Paramete
         // e= 0.5*(1-invbT*invb)
         this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix,StrainVector);
         // correct b_bar to b
-        double J_pow23 = pow(ElasticVariables.DeterminantF,2.0/3.0);
+        double J_pow23 = std::pow(ElasticVariables.DeterminantF,2.0/3.0);
         StrainVector /= (J_pow23*J_pow23);
     }
 

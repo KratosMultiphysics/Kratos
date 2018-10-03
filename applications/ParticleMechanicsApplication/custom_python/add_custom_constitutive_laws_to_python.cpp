@@ -11,10 +11,10 @@
 //
 //
 
+
 // System includes
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -26,16 +26,17 @@
 #include "includes/condition.h"
 #include "includes/properties.h"
 
-
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
-//yield criteria
+//---yield criteria
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
 #include "custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.hpp"
-//hardening laws
+
+//---hardening laws
 #include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
-//flow rules
+
+//---flow rules
 #include "custom_constitutive/flow_rules/MPM_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
@@ -43,18 +44,15 @@
 #include "custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/viscoplastic_flow_rule.hpp"
 
+//---constitutive laws
 #include "custom_constitutive/hyperelastic_viscoplastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_viscoplastic_2D_plain_strain_law.hpp"
-
 #include "custom_constitutive/hencky_mc_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
-
 #include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_UP_2D_law.hpp"
-
 #include "custom_constitutive/hencky_mc_strain_softening_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_strain_softening_plane_strain_2D_law.hpp"
-
 #include "custom_constitutive/hencky_borja_cam_clay_3D_law.hpp"
 #include "custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.hpp"
 

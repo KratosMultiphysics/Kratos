@@ -269,16 +269,6 @@ class bicgstab {
 };
 
 } // namespace solver
-
-namespace backend {
-template <class B, class I>
-struct bytes_impl< solver::bicgstab<B, I> > {
-    static size_t get(const solver::bicgstab<B, I> &S) {
-        return S.bytes();
-    }
-};
-
-} // namespace backend
 } // namespace amgcl
 
 

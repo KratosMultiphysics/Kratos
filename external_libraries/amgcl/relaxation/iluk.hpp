@@ -273,17 +273,6 @@ struct iluk {
 };
 
 } // namespace relaxation
-
-namespace backend {
-
-template <class Backend>
-struct bytes_impl< relaxation::iluk<Backend> > {
-    static size_t get(const relaxation::iluk<Backend> &R) {
-        return R.bytes();
-    }
-};
-
-} // namespace backend
 } // namespace amgcl
 
 #endif

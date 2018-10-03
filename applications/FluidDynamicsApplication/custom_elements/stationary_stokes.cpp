@@ -95,7 +95,7 @@ void StationaryStokes<TDim>::Initialize()
         MathUtils<double>::InvertMatrix( J[g], InvJ, DetJ );
 
         //calculating the shape function derivatives in global coordinates
-        mDN_DX[g].resize(NumNodes,TDim);
+        mDN_DX[g].resize(NumNodes,TDim, false);
         noalias( mDN_DX[g] ) = prod( DNv_De[g], InvJ );
 
         // Gauss point weight is stored as a fraction of the elemental area
@@ -138,8 +138,8 @@ void StationaryStokes<TDim>::CalculateLocalSystem(MatrixType &rLeftHandSideMatri
 
         double Density;
         double Viscosity;
-        array_1d<double,3> BodyForce(3,0.0);
-        array_1d<double,3> Velocity(3,0.0);
+        array_1d<double,3> BodyForce = ZeroVector(3);
+        array_1d<double,3> Velocity = ZeroVector(3);
 
         // Interpolation
         this->EvaluateInPoint(Density,DENSITY,N,rGeom);

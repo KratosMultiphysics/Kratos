@@ -10,6 +10,7 @@
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
+
 #if !defined(KRATOS_MPM_FLOW_RULE_H_INCLUDED )
 #define  KRATOS_MPM_FLOW_RULE_H_INCLUDED
 
@@ -24,6 +25,7 @@
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
+#include "input_output/logger.h"
 
 #include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
@@ -100,9 +102,8 @@ public:
 
         void print()
         {
-            std::cout<<" Internal Thermal Variables "<<std::endl;
-            std::cout<<" PlasticDissipation: "<<PlasticDissipation<<std::endl;
-            std::cout<<" DeltaPlasticDissipation: "<<DeltaPlasticDissipation<<std::endl;
+            KRATOS_INFO("MPMFlowRule.ThermalVariables") << "PlasticDissipation      = " << PlasticDissipation      <<std::endl;
+            KRATOS_INFO("MPMFlowRule.ThermalVariables") << "DeltaPlasticDissipation = " << DeltaPlasticDissipation <<std::endl;
         }
 
     private:
@@ -227,14 +228,13 @@ public:
 
         void print()
         {
-            std::cout<<" Internal Variables "<<std::endl;
-            std::cout<<" EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
-            std::cout<<" DeltaPlasticStrain: "<<DeltaPlasticStrain<<std::endl;
-            std::cout<<" AccumulatedPlasticVolumetricStrain: "<<AccumulatedPlasticVolumetricStrain<<std::endl;
-            std::cout<<" DeltaPlasticVolumetricStrain: "<<DeltaPlasticVolumetricStrain<<std::endl;
-            std::cout<<" AccumulatedPlasticDeviatoricStrain: "<<AccumulatedPlasticDeviatoricStrain<<std::endl;
-            std::cout<<" DeltaPlasticDeviatoricStrain: "<<DeltaPlasticDeviatoricStrain<<std::endl;
-            std::cout<<" EquivalentPlasticStrainOld: "<<EquivalentPlasticStrainOld<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " DeltaPlasticStrain: "<<DeltaPlasticStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " AccumulatedPlasticVolumetricStrain: "<<AccumulatedPlasticVolumetricStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " DeltaPlasticVolumetricStrain: "<<DeltaPlasticVolumetricStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " AccumulatedPlasticDeviatoricStrain: "<<AccumulatedPlasticDeviatoricStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " DeltaPlasticDeviatoricStrain: "<<DeltaPlasticDeviatoricStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " EquivalentPlasticStrainOld: "<<EquivalentPlasticStrainOld<<std::endl;
         }
 
     private:

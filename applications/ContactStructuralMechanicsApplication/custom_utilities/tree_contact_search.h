@@ -57,9 +57,8 @@ namespace Kratos
 /** 
  * @class TreeContactSearch 
  * @ingroup ContactStructuralMechanicsApplication
- * @brief TreeContactSearch
- * @details This utilitiy has as objective to create the contact conditions.
- * The conditions that can be created are Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments
+ * @brief This utilitiy has as objective to create the contact conditions.
+ * @details The conditions that can be created are Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments
  * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree 
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
@@ -119,12 +118,10 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // Class Constructor
-    
     /**
      * @brief The constructor of the search utility uses the following inputs:
      * @param rMainModelPart The model part to be considered
-     * @param ThisParameters The condiguration parameters, it includes:
+     * @param ThisParameters The configuration parameters, it includes:
      *                       - The allocation considered in the search
      *                       - The factor considered to check if active or not
      *                       - The integration order considered
