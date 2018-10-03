@@ -190,8 +190,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
         Vector delta_sigma = ZeroVector(VoigtSize);
         Vector delta_plastic_strain = ZeroVector(VoigtSize);
 
-        // Initialize the
-        BoundedMatrixType plastic_deformation_gradient_increment;
+        // Initialize the pastic deformation gradient increment
+        double aux_det;
+        BoundedMatrixType plastic_deformation_gradient_increment, inverse_plastic_deformation_gradient_increment;
+
+        // Predictive deformation gradient
+        Matrix predictive_deformation_gradient = rValues.GetDeformationGradientF();
 
         // Backward Euler
         while (iteration <= max_iter) {
@@ -203,8 +207,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
             noalias(rPlasticDeformationGradient) = aux_plastic_deformation_gradient;
             rValues.SetDeformationGradientF(plastic_deformation_gradient_increment);
             rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, delta_plastic_strain);
-            rConstitutiveLaw.CalculateValue(rValues, rStressVariable, delta_sigma);
-            noalias(rPredictiveStressVector) -= delta_sigma;
+
+            // We compute the new predictive stress vector
+            noalias(inverse_plastic_deformation_gradient_increment) = MathUtils<double>::InvertMatrix<Dimension>(plastic_deformation_gradient_increment, aux_det);
+            predictive_deformation_gradient = prod(inverse_plastic_deformation_gradient_increment, predictive_deformation_gradient);
+            rValues.SetDeformationGradientF(predictive_deformation_gradient);
+            Vector aux_vector;
+            rConstitutiveLaw.CalculateValue(rValues, rStressVariable, aux_vector);
+            noalias(rPredictiveStressVector) = aux_vector;
 
             threshold_indicator = CalculatePlasticParameters(rPredictiveStressVector, rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative, rPlasicPotentialDerivative, rPlasticDissipation, delta_plastic_strain, rValues);
 
