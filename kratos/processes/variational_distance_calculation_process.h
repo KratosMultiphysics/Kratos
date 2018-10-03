@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Ruben Zorrilla
-//                    
+//
 //
 
 
@@ -25,6 +25,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/model.h"
 #include "includes/kratos_flags.h"
 #include "elements/distance_calculation_element_simplex.h"
 #include "linear_solvers/linear_solver.h"
@@ -67,10 +68,10 @@ template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinea
 class VariationalDistanceCalculationProcess : public Process
 {
 public:
-    
+
     KRATOS_DEFINE_LOCAL_FLAG(PERFORM_STEP1);
     KRATOS_DEFINE_LOCAL_FLAG(DO_EXPENSIVE_CHECKS);
-    
+
     ///@name Type Definitions
     ///@{
 
@@ -125,7 +126,7 @@ public:
     {
         KRATOS_TRY
 
-        
+
 
         mmax_iterations = max_iterations;
         mdistance_part_is_initialized = false; //this will be set to true upon completing ReGenerateDistanceModelPart
@@ -176,7 +177,7 @@ public:
     }
 
     /// Destructor.
-    ~VariationalDistanceCalculationProcess() override 
+    ~VariationalDistanceCalculationProcess() override
     {
 
         Model& current_model = mr_base_model_part.GetOwnerModel();
@@ -211,7 +212,7 @@ public:
         // TODO: check flag    PERFORM_STEP1
         // Step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
         r_distance_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
-        
+
         // Unfix the distances
         const int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
         #pragma omp parallel for
@@ -221,12 +222,12 @@ public:
             double& fix_flag = it_node->FastGetSolutionStepValue(FLAG_VARIABLE);
 
             // Free the DISTANCE values
-            fix_flag = 1.0; 
+            fix_flag = 1.0;
             it_node->Free(DISTANCE);
 
             // Save the distances
-            it_node->SetValue(DISTANCE, d); 
-            
+            it_node->SetValue(DISTANCE, d);
+
             if(d == 0){
                 d = 1.0e-15;
                 fix_flag = -1.0;
@@ -237,7 +238,7 @@ public:
                 } else {
                     d = -1.0e15;
                 }
-            } 
+            }
         }
 
         const int nelem = static_cast<int>(r_distance_model_part.NumberOfElements());
@@ -247,13 +248,13 @@ public:
             auto it_elem = r_distance_model_part.ElementsBegin() + i_elem;
             array_1d<double,TDim+1> distances;
             auto& geom = it_elem->GetGeometry();
-            
+
             for(unsigned int i=0; i<TDim+1; i++){
                 distances[i] = geom[i].GetValue(DISTANCE);
             }
-            
+
             const array_1d<double,TDim+1> original_distances = distances;
-        
+
             // The element is cut by the interface
             if(this->IsSplit(distances)){
                 // Compute the unsigned distance using GeometryUtils
@@ -262,14 +263,14 @@ public:
                 } else {
                     GeometryUtils::CalculateTriangleDistances(geom, distances);
                 }
-                
+
                 // Assign the sign using the original distance values
                 for(unsigned int i = 0; i < TDim+1; ++i){
                     if(original_distances[i] < 0){
                         distances[i] = -distances[i];
                     }
                 }
-               
+
                 for(unsigned int i = 0; i < TDim+1; ++i){
                     double &d = geom[i].FastGetSolutionStepValue(DISTANCE);
                     double &fix_flag = geom[i].FastGetSolutionStepValue(FLAG_VARIABLE);
@@ -309,7 +310,7 @@ public:
         r_communicator.MaxAll(max_dist);
         r_communicator.MinAll(min_dist);
 
-        // Assign the max dist to all of the non-fixed positive nodes 
+        // Assign the max dist to all of the non-fixed positive nodes
         // and the minimum one to the non-fixed negatives
         #pragma omp parallel for
         for(int i_node = 0; i_node < nnodes; ++i_node){
@@ -323,7 +324,7 @@ public:
                 }
             }
         }
-        
+
         mp_solving_strategy->Solve();
 
         // Step2 - minimize the target residual
@@ -396,7 +397,7 @@ protected:
 
     /// Minimal constructor for derived classes
     VariationalDistanceCalculationProcess(
-        ModelPart &base_model_part, 
+        ModelPart &base_model_part,
         unsigned int max_iterations)
         : mr_base_model_part(base_model_part)
     {
@@ -430,7 +431,7 @@ protected:
         Model& current_model = mr_base_model_part.GetOwnerModel();
         if(current_model.HasModelPart("RedistanceCalculationPart"))
             current_model.DeleteModelPart("RedistanceCalculationPart");
-        
+
         // Generate
         ModelPart& r_distance_model_part = current_model.CreateModelPart("RedistanceCalculationPart");
         r_distance_model_part.Nodes().clear();
@@ -459,14 +460,14 @@ protected:
 
             // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
             p_element->pGetGeometry() = it_elem->pGetGeometry();
-            
+
             r_distance_model_part.Elements().push_back(p_element);
         }
 
         // Using the conditions to mark the boundary with the flag boundary
         // Note that we DO NOT add the conditions to the model part
         VariableUtils().SetFlag<ModelPart::NodesContainerType>(BOUNDARY, false, r_distance_model_part.Nodes());
-        // Note that above we have assigned the same geometry. Thus the flag is 
+        // Note that above we have assigned the same geometry. Thus the flag is
         // set in the distance model part despite we are iterating the base one
         for (auto it_cond = base_model_part.ConditionsBegin(); it_cond != base_model_part.ConditionsEnd(); ++it_cond){
             Geometry< Node<3> >& geom = it_cond->GetGeometry();
@@ -542,10 +543,10 @@ private:
                 auto it_node = r_distance_model_part.NodesBegin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = std::abs(it_node->FastGetSolutionStepValue(DISTANCE));
             }
-            
+
             // Synchronize the unsigned value to minimum
             r_communicator.SynchronizeCurrentDataToMin(DISTANCE);
-            
+
             // Set the distance sign again by retrieving it from the non-historical database
             #pragma omp parallel for
             for(int i_node = 0; i_node < nnodes; ++i_node){
@@ -566,7 +567,7 @@ private:
         if(r_communicator.TotalProcesses() != 1){
             int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
 
-            // Synchronize the fixity flag variable to minium 
+            // Synchronize the fixity flag variable to minium
             // (-1.0 means fixed and 1.0 means free)
             r_communicator.SynchronizeCurrentDataToMin(FLAG_VARIABLE);
 
@@ -644,6 +645,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED  defined 
+#endif // KRATOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED  defined
 
 
