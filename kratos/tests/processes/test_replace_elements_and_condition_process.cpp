@@ -56,25 +56,25 @@ namespace Kratos
             element_nodes_0[0] = p_node_1;
             element_nodes_0[1] = p_node_2;
             element_nodes_0[2] = p_node_3;
-            Triangle2D3 <NodeType>::Pointer p_triangle_0 = Kratos::make_shared<Triangle2D3 <NodeType>>( element_nodes_0 );
+            Triangle2D3 <NodeType>::Pointer p_triangle_0 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_0} );
             
             std::vector<NodeType::Pointer> element_nodes_1 (3);
             element_nodes_1[0] = p_node_1;
             element_nodes_1[1] = p_node_3;
             element_nodes_1[2] = p_node_4;
-            Triangle2D3 <NodeType>::Pointer p_triangle_1 = Kratos::make_shared<Triangle2D3 <NodeType>>( element_nodes_1 );
+            Triangle2D3 <NodeType>::Pointer p_triangle_1 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_1} );
             
             std::vector<NodeType::Pointer> element_nodes_2 (3);
             element_nodes_2[0] = p_node_2;
             element_nodes_2[1] = p_node_5;
             element_nodes_2[2] = p_node_3;
-            Triangle2D3 <NodeType>::Pointer p_triangle_2 = Kratos::make_shared<Triangle2D3 <NodeType>>( element_nodes_2 );
+            Triangle2D3 <NodeType>::Pointer p_triangle_2 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_2} );
             
             std::vector<NodeType::Pointer> element_nodes_3 (3);
             element_nodes_3[0] = p_node_5;
             element_nodes_3[1] = p_node_6;
             element_nodes_3[2] = p_node_3;
-            Triangle2D3 <NodeType>::Pointer p_triangle_3 = Kratos::make_shared<Triangle2D3 <NodeType>>( element_nodes_3 );
+            Triangle2D3 <NodeType>::Pointer p_triangle_3 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_3} );
                          
             Element::Pointer p_elem_0 = Kratos::make_shared<Element>(1, p_triangle_0, p_elem_prop);
             Element::Pointer p_elem_1 = Kratos::make_shared<Element>(2, p_triangle_1, p_elem_prop);
@@ -136,84 +136,84 @@ namespace Kratos
             element_nodes_0[1] = p_node_10;
             element_nodes_0[2] = p_node_8;
             element_nodes_0[3] = p_node_9;
-            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_0 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( element_nodes_0 );
+            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_0 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_0} );
             
             std::vector<NodeType::Pointer> element_nodes_1 (4);
             element_nodes_1[0] = p_node_4;
             element_nodes_1[1] = p_node_6;
             element_nodes_1[2] = p_node_9;
             element_nodes_1[3] = p_node_7;
-            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_1 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( element_nodes_1 );
+            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_1 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_1} );
             
             std::vector<NodeType::Pointer> element_nodes_2 (4);
             element_nodes_2[0] = p_node_11;
             element_nodes_2[1] = p_node_7;
             element_nodes_2[2] = p_node_9;
             element_nodes_2[3] = p_node_8;
-            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_2 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( element_nodes_2 );
+            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_2 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_2} );
             
             std::vector<NodeType::Pointer> element_nodes_3 (4);
             element_nodes_3[0] = p_node_5;
             element_nodes_3[1] = p_node_3;
             element_nodes_3[2] = p_node_8;
             element_nodes_3[3] = p_node_6;
-            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_3 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( element_nodes_3 );
+            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_3 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_3} );
             
             std::vector<NodeType::Pointer> element_nodes_4 (4);
             element_nodes_4[0] = p_node_4;
             element_nodes_4[1] = p_node_6;
             element_nodes_4[2] = p_node_7;
             element_nodes_4[3] = p_node_3;
-            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_4 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( element_nodes_4 );
+            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_4 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_4} );
             
             std::vector<NodeType::Pointer> element_nodes_5 (4);
             element_nodes_5[0] = p_node_2;
             element_nodes_5[1] = p_node_3;
             element_nodes_5[2] = p_node_5;
             element_nodes_5[3] = p_node_6;
-            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_5 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( element_nodes_5 );
+            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_5 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_5} );
             
             std::vector<NodeType::Pointer> element_nodes_6 (4);
             element_nodes_6[0] = p_node_10;
             element_nodes_6[1] = p_node_9;
             element_nodes_6[2] = p_node_6;
             element_nodes_6[3] = p_node_8;
-            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_6 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( element_nodes_6 );
+            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_6 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_6} );
             
             std::vector<NodeType::Pointer> element_nodes_7 (4);
             element_nodes_7[0] = p_node_7;
             element_nodes_7[1] = p_node_8;
             element_nodes_7[2] = p_node_3;
             element_nodes_7[3] = p_node_6;
-            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_7 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( element_nodes_7 );
+            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_7 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_7} );
             
             std::vector<NodeType::Pointer> element_nodes_8 (4);
             element_nodes_8[0] = p_node_7;
             element_nodes_8[1] = p_node_8;
             element_nodes_8[2] = p_node_6;
             element_nodes_8[3] = p_node_9;
-            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_8 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( element_nodes_8 );
+            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_8 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_8} );
             
             std::vector<NodeType::Pointer> element_nodes_9 (4);
             element_nodes_9[0] = p_node_4;
             element_nodes_9[1] = p_node_1;
             element_nodes_9[2] = p_node_6;
             element_nodes_9[3] = p_node_3;
-            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_9 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( element_nodes_9 );
+            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_9 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_9} );
             
             std::vector<NodeType::Pointer> element_nodes_10 (4);
             element_nodes_10[0] = p_node_9;
             element_nodes_10[1] = p_node_12;
             element_nodes_10[2] = p_node_11;
             element_nodes_10[3] = p_node_8;
-            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_10 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( element_nodes_10 );
+            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_10 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_10} );
             
             std::vector<NodeType::Pointer> element_nodes_11 (4);
             element_nodes_11[0] = p_node_3;
             element_nodes_11[1] = p_node_2;
             element_nodes_11[2] = p_node_1;
             element_nodes_11[3] = p_node_6;
-            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_11 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( element_nodes_11 );
+            Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_11 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_11} );
             
             Element::Pointer p_elem_0 = Kratos::make_shared<Element>(1, p_tetrahedra_0, p_elem_prop);
             Element::Pointer p_elem_1 = Kratos::make_shared<Element>(2, p_tetrahedra_1, p_elem_prop);

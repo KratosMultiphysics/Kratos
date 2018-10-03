@@ -127,21 +127,6 @@ class FluidSolver(PythonSolver):
     def Clear(self):
         (self.solver).Clear()
 
-    def Solve(self):
-        message = "".join([
-            "Calling FluidSolver.Solve() method, which is deprecated\n",
-            "Please call the individual methods instead:\n",
-            "solver.InitializeSolutionStep()\n",
-            "solver.Predict()\n",
-            "solver.SolveSolutionStep()\n",
-            "solver.FinalizeSolutionStep()\n"]
-        )
-        KratosMultiphysics.Logger.PrintWarning("FluidSolver",message)
-        self.InitializeSolutionStep()
-        self.Predict()
-        self.SolveSolutionStep()
-        self.FinalizeSolutionStep()
-
     def GetComputingModelPart(self):
         if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
             raise Exception("The ComputingModelPart was not created yet!")

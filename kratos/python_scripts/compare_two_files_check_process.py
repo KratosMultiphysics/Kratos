@@ -27,6 +27,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
+            "help"                  : "This process checks that two files are the same. This can be used in order to create tests, where a given solution is expected",
             "reference_file_name"   : "",
             "output_file_name"      : "",
             "remove_output_file"    : true,
@@ -111,10 +112,16 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             err_msg += '" is not valid!'
             raise Exception(err_msg)
 
+        # "readlines" adds a newline at the end of the line,
+        # which will be removed with rstrip afterwards
         with open(self.reference_file_name,'r') as ref_file:
             lines_ref = ref_file.readlines()
         with open(self.output_file_name,'r') as out_file:
             lines_out = out_file.readlines()
+
+        # removing trailing newline AND whitespaces than can mess with the comparison
+        lines_ref = [line.rstrip() for line in lines_ref]
+        lines_out = [line.rstrip() for line in lines_out]
 
         num_lines_ref = len(lines_ref)
         num_lines_out = len(lines_out)
@@ -184,7 +191,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         current_index += 1 # skipping "Values"-line
 
         # comparing results
-        while lines1[current_index+1] != "End Values\n":
+        while lines1[current_index+1] != "End Values":
             current_index += 1
             lines_1_splitted = lines1[current_index].split()
             lines_2_splitted = lines2[current_index].split()
@@ -207,23 +214,30 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         lines_ref, lines_out = self.__GetFileLines()
 
         # assert headers are the same
-        self.__CompareDatFileHeader(lines_ref, lines_out)
+        lines_ref, lines_out = self.__CompareDatFileComments(lines_ref, lines_out)
 
         # assert values are equal up to given tolerance
         self.__CompareDatFileResults(lines_ref, lines_out)
 
-    def __CompareDatFileHeader(self, lines_ref, lines_out):
-        """This function compares the header of files with tabular data
+    def __CompareDatFileComments(self, lines_ref, lines_out):
+        """This function compares the comments of files with tabular data
         The lines starting with "#" are being compared
         These lines are removed from the list of lines
         """
-        while lines_ref[0].lstrip()[0] == '#' or lines_out[0].lstrip()[0] == '#':
-            self.assertTrue(lines_ref.pop(0) == lines_out.pop(0), msg = self.info_msg)
+        for line_ref, line_out in zip(lines_ref, lines_out):
+            if line_ref.lstrip()[0] == '#' or line_out.lstrip()[0] == '#':
+                self.assertTrue(line_ref == line_out, msg = self.info_msg)
+
+        lines_ref = [line for line in lines_ref if not(line.lstrip()[0] == '#')]
+        lines_out = [line for line in lines_out if not(line.lstrip()[0] == '#')]
+
+        return lines_ref, lines_out
 
     def __CompareDatFileResults(self, lines_ref, lines_out):
         """This function compares the data of files with tabular data
         The comment lines were removed beforehand
         """
+
         for line_ref, line_out in zip(lines_ref, lines_out):
             for v1, v2 in zip(line_ref.split(), line_out.split()):
                 self.assertAlmostEqual(float(v1),
@@ -286,11 +300,13 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 end_line = "  \n"
 
             if (lines_ref[i][0] == " "):
-                lines_ref[i] = lines_ref[i][1:]
+                tmp1 = ConvertStringToListFloat(lines_ref[i][1:], space, end_line)
+            else:
+                tmp1 = ConvertStringToListFloat(lines_ref[i], space, end_line)
             if (lines_out[i][0] == " "):
-                lines_ref[i][0] = lines_out[i][1:]
-            tmp1 = ConvertStringToListFloat(lines_ref[i], space, end_line)
-            tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
+                tmp2 = ConvertStringToListFloat(lines_out[i][1:], space, end_line)
+            else:
+                tmp2 = ConvertStringToListFloat(lines_out[i], space, end_line)
 
             if (self.dimension == 2):
                 error += math.sqrt((tmp1[0] - tmp2[0])**2 + (tmp1[1] - tmp2[1])**2 + (tmp1[2] - tmp2[2])**2)
@@ -307,7 +323,8 @@ def ConvertStringToListFloat(line, space = " ", endline = ""):
     list_values = []
     string_values = (line.replace(endline,"")).split(space)
     for string in string_values:
-        list_values.append(float(string))
+        if (string != ""):
+            list_values.append(float(string))
 
     return list_values
 

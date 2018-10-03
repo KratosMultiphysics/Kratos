@@ -22,6 +22,7 @@ class MultiplePointsOutputProcess(KratosMultiphysics.Process):
     def __init__(self, model, params):
 
         default_settings = KratosMultiphysics.Parameters('''{
+            "help"              : "This process writes several points to a file. Internally it holds objects of type PointOutputProcess",
             "model_part_name"   : "",
             "entity_type"       : "element",
             "positions"         : [[]],

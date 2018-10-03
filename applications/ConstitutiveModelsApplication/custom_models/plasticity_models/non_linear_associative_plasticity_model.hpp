@@ -143,13 +143,13 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override
+    ConstitutiveModel::Pointer Clone() const override
     {
       return Kratos::make_shared<NonLinearAssociativePlasticityModel>(*this);
     }
 
     /// Destructor.
-    virtual ~NonLinearAssociativePlasticityModel() {}
+    ~NonLinearAssociativePlasticityModel() override {}
 
 
     ///@}
@@ -165,13 +165,13 @@ namespace Kratos
      * Calculate Stresses
      */
 
-    virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
+    void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
       // calculate volumetric stress
       MatrixType VolumetricStressMatrix;
-      VolumetricStressMatrix.clear();
+      noalias(VolumetricStressMatrix) = ZeroMatrix(3,3);
       this->mElasticityModel.CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
 
       // calculate isochoric stress
@@ -182,7 +182,7 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
-    virtual void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
+    void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -207,7 +207,7 @@ namespace Kratos
     /**
      * Calculate Constitutive Tensor
      */
-    virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
+    void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_TRY
 
@@ -249,7 +249,7 @@ namespace Kratos
     /**
      * Calculate Stress and Constitutive Tensor
      */
-    virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
+    void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_TRY
 
@@ -260,7 +260,7 @@ namespace Kratos
 
       // calculate volumetric stress
       MatrixType VolumetricStressMatrix;
-      VolumetricStressMatrix.clear();
+      noalias(VolumetricStressMatrix) = ZeroMatrix(3,3);
       this->mElasticityModel.CalculateVolumetricStressTensor(rValues,VolumetricStressMatrix);
 
       // calculate isochoric stress
@@ -303,18 +303,18 @@ namespace Kratos
     /**
      * Has Values
      */
-    virtual bool Has(const Variable<double>& rThisVariable) override {return false;}
+    bool Has(const Variable<double>& rThisVariable) override {return false;}
 
     /**
      * Set Values
      */
-    virtual void SetValue(const Variable<double>& rVariable,
+    void SetValue(const Variable<double>& rVariable,
                   const double& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override {}
     /**
      * Get Values
      */
-    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override { rValue=0; return rValue;}
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override { rValue=0; return rValue;}
 
 
     ///@}
@@ -327,7 +327,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "NonLinearAssociativePlasticityModel" ;
@@ -335,13 +335,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "NonLinearAssociativePlasticityModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "NonLinearAssociativePlasticityModel Data";
     }
@@ -409,7 +409,7 @@ namespace Kratos
       else if(  rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
 
 	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left || rStrainMeasure == ConstitutiveModelData::CauchyGreen_None){
-	  rVariables.StrainMatrix = identity_matrix<double>(3);
+	  rVariables.StrainMatrix = IdentityMatrix(3);
 	}
 	else{
 	  KRATOS_ERROR << "calling initialize PlasticityModel .. StrainMeasure provided is inconsistent" << std::endl;
@@ -477,7 +477,7 @@ namespace Kratos
       if( rVariables.State().Is(ConstitutiveModelData::IMPLEX_ACTIVE) )
 	{
 	  //3.- Calculate the implex radial return
-	  this->CalculateImplexRadialReturn(rVariables,rStressMatrix);
+	  this->CalculateImplexReturnMapping(rVariables,rStressMatrix);
 	}
       else{
 
@@ -487,16 +487,14 @@ namespace Kratos
 	  }
 	else
 	  {
-
-	    //3.- Calculate the radial return
-	    bool converged = this->CalculateRadialReturn(rVariables,rStressMatrix);
-
-	    if(!converged)
-	      std::cout<<" ConstitutiveLaw did not converge "<<std::endl;
-
+	    //3.- Calculate the return mapping
+	    bool converged = this->CalculateReturnMapping(rVariables,rStressMatrix);
 
 	    //4.- Update back stress, plastic strain and stress
 	    this->UpdateStressConfiguration(rVariables,rStressMatrix);
+
+            if( !converged )
+              KRATOS_WARNING("NON-LINEAR PLASTICITY")<<"Not converged"<<std::endl;
 
 	    //5.- Calculate thermal dissipation and delta thermal dissipation
 	    this->CalculateThermalDissipation(rVariables);
@@ -597,9 +595,9 @@ namespace Kratos
     }
 
 
-    // calculate ratial return
+    // calculate return mapping
 
-    virtual bool CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    virtual bool CalculateReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
 
@@ -622,7 +620,7 @@ namespace Kratos
       rEquivalentPlasticStrain = 0;
       rDeltaGamma = 0;
 
-      while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
+      while(fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
 	{
 	  //Calculate Delta State Function:
 	  DeltaStateFunction = this->mYieldSurface.CalculateDeltaStateFunction( rVariables, DeltaStateFunction );
@@ -641,10 +639,10 @@ namespace Kratos
 	  iter++;
 	}
 
-
-      if(iter>MaxIterations)
-	return false;
-
+      if(iter>MaxIterations){
+        std::cout<<" ConstitutiveLaw did not converge [Stress: "<<rStressMatrix<<" DeltaGamma: "<<rDeltaGamma<<" StateFunction: "<<StateFunction<<" DeltaDeltaGamma: "<<DeltaDeltaGamma<<"]"<<std::endl;
+        return false;
+      }
 
       return true;
 
@@ -652,7 +650,7 @@ namespace Kratos
     }
 
     // implex protected methods
-    virtual void CalculateImplexRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    virtual void CalculateImplexReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
 
@@ -774,7 +772,7 @@ namespace Kratos
       const MatrixType&   rIsochoricStressMatrix = rModelData.GetStressMatrix(); //isochoric stress stored as StressMatrix
 
       //1.-Identity build
-      MatrixType Identity = identity_matrix<double> (3);
+      MatrixType Identity = IdentityMatrix(3);
 
       //2.-Auxiliar matrices
       rFactors.Normal = rIsochoricStressMatrix * ( 1.0 / rVariables.StressNorm );
@@ -916,7 +914,7 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
       rSerializer.save("InternalVariables",mInternal);
@@ -924,7 +922,7 @@ namespace Kratos
       rSerializer.save("ThermalVariables",mThermalVariables);
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
       rSerializer.load("InternalVariables",mInternal);

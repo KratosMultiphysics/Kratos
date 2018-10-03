@@ -53,7 +53,7 @@ public:
     SolverProcess(Flags options) : Process( options ) {}
 
     /// Destructor.
-    virtual ~SolverProcess() {}
+    ~SolverProcess() override {}
 
 
     ///@}

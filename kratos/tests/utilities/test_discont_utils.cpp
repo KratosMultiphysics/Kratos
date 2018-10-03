@@ -147,7 +147,7 @@ namespace Kratos
 			KRATOS_CHECK_NEAR(edge_areas(2), 0.25, 1e-6);
 		}
 
-		KRATOS_TEST_CASE_IN_SUITE(TriangleVercitalDiscontUtils, KratosCoreFastSuite)
+		KRATOS_TEST_CASE_IN_SUITE(TriangleVerticalDiscontUtils, KratosCoreFastSuite)
 		{
 			Model current_model;
 

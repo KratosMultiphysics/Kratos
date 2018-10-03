@@ -43,8 +43,8 @@ namespace Kratos {
             // Set the nodal values
             const double p_pos = 1.0;
             const double p_neg = -1.0;
-            array_1d<double, 3> v_pos(3, 0.0);
-            array_1d<double, 3> v_neg(3, 0.0);
+            array_1d<double, 3> v_pos = ZeroVector(3);
+            array_1d<double, 3> v_neg = ZeroVector(3);
             v_pos[0] = 1.0;
             v_neg[0] = -1.0;
             const double level_set_height = 4.5;
@@ -98,8 +98,8 @@ namespace Kratos {
             // Set the nodal values
             const double p_pos = 1.0;
             const double p_neg = -1.0;
-            array_1d<double,3> v_pos(3,0.0);
-            array_1d<double,3> v_neg(3,0.0);
+            array_1d<double,3> v_pos = ZeroVector(3);
+            array_1d<double,3> v_neg = ZeroVector(3);
             v_pos[0] = 1.0;
             v_neg[0] = -1.0;
             const double level_set_height = 4.5;
@@ -135,7 +135,7 @@ namespace Kratos {
             }
         }
 
-	    /** 
+	    /**
 	     * Checks the embedded skin visualization process for a unique triangle with the standard shape functions
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTriangleStandard, FluidDynamicsApplicationFastSuite)
@@ -159,8 +159,8 @@ namespace Kratos {
             })");
 
             EmbeddedSkinVisualizationProcess skin_visualization_process(
-                main_model_part, 
-                visualization_model_part, 
+                main_model_part,
+                visualization_model_part,
                 visualization_settings);
 
             skin_visualization_process.ExecuteInitialize();
@@ -186,7 +186,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(visualization_model_part.GetNode(7).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
 	    }
 
-	    /** 
+	    /**
 	     * Checks the embedded skin visualization process for a unique triangle with the Ausas shape functions
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTriangleAusas, FluidDynamicsApplicationFastSuite)
@@ -210,8 +210,8 @@ namespace Kratos {
             })");
 
             EmbeddedSkinVisualizationProcess skin_visualization_process(
-                main_model_part, 
-                visualization_model_part, 
+                main_model_part,
+                visualization_model_part,
                 visualization_settings);
 
             skin_visualization_process.ExecuteInitialize();
@@ -237,7 +237,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(visualization_model_part.GetNode(7).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
 	    }
 
-	    /** 
+	    /**
 	     * Checks the embedded skin visualization process for a unique tetrahedron using the standard shape functions
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTetrahedronStandard, FluidDynamicsApplicationFastSuite)
@@ -261,8 +261,8 @@ namespace Kratos {
             })");
 
             EmbeddedSkinVisualizationProcess skin_visualization_process(
-                main_model_part, 
-                visualization_model_part, 
+                main_model_part,
+                visualization_model_part,
                 visualization_settings);
 
             skin_visualization_process.ExecuteInitialize();
@@ -300,7 +300,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(visualization_model_part.GetNode(13).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
 	    }
 
-	    /** 
+	    /**
 	     * Checks the embedded skin visualization process for a unique tetrahedron using the Ausas shape functions
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTetrahedronAusas, FluidDynamicsApplicationFastSuite)
@@ -324,8 +324,8 @@ namespace Kratos {
             })");
 
             EmbeddedSkinVisualizationProcess skin_visualization_process(
-                main_model_part, 
-                visualization_model_part, 
+                main_model_part,
+                visualization_model_part,
                 visualization_settings);
 
             skin_visualization_process.ExecuteInitialize();

@@ -66,7 +66,7 @@
     "contact_process_list" :[
     {
         "python_module"   : "alm_contact_process",
-        "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module"   : "ContactStructuralMechanicsApplication",
         "help"                  : "",
         "process_name"          : "ALMContactProcess",
         "Parameters"            : {

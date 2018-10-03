@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ namespace backend {
 
 /// Enable Eigen matrix as a value-type.
 template <typename T, int N, int M>
-struct is_builtin_vector< std::vector<Eigen::Matrix<T, N, M> > > : boost::true_type {};
+struct is_builtin_vector< std::vector<Eigen::Matrix<T, N, M> > > : std::true_type {};
 
 } // namespace backend
 
@@ -61,15 +61,15 @@ struct rhs_of< Eigen::Matrix<T, N, N> > {
 
 /// Whether the value type is a statically sized matrix.
 template <class T, int N, int M>
-struct is_static_matrix< Eigen::Matrix<T, N, M> > : boost::true_type {};
+struct is_static_matrix< Eigen::Matrix<T, N, M> > : std::true_type {};
 
 /// Number of rows for statically sized matrix types.
 template <class T, int N, int M>
-struct static_rows< Eigen::Matrix<T, N, M> > : boost::integral_constant<int, N> {};
+struct static_rows< Eigen::Matrix<T, N, M> > : std::integral_constant<int, N> {};
 
 /// Number of columns for statically sized matrix types.
 template <class T, int N, int M>
-struct static_cols< Eigen::Matrix<T, N, M> > : boost::integral_constant<int, M> {};
+struct static_cols< Eigen::Matrix<T, N, M> > : std::integral_constant<int, M> {};
 
 /// Specialization of conjugate transpose for eigen matrices.
 template <typename T, int N, int M>
@@ -168,13 +168,13 @@ namespace backend {
 template <class Backend>
 struct relaxation_is_supported<
     Backend, relaxation::spai1,
-    typename boost::enable_if<
-        typename boost::is_base_of<
+    typename std::enable_if<
+        std::is_base_of<
             Eigen::MatrixBase<typename Backend::value_type>,
             typename Backend::value_type
-            >::type
+            >::value
         >::type
-    > : boost::false_type
+    > : std::false_type
 {};
 
 } // namespace backend

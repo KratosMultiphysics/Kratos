@@ -7,6 +7,7 @@ import KratosMultiphysics
 KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication", "TrilinosApplication")
 
 # Import applications
+import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Other imports
@@ -24,7 +25,7 @@ class TrilinosMeshSolverComponentwise(trilinos_mesh_solver_base.TrilinosMeshSolv
 
     #### Private functions ####
 
-    def _create_mesh_motion_solver(self):
+    def _create_mesh_motion_solving_strategy(self):
         linear_solver = self.get_linear_solver()
         time_order = self.settings["time_order"].GetInt()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
@@ -32,7 +33,7 @@ class TrilinosMeshSolverComponentwise(trilinos_mesh_solver_base.TrilinosMeshSolv
         calculate_mesh_velocities = self.settings["calculate_mesh_velocities"].GetBool()
         echo_level = self.settings["echo_level"].GetInt()
         communicator = self.get_communicator()
-        solver = TrilinosApplication.TrilinosLaplacianMeshMovingStrategy(
+        solving_strategy = TrilinosApplication.TrilinosLaplacianMeshMovingStrategy(
             communicator,
             self.mesh_model_part,
             linear_solver,
@@ -41,4 +42,4 @@ class TrilinosMeshSolverComponentwise(trilinos_mesh_solver_base.TrilinosMeshSolv
             compute_reactions,
             calculate_mesh_velocities,
             echo_level)
-        return solver
+        return solving_strategy

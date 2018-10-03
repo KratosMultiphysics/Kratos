@@ -39,18 +39,12 @@ class ModelPartController:
             self.mesh_controller = MeshControllerBasicUpdating(optimization_mdpa)
 
     # --------------------------------------------------------------------------
-    def IsOptimizationModelPartAlreadyImported(self):
-        if self.optimization_mdpa.NumberOfNodes()>0:
-            self.__CheckIfDomainSizeIsSet()
-            return True
-        else:
-            return False
-
-    # --------------------------------------------------------------------------
     def ImportOptimizationModelPart(self):
-        model_part_io = ModelPartIO(self.optimization_settings["design_variables"]["optimization_model_part_name"].GetString())
-        model_part_io.ReadModelPart(self.optimization_mdpa)
-        self.__CheckIfDomainSizeIsSet()
+        if self.__IsOptimizationModelPartAlreadyImported():
+            print("> Skipping import of optimization model part as already done by another application. ")
+        else:
+            model_part_io = ModelPartIO(self.optimization_settings["design_variables"]["optimization_model_part_name"].GetString())
+            model_part_io.ReadModelPart(self.optimization_mdpa)
 
     # --------------------------------------------------------------------------
     def InitializeMeshController(self):
@@ -87,6 +81,14 @@ class ModelPartController:
         if self.damping_regions is None:
             self.__IdentifyDampingRegions()
         return self.damping_regions
+
+    # --------------------------------------------------------------------------
+    def __IsOptimizationModelPartAlreadyImported(self):
+        if self.optimization_mdpa.NumberOfNodes()>0:
+            self.__CheckIfDomainSizeIsSet()
+            return True
+        else:
+            return False
 
     # --------------------------------------------------------------------------
     def __CheckIfDomainSizeIsSet(self):

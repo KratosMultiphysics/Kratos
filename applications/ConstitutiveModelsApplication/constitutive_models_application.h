@@ -40,7 +40,7 @@
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 
-#include "containers/flags.h"
+//#include "containers/flags.h"
 
 //outfitted python laws
 //#include "custom_python/python_outfitted_constitutive_law.hpp"
@@ -74,7 +74,7 @@
 #include "custom_models/elasticity_models/incompressible_neo_hookean_model.hpp"
 #include "custom_models/elasticity_models/borja_model.hpp"
 #include "custom_models/elasticity_models/ogden_model.hpp"
-#include "custom_models/elasticity_models/isochoric_ogden_model.hpp"
+//#include "custom_models/elasticity_models/isochoric_ogden_model.hpp"
 #include "custom_models/elasticity_models/incompressible_hypo_elastic_model.hpp"
 
 //plasticity models
@@ -86,7 +86,7 @@
 #include "custom_models/plasticity_models/baker_johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/cam_clay_model.hpp"
 #include "custom_models/plasticity_models/simo_ju_exponential_damage_model.hpp"
-#include "custom_models/plasticity_models/simo_ju_modified_exponential_damage_model.hpp"
+//#include "custom_models/plasticity_models/simo_ju_modified_exponential_damage_model.hpp"
 
 //yield criteria
 #include "custom_models/plasticity_models/yield_surfaces/mises_huber_thermal_yield_surface.hpp"
@@ -104,7 +104,7 @@
 #include "custom_models/plasticity_models/hardening_rules/cam_clay_hardening_rule.hpp"
 
 
-#include "constitutive_models_application_variables.h"
+//#include "constitutive_models_application_variables.h"
 
 namespace Kratos {
 
@@ -147,7 +147,7 @@ namespace Kratos {
     KratosConstitutiveModelsApplication();
 
     /// Destructor.
-    virtual ~KratosConstitutiveModelsApplication(){}
+    ~KratosConstitutiveModelsApplication() override{}
 
 
     ///@}
@@ -159,7 +159,7 @@ namespace Kratos {
     ///@name Operations
     ///@{
 
-    virtual void Register() override;
+    void Register() override;
 
 
 

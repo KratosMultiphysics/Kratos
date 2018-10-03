@@ -46,7 +46,7 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class TElasticityModel, class TYieldSurface>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) DamageModel : public PlasticityModel<TElasticityModel,TYieldSurface>
+  class DamageModel : public PlasticityModel<TElasticityModel,TYieldSurface>
   {
   public:
 
@@ -99,13 +99,13 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override
+    ConstitutiveModel::Pointer Clone() const override
     {
       return Kratos::make_shared<DamageModel>(*this);
     }
 
     /// Destructor.
-    virtual ~DamageModel() {}
+    ~DamageModel() override {}
 
 
     ///@}
@@ -150,7 +150,7 @@ namespace Kratos
      * Calculate Stresses
      */
 
-    virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
+    void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -178,7 +178,7 @@ namespace Kratos
     /**
      * Calculate Constitutive Tensor
      */
-    virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
+    void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_TRY
 
@@ -217,7 +217,7 @@ namespace Kratos
     /**
      * Calculate Stress and Constitutive Tensor
      */
-    virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
+    void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_TRY
 
@@ -263,18 +263,18 @@ namespace Kratos
     /**
      * Has Values
      */
-    virtual bool Has(const Variable<double>& rThisVariable) override {return false;}
+    bool Has(const Variable<double>& rThisVariable) override {return false;}
 
     /**
      * Set Values
      */
-    virtual void SetValue(const Variable<double>& rVariable,
+    void SetValue(const Variable<double>& rVariable,
                   const double& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override {}
     /**
      * Get Values
      */
-    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override { rValue=0; return rValue;}
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override { rValue=0; return rValue;}
 
 
     ///@}
@@ -287,7 +287,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "DamageModel" ;
@@ -295,13 +295,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "DamageModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "DamageModel Data";
     }
@@ -357,7 +357,7 @@ namespace Kratos
 	{
 
 	  //3.- Calculate the radial return
-	  bool converged = this->CalculateRadialReturn(rVariables,rStressMatrix);
+	  bool converged = this->CalculateReturnMapping(rVariables,rStressMatrix);
 
 	  if(!converged)
 	    std::cout<<" ConstitutiveLaw did not converge "<<std::endl;
@@ -431,7 +431,7 @@ namespace Kratos
 
     // calculate ratial return
 
-    virtual bool CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    virtual bool CalculateReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
 
@@ -694,13 +694,13 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
       rSerializer.save("InternalVariables",mInternal);
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
       rSerializer.load("InternalVariables",mInternal);

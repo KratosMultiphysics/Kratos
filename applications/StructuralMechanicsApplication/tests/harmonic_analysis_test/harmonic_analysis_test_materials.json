@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
+                "name" : "LinearElasticPlaneStress2DLaw"
             },
             "Variables"        : {
                 "THICKNESS"     : 0.0125,

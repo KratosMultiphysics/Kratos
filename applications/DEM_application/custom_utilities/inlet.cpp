@@ -70,6 +70,7 @@ namespace Kratos {
     }
 
     void DEM_Inlet::CheckSubModelPart(ModelPart& smp) {
+        CheckIfSubModelPartHasVariable(smp, RADIUS);
         CheckIfSubModelPartHasVariable(smp, IDENTIFIER);
         CheckIfSubModelPartHasVariable(smp, VELOCITY);
         CheckIfSubModelPartHasVariable(smp, MAX_RAND_DEVIATION_ANGLE);
@@ -445,7 +446,7 @@ namespace Kratos {
             if (mp[DENSE_INLET]) {
                 is_there_any_dense_inlet = true;
                 break;
-        }
+            }
         }
         if (is_there_any_dense_inlet){
             CheckDistanceAndSetFlag(r_modelpart);}

@@ -75,7 +75,7 @@ public:
     UpdatedLagrangianElement(UpdatedLagrangianElement const& rOther);
 
     /// Destructor.
-    virtual ~UpdatedLagrangianElement();
+    ~UpdatedLagrangianElement() override;
 
     ///@}
     ///@name Operators
@@ -160,7 +160,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Updated Lagrangian Element #" << Id();
@@ -168,13 +168,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Updated Lagrangian Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -211,7 +211,7 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataType& rVariables,
+    void InitializeElementData(ElementDataType& rVariables,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -219,14 +219,14 @@ protected:
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementDataType & rVariables,
+    void FinalizeStepVariables(ElementDataType & rVariables,
 				       const double& rPointNumber ) override;
 
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementDataType& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                                      const double& rPointNumber) override;
 
 
@@ -255,7 +255,7 @@ protected:
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
+    double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
     ///@}
     ///@name Protected  Access
@@ -291,9 +291,9 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

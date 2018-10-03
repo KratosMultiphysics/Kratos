@@ -348,22 +348,19 @@ public:
         else
             norm_b = 0.00;
 
-        if (norm_b != 0.00)
-        {
+        if (norm_b != 0.00) {
             //provide physical data as needed
             if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
                 BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, rModelPart);
 
             //do solve
             BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
-        }
-        else
-        {
+        } else {
             TSparseSpace::SetToZero(Dx);
             KRATOS_WARNING("ResidualBasedBlockBuilderAndSolver") << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
-        //prints informations about the current time
+        // Prints informations about the current time
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
@@ -1287,7 +1284,7 @@ private:
     //******************************************************************************************
     //******************************************************************************************
 
-    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+    inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, DenseVector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads + 1);
         int partition_size = number_of_rows / number_of_threads;
@@ -1327,8 +1324,10 @@ private:
             unsigned int id_to_find = EquationId[j];
             if(id_to_find > last_found)
                 pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
-            else
+            else if(id_to_find < last_found)
                 pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+            else
+                pos = last_pos;
 
 #ifndef USE_LOCKS_IN_ASSEMBLY
                         double& r = values_vector[pos];

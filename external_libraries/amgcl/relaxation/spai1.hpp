@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ THE SOFTWARE.
 
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/util.hpp>
 #include <amgcl/detail/qr.hpp>
@@ -63,13 +63,12 @@ struct spai1 {
     template <class Matrix>
     spai1( const Matrix &A, const params &, const typename Backend::params &backend_prm)
     {
-        typedef typename backend::value_type<Matrix>::type   value_type;
-        typedef typename backend::row_iterator<Matrix>::type row_iterator;
+        typedef typename backend::value_type<Matrix>::type value_type;
 
-        const size_t n   = backend::rows(A);
-        const size_t m   = backend::cols(A);
+        const size_t n = backend::rows(A);
+        const size_t m = backend::cols(A);
 
-        std::shared_ptr<Matrix> Ainv = std::make_shared<Matrix>(A);
+        auto Ainv = std::make_shared<Matrix>(A);
 
 #pragma omp parallel
         {
@@ -108,7 +107,7 @@ struct spai1 {
                 for(ptrdiff_t j = row_beg; j < row_end; ++j) {
                     ptrdiff_t c = A.col[j];
 
-                    for(row_iterator a = row_begin(A, c); a; ++a)
+                    for(auto a = row_begin(A, c); a; ++a)
                         B[marker[a.col()] + J.size() * (j - row_beg)] = a.value();
                 }
 
@@ -126,8 +125,7 @@ struct spai1 {
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_pre
     template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
     void apply_pre(
-            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp,
-            const params&
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
             ) const
     {
         backend::residual(rhs, A, x, tmp);
@@ -137,8 +135,7 @@ struct spai1 {
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
     template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
     void apply_post(
-            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp,
-            const params&
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
             ) const
     {
         backend::residual(rhs, A, x, tmp);
@@ -146,13 +143,16 @@ struct spai1 {
     }
 
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x, const params&) const
+    void apply(const Matrix&, const VectorRHS &rhs, VectorX &x) const
     {
         backend::spmv(math::identity<scalar_type>(), *M, rhs, math::zero<scalar_type>(), x);
     }
 
-    private:
-        std::shared_ptr<typename Backend::matrix> M;
+    size_t bytes() const {
+        return backend::bytes(*M);
+    }
+
+    std::shared_ptr<typename Backend::matrix> M;
 };
 
 } // namespace relaxation

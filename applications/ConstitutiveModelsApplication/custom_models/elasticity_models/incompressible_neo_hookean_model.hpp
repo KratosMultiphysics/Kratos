@@ -74,13 +74,13 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override
+    ConstitutiveModel::Pointer Clone() const override
     {
       return Kratos::make_shared<IncompressibleNeoHookeanModel>(*this);
     }
 
     /// Destructor.
-    virtual ~IncompressibleNeoHookeanModel() {}
+    ~IncompressibleNeoHookeanModel() override {}
 
 
     ///@}
@@ -105,7 +105,7 @@ namespace Kratos
     /**
      * Check
      */
-    virtual int Check(const Properties& rMaterialProperties,
+    int Check(const Properties& rMaterialProperties,
 		      const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
@@ -150,7 +150,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "IncompressibleHyperElasticModel";
@@ -158,13 +158,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "IncompressibleHyperElasticModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "IncompressibleHyperElasticModel Data";
     }
@@ -194,21 +194,50 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
+    //specialized methods:
 
-    virtual double& AddVolumetricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
-						       const unsigned int& a, const unsigned int& b,
-						       const unsigned int& c, const unsigned int& d) override
+    void CalculateVolumetricFactor(HyperElasticDataType& rVariables, double& rFactor) override
     {
       KRATOS_TRY
 
-      return IsochoricMooneyRivlinModel::AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
+      rFactor = 1.0;
 
       KRATOS_CATCH(" ")
     }
 
+    void CalculatePressureFactor(HyperElasticDataType& rVariables, double& rFactor) override
+    {
+      KRATOS_TRY
+
+      this->CalculateVolumetricFactor(rVariables,rFactor);
+
+      rFactor *= rVariables.GetModelData().GetPressure() * rVariables.Strain.Invariants.J;
+
+      KRATOS_CATCH(" ")
+    }
+
+    void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor) override
+    {
+      KRATOS_TRY
+
+      rFactor = 1.0;
+
+      KRATOS_CATCH(" ")
+    }
+
+    void CalculateConstitutiveMatrixPressureFactor(HyperElasticDataType& rVariables, double& rFactor) override
+    {
+      KRATOS_TRY
+
+      rFactor = rVariables.GetModelData().GetPressure() * rVariables.Strain.Invariants.J;
+
+      KRATOS_CATCH(" ")
+    }
+
+
     //************// dW
 
-    virtual double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
+    double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
     {
       KRATOS_TRY
 
@@ -222,7 +251,7 @@ namespace Kratos
     };
 
 
-    virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddU/dJdJ
+    double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddU/dJdJ
     {
       KRATOS_TRY
 
@@ -283,12 +312,12 @@ namespace Kratos
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, IsochoricNeoHookeanModel )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, IsochoricNeoHookeanModel )
     }

@@ -15,9 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/properties.h"
 #include "includes/constitutive_law.h"
-
 
 namespace Kratos
 {
@@ -112,7 +110,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElastic3DLaw();
+    ~HyperElastic3DLaw() override;
 
     /**
      * Operators

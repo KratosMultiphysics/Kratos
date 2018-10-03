@@ -7,7 +7,7 @@
 
 
 namespace Kratos {
-    
+
     class AuxiliaryUtilities {
 
     public:
@@ -17,11 +17,5 @@ namespace Kratos {
         AuxiliaryUtilities() {};
         virtual ~AuxiliaryUtilities() {};
 
-        pybind11::object GetIthSubModelPartIsForceIntegrationGroup(ModelPart& rParentModelPart, const int& required_i);
-        pybind11::object GetIthSubModelPartName(ModelPart& rParentModelPart, const int& required_i);
-        pybind11::object GetIthSubModelPartIdentifier(ModelPart& rParentModelPart, const int& required_i);        
-        template<class T> pybind11::object GetIthSubModelPartData(ModelPart& rParentModelPart, const int& required_i, const Variable<T>& rVariable);
-        ModelPart::NodesContainerType::Pointer GetIthSubModelPartNodes(ModelPart& rParentModelPart, const int& required_i);
-        
     };
 }

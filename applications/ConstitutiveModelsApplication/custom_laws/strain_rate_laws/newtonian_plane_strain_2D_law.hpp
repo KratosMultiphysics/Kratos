@@ -78,7 +78,7 @@ namespace Kratos
       }
 
       /// Destructor.
-      virtual ~NewtonianPlaneStrain2DLaw(){}
+      ~NewtonianPlaneStrain2DLaw() override{}
 
 
       ///@}
@@ -133,7 +133,7 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override
+      std::string Info() const override
       {
 	std::stringstream buffer;
         buffer << "NewtonianPlaneStrain2DLaw" ;
@@ -141,10 +141,10 @@ namespace Kratos
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "NewtonianPlaneStrain2DLaw";}
+      void PrintInfo(std::ostream& rOStream) const override {rOStream << "NewtonianPlaneStrain2DLaw";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override {}
+      void PrintData(std::ostream& rOStream) const override {}
 
 
       ///@}
@@ -287,12 +287,12 @@ namespace Kratos
       ///@{
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const override
+      void save(Serializer& rSerializer) const override
       {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Newtonian3DLaw )
       }
 
-      virtual void load(Serializer& rSerializer) override
+      void load(Serializer& rSerializer) override
       {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Newtonian3DLaw )
       }

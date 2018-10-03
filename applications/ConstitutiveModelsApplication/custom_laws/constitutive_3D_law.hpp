@@ -65,7 +65,7 @@ namespace Kratos
     Constitutive3DLaw& operator=(const Constitutive3DLaw& rOther);
 
     /// Destructor.
-    virtual ~Constitutive3DLaw();
+    ~Constitutive3DLaw() override;
 
     ///@}
     ///@name Operators

@@ -23,9 +23,9 @@
 /* Processes */
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
 
@@ -49,7 +49,7 @@ namespace Kratos
             element_nodes_0[3] = p_node_4;
             element_nodes_0[4] = p_node_5;
             element_nodes_0[5] = p_node_6;
-            Prism3D6 <NodeType> prism_0( element_nodes_0 );
+            Prism3D6 <NodeType> prism_0( PointerVector<NodeType>{element_nodes_0} );
             ThisModelPart.CreateNewElement("Element3D6N", 1, prism_0, p_elem_prop);
         }
 

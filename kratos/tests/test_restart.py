@@ -20,6 +20,12 @@ def ReadModelPart(file_path, current_model):
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
     model_part_io = KratosMultiphysics.ModelPartIO(file_path)
     model_part_io.ReadModelPart(model_part)
+
+    # Manually adding a constraint to check the serialization of constraints in the ModelPart
+    KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VISCOSITY, model_part)
+    c1 = KratosMultiphysics.MasterSlaveConstraint(10)
+    model_part.AddMasterSlaveConstraint(c1)
+
     return model_part
 
 def IsRestartFile(file_name):
@@ -139,6 +145,8 @@ class TestRestart(KratosUnittest.TestCase):
         self.assertEqual(outlet_model_part.NumberOfElements(), 0)
         self.assertEqual(outlet_model_part.NumberOfConditions(), 1)
         self.assertEqual(outlet_model_part.NumberOfSubModelParts(), 0)
+
+        self.assertTrue( 10 in model_part.MasterSlaveConstraints )
 
     def __execute_restart_save(self, file_name, serializer_flag):
 

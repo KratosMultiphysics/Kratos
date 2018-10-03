@@ -174,6 +174,8 @@ class BuoyancyTest(UnitTest.TestCase):
             conv_diff_element = "EulerianConvDiff2D"
             conv_diff_condition = "Condition2D2N"
 
+            MergeVariableListsUtility().Merge(self.fluid_model_part, thermal_model_part)
+
             modeler = ConnectivityPreserveModeler()
             modeler.GenerateModelPart(self.fluid_model_part,thermal_model_part,conv_diff_element,conv_diff_condition)
 

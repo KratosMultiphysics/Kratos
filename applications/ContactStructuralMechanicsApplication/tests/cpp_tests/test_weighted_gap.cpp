@@ -103,7 +103,7 @@ namespace Kratos
                 condition_nodes[1] = ThisModelPart.pGetNode((2 * i)+2);
                 condition_nodes[2] = ThisModelPart.pGetNode((2 * i)+4);
                 condition_nodes[3] = ThisModelPart.pGetNode((2 * i)+3);
-                Quadrilateral3D4 <NodeType> quad( condition_nodes);
+                Quadrilateral3D4 <NodeType> quad( PointerVector<NodeType>{condition_nodes} );
                 
                 Condition::Pointer pcond = ThisModelPart.CreateNewCondition("Condition3D4N", id_cond, quad, p_cond_prop);
                 slave_model_part.AddCondition(pcond);
@@ -145,7 +145,7 @@ namespace Kratos
                 condition_nodes[2] = ThisModelPart.pGetNode((2 * (i + NumberOfDivisions + 1)+2));
                 condition_nodes[1] = ThisModelPart.pGetNode((2 * (i + NumberOfDivisions + 1)+4));
                 condition_nodes[0] = ThisModelPart.pGetNode((2 * (i + NumberOfDivisions + 1)+3));
-                Quadrilateral3D4 <NodeType> quad( condition_nodes);
+                Quadrilateral3D4 <NodeType> quad( PointerVector<NodeType>{condition_nodes} );
                 
                 Condition::Pointer pcond = ThisModelPart.CreateNewCondition("Condition3D4N", id_cond, quad, p_cond_prop);
                 master_model_part.AddCondition(pcond);

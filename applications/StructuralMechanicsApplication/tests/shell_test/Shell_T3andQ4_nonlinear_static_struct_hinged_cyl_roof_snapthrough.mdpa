@@ -34,39 +34,39 @@ End Nodes
 
 
 Begin Elements ShellThinElementCorotational3D3N// GUI group identifier: Surface_T3_thin
-        17          0         14         12          9 
-        18          0         12          7          9 
-        19          0         21         18         14 
-        20          0         18         12         14 
-        21          0         12         10          7 
-        22          0         10          5          7 
-        23          0         18         16         12 
-        24          0         16         10         12 
+        17          0         14         12          9
+        18          0         12          7          9
+        19          0         21         18         14
+        20          0         18         12         14
+        21          0         12         10          7
+        22          0         10          5          7
+        23          0         18         16         12
+        24          0         16         10         12
 End Elements
 
 Begin Elements ShellThinElementCorotational3D4N// GUI group identifier: Surface_Q4_thin
-         9          0          5          2          4          7 
-        10          0          9          7          4          8 
-        11          0          6          8          4          3 
-        12          0          3          4          2          1 
+         9          0          5          2          4          7
+        10          0          9          7          4          8
+        11          0          6          8          4          3
+        12          0          3          4          2          1
 End Elements
 
 Begin Elements ShellThickElementCorotational3D4N// GUI group identifier: Surface_Q4_thick
-        13          0         14          9         15         20 
-        14          0         15         22         24         20 
-        15          0         21         14         20         23 
-        16          0         23         20         24         25 
+        13          0         14          9         15         20
+        14          0         15         22         24         20
+        15          0         21         14         20         23
+        16          0         23         20         24         25
 End Elements
 
 Begin Elements ShellThickElementCorotational3D3N// GUI group identifier: Surface_T3_thick
-         1          0         19         13         17 
-         2          0         13         11         17 
-         3          0         22         15         19 
-         4          0         15         13         19 
-         5          0         13          8         11 
-         6          0          8          6         11 
-         7          0         15          9         13 
-         8          0          9          8         13 
+         1          0         19         13         17
+         2          0         13         11         17
+         3          0         22         15         19
+         4          0         15         13         19
+         5          0         13          8         11
+         6          0          8          6         11
+         7          0         15          9         13
+         8          0          9          8         13
 End Elements
 
 Begin Conditions PointLoadCondition3D1N// GUI group identifier: point_load

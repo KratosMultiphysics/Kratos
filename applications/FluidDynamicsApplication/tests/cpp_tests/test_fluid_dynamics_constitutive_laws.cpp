@@ -244,7 +244,7 @@ namespace Kratos {
             geom[0].GetSolutionStepValue(VELOCITY) = velocity;
             geom[1].GetSolutionStepValue(VELOCITY) = velocity;
             geom[2].GetSolutionStepValue(VELOCITY) = velocity;
-            geom[3].GetSolutionStepValue(VELOCITY) = velocity;
+            geom[3].GetSolutionStepValue(VELOCITY) = 2.0*velocity;
 
             geom[0].GetSolutionStepValue(DENSITY) = 2.0;
             geom[1].GetSolutionStepValue(DENSITY) = 2.0;
@@ -283,34 +283,35 @@ namespace Kratos {
             BoundedMatrix<double,nnodes, dim> DN_DX;
             double volume;
             GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);
-            cons_law_values.SetShapeFunctionsValues(N);
-            cons_law_values.SetShapeFunctionsDerivatives(DN_DX);
-
+            Vector N_copy = N;
+            Matrix DN_DX_copy = DN_DX;
+            cons_law_values.SetShapeFunctionsValues(N_copy);
+            cons_law_values.SetShapeFunctionsDerivatives(DN_DX_copy);
 
             p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
 
             // Check computed values
-            const double tolerance = 1e-10;
+            const double tolerance = 1e-7;
 
-            KRATOS_CHECK_NEAR(c_matrix(0,0),  0.410500, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(0,1), -0.205250, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(0,2), -0.205250, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(1,0), -0.205250, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(1,1),  0.410500, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(1,2), -0.205250, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(2,0), -0.205250, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(2,1), -0.205250, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(2,2),  0.410500, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(3,3),  0.307875, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(4,4),  0.307875, tolerance);
-            KRATOS_CHECK_NEAR(c_matrix(5,5),  0.307875, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,0),  0.4100, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,1), -0.2050, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(0,2), -0.2050, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,0), -0.2050, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,1),  0.4100, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(1,2), -0.2050, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,0), -0.2050, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,1), -0.2050, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(2,2),  0.4100, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(3,3),  0.3075, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(4,4),  0.3075, tolerance);
+            KRATOS_CHECK_NEAR(c_matrix(5,5),  0.3075, tolerance);
 
-            KRATOS_CHECK_NEAR(stress_vector(0), -0.20525, tolerance);
-            KRATOS_CHECK_NEAR(stress_vector(1),  1.64200, tolerance);
-            KRATOS_CHECK_NEAR(stress_vector(2), -1.436750, tolerance);
-            KRATOS_CHECK_NEAR(stress_vector(3),  0.615750, tolerance);
-            KRATOS_CHECK_NEAR(stress_vector(4),  0.923625, tolerance);
-            KRATOS_CHECK_NEAR(stress_vector(5),  1.231500, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(0), -0.2050, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(1),  1.6400, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(2), -1.4350, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(3),  0.6150, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(4),  0.9225, tolerance);
+            KRATOS_CHECK_NEAR(stress_vector(5),  1.2300, tolerance);
 	    }
 
 	    /** 

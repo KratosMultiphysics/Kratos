@@ -24,6 +24,7 @@
         "line_search"                        : false,
         "compute_reactions"                  : true,
         "block_builder"                      : false,
+        "multi_point_constraints_used"       : false,
         "move_mesh_flag"                     : true,
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
@@ -80,9 +81,9 @@
     "loads_process_list" : [],
     "list_other_processes" : [
     {
-        "python_module"  :"sprism_process", 
-        "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication", 
-        "help"                 : "", 
+        "python_module"  :"sprism_process",
+        "kratos_module":"StructuralMechanicsApplication",
+        "help"                 : "",
         "process_name"         : "SPRISMProcess",
         "Parameters":{
             "model_part_name"  : "Parts_Parts_Auto1"

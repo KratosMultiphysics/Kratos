@@ -75,7 +75,7 @@
     "loads_process_list"       : [],
     "contact_process_list" :[{
         "python_module" : "alm_contact_process",
-        "kratos_module" : "KratosMultiphysics.ContactStructuralMechanicsApplication",
+        "kratos_module" : "ContactStructuralMechanicsApplication",
         "help"          : "This process computes the contact between different surfaces",
         "process_name"  : "ALMContactProcess",
         "Parameters"            : {
@@ -93,7 +93,7 @@
     }],
     "list_other_processes" : [{
         "python_module"  :"sprism_process",
-        "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication",
+        "kratos_module":"StructuralMechanicsApplication",
         "help"                 : "",
         "process_name"         : "SPRISMProcess",
         "Parameters":{
@@ -101,7 +101,7 @@
         }
     },{
         "python_module"  :"sprism_process",
-        "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication",
+        "kratos_module":"StructuralMechanicsApplication",
         "help"                 : "",
         "process_name"         : "SPRISMProcess",
         "Parameters":{
@@ -109,7 +109,7 @@
         }
     },{
         "python_module"  :"sprism_process",
-        "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication",
+        "kratos_module":"StructuralMechanicsApplication",
         "help"                 : "",
         "process_name"         : "SPRISMProcess",
         "Parameters":{

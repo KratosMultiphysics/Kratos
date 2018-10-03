@@ -21,11 +21,12 @@
 
 //Processes
 #include "custom_processes/prism_neighbours_process.h"
-#include "custom_processes/apply_multi_point_constraints_process.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "custom_processes/solid_shell_thickness_compute_process.h"
+#include "custom_processes/spr_error_process.h"
+#include "custom_processes/impose_rigid_movement_process.h"
 
 namespace Kratos
 {
@@ -37,16 +38,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     using namespace pybind11;
 
     /// Processes
-    class_<ApplyMultipointConstraintsProcess, ApplyMultipointConstraintsProcess::Pointer, Process>(m,"ApplyMultipointConstraintsProcess")
-        .def(init<ModelPart&>())
-        .def(init< ModelPart&, Parameters& >())
-	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariableComponents)
-        .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariableComponents)
-	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariable)
-        .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariable)
-        .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)
-        .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
-
     class_<PostprocessEigenvaluesProcess, PostprocessEigenvaluesProcess::Pointer, Process>(m,"PostprocessEigenvaluesProcess")
         .def(init<ModelPart&, Parameters>());
 
@@ -69,6 +60,22 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         ;
 
     class_<ShellToSolidShellProcess<4>, ShellToSolidShellProcess<4>::Pointer, Process>(m, "QuadrilateralShellToSolidShellProcess")
+        .def(init<ModelPart&>())
+        .def(init< ModelPart&, Parameters >())
+        ;
+
+    //SPR_ERROR
+    class_<SPRErrorProcess<2>, SPRErrorProcess<2>::Pointer, Process >(m, "SPRErrorProcess2D")
+    .def(init<ModelPart&>())
+    .def(init<ModelPart&, Parameters>())
+    ;
+
+    class_<SPRErrorProcess<3>, SPRErrorProcess<3>::Pointer, Process >(m, "SPRErrorProcess3D")
+    .def(init<ModelPart&>())
+    .def(init<ModelPart&, Parameters>())
+    ;
+
+    class_<ImposeRigidMovementProcess, ImposeRigidMovementProcess::Pointer, Process>(m, "ImposeRigidMovementProcess")
         .def(init<ModelPart&>())
         .def(init< ModelPart&, Parameters >())
         ;

@@ -122,12 +122,12 @@ void  AddProcessesToPython(pybind11::module& m)
         ;
         
         // ERROR
-        class_<ComputeErrorSolMetricProcess<2>, ComputeErrorSolMetricProcess<2>::Pointer, Process>(m, "ComputeErrorSolMetricProcess2D")
+        class_<MetricErrorProcess<2>, MetricErrorProcess<2>::Pointer, Process>(m, "MetricErrorProcess2D")
         .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
         ;
    
-        class_<ComputeErrorSolMetricProcess<3>, ComputeErrorSolMetricProcess<3>::Pointer, Process>(m, "ComputeErrorSolMetricProcess3D")
+        class_<MetricErrorProcess<3>, MetricErrorProcess<3>::Pointer, Process>(m, "MetricErrorProcess3D")
         .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
         ;

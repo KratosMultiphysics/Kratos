@@ -131,9 +131,9 @@
     }
     ],
     "list_other_processes" : [{
-        "python_module"  :"sprism_process", 
-        "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication", 
-        "help"                 : "", 
+        "python_module"  :"sprism_process",
+        "kratos_module":"StructuralMechanicsApplication",
+        "help"                 : "",
         "process_name"         : "SPRISMProcess",
         "Parameters":{
             "model_part_name"  : "Parts_Parts_Auto1"

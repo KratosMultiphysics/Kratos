@@ -21,6 +21,7 @@ class IntegrationValuesExtrapolationToNodesProcess(KratosMultiphysics.Process):
  
         default_settings = KratosMultiphysics.Parameters(""" 
         {
+            "help"                       : "This process extrapolates the values from integration points to the mesh nodes",
             "model_part_name"            : "",
             "echo_level"                 : 0,
             "average_variable"           : "NODAL_AREA",

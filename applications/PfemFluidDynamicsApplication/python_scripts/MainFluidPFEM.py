@@ -281,6 +281,9 @@ class Solution(object):
         # processes to be executed after witting the output
         self.model_processes.ExecuteAfterOutputStep()
 
+        # Calculate Nodal_Area
+        self.CalculateNodalArea()
+        
         self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
 
     def Finalize(self):
@@ -368,6 +371,9 @@ class Solution(object):
         if( report ):
             used_time = time_fp - time_ip
             print("::[PFEM Simulation]:: [ %.2f" % round(used_time,2),"s", process," ] ")
+
+    def CalculateNodalArea(self):
+        pass
 
     #### Main internal methods ####
 

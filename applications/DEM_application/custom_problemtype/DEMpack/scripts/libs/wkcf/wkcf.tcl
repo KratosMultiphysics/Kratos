@@ -187,6 +187,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 		    ::wkcf::WriteDemNodalVariables2 $AppId $filechannel
 		    ::wkcf::WriteGroupMeshProperties $AppId
 		    ::wkcf::WriteInletGroupMeshProperties $AppId
+			::wkcf::WriteCustomSubModelParts $AppId
 		}
 	    }
 	    ::wkcf::CloseChannels $AppId
@@ -410,7 +411,7 @@ proc ::wkcf::WriteProperties {AppId} {
 		        set propvalue [::xmlutils::setXml $cxpath "dv" "read" "" "mat"]
 		        set pi 3.1415926535897931
 		        set propvalue [expr {tan($propvalue*$pi/180.0)}]
-		        GiD_File fprintf $filechannel "PARTICLE_FRICTION $propvalue"
+		        GiD_File fprintf $filechannel "FRICTION $propvalue"
 
 		        set cxpath "DEMMaterial//m.$material//p.ParticleCohesion"
 		        set propvalue [::xmlutils::setXml $cxpath "dv" "read" "" "mat"]
@@ -623,7 +624,7 @@ proc ::wkcf::WriteProperties {AppId} {
 	    set friction_value [::xmlutils::setXml $cxpath $cproperty]
 	    set pi 3.1415926535897931
 	    set friction_value [expr {tan($friction_value*$pi/180.0)}]
-	    GiD_File fprintf $demfemchannel "WALL_FRICTION $friction_value"
+	    GiD_File fprintf $demfemchannel "FRICTION $friction_value"
 	    set cxpath "$rootid//c.DEM-Conditions//c.DEM-FEM-Wall//c.[list ${cgroupid}]//c.$options_container//i.WallCohesion"
 	    set cohesive_wall [::xmlutils::setXml $cxpath $cproperty]
 	    GiD_File fprintf $demfemchannel "WALL_COHESION $cohesive_wall"
@@ -689,7 +690,7 @@ proc ::wkcf::WriteProperties {AppId} {
 	GiD_File fprintf $deminletchannel "  POISSON_RATIO $poisson_ratio"
 	set friction_angle [::xmlutils::setXml "DEMMaterial//m.$material//p.ParticleFrictionAngle" "dv" "read" "" "mat"]
 	set friction_angle [expr {tan(3.1415926535897931*$friction_angle/180.0)}]
-	GiD_File fprintf $deminletchannel "  PARTICLE_FRICTION $friction_angle"
+	GiD_File fprintf $deminletchannel "  FRICTION $friction_angle"
 	set cohesion [::xmlutils::setXml "DEMMaterial//m.$material//p.ParticleCohesion" "dv" "read" "" "mat"]
 	GiD_File fprintf $deminletchannel "  PARTICLE_COHESION $cohesion"
 	set coeff_of_rest [::xmlutils::setXml "DEMMaterial//m.$material//p.CoefficientOfRestitution" "dv" "read" "" "mat"]
@@ -873,7 +874,7 @@ proc ::wkcf::WriteDSOLIDContactProperties {AppId} {
 	set poisson_ratio [::xmlutils::setXml $cxpath $cproperty]
 	set pi 3.1415926535897931
 	set friction_value [expr {tan($friction_value*$pi/180.0)}]
-	GiD_File fprintf $demfemchannel "WALL_FRICTION $friction_value"
+	GiD_File fprintf $demfemchannel "FRICTION $friction_value"
 	GiD_File fprintf $demfemchannel "WALL_COHESION 0.0"
 	GiD_File fprintf $demfemchannel "COMPUTE_WEAR 0.0"
 	GiD_File fprintf $demfemchannel "SEVERITY_OF_WEAR 0.0"

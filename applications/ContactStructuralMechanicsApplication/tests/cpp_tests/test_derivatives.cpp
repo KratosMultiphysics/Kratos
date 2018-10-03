@@ -100,7 +100,7 @@ namespace Kratos
             // Create and initialize condition variables
             MortarKinematicVariablesWithDerivatives<TDim, TNumNodes> rVariables0; // These are the kinematic variables for the initial configuration
             MortarKinematicVariablesWithDerivatives<TDim, TNumNodes> rVariables; // These are the kinematic variables for the current configuration
-            
+
             // Create the initial contact data
             DerivativeData<TDim, TNumNodes, true> rDerivativeData0;
             rDerivativeData0.Initialize(slave_geometry_0, ThisModelPart.GetProcessInfo());
@@ -116,7 +116,7 @@ namespace Kratos
                     // We add displacement to the corresponding node
                     array_1d<double, 3> aux_delta_disp = ZeroVector(3);
                     aux_delta_disp[IndexPerturbation] = static_cast<double>(iter + 1) * Coeff[i_per];
-                    Node<3>::Pointer node_to_move = ThisModelPart.pGetNode(NodesPerturbation[i_per]);
+                    NodeType::Pointer node_to_move = ThisModelPart.pGetNode(NodesPerturbation[i_per]);
                     array_1d<double, 3>& current_disp = node_to_move->FastGetSolutionStepValue(DISPLACEMENT);
                     const array_1d<double, 3>& aux_previous_disp = node_to_move->FastGetSolutionStepValue(DISPLACEMENT);
                     array_1d<double, 3>& previous_disp = node_to_move->FastGetSolutionStepValue(DISPLACEMENT, 1);
@@ -125,14 +125,13 @@ namespace Kratos
                     // Finally we move the mesh
                     noalias(node_to_move->Coordinates()) = node_to_move->GetInitialPosition().Coordinates() + node_to_move->FastGetSolutionStepValue(DISPLACEMENT);
                 }
-                
+
                 if (consider_normal_variation != NO_DERIVATIVES_COMPUTATION) {
                     PointType aux_point;
                     aux_point.Coordinates() = ZeroVector(3);
                     const array_1d<double, 3>& normal_slave = slave_geometry_1.UnitNormal(aux_point);
                     SlaveCondition1->SetValue(NORMAL, normal_slave);
-                    for (IndexType i_node = 0; i_node < slave_geometry_1.size(); ++i_node)
-                    {
+                    for (IndexType i_node = 0; i_node < slave_geometry_1.size(); ++i_node) {
                         GeometryType::CoordinatesArrayType point_local;
                         slave_geometry_1.PointLocalCoordinates( point_local, slave_geometry_1[i_node].Coordinates( ) ) ;
                         const array_1d<double, 3>& node_normal_slave = slave_geometry_1.UnitNormal(point_local);
@@ -153,7 +152,7 @@ namespace Kratos
                         current_normal = node_normal_master;
                     }
                 }
-                
+
                 // Create the current contact data
                 DerivativeData<TDim, TNumNodes, true> rDerivativeData;
                 rDerivativeData.Initialize(slave_geometry_1, ThisModelPart.GetProcessInfo());
@@ -161,9 +160,9 @@ namespace Kratos
                 // We compute the normal derivatives
                 if (consider_normal_variation == NODAL_ELEMENTAL_DERIVATIVES) {
                     // Compute the normal derivatives of the slave
-                    DerivativesUtilitiesType::CalculateDeltaNormal(rDerivativeData.DeltaNormalSlave, slave_geometry_1);
+                    DerivativesUtilitiesType::CalculateDeltaNormalSlave(rDerivativeData.DeltaNormalSlave, slave_geometry_1);
                     // Compute the normal derivatives of the master
-                    DerivativesUtilitiesType::CalculateDeltaNormal(rDerivativeData.DeltaNormalMaster, master_geometry_1);
+                    DerivativesUtilitiesType::CalculateDeltaNormalMaster(rDerivativeData.DeltaNormalMaster, master_geometry_1);
                 }
 
                 const array_1d<double, 3>& normal_slave_1 = SlaveCondition1->GetValue(NORMAL);
@@ -186,25 +185,25 @@ namespace Kratos
                     // Update slave element info
                     rDerivativeData.UpdateMasterPair(MasterCondition1->GetGeometry(), ThisModelPart.GetProcessInfo());
                     rDerivativeData0.UpdateMasterPair(MasterCondition0->GetGeometry(), ThisModelPart.GetProcessInfo());
-                    
+
                     if (conditions_points_slave.size() == conditions_points_slave0.size()) {// Just in case we have the "same configuration"
                         DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry_1, normal_slave_1, MasterCondition1->GetGeometry(), rDerivativeData, rVariables, consider_normal_variation, conditions_points_slave, this_integration_method);
                         DerivativesUtilitiesType::CalculateAeAndDeltaAe(slave_geometry_0, normal_slave_0, MasterCondition0->GetGeometry(), rDerivativeData0, rVariables0, consider_normal_variation, conditions_points_slave0, this_integration_method);
 
                         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
-                            std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-                            std::vector<PointType::Pointer> points_array0 (TDim);
+                            PointerVector< PointType > points_array(TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+                            PointerVector< PointType > points_array0(TDim);
                             array_1d<BelongType, TDim> belong_array;
                             for (IndexType i_node = 0; i_node < TDim; ++i_node) {
                                 PointType global_point;
                                 slave_geometry_1.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
-                                points_array[i_node] = PointType::Pointer( new PointType(global_point) );
+                                points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
                                 belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
                                 slave_geometry_0.GlobalCoordinates(global_point, conditions_points_slave0[i_geom][i_node]);
-                                points_array0[i_node] = PointType::Pointer( new PointType(global_point) );
+                                points_array0(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
                             }
 
-                            if (Check == LEVEL_DEBUG || Check == LEVEL_FULL_DEBUG) KRATOS_WATCH(belong_array);
+                            if (Check == LEVEL_DEBUG || Check == LEVEL_FULL_DEBUG) for (std::size_t i = 0; i < TDim; ++i) KRATOS_WATCH(static_cast<std::size_t>(belong_array[i]));
 
                             DecompositionType decomp_geom( points_array );
                             DecompositionType decomp_geom0( points_array0 );
@@ -276,16 +275,16 @@ namespace Kratos
                                     master_geometry_1.ShapeFunctionsLocalGradients( rVariables.DNDeMaster, projected_gp_local );
                                     rVariables.PhiLagrangeMultipliers = prod(rDerivativeData.Ae, rVariables.NSlave);
                                     rVariables.jMaster = master_geometry_1.Jacobian( rVariables.jMaster, projected_gp_local);
-                                    
+
                                     // Now we compute the derivatives
                                     if (TDim == 3) DerivativesUtilitiesType::CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, slave_geometry_1, master_geometry_1, normal_slave_1);
-                                    
+
                                     // Update the derivative of DetJ
                                     DerivativesUtilitiesType::CalculateDeltaDetjSlave(decomp_geom, rVariables, rDerivativeData);
-                                    
+
                                     // Update the derivatives of the shape functions and the gap
                                     DerivativesUtilitiesType::CalculateDeltaN(rVariables, rDerivativeData, slave_geometry_1, master_geometry_1, normal_slave_1, normal_master_1, decomp_geom, local_point_decomp, local_point_parent, consider_normal_variation, true);
-                                    
+
                                     if (Derivative == CHECK_SHAPE_FUNCTION) {
                                         // Now we compute the error of the delta N
                                         Vector aux_N_dx_slave  = rVariables0.NSlave;
@@ -494,12 +493,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_0 (2);
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
-            Line2D2 <Node<3>> line_0( condition_nodes_0 );
+            Line2D2 <NodeType> line_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (2);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
-            Line2D2 <Node<3>> line0_0( condition_nodes0_0 );
+            Line2D2 <NodeType> line0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 1, line_0, p_cond_prop);
@@ -518,12 +517,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_1 (2);
             condition_nodes_1[0] = p_node_3;
             condition_nodes_1[1] = p_node_4;
-            Line2D2 <Node<3>> line_1( condition_nodes_1 );
+            Line2D2 <NodeType> line_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (2);
             condition_nodes0_1[0] = p_node0_3;
             condition_nodes0_1[1] = p_node0_4;
-            Line2D2 <Node<3>> line0_1( condition_nodes0_1 );
+            Line2D2 <NodeType> line0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 2, line_1, p_cond_prop);
@@ -582,12 +581,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_0 (2);
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
-            Line2D2 <Node<3>> line_0( condition_nodes_0 );
+            Line2D2 <NodeType> line_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (2);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
-            Line2D2 <Node<3>> line0_0( condition_nodes0_0 );
+            Line2D2 <NodeType> line0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 1, line_0, p_cond_prop);
@@ -606,12 +605,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_1 (2);
             condition_nodes_1[0] = p_node_3;
             condition_nodes_1[1] = p_node_4;
-            Line2D2 <Node<3>> line_1( condition_nodes_1 );
+            Line2D2 <NodeType> line_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (2);
             condition_nodes0_1[0] = p_node0_3;
             condition_nodes0_1[1] = p_node0_4;
-            Line2D2 <Node<3>> line0_1( condition_nodes0_1 );
+            Line2D2 <NodeType> line0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 2, line_1, p_cond_prop);
@@ -670,12 +669,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_0 (2);
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
-            Line2D2 <Node<3>> line_0( condition_nodes_0 );
+            Line2D2 <NodeType> line_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (2);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
-            Line2D2 <Node<3>> line0_0( condition_nodes0_0 );
+            Line2D2 <NodeType> line0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 1, line_0, p_cond_prop);
@@ -694,12 +693,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_1 (2);
             condition_nodes_1[0] = p_node_3;
             condition_nodes_1[1] = p_node_4;
-            Line2D2 <Node<3>> line_1( condition_nodes_1 );
+            Line2D2 <NodeType> line_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (2);
             condition_nodes0_1[0] = p_node0_3;
             condition_nodes0_1[1] = p_node0_4;
-            Line2D2 <Node<3>> line0_1( condition_nodes0_1 );
+            Line2D2 <NodeType> line0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 2, line_1, p_cond_prop);
@@ -757,12 +756,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_0 (2);
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
-            Line2D2 <Node<3>> line_0( condition_nodes_0 );
+            Line2D2 <NodeType> line_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (2);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
-            Line2D2 <Node<3>> line0_0( condition_nodes0_0 );
+            Line2D2 <NodeType> line0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 1, line_0, p_cond_prop);
@@ -781,12 +780,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_1 (2);
             condition_nodes_1[0] = p_node_3;
             condition_nodes_1[1] = p_node_4;
-            Line2D2 <Node<3>> line_1( condition_nodes_1 );
+            Line2D2 <NodeType> line_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (2);
             condition_nodes0_1[0] = p_node0_3;
             condition_nodes0_1[1] = p_node0_4;
-            Line2D2 <Node<3>> line0_1( condition_nodes0_1 );
+            Line2D2 <NodeType> line0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 2, line_1, p_cond_prop);
@@ -844,12 +843,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_0 (2);
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
-            Line2D2 <Node<3>> line_0( condition_nodes_0 );
+            Line2D2 <NodeType> line_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (2);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
-            Line2D2 <Node<3>> line0_0( condition_nodes0_0 );
+            Line2D2 <NodeType> line0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 1, line_0, p_cond_prop);
@@ -868,12 +867,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_1 (2);
             condition_nodes_1[0] = p_node_3;
             condition_nodes_1[1] = p_node_4;
-            Line2D2 <Node<3>> line_1( condition_nodes_1 );
+            Line2D2 <NodeType> line_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (2);
             condition_nodes0_1[0] = p_node0_3;
             condition_nodes0_1[1] = p_node0_4;
-            Line2D2 <Node<3>> line0_1( condition_nodes0_1 );
+            Line2D2 <NodeType> line0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 2, line_1, p_cond_prop);
@@ -932,12 +931,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_0 (2);
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
-            Line2D2 <Node<3>> line_0( condition_nodes_0 );
+            Line2D2 <NodeType> line_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (2);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
-            Line2D2 <Node<3>> line0_0( condition_nodes0_0 );
+            Line2D2 <NodeType> line0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 1, line_0, p_cond_prop);
@@ -956,12 +955,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_1 (2);
             condition_nodes_1[0] = p_node_3;
             condition_nodes_1[1] = p_node_4;
-            Line2D2 <Node<3>> line_1( condition_nodes_1 );
+            Line2D2 <NodeType> line_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (2);
             condition_nodes0_1[0] = p_node0_3;
             condition_nodes0_1[1] = p_node0_4;
-            Line2D2 <Node<3>> line0_1( condition_nodes0_1 );
+            Line2D2 <NodeType> line0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 2, line_1, p_cond_prop);
@@ -1020,12 +1019,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_0 (2);
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
-            Line2D2 <Node<3>> line_0( condition_nodes_0 );
+            Line2D2 <NodeType> line_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (2);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
-            Line2D2 <Node<3>> line0_0( condition_nodes0_0 );
+            Line2D2 <NodeType> line0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 1, line_0, p_cond_prop);
@@ -1044,12 +1043,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_1 (2);
             condition_nodes_1[0] = p_node_3;
             condition_nodes_1[1] = p_node_4;
-            Line2D2 <Node<3>> line_1( condition_nodes_1 );
+            Line2D2 <NodeType> line_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (2);
             condition_nodes0_1[0] = p_node0_3;
             condition_nodes0_1[1] = p_node0_4;
-            Line2D2 <Node<3>> line0_1( condition_nodes0_1 );
+            Line2D2 <NodeType> line0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 2, line_1, p_cond_prop);
@@ -1107,12 +1106,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_0 (2);
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
-            Line2D2 <Node<3>> line_0( condition_nodes_0 );
+            Line2D2 <NodeType> line_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (2);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
-            Line2D2 <Node<3>> line0_0( condition_nodes0_0 );
+            Line2D2 <NodeType> line0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 1, line_0, p_cond_prop);
@@ -1131,12 +1130,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_1 (2);
             condition_nodes_1[0] = p_node_3;
             condition_nodes_1[1] = p_node_4;
-            Line2D2 <Node<3>> line_1( condition_nodes_1 );
+            Line2D2 <NodeType> line_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (2);
             condition_nodes0_1[0] = p_node0_3;
             condition_nodes0_1[1] = p_node0_4;
-            Line2D2 <Node<3>> line0_1( condition_nodes0_1 );
+            Line2D2 <NodeType> line0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 2, line_1, p_cond_prop);
@@ -1194,12 +1193,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_0 (2);
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
-            Line2D2 <Node<3>> line_0( condition_nodes_0 );
+            Line2D2 <NodeType> line_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (2);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
-            Line2D2 <Node<3>> line0_0( condition_nodes0_0 );
+            Line2D2 <NodeType> line0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 1, line_0, p_cond_prop);
@@ -1218,12 +1217,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_1 (2);
             condition_nodes_1[0] = p_node_3;
             condition_nodes_1[1] = p_node_4;
-            Line2D2 <Node<3>> line_1( condition_nodes_1 );
+            Line2D2 <NodeType> line_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (2);
             condition_nodes0_1[0] = p_node0_3;
             condition_nodes0_1[1] = p_node0_4;
-            Line2D2 <Node<3>> line0_1( condition_nodes0_1 );
+            Line2D2 <NodeType> line0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 2, line_1, p_cond_prop);
@@ -1281,12 +1280,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_0 (2);
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
-            Line2D2 <Node<3>> line_0( condition_nodes_0 );
+            Line2D2 <NodeType> line_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (2);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
-            Line2D2 <Node<3>> line0_0( condition_nodes0_0 );
+            Line2D2 <NodeType> line0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 1, line_0, p_cond_prop);
@@ -1305,12 +1304,12 @@ namespace Kratos
             std::vector<NodeType::Pointer> condition_nodes_1 (2);
             condition_nodes_1[0] = p_node_3;
             condition_nodes_1[1] = p_node_4;
-            Line2D2 <Node<3>> line_1( condition_nodes_1 );
+            Line2D2 <NodeType> line_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (2);
             condition_nodes0_1[0] = p_node0_3;
             condition_nodes0_1[1] = p_node0_4;
-            Line2D2 <Node<3>> line0_1( condition_nodes0_1 );
+            Line2D2 <NodeType> line0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = line_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition2D2N", 2, line_1, p_cond_prop);
@@ -1373,13 +1372,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
-            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (3);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
-            Triangle3D3 <Node<3>> triangle0_0( condition_nodes0_0 );
+            Triangle3D3 <NodeType> triangle0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 1, triangle_0, p_cond_prop);
@@ -1399,13 +1398,13 @@ namespace Kratos
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (3);
             condition_nodes0_1[0] = p_node0_4;
             condition_nodes0_1[1] = p_node0_5;
             condition_nodes0_1[2] = p_node0_6;
-            Triangle3D3 <Node<3>> triangle0_1( condition_nodes0_1 );
+            Triangle3D3 <NodeType> triangle0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 2, triangle_1, p_cond_prop);
@@ -1467,13 +1466,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
-            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (3);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
-            Triangle3D3 <Node<3>> triangle0_0( condition_nodes0_0 );
+            Triangle3D3 <NodeType> triangle0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 1, triangle_0, p_cond_prop);
@@ -1493,13 +1492,13 @@ namespace Kratos
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (3);
             condition_nodes0_1[0] = p_node0_4;
             condition_nodes0_1[1] = p_node0_5;
             condition_nodes0_1[2] = p_node0_6;
-            Triangle3D3 <Node<3>> triangle0_1( condition_nodes0_1 );
+            Triangle3D3 <NodeType> triangle0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 2, triangle_1, p_cond_prop);
@@ -1566,14 +1565,14 @@ namespace Kratos
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
             condition_nodes_0[3] = p_node_4;
-            Quadrilateral3D4 <Node<3>> quadrilateral_0( condition_nodes_0 );
+            Quadrilateral3D4 <NodeType> quadrilateral_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (4);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
             condition_nodes0_0[3] = p_node0_4;
-            Quadrilateral3D4 <Node<3>> quadrilateral0_0( condition_nodes0_0 );
+            Quadrilateral3D4 <NodeType> quadrilateral0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = quadrilateral_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 1, quadrilateral_0, p_cond_prop);
@@ -1594,14 +1593,14 @@ namespace Kratos
             condition_nodes_1[1] = p_node_6;
             condition_nodes_1[2] = p_node_7;
             condition_nodes_1[3] = p_node_8;
-            Quadrilateral3D4 <Node<3>> quadrilateral_1( condition_nodes_1 );
+            Quadrilateral3D4 <NodeType> quadrilateral_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (4);
             condition_nodes0_1[0] = p_node0_5;
             condition_nodes0_1[1] = p_node0_6;
             condition_nodes0_1[2] = p_node0_7;
             condition_nodes0_1[3] = p_node0_8;
-            Quadrilateral3D4 <Node<3>> quadrilateral0_1( condition_nodes0_1 );
+            Quadrilateral3D4 <NodeType> quadrilateral0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = quadrilateral_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 2, quadrilateral_1, p_cond_prop);
@@ -1663,13 +1662,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
-            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (3);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
-            Triangle3D3 <Node<3>> triangle0_0( condition_nodes0_0 );
+            Triangle3D3 <NodeType> triangle0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 1, triangle_0, p_cond_prop);
@@ -1689,13 +1688,13 @@ namespace Kratos
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (3);
             condition_nodes0_1[0] = p_node0_4;
             condition_nodes0_1[1] = p_node0_5;
             condition_nodes0_1[2] = p_node0_6;
-            Triangle3D3 <Node<3>> triangle0_1( condition_nodes0_1 );
+            Triangle3D3 <NodeType> triangle0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 2, triangle_1, p_cond_prop);
@@ -1757,13 +1756,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
-            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (3);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
-            Triangle3D3 <Node<3>> triangle0_0( condition_nodes0_0 );
+            Triangle3D3 <NodeType> triangle0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 1, triangle_0, p_cond_prop);
@@ -1783,13 +1782,13 @@ namespace Kratos
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (3);
             condition_nodes0_1[0] = p_node0_4;
             condition_nodes0_1[1] = p_node0_5;
             condition_nodes0_1[2] = p_node0_6;
-            Triangle3D3 <Node<3>> triangle0_1( condition_nodes0_1 );
+            Triangle3D3 <NodeType> triangle0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 2, triangle_1, p_cond_prop);
@@ -1851,13 +1850,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
-            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (3);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
-            Triangle3D3 <Node<3>> triangle0_0( condition_nodes0_0 );
+            Triangle3D3 <NodeType> triangle0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 1, triangle_0, p_cond_prop);
@@ -1877,13 +1876,13 @@ namespace Kratos
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (3);
             condition_nodes0_1[0] = p_node0_4;
             condition_nodes0_1[1] = p_node0_5;
             condition_nodes0_1[2] = p_node0_6;
-            Triangle3D3 <Node<3>> triangle0_1( condition_nodes0_1 );
+            Triangle3D3 <NodeType> triangle0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 2, triangle_1, p_cond_prop);
@@ -1945,13 +1944,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
-            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (3);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
-            Triangle3D3 <Node<3>> triangle0_0( condition_nodes0_0 );
+            Triangle3D3 <NodeType> triangle0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 1, triangle_0, p_cond_prop);
@@ -1971,13 +1970,13 @@ namespace Kratos
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (3);
             condition_nodes0_1[0] = p_node0_4;
             condition_nodes0_1[1] = p_node0_5;
             condition_nodes0_1[2] = p_node0_6;
-            Triangle3D3 <Node<3>> triangle0_1( condition_nodes0_1 );
+            Triangle3D3 <NodeType> triangle0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 2, triangle_1, p_cond_prop);
@@ -2044,14 +2043,14 @@ namespace Kratos
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
             condition_nodes_0[3] = p_node_4;
-            Quadrilateral3D4 <Node<3>> quadrilateral_0( condition_nodes_0 );
+            Quadrilateral3D4 <NodeType> quadrilateral_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (4);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
             condition_nodes0_0[3] = p_node0_4;
-            Quadrilateral3D4 <Node<3>> quadrilateral0_0( condition_nodes0_0 );
+            Quadrilateral3D4 <NodeType> quadrilateral0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = quadrilateral_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 1, quadrilateral_0, p_cond_prop);
@@ -2072,14 +2071,14 @@ namespace Kratos
             condition_nodes_1[1] = p_node_6;
             condition_nodes_1[2] = p_node_7;
             condition_nodes_1[3] = p_node_8;
-            Quadrilateral3D4 <Node<3>> quadrilateral_1( condition_nodes_1 );
+            Quadrilateral3D4 <NodeType> quadrilateral_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (4);
             condition_nodes0_1[0] = p_node0_5;
             condition_nodes0_1[1] = p_node0_6;
             condition_nodes0_1[2] = p_node0_7;
             condition_nodes0_1[3] = p_node0_8;
-            Quadrilateral3D4 <Node<3>> quadrilateral0_1( condition_nodes0_1 );
+            Quadrilateral3D4 <NodeType> quadrilateral0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = quadrilateral_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 2, quadrilateral_1, p_cond_prop);
@@ -2146,14 +2145,14 @@ namespace Kratos
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
             condition_nodes_0[3] = p_node_4;
-            Quadrilateral3D4 <Node<3>> quadrilateral_0( condition_nodes_0 );
+            Quadrilateral3D4 <NodeType> quadrilateral_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (4);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
             condition_nodes0_0[3] = p_node0_4;
-            Quadrilateral3D4 <Node<3>> quadrilateral0_0( condition_nodes0_0 );
+            Quadrilateral3D4 <NodeType> quadrilateral0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = quadrilateral_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 1, quadrilateral_0, p_cond_prop);
@@ -2174,14 +2173,14 @@ namespace Kratos
             condition_nodes_1[1] = p_node_6;
             condition_nodes_1[2] = p_node_7;
             condition_nodes_1[3] = p_node_8;
-            Quadrilateral3D4 <Node<3>> quadrilateral_1( condition_nodes_1 );
+            Quadrilateral3D4 <NodeType> quadrilateral_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (4);
             condition_nodes0_1[0] = p_node0_5;
             condition_nodes0_1[1] = p_node0_6;
             condition_nodes0_1[2] = p_node0_7;
             condition_nodes0_1[3] = p_node0_8;
-            Quadrilateral3D4 <Node<3>> quadrilateral0_1( condition_nodes0_1 );
+            Quadrilateral3D4 <NodeType> quadrilateral0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = quadrilateral_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 2, quadrilateral_1, p_cond_prop);
@@ -2248,14 +2247,14 @@ namespace Kratos
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
             condition_nodes_0[3] = p_node_4;
-            Quadrilateral3D4 <Node<3>> quadrilateral_0( condition_nodes_0 );
+            Quadrilateral3D4 <NodeType> quadrilateral_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (4);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
             condition_nodes0_0[3] = p_node0_4;
-            Quadrilateral3D4 <Node<3>> quadrilateral0_0( condition_nodes0_0 );
+            Quadrilateral3D4 <NodeType> quadrilateral0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = quadrilateral_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 1, quadrilateral_0, p_cond_prop);
@@ -2275,14 +2274,14 @@ namespace Kratos
             condition_nodes_1[1] = p_node_6;
             condition_nodes_1[2] = p_node_7;
             condition_nodes_1[3] = p_node_8;
-            Quadrilateral3D4 <Node<3>> quadrilateral_1( condition_nodes_1 );
+            Quadrilateral3D4 <NodeType> quadrilateral_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (4);
             condition_nodes0_1[0] = p_node0_5;
             condition_nodes0_1[1] = p_node0_6;
             condition_nodes0_1[2] = p_node0_7;
             condition_nodes0_1[3] = p_node0_8;
-            Quadrilateral3D4 <Node<3>> quadrilateral0_1( condition_nodes0_1 );
+            Quadrilateral3D4 <NodeType> quadrilateral0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = quadrilateral_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 2, quadrilateral_1, p_cond_prop);
@@ -2344,13 +2343,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
-            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (3);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
-            Triangle3D3 <Node<3>> triangle0_0( condition_nodes0_0 );
+            Triangle3D3 <NodeType> triangle0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 1, triangle_0, p_cond_prop);
@@ -2370,13 +2369,13 @@ namespace Kratos
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (3);
             condition_nodes0_1[0] = p_node0_4;
             condition_nodes0_1[1] = p_node0_5;
             condition_nodes0_1[2] = p_node0_6;
-            Triangle3D3 <Node<3>> triangle0_1( condition_nodes0_1 );
+            Triangle3D3 <NodeType> triangle0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 2, triangle_1, p_cond_prop);
@@ -2438,13 +2437,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
-            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (3);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
-            Triangle3D3 <Node<3>> triangle0_0( condition_nodes0_0 );
+            Triangle3D3 <NodeType> triangle0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 1, triangle_0, p_cond_prop);
@@ -2464,13 +2463,13 @@ namespace Kratos
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (3);
             condition_nodes0_1[0] = p_node0_4;
             condition_nodes0_1[1] = p_node0_5;
             condition_nodes0_1[2] = p_node0_6;
-            Triangle3D3 <Node<3>> triangle0_1( condition_nodes0_1 );
+            Triangle3D3 <NodeType> triangle0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 2, triangle_1, p_cond_prop);
@@ -2537,14 +2536,14 @@ namespace Kratos
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
             condition_nodes_0[3] = p_node_4;
-            Quadrilateral3D4 <Node<3>> quadrilateral_0( condition_nodes_0 );
+            Quadrilateral3D4 <NodeType> quadrilateral_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (4);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
             condition_nodes0_0[3] = p_node0_4;
-            Quadrilateral3D4 <Node<3>> quadrilateral0_0( condition_nodes0_0 );
+            Quadrilateral3D4 <NodeType> quadrilateral0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = quadrilateral_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 1, quadrilateral_0, p_cond_prop);
@@ -2564,14 +2563,14 @@ namespace Kratos
             condition_nodes_1[1] = p_node_6;
             condition_nodes_1[2] = p_node_7;
             condition_nodes_1[3] = p_node_8;
-            Quadrilateral3D4 <Node<3>> quadrilateral_1( condition_nodes_1 );
+            Quadrilateral3D4 <NodeType> quadrilateral_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (4);
             condition_nodes0_1[0] = p_node0_5;
             condition_nodes0_1[1] = p_node0_6;
             condition_nodes0_1[2] = p_node0_7;
             condition_nodes0_1[3] = p_node0_8;
-            Quadrilateral3D4 <Node<3>> quadrilateral0_1( condition_nodes0_1 );
+            Quadrilateral3D4 <NodeType> quadrilateral0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = quadrilateral_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 2, quadrilateral_1, p_cond_prop);
@@ -2633,13 +2632,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
-            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (3);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
-            Triangle3D3 <Node<3>> triangle0_0( condition_nodes0_0 );
+            Triangle3D3 <NodeType> triangle0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 1, triangle_0, p_cond_prop);
@@ -2659,13 +2658,13 @@ namespace Kratos
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (3);
             condition_nodes0_1[0] = p_node0_4;
             condition_nodes0_1[1] = p_node0_5;
             condition_nodes0_1[2] = p_node0_6;
-            Triangle3D3 <Node<3>> triangle0_1( condition_nodes0_1 );
+            Triangle3D3 <NodeType> triangle0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 2, triangle_1, p_cond_prop);
@@ -2727,13 +2726,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
-            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (3);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
-            Triangle3D3 <Node<3>> triangle0_0( condition_nodes0_0 );
+            Triangle3D3 <NodeType> triangle0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 1, triangle_0, p_cond_prop);
@@ -2753,13 +2752,13 @@ namespace Kratos
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (3);
             condition_nodes0_1[0] = p_node0_4;
             condition_nodes0_1[1] = p_node0_5;
             condition_nodes0_1[2] = p_node0_6;
-            Triangle3D3 <Node<3>> triangle0_1( condition_nodes0_1 );
+            Triangle3D3 <NodeType> triangle0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 2, triangle_1, p_cond_prop);
@@ -2821,13 +2820,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
-            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (3);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
-            Triangle3D3 <Node<3>> triangle0_0( condition_nodes0_0 );
+            Triangle3D3 <NodeType> triangle0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 1, triangle_0, p_cond_prop);
@@ -2847,13 +2846,13 @@ namespace Kratos
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (3);
             condition_nodes0_1[0] = p_node0_4;
             condition_nodes0_1[1] = p_node0_5;
             condition_nodes0_1[2] = p_node0_6;
-            Triangle3D3 <Node<3>> triangle0_1( condition_nodes0_1 );
+            Triangle3D3 <NodeType> triangle0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 2, triangle_1, p_cond_prop);
@@ -2917,13 +2916,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
-            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (3);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
-            Triangle3D3 <Node<3>> triangle0_0( condition_nodes0_0 );
+            Triangle3D3 <NodeType> triangle0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 1, triangle_0, p_cond_prop);
@@ -2943,13 +2942,13 @@ namespace Kratos
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (3);
             condition_nodes0_1[0] = p_node0_4;
             condition_nodes0_1[1] = p_node0_5;
             condition_nodes0_1[2] = p_node0_6;
-            Triangle3D3 <Node<3>> triangle0_1( condition_nodes0_1 );
+            Triangle3D3 <NodeType> triangle0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 2, triangle_1, p_cond_prop);
@@ -3015,13 +3014,13 @@ namespace Kratos
             condition_nodes_0[0] = p_node_1;
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
-            Triangle3D3 <Node<3>> triangle_0( condition_nodes_0 );
+            Triangle3D3 <NodeType> triangle_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (3);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
-            Triangle3D3 <Node<3>> triangle0_0( condition_nodes0_0 );
+            Triangle3D3 <NodeType> triangle0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 1, triangle_0, p_cond_prop);
@@ -3041,13 +3040,13 @@ namespace Kratos
             condition_nodes_1[0] = p_node_4;
             condition_nodes_1[1] = p_node_5;
             condition_nodes_1[2] = p_node_6;
-            Triangle3D3 <Node<3>> triangle_1( condition_nodes_1 );
+            Triangle3D3 <NodeType> triangle_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (3);
             condition_nodes0_1[0] = p_node0_4;
             condition_nodes0_1[1] = p_node0_5;
             condition_nodes0_1[2] = p_node0_6;
-            Triangle3D3 <Node<3>> triangle0_1( condition_nodes0_1 );
+            Triangle3D3 <NodeType> triangle0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = triangle_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D3N", 2, triangle_1, p_cond_prop);
@@ -3114,14 +3113,14 @@ namespace Kratos
             condition_nodes_0[1] = p_node_2;
             condition_nodes_0[2] = p_node_3;
             condition_nodes_0[3] = p_node_4;
-            Quadrilateral3D4 <Node<3>> quadrilateral_0( condition_nodes_0 );
+            Quadrilateral3D4 <NodeType> quadrilateral_0( PointerVector<NodeType>{condition_nodes_0} );
 
             std::vector<NodeType::Pointer> condition_nodes0_0 (4);
             condition_nodes0_0[0] = p_node0_1;
             condition_nodes0_0[1] = p_node0_2;
             condition_nodes0_0[2] = p_node0_3;
             condition_nodes0_0[3] = p_node0_4;
-            Quadrilateral3D4 <Node<3>> quadrilateral0_0( condition_nodes0_0 );
+            Quadrilateral3D4 <NodeType> quadrilateral0_0( PointerVector<NodeType>{condition_nodes0_0} );
 
             const array_1d<double, 3>& normal_0 = quadrilateral_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_0 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 1, quadrilateral_0, p_cond_prop);
@@ -3141,14 +3140,14 @@ namespace Kratos
             condition_nodes_1[1] = p_node_6;
             condition_nodes_1[2] = p_node_7;
             condition_nodes_1[3] = p_node_8;
-            Quadrilateral3D4 <Node<3>> quadrilateral_1( condition_nodes_1 );
+            Quadrilateral3D4 <NodeType> quadrilateral_1( PointerVector<NodeType>{condition_nodes_1} );
 
             std::vector<NodeType::Pointer> condition_nodes0_1 (4);
             condition_nodes0_1[0] = p_node0_5;
             condition_nodes0_1[1] = p_node0_6;
             condition_nodes0_1[2] = p_node0_7;
             condition_nodes0_1[3] = p_node0_8;
-            Quadrilateral3D4 <Node<3>> quadrilateral0_1( condition_nodes0_1 );
+            Quadrilateral3D4 <NodeType> quadrilateral0_1( PointerVector<NodeType>{condition_nodes0_1} );
 
             const array_1d<double, 3>& normal_1 = quadrilateral_0.UnitNormal(aux_point);
             Condition::Pointer p_cond_1 = r_model_part.CreateNewCondition("ALMFrictionlessMortarContactCondition3D4N", 2, quadrilateral_1, p_cond_prop);

@@ -166,7 +166,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~NewmarkMethod(){}
+    ~NewmarkMethod() override{}
 
     ///@}
     ///@name Operators

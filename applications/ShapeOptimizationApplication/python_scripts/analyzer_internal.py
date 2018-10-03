@@ -22,8 +22,11 @@ import time as timer
 # ==============================================================================
 class KratosInternalAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
     # --------------------------------------------------------------------------
-    def __init__( self, project_parameters, model_part ):
-        self.response_function_list = response_function_factory.CreateListOfResponseFunctions(project_parameters["optimization_settings"], model_part)
+    def __init__( self, optimization_settings, model_part_controller ):
+        self.model_part_controller = model_part_controller
+
+        analysis_mdpa = model_part_controller.GetOptimizationModelPart()
+        self.response_function_list = response_function_factory.CreateListOfResponseFunctions(optimization_settings, analysis_mdpa)
 
     # --------------------------------------------------------------------------
     def InitializeBeforeOptimizationLoop( self ):
@@ -48,9 +51,16 @@ class KratosInternalAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
 
             response.FinalizeSolutionStep()
 
+            self.__ClearResultsFromModelPart()
+
     # --------------------------------------------------------------------------
     def FinalizeAfterOptimizationLoop( self ):
         for response in self.response_function_list.values():
             response.Finalize()
+
+    # --------------------------------------------------------------------------
+    def __ClearResultsFromModelPart( self ):
+        self.model_part_controller.SetMeshToReferenceMesh()
+        self.model_part_controller.SetDeformationVariablesToZero()
 
 # ==============================================================================
