@@ -360,5 +360,65 @@ namespace Testing {
         KRATOS_CHECK_NEAR(int_pt[2], 0.5, 1e-6);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesLineBoxIntersectionNoHitpoint, KratosCoreFastSuite)
+    {
+        // Set the origin and endpoint of the segment
+        const Point line_origin(0.5,0.5,2.0);
+        const Point line_endpoint(0.6,0.8,2.5);
+
+        // Set the box minimum and maximum point
+        const Point box_min_point(0.0,0.0,0.0);
+        const Point box_max_point(1.0,1.0,1.0);
+
+        // Call the intersection utility
+        const int int_id = IntersectionUtilities::ComputeLineBoxIntersection(
+            box_min_point.Coordinates(),
+            box_max_point.Coordinates(),
+            line_origin.Coordinates(),
+            line_endpoint.Coordinates());
+
+        KRATOS_CHECK_EQUAL(int_id, 0);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesLineBoxIntersectionSingle, KratosCoreFastSuite)
+    {
+        // Set the origin and endpoint of the segment
+        const Point line_origin(0.5,0.5,0.5);
+        const Point line_endpoint(-0.5,0.3,0.3);
+
+        // Set the box minimum and maximum point
+        const Point box_min_point(0.0,0.0,0.0);
+        const Point box_max_point(1.0,1.0,1.0);
+
+        // Call the intersection utility
+        const int int_id = IntersectionUtilities::ComputeLineBoxIntersection(
+            box_min_point.Coordinates(),
+            box_max_point.Coordinates(),
+            line_origin.Coordinates(),
+            line_endpoint.Coordinates());
+
+        KRATOS_CHECK_EQUAL(int_id, 1);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesLineBoxIntersectionDouble, KratosCoreFastSuite)
+    {
+        // Set the origin and endpoint of the segment
+        const Point line_origin(-0.5,0.5,0.5);
+        const Point line_endpoint(1.5,0.5,0.5);
+
+        // Set the box minimum and maximum point
+        const Point box_min_point(0.0,0.0,0.0);
+        const Point box_max_point(1.0,1.0,1.0);
+
+        // Call the intersection utility
+        const int int_id = IntersectionUtilities::ComputeLineBoxIntersection(
+            box_min_point.Coordinates(),
+            box_max_point.Coordinates(),
+            line_origin.Coordinates(),
+            line_endpoint.Coordinates());
+
+        KRATOS_CHECK_EQUAL(int_id, 1);
+    }
+
 }  // namespace Testing.
 }  // namespace Kratos.
