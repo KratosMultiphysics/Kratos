@@ -26,6 +26,9 @@ TITLE:Solver_Settings
 QUESTION: Solution_Type#CB#(Steady,Transient)
 VALUE: Steady
 DEPENDENCIES: (Steady,HIDE,Newmark_Theta,#CURRENT#)(Transient,RESTORE,Newmark_Theta,#CURRENT#)
+QUESTION: Scheme#CB#(Explicit,Implicit)
+VALUE: Implicit
+DEPENDENCIES: (Explicit,HIDE,Newmark_Theta,1.0)(Implicit,RESTORE,Newmark_Theta,#CURRENT#)
 QUESTION: Newmark_Theta
 VALUE: 0.8
 QUESTION: Strategy_Type#CB#(Linear,Newton-Raphson)

@@ -1194,60 +1194,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegration
 
             this->CalculatePeclet(Variables, Geom, NormVel, rCurrentProcessInfo, Prop);
             rOutput[GPoint] = Variables.Peclet;
-
-    // GeometryType& rGeom = this->GetGeometry();
-    const Geometry<Node<3> >& rGeom = this->GetGeometry();
-
-    ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-
-    ///////////////////////////////////////////////////////////////////////////
-    // Adding transient absorption
-    ///////////////////////////////////////////////////////////////////////////
-
-    array_1d<double,TNumNodes> NodalPhi0;
-    array_1d<double,TNumNodes> PrevNodalPhi;
-
-    double sum_phi = 0.0;
-    double sustr_phi = 0.0;
-
-    for (unsigned int i = 0; i < TNumNodes; i++)
-    {
-        NodalPhi0[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE,1);
-        PrevNodalPhi[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE,2);
-
-        double aux_var = NodalPhi0[i] - PrevNodalPhi[i];
-        double aux_var2 = NodalPhi0[i] + PrevNodalPhi[i];
-
-        // TODO: try std::abs
-        if(aux_var > sustr_phi)
-        {
-            sustr_phi = aux_var;
-        }
-
-        if(aux_var2 > sum_phi)
-        {
-            sum_phi = aux_var2;
-        }
-
-        if(std::abs(sum_phi) < 1e-5)
-        {
-            sum_phi = 1e-5;
-        }
-    }
-
-    double fk = 2.626 * tanh(1.0 * (sustr_phi) / (sum_phi));
-
-    // double st = Variables.rho_dot_c / (theta * delta_time) * fk;
-
-    // Variables.TransientAbsorption = Variables.absorption + st;
-
-    // if (std::abs(st) > 0.1 * std::abs(previous_absorption))
-    // {
-    //     Variables.TransientAbsorption = Variables.absorption + 0.1 * Variables.absorption * st / std::abs(st);
-    //}
-            rOutput[GPoint] = fk;
-
-
         }
     }
     else if(rVariable == FIC_BETA)
@@ -1306,7 +1252,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegration
             rOutput[GPoint] = Variables.Beta;
         }
     }
-
 
     KRATOS_CATCH( "" )
 }

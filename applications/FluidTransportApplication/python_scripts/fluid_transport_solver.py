@@ -40,6 +40,7 @@ class FluidTransportSolver(object):
             "reform_dofs_at_each_step":           false,
             "block_builder":                      true,
             "solution_type":                      "Steady",
+            "scheme_type":                        "Implicit",
             "newmark_theta":                      0.5,
             "strategy_type":                      "Linear",
             "convergence_criterion":              "And_criterion",
@@ -83,8 +84,10 @@ class FluidTransportSolver(object):
 
         if(self.settings["solution_type"].GetString() == "Steady"):
             thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
-        else:
+        elif(self.settings["scheme_type"].GetString() == "Implicit"):
             thermal_settings.SetUnknownVariable(KratosFluidTransport.PHI_THETA)
+        else:
+            thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
 
         thermal_settings.SetSpecificHeatVariable(KratosMultiphysics.SPECIFIC_HEAT)
         thermal_settings.SetDensityVariable(KratosMultiphysics.DENSITY)
@@ -123,8 +126,10 @@ class FluidTransportSolver(object):
 
             if(self.settings["solution_type"].GetString() == "Steady"):
                 node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION_FLUX)
-            else:
+            elif(self.settings["scheme_type"].GetString() == "Implicit"):
                 node.AddDof(KratosFluidTransport.PHI_THETA, KratosMultiphysics.REACTION_FLUX)
+            else:
+                node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION_FLUX)
 
         print("DOFs correctly added")
 
@@ -259,9 +264,12 @@ class FluidTransportSolver(object):
         # Creating the builder and solver
         if(solution_type == "Steady"):
             scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        else:
+        elif(self.settings["scheme_type"].GetString() == "Implicit"):
             theta = self.settings["newmark_theta"].GetDouble()
             scheme = KratosFluidTransport.GeneralizedNewmarkGN11Scheme(theta)
+        else:
+            theta = 1.0
+            scheme = KratosFluidTransport.ExplicitForwardEulerScheme(theta)
 
         return scheme
 

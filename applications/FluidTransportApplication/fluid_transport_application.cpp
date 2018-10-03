@@ -41,7 +41,12 @@ KratosFluidTransportApplication::KratosFluidTransportApplication():
     mTransientConvectionDiffusionFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>>( Element::GeometryType::PointsArrayType (3) ) ) ),
     mTransientConvectionDiffusionFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3>>( Element::GeometryType::PointsArrayType (4) ) ) ),
     mTransientConvectionDiffusionFICElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-    mTransientConvectionDiffusionFICElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8))))
+    mTransientConvectionDiffusionFICElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
+
+    mTransientConvectionDiffusionFICExplicitElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>>( Element::GeometryType::PointsArrayType (3) ) ) ),
+    mTransientConvectionDiffusionFICExplicitElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3>>( Element::GeometryType::PointsArrayType (4) ) ) ),
+    mTransientConvectionDiffusionFICExplicitElement3D4N( 0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    mTransientConvectionDiffusionFICExplicitElement3D8N( 0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8))))
 
     {}
 
@@ -66,6 +71,10 @@ void KratosFluidTransportApplication::Register()
     KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionFICElement3D4N", mTransientConvectionDiffusionFICElement3D4N )
     KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionFICElement3D8N", mTransientConvectionDiffusionFICElement3D8N )
 
+    KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionFICExplicitElement2D3N", mTransientConvectionDiffusionFICExplicitElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionFICExplicitElement2D4N", mTransientConvectionDiffusionFICExplicitElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionFICExplicitElement3D4N", mTransientConvectionDiffusionFICExplicitElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "TransientConvectionDiffusionFICExplicitElement3D8N", mTransientConvectionDiffusionFICExplicitElement3D8N )
 }
 
 }  // namespace Kratos.

@@ -41,6 +41,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"reform_dofs_at_each_step\":           [GiD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
     puts $FileVar "        \"block_builder\":                      [GiD_AccessValue get gendata Block_Builder],"
     puts $FileVar "        \"solution_type\":                      \"[GiD_AccessValue get gendata Solution_Type]\","
+    puts $FileVar "        \"scheme_type\":                        \"[GiD_AccessValue get gendata Scheme]\","
     puts $FileVar "        \"newmark_theta\":                      [GiD_AccessValue get gendata Newmark_Theta],"
     puts $FileVar "        \"strategy_type\":                      \"[GiD_AccessValue get gendata Strategy_Type]\","
     puts $FileVar "        \"convergence_criterion\":              \"[GiD_AccessValue get gendata Convergence_Criterion]\","
@@ -139,15 +140,23 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendOutputVariables PutStrings iGroup Write_Velocity VELOCITY
 
     set SolutionType [GiD_AccessValue get gendata Solution_Type]
+    set SchemeType [GiD_AccessValue get gendata Scheme]
 
     if {$SolutionType eq "Steady"} {
 
     AppendOutputVariables PutStrings iGroup Write_Phi_Value TEMPERATURE
 
     } else {
+        if {$SchemeType eq "Implicit"} {
 
-    AppendOutputVariables PutStrings iGroup Write_Phi_Value TEMPERATURE
-    AppendOutputVariables PutStrings iGroup Write_Phi_Value PHI_THETA
+            AppendOutputVariables PutStrings iGroup Write_Phi_Value TEMPERATURE
+            AppendOutputVariables PutStrings iGroup Write_Phi_Value PHI_THETA
+
+        } else {
+
+            AppendOutputVariables PutStrings iGroup Write_Phi_Value TEMPERATURE
+
+        }
 
     }
 
@@ -210,14 +219,25 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 
     } else {
 
-    incr NumGroups [llength $Groups]
+        if {$SchemeType eq "Implicit"} {
 
-    WritePressureConstraintProcess FileVar iGroup $Groups volumes PHI_THETA $TableDict $NumGroups
-    WritePressureConstraintProcess FileVar iGroup $Groups surfaces PHI_THETA $TableDict $NumGroups
-    WritePressureConstraintProcess FileVar iGroup $Groups lines PHI_THETA $TableDict $NumGroups
-    WritePressureConstraintProcess FileVar iGroup $Groups points PHI_THETA $TableDict $NumGroups
+            incr NumGroups [llength $Groups]
 
-    WriteTempConstraintProcess FileVar iGroup $Groups TEMPERATURE $TableDict $NumGroups
+            WritePressureConstraintProcess FileVar iGroup $Groups volumes PHI_THETA $TableDict $NumGroups
+            WritePressureConstraintProcess FileVar iGroup $Groups surfaces PHI_THETA $TableDict $NumGroups
+            WritePressureConstraintProcess FileVar iGroup $Groups lines PHI_THETA $TableDict $NumGroups
+            WritePressureConstraintProcess FileVar iGroup $Groups points PHI_THETA $TableDict $NumGroups
+
+            WriteTempConstraintProcess FileVar iGroup $Groups TEMPERATURE $TableDict $NumGroups
+
+        } else {
+
+            WritePressureConstraintProcess FileVar iGroup $Groups volumes TEMPERATURE $TableDict $NumGroups
+            WritePressureConstraintProcess FileVar iGroup $Groups surfaces TEMPERATURE $TableDict $NumGroups
+            WritePressureConstraintProcess FileVar iGroup $Groups lines TEMPERATURE $TableDict $NumGroups
+            WritePressureConstraintProcess FileVar iGroup $Groups points TEMPERATURE $TableDict $NumGroups
+
+        }
 
     }
 

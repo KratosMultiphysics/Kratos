@@ -20,6 +20,7 @@
 
 //schemes
 #include "custom_strategies/schemes/generalized_newmark_GN11_scheme.hpp"
+#include "custom_strategies/schemes/explicit_forward_euler_scheme.hpp"
 
 //strategies
 //#include "solving_strategies/strategies/solving_strategy.h"
@@ -50,11 +51,16 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
     typedef GeneralizedNewmarkGN11Scheme< SparseSpaceType, LocalSpaceType >  GeneralizedNewmarkGN11SchemeType;
+    typedef ExplicitForwardEulerScheme< SparseSpaceType, LocalSpaceType >  ExplicitForwardEulerSchemeType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     class_< GeneralizedNewmarkGN11SchemeType, typename GeneralizedNewmarkGN11SchemeType::Pointer, BaseSchemeType >
     (m, "GeneralizedNewmarkGN11Scheme")
+    .def(init< double >());
+
+    class_< ExplicitForwardEulerSchemeType, typename ExplicitForwardEulerSchemeType::Pointer, BaseSchemeType >
+    (m, "ExplicitForwardEulerScheme")
     .def(init< double >());
 
 }
