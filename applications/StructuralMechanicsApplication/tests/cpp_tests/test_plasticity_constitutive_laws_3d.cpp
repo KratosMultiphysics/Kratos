@@ -216,12 +216,13 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
     Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
     cl_parameters.SetElementGeometry(Geom);
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
+    cl_parameters.SetDeformationGradientF(deformation_gradient);
     Matrix const_matrix;
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
@@ -238,16 +239,16 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
     Tres = {-9.09506e+06, -9.09506e+06, -1.18099e+07, 0, 0, -2.87449e-11};
 
     Vector TestMC, TestVM, TestDP, TestT;
-    MohrCoulombCL.CalculateMaterialResponseCauchy(cl_parameters);
+    MohrCoulombCL.CalculateMaterialResponsePK2(cl_parameters);
     TestMC = cl_parameters.GetStressVector();
 
-    VonMisesCL.CalculateMaterialResponseCauchy(cl_parameters);
+    VonMisesCL.CalculateMaterialResponsePK2(cl_parameters);
     TestVM = cl_parameters.GetStressVector();
 
-    DruckerPragerCL.CalculateMaterialResponseCauchy(cl_parameters);
+    DruckerPragerCL.CalculateMaterialResponsePK2(cl_parameters);
     TestDP = cl_parameters.GetStressVector();
 
-    TrescaCL.CalculateMaterialResponseCauchy(cl_parameters);
+    TrescaCL.CalculateMaterialResponsePK2(cl_parameters);
     TestT = cl_parameters.GetStressVector();
 
     //Check the results
