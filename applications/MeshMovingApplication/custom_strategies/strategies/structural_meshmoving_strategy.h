@@ -22,6 +22,7 @@
 #include "custom_elements/structural_meshmoving_element.h"
 #include "custom_utilities/move_mesh_utilities.h"
 #include "includes/model_part.h"
+#include "containers/model.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"

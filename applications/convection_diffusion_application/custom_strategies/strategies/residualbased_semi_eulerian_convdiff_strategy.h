@@ -18,7 +18,6 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "includes/kernel.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"

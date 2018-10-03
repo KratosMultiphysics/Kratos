@@ -23,7 +23,6 @@
 /* Project includes */
 // #include "structural_mechanics_application.h"
 #include "includes/define.h"
-#include "includes/kernel.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"

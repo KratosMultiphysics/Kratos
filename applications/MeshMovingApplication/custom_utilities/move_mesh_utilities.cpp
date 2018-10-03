@@ -17,7 +17,6 @@
 
 // Project includes
 #include "move_mesh_utilities.h"
-#include "includes/kernel.h"
 #include "containers/model.h"
 
 namespace Kratos {

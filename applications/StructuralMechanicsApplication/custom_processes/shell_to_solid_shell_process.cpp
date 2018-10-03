@@ -15,7 +15,6 @@
 // External includes
 
 // Project includes
-#include "includes/kernel.h"
 #include "containers/model.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "structural_mechanics_application_variables.h"
