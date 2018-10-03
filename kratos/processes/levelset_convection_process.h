@@ -24,7 +24,6 @@
 // Project includes
 #include "includes/convection_diffusion_settings.h"
 #include "includes/define.h"
-#include "containers/unique_modelpart_pointer_wrapper.h"
 #include "includes/kratos_flags.h"
 #include "elements/levelset_convection_element_simplex.h"
 #include "geometries/geometry_data.h"
@@ -94,15 +93,11 @@ public:
         const double cross_wind_stabilization_factor = 0.7,
         const unsigned int max_substeps = 0)
         : mrBaseModelPart(rBaseModelPart),
-          mModelPartWrapper(rBaseModelPart.GetOwnerModel(), "DistancePart"),
           mrLevelSetVar(rLevelSetVar),
           mMaxAllowedCFL(max_cfl),
           mMaxSubsteps(max_substeps)
     {
         KRATOS_TRY
-
-        mpDistanceModelPart= &mModelPartWrapper.GetModelPart();
-
         
         // Check that there is at least one element and node in the model
         const auto n_nodes = rBaseModelPart.NumberOfNodes();
@@ -168,7 +163,10 @@ public:
     }
 
     /// Destructor.
-    ~LevelSetConvectionProcess() override {}
+    ~LevelSetConvectionProcess() override 
+    {
+        mrBaseModelPart.GetOwnerModel().DeleteModelPart("DistanceConvectionPart");
+    }
 
     ///@}
     ///@name Operators
@@ -312,7 +310,6 @@ protected:
 
     ModelPart& mrBaseModelPart;
 
-    UniqueModelPartPointerWrapper mModelPartWrapper;
     ModelPart* mpDistanceModelPart;
 
     Variable<double>& mrLevelSetVar;
@@ -356,14 +353,18 @@ protected:
 
         Model& current_model = rBaseModelPart.GetOwnerModel();
 
+        if(current_model.HasModelPart("DistanceConvectionPart"))
+            current_model.DeleteModelPart("DistanceConvectionPart");
+        
+        mpDistanceModelPart= &(current_model.CreateModelPart("DistanceConvectionPart"));
+
+
         // Check buffer size
         const auto base_buffer_size = rBaseModelPart.GetBufferSize();
         KRATOS_ERROR_IF(base_buffer_size < 2) << 
             "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
 
         // Generate
-        mpDistanceModelPart= &mModelPartWrapper.GetModelPart();
-
         mpDistanceModelPart->Nodes().clear();
         mpDistanceModelPart->Conditions().clear();
         mpDistanceModelPart->Elements().clear();

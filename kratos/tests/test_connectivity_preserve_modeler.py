@@ -118,11 +118,12 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertEqual(len(model_part1.Elements) , len(new_model_part.Elements))
 
     def test_variable_list_merging(self):
-        model_part1 = KratosMultiphysics.ModelPart("mp1")
+        current_model = KratosMultiphysics.Model()
+        model_part1 = current_model.CreateModelPart("mp1")
         model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
-        model_part2 = KratosMultiphysics.ModelPart("mp1")
+        model_part2 = current_model.CreateModelPart("mp2")
         model_part2.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         model_part2.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
 

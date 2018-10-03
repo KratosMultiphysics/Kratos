@@ -962,7 +962,8 @@ class TestProcesses(KratosUnittest.TestCase):
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_point_output_process_restart_with_restart_time_no_found(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)

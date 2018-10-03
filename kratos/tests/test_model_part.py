@@ -689,7 +689,8 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertFalse(model_part.HasNodalSolutionStepVariable(PRESSURE))
 
     def test_model_part_master_slave_constraint(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(PRESSURE)
         n1 = model_part.CreateNewNode(1, 1.0,1.1,0.2)
         n2 = model_part.CreateNewNode(2, 2.0,3.1,0.2)

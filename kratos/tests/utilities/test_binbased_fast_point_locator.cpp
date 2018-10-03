@@ -281,8 +281,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestBinBasedFastPointLocator3, KratosCoreFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("test_model_part",2);
             
             Properties::Pointer p_cond_prop = this_model_part.pGetProperties(0);
             

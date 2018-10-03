@@ -25,7 +25,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/unique_modelpart_pointer_wrapper.h"
 #include "includes/kratos_flags.h"
 #include "elements/distance_calculation_element_simplex.h"
 #include "linear_solvers/linear_solver.h"
@@ -122,12 +121,11 @@ public:
         ModelPart& base_model_part,
         typename TLinearSolver::Pointer plinear_solver,
         unsigned int max_iterations = 10)
-        :mr_base_model_part(base_model_part),
-        mModelPartWrapper(base_model_part.GetOwnerModel(), "DistancePart",1)
+        :mr_base_model_part(base_model_part)
     {
         KRATOS_TRY
 
-        ModelPart& r_distance_model_part = mModelPartWrapper.GetModelPart();
+        
 
         mmax_iterations = max_iterations;
         mdistance_part_is_initialized = false; //this will be set to true upon completing ReGenerateDistanceModelPart
@@ -159,6 +157,9 @@ public:
         bool CalculateNormDxFlag = false;
         BuilderSolverPointerType pBuilderSolver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
+        Model& current_model = mr_base_model_part.GetOwnerModel();
+        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
+
         mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_distance_model_part,
             pscheme,
@@ -175,7 +176,13 @@ public:
     }
 
     /// Destructor.
-    ~VariationalDistanceCalculationProcess() override {};
+    ~VariationalDistanceCalculationProcess() override 
+    {
+
+        Model& current_model = mr_base_model_part.GetOwnerModel();
+        if(current_model.HasModelPart("RedistanceCalculationPart"))
+            current_model.DeleteModelPart("RedistanceCalculationPart");
+    };
 
     ///@}
     ///@name Operators
@@ -194,11 +201,12 @@ public:
     {
         KRATOS_TRY;
 
-        ModelPart& r_distance_model_part = mModelPartWrapper.GetModelPart();
-
         if(mdistance_part_is_initialized == false){
             ReGenerateDistanceModelPart(mr_base_model_part);
         }
+
+        Model& current_model = mr_base_model_part.GetOwnerModel();
+        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
 
         // TODO: check flag    PERFORM_STEP1
         // Step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
@@ -336,7 +344,8 @@ public:
 
     virtual void Clear()
     {
-        ModelPart& r_distance_model_part = mModelPartWrapper.GetModelPart();
+        Model& current_model = mr_base_model_part.GetOwnerModel();
+        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
         r_distance_model_part.Nodes().clear();
         r_distance_model_part.Conditions().clear();
         r_distance_model_part.Elements().clear();
@@ -402,7 +411,6 @@ protected:
     bool mdistance_part_is_initialized;
     unsigned int mmax_iterations;
 
-    UniqueModelPartPointerWrapper mModelPartWrapper;
     ModelPart& mr_base_model_part;
 
     typename SolvingStrategyType::UniquePointer mp_solving_strategy;
@@ -419,8 +427,12 @@ protected:
     {
         KRATOS_TRY
 
+        Model& current_model = mr_base_model_part.GetOwnerModel();
+        if(current_model.HasModelPart("RedistanceCalculationPart"))
+            current_model.DeleteModelPart("RedistanceCalculationPart");
+        
         // Generate
-        ModelPart& r_distance_model_part = mModelPartWrapper.GetModelPart();
+        ModelPart& r_distance_model_part = current_model.CreateModelPart("RedistanceCalculationPart");
         r_distance_model_part.Nodes().clear();
         r_distance_model_part.Conditions().clear();
         r_distance_model_part.Elements().clear();
@@ -516,7 +528,8 @@ private:
     }
 
     void SynchronizeDistance(){
-        ModelPart& r_distance_model_part = mModelPartWrapper.GetModelPart();
+        Model& current_model = mr_base_model_part.GetOwnerModel();
+        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
         auto &r_communicator = r_distance_model_part.GetCommunicator();
 
         // Only required in the MPI case
@@ -545,8 +558,9 @@ private:
     }
 
     void SynchronizeFixity(){
-        ModelPart& r_distance_model_part = mModelPartWrapper.GetModelPart();
-        auto &r_communicator = r_distance_model_part.GetCommunicator();
+        Model& current_model = mr_base_model_part.GetOwnerModel();
+        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
+                auto &r_communicator = r_distance_model_part.GetCommunicator();
 
         // Only required in the MPI case
         if(r_communicator.TotalProcesses() != 1){
