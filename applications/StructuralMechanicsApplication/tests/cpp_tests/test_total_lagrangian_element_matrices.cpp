@@ -19,7 +19,6 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/kernel.h"
 #include "containers/model.h"
 #include "includes/node.h"
 #include "includes/element.h"
