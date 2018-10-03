@@ -20,6 +20,7 @@
 #include "Epetra_MpiComm.h"
 
 // Project includes
+#include "containers/model.h"
 #include "includes/communicator.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 #include "processes/levelset_convection_process.h"

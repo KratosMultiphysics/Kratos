@@ -95,8 +95,8 @@ public:
                                         bool CalculateMeshVelocities = true,
                                         int EchoLevel = 0)
         : 
-        mrReferenceModelPart(model_part),
-        SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
+        SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part),
+        mrReferenceModelPart(model_part)
     {
         KRATOS_TRY
 

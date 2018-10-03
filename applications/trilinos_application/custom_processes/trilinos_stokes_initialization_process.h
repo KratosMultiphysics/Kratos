@@ -13,7 +13,6 @@
 #include "includes/mpi_communicator.h"
 
 // Application includes
-#include "includes/kernel.h"
 #include "containers/model.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 //#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
