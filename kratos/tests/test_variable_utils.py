@@ -148,46 +148,6 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(disp[2], 3.0)
             self.assertEqual(cond.GetValue(VISCOSITY), viscosity)
 
-    def test_set_nonhistorical_variable(self):
-        current_model = Model()
-
-        ##set the model part
-        model_part = current_model.CreateModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(VISCOSITY)
-        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
-        model_part_io.ReadModelPart(model_part)
-
-        ##set the variable values
-        viscosity = 0.1
-        displacement = Vector(3)
-        displacement[0] = 1.0
-        displacement[1] = 2.0
-        displacement[2] = 3.0
-
-        # First for nodes
-        VariableUtils().SetNonHistoricalVariable(VISCOSITY, viscosity, model_part.Nodes)
-        VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Nodes)
-
-        ##verify the result
-        for node in model_part.Nodes:
-            self.assertEqual(node.GetValue(DISPLACEMENT_X), 1.0)
-            self.assertEqual(node.GetValue(DISPLACEMENT_Y), 2.0)
-            self.assertEqual(node.GetValue(DISPLACEMENT_Z), 3.0)
-            self.assertEqual(node.GetValue(VISCOSITY), viscosity)
-
-        # Now for conditions (it will work for elements too)
-        VariableUtils().SetNonHistoricalVariable(VISCOSITY, viscosity, model_part.Conditions)
-        VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Conditions)
-
-        ##verify the result
-        for cond in model_part.Conditions:
-            disp = cond.GetValue(DISPLACEMENT)
-            self.assertEqual(disp[0], 1.0)
-            self.assertEqual(disp[1], 2.0)
-            self.assertEqual(disp[2], 3.0)
-            self.assertEqual(cond.GetValue(VISCOSITY), viscosity)
-
     def test_set_flag(self):
         current_model = Model()
 
