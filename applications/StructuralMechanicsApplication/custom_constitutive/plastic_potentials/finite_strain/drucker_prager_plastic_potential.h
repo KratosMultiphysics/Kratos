@@ -17,7 +17,7 @@
 // System includes
 
 // Project includes
-#include "includes/checks.h"
+#include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h" // TODO: Move to SMALL STRAIN folder
 #include "custom_constitutive/plastic_potentials/finite_strain/generic_plastic_potential.h"
 
 namespace Kratos
@@ -31,7 +31,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -63,16 +63,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainDruckerPragerPlas
 
     /// We define the dimension
     static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
-      
+
     /// The define the Voigt size
     static constexpr SizeType VoigtSize = TVoigtSize;
+
+    /// The small strain plastic potential
+    typedef DruckerPragerPlasticPotential<VoigtSize> SmallStrainPlasticPotential;
 
     /// The definition of the Voigt array type
     typedef array_1d<double, VoigtSize> BoundedArrayType;
 
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
-      
+
     /// Counted pointer of FiniteStrainDruckerPragerPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(FiniteStrainDruckerPragerPlasticPotential);
 
@@ -115,36 +118,18 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainDruckerPragerPlas
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the rDeviator
-     * @param rDerivativePlasticPOtential The derivative of the plastic potential
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
         const BoundedArrayType& rPredictiveStressVector,
         const BoundedArrayType& rDeviator,
         const double J2,
-        BoundedMatrixType& rDerivativePlasticPOtential,
+        BoundedArrayType& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-//         const Properties& r_material_properties = rValues.GetMaterialProperties();
-//
-//         BoundedArrayType first_vector, second_vector, third_vector;
-//
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-//
-//         const double c3 = 0.0;
-//
-//         const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
-//         const double sin_dil = std::sin(dilatancy);
-//         const double Root3 = std::sqrt(3.0);
-//
-//         const double CFL = -Root3 * (3.0 - sin_dil) / (3.0 * sin_dil - 3.0);
-//         const double c1 = CFL * 2.0 * sin_dil / (Root3 * (3.0 - sin_dil));
-//         const double c2 = CFL;
-//
-//         noalias(rDerivativePlasticPOtential) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        SmallStrainPlasticPotential::CalculatePlasticPotentialDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -153,11 +138,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainDruckerPragerPlas
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        KRATOS_CHECK_VARIABLE_KEY(DILATANCY_ANGLE);
-
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(DILATANCY_ANGLE)) << "DILATANCY_ANGLE is not a defined value" << std::endl;
-
-        return 0;
+        return SmallStrainPlasticPotential::Check(rMaterialProperties);
     }
 
     ///@}

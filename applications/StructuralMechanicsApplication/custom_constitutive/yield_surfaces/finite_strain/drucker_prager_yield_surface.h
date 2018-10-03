@@ -31,7 +31,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -68,13 +68,13 @@ public:
 
     /// The type of potential plasticity
     typedef TPlasticPotentialType PlasticPotentialType;
-    
+
     /// The small strain yield surface
     typedef DruckerPragerYieldSurface<PlasticPotentialType> SmallStrainYieldSurface;
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
-    
+
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
 
@@ -177,7 +177,7 @@ public:
         const BoundedArrayType& rPredictiveStressVector,
         const BoundedArrayType& rDeviator,
         const double J2,
-        BoundedMatrixType& rDerivativePlasticPotential,
+        BoundedArrayType& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
@@ -199,28 +199,11 @@ public:
         const BoundedArrayType& rPredictiveStressVector,
         const BoundedArrayType& rDeviator,
         const double J2,
-        BoundedMatrixType& rDerivativeYieldSurface,
+        BoundedArrayType& rDerivativeYieldSurface,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-//         const Properties& r_material_properties = rValues.GetMaterialProperties();
-//
-//         BoundedArrayType first_vector, second_vector, third_vector;
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-//
-//         const double c3 = 0.0;
-//
-//         const double friction_angle = r_material_properties[FRICTION_ANGLE];
-//         const double sin_phi = std::sin(friction_angle);
-//         const double Root3 = std::sqrt(3.0);
-//
-//         const double CFL = -Root3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0);
-//         const double c1 = CFL * 2.0 * sin_phi / (Root3 * (3.0 - sin_phi));
-//         const double c2 = CFL;
-//
-//         noalias(rDerivativeYieldSurface) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        SmallStrainYieldSurface::CalculateYieldSurfaceDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativeYieldSurface, rValues);
     }
 
     /**
@@ -286,7 +269,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ///@}
     ///@name Private Operators
     ///@{

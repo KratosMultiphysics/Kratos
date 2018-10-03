@@ -36,7 +36,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -71,10 +71,10 @@ public:
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
-    
+
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
-    
+
     /// The definition of the Voigt array type
     typedef array_1d<double, VoigtSize> BoundedArrayType;
 
@@ -127,7 +127,7 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateEquivalentStress(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
+        const BoundedArrayType& rPredictiveStressVector,
         const Vector& rStrainVector,
         double& rEquivalentStress,
         ConstitutiveLaw::Parameters& rValues
@@ -170,10 +170,10 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
-        const array_1d<double, VoigtSize>& rPredictiveStressVector,
-        const array_1d<double, VoigtSize>& rDeviator,
+        const BoundedArrayType& rPredictiveStressVector,
+        const BoundedArrayType& rDeviator,
         const double& J2,
-        array_1d<double, VoigtSize>& rDerivativePlasticPotential,
+        BoundedArrayType& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
@@ -192,10 +192,10 @@ public:
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
-        const array_1d<double, VoigtSize>& StressVector,
-        const array_1d<double, VoigtSize>& Deviator,
+        const BoundedArrayType& StressVector,
+        const BoundedArrayType& Deviator,
         const double J2,
-        array_1d<double, VoigtSize>& rFFlux,
+        BoundedArrayType& rFFlux,
         ConstitutiveLaw::Parameters& rValues)
     {
     }

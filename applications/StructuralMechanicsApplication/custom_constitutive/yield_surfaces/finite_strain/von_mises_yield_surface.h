@@ -31,7 +31,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -47,7 +47,7 @@ namespace Kratos
  * @class FiniteStrainVonMisesYieldSurface
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a yield surface according to Von-Mises theory
- * @details The von Mises yield criterion (also known as the maximum distortion energy criterion) suggests that yielding of a ductile material begins when the second deviatoric stress invariant J2 reaches a critical value. It is part of plasticity theory that applies best to ductile materials, such as some metals. Prior to yield, material response can be assumed to be of a nonlinear elastic, viscoelastic, or linear elastic behavior. 
+ * @details The von Mises yield criterion (also known as the maximum distortion energy criterion) suggests that yielding of a ductile material begins when the second deviatoric stress invariant J2 reaches a critical value. It is part of plasticity theory that applies best to ductile materials, such as some metals. Prior to yield, material response can be assumed to be of a nonlinear elastic, viscoelastic, or linear elastic behavior.
  * The yield surface requires the definition of the following properties:
  * - FRACTURE_ENERGY: A fracture energy-based function is used to describe strength degradation in post-peak regime
  * - YOUNG_MODULUS: It defines the relationship between stress (force per unit area) and strain (proportional deformation) in a material in the linear elasticity regime of a uniaxial deformation.
@@ -73,10 +73,10 @@ public:
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
-    
+
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
-    
+
     /// The definition of the Voigt array type
     typedef array_1d<double, VoigtSize> BoundedArrayType;
 
@@ -88,7 +88,7 @@ public:
 
     /// The machine precision zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -176,7 +176,7 @@ public:
         const BoundedArrayType& rPredictiveStressVector,
         const BoundedArrayType& rDeviator,
         const double J2,
-        BoundedMatrixType& rDerivativePlasticPotential,
+        BoundedArrayType& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
@@ -198,15 +198,11 @@ public:
         const BoundedArrayType& rPredictiveStressVector,
         const BoundedArrayType& rDeviator,
         const double J2,
-        BoundedMatrixType& rDerivativeYieldSurface,
+        BoundedArrayType& rDerivativeYieldSurface,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        BoundedArrayType aux;
-
-        SmallStrainYieldSurface::CalculateYieldSurfaceDerivative(rPredictiveStressVector, rDeviator, J2, aux, rValues);
-
-        noalias(rDerivativeYieldSurface) = MathUtils<double>::StressVectorToTensor<BoundedArrayType, BoundedMatrixType>(aux);
+        SmallStrainYieldSurface::CalculateYieldSurfaceDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativeYieldSurface, rValues);
     }
 
     /**

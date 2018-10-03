@@ -17,6 +17,7 @@
 // System includes
 
 // Project includes
+#include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h" // TODO: Move to SMALL STRAIN folder
 #include "custom_constitutive/plastic_potentials/finite_strain/generic_plastic_potential.h"
 
 namespace Kratos
@@ -30,7 +31,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -61,10 +62,13 @@ public:
 
     /// We define the dimension
     static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
-      
+
     /// The define the Voigt size
     static constexpr SizeType VoigtSize = TVoigtSize;
-    
+
+    /// The small strain plastic potential
+    typedef VonMisesPlasticPotential<VoigtSize> SmallStrainPlasticPotential;
+
     /// The definition of the Voigt array type
     typedef array_1d<double, VoigtSize> BoundedArrayType;
 
@@ -113,28 +117,18 @@ public:
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
-     * @param rGFlux The derivative of the plastic potential
+     * @param rDerivativePlasticPotential The derivative of the plastic potential
      * @param rValues Parameters of the constitutive law
      */
     static void CalculatePlasticPotentialDerivative(
         const BoundedArrayType& rPredictiveStressVector,
         const BoundedArrayType& rDeviator,
         const double J2,
-        BoundedMatrixType& rGFlux,
+        BoundedArrayType& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-//         BoundedArrayType first_vector, second_vector, third_vector;
-//
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-//
-//         const double c1 = 0.0;
-//         const double c2 = std::sqrt(3.0);
-//         const double c3 = 0.0;
-//
-//         noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        SmallStrainPlasticPotential::CalculatePlasticPotentialDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativePlasticPotential, rValues);
     }
 
     /**
@@ -143,7 +137,7 @@ public:
      */
     static int Check(const Properties& rMaterialProperties)
     {
-        return 0;
+        return SmallStrainPlasticPotential::Check(rMaterialProperties);
     }
 
     ///@}

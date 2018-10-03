@@ -31,7 +31,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -71,10 +71,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainSimoJuYieldSurfac
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
-    
+
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
-    
+
     /// The definition of the Voigt array type
     typedef array_1d<double, VoigtSize> BoundedArrayType;
 
@@ -140,7 +140,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainSimoJuYieldSurfac
      * @param rValues Parameters of the constitutive law
      */
     static void GetInitialUniaxialThreshold(
-        ConstitutiveLaw::Parameters& rValues, 
+        ConstitutiveLaw::Parameters& rValues,
         double& rThreshold
         )
     {
@@ -174,7 +174,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainSimoJuYieldSurfac
         const BoundedArrayType& rPredictiveStressVector,
         const BoundedArrayType& rDeviator,
         const double J2,
-        BoundedMatrixType& rDerivativePlasticPotential,
+        BoundedArrayType& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
@@ -194,13 +194,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainSimoJuYieldSurfac
      */
     static void CalculateYieldSurfaceDerivative(
         const BoundedArrayType& rPredictiveStressVector,
-        const BoundedArrayType& Deviator,
+        const BoundedArrayType& rDeviator,
         const double J2,
-        BoundedMatrixType& rDerivativeYieldSurface,
+        BoundedArrayType& rDerivativeYieldSurface,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        KRATOS_ERROR << "Yield surface derivative not defined for SimoJu..." << std::endl;
+        SmallStrainYieldSurface::CalculateYieldSurfaceDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativeYieldSurface, rValues);
     }
 
     /**

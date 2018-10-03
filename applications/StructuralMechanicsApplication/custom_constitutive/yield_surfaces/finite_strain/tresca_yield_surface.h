@@ -31,7 +31,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -47,7 +47,7 @@ namespace Kratos
  * @class FiniteStrainTrescaYieldSurface
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a yield surface according to Tresca theory
- * @details The Tresca yield criterion is taken to be the work of Henri Tresca. It is also known as the maximum shear stress theory (MSST) and the Tresca–Guest (TG) criterion. 
+ * @details The Tresca yield criterion is taken to be the work of Henri Tresca. It is also known as the maximum shear stress theory (MSST) and the Tresca–Guest (TG) criterion.
  * The yield surface requires the definition of the following properties:
  * - FRACTURE_ENERGY: A fracture energy-based function is used to describe strength degradation in post-peak regime
  * - YOUNG_MODULUS: It defines the relationship between stress (force per unit area) and strain (proportional deformation) in a material in the linear elasticity regime of a uniaxial deformation.
@@ -73,10 +73,10 @@ public:
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
-    
+
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
-    
+
     /// The definition of the Voigt array type
     typedef array_1d<double, VoigtSize> BoundedArrayType;
 
@@ -85,7 +85,7 @@ public:
 
     /// Counted pointer of FiniteStrainTrescaYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(FiniteStrainTrescaYieldSurface);
-    
+
     /// The machine precision zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -177,7 +177,7 @@ public:
         const BoundedArrayType& rPredictiveStressVector,
         const BoundedArrayType& rDeviator,
         const double J2,
-        BoundedMatrixType& rDerivativePlasticPotential,
+        BoundedArrayType& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
@@ -192,41 +192,18 @@ public:
      * @param rPredictiveStressVector The stress vector
      * @param rDeviator The deviatoric part of the stress vector
      * @param J2 The second invariant of the Deviator
-     * @param rDerivativePlasticPotential The derivative of the yield surface
+     * @param rDerivativeYieldSurface The derivative of the yield surface
      * @param rValues Parameters of the constitutive law
      */
     static void CalculateYieldSurfaceDerivative(
         const BoundedArrayType& rPredictiveStressVector,
         const BoundedArrayType& rDeviator,
         const double J2,
-        BoundedMatrixType& rDerivativePlasticPotential,
+        BoundedArrayType& rDerivativeYieldSurface,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-//         BoundedArrayType first_vector, second_vector, third_vector;
-//
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
-//
-//         double J3, lode_angle;
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
-//         ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
-//
-//         const double checker = std::abs(lode_angle * 180 / Globals::Pi);
-//
-//         double c2, c3;
-//         const double c1 = 0.0;
-//
-//         if (checker < 29.0) {
-//             c2 = 2.0 * (std::cos(lode_angle) + std::sin(lode_angle) * std::tan(3.0 * lode_angle));
-//             c3 = std::sqrt(3.0) * std::sin(lode_angle) / (J2 * std::cos(3.0 * lode_angle));
-//         } else {
-//             c2 = std::sqrt(3.0);
-//             c3 = 0.0;
-//         }
-//
-//         noalias(rDerivativePlasticPotential) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        SmallStrainYieldSurface::CalculateYieldSurfaceDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativeYieldSurface, rValues);
     }
 
     /**

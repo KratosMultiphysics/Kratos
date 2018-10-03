@@ -35,7 +35,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -52,7 +52,7 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief If the plastic potential is of the same type as the yield surface we talk about associated flow rules, if a
 different function is used, it is non-associated. For metals associated flow rules work great, while frictional materials typically need non-associated flow rules
- * @details This is a "template" plastic potential, please define properly your plastic potential 
+ * @details This is a "template" plastic potential, please define properly your plastic potential
  * @tparam TVoigtSize The number of components on the Voigt notation
  * @author Vicente Mataix Ferrandiz
  * @author Alejandro Cornejo
@@ -67,10 +67,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainGenericPlasticPot
 
     /// We define the dimension
     static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
-      
+
     /// The define the Voigt size
     static constexpr SizeType VoigtSize = TVoigtSize;
-      
+
     /// The definition of the Voigt array type
     typedef array_1d<double, VoigtSize> BoundedArrayType;
 
@@ -126,7 +126,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainGenericPlasticPot
         const BoundedArrayType& rPredictiveStressVector,
         const BoundedArrayType& rDeviator,
         const double J2,
-        BoundedMatrixType& rDerivativePlasticPotential,
+        BoundedArrayType& rDerivativePlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {

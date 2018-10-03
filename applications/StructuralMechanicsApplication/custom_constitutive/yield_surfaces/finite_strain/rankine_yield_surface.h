@@ -31,7 +31,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -73,10 +73,10 @@ public:
 
     /// The Plastic potential already defines the working simension size
     static constexpr SizeType Dimension = PlasticPotentialType::Dimension;
-    
+
     /// The Plastic potential already defines the Voigt size
     static constexpr SizeType VoigtSize = PlasticPotentialType::VoigtSize;
-    
+
     /// The definition of the Voigt array type
     typedef array_1d<double, VoigtSize> BoundedArrayType;
 
@@ -85,7 +85,7 @@ public:
 
     /// Counted pointer of FiniteStrainRankineYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(FiniteStrainRankineYieldSurface);
-    
+
     /// The zero tolerance definition
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -172,7 +172,7 @@ public:
         BoundedArrayType& rPredictiveStressVector,
         BoundedArrayType& rDeviator,
         const double J2,
-        BoundedMatrixType& rPlasticPotential,
+        BoundedArrayType& rPlasticPotential,
         ConstitutiveLaw::Parameters& rValues
         )
     {
@@ -194,11 +194,11 @@ public:
         BoundedArrayType& rPredictiveStressVector,
         BoundedArrayType& rDeviator,
         const double J2,
-        BoundedMatrixType& rDerivativeYieldSurface,
+        BoundedArrayType& rDerivativeYieldSurface,
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        KRATOS_ERROR << "Yield surface derivative not defined for Rankine..." << std::endl;
+        SmallStrainYieldSurface::CalculateYieldSurfaceDerivative(rPredictiveStressVector, rDeviator, J2, rDerivativeYieldSurface, rValues);
     }
 
     /**

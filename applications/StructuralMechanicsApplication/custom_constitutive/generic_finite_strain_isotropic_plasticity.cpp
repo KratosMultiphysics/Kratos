@@ -107,8 +107,8 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
         // Initialize Plastic Parameters
         double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-        BoundedMatrixType yield_surface_derivative = ZeroMatrix(Dimension, Dimension); // DF/DS
-        BoundedMatrixType plastic_potential_derivative = ZeroMatrix(Dimension, Dimension); // DG/DS
+        BoundedArrayType yield_surface_derivative = ZeroVector(VoigtSize); // DF/DS
+        BoundedArrayType plastic_potential_derivative = ZeroVector(VoigtSize); // DG/DS
         const BoundedArrayType dummy_plastic_strain_increment = ZeroVector(VoigtSize);
 
         const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, dummy_plastic_strain_increment, rValues);
@@ -226,8 +226,8 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
         // Initialize Plastic Parameters
         double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-        BoundedMatrixType yield_surface_derivative = ZeroMatrix(Dimension, Dimension); // DF/DS
-        BoundedMatrixType plastic_potential_derivative = ZeroMatrix(Dimension, Dimension); // DG/DS
+        BoundedArrayType yield_surface_derivative = ZeroVector(VoigtSize); // DF/DS
+        BoundedArrayType plastic_potential_derivative = ZeroVector(VoigtSize); // DG/DS
         const BoundedArrayType dummy_plastic_strain_increment = ZeroVector(VoigtSize);
 
         const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, dummy_plastic_strain_increment, rValues);
@@ -570,7 +570,7 @@ Matrix& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
     } else {
         return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
     }
-    
+
     return rValue;
 }
 
@@ -589,7 +589,7 @@ int GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegr
     const int check_integrator = TConstLawIntegratorType::Check(rMaterialProperties);
 
     KRATOS_ERROR_IF_NOT(VoigtSize == this->GetStrainSize()) << "You are combining not compatible constitutive laws" << std::endl;
-    
+
     if ((check_base + check_integrator) > 0) return 1;
 
     return 0;
