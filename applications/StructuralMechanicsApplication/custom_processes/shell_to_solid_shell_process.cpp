@@ -62,23 +62,23 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
 
     // The name of the submodelpart
     const std::string& model_part_name = mThisParameters["model_part_name"].GetString();
-    ModelPart& geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
+    ModelPart& r_geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
 
     // We initialize some values use later
-    NodeType::Pointer p_node_begin = *(geometry_model_part.NodesBegin().base());
+    NodeType::Pointer p_node_begin = *(r_geometry_model_part.NodesBegin().base());
 
     // Auxiliar model part where to store new nodes and elements
     ModelPart& auxiliar_model_part = current_model.CreateModelPart("AuxiliarModelPart");
     const bool create_submodelparts_external_layers = mThisParameters["create_submodelparts_external_layers"].GetBool();
     const bool append_submodelparts_external_layers = mThisParameters["append_submodelparts_external_layers"].GetBool();
 
-    
+
     ModelPart& auxiliar_model_part_upper = current_model.CreateModelPart("upper");
     ModelPart& auxiliar_model_part_lower = current_model.CreateModelPart("lower");
 
     // Auxiliar values
-    NodesArrayType& nodes_array = geometry_model_part.Nodes();
-    ElementsArrayType& elements_array = geometry_model_part.Elements();
+    NodesArrayType& nodes_array = r_geometry_model_part.Nodes();
+    ElementsArrayType& elements_array = r_geometry_model_part.Elements();
     const SizeType geometry_number_of_nodes = nodes_array.size();
     const SizeType geometry_number_of_elements = elements_array.size();
     const SizeType total_number_of_nodes = mrThisModelPart.Nodes().size();
@@ -234,7 +234,7 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     if (new_constitutive_law_name != "") {
         auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get(new_constitutive_law_name).Clone();
         for (auto id_prop : set_id_properties) {
-            auto p_prop = geometry_model_part.pGetProperties(id_prop);
+            auto p_prop = r_geometry_model_part.pGetProperties(id_prop);
             p_prop->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
         }
     }
@@ -244,25 +244,19 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
     // We copy the new model part to the original one
-    geometry_model_part.AddNodes( auxiliar_model_part.NodesBegin(), auxiliar_model_part.NodesEnd() );
-    geometry_model_part.AddElements( auxiliar_model_part.ElementsBegin(), auxiliar_model_part.ElementsEnd() );
-    
-    KRATOS_ERROR << "something wrong with the creation of the modelparts...the author of this file should take a look" << std::endl;
+    r_geometry_model_part.AddNodes( auxiliar_model_part.NodesBegin(), auxiliar_model_part.NodesEnd() );
+    r_geometry_model_part.AddElements( auxiliar_model_part.ElementsBegin(), auxiliar_model_part.ElementsEnd() );
 
     // We copy the external layers
-/*    if (create_submodelparts_external_layers) {
+    if (create_submodelparts_external_layers) {
         const std::string name_upper = "Upper_"+model_part_name;
-        ModelPart* p_upper_model_part = append_submodelparts_external_layers ? 
-                                &geometry_model_part.CreateSubModelPart(name_upper) : 
-                                mrThisModelPart.CreateSubModelPart(name_upper);
-        p_upper_model_part->AddNodes( auxiliar_model_part_upper.NodesBegin(), auxiliar_model_part_upper.NodesEnd() );
-        p_upper_model_part->AddConditions( auxiliar_model_part_upper.ConditionsBegin(), auxiliar_model_part_upper.ConditionsEnd() );
+        ModelPart& r_upper_model_part = append_submodelparts_external_layers ? r_geometry_model_part.CreateSubModelPart(name_upper) :  mrThisModelPart.CreateSubModelPart(name_upper);
+        r_upper_model_part.AddNodes( auxiliar_model_part_upper.NodesBegin(), auxiliar_model_part_upper.NodesEnd() );
+        r_upper_model_part.AddConditions( auxiliar_model_part_upper.ConditionsBegin(), auxiliar_model_part_upper.ConditionsEnd() );
         const std::string name_lower = "Lower_"+model_part_name;
-        ModelPart* p_lower_model_part = append_submodelparts_external_layers ? 
-            geometry_model_part.CreateSubModelPart(name_lower) : 
-            mrThisModelPart.CreateSubModelPart(name_lower);
-        p_lower_model_part->AddNodes( auxiliar_model_part_lower.NodesBegin(), auxiliar_model_part_lower.NodesEnd() );
-        p_lower_model_part->AddConditions( auxiliar_model_part_lower.ConditionsBegin(), auxiliar_model_part_lower.ConditionsEnd() );
+        ModelPart& r_lower_model_part = append_submodelparts_external_layers ? r_geometry_model_part.CreateSubModelPart(name_lower) : mrThisModelPart.CreateSubModelPart(name_lower);
+        r_lower_model_part.AddNodes( auxiliar_model_part_lower.NodesBegin(), auxiliar_model_part_lower.NodesEnd() );
+        r_lower_model_part.AddConditions( auxiliar_model_part_lower.ConditionsBegin(), auxiliar_model_part_lower.ConditionsEnd() );
     }
 
     // We add to the computing model part if available
@@ -274,7 +268,7 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
         computing_model_part.AddConditions( auxiliar_model_part_upper.ConditionsBegin(), auxiliar_model_part_upper.ConditionsEnd() );
         computing_model_part.AddConditions( auxiliar_model_part_lower.ConditionsBegin(), auxiliar_model_part_lower.ConditionsEnd() );
     }
-*/
+
     // Reorder again all the IDs
     ReorderAllIds();
 
@@ -289,7 +283,7 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
         ModelPartIO model_part_io(output_name, IO::WRITE);
         model_part_io.WriteModelPart(mrThisModelPart);
     }
-    
+
     current_model.DeleteModelPart("AuxiliarModelPart");
     current_model.DeleteModelPart("upper");
     current_model.DeleteModelPart("lower");
@@ -303,8 +297,6 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
 template<SizeType TNumNodes>
 void ShellToSolidShellProcess<TNumNodes>::ReorderAllIds(const bool ReorderAccordingShellConnectivity)
 {
-    KRATOS_ERROR << "author needs to review the creation of modelparts in this file" << std::endl;
-    /*
     if (!ReorderAccordingShellConnectivity) {
         NodesArrayType& nodes_array = mrThisModelPart.Nodes();
         for(SizeType i = 0; i < nodes_array.size(); ++i)
@@ -312,15 +304,10 @@ void ShellToSolidShellProcess<TNumNodes>::ReorderAllIds(const bool ReorderAccord
     } else {
         // The name of the submodelpart
         const std::string& model_part_name = mThisParameters["model_part_name"].GetString();
-        ModelPart& geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
-
-        // Auxiliar model part where to store new nodes and elements
-        //ModelPart auxiliar_model_part;
-        
-        KRATOS_ERROR << "author needs to review the creation of modelparts in this file" << std::endl;
+        ModelPart& r_geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
 
         // Auxiliar values
-        NodesArrayType& nodes_array = geometry_model_part.Nodes();
+        NodesArrayType& nodes_array = r_geometry_model_part.Nodes();
         const SizeType geometry_number_of_nodes = nodes_array.size();
         NodesArrayType& total_nodes_array = mrThisModelPart.Nodes();
         const SizeType total_number_of_nodes = total_nodes_array.size();
@@ -356,7 +343,7 @@ void ShellToSolidShellProcess<TNumNodes>::ReorderAllIds(const bool ReorderAccord
     ElementsArrayType& element_array = mrThisModelPart.Elements();
     for(SizeType i = 0; i < element_array.size(); ++i)
         (element_array.begin() + i)->SetId(i + 1);
-        */
+
 }
 
 /***********************************************************************************/
@@ -381,10 +368,10 @@ inline void ShellToSolidShellProcess<TNumNodes>::ComputeNodesMeanNormalModelPart
 
     // The name of the submodelpart
     const std::string& model_part_name = mThisParameters["model_part_name"].GetString();
-    ModelPart& geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
+    ModelPart& r_geometry_model_part = model_part_name == "" ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
 
     // We iterate over the nodes
-    NodesArrayType& nodes_array = geometry_model_part.Nodes();
+    NodesArrayType& nodes_array = r_geometry_model_part.Nodes();
     const int num_nodes = static_cast<int>(nodes_array.size());
 
     #pragma omp parallel for
@@ -392,7 +379,7 @@ inline void ShellToSolidShellProcess<TNumNodes>::ComputeNodesMeanNormalModelPart
         (nodes_array.begin() + i)->SetValue(NORMAL, ZeroVector(3));
 
     // Sum all the nodes normals
-    ElementsArrayType& elements_array = geometry_model_part.Elements();
+    ElementsArrayType& elements_array = r_geometry_model_part.Elements();
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
