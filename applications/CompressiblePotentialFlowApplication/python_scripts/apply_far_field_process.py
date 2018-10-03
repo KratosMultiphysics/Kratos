@@ -22,8 +22,7 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         
             
         settings.ValidateAndAssignDefaults(default_parameters);
-        
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        self.model_part = Model.GetModelPart(settings["model_part_name"].GetString())
         self.velocity_infinity = KratosMultiphysics.Vector(3)#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
         self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
