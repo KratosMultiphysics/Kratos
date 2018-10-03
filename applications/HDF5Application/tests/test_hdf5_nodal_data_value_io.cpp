@@ -51,25 +51,13 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5NodalDataValueIO_WriteNodalResults1, KratosHDF5Tes
                            {"CONSTITUTIVE_MATRIX"}});
     auto p_file = pGetTestSerialFile();
     HDF5::ModelPartIO model_part_io(p_file, "/ModelData");
-<<<<<<< HEAD:applications/HDF5Application/tests/test_hdf5_non_historical_nodal_value_io.cpp
     model_part_io.WriteNodes(r_write_model_part.Nodes());
-    HDF5::NonHistoricalNodalValueIO nodal_value_io(settings, p_file);
-    nodal_value_io.WriteNodalResults(r_write_model_part.Nodes());
-    ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
-    model_part_io.ReadNodes(r_read_model_part.Nodes());
-    nodal_value_io.ReadNodalResults(r_read_model_part.Nodes(),
-                                    r_read_model_part.GetCommunicator());
-    CompareNonHistoricalNodalData(r_read_model_part.Nodes(), r_write_model_part.Nodes());
-=======
-    model_part_io.WriteNodes(write_model_part.Nodes());
     HDF5::NodalDataValueIO nodal_value_io(settings, p_file);
-    nodal_value_io.WriteNodalResults(write_model_part.Nodes());
-    ModelPart read_model_part;
-    model_part_io.ReadNodes(read_model_part.Nodes());
-    nodal_value_io.ReadNodalResults(read_model_part.Nodes(),
-                                    read_model_part.GetCommunicator());
-    CompareNonHistoricalNodalData(read_model_part.Nodes(), write_model_part.Nodes());
->>>>>>> master:applications/HDF5Application/tests/test_hdf5_nodal_data_value_io.cpp
+    nodal_value_io.WriteNodalResults(r_write_model_part.Nodes());
+    model_part_io.ReadNodes(r_write_model_part.Nodes());
+    nodal_value_io.ReadNodalResults(r_write_model_part.Nodes(),
+                                    r_write_model_part.GetCommunicator());
+    CompareNonHistoricalNodalData(r_write_model_part.Nodes(), r_write_model_part.Nodes());
 }
 
 } // namespace Testing

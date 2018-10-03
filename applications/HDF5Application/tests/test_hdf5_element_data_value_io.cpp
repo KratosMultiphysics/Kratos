@@ -44,18 +44,18 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     Model this_model;
     ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
-    TestModelPartFactory::CreateModelPart(write_model_part, {{"Element2D3N"}});
-    TestModelPartFactory::CreateModelPart(read_model_part, {{"Element2D3N"}});
+    TestModelPartFactory::CreateModelPart(r_write_model_part, {{"Element2D3N"}});
+    TestModelPartFactory::CreateModelPart(r_read_model_part, {{"Element2D3N"}});
 
-    read_model_part.SetBufferSize(2);
-    write_model_part.SetBufferSize(2);
+    r_read_model_part.SetBufferSize(2);
+    r_write_model_part.SetBufferSize(2);
 
     std::vector<std::string> variables_list = {{"DISPLACEMENT"},
                                                {"PRESSURE"},
                                                {"REFINEMENT_LEVEL"},
                                                {"GREEN_LAGRANGE_STRAIN_TENSOR"}};
 
-    for (auto& r_element : write_model_part.Elements())
+    for (auto& r_element : r_write_model_part.Elements())
     {
         TestModelPartFactory::AssignDataValueContainer(r_element.Data(), variables_list);
     }
@@ -67,12 +67,12 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
         })");
 
     HDF5::ElementDataValueIO data_io(io_params, p_test_file);
-    data_io.WriteElementResults(write_model_part.Elements());
-    data_io.ReadElementResults(read_model_part.Elements());
+    data_io.WriteElementResults(r_write_model_part.Elements());
+    data_io.ReadElementResults(r_read_model_part.Elements());
 
     for (auto& r_write_element : r_write_model_part.Elements())
     {
-        HDF5::ElementType& r_read_element = read_model_part.Elements()[r_write_element.Id()];
+        HDF5::ElementType& r_read_element = r_read_model_part.Elements()[r_write_element.Id()];
         CompareDataValueContainers(r_read_element.Data(), r_write_element.Data());
     }
 }
