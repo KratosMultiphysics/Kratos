@@ -140,6 +140,17 @@ void  AddProcessesToPython(pybind11::module& m)
         .def("ExecuteRefinement", &MultiScaleRefiningProcess::ExecuteRefinement)
         .def("ExecuteCoarsening", &MultiScaleRefiningProcess::ExecuteCoarsening)
         .def("InitializeNewModelPart", &MultiScaleRefiningProcess::InitializeNewModelPart)
+        .def("TransferLastStepToCoarseModelPart", &MultiScaleRefiningProcess::TransferLastStepToCoarseModelPart)
+        .def("TransferSubstepToRefinedInterface", &MultiScaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<double>>)
+        .def("TransferSubstepToRefinedInterface", &MultiScaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,3>>>)
+        .def("TransferSubstepToRefinedInterface", &MultiScaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,4>>>)
+        .def("TransferSubstepToRefinedInterface", &MultiScaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,6>>>)
+        .def("TransferSubstepToRefinedInterface", &MultiScaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,9>>>)
+        .def("FixRefinedInterFace", &MultiScaleRefiningProcess::FixRefinedInterFace<Variable<double>>)
+        .def("FixRefinedInterFace", &MultiScaleRefiningProcess::FixRefinedInterFace<Variable<array_1d<double,3>>>)
+        .def("FixRefinedInterFace", &MultiScaleRefiningProcess::FixRefinedInterFace<Variable<array_1d<double,4>>>)
+        .def("FixRefinedInterFace", &MultiScaleRefiningProcess::FixRefinedInterFace<Variable<array_1d<double,6>>>)
+        .def("FixRefinedInterFace", &MultiScaleRefiningProcess::FixRefinedInterFace<Variable<array_1d<double,9>>>)
         ;
 
         /* MMG PROCESS */
