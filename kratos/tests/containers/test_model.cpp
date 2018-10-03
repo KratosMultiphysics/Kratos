@@ -15,7 +15,6 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/kernel.h"
 
 
 namespace Kratos {

@@ -15,7 +15,6 @@
 #include "testing/testing.h"
 #include "includes/checks.h"
 #include "includes/gid_io.h"
-#include "includes/kernel.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "utilities/discont_utils.h"

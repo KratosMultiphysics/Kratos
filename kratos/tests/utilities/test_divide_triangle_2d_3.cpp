@@ -16,7 +16,6 @@
 #include "includes/checks.h"
 #include "includes/gid_io.h"
 #include "utilities/divide_triangle_2d_3.h"
-#include "includes/kernel.h"
 
 namespace Kratos
 {

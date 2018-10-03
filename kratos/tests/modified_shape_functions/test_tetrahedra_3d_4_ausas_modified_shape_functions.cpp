@@ -15,7 +15,6 @@
 #include "testing/testing.h"
 #include "includes/checks.h"
 #include "includes/gid_io.h"
-#include "includes/kernel.h"
 #include "utilities/divide_tetrahedra_3d_4.h"
 #include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
 
