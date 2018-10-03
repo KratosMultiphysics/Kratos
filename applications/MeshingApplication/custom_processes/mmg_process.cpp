@@ -532,17 +532,9 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     }
 
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
-<<<<<<< HEAD
-    
     Model& owner_model = mrThisModelPart.GetOwnerModel();
-
     ModelPart& r_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
-    
-=======
 
-    ModelPart r_old_model_part;
-
->>>>>>> master
     // First we empty the model part
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
 
@@ -1182,7 +1174,7 @@ ConditionType::Pointer MmgProcess<2>::CreateCondition0(
 {
     // Sometimes MMG creates conditions where there are not, then we skip
     if (mpRefCondition[PropId] == nullptr) return nullptr;
-    
+
     // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
@@ -1220,7 +1212,7 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition0(
 {
     // Sometimes MMG creates conditions where there are not, then we skip
     if (mpRefCondition[PropId] == nullptr) return nullptr;
-    
+
     // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
@@ -2239,7 +2231,9 @@ void MmgProcess<TDim>::AssignAndClearAuxiliarSubModelPartForFlags()
 template<SizeType TDim>
 void MmgProcess<TDim>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
 {
-    ModelPart auxiliar_model_part("auxiliar_thing");
+    Model& owner_model = mrThisModelPart.GetOwnerModel();
+    ModelPart& auxiliar_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Auxiliar", mrThisModelPart.GetBufferSize());
+    ModelPart& copy_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old_Copy", mrThisModelPart.GetBufferSize());
 
     Properties::Pointer p_prop_1 = auxiliar_model_part.pGetProperties(1);
     Properties::Pointer p_prop_2 = auxiliar_model_part.pGetProperties(2);
@@ -2258,7 +2252,6 @@ void MmgProcess<TDim>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
         it_elem->SetProperties(p_prop_1);
     }
     // Old model part
-    ModelPart copy_old_model_part("old_model_part_copy");
     FastTransferBetweenModelPartsProcess transfer_process_old = FastTransferBetweenModelPartsProcess(copy_old_model_part, rOldModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
     transfer_process_current.Set(MODIFIED); // We replicate, not transfer
     transfer_process_old.Execute();
@@ -2294,6 +2287,10 @@ void MmgProcess<TDim>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
     gid_io.WriteMesh(auxiliar_model_part.GetMesh());
     gid_io.FinalizeMesh();
     gid_io.InitializeResults(label, auxiliar_model_part.GetMesh());
+
+    // Remove auxiliar model parts
+    owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Auxiliar");
+    owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old_Copy");
 }
 
 /***********************************************************************************/
