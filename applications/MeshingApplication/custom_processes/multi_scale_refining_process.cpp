@@ -58,9 +58,9 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
 
     if (mEchoLevel > 1) KRATOS_WATCH(mParameters);
 
-    Check();
-
     mStepDataSize = mrCoarseModelPart.GetNodalSolutionStepDataSize();
+
+    Check();
 
     // Initialize the coarse model part
     InitializeCoarseModelPart();
@@ -85,6 +85,9 @@ void MultiScaleRefiningProcess::Check()
     KRATOS_CHECK(KratosComponents<Condition>::Has(mInterfaceConditionName));
 
     KRATOS_CHECK_NOT_EQUAL(mDivisionsAtSubscale, 0);
+
+    KRATOS_CHECK_EQUAL(mStepDataSize, mrRefinedModelPart.GetNodalSolutionStepDataSize());
+    KRATOS_CHECK_EQUAL(mStepDataSize, mrVisualizationModelPart.GetNodalSolutionStepDataSize());
 
     KRATOS_CATCH("")
 }
@@ -417,13 +420,16 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
             auto search = mCoarseToRefinedNodesMap.find(coarse_node->Id());
             if (search == mCoarseToRefinedNodesMap.end())
             {
-                NodeType::Pointer new_node = mrRefinedModelPart.CreateNewNode(++rNodeId, *coarse_node);
+                // NodeType::Pointer new_node = mrRefinedModelPart.CreateNewNode(++rNodeId, *coarse_node);
+                coarse_node->Set(NEW_ENTITY, true);
+                NodeType::Pointer new_node = coarse_node->Clone();
+                new_node->SetId(++rNodeId);
+                mrRefinedModelPart.AddNode(new_node);
                 mCoarseToRefinedNodesMap[coarse_node->Id()] = new_node;
                 mRefinedToCoarseNodesMap[rNodeId] = *coarse_node.base();
-                new_node->Set(NEW_ENTITY, true);
+                new_node->Set(TO_REFINE, false);
                 new_node->GetValue(FATHER_NODES).resize(0);
                 new_node->GetValue(FATHER_NODES).push_back( NodeType::WeakPointer(*coarse_node.base()) );
-                coarse_node->Set(NEW_ENTITY, true);
                 coarse_node->Set(MeshingFlags::REFINED, true);
             }
         }

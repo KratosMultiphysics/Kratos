@@ -72,6 +72,7 @@ class MultiscaleProcess(KratosMultiphysics.Process):
         self.model.AddModelPart(self.refined_model_part)
         buffer_size = coarse_model_part.GetBufferSize()
         self.refined_model_part.SetBufferSize(buffer_size)
+        self.refined_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         MeshingApplication.MultiScaleRefiningProcess.InitializeNewModelPart(coarse_model_part, self.refined_model_part)
 
         # Create the new subscale process
