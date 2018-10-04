@@ -670,7 +670,7 @@ private:
                 //master_weight = mTransformationMatrixLocal(slave_index,master_index);
                 master_weight = master_weights_vector(i_master);
                 for (auto& internal_index : mLocalIndices.internal_index_vector) {
-                    rRHSContribution(internal_index) += -rLHSContribution(internal_index, slave_index) * slave_constant;
+                    rRHSContribution(internal_index) -= rLHSContribution(internal_index, slave_index) * slave_constant;
                 }
                 // For RHS(m) += A'*LHS(s,s)*B
                 for (auto& slave_index_other : mLocalIndices.slave_index_vector) {
