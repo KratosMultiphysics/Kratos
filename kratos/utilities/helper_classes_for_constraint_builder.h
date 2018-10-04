@@ -516,12 +516,12 @@ public:
                           typename TContainerType::EquationIdVectorType& rEquationIds,
                           ProcessInfo& rCurrentProcessInfo)
     {
-        //KRATOS_TRY
+        KRATOS_TRY
         // If no slave is found for this container , no need of going on
         if (! Internals::HasSlaveNode(rCurrentContainer.GetGeometry()))
             return;
         this->Reset();
-        //typename TContainerType::EquationIdVectorType equation_ids = rEquationIds;
+        typename TContainerType::EquationIdVectorType equation_ids = rEquationIds;
         // Saving th original system size
         const IndexType initial_sys_size = rLHSContribution.size1();
 
@@ -538,7 +538,7 @@ public:
         // Calculating the K = T' * K *T which is local to this container
         ModifyLHS(rLHSContribution, rRHSContribution, rEquationIds);
 
-        //KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints:: Applying Multipoint constraints failed ..");
+        KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints:: Applying Multipoint constraints failed ..");
     }
     ///@}
 private:
@@ -583,11 +583,11 @@ private:
         mLocalIndices.container_master_slaves.reserve(mLocalIndices.master_index_vector.size());
         mLocalIndices.processed_master_indices.reserve(mLocalIndices.master_index_vector.size());
         IndexType slave_equation_id;
+        EquationIdVectorType master_equation_ids;
+        VectorType master_weights_vector;
         double slave_constant;
 
         for (auto& slave_index : mLocalIndices.slave_index_vector) { // Loop over all the slaves for this container
-            EquationIdVectorType master_equation_ids;
-            VectorType master_weights_vector;
             // Get the global equation for this constraint
             auto global_master_slave_constraint = mrGlobalMasterSlaveConstraints.find(rEquationIds[slave_index]);
             // Get the tranformation matrix and constant_vector from the current slave
