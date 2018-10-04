@@ -42,6 +42,8 @@ public:
     static inline void InterpolateVariableWithComponents(array_1d<double,2>& rVector,const Matrix& Ncontainer,
                                         const array_1d<array_1d<double,3>, 3>& VariableWithComponents,const unsigned int& GPoint)
     {
+    KRATOS_TRY
+
         noalias(rVector) = ZeroVector(2);
 
         for(unsigned int i=0; i<3; i++)
@@ -49,12 +51,16 @@ public:
             rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[i][0];
             rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[i][1];
         }
+
+    KRATOS_CATCH( "" )
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     static inline void InterpolateVariableWithComponents(array_1d<double,2>& rVector,const Matrix& Ncontainer,
                                         const array_1d<array_1d<double,3>, 4>& VariableWithComponents,const unsigned int& GPoint)
     {
+    KRATOS_TRY
+
         noalias(rVector) = ZeroVector(2);
 
         for(unsigned int i=0; i<4; i++)
@@ -62,6 +68,8 @@ public:
             rVector[0] += Ncontainer(GPoint,i)*VariableWithComponents[i][0];
             rVector[1] += Ncontainer(GPoint,i)*VariableWithComponents[i][1];
         }
+
+    KRATOS_CATCH( "" )
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

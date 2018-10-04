@@ -436,6 +436,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop,
                                                                                         const ProcessInfo& CurrentProcessInfo)
 {
+    KRATOS_TRY
     // GeometryType& rGeom = this->GetGeometry();
     const Geometry<Node<3> >& rGeom = this->GetGeometry();
 
@@ -449,7 +450,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
     rVariables.absorption = Prop[rReactionVar];
 
     double NormVel = norm_2(rVariables.VelInter);
-
     noalias(rVariables.GradPhi) = ZeroVector(TDim);
 
     rVariables.GradPhi = prod(trans(rVariables.GradNT), rVariables.NodalPhi);
@@ -620,6 +620,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
     //////////////////////////////////////////////////////
 
     noalias(rVariables.DifMatrixAux) = prod(rVariables.GradNT,rVariables.DifMatrixK);
+
     noalias(rVariables.MatrixAux) = prod(rVariables.DifMatrixAux,trans(rVariables.GradNT));
 
     array_1d<double,TNumNodes> NormAux1 = ZeroVector(TNumNodes);
@@ -679,7 +680,6 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
     }
     noalias(rVariables.DifMatrixSC) = rVariables.DifSC * rVariables.IdentityMatrix;
 
-
     //Calculate Dv and new lsc term for Dv
     this->CalculateNormalsAngle(rVariables);
 
@@ -708,78 +708,80 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVa
     noalias(rVariables.DifMatrixV) = 0.5 * (rVariables.lv + rVariables.lsc * (1.0 - rVariables.CosinusGradPhi) * (1.0 - rVariables.CosinusNormals * rVariables.CosinusNormals))
                                                  * rVariables.AlphaV * outer_prod(rVariables.VelInterHat , rVariables.VelInter);
 
+KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
 template<>
 void SteadyConvectionDiffusionFICElement<2,3>::CalculateNormalsAngle(ElementVariables& rVariables)
 {
-    const GeometryType& Geom = this->GetGeometry();
+    // const GeometryType& Geom = this->GetGeometry();
 
     // Calculate normals
 
     rVariables.CosinusNormals = 1.0;
-    unsigned int j = 0;
-    constexpr unsigned int NumNodes = 3;
-    array_1d<array_1d< double, 3 >, NumNodes> NodeNormal;
+    // unsigned int j = 0;
+    // constexpr unsigned int NumNodes = 3;
+    // array_1d<array_1d< double, 3 >, NumNodes> NodeNormal;
 
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        array_1d <double, 3> AuxNodeNormal = Geom[i].FastGetSolutionStepValue(NORMAL);
-        unsigned int k = 0;
-        double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
+    // for (unsigned int i = 0; i < NumNodes; i++)
+    // {
+    //     array_1d <double, 3> AuxNodeNormal = Geom[i].FastGetSolutionStepValue(NORMAL);
+    //     unsigned int k = 0;
+    //     double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
 
-        if (NormAuxNodeNormal > rVariables.LowTolerance)
-        {
-            j += 1;
-            k = j - 1;
-            noalias(NodeNormal[k]) = AuxNodeNormal;
-        }
-    }
-    if (j == 2)
-    {
-        double NormNodeNormal1 = norm_2 (NodeNormal[0]);
-        double NormNodeNormal2 = norm_2 (NodeNormal[1]);
-        double InnerProdNormal = inner_prod(NodeNormal[0], NodeNormal[1]);
-        rVariables.CosinusNormals = InnerProdNormal / (NormNodeNormal1 * NormNodeNormal2);
+    //     if (NormAuxNodeNormal > rVariables.LowTolerance)
+    //     {
+    //         j += 1;
+    //         k = j - 1;
+    //         noalias(NodeNormal[k]) = AuxNodeNormal;
+    //     }
+    // }
+    // if (j == 2)
+    // {
+    //     rVariables.CosinusNormals = 1.0;
+    //     double NormNodeNormal1 = norm_2 (NodeNormal[0]);
+    //     double NormNodeNormal2 = norm_2 (NodeNormal[1]);
+    //     double InnerProdNormal = inner_prod(NodeNormal[0], NodeNormal[1]);
+    //     rVariables.CosinusNormals = InnerProdNormal / (NormNodeNormal1 * NormNodeNormal2);
 
-    }
+    // }
 }
 
 //----------------------------------------------------------------------------------------
 template<>
 void SteadyConvectionDiffusionFICElement<2,4>::CalculateNormalsAngle(ElementVariables& rVariables)
 {
-    const GeometryType& Geom = this->GetGeometry();
+    // const GeometryType& Geom = this->GetGeometry();
 
     // Calculate normals
 
     rVariables.CosinusNormals = 1.0;
-    unsigned int j = 0;
-    constexpr unsigned int NumNodes = 4;
-    array_1d<array_1d< double, 3 >, NumNodes> NodeNormal;
+    // unsigned int j = 0;
+    // constexpr unsigned int NumNodes = 4;
+    // array_1d<array_1d< double, 3 >, NumNodes> NodeNormal;
 
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        array_1d <double, 3> AuxNodeNormal = Geom[i].FastGetSolutionStepValue(NORMAL);
-        unsigned int k = 0;
-        double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
+    // for (unsigned int i = 0; i < NumNodes; i++)
+    // {
+    //     array_1d <double, 3> AuxNodeNormal = Geom[i].FastGetSolutionStepValue(NORMAL);
+    //     unsigned int k = 0;
+    //     double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
 
-        if (NormAuxNodeNormal > rVariables.LowTolerance)
-        {
-            j += 1;
-            k = j - 1;
-            noalias(NodeNormal[k]) = AuxNodeNormal;
-        }
-    }
-    if (j == 2)
-    {
-        double NormNodeNormal1 = norm_2 (NodeNormal[0]);
-        double NormNodeNormal2 = norm_2 (NodeNormal[1]);
-        double InnerProdNormal = inner_prod(NodeNormal[0], NodeNormal[1]);
-        rVariables.CosinusNormals = InnerProdNormal / (NormNodeNormal1 * NormNodeNormal2);
-
-    }
+    //     if (NormAuxNodeNormal > rVariables.LowTolerance)
+    //     {
+    //         j += 1;
+    //         k = j - 1;
+    //         noalias(NodeNormal[k]) = AuxNodeNormal;
+    //     }
+    // }
+    // if (j == 2)
+    // {
+    //     rVariables.CosinusNormals = 1.0;
+    //     double NormNodeNormal1 = norm_2 (NodeNormal[0]);
+    //     double NormNodeNormal2 = norm_2 (NodeNormal[1]);
+    //     double InnerProdNormal = inner_prod(NodeNormal[0], NodeNormal[1]);
+    //     rVariables.CosinusNormals = InnerProdNormal / (NormNodeNormal1 * NormNodeNormal2);
+    // }
 }
 
 // TODO: 3D
@@ -801,82 +803,83 @@ void SteadyConvectionDiffusionFICElement<3,8>::CalculateNormalsAngle(ElementVari
 template<>
 void SteadyConvectionDiffusionFICElement<2,3>::CalculateBoundaryLv(ElementVariables& rVariables)
 {
-    const GeometryType& Geom = this->GetGeometry();
+    // const GeometryType& Geom = this->GetGeometry();
 
-    // Calculate normals
+    // // Calculate normals
 
-    unsigned int j = 0;
-    array_1d <double, 3> AuxNodeNormal;
-    array_1d <double, 3> SumNormals = ZeroVector(3);
-    constexpr unsigned int NumNodes = 3;
-    constexpr unsigned int Dim = 2;
+    // unsigned int j = 0;
+    // array_1d <double, 3> AuxNodeNormal;
+    // array_1d <double, 3> SumNormals = ZeroVector(3);
+    // constexpr unsigned int NumNodes = 3;
+    // constexpr unsigned int Dim = 2;
 
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        noalias(AuxNodeNormal) = Geom[i].FastGetSolutionStepValue(NORMAL);
-        double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
+    // for (unsigned int i = 0; i < NumNodes; i++)
+    // {
+    //     noalias(AuxNodeNormal) = Geom[i].FastGetSolutionStepValue(NORMAL);
+    //     double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
 
-        if (NormAuxNodeNormal > rVariables.LowTolerance)
-        {
-            j += 1;
-            noalias(SumNormals) += AuxNodeNormal;
-        }
-    }
-    if (j == 2)
-    {
-        double AuxLv = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(Geom,SumNormals);
-        array_1d <double, 3> AuxVector = SumNormals / norm_2 (SumNormals) * AuxLv;
+    //     if (NormAuxNodeNormal > rVariables.LowTolerance)
+    //     {
+    //         j += 1;
+    //         noalias(SumNormals) += AuxNodeNormal;
+    //     }
+    // }
+    // if (j == 2)
+    // {
+    //     double AuxLv = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(Geom,SumNormals);
+    //     array_1d <double, 3> AuxVector = SumNormals / norm_2 (SumNormals) * AuxLv;
 
-        double AuxLv2 = inner_prod (AuxVector, rVariables.VelInterHat);
+    //     double AuxLv2 = inner_prod (AuxVector, rVariables.VelInterHat);
 
 
-        if(std::abs(AuxLv2) <= rVariables.lv && std::abs(AuxLv2) > rVariables.LowTolerance)
-        {
-            rVariables.lv = std::abs(AuxLv2);
-        }
+    //     if(std::abs(AuxLv2) <= rVariables.lv && std::abs(AuxLv2) > rVariables.LowTolerance)
+    //     {
+    //         rVariables.lv = std::abs(AuxLv2);
+    //     }
 
-    }
+    // }
 }
 
 //----------------------------------------------------------------------------------------
 template<>
 void SteadyConvectionDiffusionFICElement<2,4>::CalculateBoundaryLv(ElementVariables& rVariables)
 {
-    const GeometryType& Geom = this->GetGeometry();
+    // const GeometryType& Geom = this->GetGeometry();
 
-    // Calculate normals
+    // // Calculate normals
 
-    unsigned int j = 0;
-    array_1d <double, 3> AuxNodeNormal;
-    array_1d <double, 3> SumNormals = ZeroVector(3);
-    constexpr unsigned int NumNodes = 4;
-    constexpr unsigned int Dim = 2;
+    // unsigned int j = 0;
+    // array_1d <double, 3> AuxNodeNormal;
+    // array_1d <double, 3> SumNormals = ZeroVector(3);
+    // constexpr unsigned int NumNodes = 4;
+    // constexpr unsigned int Dim = 2;
 
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        noalias(AuxNodeNormal) = Geom[i].FastGetSolutionStepValue(NORMAL);
-        double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
+    // for (unsigned int i = 0; i < NumNodes; i++)
+    // {
+    //     noalias(AuxNodeNormal) = Geom[i].FastGetSolutionStepValue(NORMAL);
+    //     double NormAuxNodeNormal = norm_2 (AuxNodeNormal);
 
-        if (NormAuxNodeNormal > rVariables.LowTolerance)
-        {
-            j += 1;
-            noalias(SumNormals) += AuxNodeNormal;
-        }
-    }
-    if (j == 2)
-    {
-        double AuxLv = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(Geom,SumNormals);
-        array_1d <double, 3> AuxVector = SumNormals / norm_2 (SumNormals) * AuxLv;
+    //     if (NormAuxNodeNormal > rVariables.LowTolerance)
+    //     {
+    //         j += 1;
+    //         noalias(SumNormals) += AuxNodeNormal;
+    //     }
+    // }
+    // if (j == 2)
+    // {
+    //     double AuxLv = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(Geom,SumNormals);
+    //     array_1d <double, 3> AuxVector = SumNormals / norm_2 (SumNormals) * AuxLv;
 
-        double AuxLv2 = inner_prod (AuxVector, rVariables.VelInterHat);
+    //     double AuxLv2 = inner_prod (AuxVector, rVariables.VelInterHat);
 
 
-        if(std::abs(AuxLv2) <= rVariables.lv && std::abs(AuxLv2) > rVariables.LowTolerance)
-        {
-            rVariables.lv = std::abs(AuxLv2);
-        }
+    //     if(std::abs(AuxLv2) <= rVariables.lv && std::abs(AuxLv2) > rVariables.LowTolerance)
+    //     {
+    //         rVariables.lv = std::abs(AuxLv2);
+    //     }
 
-    }
+    // }
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -984,6 +987,8 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateFICBeta(Eleme
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo)
 {
+    KRATOS_TRY
+
     ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
     //Properties variables
@@ -1070,6 +1075,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(Eleme
     // Compute HVector
     rVariables.HVector = rVariables.HvVector + rVariables.HrVector + rVariables.HscVector;
 
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------

@@ -183,6 +183,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop,
                                                                                         const ProcessInfo& CurrentProcessInfo)
 {
+    KRATOS_TRY
 
     // GeometryType& rGeom = this->GetGeometry();
     const Geometry<Node<3> >& rGeom = this->GetGeometry();
@@ -260,7 +261,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
         rVariables.TransientAbsorption = previous_absorption;
     }
 
-    // rVariables.TransientAbsorption = previous_absorption;
+    //rVariables.TransientAbsorption = previous_absorption;
 
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
@@ -432,6 +433,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
                             + rVariables.absorption * inner_prod(rVariables.N, NodalPhi0)
                             - rVariables.QSource;
 
+
     rVariables.TransientResidual = rVariables.Residual + rVariables.rho_dot_c * inner_prod(rVariables.N, NodalPhi0 - PrevNodalPhi) * 1.0 / (theta * delta_time);
 
     //////////////////////////////////////////////////////
@@ -574,6 +576,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     noalias(rVariables.DifMatrixV) = 0.5 * (rVariables.lv + rVariables.lsc * (1.0 - rVariables.CosinusGradPhi) * (1.0 - rVariables.CosinusNormals * rVariables.CosinusNormals))
                                                  * rVariables.AlphaV * outer_prod(rVariables.VelInterHat , rVariables.VelInter);
 
+KRATOS_CATCH("")
 }
 
 
@@ -582,6 +585,8 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
 template< unsigned int TDim, unsigned int TNumNodes >
 void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo)
 {
+KRATOS_TRY
+
     ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
     //Properties variables
@@ -680,6 +685,7 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(El
     // Compute HVector
     rVariables.HVector = rVariables.HvVector + rVariables.HrVector + rVariables.HscVector;
 
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
