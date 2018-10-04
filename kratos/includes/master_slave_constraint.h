@@ -359,6 +359,25 @@ public:
         }
     }
 
+    /**
+     * @brief This method provides the place to perform checks on the completeness of the input
+     * and the compatibility with the problem options
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input or that no common error is found.
+     * @param rCurrentProcessInfo
+     * @note This method is: MANDATORY
+     */
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF( this->Id() < 1 ) << "MasterSlaveConstraint found with Id " << this->Id() << std::endl;
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
+
     ///@}
     ///@name Input and output
     ///@{
