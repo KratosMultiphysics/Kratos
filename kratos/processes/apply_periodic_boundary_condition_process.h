@@ -105,8 +105,10 @@ class ApplyPeriodicConditionProcess : public Process
             mType = "translation";
         else if (mTheta != 0.0 && mModulus == 0.0)
             mType = "rotation";
-        else if (mTheta == 0.0 && mModulus == 0.0)
-            KRATOS_THROW_ERROR(std::runtime_error, "Both angle of rotation and modulus of translation cannot be zero. Please check the input", "");
+        else
+            KRATOS_ERROR_IF(mTheta == 0.0 && mModulus == 0.0)<<"Both angle of rotation and modulus of translation cannot be zero. Please check the input"<<std::endl;
+        else
+            KRATOS_ERROR_IF(mTheta != 0.0 && mModulus != 0.0)<<"Both angle of rotation and modulus of translation cannot be specified at the same time. Please check the input"<<std::endl;
 
         CalculateTransformationMatrix();
         mIsInitialized = false;
