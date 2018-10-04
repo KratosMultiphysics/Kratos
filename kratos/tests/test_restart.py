@@ -203,6 +203,8 @@ class TestRestart(KratosUnittest.TestCase):
         if rest_utility.IsRestartOutputStep():
             rest_utility.SaveRestart()
 
+        del temporary_model ##explicitly deleting to be sure memory is freed
+
     def __execute_restart_utility_load(self, current_model, model_part_name, restart_time):
         loaded_model_part = current_model.CreateModelPart(model_part_name)
 
@@ -218,8 +220,9 @@ class TestRestart(KratosUnittest.TestCase):
 
         rest_utility = restart_utility.RestartUtility(loaded_model_part, restart_parameters)
 
-        rest_utility.LoadRestart()
-        return loaded_model_part
+        rest_utility.LoadRestart() #TODO: it would be best to return the loaded_modelpart from this... 
+
+        return loaded_model_part #rest_utility.model_part
 
 
 
@@ -238,8 +241,8 @@ class TestRestart(KratosUnittest.TestCase):
         # Here we only test SERIALIZER_NO_TRACE since the others are tested in the simple tests
         model_part_name = "MainRestart"
         restart_time = 15.0
-        self.__execute_restart_utility_save(model_part_name, restart_time)
 
+        self.__execute_restart_utility_save(model_part_name, restart_time)
         #we create here the model to which we will load
         current_model = KratosMultiphysics.Model()
         loaded_model_part = self.__execute_restart_utility_load(current_model, model_part_name, restart_time)
