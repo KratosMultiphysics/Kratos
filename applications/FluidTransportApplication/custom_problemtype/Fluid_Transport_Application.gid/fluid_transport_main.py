@@ -44,8 +44,10 @@ tol = delta_time*1.0e-10
 
 ## Model part ------------------------------------------------------------------------------------------------
 
+# Creation of Kratos model (build submodels and submeshes)
+FluidTransportModel = KratosMultiphysics.Model()
 # Defining the model part
-main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
+main_model_part = FluidTransportModel.CreateModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
@@ -62,10 +64,6 @@ solver.ImportModelPart()
 
 # Add degrees of freedom
 solver.AddDofs()
-
-# Creation of Kratos model (build submodels and submeshes)
-FluidTransportModel = KratosMultiphysics.Model()
-FluidTransportModel.AddModelPart(main_model_part)
 
 # Print model_part and properties
 if(echo_level > 1):
