@@ -1218,7 +1218,7 @@ public:
      * @tparam TVector The vector type considered
      * @tparam TMatrixType The matrix returning type
      */
-   template<class TVector, class TMatrixType = MatrixType>
+    template<class TVector, class TMatrixType = MatrixType>
     static inline TMatrixType StressVectorToTensor(const TVector& rStressVector)
     {
         KRATOS_TRY;
