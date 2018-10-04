@@ -60,16 +60,11 @@ class MeshControllerWithSolver(MeshController) :
         self.MeshSolverSettings["problem_data"]["model_part_name"].SetString(OptimizationModelPart.Name)
 
         self.OptimizationModelPart = OptimizationModelPart
-<<<<<<< HEAD
-        print("------------------------------------------",self.OptimizationModelPart)
-        self.mesh_solver = MeshMovingAnalysis(self.MeshSolverSettings, OptimizationModelPart)
-=======
 
         model = Model()
         model.AddModelPart(self.OptimizationModelPart)
 
         self._mesh_moving_analysis = MeshMovingAnalysis(model, self.MeshSolverSettings)
->>>>>>> master
 
     # --------------------------------------------------------------------------
     def Initialize(self):
