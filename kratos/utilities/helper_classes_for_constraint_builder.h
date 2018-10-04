@@ -383,6 +383,9 @@ struct LocalIndices
         internal_index_vector.resize(0);
         master_index_vector.resize(0);
         slave_index_vector.resize(0);
+        container_master_weights.resize(0);
+        container_master_slaves.resize(0);
+        processed_master_indices.resize(0);
     }
 
     VectorIndexType internal_index_vector; // indicies corresponding to internal DOFs
