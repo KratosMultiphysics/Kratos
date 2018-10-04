@@ -188,6 +188,26 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             self._removeFile("./AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe3.dat")
             self._removeFile("./cylinder_test.post.bin")
 
+    def testSteadyCylinder(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            # solve fluid
+            self.solve('AdjointVMSSensitivity2DTest/steady_cylinder_test')
+            # solve adjoint
+            test = self._createAdjointTest('AdjointVMSSensitivity2DTest/steady_cylinder_test_adjoint')
+            test.Run()
+            Sensitivity = [[]]
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_X))
+            Sensitivity[0].append(test._GetSolver().main_model_part.GetNode(1968).GetSolutionStepValue(SHAPE_SENSITIVITY_Y))
+
+            # calculate sensitivity by finite difference
+            step_size = 0.00000001
+            FDSensitivity = self._computeFiniteDifferenceDragSensitivity([1968],step_size,'./AdjointVMSSensitivity2DTest/steady_cylinder_test',[1.0,0.0,0.0],'./AdjointVMSSensitivity2DTest/steady_cylinder_test.dat')
+            self.assertAlmostEqual(Sensitivity[0][0], FDSensitivity[0][0], 4)
+            self.assertAlmostEqual(Sensitivity[0][1], FDSensitivity[0][1], 2)
+            self._removeH5Files("MainModelPart")
+            self._removeFile("./AdjointVMSSensitivity2DTest/steady_cylinder_test.dat")
+            self._removeFile("./steady_cylinder_test.time")
+
     def tearDown(self):
         pass
 
