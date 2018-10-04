@@ -629,7 +629,7 @@ private:
 
         // For K(u,s) and K(s,u). This is to be done at the end only
         for (auto& slave_index : mLocalIndices.slave_index_vector) {
-            for (auto internal_index : mLocalIndices.internal_index_vector) {
+            for (auto& internal_index : mLocalIndices.internal_index_vector) {
                 rLHSContribution(slave_index, internal_index) = 0.0;
                 rLHSContribution(internal_index, slave_index) = 0.0;
             }
