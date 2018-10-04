@@ -138,7 +138,7 @@ namespace Kratos
 		}
 
 		// This function assumes tetrahedra element and triangle intersected object as input at this moment
-		constexpr int number_of_tetrahedra_points = 4;
+		constexpr int number_of_tetrahedra_points = TDim + 1;
 		constexpr double epsilon = std::numeric_limits<double>::epsilon();
 		Vector& elemental_distances = rElement1.GetValue(ELEMENTAL_DISTANCES);
 
@@ -173,8 +173,8 @@ namespace Kratos
 					elemental_distances[i] = approximation_plane.CalculateSignedDistance(r_geometry[i]);
 				}
 			} else {
-				// Create a plane with the 3 intersection points
-				Plane3D plane(int_pts_vector[0], int_pts_vector[1], int_pts_vector[2]);
+				// Create a plane with the 3 intersection points (or 2 in 2D)
+				Plane3D plane = SetIntersectionPlane(int_pts_vector);
 
 				// Compute the distance to the intersection plane
 				for (int i = 0; i < number_of_tetrahedra_points; i++) {
@@ -315,12 +315,12 @@ namespace Kratos
 		array_1d<double,3>& rNormal){
 
 		double volume;
-		array_1d<double,4> N;
-		BoundedMatrix<double,4,3> DN_DX;
+		array_1d<double,TDim+1> N;
+		BoundedMatrix<double,TDim+1,TDim> DN_DX;
 		GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, volume);
 
 		rNormal = ZeroVector(3);
-		for (std::size_t comp = 0; comp < 3; ++comp){
+		for (std::size_t comp = 0; comp < TDim; ++comp){
 			for (std::size_t i_node = 0; i_node < rGeometry.PointsNumber(); ++i_node){
 				rNormal(comp) += DN_DX(i_node,comp)*rElementalDistances[i_node];
 			}
@@ -363,7 +363,7 @@ namespace Kratos
 			const auto &r_int_obj_geom = r_int_obj.GetGeometry();
 
 			array_1d<double, 3> r_int_obj_normal;
-			MathUtils<double>::CrossProduct(r_int_obj_normal, r_int_obj_geom[1]-r_int_obj_geom[0], r_int_obj_geom[2]-r_int_obj_geom[0]);
+			ComputeIntersectionNormalFromGeometry(r_int_obj_geom, r_int_obj_normal);
 			r_int_obj_normal /= norm_2(r_int_obj_normal);
 
 			if (inner_prod(r_int_obj_normal, distance_normal) < 0.0){
@@ -379,6 +379,42 @@ namespace Kratos
 				rElementalDistances[i_node] *= -1.0;
 			}
 		}
+	}
+
+	template<>
+	Plane3D inline CalculateDiscontinuousDistanceToSkinProcess<2>::SetIntersectionPlane(
+		const std::vector<array_1d<double,3>> &rIntPtsVector)
+	{
+		// Since the Plane3D object only works in 3D, in 2D we set the intersection 
+		// plane by extruding the intersection point 0 in the z-direction.
+		array_1d<double,3> z_coord_pt = rIntPtsVector[0];
+		z_coord_pt[2] = 1.0;
+		return Plane3D(rIntPtsVector[0], rIntPtsVector[1], z_coord_pt);
+	}
+
+	template<>
+	Plane3D inline CalculateDiscontinuousDistanceToSkinProcess<3>::SetIntersectionPlane(
+		const std::vector<array_1d<double,3>> &rIntPtsVector)
+	{
+		return Plane3D(rIntPtsVector[0], rIntPtsVector[1], rIntPtsVector[2]);
+	}
+
+	template<>
+	void inline CalculateDiscontinuousDistanceToSkinProcess<2>::ComputeIntersectionNormalFromGeometry(
+		const Element::GeometryType &rGeometry,
+		array_1d<double,3> &rIntObjNormal)
+	{
+		rIntObjNormal[0] = rGeometry[0].Y() - rGeometry[1].Y();
+		rIntObjNormal[1] = rGeometry[1].X() - rGeometry[0].X();
+		rIntObjNormal[2] = 0.0;
+	}
+
+	template<>
+	void inline CalculateDiscontinuousDistanceToSkinProcess<3>::ComputeIntersectionNormalFromGeometry(
+		const Element::GeometryType &rGeometry,
+		array_1d<double,3> &rIntObjNormal)
+	{
+		MathUtils<double>::CrossProduct(rIntObjNormal, rGeometry[1]-rGeometry[0], rGeometry[2]-rGeometry[0]);
 	}
 
 	template class Kratos::CalculateDiscontinuousDistanceToSkinProcess<2>;
