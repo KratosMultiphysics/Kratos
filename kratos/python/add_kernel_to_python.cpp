@@ -16,7 +16,6 @@
 // Project includes
 #include "includes/define_python.h"
 #include "includes/kernel.h"
-#include "containers/model.h"
 #include "python/add_kernel_to_python.h"
 
 // System includes

@@ -28,9 +28,7 @@ class controlledExecutionScope:
 
 
 class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
-     
     def setUp(self):
-        print("setUp ---> ", self.file_name)
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
 
@@ -61,7 +59,6 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             self.test.RunSolutionLoop()
 
     def tearDown(self):
-        print("tearDown ---> ", self.file_name)
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Finalize()

@@ -79,10 +79,6 @@ class Model;
  */
 class KRATOS_API(KRATOS_CORE) ModelPart : public DataValueContainer, public Flags
 {
-
-
-
-
     class GetModelPartName : public std::unary_function<const ModelPart* const, std::string>
     {
     public:
@@ -628,7 +624,7 @@ public:
         return GetMesh(ThisIndex).MasterSlaveConstraints();
     }
 
-    const MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0) const 
+    const MasterSlaveConstraintContainerType& MasterSlaveConstraints(IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).MasterSlaveConstraints();
     }
@@ -715,15 +711,15 @@ public:
      * @todo Replace these 3 functions by one that perfectly forwards arguments, then just define these 3 interfaces on the pybind side
      */
     MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
-                                                                                    IndexType Id, 
+                                                                                    IndexType Id,
                                                                                     DofsVectorType& rMasterDofsVector,
                                                                                     DofsVectorType& rSlaveDofsVector,
                                                                                     const MatrixType& RelationMatrix,
                                                                                     const VectorType& ConstantVector,
                                                                                     IndexType ThisIndex = 0);
 
-    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
-                                                                                    IndexType Id, 
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
+                                                                                    IndexType Id,
                                                                                     NodeType& rMasterNode,
                                                                                     const DoubleVariableType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,
@@ -732,8 +728,8 @@ public:
                                                                                     const double Constant,
                                                                                     IndexType ThisIndex = 0);
 
-    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName, 
-                                                                                    IndexType Id, 
+    MasterSlaveConstraint::Pointer CreateNewMasterSlaveConstraint(const std::string& ConstraintName,
+                                                                                    IndexType Id,
                                                                                     NodeType& rMasterNode,
                                                                                     const VariableComponentType& rMasterVariable,
                                                                                     NodeType& rSlaveNode,

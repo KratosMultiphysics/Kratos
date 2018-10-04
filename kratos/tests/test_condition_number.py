@@ -8,14 +8,13 @@ def GetFilePath(fileName):
 
 
 class TestConditionNumber(KratosUnittest.TestCase):
-    
 
     def test_condition_number(self):
         try:
             import KratosMultiphysics.ExternalSolversApplication
         except:
             self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-            
+
         space = KratosMultiphysics.UblasSparseSpace()
 
         # Read the matrices
