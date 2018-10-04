@@ -167,7 +167,7 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
     std::vector<double> dummy;
     for( auto it_elem = model_part.ElementsBegin(); it_elem != model_part.ElementsEnd(); ++it_elem)
     {
-        it_elem->CalculateOnIntegrationPoints(COMPUTE_STATISTICS,dummy,model_part.GetProcessInfo());
+        it_elem->CalculateOnIntegrationPoints(UPDATE_STATISTICS,dummy,model_part.GetProcessInfo());
     }
 
     //StatisticsUtilities::DumpToFile(p_turbulence_statistics,model_part,"filename.h5");

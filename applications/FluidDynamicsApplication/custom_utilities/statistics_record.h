@@ -82,25 +82,11 @@ class StatisticsRecord
     ///@name Operations
     ///@{
 
-    void AddResult(StatisticsSampler::Pointer pResult) {
-        KRATOS_TRY
+    void AddResult(StatisticsSampler::Pointer pResult);
 
-        KRATOS_ERROR_IF(mInitialized) << "Trying to add statistical data after Initialization of the internal storage." << std::endl;
+    void InitializeStorage();
 
-        std::size_t result_size = pResult->GetSize();
-        pResult->SetOffset(mDataBufferSize);
-
-        mDataBufferSize += result_size;
-        mAverageData.push_back(pResult);
-
-        KRATOS_CATCH("")
-    }
-
-    void InitializeStorage() {
-        mUpdateBuffer.resize(mDataBufferSize);
-        mMeasurementBuffer.resize(mDataBufferSize);
-        mInitialized = true;
-    }
+    void UpdateStatistics(Element* pElement);
 
     ///@}
     ///@name Access

@@ -51,7 +51,6 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
   */
-template< class ValueContainerType >
 class StatisticsData
 {
 public:
@@ -61,12 +60,19 @@ public:
     /// Pointer definition of StatisticsData
     KRATOS_CLASS_POINTER_DEFINITION(StatisticsData);
 
+    typedef std::vector<double> ValueContainerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
     StatisticsData() {}
+
+    /// Copy constructor.
+    StatisticsData(StatisticsData const &rOther) {
+        mData = rOther.mData;
+    }
 
     /// Destructor.
     virtual ~StatisticsData() {}
@@ -75,25 +81,67 @@ public:
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    StatisticsData &operator=(StatisticsData const &rOther) {
+        mData = rOther.mData;
+        return *this;
+    }
+
     ///@}
     ///@name Operations
     ///@{
 
     void Initialize(std::size_t BufferSize)
     {
-        mData.clear();
-        mData.resize(BufferSize);
-        for (auto iter = mData.begin(); iter != mData.end(); ++iter)
-        {
-            *iter = 0.0;
+        constexpr unsigned int number_of_gauss_points = 0; //TODO: set using parent element
+        mData.resize(number_of_gauss_points);
+        for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+            mData[g].clear();
+            mData[g].resize(BufferSize);
+            for (auto iter = mData[g].begin(); iter != mData[g].end(); ++iter)
+            {
+                *iter = 0.0;
+            }
         }
     }
 
-    void CalculateUpdateDelta(
+    void UpdateMeasurement(
+        /*const*/ Element* pElement,
+        const std::vector<StatisticsSampler::Pointer>& rStatisticsSamplers,
+        ValueContainerType& rMeasurement,
+        ValueContainerType& rUpdate,
+        std::size_t NumMeasurements)
+    {
+        const Geometry< Node<3> >& r_geometry = pElement->GetGeometry();
+        const GeometryData::IntegrationMethod integration_method = pElement->GetIntegrationMethod();
+        Matrix shape_functions;
+        typename Geometry<Node<3>>::ShapeFunctionsGradientsType shape_gradients;
+        this->CalculateGeometryData(r_geometry,integration_method,shape_functions,shape_gradients);
+
+        for (unsigned int g = 0; g < shape_gradients.size(); g++) {
+            auto N = row(shape_functions,g);
+            auto& rDN_DN = shape_gradients[g];
+
+            auto it_measurement_buffer = rMeasurement.begin();
+            for (auto it_sampler = rStatisticsSamplers.begin(); it_sampler != rStatisticsSamplers.end(); ++it_sampler) {
+                (**it_sampler).SampleDataPoint(r_geometry,N,rDN_DN,it_measurement_buffer);
+            }
+
+            // loop on higer order statistics. They require the already written rMeasurements, (const) mData and the number of steps as input
+
+
+            for (unsigned int i = 0; i < rUpdate.size(); i++)
+            {
+                mData[g][i] += rUpdate[i];
+            }
+        }
+    }
+
+/*    void CalculateUpdateDelta(
         const Element* pElement,
         const std::vector<StatisticsSampler::Pointer>& rStatisticsSamplers,
         ValueContainerType& rMeasurements,
-        std::size_t NumMeasurements)
+        std::size_t NumMeasurements) const
     {
         const Geometry< Node<3> >& r_geometry = pElement->GetGeometry();
         const GeometryData::IntegrationMethod integration_method = pElement->GetIntegrationMethod();
@@ -103,17 +151,25 @@ public:
 
         auto it_measurement_buffer = rMeasurements.begin();
         for (auto it_sampler = rStatisticsSamplers.begin(); it_sampler != rStatisticsSamplers.end(); ++it_sampler) {
-            (**it_sampler).SampleDataPoint(r_geometry,shape_functions,shape_gradients,it_measurement_buffer);
+            //(**it_sampler).SampleDataPoint(r_geometry,shape_functions,shape_gradients,it_measurement_buffer);
         }
+
+        // loop on higer order statistics. They require the already written rMeasurements, (const) mData and the number of steps as input
     }
 
-    void AddMeasurement(const ValueContainerType& rMeasurement, std::size_t NumSteps) {}
+    void UpdateMeasurement(const ValueContainerType& rUpdate)
+    {
+        for (unsigned int i = 0; i < mData.size(); i++)
+        {
+            mData[i] += rUpdate[i];
+        }
+    }*/
 
     void Combine(const StatisticsData& rOther) {}
 
-    ValueContainerType Output() {
+    /*ValueContainerType Output() {
         return mData;
-    }
+    }*/
 
     void LoadFromFile() {}
 
@@ -205,7 +261,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ValueContainerType mData;
+    std::vector<ValueContainerType> mData;
 
     ///@}
     ///@name Serialization
@@ -237,11 +293,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    StatisticsData &operator=(StatisticsData const &rOther) {}
-
-    /// Copy constructor.
-    StatisticsData(StatisticsData const &rOther) {}
 
     ///@}
 
@@ -258,14 +309,14 @@ private:
 
 /// input stream function
 inline std::istream &operator>>(std::istream &rIStream,
-                                StatisticsData< std::vector<double> > &rThis)
+                                StatisticsData/*< std::vector<double> >*/ &rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 inline std::ostream &operator<<(std::ostream &rOStream,
-                                const StatisticsData< std::vector<double> > &rThis)
+                                const StatisticsData/*< std::vector<double> >*/ &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
