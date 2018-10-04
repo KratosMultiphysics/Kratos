@@ -16,16 +16,12 @@ class TestModel(KratosUnittest.TestCase):
         outlet = model_part.CreateSubModelPart("Outlet")
 
         aaa = current_model["Main.Outlet"].CreateSubModelPart("aaa")
-        print(" Main -->",current_model["Main"])
-        print("---------------------")
-        print(" Main.Outlet -->",current_model["Main.Outlet"])
-        print(aaa)
 
         if (sys.version_info < (3, 2)):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
         self.assertEqual(aaa, current_model["aaa"]) #search by flat name - should be eventually deprecated
-        
+
         #check that a meaningful error is thrown
         with self.assertRaisesRegex(RuntimeError, "Error: The ModelPart named : \"abc\" was not found either as root-ModelPart or as a flat name. The total input string was \"abc\""):
             current_model["abc"]
