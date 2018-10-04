@@ -91,20 +91,6 @@ public:
     ///@name Operations
     ///@{
 
-    void Initialize(std::size_t BufferSize)
-    {
-        constexpr unsigned int number_of_gauss_points = 0; //TODO: set using parent element
-        mData.resize(number_of_gauss_points);
-        for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            mData[g].clear();
-            mData[g].resize(BufferSize);
-            for (auto iter = mData[g].begin(); iter != mData[g].end(); ++iter)
-            {
-                *iter = 0.0;
-            }
-        }
-    }
-
     void UpdateMeasurement(
         /*const*/ Element* pElement,
         const std::vector<StatisticsSampler::Pointer>& rStatisticsSamplers,
@@ -112,27 +98,35 @@ public:
         ValueContainerType& rUpdate,
         std::size_t NumMeasurements)
     {
-        const Geometry< Node<3> >& r_geometry = pElement->GetGeometry();
-        const GeometryData::IntegrationMethod integration_method = pElement->GetIntegrationMethod();
-        Matrix shape_functions;
-        typename Geometry<Node<3>>::ShapeFunctionsGradientsType shape_gradients;
-        this->CalculateGeometryData(r_geometry,integration_method,shape_functions,shape_gradients);
+        if (NumMeasurements <= 1)
+        {
+            InitializeStorage(pElement, rMeasurement.size());
+        }
+        else
+        {
+            const Geometry<Node<3>> &r_geometry = pElement->GetGeometry();
+            const GeometryData::IntegrationMethod integration_method = pElement->GetIntegrationMethod();
+            Matrix shape_functions;
+            typename Geometry<Node<3>>::ShapeFunctionsGradientsType shape_gradients;
+            this->CalculateGeometryData(r_geometry, integration_method, shape_functions, shape_gradients);
 
-        for (unsigned int g = 0; g < shape_gradients.size(); g++) {
-            auto N = row(shape_functions,g);
-            auto& rDN_DN = shape_gradients[g];
-
-            auto it_measurement_buffer = rMeasurement.begin();
-            for (auto it_sampler = rStatisticsSamplers.begin(); it_sampler != rStatisticsSamplers.end(); ++it_sampler) {
-                (**it_sampler).SampleDataPoint(r_geometry,N,rDN_DN,it_measurement_buffer);
-            }
-
-            // loop on higer order statistics. They require the already written rMeasurements, (const) mData and the number of steps as input
-
-
-            for (unsigned int i = 0; i < rUpdate.size(); i++)
+            for (unsigned int g = 0; g < shape_functions.size1(); g++)
             {
-                mData[g][i] += rUpdate[i];
+                auto N = row(shape_functions, g);
+                auto &rDN_DN = shape_gradients[g];
+
+                auto it_measurement_buffer = rMeasurement.begin();
+                for (auto it_sampler = rStatisticsSamplers.begin(); it_sampler != rStatisticsSamplers.end(); ++it_sampler)
+                {
+                    (**it_sampler).SampleDataPoint(r_geometry, N, rDN_DN, it_measurement_buffer);
+                }
+
+                // loop on higer order statistics. They require the already written rMeasurements, (const) mData and the number of steps as input
+
+                for (unsigned int i = 0; i < rUpdate.size(); i++)
+                {
+                    mData(g,i) += rUpdate[i];
+                }
             }
         }
     }
@@ -261,7 +255,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::vector<ValueContainerType> mData;
+    Matrix mData;
 
     ///@}
     ///@name Serialization
@@ -280,6 +274,15 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void InitializeStorage(Element* pElement, std::size_t MeasurementSize)
+    {
+        const GeometryData::IntegrationMethod integration_method = pElement->GetIntegrationMethod();
+        std::size_t number_of_integration_points = pElement->GetGeometry().IntegrationPointsNumber(integration_method);
+
+        mData.resize(number_of_integration_points, MeasurementSize, false);
+        mData = ZeroMatrix(number_of_integration_points, MeasurementSize);
+    }
 
     ///@}
     ///@name Private  Access
