@@ -19,7 +19,7 @@
 #include "mmg/libmmg.h"
 #include "mmg/mmg2d/libmmg2d.h"
 #include "mmg/mmg3d/libmmg3d.h"
-// #include "mmg/mmgs/libmmgs.h"
+#include "mmg/mmgs/libmmgs.h"
 
 // Project includes
 #include "custom_processes/mmg_process.h"
@@ -69,8 +69,8 @@ MMG5_pSol  mmgSol;
 /************************************* CONSTRUCTOR *********************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-MmgProcess<TDim>::MmgProcess(
+template<MMGLibray TMMGLibray>
+MmgProcess<TMMGLibray>::MmgProcess(
     ModelPart& rThisModelPart,
     Parameters ThisParameters
     ):mrThisModelPart(rThisModelPart),
@@ -141,8 +141,8 @@ MmgProcess<TDim>::MmgProcess(
 /*************************************** EXECUTE ***********************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::Execute()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::Execute()
 {
     KRATOS_TRY;
 
@@ -157,8 +157,8 @@ void MmgProcess<TDim>::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteInitialize()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteInitialize()
 {
     KRATOS_TRY;
 
@@ -171,8 +171,8 @@ void MmgProcess<TDim>::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteBeforeSolutionLoop()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteBeforeSolutionLoop()
 {
     KRATOS_TRY;
 
@@ -182,8 +182,8 @@ void MmgProcess<TDim>::ExecuteBeforeSolutionLoop()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteInitializeSolutionStep()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
 
@@ -226,8 +226,8 @@ void MmgProcess<TDim>::ExecuteInitializeSolutionStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteFinalizeSolutionStep()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteFinalizeSolutionStep()
 {
     KRATOS_TRY;
 
@@ -237,8 +237,8 @@ void MmgProcess<TDim>::ExecuteFinalizeSolutionStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteBeforeOutputStep()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteBeforeOutputStep()
 {
     KRATOS_TRY;
 
@@ -248,8 +248,8 @@ void MmgProcess<TDim>::ExecuteBeforeOutputStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteAfterOutputStep()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteAfterOutputStep()
 {
     KRATOS_TRY;
 
@@ -259,8 +259,8 @@ void MmgProcess<TDim>::ExecuteAfterOutputStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteFinalize()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteFinalize()
 {
     KRATOS_TRY;
 
@@ -273,8 +273,8 @@ void MmgProcess<TDim>::ExecuteFinalize()
 /************************************* OPERATOR() **********************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::operator()()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::operator()()
 {
     Execute();
 }
@@ -282,8 +282,8 @@ void MmgProcess<TDim>::operator()()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::InitializeMeshData()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::InitializeMeshData()
 {
     // We create a list of submodelparts to later reassign flags after remesh
     CreateAuxiliarSubModelPartForFlags();
@@ -305,7 +305,7 @@ void MmgProcess<TDim>::InitializeMeshData()
     /* Manually set of the mesh */
     array_1d<SizeType, ConditionsArraySize> num_array_conditions;
     array_1d<SizeType, ElementsArraySize> num_array_elements;
-    if (TDim == 2) {
+    if (Dimension == 2) {
         num_array_conditions[0] = conditions_array.size();
         num_array_elements[0]   = elements_array.size();
     } else {
@@ -368,7 +368,7 @@ void MmgProcess<TDim>::InitializeMeshData()
             bool blocked = false;
             if (it_node->IsDefined(BLOCKED))
                 blocked = it_node->Is(BLOCKED);
-            if (TDim == 3 && blocked)
+            if (Dimension == 3 && blocked)
                 BlockNode(i + 1);
 
             // RESETING THE ID OF THE NODES (important for non consecutive meshes)
@@ -385,7 +385,7 @@ void MmgProcess<TDim>::InitializeMeshData()
             bool blocked = false;
             if (it_node->IsDefined(BLOCKED))
                 blocked = it_node->Is(BLOCKED);
-            if (TDim == 3 && blocked)
+            if (Dimension == 3 && blocked)
                 BlockNode(i + 1);
 
             // RESETING THE ID OF THE NODES (important for non consecutive meshes)
@@ -428,7 +428,7 @@ void MmgProcess<TDim>::InitializeMeshData()
     /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
     // First we add the main model part
     if (conditions_array.size() > 0) {
-        const std::string type_name = (TDim == 2) ? "Condition2D2N" : "Condition3D";
+        const std::string type_name = (Dimension == 2) ? "Condition2D2N" : "Condition3D";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
         mpRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), conditions_array.begin()->pGetProperties());
 //         mpRefCondition[0] = conditions_array.begin()->Create(0, conditions_array.begin()->GetGeometry(), conditions_array.begin()->pGetProperties());
@@ -451,8 +451,8 @@ void MmgProcess<TDim>::InitializeMeshData()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::InitializeSolData()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::InitializeSolData()
 {
     ////////* SOLUTION FILE *////////
 
@@ -462,13 +462,13 @@ void MmgProcess<TDim>::InitializeSolData()
     // Set size of the solution
     SetSolSizeTensor(nodes_array.size());
 
-    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
+    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(Dimension)+"D");
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
 
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(tensor_variable)) << "METRIC_TENSOR_" + std::to_string(TDim) + "D  not defined for node " << it_node->Id() << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
 
         // We get the metric
         const TensorArrayType& metric = it_node->GetValue(tensor_variable);
@@ -481,8 +481,8 @@ void MmgProcess<TDim>::InitializeSolData()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <SizeType TDim>
-void MmgProcess<TDim>::ExecuteRemeshing()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 {
     // Getting the parameters
     const bool save_to_file = mThisParameters["save_external_files"].GetBool();
@@ -503,7 +503,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
 
     const SizeType number_of_nodes = mmgMesh->np;
     array_1d<SizeType, 2> n_conditions;
-    if (TDim == 2) {
+    if (Dimension == 2) {
         n_conditions[0] = mmgMesh->na;
         n_conditions[1] = 0;
     } else {
@@ -511,7 +511,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         n_conditions[1] = mmgMesh->nquad;
     }
     array_1d<SizeType, 2> n_elements;
-    if (TDim == 2) {
+    if (Dimension == 2) {
         n_elements[0] = mmgMesh->nt;
         n_elements[1] = 0;
     } else {
@@ -520,7 +520,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     }
 
     KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "\tNodes created: " << number_of_nodes << std::endl;
-    if (TDim == 2) {// 2D
+    if (Dimension == 2) {// 2D
         KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) <<
         "Conditions created: " << n_conditions[0] << "\n" <<
         "Elements created: " << n_elements[0] << std::endl;
@@ -768,7 +768,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     InterpolateParameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
     InterpolateParameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
     InterpolateParameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
-    NodalValuesInterpolationProcess<TDim> InterpolateNodalValues = NodalValuesInterpolationProcess<TDim>(r_old_model_part, mrThisModelPart, InterpolateParameters);
+    NodalValuesInterpolationProcess<Dimension> InterpolateNodalValues = NodalValuesInterpolationProcess<Dimension>(r_old_model_part, mrThisModelPart, InterpolateParameters);
     InterpolateNodalValues.Execute();
 
     /* We initialize elements and conditions */
@@ -799,8 +799,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::ReorderAllIds()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ReorderAllIds()
 {
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     for(SizeType i = 0; i < nodes_array.size(); ++i)
@@ -818,8 +818,8 @@ void MmgProcess<TDim>::ReorderAllIds()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::InitializeElementsAndConditions()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::InitializeElementsAndConditions()
 {
     ConditionsArrayType& condition_array = mrThisModelPart.Conditions();
     for(SizeType i = 0; i < condition_array.size(); ++i)
@@ -833,14 +833,14 @@ void MmgProcess<TDim>::InitializeElementsAndConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-IndexVectorType MmgProcess<TDim>::CheckNodes()
+template<MMGLibray TMMGLibray>
+IndexVectorType MmgProcess<TMMGLibray>::CheckNodes()
 {
     DoubleVectorMapType node_map;
 
     IndexVectorType nodes_to_remove_ids;
 
-    DoubleVectorType coords(TDim);
+    DoubleVectorType coords(Dimension);
 
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
 
@@ -849,7 +849,7 @@ IndexVectorType MmgProcess<TDim>::CheckNodes()
 
         const array_1d<double, 3>& coordinates = it_node->Coordinates();
 
-        for(IndexType i_coord = 0; i_coord < TDim; i_coord++)
+        for(IndexType i_coord = 0; i_coord < Dimension; i_coord++)
             coords[i_coord] = coordinates[i_coord];
 
         node_map[coords] += 1;
@@ -867,7 +867,7 @@ IndexVectorType MmgProcess<TDim>::CheckNodes()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<2>::CheckConditions0()
+IndexVectorType MmgProcess<MMGLibray::MMG2D>::CheckConditions0()
 {
     IndexVectorMapType edge_map;
 
@@ -901,7 +901,7 @@ IndexVectorType MmgProcess<2>::CheckConditions0()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<3>::CheckConditions0()
+IndexVectorType MmgProcess<MMGLibray::MMG3D>::CheckConditions0()
 {
     IndexVectorMapType triangle_map;
 
@@ -935,7 +935,7 @@ IndexVectorType MmgProcess<3>::CheckConditions0()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<2>::CheckConditions1()
+IndexVectorType MmgProcess<MMGLibray::MMG2D>::CheckConditions1()
 {
     IndexVectorType conditions_to_remove(0);
 
@@ -946,7 +946,7 @@ IndexVectorType MmgProcess<2>::CheckConditions1()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<3>::CheckConditions1()
+IndexVectorType MmgProcess<MMGLibray::MMG3D>::CheckConditions1()
 {
     IndexVectorMapType quadrilateral_map;
 
@@ -981,7 +981,7 @@ IndexVectorType MmgProcess<3>::CheckConditions1()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<2>::CheckElements0()
+IndexVectorType MmgProcess<MMGLibray::MMG2D>::CheckElements0()
 {
     IndexVectorMapType triangle_map;
 
@@ -1016,7 +1016,7 @@ IndexVectorType MmgProcess<2>::CheckElements0()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<3>::CheckElements0()
+IndexVectorType MmgProcess<MMGLibray::MMG3D>::CheckElements0()
 {
     IndexVectorMapType triangle_map;
 
@@ -1051,7 +1051,7 @@ IndexVectorType MmgProcess<3>::CheckElements0()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<2>::CheckElements1()
+IndexVectorType MmgProcess<MMGLibray::MMG2D>::CheckElements1()
 {
     IndexVectorType elements_to_remove(0);
     return elements_to_remove;
@@ -1061,7 +1061,7 @@ IndexVectorType MmgProcess<2>::CheckElements1()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<3>::CheckElements1()
+IndexVectorType MmgProcess<MMGLibray::MMG3D>::CheckElements1()
 {
     IndexVectorMapType prism_map;
 
@@ -1098,7 +1098,7 @@ IndexVectorType MmgProcess<3>::CheckElements1()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::BlockNode(IndexType iNode)
+void MmgProcess<MMGLibray::MMG2D>::BlockNode(IndexType iNode)
 {
     if (MMG2D_Set_requiredVertex(mmgMesh, iNode) != 1 )
         exit(EXIT_FAILURE);
@@ -1109,7 +1109,7 @@ void MmgProcess<2>::BlockNode(IndexType iNode)
 
 
 template<>
-void MmgProcess<3>::BlockNode(IndexType iNode)
+void MmgProcess<MMGLibray::MMG3D>::BlockNode(IndexType iNode)
 {
     if (MMG3D_Set_requiredVertex(mmgMesh, iNode) != 1 )
         exit(EXIT_FAILURE);
@@ -1119,7 +1119,7 @@ void MmgProcess<3>::BlockNode(IndexType iNode)
 /***********************************************************************************/
 
 template<>
-NodeType::Pointer MmgProcess<2>::CreateNode(
+NodeType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateNode(
     IndexType iNode,
     int& Ref,
     int& IsRequired
@@ -1140,7 +1140,7 @@ NodeType::Pointer MmgProcess<2>::CreateNode(
 /***********************************************************************************/
 
 template<>
-NodeType::Pointer MmgProcess<3>::CreateNode(
+NodeType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateNode(
     IndexType iNode,
     int& Ref,
     int& IsRequired
@@ -1161,7 +1161,7 @@ NodeType::Pointer MmgProcess<3>::CreateNode(
 /***********************************************************************************/
 
 template<>
-ConditionType::Pointer MmgProcess<2>::CreateCondition0(
+ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition0(
     const IndexType CondId,
     int& PropId,
     int& IsRequired,
@@ -1170,7 +1170,7 @@ ConditionType::Pointer MmgProcess<2>::CreateCondition0(
 {
     // Sometimes MMG creates conditions where there are not, then we skip
     if (mpRefCondition[PropId] == nullptr) return nullptr;
-    
+
     // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
@@ -1199,7 +1199,7 @@ ConditionType::Pointer MmgProcess<2>::CreateCondition0(
 /***********************************************************************************/
 
 template<>
-ConditionType::Pointer MmgProcess<3>::CreateCondition0(
+ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition0(
     const IndexType CondId,
     int& PropId,
     int& IsRequired,
@@ -1208,7 +1208,7 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition0(
 {
     // Sometimes MMG creates conditions where there are not, then we skip
     if (mpRefCondition[PropId] == nullptr) return nullptr;
-    
+
     // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
@@ -1239,7 +1239,7 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition0(
 /***********************************************************************************/
 
 template<>
-ConditionType::Pointer MmgProcess<2>::CreateCondition1(
+ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition1(
     const IndexType CondId,
     int& PropId,
     int& IsRequired,
@@ -1253,7 +1253,7 @@ ConditionType::Pointer MmgProcess<2>::CreateCondition1(
 /***********************************************************************************/
 
 template<>
-ConditionType::Pointer MmgProcess<3>::CreateCondition1(
+ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition1(
     const IndexType CondId,
     int& PropId,
     int& IsRequired,
@@ -1291,7 +1291,7 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition1(
 /***********************************************************************************/
 
 template<>
-ElementType::Pointer MmgProcess<2>::CreateElement0(
+ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement0(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
@@ -1327,7 +1327,7 @@ ElementType::Pointer MmgProcess<2>::CreateElement0(
 /***********************************************************************************/
 
 template<>
-ElementType::Pointer MmgProcess<3>::CreateElement0(
+ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement0(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
@@ -1365,7 +1365,7 @@ ElementType::Pointer MmgProcess<3>::CreateElement0(
 /***********************************************************************************/
 
 template<>
-ElementType::Pointer MmgProcess<2>::CreateElement1(
+ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement1(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
@@ -1379,7 +1379,7 @@ ElementType::Pointer MmgProcess<2>::CreateElement1(
 /***********************************************************************************/
 
 template<>
-ElementType::Pointer MmgProcess<3>::CreateElement1(
+ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement1(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
@@ -1420,8 +1420,8 @@ ElementType::Pointer MmgProcess<3>::CreateElement1(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::SaveSolutionToFile(const bool PostOutput)
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::SaveSolutionToFile(const bool PostOutput)
 {
     /* GET RESULTS */
 
@@ -1441,8 +1441,8 @@ void MmgProcess<TDim>::SaveSolutionToFile(const bool PostOutput)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::FreeMemory()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::FreeMemory()
 {
     // Free the MMG structures
     FreeAll();
@@ -1460,7 +1460,7 @@ void MmgProcess<TDim>::FreeMemory()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::InitMesh()
+void MmgProcess<MMGLibray::MMG2D>::InitMesh()
 {
     mmgMesh = nullptr;
     mmgSol = nullptr;
@@ -1475,7 +1475,7 @@ void MmgProcess<2>::InitMesh()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::InitMesh()
+void MmgProcess<MMGLibray::MMG3D>::InitMesh()
 {
     mmgMesh = nullptr;
     mmgSol = nullptr;
@@ -1489,8 +1489,8 @@ void MmgProcess<3>::InitMesh()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::InitVerbosity()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::InitVerbosity()
 {
     /* We set the MMG verbosity */
     int verbosity_mmg;
@@ -1512,7 +1512,7 @@ void MmgProcess<TDim>::InitVerbosity()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::InitVerbosityParameter(const IndexType VerbosityMMG)
+void MmgProcess<MMGLibray::MMG2D>::InitVerbosityParameter(const IndexType VerbosityMMG)
 {
     if ( !MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_verbose, VerbosityMMG) )
         exit(EXIT_FAILURE);
@@ -1522,7 +1522,7 @@ void MmgProcess<2>::InitVerbosityParameter(const IndexType VerbosityMMG)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::InitVerbosityParameter(const IndexType VerbosityMMG)
+void MmgProcess<MMGLibray::MMG3D>::InitVerbosityParameter(const IndexType VerbosityMMG)
 {
     if ( !MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_verbose, VerbosityMMG) )
         exit(EXIT_FAILURE);
@@ -1532,7 +1532,7 @@ void MmgProcess<3>::InitVerbosityParameter(const IndexType VerbosityMMG)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetMeshSize(
+void MmgProcess<MMGLibray::MMG2D>::SetMeshSize(
     const SizeType NumNodes,
     const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
     const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions
@@ -1547,7 +1547,7 @@ void MmgProcess<2>::SetMeshSize(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetMeshSize(
+void MmgProcess<MMGLibray::MMG3D>::SetMeshSize(
     const SizeType NumNodes,
     const array_1d<SizeType, ElementsArraySize>& NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
     const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
@@ -1562,7 +1562,7 @@ void MmgProcess<3>::SetMeshSize(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetSolSizeScalar(const SizeType NumNodes)
+void MmgProcess<MMGLibray::MMG2D>::SetSolSizeScalar(const SizeType NumNodes)
 {
     if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 )
         exit(EXIT_FAILURE);
@@ -1572,7 +1572,7 @@ void MmgProcess<2>::SetSolSizeScalar(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetSolSizeScalar(const SizeType NumNodes)
+void MmgProcess<MMGLibray::MMG3D>::SetSolSizeScalar(const SizeType NumNodes)
 {
     if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 )
         exit(EXIT_FAILURE);
@@ -1582,7 +1582,7 @@ void MmgProcess<3>::SetSolSizeScalar(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetSolSizeVector(const SizeType NumNodes)
+void MmgProcess<MMGLibray::MMG2D>::SetSolSizeVector(const SizeType NumNodes)
 {
     if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 )
         exit(EXIT_FAILURE);
@@ -1592,7 +1592,7 @@ void MmgProcess<2>::SetSolSizeVector(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetSolSizeVector(const SizeType NumNodes)
+void MmgProcess<MMGLibray::MMG3D>::SetSolSizeVector(const SizeType NumNodes)
 {
     if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 )
         exit(EXIT_FAILURE);
@@ -1602,7 +1602,7 @@ void MmgProcess<3>::SetSolSizeVector(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetSolSizeTensor(const SizeType NumNodes)
+void MmgProcess<MMGLibray::MMG2D>::SetSolSizeTensor(const SizeType NumNodes)
 {
     if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 )
         exit(EXIT_FAILURE);
@@ -1612,7 +1612,7 @@ void MmgProcess<2>::SetSolSizeTensor(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetSolSizeTensor(const SizeType NumNodes)
+void MmgProcess<MMGLibray::MMG3D>::SetSolSizeTensor(const SizeType NumNodes)
 {
     if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 )
         exit(EXIT_FAILURE);
@@ -1622,7 +1622,7 @@ void MmgProcess<3>::SetSolSizeTensor(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::CheckMeshData()
+void MmgProcess<MMGLibray::MMG2D>::CheckMeshData()
 {
     if ( MMG2D_Chk_meshData(mmgMesh, mmgSol) != 1 )
         exit(EXIT_FAILURE);
@@ -1632,7 +1632,7 @@ void MmgProcess<2>::CheckMeshData()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::CheckMeshData()
+void MmgProcess<MMGLibray::MMG3D>::CheckMeshData()
 {
     if ( MMG3D_Chk_meshData(mmgMesh, mmgSol) != 1 )
         exit(EXIT_FAILURE);
@@ -1642,7 +1642,7 @@ void MmgProcess<3>::CheckMeshData()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::OutputMesh(
+void MmgProcess<MMGLibray::MMG2D>::OutputMesh(
     const bool PostOutput,
     const IndexType Step
     )
@@ -1667,7 +1667,7 @@ void MmgProcess<2>::OutputMesh(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::OutputMesh(
+void MmgProcess<MMGLibray::MMG3D>::OutputMesh(
     const bool PostOutput,
     const IndexType Step
     )
@@ -1691,8 +1691,8 @@ void MmgProcess<3>::OutputMesh(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::OutputMdpa()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::OutputMdpa()
 {
     std::ofstream output_file;
     ModelPartIO model_part_io("output", IO::WRITE);
@@ -1703,7 +1703,7 @@ void MmgProcess<TDim>::OutputMdpa()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::OutputSol(
+void MmgProcess<MMGLibray::MMG2D>::OutputSol(
     const bool PostOutput,
     const IndexType Step
     )
@@ -1728,7 +1728,7 @@ void MmgProcess<2>::OutputSol(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::OutputSol(
+void MmgProcess<MMGLibray::MMG3D>::OutputSol(
     const bool PostOutput,
     const IndexType Step
     )
@@ -1753,7 +1753,7 @@ void MmgProcess<3>::OutputSol(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::MMGLibCall()
+void MmgProcess<MMGLibray::MMG2D>::MMGLibCall()
 {
     KRATOS_TRY;
 
@@ -1820,7 +1820,7 @@ void MmgProcess<2>::MMGLibCall()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::MMGLibCall()
+void MmgProcess<MMGLibray::MMG3D>::MMGLibCall()
 {
     KRATOS_TRY;
 
@@ -1887,7 +1887,7 @@ void MmgProcess<3>::MMGLibCall()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::FreeAll()
+void MmgProcess<MMGLibray::MMG2D>::FreeAll()
 {
     MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mmgMesh,MMG5_ARG_ppMet,&mmgSol,MMG5_ARG_end);
 }
@@ -1896,7 +1896,7 @@ void MmgProcess<2>::FreeAll()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::FreeAll()
+void MmgProcess<MMGLibray::MMG3D>::FreeAll()
 {
     MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mmgMesh,MMG5_ARG_ppMet,&mmgSol,MMG5_ARG_end);
 }
@@ -1905,7 +1905,7 @@ void MmgProcess<3>::FreeAll()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetNodes(
+void MmgProcess<MMGLibray::MMG2D>::SetNodes(
     const double X,
     const double Y,
     const double Z,
@@ -1921,7 +1921,7 @@ void MmgProcess<2>::SetNodes(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetNodes(
+void MmgProcess<MMGLibray::MMG3D>::SetNodes(
     const double X,
     const double Y,
     const double Z,
@@ -1937,7 +1937,7 @@ void MmgProcess<3>::SetNodes(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetConditions(
+void MmgProcess<MMGLibray::MMG2D>::SetConditions(
     GeometryType & Geom,
     const IndexType Color,
     const IndexType Index
@@ -1973,7 +1973,7 @@ void MmgProcess<2>::SetConditions(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetConditions(
+void MmgProcess<MMGLibray::MMG3D>::SetConditions(
     GeometryType & Geom,
     const IndexType Color,
     const IndexType Index
@@ -2040,7 +2040,7 @@ void MmgProcess<3>::SetConditions(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetElements(
+void MmgProcess<MMGLibray::MMG2D>::SetElements(
     GeometryType & Geom,
     const IndexType Color,
     const IndexType Index
@@ -2058,7 +2058,7 @@ void MmgProcess<2>::SetElements(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetElements(
+void MmgProcess<MMGLibray::MMG3D>::SetElements(
     GeometryType & Geom,
     const IndexType Color,
     const IndexType Index
@@ -2096,7 +2096,7 @@ void MmgProcess<3>::SetElements(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetMetricScalar(
+void MmgProcess<MMGLibray::MMG2D>::SetMetricScalar(
     const double Metric,
     const IndexType NodeId
     )
@@ -2109,7 +2109,7 @@ void MmgProcess<2>::SetMetricScalar(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetMetricScalar(
+void MmgProcess<MMGLibray::MMG3D>::SetMetricScalar(
     const double Metric,
     const IndexType NodeId
     )
@@ -2122,7 +2122,7 @@ void MmgProcess<3>::SetMetricScalar(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetMetricVector(
+void MmgProcess<MMGLibray::MMG2D>::SetMetricVector(
     const array_1d<double, 2>& Metric,
     const IndexType NodeId
     )
@@ -2135,7 +2135,7 @@ void MmgProcess<2>::SetMetricVector(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetMetricVector(
+void MmgProcess<MMGLibray::MMG3D>::SetMetricVector(
     const array_1d<double, 3>& Metric,
     const IndexType NodeId
     )
@@ -2148,7 +2148,7 @@ void MmgProcess<3>::SetMetricVector(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetMetricTensor(
+void MmgProcess<MMGLibray::MMG2D>::SetMetricTensor(
     const array_1d<double, 3>& Metric,
     const IndexType NodeId
     )
@@ -2162,7 +2162,7 @@ void MmgProcess<2>::SetMetricTensor(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetMetricTensor(
+void MmgProcess<MMGLibray::MMG3D>::SetMetricTensor(
     const array_1d<double, 6>& Metric,
     const IndexType NodeId
     )
@@ -2175,8 +2175,8 @@ void MmgProcess<3>::SetMetricTensor(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::CreateAuxiliarSubModelPartForFlags()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::CreateAuxiliarSubModelPartForFlags()
 {
     ModelPart& r_auxiliar_model_part = mrThisModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
 
@@ -2202,8 +2202,8 @@ void MmgProcess<TDim>::CreateAuxiliarSubModelPartForFlags()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::AssignAndClearAuxiliarSubModelPartForFlags()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::AssignAndClearAuxiliarSubModelPartForFlags()
 {
     const auto& flags = KratosComponents<Flags>::GetComponents();
 
@@ -2224,8 +2224,8 @@ void MmgProcess<TDim>::AssignAndClearAuxiliarSubModelPartForFlags()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
 {
     ModelPart auxiliar_model_part("auxiliar_thing");
 
@@ -2287,7 +2287,7 @@ void MmgProcess<TDim>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class MmgProcess<2>;
-template class MmgProcess<3>;
+template class MmgProcess<MMGLibray::MMG2D>;
+template class MmgProcess<MMGLibray::MMG3D>;
 
 }// namespace Kratos.
