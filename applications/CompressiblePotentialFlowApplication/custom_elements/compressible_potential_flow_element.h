@@ -187,7 +187,7 @@ public:
                 rResult.resize(NumNodes, false);
 
             for (unsigned int i = 0; i < NumNodes; i++)
-                rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
+                rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
 
         }
         else//wake element
@@ -202,18 +202,18 @@ public:
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] > 0)
-                    rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
+                    rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
                 else
-                    rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE,0).EquationId();
+                    rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_POTENTIAL,0).EquationId();
             }
 
             //negative part - sign is opposite to the previous case
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] < 0)
-                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
+                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
                 else
-                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE,0).EquationId();
+                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(NEGATIVE_POTENTIAL,0).EquationId();
             }
         }
 
@@ -234,7 +234,7 @@ public:
                 rElementalDofList.resize(NumNodes);
 
             for (unsigned int i = 0; i < NumNodes; i++)
-                rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
+                rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
         }
         else//wake element
         {
@@ -248,18 +248,18 @@ public:
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] > 0)
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
+                    rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
                 else
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_FACE_PRESSURE);
+                    rElementalDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_POTENTIAL);
             }
 
             //negative part - sign is opposite to the previous case
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] < 0)
-                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
+                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
                 else
-                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(NEGATIVE_FACE_PRESSURE);
+                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(NEGATIVE_POTENTIAL);
             }
         }
     }
@@ -292,7 +292,7 @@ public:
 
         //gather nodal data
         for(unsigned int i=0; i<NumNodes; i++)
-            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
 
         
         //TEST:
@@ -314,7 +314,7 @@ public:
 
             if (this->Is(BOUNDARY)){
                 for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                    elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(NODAL_H);
+                    elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(DISTANCE);
 
                 const Vector& r_elemental_distances=elemental_distance;
                 Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
@@ -438,7 +438,7 @@ public:
                     }
                     
                 
-                    //side1  -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
+                    //side1  -assign constraint only on the NEGATIVE_POTENTIAL dofs
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {
                         if(data.distances[i]<0)
@@ -451,7 +451,7 @@ public:
                         }
                     }
                     
-                    //side2 -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
+                    //side2 -assign constraint only on the NEGATIVE_POTENTIAL dofs
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {                            
                         if(data.distances[i]>0)
@@ -522,8 +522,8 @@ public:
 
         for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
         {
-            if (this->GetGeometry()[i].SolutionStepsDataHas(POSITIVE_FACE_PRESSURE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument, "missing variable POSITIVE_FACE_PRESSURE on node ", this->GetGeometry()[i].Id())
+            if (this->GetGeometry()[i].SolutionStepsDataHas(POSITIVE_POTENTIAL) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument, "missing variable POSITIVE_POTENTIAL on node ", this->GetGeometry()[i].Id())
         }
 
         return 0;
@@ -620,7 +620,7 @@ protected:
     ///@{
     void GetWakeDistances(array_1d<double,NumNodes>& distances)
     {
-        noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
+        noalias(distances) = GetValue(WAKE_ELEMENTAL_DISTANCES);
     }
 
     void ComputeLHSGaussPointContribution(
@@ -646,18 +646,18 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if(distances[i] > 0)
-                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
             else
-                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
         }
 
         //negative part - sign is opposite to the previous case
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if(distances[i] < 0)
-                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
             else
-                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
         }
     }
 
@@ -679,7 +679,7 @@ protected:
     {
         ElementalData<NumNodes, Dim> data;
         for (unsigned int i = 0; i < NumNodes; i++)
-            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
 
         if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
             // calculate shape functions
@@ -690,7 +690,7 @@ protected:
         else if (this->Is(BOUNDARY)){
             array_1d<double,NumNodes> elemental_distance;
             for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(NODAL_H);
+                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(DISTANCE);
       
             const Vector& r_elemental_distances=elemental_distance;
             Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
@@ -725,9 +725,9 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if (distances[i] > 0)
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
             else
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
         }
         
         if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
@@ -740,7 +740,7 @@ protected:
         else if (this->Is(BOUNDARY)){
             array_1d<double,NumNodes> elemental_distance;
             for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(NODAL_H);
+                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(DISTANCE);
       
             const Vector& r_elemental_distances=elemental_distance;
             Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
@@ -775,9 +775,9 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if (distances[i] < 0)
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
             else
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
         }
 
         if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
@@ -790,7 +790,7 @@ protected:
         else if (this->Is(BOUNDARY)){
             array_1d<double,NumNodes> elemental_distance;
             for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(NODAL_H);
+                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(DISTANCE);
       
             const Vector& r_elemental_distances=elemental_distance;
             Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);

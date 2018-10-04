@@ -108,7 +108,7 @@ public:
                 Geometry< Node<3> >::Pointer pgeom = it-> pGetGeometry();
     
                 for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                    elemental_distance[i_node] = geom[i_node].GetSolutionStepValue(NODAL_H);               
+                    elemental_distance[i_node] = geom[i_node].GetSolutionStepValue(DISTANCE);               
                 
                 const Vector& r_elemental_distances=elemental_distance;
                 

@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.CompressiblePotentialFlowApplication
+import KratosMultiphysics.CompressiblePotentialFlowApplication as CompressiblePotentialFlowApplication
 import math
 
 def Factory(settings, Model):
@@ -57,7 +57,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # wake_x=1
         # wake_y=0
         # for node in self.fluid_model_part.Nodes: #Find trailing edge point
-        #     if node.GetSolutionStepValue(KratosMultiphysics.NODAL_H) <0: #LEVEL_SET, pending to define new variable
+        #     if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) <0: #LEVEL_SET, pending to define new variable
         #         dist_x=abs(wake_x-node.X)
         #         dist_y=abs(wake_y-node.Y)
         #         dist=math.sqrt(dist_x**2+dist_y**2)
@@ -74,7 +74,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         #                 kutta_node=node
         # max_x=-1000
         # for node in self.fluid_model_part.Nodes: #Find trailing edge point
-        #     if node.GetSolutionStepValue(KratosMultiphysics.NODAL_H) <0: #LEVEL_SET, pending to define new variable
+        #     if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) <0: #LEVEL_SET, pending to define new variable
         #         if node.X>max_x: 
         #             max_x=node.X  
         #             max_y=node.Y                 
@@ -100,7 +100,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         x0=0
         y0=0
         for node in self.fluid_model_part.Nodes:
-            if node.GetSolutionStepValue(KratosMultiphysics.NODAL_H) <0:
+            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) <0:
                 xn[0] = node.X - x0
                 xn[1] = node.Y - y0
                 d =  xn[0]*n[0] + xn[1]*n[1]
@@ -191,9 +191,9 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             elem.Set(KratosMultiphysics.MARKER,True)
                             counter = 0
                             for elnode in elem.GetNodes():
-                                elnode.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0,distances[counter])
+                                elnode.SetSolutionStepValue(CompressiblePotentialFlowApplication.WAKE_DISTANCE,0,distances[counter])
                                 counter+=1
-                            elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,distances)
+                            elem.SetValue(CompressiblePotentialFlowApplication.WAKE_ELEMENTAL_DISTANCES,distances)
                             
                             #for elnode in elem.GetNodes():
                                 #if elnode.Is(KratosMultiphysics.STRUCTURE):
@@ -213,12 +213,12 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             zero[2] = 0
             zero[3] = 0
             for elem in self.fluid_model_part.Elements:
-                elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, zero)
+                elem.SetValue(CompressiblePotentialFlowApplication.WAKE_ELEMENTAL_DISTANCES, zero)
 
 
             mesh = mesh.Mesh.from_multi_file(self.stl_filename)
             wake_mp = KratosMultiphysics.ModelPart("wake_stl")
-            wake_mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+            wake_mp.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.WAKE_DISTANCE)
             wake_mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
             prop = wake_mp.Properties[0]
 
@@ -270,7 +270,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                         #kutta_elem = True
 
                 #if(kutta_elem == True and elem.IsNot(KratosMultiphysics.MARKER)):
-                    #d = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
+                    #d = elem.GetValue(CompressiblePotentialFlowApplication.WAKE_ELEMENTAL_DISTANCES)
                     #i = 0
                     #for node in elem.GetNodes():
                         #if(node.Is(KratosMultiphysics.STRUCTURE)):
@@ -278,20 +278,20 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                         #else:
                             #d[i] = 1.0
                         #i+=1
-                    #elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, d)
+                    #elem.SetValue(KratosMultiphysics.WAKE_ELEMENTAL_DISTANCES, d)
                     #elem.Set(KratosMultiphysics.MARKER,True)
                     
-            KratosMultiphysics.CompressiblePotentialFlowApplication.KuttaConditionProcess(self.fluid_model_part).Execute()
+            CompressiblePotentialFlowApplication.KuttaConditionProcess(self.fluid_model_part).Execute()
             
             for elem in self.fluid_model_part.Elements:
-                d = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
+                d = elem.GetValue(CompressiblePotentialFlowApplication.WAKE_ELEMENTAL_DISTANCES)
                 for i in range(len(d)):
                     if(abs(d[i]) < self.epsilon ):
                         if(d[i] < 0):
                             d[i] = -self.epsilon
                         else:
                             d[i] = self.epsilon
-                elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,d)
+                elem.SetValue(CompressiblePotentialFlowApplication.WAKE_ELEMENTAL_DISTANCES,d)
                     
 
                 #if(len(d) == 4):
@@ -307,7 +307,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             
                         #i += 1
                         
-                    ##elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,d)
+                    ##elem.SetValue(CompressiblePotentialFlowApplication.WAKE_ELEMENTAL_DISTANCES,d)
                     #if(npos > 0 and nneg>0):
                             #elem.Set(KratosMultiphysics.TO_SPLIT,True)
         
@@ -329,7 +329,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             
                         #i += 1
                         
-                    ##elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,d)
+                    ##elem.SetValue(CompressiblePotentialFlowApplication.WAKE_ELEMENTAL_DISTANCES,d)
                     #if(npos > 0 and nneg>0):
                             #elem.Set(KratosMultiphysics.TO_SPLIT,True)        
         
@@ -396,7 +396,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
 
                     
-                    #print(elem.Id, elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))
+                    #print(elem.Id, elem.GetValue(CompressiblePotentialFlowApplication.WAKE_ELEMENTAL_DISTANCES))
                 
     def ExecuteInitialize(self):
         self.Execute()

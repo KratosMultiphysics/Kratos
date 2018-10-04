@@ -91,11 +91,11 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                         min_dist=dist
                 if abs(point[0])<2 and abs(point[1])<2: 
                     if not in_hull(points, point):  # positive distance for fluid
-                        node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,min_dist)
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,min_dist)
                     else:  # negative distance for solid
-                        node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,-min_dist)
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,-min_dist)
                 else:  # positive distance for fluid
-                        node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,min_dist)
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,min_dist)
         elif self.initial_case == "0010":
             T=0.1
             a0=0.2969
@@ -109,19 +109,19 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                 if x>=0:
                     if y>=0:
                         in_airfoil=T/0.2*(math.sqrt(x)*a0+a1*x+a2*x**2+a3*x**3+a4*x**4)
-                        node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,y-in_airfoil)
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,y-in_airfoil)
                     else:
                         in_airfoil=-T/0.2*(math.sqrt(x)*a0+a1*x+a2*x**2+a3*x**3+a4*x**4)
-                        node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,in_airfoil-y)
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,in_airfoil-y)
                 else:
-                    node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,1)
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,1)
         elif self.initial_case == "circle":
             radius=self.geometry_parameter
             for node in self.model_part.Nodes:
                 in_circle=(node.X-self.initial_point[0])**2+(node.Y-self.initial_point[1])**2
                 if abs(in_circle)==0.0:
                     in_circle=-1e-5+1
-                node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,in_circle-radius**2)
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,in_circle-radius**2)
         elif self.initial_case == "ellipse":
             angle=math.radians(self.geometry_parameter)
             a=1
@@ -132,7 +132,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                 in_ellipse=((diffx*math.cos(angle)+diffy*math.sin(angle))/a)**2+((diffx*math.sin(angle)+diffy*math.cos(angle))/b)**2
                 if abs(in_ellipse-1)==0.0:
                     in_ellipse=-1e-5+1
-                node.SetSolutionStepValue(KratosMultiphysics.NODAL_H,in_ellipse-1)
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,in_ellipse-1)
         else:
             raise Exception("Initial geometry case not added")
 
@@ -150,7 +150,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             IsPositive=False
             IsNegative=False
             for node in element.GetNodes():
-                distance=node.GetSolutionStepValue(KratosMultiphysics.NODAL_H)
+                distance=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 if distance>0:
                     IsPositive=True
                 else:
@@ -166,7 +166,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         #     IsPositive=False
         #     IsNegative=False
         #     for node in element.GetNodes():
-        #         distance=node.GetSolutionStepValue(KratosMultiphysics.NODAL_H)
+        #         distance=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
         #         if distance>0:
         #             IsPositive=True
         #         else:

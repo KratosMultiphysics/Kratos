@@ -68,8 +68,8 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
             tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
             
             if(tmp < pos+1e-9):
-                node.Fix(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-                node.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE,0,self.inlet_phi)
+                node.Fix(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL)
+                node.SetSolutionStepValue(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL,0,self.inlet_phi)
         
     def ExecuteInitializeSolutionStep(self):
         self.Execute()
