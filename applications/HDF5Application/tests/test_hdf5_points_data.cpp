@@ -17,7 +17,6 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/model_part.h"
-#include "includes/kernel.h"
 
 // Application includes
 #include "tests/test_utils.h"
