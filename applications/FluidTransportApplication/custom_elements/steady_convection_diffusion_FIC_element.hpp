@@ -159,10 +159,11 @@ protected:
         BoundedMatrix<double,TNumNodes,TDim> GradNT;
 
         //Auxiliary
+        //TODO: Some can be defined in situ
         BoundedMatrix<double,TNumNodes,TDim> AdvMatrixAux;
-        BoundedMatrix<double,TNumNodes,TDim> AbpMatrixAux;
+        BoundedMatrix<double,TNumNodes,TNumNodes> AbpMatrixAux;
         BoundedMatrix<double,TNumNodes,TDim> DifMatrixAux;
-        BoundedMatrix<double,TNumNodes,TDim> MatrixAux;
+        BoundedMatrix<double,TNumNodes,TNumNodes> MatrixAux;
         BoundedMatrix<double,TDim,TNumNodes> FICMatrixAuxOne;
         BoundedMatrix<double,TNumNodes,TNumNodes> AdvMatrixAuxTwo;
         BoundedMatrix<double,TNumNodes,TNumNodes> DifMatrixAuxTwo;
