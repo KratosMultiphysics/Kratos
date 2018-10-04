@@ -7,8 +7,6 @@ import math
 
 
 class TestLoadingConditionsSurface(KratosUnittest.TestCase):
-    def tearDown(self):
-        KratosMultiphysics.Model().Reset()
         
     def test_SurfaceLoadCondition3D4N(self):
         dim = 2

@@ -25,9 +25,7 @@ class TestLoader(TestLoader):
 class TestCase(TestCase):
     
     def run(self, result=None): 
-        KratosMultiphysics.Model().Reset()
         super(TestCase,self).run(result)        
-        KratosMultiphysics.Model().Reset()       
 
     def failUnlessEqualWithTolerance(self, first, second, tolerance, msg=None):
         ''' fails if first and second have a difference greater than
