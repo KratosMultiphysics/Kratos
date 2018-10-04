@@ -305,10 +305,10 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
     /* Manually set of the mesh */
     array_1d<SizeType, ConditionsArraySize> num_array_conditions;
     array_1d<SizeType, ElementsArraySize> num_array_elements;
-    if (Dimension == 2) {
+    if (TMMGLibray == MMGLibray::MMG2D) { // 2D
         num_array_conditions[0] = conditions_array.size();
         num_array_elements[0]   = elements_array.size();
-    } else {
+    } else if (TMMGLibray == MMGLibray::MMG3D) { // 3D
         /* Elements */
         std::size_t num_tetra = 0, num_prisms = 0;
         #pragma omp parallel for reduction(+:num_tetra,num_prisms)
@@ -348,6 +348,9 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
 
         KRATOS_INFO_IF("MmgProcess", ((num_tri + num_quad) < conditions_array.size()) && mEchoLevel > 0) <<
         "Number of Conditions: " << conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
+    } else { // Surfaces
+        num_array_conditions[0] = conditions_array.size();
+        num_array_elements[0]   = elements_array.size();
     }
 
     SetMeshSize(nodes_array.size(), num_array_elements, num_array_conditions);
@@ -503,31 +506,32 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
     const SizeType number_of_nodes = mmgMesh->np;
     array_1d<SizeType, 2> n_conditions;
-    if (Dimension == 2) {
+    if (TMMGLibray == MMGLibray::MMG2D) { // 2D
         n_conditions[0] = mmgMesh->na;
         n_conditions[1] = 0;
-    } else {
+    } else if (TMMGLibray == MMGLibray::MMG3D) { // 3D
         n_conditions[0] = mmgMesh->nt;
         n_conditions[1] = mmgMesh->nquad;
     }
     array_1d<SizeType, 2> n_elements;
-    if (Dimension == 2) {
+    if (TMMGLibray == MMGLibray::MMG2D) { // 2D
         n_elements[0] = mmgMesh->nt;
         n_elements[1] = 0;
-    } else {
+    } else if (TMMGLibray == MMGLibray::MMG3D) { // 3D
         n_elements[0] = mmgMesh->ne;
         n_elements[1] = mmgMesh->nprism;
     }
 
     KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "\tNodes created: " << number_of_nodes << std::endl;
-    if (Dimension == 2) {// 2D
+    if (TMMGLibray == MMGLibray::MMG2D) { // 2D
         KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) <<
         "Conditions created: " << n_conditions[0] << "\n" <<
         "Elements created: " << n_elements[0] << std::endl;
-    } else {// 3D
+    } else if (TMMGLibray == MMGLibray::MMG3D) { // 3D
         KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) <<
         "Conditions created: " << n_conditions[0] + n_conditions[1] << "\n\tTriangles: " << n_conditions[0] << "\tQuadrilaterals: " << n_conditions[1] << "\n" <<
         "Elements created: " << n_elements[0] + n_elements[1] << "\n\tTetrahedron: " << n_elements[0] << "\tPrisms: " << n_elements[1] << std::endl;
+    } else { // Surfaces
     }
 
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
