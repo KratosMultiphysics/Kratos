@@ -35,6 +35,8 @@
     },
     "solver_settings"                  : {
         "solver_type"                  : "EmbeddedDevelopment",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 3,
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "couette_3D"

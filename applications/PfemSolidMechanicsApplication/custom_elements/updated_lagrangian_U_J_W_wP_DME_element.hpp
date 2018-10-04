@@ -37,7 +37,7 @@ namespace Kratos
 /// Updated Lagrangian Large Displacement Lagrangian U-W Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
 
 
-class UpdatedLagrangianUJWwPDMEElement
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) UpdatedLagrangianUJWwPDMEElement
     : public UpdatedLagrangianUJWwPElement
 {
 public:
@@ -142,7 +142,7 @@ protected:
      * Part of the mass matrix due to the stabilization
      */
     virtual void CalculateAndAddMassStabilizationMatrix(MatrixType& rMassMatrix,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           ) override; 
 
@@ -150,7 +150,7 @@ protected:
      * Part of the damping matrix due to the stabilization
      */
     virtual void CalculateAndAddDampingStabilizationMatrix(MatrixType& rDampingMatrix,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           ) override;
 

@@ -96,7 +96,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         """
         return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetVariable, "Variable")
 
-    def _GetConstitutiveLaw(self, my_string):
+    def _GetConstitutiveLaw(self, param):
         """Return the python object of a Constitutive Law named by the string argument.
 
         Example:
@@ -108,7 +108,18 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         model_part.GetProperties(prop_id).SetValue(CONSTITUTIVE_LAW, constitutive_law)
         """
-        return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetConstitutiveLaw, "Constitutive Law")
+        my_string = param["name"].GetString()
+        splitted = my_string.split(".")
+
+        if len(splitted) == 0:
+            raise Exception("Something wrong. Trying to split the string " + my_string)
+        if len(splitted) > 3:
+            raise Exception("Something wrong. String " + my_string + " has too many arguments")
+
+        cl_name = splitted[-1]
+        param["name"].SetString(cl_name)
+        cl = self._get_attribute(cl_name, KratosMultiphysics.KratosGlobals.GetConstitutiveLaw, "Constitutive Law")
+        return cl.Create(param)
 
     def _AssignPropertyBlock(self, data):
         """Set constitutive law and material properties and assign to elements and conditions.
@@ -167,7 +178,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         # Set the CONSTITUTIVE_LAW for the current properties.
         if (mat.Has("constitutive_law")):
-            constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
+            constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"] )
 
             prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law.Clone())
         else:

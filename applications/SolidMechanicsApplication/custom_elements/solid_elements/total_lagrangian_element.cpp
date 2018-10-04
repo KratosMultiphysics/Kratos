@@ -79,7 +79,7 @@ TotalLagrangianElement&  TotalLagrangianElement::operator=(TotalLagrangianElemen
 
 Element::Pointer TotalLagrangianElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new TotalLagrangianElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Kratos::make_shared< TotalLagrangianElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -125,7 +125,7 @@ Element::Pointer TotalLagrangianElement::Clone( IndexType NewId, NodesArrayType 
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new TotalLagrangianElement(NewElement) );
+    return Kratos::make_shared< TotalLagrangianElement >(NewElement);
 }
 
 
@@ -190,13 +190,13 @@ void TotalLagrangianElement::Initialize()
 //************************************************************************************
 
 
-void TotalLagrangianElement::CalculateKinematics(ElementVariables& rVariables,
+void TotalLagrangianElement::CalculateKinematics(ElementDataType& rVariables,
         const double& rPointNumber)
 
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -244,14 +244,14 @@ void TotalLagrangianElement::CalculateKinematics(ElementVariables& rVariables,
 //*********************************COMPUTE KINETICS***********************************
 //************************************************************************************
 
-void TotalLagrangianElement::CalculateKinetics(ElementVariables& rVariables, const double& rPointNumber)
+void TotalLagrangianElement::CalculateKinetics(ElementDataType& rVariables, const double& rPointNumber)
 {
     KRATOS_TRY
 
     //TotalDeltaPosition must not be used in this element as mInvJ0 and mDetJ0 are stored for reduced order
     //however then the storage of variables in the full integration order quadrature must be considered
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -295,15 +295,15 @@ void TotalLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
                                                         const Matrix& rDN_DX)
 {
     KRATOS_TRY
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     rB.clear(); //set all components to zero
 
     if( dimension == 2 )
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
             unsigned int index = 2 * i;
 
@@ -319,7 +319,7 @@ void TotalLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
     }
     else if( dimension == 3 )
     {
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
             unsigned int index = 3 * i;
 
@@ -363,7 +363,7 @@ double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass, const Pr
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     rTotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];
 
@@ -381,7 +381,7 @@ double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass, const Pr
 //************************************************************************************
 
 
-void TotalLagrangianElement::GetHistoricalVariables( ElementVariables& rVariables, const double& rPointNumber )
+void TotalLagrangianElement::GetHistoricalVariables( ElementDataType& rVariables, const double& rPointNumber )
 {
 
 }
@@ -390,7 +390,7 @@ void TotalLagrangianElement::GetHistoricalVariables( ElementVariables& rVariable
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
 
-double& TotalLagrangianElement::CalculateVolumeChange( double& rVolumeChange, ElementVariables& rVariables )
+double& TotalLagrangianElement::CalculateVolumeChange( double& rVolumeChange, ElementDataType& rVariables )
 {
     KRATOS_TRY
 
@@ -425,9 +425,9 @@ int TotalLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     if( correct_strain_measure == false )
       KRATOS_ERROR <<  "Large Displacement element with no Deformation Gradient strain measure" << std::endl;
-    
+
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
-    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+    for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
 	Node<3> &rNode = this->GetGeometry()[i];

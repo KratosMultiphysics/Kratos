@@ -50,19 +50,19 @@ namespace Kratos
   {
   protected:
 
-    
+
     struct StrainInvariants
     {
       double I1;
       double I2;
       double I3;
-      
+
       double J;
       double J_13;
 
     };
 
-    
+
     struct HyperElasticFactors
     {
       double Alpha1;  //1st derivative I1
@@ -82,7 +82,7 @@ namespace Kratos
       // double Gamma32;  //2nd derivative ddW/dI3dI2
       // double Gamma13;  //2nd derivative ddW/dI1dI3
       // double Gamma23;  //2nd derivative ddW/dI2dI3
-      
+
     };
 
     struct StrainEigenData
@@ -90,27 +90,27 @@ namespace Kratos
        array_1d<double,3> Values;
        MatrixType        Vectors;
     };
-    
-        
+
+
     struct StrainData
     {
-	
+
       StrainInvariants Invariants;
       StrainEigenData  Eigen;
 
       MatrixType       Matrix; //left(b) or right(C) cauchy green
       MatrixType       InverseMatrix; //insverse right(C) cauchy green
-      
+
     };
 
-    
+
     struct HyperElasticModelData
     {
     private:
 
       Flags*               mpState;
       const ModelDataType* mpModelData;
-      
+
     public:
 
       HyperElasticFactors    Factors;
@@ -119,10 +119,10 @@ namespace Kratos
       //Set Data Pointers
       void SetState           (Flags& rState)                    {mpState = &rState;};
       void SetModelData       (const ModelDataType&  rModelData) {mpModelData = &rModelData;};
-      
+
       //Get Data Pointers
       const ModelDataType&    GetModelData                () const {return *mpModelData;};
-      const MaterialDataType& GetMaterialParameters       () const {return mpModelData->GetMaterialParameters();}; 
+      const MaterialDataType& GetMaterialParameters       () const {return mpModelData->GetMaterialParameters();};
 
       //Get non const Data
       Flags& State                                        () {return *mpState;};
@@ -130,16 +130,16 @@ namespace Kratos
       //Get const Data
       const Flags&  GetState                              () const {return *mpState;};
 
-      
+
     };
-    
-    
+
+
   public:
-    
+
     ///@name Type Definitions
     ///@{
     typedef HyperElasticModelData        HyperElasticDataType;
-    
+
     /// Pointer definition of HyperElasticModel
     KRATOS_CLASS_POINTER_DEFINITION( HyperElasticModel );
 
@@ -147,8 +147,8 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.    
-    HyperElasticModel(); 
+    /// Default constructor.
+    HyperElasticModel();
 
     /// Copy constructor.
     HyperElasticModel(HyperElasticModel const& rOther);
@@ -157,86 +157,86 @@ namespace Kratos
     HyperElasticModel& operator=(HyperElasticModel const& rOther);
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override;
+    ConstitutiveModel::Pointer Clone() const override;
 
 
     /// Destructor.
-    virtual ~HyperElasticModel();
+    ~HyperElasticModel() override;
 
 
     ///@}
     ///@name Operators
     ///@{
 
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * Initialize member data
-     */    
-    virtual void InitializeModel(ModelDataType& rValues) override;
+     */
+    void InitializeModel(ModelDataType& rValues) override;
 
     /**
      * Finalize member data
-     */    
-    virtual void FinalizeModel(ModelDataType& rValues) override;
+     */
+    void FinalizeModel(ModelDataType& rValues) override;
 
-    
+
     /**
      * Calculate Strain Energy Density Functions
      */
-    virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction) override;
-    
-    
+    void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction) override;
+
+
     /**
      * Calculate Stresses
      */
-    virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
+    void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
 
-    virtual void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
+    void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
 
-    virtual void CalculateVolumetricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
+    void CalculateVolumetricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override;
 
 
     /**
      * Calculate Constitutive Tensor
      */
-    virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override; 
-    
-    virtual void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override; 
+    void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override;
 
-    virtual void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override; 
+    void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override;
 
-    
+    void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override;
+
+
     /**
      * Calculate Stress and Constitutive Tensor
      */
-    virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
+    void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
 
-    virtual void CalculateIsochoricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
+    void CalculateIsochoricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
 
-    virtual void CalculateVolumetricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
+    void CalculateVolumetricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override;
 
-    
+
     /**
      * Check
-     */    
-    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
-    
+     */
+    int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
 
-    virtual void SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue,
+    void SetValue(const Variable<Vector>& rThisVariable, const Vector& rValue,
 			  const ProcessInfo& rCurrentProcessInfo ) override
     {
       KRATOS_TRY
 
       // A method to compute the initial linear strain from the stress is needed
       //if(rThisVariable == INITIAL_STRESS_VECTOR)
-	
+
       // A method to compute the initial linear strain from the stress is needed
       // if(rThisVariable == INITIAL_STRAIN_VECTOR){
       //   this->mHistoryVector = rValue;
@@ -246,14 +246,14 @@ namespace Kratos
     }
 
 
-    virtual void SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+    void SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue,
 			  const ProcessInfo& rCurrentProcessInfo ) override
     {
       KRATOS_TRY
 
       // A method to compute the initial linear strain from the stress is needed
       //if(rThisVariable == INITIAL_STRESS_VECTOR)
-	
+
       // A method to compute the initial linear strain from the stress is needed
       // if(rThisVariable == INITIAL_STRAIN_VECTOR){
       //   this->mHistoryVector = rValue;
@@ -261,23 +261,23 @@ namespace Kratos
 
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * method to ask the plasticity model the list of variables (dofs)  needed from the domain
      * @param rScalarVariables : list of scalar dofs
      * @param rComponentVariables :  list of vector dofs
      */
-    virtual void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
+    void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
 					std::vector<Variable<array_1d<double,3> > >& rComponentVariables) override
     {
       KRATOS_TRY
 
       rComponentVariables.push_back(DISPLACEMENT);
- 	
+
       KRATOS_CATCH(" ")
     }
 
-    
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -288,7 +288,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "HyperElasticModel";
@@ -296,13 +296,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "HyperElasticModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "HyperElasticModel Data";
     }
@@ -319,8 +319,8 @@ namespace Kratos
     ///@name Protected static Member Variables
     ///@{
 
-    const MatrixType msIdentityMatrix;
-    
+    static const MatrixType msIdentityMatrix;
+
 
     ///@}
     ///@name Protected member Variables
@@ -329,8 +329,8 @@ namespace Kratos
     ///@}
     ///@name Protected Operators
     ///@{
-    
-   
+
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -353,20 +353,20 @@ namespace Kratos
     virtual void CalculateAndAddIsochoricConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix);
 
     virtual void CalculateAndAddVolumetricConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix);
-    
+
     /**
      * Calculate Constitutive Components
-     */    
+     */
 
     virtual double& AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 					     const unsigned int& a, const unsigned int& b,
 					     const unsigned int& c, const unsigned int& d);
 
-    
+
     virtual double& AddIsochoricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 						      const unsigned int& a, const unsigned int& b,
 						      const unsigned int& c, const unsigned int& d);
-       
+
 
     virtual double& AddVolumetricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 						       const unsigned int& a, const unsigned int& b,
@@ -374,26 +374,26 @@ namespace Kratos
 
 
     //************// Strain Data
-    
 
-    virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables);    
-        
+
+    virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables);
+
     virtual void CalculateInvariants(HyperElasticDataType& rVariables);
-        
+
     virtual void CalculateScalingFactors(HyperElasticDataType& rVariables);
-     
+
     void CalculateStrainInvariants(const MatrixType& rStrainMatrix, double& rI1, double& rI2, double& rI3);
-    
+
 
     //************//W
 
     virtual void CalculateAndAddIsochoricStrainEnergy(HyperElasticDataType& rVariables, double& rIsochoricDensityFunction);
-    
+
     virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction);
 
 
     //************// dW
-    
+
     virtual double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative); //dU/dJ
 
     virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative); //ddU/dJdJ
@@ -401,7 +401,7 @@ namespace Kratos
 
     //************// right cauchy green: C
     MatrixType& GetJRightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dJ/dC
-    
+
     double& GetJRightCauchyGreen1stDerivative(const StrainData& rStrain,
 					      double& rDerivative,
 					      const double& a,
@@ -413,7 +413,7 @@ namespace Kratos
 						    const double& b,
 						    const double& c,
 						    const double& d); //dJ/dC * dJ/dC
-    
+
     double& GetJRightCauchyGreen2ndDerivative(const StrainData& rStrain,
 					      double& rDerivative,
 					      const double& a,
@@ -422,7 +422,7 @@ namespace Kratos
 					      const double& d); //ddJ/dCdC
 
     //************// left cauchy green : b
-    
+
     MatrixType& GetJLeftCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dJ/db
 
     double& GetJLeftCauchyGreen1stDerivative(const StrainData& rStrain,
@@ -436,7 +436,7 @@ namespace Kratos
 						   const double& b,
 						   const double& c,
 						   const double& d); //dJ/db * dJ/db
-    
+
     double& GetJLeftCauchyGreen2ndDerivative(const StrainData& rStrain,
 					     double& rDerivative,
 					     const double& a,
@@ -444,7 +444,7 @@ namespace Kratos
 					     const double& c,
 					     const double& d); //ddJ/dbdb
 
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -463,7 +463,7 @@ namespace Kratos
     ///@}
 
   private:
-    
+
     ///@name Static Member Variables
     ///@{
 
@@ -471,7 +471,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
+
 
     ///@}
     ///@name Private Operators
@@ -487,19 +487,19 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
     }
@@ -534,6 +534,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HYPER_ELASTIC_MODEL_H_INCLUDED  defined 
-
-
+#endif // KRATOS_HYPER_ELASTIC_MODEL_H_INCLUDED  defined

@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Massimo Petracca
 //
@@ -300,7 +300,31 @@ public:
 
     // Basic
 
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
     void Initialize() override;
 
@@ -314,34 +338,18 @@ public:
 
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-    // Results calculation on integration points
+    // More results calculation on integration points to interface with python
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+        std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-	// More results calculation on integration points to interface with python
-	void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-		std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-	void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-		std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-	void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-		std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-	void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-		3> >& rVariable, std::vector<array_1d<double, 3> >& rValues,
-		const ProcessInfo& rCurrentProcessInfo) override;
-
-	void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-		6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
+        3> >& rVariable, std::vector<array_1d<double, 3> >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     // Calculate functions
@@ -376,22 +384,22 @@ private:
     ///@name Private Operations
     ///@{
 
-	void CalculateStressesFromForceResultants(VectorType& rstresses,
-		const double& rthickness);
+    void CalculateStressesFromForceResultants(VectorType& rstresses,
+        const double& rthickness);
 
-	void CalculateLaminaStrains(ShellCrossSection::Pointer & section, const Vector& generalizedStrains, std::vector<VectorType> & rlaminateStrains);
+    void CalculateLaminaStrains(ShellCrossSection::Pointer & section, const Vector& generalizedStrains, std::vector<VectorType> & rlaminateStrains);
 
-	void CalculateLaminaStresses(ShellCrossSection::Pointer & section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType> & rlaminateStrains, std::vector<VectorType> & rlaminateStresses);
+    void CalculateLaminaStresses(ShellCrossSection::Pointer & section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType> & rlaminateStrains, std::vector<VectorType> & rlaminateStresses);
 
-	double CalculateTsaiWuPlaneStress(const std::vector<VectorType> & rlaminateStresses, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
+    double CalculateTsaiWuPlaneStress(const std::vector<VectorType> & rlaminateStresses, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
 
-	void CalculateVonMisesStress(const Vector& generalizedStresses,
-		const Variable<double>& rVariable, double& rVon_Mises_Result);
+    void CalculateVonMisesStress(const Vector& generalizedStresses,
+        const Variable<double>& rVariable, double& rVon_Mises_Result);
 
-	void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable,
-		int& iJob, bool& bGlobal);
+    void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable,
+        int& iJob, bool& bGlobal);
 
-	double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
+    double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
 
     void DecimalCorrection(Vector& a);
 
@@ -410,11 +418,11 @@ private:
 
     void AddBodyForces(const array_1d<double,4> & dA, VectorType& rRightHandSideVector);
 
-    bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
+    bool TryCalculateOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double,3> >& rVariable,
             std::vector<array_1d<double,3> >& rValues,
             const ProcessInfo& rCurrentProcessInfo);
 
-    bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
+    bool TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
             std::vector<Matrix>& rValues,
             const ProcessInfo& rCurrentProcessInfo);
 

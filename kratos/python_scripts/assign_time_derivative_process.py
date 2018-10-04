@@ -7,7 +7,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignTimeDerivativeProcess(Model, settings["Parameters"])
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class AssignTimeDerivativeProcess(assign_vector_variable_process.AssignVectorVariableProcess):
     '''this process fixes the components of the value named "variable_to_be_solved_for" 
     in case the components of "variable_name" is fixed.
@@ -26,7 +26,6 @@ class AssignTimeDerivativeProcess(assign_vector_variable_process.AssignVectorVar
             self.dof_components.append( KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_to_be_solved_for"].GetString()+"_Y") )
         if(not settings["value"][2].IsNull()):
             self.dof_components.append( KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_to_be_solved_for"].GetString()+"_Z") )
-        print(self.dof_components)
         
         settings.RemoveValue("variable_to_be_solved_for") #remove this value from the settings in order to be able to use the settings in constructing the base object
         
@@ -41,8 +40,6 @@ class AssignTimeDerivativeProcess(assign_vector_variable_process.AssignVectorVar
         for component in range(len(self.dof_components)):
             step_is_active =self.aux_processes[component].step_is_active
             is_fixed = self.aux_processes[component].step_is_active
-            print("step_is_active",step_is_active)
-            print("is_ficed", is_fixed)
             if(step_is_active == True and is_fixed==True):
                 self.aux_processes[component].variable_utils.ApplyFixity(self.dof_components[component], fixed, self.model_part.Nodes)
             
@@ -50,7 +47,6 @@ class AssignTimeDerivativeProcess(assign_vector_variable_process.AssignVectorVar
     def ExecuteFinalizeSolutionStep(self):
         fixed = False
         for component in range(len(self.dof_components)):
-            print("in finalize", self.dof_components[component])
             step_is_active =self.aux_processes[component].step_is_active
             is_fixed = self.aux_processes[component].step_is_active
             if(step_is_active == True and is_fixed==True):

@@ -294,13 +294,13 @@ void ModelPartIO::ReadSubModelParts(ModelPart& rModelPart)
     for (const auto& r_name : sub_model_parts)
     {
         const std::string sub_model_part_path = mPrefix + "/SubModelParts/" + r_name;
-        auto p_sub_model_part = rModelPart.CreateSubModelPart(r_name);
+        auto& r_sub_model_part = rModelPart.CreateSubModelPart(r_name);
         if (mpFile->HasPath(sub_model_part_path + "/NodeIds"))
-            p_sub_model_part->AddNodes(ReadContainerIds(sub_model_part_path + "/NodeIds"));
+            r_sub_model_part.AddNodes(ReadContainerIds(sub_model_part_path + "/NodeIds"));
         if (mpFile->HasPath(sub_model_part_path + "/ElementIds"))
-            p_sub_model_part->AddElements(ReadContainerIds(sub_model_part_path + "/ElementIds"));
+            r_sub_model_part.AddElements(ReadContainerIds(sub_model_part_path + "/ElementIds"));
         if (mpFile->HasPath(sub_model_part_path + "/ConditionIds"))
-            p_sub_model_part->AddConditions(ReadContainerIds(sub_model_part_path + "/ConditionIds"));
+            r_sub_model_part.AddConditions(ReadContainerIds(sub_model_part_path + "/ConditionIds"));
     }
 }
 

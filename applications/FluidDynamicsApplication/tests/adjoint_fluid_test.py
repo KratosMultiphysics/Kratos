@@ -81,11 +81,12 @@ class AdjointFluidTest(UnitTest.TestCase):
                 "model_part_output_settings" : {
                     "prefix" : "/ModelData"
                 },
-                "nodal_results_settings" : {
+                "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
                 },
                 "output_time_settings" : {
-                    "output_step_frequency": 1
+                    "output_step_frequency": 1,
+                    "file_name" : "primal_output"
                 }
             }
         }'''))
@@ -122,7 +123,7 @@ class AdjointFluidTest(UnitTest.TestCase):
 
 
         kratos_utilities.DeleteFileIfExisting("cylinder_2d.time")
-        self._remove_h5_files("MainModelPart")
+        self._remove_h5_files("primal_output")
 
 
     def _remove_h5_files(self, model_part_name):
@@ -131,8 +132,5 @@ class AdjointFluidTest(UnitTest.TestCase):
                 kratos_utilities.DeleteFileIfExisting(name)
 
 if __name__ == '__main__':
-    test_case = AdjointFluidTest()
-    test_case.setUp()
-    test_case.testCylinder()
-    test_case.tearDown()
+    UnitTest.main()
 

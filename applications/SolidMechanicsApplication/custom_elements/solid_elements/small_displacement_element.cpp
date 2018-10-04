@@ -73,7 +73,7 @@ SmallDisplacementElement&  SmallDisplacementElement::operator=(SmallDisplacement
 
 Element::Pointer SmallDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new SmallDisplacementElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+  return Kratos::make_shared< SmallDisplacementElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -104,7 +104,7 @@ Element::Pointer SmallDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new SmallDisplacementElement(NewElement) );
+    return Kratos::make_shared< SmallDisplacementElement >(NewElement);
 }
 
 
@@ -119,9 +119,9 @@ SmallDisplacementElement::~SmallDisplacementElement()
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::SetElementVariables(ElementVariables& rVariables,
-						   ConstitutiveLaw::Parameters& rValues,
-						   const int & rPointNumber)
+void SmallDisplacementElement::SetElementData(ElementDataType& rVariables,
+                                              ConstitutiveLaw::Parameters& rValues,
+                                              const int & rPointNumber)
 {
     KRATOS_TRY
 
@@ -145,11 +145,11 @@ void SmallDisplacementElement::SetElementVariables(ElementVariables& rVariables,
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void SmallDisplacementElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    SolidElement::InitializeElementVariables(rVariables, rCurrentProcessInfo);
+    SolidElement::InitializeElementData(rVariables, rCurrentProcessInfo);
 
     //set variables including all integration points values
 
@@ -167,7 +167,7 @@ void SmallDisplacementElement::InitializeElementVariables (ElementVariables & rV
 //************************************************************************************
 
 void SmallDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-						   ElementVariables& rVariables,
+						   ElementDataType& rVariables,
 						   double& rIntegrationWeight)
 
 {
@@ -179,7 +179,7 @@ void SmallDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatr
 //************************************************************************************
 
 
-void SmallDisplacementElement::CalculateKinematics(ElementVariables& rVariables, const double& rPointNumber)
+void SmallDisplacementElement::CalculateKinematics(ElementDataType& rVariables, const double& rPointNumber)
 {
     KRATOS_TRY
 
@@ -205,7 +205,8 @@ void SmallDisplacementElement::CalculateKinematics(ElementVariables& rVariables,
     noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Compute the deformation matrix B
-    this->CalculateDeformationMatrix( rVariables.B, rVariables.DN_DX );
+    const GeometryType& rGeometry = GetGeometry();
+    ElementUtilities::CalculateLinearDeformationMatrix(rVariables.B,rGeometry,rVariables.DN_DX);
 
     //Compute infinitessimal strain
     this->CalculateInfinitesimalStrain( rVariables.H, rVariables.StrainVector );
@@ -222,15 +223,15 @@ void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH, const M
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     noalias(rH) = ZeroMatrix(dimension, dimension);
 
     if( dimension == 2 )
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 
             array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -244,7 +245,7 @@ void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH, const M
     else if( dimension == 3 )
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 
             array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -276,7 +277,7 @@ void SmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH, Ve
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     if( dimension == 2 )
     {
@@ -324,69 +325,6 @@ void SmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH, Ve
 
 //************************************************************************************
 //************************************************************************************
-void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB, const Matrix& rDN_DX)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigt_size            = dimension * (dimension +1) * 0.5;
-
-    if ( rB.size1() != voigt_size || rB.size2() != dimension*number_of_nodes )
-      rB.resize(voigt_size, dimension*number_of_nodes, false );
-
-    if( dimension == 2 )
-    {
-        unsigned int index = 0;
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            index = 2 * i;
-
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 0, index + 1 ) = 0.0;
-            rB( 1, index + 0 ) = 0.0;
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 0 ) = rDN_DX( i, 1 );
-            rB( 2, index + 1 ) = rDN_DX( i, 0 );
-
-        }
-
-    }
-    else if( dimension == 3 )
-    {
-      unsigned int index = 0;
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-	  index = 3 * i;
-
-	  rB( 0, index + 0 ) = rDN_DX( i, 0 );
-	  rB( 1, index + 1 ) = rDN_DX( i, 1 );
-	  rB( 2, index + 2 ) = rDN_DX( i, 2 );
-
-	  rB( 3, index + 0 ) = rDN_DX( i, 1 );
-	  rB( 3, index + 1 ) = rDN_DX( i, 0 );
-
-	  rB( 4, index + 1 ) = rDN_DX( i, 2 );
-	  rB( 4, index + 2 ) = rDN_DX( i, 1 );
-
-	  rB( 5, index + 0 ) = rDN_DX( i, 2 );
-	  rB( 5, index + 2 ) = rDN_DX( i, 0 );
-
-        }
-
-    }
-    else
-    {
-        KRATOS_ERROR << " something is wrong with the dimension strain matrix " << std::endl;
-
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-
-//************************************************************************************
-//************************************************************************************
 
 void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
@@ -413,8 +351,8 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
     if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -462,7 +400,7 @@ int SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     ErrorCode = SolidElement::Check(rCurrentProcessInfo);
 
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
-    for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
+    for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
 	Node<3> &rNode = this->GetGeometry()[i];
@@ -491,7 +429,7 @@ int SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
       KRATOS_ERROR <<  "constitutive law is not compatible with the small displacements element type" << std::endl;
 
     // Check that the constitutive law has the correct dimension
-    unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     if( dimension == 2 )
     {
       if( LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRAIN_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::AXISYMMETRIC_LAW) )

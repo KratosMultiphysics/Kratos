@@ -15,7 +15,7 @@
 namespace Kratos
 {
 
-class ThermalLinearElastic2DPlaneStrainNodal : public ThermalLinearElastic3DLawNodal
+class KRATOS_API(DAM_APPLICATION) ThermalLinearElastic2DPlaneStrainNodal : public ThermalLinearElastic3DLawNodal
 {
 
 public:

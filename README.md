@@ -6,7 +6,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 
 **Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
-[release-image]: https://img.shields.io/badge/release-5.3-green.svg?style=flat
+[release-image]: https://img.shields.io/badge/release-6.0-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
@@ -20,7 +20,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 
 
 # Main Features
-**Kratos** is __multiplatform__ and available for __Windows, Linux__ (several distros) and can be compiled in __OSX__.
+**Kratos** is __multiplatform__ and available for __Windows, Linux__ (several distros) and __macOS__.
 
 **Kratos** is __OpenMP__ and __MPI__ parallel and scalable up to thousands of cores.
 
@@ -51,31 +51,31 @@ Kratos has been used for simulation of many different problems in a wide variety
 # Contributors
 Organizations contributing to Kratos: 
 
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/CIMNE_logo.png" width="128">
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/CIMNE_logo.png" width="128">
 </br></br><p>International Center for Numerical Methods in Engineering</p>
 
 </br></br>
 
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/TUM_Logo.png" width="128">
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/TUM_Logo.png" width="128">
 </br><p>Chair of Structural Analysis</br>Technical University of Munich </p>
 
 # Our Users
 Some users of the technologies developed in Kratos are:
 
 <span>
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/AIRBUS_logo.png" width="128">
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/AIRBUS_logo.png" width="128">
 <p>Airbus Defence and Space</br>Stress Methods & Optimisation Department</p>
 </span>
 <span>
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/siemens_logo.png" width="128">
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/siemens_logo.png" width="128">
 <p>Siemens AG</br>Corporate Technology</p>
 </span>
 <span>
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/onera_logo.png" width="128">
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/onera_logo.png" width="128">
 <p>ONERA, The French Aerospace Lab<br>Applied Aerodynamics Department</p>
 </span>
 <span>
-<img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
 </br><p>Altair Engineering</p>
 </span>
 
@@ -84,7 +84,8 @@ Looking forward to seeing your logo here!
 
 # Special Thanks To
 In Kratos Core:
-- [Boost](http://www.boost.org/) for boost.python and ublas
+- [Boost](http://www.boost.org/) for ublas
+- [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
 - [GidPost](https://www.gidhome.com/gid-plus/tools/476/gidpost/) providing output to [GiD](https://www.gidhome.com/)
 - [AMGCL](https://github.com/ddemidov/amgcl) for its highly scalable multigrid solver
 - [ZLib](https://zlib.net/) The compression library

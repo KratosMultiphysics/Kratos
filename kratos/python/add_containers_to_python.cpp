@@ -61,6 +61,13 @@ Flags FlagsOr(const Flags& Left, const Flags& Right )
     return (Left|Right);
 }
 
+Flags FlagsAnd(const Flags& Left, const Flags& Right )
+{
+    KRATOS_WARNING("Kratos::Flags Python interface") << "Using deprecated flag & operation, which internally perfms a union (bitwise or)." << std::endl
+                 << "Please use | instead, since this behaviour will be soon deprecated." << std::endl;
+    return (Left|Right);
+}
+
 void FlagsSet1(Flags& ThisFlag, const Flags& OtherFlag )
 {
     ThisFlag.Set(OtherFlag);
@@ -95,9 +102,8 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 
     }
 
-// template< typename TVariableType > void RegisterInPythonVariables(pybind11::module& m)
+//     template< typename TVariableType > void RegisterInPythonVariables(pybind11::module& m)
 //     {
-//         KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 //         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size())
 //         for(const auto& item : KratosComponents<VariableData>::GetComponents())
 //         {
@@ -155,24 +161,32 @@ void  AddContainersToPython(pybind11::module& m)
     .def( "__repr__", &Variable<int>::Info )
     ;
 
-    class_<Variable<vector<int> >,VariableData>(m, "IntegerVectorVariable")
-    .def( "__repr__", &Variable<vector<int>>::Info )
+    class_<Variable<DenseVector<int> >,VariableData>(m, "IntegerVectorVariable")
+    .def( "__repr__", &Variable<DenseVector<int>>::Info )
     ;
 
     class_<Variable<double>,VariableData>(m, "DoubleVariable")
     .def( "__repr__", &Variable<double>::Info )
     ;
 
-    class_<Variable<vector<double> >,VariableData>(m, "VectorVariable")
-    .def( "__repr__", &Variable<vector<double> >::Info )
+    class_<Variable<Vector >,VariableData>(m, "VectorVariable")
+    .def( "__repr__", &Variable<Vector >::Info )
     ;
 
     class_<Variable<array_1d<double, 3> >,VariableData>(m, "Array1DVariable3")
     .def( "__repr__", &Variable<array_1d<double, 3> >::Info )
     ;
 
+    class_<Variable<array_1d<double, 4> >,VariableData>(m, "Array1DVariable4")
+    .def( "__repr__", &Variable<array_1d<double, 4> >::Info )
+    ;
+
     class_<Variable<array_1d<double, 6> >,VariableData>(m, "Array1DVariable6")
     .def( "__repr__", &Variable<array_1d<double, 6> >::Info )
+    ;
+
+    class_<Variable<array_1d<double, 9> >,VariableData>(m, "Array1DVariable9")
+    .def( "__repr__", &Variable<array_1d<double, 9> >::Info )
     ;
 
     class_<Variable<DenseMatrix<double> >,VariableData>(m, "MatrixVariable")
@@ -190,12 +204,29 @@ void  AddContainersToPython(pybind11::module& m)
     class_<Variable<RadiationSettings::Pointer > ,VariableData>(m,"RadiationSettingsVariable")
     .def( "__repr__", &Variable<RadiationSettings::Pointer >::Info )
     ;
-    class_<VariableComponent<VectorComponentAdaptor<vector<double> > >,VariableData>(m, "VectorComponentVariable")
-    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<vector<double> > >::Info )
+    class_<VariableComponent<VectorComponentAdaptor<Vector > >,VariableData>(m, "VectorComponentVariable")
+    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<Vector > >::Info )
+    // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<Vector > >::GetSourceVariable ) // components for vector are not yet fully supported
     ;
 
     class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >,VariableData>(m, "Array1DComponentVariable")
     .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::Info )
+    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::GetSourceVariable )
+    ;
+
+    class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >,VariableData>(m, "Array1D4ComponentVariable")
+    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >::Info )
+    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >::GetSourceVariable )
+    ;
+
+    class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >,VariableData>(m, "Array1D6ComponentVariable")
+    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >::Info )
+    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >::GetSourceVariable )
+    ;
+
+    class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >,VariableData>(m, "Array1D9ComponentVariable")
+    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >::Info )
+    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >::GetSourceVariable )
     ;
 
     class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
@@ -239,11 +270,17 @@ void  AddContainersToPython(pybind11::module& m)
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<int> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<double> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<array_1d<double, 3>> >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<array_1d<double, 4>> >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<array_1d<double, 6>> >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<array_1d<double, 9>> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Vector> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Matrix> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<RadiationSettings::Pointer> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
 
@@ -255,9 +292,15 @@ void  AddContainersToPython(pybind11::module& m)
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<int> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<double> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<array_1d<double, 3>> >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<array_1d<double, 4>> >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<array_1d<double, 6>> >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<array_1d<double, 9>> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Vector> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Matrix> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Quaternion<double>> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<std::string> >(VariableDataValueBinder);
 
@@ -275,11 +318,9 @@ void  AddContainersToPython(pybind11::module& m)
     .def("Flip", &Flags::Flip)
     .def("Clear", &Flags::Clear)
     .def("__or__", FlagsOr)
-    .def("__and__", FlagsOr) // this is not an error, the and and or are considered both as add. Pooyan.
+    .def("__and__", FlagsAnd)
     .def("__repr__", &Flags::Info )
     ;
-
-
 
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,STRUCTURE);
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,INTERFACE);
@@ -437,6 +478,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_INERTIA_TENSOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_AXES_MATRIX )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_CONSTITUTIVE_MATRIX )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSTITUTIVE_MATRIX )
 
     //for structural application TO BE REMOVED
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSTITUTIVE_LAW )
@@ -503,6 +545,11 @@ void  AddContainersToPython(pybind11::module& m)
     // For MeshingApplication
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NODAL_ERROR )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NODAL_ERROR_COMPONENTS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENT_ERROR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENT_H )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RECOVERED_STRESS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ERROR_INTEGRATION_POINT )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTACT_PRESSURE )
 
     // For explicit time integration
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RESIDUAL_VECTOR )

@@ -152,25 +152,9 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
         );
 
     /**
-     * @brief This method return the map with colors and pointers to the associated submodelparts
-     * @param ThisModelPart The main model part computed
-     * @param rColors The reference colors
-     * @return The fast access colors
+     * @brief This method can be used to debug complex model parts directly on python
      */
-    static std::unordered_map<IndexType, std::vector<ModelPart*>> GetModelPartColorsPointers(
-        ModelPart& ThisModelPart,
-        const IntStringMapType& rColors
-        );
-
-    /**
-     * @brief This method computes all the possible intersection of two colors (combinations of sub_model_parts)
-     * @param rColors the map containign the combinations
-     * @param rIntersections tha map containing the key combinations and its corresponding color
-     */
-    static void IntersectColors(
-        IntStringMapType& rColors,
-        PairIntMapType& rIntersections
-    );
+    void DebugComputeSubModelPartsList();
 
     ///@}
     ///@name Access

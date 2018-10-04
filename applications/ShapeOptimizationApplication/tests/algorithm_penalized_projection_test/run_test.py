@@ -80,7 +80,7 @@ class CustomAnalyzer(AnalyzerBaseClass):
 
 # Create optimizer and perform optimization
 import optimizer_factory
-optimizer = optimizer_factory.CreateOptimizer(parameters, optimization_model_part, CustomAnalyzer())
+optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], optimization_model_part, CustomAnalyzer())
 optimizer.Optimize()
 
 # =======================================================================================================

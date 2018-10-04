@@ -245,7 +245,7 @@ void TestModelPartFactory::AddEmptySubModelPart()
 void TestModelPartFactory::AddElementsSubModelPart()
 {
     ModelPart& sub_model_part =
-        *mrTestModelPart.CreateSubModelPart("ElementsSubModelPart");
+        mrTestModelPart.CreateSubModelPart("ElementsSubModelPart");
     if (mrTestModelPart.NumberOfElements() > 0)
     {
         auto p_elem = *mrTestModelPart.Elements().ptr_begin();
@@ -259,7 +259,7 @@ void TestModelPartFactory::AddElementsSubModelPart()
 void TestModelPartFactory::AddConditionsSubModelPart()
 {
     ModelPart& sub_model_part =
-        *mrTestModelPart.CreateSubModelPart("ConditionsSubModelPart");
+        mrTestModelPart.CreateSubModelPart("ConditionsSubModelPart");
     if (mrTestModelPart.NumberOfConditions() > 0)
     {
         auto p_cond = *mrTestModelPart.Conditions().ptr_begin();
@@ -273,7 +273,7 @@ void TestModelPartFactory::AddConditionsSubModelPart()
 void TestModelPartFactory::AddElementsAndConditionsSubModelPart()
 {
     ModelPart& sub_model_part =
-        *mrTestModelPart.CreateSubModelPart("ElementsAndConditionsSubModelPart");
+        mrTestModelPart.CreateSubModelPart("ElementsAndConditionsSubModelPart");
     if (mrTestModelPart.NumberOfElements() > 0 && mrTestModelPart.NumberOfConditions() > 0)
     {
         auto p_elem = *mrTestModelPart.Elements().ptr_begin();

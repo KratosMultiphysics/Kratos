@@ -15,9 +15,9 @@
 // External includes
 
 // Project includes
+#include "custom_solvers/solution_local_flags.hpp"
 #include "includes/model_part.h"
-#include "includes/define.h"
-#include "includes/dof.h"
+//#include "includes/dof.h"
 
 namespace Kratos
 {
@@ -43,21 +43,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Solver local flags class definition
- *  @details This is the base class for criterion local flags
- */
-class CriterionLocalFlags
-{
- public:
-  /// Flags for the solution control:
-  KRATOS_DEFINE_LOCAL_FLAG( INITIALIZED );
-  KRATOS_DEFINE_LOCAL_FLAG( INCREMENTAL );
-  KRATOS_DEFINE_LOCAL_FLAG( CONVERGED );
-  KRATOS_DEFINE_LOCAL_FLAG( AND );
-  KRATOS_DEFINE_LOCAL_FLAG( OR );
-  KRATOS_DEFINE_LOCAL_FLAG( UPDATE_RHS );
-  KRATOS_DEFINE_LOCAL_FLAG( SUPPLIED_DOF );
-};
 
 /** @brief Convergence Criterion base class
  *  @details This is the base class for the convergence criteria
@@ -97,7 +82,7 @@ class ConvergenceCriterion : public Flags
   }
 
   /// Destructor.
-  virtual ~ConvergenceCriterion()
+  ~ConvergenceCriterion() override
   {
   }
 
@@ -267,16 +252,7 @@ class ConvergenceCriterion : public Flags
 ///@name Type Definitions
 ///@{
 
-/**
- * Flags for the Strategy control
- */
-KRATOS_CREATE_LOCAL_FLAG( CriterionLocalFlags, INITIALIZED,               0 );
-KRATOS_CREATE_LOCAL_FLAG( CriterionLocalFlags, INCREMENTAL,               1 );
-KRATOS_CREATE_LOCAL_FLAG( CriterionLocalFlags, CONVERGED,                 2 );
-KRATOS_CREATE_LOCAL_FLAG( CriterionLocalFlags, AND,                       3 );
-KRATOS_CREATE_LOCAL_FLAG( CriterionLocalFlags, OR,                        4 );
-KRATOS_CREATE_LOCAL_FLAG( CriterionLocalFlags, UPDATE_RHS,                5 );
-KRATOS_CREATE_LOCAL_FLAG( CriterionLocalFlags, SUPPLIED_DOF,              6 );
+
 ///@}
 ///@name Input and output
 ///@{

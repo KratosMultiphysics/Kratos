@@ -89,7 +89,7 @@ public:
     ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
 
     /// Constructor with stream.
-    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream);
+    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags Options = IO::NOT_IGNORE_VARIABLES_ERROR);
 
 
     /// Constructor with filenames.
@@ -151,7 +151,6 @@ public:
     void ReadModelPart(ModelPart & rThisModelPart) override;
 
     void WriteModelPart(ModelPart & rThisModelPart) override;
-
 
     /// Read the input file and create the nodal connectivities graph, stored in CSR format.
     /**
@@ -304,7 +303,7 @@ protected:
     bool CheckEndBlock(std::string const& BlockName, std::string& rWord);
 
     void ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
-    
+
     void WriteModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
 
     template<class TablesContainerType>
@@ -316,7 +315,7 @@ protected:
     void WriteTableBlock(TablesContainerType& rTables);
 
     void WriteTableBlock(ModelPart::TablesContainerType& rTables);
-    
+
     void ReadNodesBlock(NodesContainerType& rThisNodes);
 
     void ReadNodesBlock(ModelPart& rModelPart);
@@ -336,7 +335,7 @@ protected:
 
 
     void ReadNodalDataBlock(ModelPart& rThisModelPart);
-    
+
     void WriteNodalDataBlock(ModelPart& rThisModelPart);
 
     template<class TVariableType>
@@ -393,7 +392,7 @@ protected:
     void ReadCommunicatorGhostNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
 
     void ReadMeshBlock(ModelPart& rModelPart);
-    
+
     void WriteMeshBlock(ModelPart& rModelPart);
 
 
@@ -409,8 +408,8 @@ protected:
     void ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh);
 
     void ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart);
-    
-    void WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string InitialTabulation);
+
+    void WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string& InitialTabulation);
 
     void ReadSubModelPartDataBlock(ModelPart& rModelPart);
 
@@ -555,7 +554,7 @@ protected:
 
     void ResetInput();
 
-    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions);
+    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, DenseVector<unsigned int>& partitions);
 
 
 

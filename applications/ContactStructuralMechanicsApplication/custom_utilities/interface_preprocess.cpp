@@ -40,33 +40,42 @@ void InterfacePreprocessCondition::GenerateInterfacePart<2>(
     
     Parameters default_parameters = Parameters(R"(
     {
-        "simplify_geometry"                    : false
+        "simplify_geometry"                    : false,
+        "contact_property_id"                  : 0
     })" );
     
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
     
     const bool simplest_geometry = ThisParameters["simplify_geometry"].GetBool();
+    const int contact_property_id = ThisParameters["contact_property_id"].GetInt();
     
     IndexType cond_counter = 0;
 
     // Generate Conditions from original the edges that can be considered interface
     if (rInterfacePart.Conditions().size() > 0) { // We use the already existant conditions geometry (recommended)
         cond_counter = rInterfacePart.Conditions().size();
+        // Check and creates the properties
+        CheckAndCreateProperties(rInterfacePart);
     } else if (rInterfacePart.Nodes().size() > 0) { // Only in case we have assigned the flag directly to nodes (no conditions)
         // We reorder the conditions
         IndexType cond_id = ReorderConditions();
 
         // Store new properties in a map
-        std::unordered_map<IndexType, Properties::Pointer> new_properties = CreateNewProperties();
+        std::unordered_map<IndexType, Properties::Pointer> new_properties;
+        if (contact_property_id == 0) new_properties = CreateNewProperties();
 
         // We iterate over the elements and check the nodes on the interface
         for (auto it_elem = mrMainModelPart.ElementsBegin(); it_elem != mrMainModelPart.ElementsEnd(); ++it_elem) {
             GeometryType& this_geometry = it_elem->GetGeometry();
-            Properties::Pointer p_prop = new_properties[it_elem->pGetProperties()->Id()];
+            Properties::Pointer p_prop = (contact_property_id == 0) ? new_properties[it_elem->pGetProperties()->Id()] : mrMainModelPart.pGetProperties(contact_property_id);
             KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
 
-            for (IndexType i_edge = 0; i_edge < this_geometry.EdgesNumber(); ++i_edge)
-                GenerateEdgeCondition(rInterfacePart, p_prop, this_geometry.Edges()[i_edge], simplest_geometry, cond_counter, cond_id);
+            if (this_geometry.LocalSpaceDimension() == 2) {
+                for (IndexType i_edge = 0; i_edge < this_geometry.EdgesNumber(); ++i_edge)
+                    GenerateEdgeCondition(rInterfacePart, p_prop, this_geometry.Edges()[i_edge], simplest_geometry, cond_counter, cond_id);
+            } else {
+                GenerateEdgeCondition(rInterfacePart, p_prop, this_geometry, simplest_geometry, cond_counter, cond_id);
+            }
         }
     } else {
         KRATOS_ERROR << "ERROR:: Nor conditions or nodes on the interface. Check your flags" << std::endl;
@@ -74,7 +83,7 @@ void InterfacePreprocessCondition::GenerateInterfacePart<2>(
     
     // NOTE: Reorder ID if parallellization
     
-    const IndexType num_nodes = mrMainModelPart.Nodes().size();
+    const IndexType num_nodes = rInterfacePart.Nodes().size();
     PrintNodesAndConditions(num_nodes, cond_counter);
     
     KRATOS_CATCH("");
@@ -93,29 +102,34 @@ void InterfacePreprocessCondition::GenerateInterfacePart<3>(
     
     Parameters default_parameters = Parameters(R"(
     {
-        "simplify_geometry"                    : false
+        "simplify_geometry"                    : false,
+        "contact_property_id"                  : 0
     })" );
     
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
     
     const bool simplest_geometry = ThisParameters["simplify_geometry"].GetBool();
+    const int contact_property_id = ThisParameters["contact_property_id"].GetInt();
     
     IndexType cond_counter = 0;
     
     // Generate Conditions from original the edges that can be considered interface
     if (rInterfacePart.Conditions().size() > 0) { // We use the already existant conditions geometry (recommended)
         cond_counter = rInterfacePart.Conditions().size();
+        // Check and creates the properties
+        CheckAndCreateProperties(rInterfacePart);
     } else if (rInterfacePart.Nodes().size() > 0) { // Only in case we have assigned the flag directly to nodes (no conditions)
         // We reorder the conditions
         IndexType cond_id = ReorderConditions();
 
         // Store new properties in a map
-        std::unordered_map<IndexType, Properties::Pointer> new_properties = CreateNewProperties();
+        std::unordered_map<IndexType, Properties::Pointer> new_properties;
+        if (contact_property_id == 0) new_properties = CreateNewProperties();
 
         // Generate Conditions from original the faces that can be considered interface
         for (auto it_elem = mrMainModelPart.ElementsBegin(); it_elem != mrMainModelPart.ElementsEnd(); ++it_elem) {
             GeometryType& this_geometry = it_elem->GetGeometry();
-            Properties::Pointer p_prop = new_properties[it_elem->pGetProperties()->Id()];
+            Properties::Pointer p_prop = (contact_property_id == 0) ? new_properties[it_elem->pGetProperties()->Id()] : mrMainModelPart.pGetProperties(contact_property_id);
             KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
 
             if (this_geometry.LocalSpaceDimension() == 3) {
@@ -130,10 +144,132 @@ void InterfacePreprocessCondition::GenerateInterfacePart<3>(
     
     // NOTE: Reorder ID if parallellization
     
-    const IndexType num_nodes = mrMainModelPart.Nodes().size();
+    const IndexType num_nodes = rInterfacePart.Nodes().size();
     PrintNodesAndConditions(num_nodes, cond_counter);
     
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void InterfacePreprocessCondition::CheckAndCreateProperties(ModelPart& rInterfacePart)
+{
+    // We check that the properties define what must be defined
+    Properties::Pointer p_prop_old = rInterfacePart.Conditions().begin()->pGetProperties();
+    if (!(p_prop_old->Has(YOUNG_MODULUS))) {
+        // Store new properties in a map
+        const std::size_t number_properties = mrMainModelPart.NumberOfProperties();
+        Properties::Pointer p_prop_new = mrMainModelPart.pGetProperties(number_properties + 1);
+
+        GeometryType& this_geometry_cond = rInterfacePart.Conditions().begin()->GetGeometry();
+        const std::size_t number_of_nodes = this_geometry_cond.size();
+        std::vector<IndexType> index_vector(number_of_nodes);
+        for (IndexType i_node = 0; i_node < number_of_nodes; i_node++) {
+            index_vector[i_node] = this_geometry_cond[i_node].Id();
+        }
+        std::sort(index_vector.begin(), index_vector.end());
+
+        IndexType counter = 0;
+        for (auto it_elem = mrMainModelPart.ElementsBegin(); it_elem != mrMainModelPart.ElementsEnd(); ++it_elem) {
+            GeometryType& this_geometry = it_elem->GetGeometry();
+
+            const bool is_on_the_face = CheckOnTheFace(index_vector, this_geometry);
+
+            if (is_on_the_face) {
+                Properties::Pointer p_prop = it_elem->pGetProperties();
+
+                // Now we copy (an remove) the properties we have interest
+                CopyProperties(p_prop, p_prop_new, FRICTION_COEFFICIENT);
+                CopyProperties(p_prop, p_prop_new, THICKNESS, false);
+                CopyProperties(p_prop, p_prop_new, YOUNG_MODULUS);
+
+                counter++;
+                break;
+            }
+        }
+
+        // Now we iterate over the conditions
+        if (counter > 0) {
+            ConditionsArrayType& conditions_array = rInterfacePart.Conditions();
+
+            #pragma omp parallel for
+            for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
+                auto it_cond = conditions_array.begin() + i;
+                it_cond->SetProperties(p_prop_new);
+            }
+        } else {
+            KRATOS_ERROR << "It was not possible to add a property" << std::endl;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool InterfacePreprocessCondition::CheckOnTheFace(
+    const std::vector<std::size_t>& rIndexVector,
+    GeometryType& rElementGeometry
+    )
+{
+    if (rElementGeometry.WorkingSpaceDimension() == 2) {
+        for (IndexType i_edge = 0; i_edge < rElementGeometry.EdgesNumber(); ++i_edge) {
+            const IndexType number_of_nodes = rElementGeometry.Edges()[i_edge].size();
+            std::vector<IndexType> index_vector_face(number_of_nodes);
+            if (number_of_nodes == rIndexVector.size()) {
+                for (IndexType i_node = 0; i_node < number_of_nodes; i_node++) {
+                    index_vector_face[i_node] = rElementGeometry.Edges()[i_edge][i_node].Id();
+                }
+                std::sort(index_vector_face.begin(), index_vector_face.end());
+
+                bool is_here = true;
+                for (IndexType i_node = 0; i_node < number_of_nodes; i_node++) {
+                    if (index_vector_face[i_node] != rIndexVector[i_node]) {
+                        is_here = false;
+                        break;
+                    }
+                }
+                if (is_here) return true;
+            }
+        }
+    } else {
+        if (rElementGeometry.LocalSpaceDimension() == 3) {
+            for (IndexType i_face = 0; i_face < rElementGeometry.FacesNumber(); ++i_face) {
+                const IndexType number_of_nodes = rElementGeometry.Faces()[i_face].size();
+                if (number_of_nodes == rIndexVector.size()) {
+                    std::vector<IndexType> index_vector_face(number_of_nodes);
+                    for (IndexType i_node = 0; i_node < number_of_nodes; i_node++) {
+                        index_vector_face[i_node] = rElementGeometry.Faces()[i_face][i_node].Id();
+                    }
+
+                    std::sort(index_vector_face.begin(), index_vector_face.end());
+
+                    bool is_here = true;
+                    for (IndexType i_node = 0; i_node < number_of_nodes; i_node++) {
+                        if (index_vector_face[i_node] != rIndexVector[i_node]) {
+                            is_here = false;
+                            break;
+                        }
+                    }
+                    if (is_here) return true;
+                }
+            }
+        } else {
+            const IndexType number_of_nodes = rElementGeometry.size();
+            std::vector<IndexType> index_vector_face(number_of_nodes);
+            for (IndexType i_node = 0; i_node < number_of_nodes; i_node++) {
+                index_vector_face[i_node] = rElementGeometry[i_node].Id();
+            }
+            std::sort(index_vector_face.begin(), index_vector_face.end());
+
+            for (IndexType i_node = 0; i_node < number_of_nodes; i_node++) {
+                if (index_vector_face[i_node] != rIndexVector[i_node]) return false;
+            }
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /***********************************************************************************/
@@ -163,7 +299,7 @@ std::unordered_map<IndexType, Properties::Pointer> InterfacePreprocessCondition:
     // Copy to the new properties
     count = 0;
     for (auto& i_prop : index_vector) {
-        Properties::Pointer p_original_prop = mrMainModelPart.pGetProperties(i_prop);;
+        Properties::Pointer p_original_prop = mrMainModelPart.pGetProperties(i_prop);
         ++count;
         Properties::Pointer p_new_prop = mrMainModelPart.pGetProperties(number_properties + count + 1);
         new_properties.insert({i_prop, p_new_prop});

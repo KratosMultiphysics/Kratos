@@ -60,10 +60,10 @@ namespace Kratos
 
     /// Default constructor.
     NeoHookeanLnJSquaredModel() : NeoHookeanModel() {}
-    
+
     /// Copy constructor.
     NeoHookeanLnJSquaredModel(NeoHookeanLnJSquaredModel const& rOther) : NeoHookeanModel(rOther) {}
-    
+
     /// Assignment operator.
     NeoHookeanLnJSquaredModel& operator=(NeoHookeanLnJSquaredModel const& rOther)
     {
@@ -72,13 +72,13 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override
+    ConstitutiveModel::Pointer Clone() const override
     {
-      return ( NeoHookeanLnJSquaredModel::Pointer(new NeoHookeanLnJSquaredModel(*this)) );      
+      return Kratos::make_shared<NeoHookeanLnJSquaredModel>(*this);
     }
-    
+
     /// Destructor.
-    virtual ~NeoHookeanLnJSquaredModel() {}
+    ~NeoHookeanLnJSquaredModel() override {}
 
 
     ///@}
@@ -89,12 +89,12 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-          
-    
+
+
     ///@}
     ///@name Access
     ///@{
-        
+
 
     ///@}
     ///@name Inquiry
@@ -106,21 +106,21 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "NeoHookeanLnJSquaredModel";
         return buffer.str();
     }
-    
+
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "NeoHookeanLnJSquaredModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "NeoHookeanLnJSquaredModel Data";
     }
@@ -133,67 +133,67 @@ namespace Kratos
     ///@}
 
   protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
     ///@}
     ///@name Protected member Variables
     ///@{
-		
+
     ///@}
     ///@name Protected Operators
     ///@{
 
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
 
 
     // specialized methods:
-    
-    virtual void CalculateVolumetricFactor(HyperElasticDataType& rVariables, double& rFactor) override
+
+    void CalculateVolumetricFactor(HyperElasticDataType& rVariables, double& rFactor) override
     {
       KRATOS_TRY
 
       rFactor = std::log(rVariables.Strain.Invariants.J);
-	
+
       KRATOS_CATCH(" ")
     }
-    
 
-    virtual void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor) override
+
+    void CalculateConstitutiveMatrixFactor(HyperElasticDataType& rVariables, double& rFactor) override
     {
       KRATOS_TRY
 
       rFactor = 1.0;
-	
+
       KRATOS_CATCH(" ")
     }
-    
+
     //************// W
 
     //option: g(J) = (lambda/2)*ln(J)² - (mu)*lnJ (neo_hookean_lnJ_model)
-    
-    virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction) override
+
+    void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction) override
     {
       KRATOS_TRY
 
       const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
 
-      //g(J) = (lambda/2)*ln(J)² - (mu)*lnJ 
+      //g(J) = (lambda/2)*ln(J)² - (mu)*lnJ
       rVolumetricDensityFunction = rMaterial.GetLameLambda() * 0.5 * std::log( rVariables.Strain.Invariants.J );
       rVolumetricDensityFunction -= rMaterial.GetLameMu() * std::log( rVariables.Strain.Invariants.J );
-	
+
       KRATOS_CATCH(" ")
     }
 
-        
-    //************// dW
-    
 
-    virtual double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //dW/dI3
+    //************// dW
+
+
+    double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //dW/dI3
     {
       KRATOS_TRY
 
@@ -204,30 +204,30 @@ namespace Kratos
       rDerivative  = 0.5 * rMaterial.GetLameLambda() * std::log( rVariables.Strain.Invariants.J );
       rDerivative -= 0.5 * rMaterial.GetLameMu();
       rDerivative /= rVariables.Strain.Invariants.I3;
-      
+
       return rDerivative;
 
       KRATOS_CATCH(" ")
     }
 
 
-    virtual double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddW/dI3dI3
+    double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddW/dI3dI3
     {
       KRATOS_TRY
 
       const MaterialDataType&   rMaterial = rVariables.GetMaterialParameters();
-      
+
       //ddg(J)/dI3dI3 = (lambda/4)*(1-2*lnJ)/J⁴ + (mu/2)*(1/J⁴)
       rDerivative  = 0.25 * rMaterial.GetLameLambda() * (1.0 - 2.0 * std::log( rVariables.Strain.Invariants.J ) );
       rDerivative += 0.5 * rMaterial.GetLameMu();
       rDerivative /= (rVariables.Strain.Invariants.I3 * rVariables.Strain.Invariants.I3);
-      
+
       return rDerivative;
 
       KRATOS_CATCH(" ")
     }
-    
-    
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -246,7 +246,7 @@ namespace Kratos
     ///@}
 
   private:
-    
+
     ///@name Static Member Variables
     ///@{
 
@@ -254,7 +254,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
+
 
     ///@}
     ///@name Private Operators
@@ -270,21 +270,21 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
-    
-    virtual void save(Serializer& rSerializer) const override
+
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NeoHookeanModel )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NeoHookeanModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NeoHookeanModel )
     }
 
     ///@}
@@ -317,6 +317,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NEO_HOOKEAN_LNJ_SQUARED_MODEL_H_INCLUDED  defined 
-
-
+#endif // KRATOS_NEO_HOOKEAN_LNJ_SQUARED_MODEL_H_INCLUDED  defined

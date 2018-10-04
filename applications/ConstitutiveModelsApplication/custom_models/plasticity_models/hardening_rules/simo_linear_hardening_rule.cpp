@@ -51,7 +51,7 @@ namespace Kratos
 
   HardeningRule::Pointer SimoLinearHardeningRule::Clone() const
   {
-    return ( HardeningRule::Pointer(new SimoLinearHardeningRule(*this)) );
+    return Kratos::make_shared<SimoLinearHardeningRule>(*this);
   }
 
 
@@ -64,7 +64,7 @@ namespace Kratos
 
   /// Operations.
 
-  
+
   //*******************************CALCULATE ISOTROPIC HARDENING************************
   //************************************************************************************
 
@@ -81,16 +81,16 @@ namespace Kratos
     const Properties& rMaterialProperties     = rModelData.GetMaterialProperties();
     const double& YieldStress                 = rMaterialProperties[YIELD_STRESS];
     const double& KinematicHardeningConstant  = rMaterialProperties[KINEMATIC_HARDENING_MODULUS];
-	
+
 
     //Linear Hardening rule: (mTheta = 0)
     rIsotropicHardening  += YieldStress + (1.0 - mTheta) * KinematicHardeningConstant * rEquivalentPlasticStrain;
-	
-	
+
+
     return rIsotropicHardening;
 
     KRATOS_CATCH(" ")
-    
+
   }
 
 
@@ -100,19 +100,19 @@ namespace Kratos
   double& SimoLinearHardeningRule::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
   {
     KRATOS_TRY
-      
+
     const ModelDataType& rModelData = rVariables.GetModelData();
 
     //linear hardening properties
     const double& KinematicHardeningConstant  =  rModelData.GetMaterialProperties()[KINEMATIC_HARDENING_MODULUS];
-	
+
     //Linear Hardening rule: (mTheta = 0)
     rDeltaHardening  = (1.0 - mTheta) * KinematicHardeningConstant;
-		
+
     return rDeltaHardening;
 
     KRATOS_CATCH(" ")
-    
+
   }
 
   //***************************CALCULATE ISOTROPIC HARDENING DERIVATIVE*****************
@@ -121,19 +121,19 @@ namespace Kratos
   double& SimoLinearHardeningRule::CalculateAndAddDeltaIsotropicHardening(const PlasticDataType& rVariables, double& rDeltaIsotropicHardening)
   {
     KRATOS_TRY
-      
+
     const ModelDataType& rModelData = rVariables.GetModelData();
 
     //linear hardening properties
     const double& KinematicHardeningConstant  =  rModelData.GetMaterialProperties()[KINEMATIC_HARDENING_MODULUS];
-	
+
     //Linear Hardening rule: (mTheta = 0)
     rDeltaIsotropicHardening  += mTheta * KinematicHardeningConstant;
-	
+
     return rDeltaIsotropicHardening;
 
     KRATOS_CATCH(" ")
-    
+
   }
 
 

@@ -41,7 +41,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  BaseLoadCondition
     : public Condition
 {
@@ -50,7 +50,7 @@ public:
     ///@name Type Definitions
     typedef std::size_t SizeType;
     ///@{
-    
+
     // Counted pointer of BaseLoadCondition
     KRATOS_CLASS_POINTER_DEFINITION( BaseLoadCondition );
 
@@ -106,13 +106,13 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-    
+
     /**
      * Called at the end of eahc solution step
      * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-    
+
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      * @param rResult The vector containing the equation id
@@ -120,9 +120,9 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo 
+        ProcessInfo& rCurrentProcessInfo
         ) override;
-    
+
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      * @param rElementalDofList The vector containing the dof of the element
@@ -140,7 +140,7 @@ public:
      */
     void GetValuesVector(
         Vector& rValues,
-        int Step = 0 
+        int Step = 0
         ) override;
 
     /**
@@ -150,9 +150,9 @@ public:
      */
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step = 0 
+        int Step = 0
         ) override;
-    
+
     /**
      * Sets on rValues the nodal accelerations
      * @param rValues The values of accelerations
@@ -160,11 +160,11 @@ public:
      */
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step = 0 
+        int Step = 0
         ) override;
 
     /**
-     * This function provides a more general interface to the element. 
+     * This function provides a more general interface to the element.
      * It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
      * @param rLeftHandSideMatrices container with the output left hand side matrices
      * @param rLHSVariables paramter describing the expected LHSs
@@ -172,8 +172,8 @@ public:
      * @param rRHSVariables parameter describing the expected RHSs
      */
     void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix, 
-        VectorType& rRightHandSideVector, 
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -183,10 +183,10 @@ public:
       * @param rCurrentProcessInfo the current process info instance
       */
     void CalculateRightHandSide(
-        VectorType& rRightHandSideVector, 
+        VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo
         ) override;
-        
+
     /**
       * This is called during the assembling process in order to calculate the elemental mass matrix
       * @param rMassMatrix the elemental mass matrix
@@ -194,9 +194,9 @@ public:
       */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo 
+        ProcessInfo& rCurrentProcessInfo
         ) override;
-    
+
     /**
       * This is called during the assembling process in order
       * to calculate the elemental damping matrix
@@ -205,7 +205,7 @@ public:
       */
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo 
+        ProcessInfo& rCurrentProcessInfo
         ) override;
 
      /**
@@ -214,12 +214,12 @@ public:
      * rDestinationVariable.
      * @param rRHSVector input variable containing the RHS vector to be assembled
      * @param rRHSVariable variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled 
+     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo the current process info instance
-     */      
-    void AddExplicitContribution(const VectorType& rRHS, 
-        const Variable<VectorType>& rRHSVariable, 
-        Variable<array_1d<double,3> >& rDestinationVariable, 
+     */
+    void AddExplicitContribution(const VectorType& rRHS,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<array_1d<double,3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -234,26 +234,23 @@ public:
     /**
      * Check if Rotational Dof existant
      */
-    bool HasRotDof(){return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);};
-    
+    virtual bool HasRotDof(){return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);};
+
     unsigned int GetBlockSize()
     {
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
-        if( HasRotDof() ) // if it has rotations
-        {
+        if( HasRotDof() ) { // if it has rotations
             if(dim == 2)
                 return 3;
             else if(dim == 3)
                 return 6;
             else
-                KRATOS_ERROR << "the conditions only works for 2D and 3D elements";
-        }
-        else
-        {
+                KRATOS_ERROR << "The conditions only works for 2D and 3D elements";
+        } else {
             return dim;
         }
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -271,9 +268,9 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -288,7 +285,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
@@ -298,13 +295,13 @@ protected:
      * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
     virtual void CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         );
-    
+
     /**
      * This functions computes the integration weight to consider
      * @param IntegrationPoints: The array containing the integration points
@@ -316,7 +313,7 @@ protected:
         const unsigned int PointNumber,
         const double detJ
         );
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -343,7 +340,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -387,4 +384,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED  defined 
+#endif // KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED  defined

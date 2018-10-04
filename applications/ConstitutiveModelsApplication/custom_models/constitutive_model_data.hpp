@@ -479,7 +479,7 @@ namespace Kratos
     /// Clone.
     ConstitutiveModelData::Pointer Clone() const
     {
-      return (ConstitutiveModelData::Pointer(new ConstitutiveModelData(*this)));
+      return Kratos::make_shared<ConstitutiveModelData>(*this);
     }
 
     /// Destructor.
@@ -550,14 +550,14 @@ namespace Kratos
 	  }
       }
       else{
-      
+
 	  if( rProperties.Has(C10) ){
 	      rValues.MaterialParameters.ModelParameters.push_back(rProperties[C10]);
 
 	      //make neo-hookean consistent with the parameters:
 	      rValues.MaterialParameters.LameMu = 2.0 * rProperties[C10];
 	  }
-      
+
 	  if( rProperties.Has(C20) )
 	      rValues.MaterialParameters.ModelParameters.push_back(rProperties[C20]);
 
@@ -565,7 +565,7 @@ namespace Kratos
 	      rValues.MaterialParameters.ModelParameters.push_back(rProperties[C30]);
 
       }
-      
+
       if( rProperties.Has(BULK_MODULUS) ){
 	  rValues.MaterialParameters.BulkModulus = rProperties[BULK_MODULUS];
 
@@ -575,7 +575,7 @@ namespace Kratos
       else{
 	  rValues.MaterialParameters.BulkModulus = rValues.MaterialParameters.LameLambda + (2.0/3.0) * rValues.MaterialParameters.LameMu;
       }
-      
+
       //std::cout<<" Mu "<<rValues.MaterialParameters.LameMu<<" Lambda "<<rValues.MaterialParameters.LameLambda<<" BulkModulus "<<rValues.MaterialParameters.BulkModulus<<std::endl;
 
 

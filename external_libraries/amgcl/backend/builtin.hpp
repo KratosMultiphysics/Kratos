@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,18 +33,12 @@ THE SOFTWARE.
 
 #include <vector>
 #include <numeric>
+#include <memory>
+#include <random>
+#include <type_traits>
 
 #ifdef _OPENMP
 #  include <omp.h>
-#endif
-
-#include <boost/type_traits.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/range/iterator_range.hpp>
-
-#if BOOST_VERSION > 105800
-#include <boost/container/small_vector.hpp>
 #endif
 
 #include <amgcl/util.hpp>
@@ -91,15 +85,18 @@ struct crs {
         nrows(nrows), ncols(ncols), nnz(0),
         ptr(0), col(0), val(0), own_data(true)
     {
-        precondition(nrows + 1 == boost::size(ptr_range),
+        precondition(static_cast<ptrdiff_t>(nrows + 1) == std::distance(
+                    std::begin(ptr_range), std::end(ptr_range)),
                 "ptr_range has wrong size in crs constructor");
 
         nnz = ptr_range[nrows];
 
-        precondition(boost::size(col_range) == nnz,
+        precondition(static_cast<ptrdiff_t>(nnz) == std::distance(
+                    std::begin(col_range), std::end(col_range)),
                 "col_range has wrong size in crs constructor");
 
-        precondition(boost::size(val_range) == nnz,
+        precondition(static_cast<ptrdiff_t>(nnz) == std::distance(
+                    std::begin(val_range), std::end(val_range)),
                 "val_range has wrong size in crs constructor");
 
         ptr = new ptr_type[nrows + 1];
@@ -122,29 +119,24 @@ struct crs {
         nrows(backend::rows(A)), ncols(backend::cols(A)),
         nnz(0), ptr(0), col(0), val(0), own_data(true)
     {
-        typedef typename backend::row_iterator<Matrix>::type row_iterator;
-
         ptr = new ptr_type[nrows + 1];
         ptr[0] = 0;
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
             int row_width = 0;
-            for(row_iterator a = backend::row_begin(A, i); a; ++a) ++row_width;
+            for(auto a = backend::row_begin(A, i); a; ++a) ++row_width;
             ptr[i+1] = row_width;
         }
 
-        std::partial_sum(ptr, ptr + nrows + 1, ptr);
-
-        nnz = ptr[nrows];
-
+        nnz = scan_row_sizes();
         col = new col_type[nnz];
         val = new val_type[nnz];
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
             ptr_type row_head = ptr[i];
-            for(row_iterator a = backend::row_begin(A, i); a; ++a) {
+            for(auto a = backend::row_begin(A, i); a; ++a) {
                 col[row_head] = a.col();
                 val[row_head] = a.value();
 
@@ -157,22 +149,23 @@ struct crs {
         nrows(other.nrows), ncols(other.ncols), nnz(other.nnz),
         ptr(0), col(0), val(0), own_data(true)
     {
-        ptr = new ptr_type[nrows + 1];
-        col = new col_type[nnz];
-        val = new val_type[nnz];
+        if (other.ptr && other.col && other.val) {
+            ptr = new ptr_type[nrows + 1];
+            col = new col_type[nnz];
+            val = new val_type[nnz];
 
-        ptr[0] = other.ptr[0];
+            ptr[0] = other.ptr[0];
 #pragma omp parallel for
-        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
-            ptr[i+1] = other.ptr[i+1];
-            for(ptr_type j = other.ptr[i]; j < other.ptr[i+1]; ++j) {
-                col[j] = other.col[j];
-                val[j] = other.val[j];
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
+                ptr[i+1] = other.ptr[i+1];
+                for(ptr_type j = other.ptr[i]; j < other.ptr[i+1]; ++j) {
+                    col[j] = other.col[j];
+                    val[j] = other.val[j];
+                }
             }
         }
     }
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     crs(crs &&other) :
         nrows(other.nrows), ncols(other.ncols), nnz(other.nnz),
         ptr(other.ptr), col(other.col), val(other.val),
@@ -193,19 +186,23 @@ struct crs {
         ncols = other.ncols;
         nnz   = other.nnz;
 
-        ptr = new ptr_type[nrows + 1];
-        col = new col_type[nnz];
-        val = new val_type[nnz];
+        if (other.ptr && other.col && other.val) {
+            ptr = new ptr_type[nrows + 1];
+            col = new col_type[nnz];
+            val = new val_type[nnz];
 
-        ptr[0] = other.ptr[0];
+            ptr[0] = other.ptr[0];
 #pragma omp parallel for
-        for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
-            ptr[i+1] = other.ptr[i+1];
-            for(ptr_type j = other.ptr[i]; j < other.ptr[i+1]; ++j) {
-                col[j] = other.col[j];
-                val[j] = other.val[j];
+            for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
+                ptr[i+1] = other.ptr[i+1];
+                for(ptr_type j = other.ptr[i]; j < other.ptr[i+1]; ++j) {
+                    col[j] = other.col[j];
+                    val[j] = other.val[j];
+                }
             }
         }
+
+        return *this;
     }
 
     const crs& operator=(crs &&other) {
@@ -219,7 +216,6 @@ struct crs {
 
         return *this;
     }
-#endif
 
     void free_data() {
         if (own_data) {
@@ -245,6 +241,11 @@ struct crs {
         }
     }
 
+    ptr_type scan_row_sizes() {
+        std::partial_sum(ptr, ptr + nrows + 1, ptr);
+        return ptr[nrows];
+    }
+
     void set_nonzeros() {
         set_nonzeros(ptr[nrows]);
 
@@ -259,13 +260,15 @@ struct crs {
         }
     }
 
-    void set_nonzeros(size_t n) {
+    void set_nonzeros(size_t n, bool need_values = true) {
         precondition(!col && !val, "matrix data has already been allocated!");
 
         nnz = n;
 
         col = new col_type[nnz];
-        val = new val_type[nnz];
+
+        if (need_values)
+            val = new val_type[nnz];
     }
 
     ~crs() {
@@ -311,6 +314,15 @@ struct crs {
         return row_iterator(col + p, col + e, val + p);
     }
 
+    size_t bytes() const {
+        if (own_data) {
+            return sizeof(ptr_type) * (nrows + 1)
+                 + sizeof(col_type) * nnz
+                 + sizeof(val_type) * nnz;
+        } else {
+            return 0;
+        }
+    }
 };
 
 /// Sort rows of the matrix column-wise.
@@ -334,13 +346,13 @@ std::shared_ptr< crs<V,C,P> > transpose(const crs<V, C, P> &A)
     const size_t m   = cols(A);
     const size_t nnz = nonzeros(A);
 
-    std::shared_ptr< crs<V,C,P> > T = std::make_shared< crs<V,C,P> >();
+    auto T = std::make_shared< crs<V,C,P> >();
     T->set_size(m, n, true);
 
     for(size_t j = 0; j < nnz; ++j)
         ++( T->ptr[A.col[j] + 1] );
 
-    std::partial_sum(T->ptr, T->ptr + m + 1, T->ptr);
+    T->scan_row_sizes();
     T->set_nonzeros();
 
     for(size_t i = 0; i < n; i++) {
@@ -359,12 +371,10 @@ std::shared_ptr< crs<V,C,P> > transpose(const crs<V, C, P> &A)
 }
 
 /// Matrix-matrix product.
-template <class MatrixA, class MatrixB>
-std::shared_ptr< crs< typename value_type<MatrixA>::type > >
-product(const MatrixA &A, const MatrixB &B, bool sort = false) {
-    typedef typename value_type<MatrixA>::type  V;
-
-    std::shared_ptr< crs<V> > C = std::make_shared< crs<V> >();
+template <class Val, class Col, class Ptr>
+std::shared_ptr< crs<Val, Col, Ptr> >
+product(const crs<Val,Col,Ptr> &A, const crs<Val,Col,Ptr> &B, bool sort = false) {
+    auto C = std::make_shared< crs<Val,Col,Ptr> >();
 
 #ifdef _OPENMP
     int nt = omp_get_max_threads();
@@ -381,25 +391,178 @@ product(const MatrixA &A, const MatrixB &B, bool sort = false) {
     return C;
 }
 
-/// Diagonal of a matrix
-template < typename V, typename C, typename P >
-std::vector<V> diagonal(const crs<V, C, P> &A, bool invert = false)
-{
-    typedef typename crs<V, C, P>::row_iterator row_iterator;
-    const size_t n = rows(A);
-    std::vector<V> dia(n);
+
+/// Scale matrix values.
+template<class Val, class Col, class Ptr, class T>
+void scale(crs<Val, Col, Ptr> &A, T s) {
+    ptrdiff_t n = backend::rows(A);
 
 #pragma omp parallel for
-    for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
-        for(row_iterator a = A.row_begin(i); a; ++a) {
-            if (a.col() == i) {
-                dia[i] = invert ? math::inverse(a.value()) : a.value();
-                break;
+    for(ptrdiff_t i = 0; i < n; ++i) {
+        for(ptrdiff_t j = A.ptr[i], e = A.ptr[i+1]; j < e; ++j)
+            A.val[j] *= s;
+    }
+}
+
+// Reduce matrix to a pointwise one
+template <class value_type>
+std::shared_ptr< crs<typename math::scalar_of<value_type>::type> >
+pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
+    typedef value_type V;
+    typedef typename math::scalar_of<V>::type S;
+
+    AMGCL_TIC("pointwise_matrix");
+    const ptrdiff_t n  = A.nrows;
+    const ptrdiff_t m  = A.ncols;
+    const ptrdiff_t np = n / block_size;
+    const ptrdiff_t mp = m / block_size;
+
+    precondition(np * block_size == n,
+            "Matrix size should be divisible by block_size");
+
+    auto ap = std::make_shared< crs<S> >();
+    crs<S> &Ap = *ap;
+
+    Ap.set_size(np, mp, true);
+
+#pragma omp parallel
+    {
+        std::vector<ptrdiff_t> j(block_size);
+        std::vector<ptrdiff_t> e(block_size);
+
+        // Count number of nonzeros in block matrix.
+#pragma omp for
+        for(ptrdiff_t ip = 0; ip < np; ++ip) {
+            ptrdiff_t ia = ip * block_size;
+            ptrdiff_t cur_col = 0;
+            bool done = true;
+
+            for(unsigned k = 0; k < block_size; ++k) {
+                ptrdiff_t beg = j[k] = A.ptr[ia + k];
+                ptrdiff_t end = e[k] = A.ptr[ia + k + 1];
+
+                if (beg == end) continue;
+
+                ptrdiff_t c = A.col[beg];
+
+                if (done) {
+                    done = false;
+                    cur_col = c;
+                } else {
+                    cur_col = std::min(cur_col, c);
+                }
+            }
+
+            while(!done) {
+                cur_col /= block_size;
+                ++Ap.ptr[ip + 1];
+
+                done = true;
+                ptrdiff_t col_end = (cur_col + 1) * block_size;
+                for(unsigned k = 0; k < block_size; ++k) {
+                    ptrdiff_t beg = j[k];
+                    ptrdiff_t end = e[k];
+
+                    while(beg < end) {
+                        ptrdiff_t c = A.col[beg++];
+
+                        if (c >= col_end) {
+                            if (done) {
+                                done = false;
+                                cur_col = c;
+                            } else {
+                                cur_col = std::min(cur_col, c);
+                            }
+
+                            break;
+                        }
+                    }
+
+                    j[k] = beg;
+                }
             }
         }
     }
 
-    return dia;
+    Ap.set_nonzeros(Ap.scan_row_sizes());
+
+#pragma omp parallel
+    {
+        std::vector<ptrdiff_t> j(block_size);
+        std::vector<ptrdiff_t> e(block_size);
+
+#pragma omp for
+        for(ptrdiff_t ip = 0; ip < np; ++ip) {
+            ptrdiff_t ia = ip * block_size;
+            ptrdiff_t cur_col = 0;
+            ptrdiff_t head = Ap.ptr[ip];
+            bool done = true;
+
+            for(unsigned k = 0; k < block_size; ++k) {
+                ptrdiff_t beg = j[k] = A.ptr[ia + k];
+                ptrdiff_t end = e[k] = A.ptr[ia + k + 1];
+
+                if (beg == end) continue;
+
+                ptrdiff_t c = A.col[beg];
+
+                if (done) {
+                    done = false;
+                    cur_col = c;
+                } else {
+                    cur_col = std::min(cur_col, c);
+                }
+            }
+
+            while(!done) {
+                cur_col /= block_size;
+
+                Ap.col[head] = cur_col;
+
+                done = true;
+                bool first = true;
+                S cur_val = math::zero<S>();
+
+                ptrdiff_t col_end = (cur_col + 1) * block_size;
+                for(unsigned k = 0; k < block_size; ++k) {
+                    ptrdiff_t beg = j[k];
+                    ptrdiff_t end = e[k];
+
+                    while(beg < end) {
+                        ptrdiff_t c = A.col[beg];
+                        S v = math::norm(A.val[beg]);
+                        ++beg;
+
+                        if (c >= col_end) {
+                            if (done) {
+                                done = false;
+                                cur_col = c;
+                            } else {
+                                cur_col = std::min(cur_col, c);
+                            }
+
+                            break;
+                        }
+
+
+                        if (first) {
+                            first = false;
+                            cur_val = v;
+                        } else {
+                            cur_val = std::max(cur_val, v);
+                        }
+                    }
+
+                    j[k] = beg;
+                }
+
+                Ap.val[head++] = cur_val;
+            }
+        }
+    }
+
+    AMGCL_TOC("pointwise_matrix");
+    return ap;
 }
 
 /** NUMA-aware vector container. */
@@ -433,7 +596,7 @@ class numa_vector {
 
         template <class Vector>
         numa_vector(const Vector &other,
-                typename boost::disable_if<boost::is_integral<Vector>, int>::type = 0
+                typename std::enable_if<!std::is_integral<Vector>::value, int>::type = 0
                 ) : n(other.size()), p(new T[n])
         {
 #pragma omp parallel for
@@ -445,12 +608,12 @@ class numa_vector {
         numa_vector(Iterator beg, Iterator end)
             : n(std::distance(beg, end)), p(new T[n])
         {
-            BOOST_ASSERT( (
-                    boost::is_same<
-                        std::random_access_iterator_tag,
-                        typename std::iterator_traits<Iterator>::iterator_category
-                    >::value
-                    ) );
+            static_assert(std::is_same<
+                    std::random_access_iterator_tag,
+                    typename std::iterator_traits<Iterator>::iterator_category
+                    >::value,
+                    "Iterator has to be random access");
+
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i)
                 p[i] = beg[i];
@@ -480,14 +643,174 @@ class numa_vector {
             return p;
         }
 
+        void swap(numa_vector &other) {
+            std::swap(n, other.n);
+            std::swap(p, other.p);
+        }
+
     private:
         size_t n;
         T *p;
 };
 
+/// Diagonal of a matrix
+template < typename V, typename C, typename P >
+std::shared_ptr< numa_vector<V> > diagonal(const crs<V, C, P> &A, bool invert = false)
+{
+    const size_t n = rows(A);
+    auto dia = std::make_shared< numa_vector<V> >(n, false);
+
+#pragma omp parallel for
+    for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
+        for(auto a = A.row_begin(i); a; ++a) {
+            if (a.col() == i) {
+                (*dia)[i] = invert ? math::inverse(a.value()) : a.value();
+                break;
+            }
+        }
+    }
+
+    return dia;
+}
+
+// Estimate spectral radius of the matrix.
+// Use Gershgorin disk theorem when power_iters == 0,
+// Use Power method when power_iters > 0.
+// When scale = true, scale the matrix by its inverse diagonal.
+template <bool scale, class Matrix>
+static typename math::scalar_of<typename backend::value_type<Matrix>::type>::type
+spectral_radius(const Matrix &A, int power_iters = 0) {
+    AMGCL_TIC("spectral radius");
+    typedef typename backend::value_type<Matrix>::type   value_type;
+    typedef typename math::rhs_of<value_type>::type      rhs_type;
+    typedef typename math::scalar_of<value_type>::type   scalar_type;
+
+    const ptrdiff_t n = backend::rows(A);
+    scalar_type radius;
+
+    if (power_iters <= 0) {
+        // Use Gershgorin disk theorem.
+        radius = 0;
+
+#pragma omp parallel
+        {
+            scalar_type emax = 0;
+            value_type  dia = math::identity<value_type>();
+
+#pragma omp for nowait
+            for(ptrdiff_t i = 0; i < n; ++i) {
+                scalar_type s = 0;
+
+                for(ptrdiff_t j = A.ptr[i], e = A.ptr[i+1]; j < e; ++j) {
+                    ptrdiff_t  c = A.col[j];
+                    value_type v = A.val[j];
+
+                    s += math::norm(v);
+
+                    if (scale && c == i) dia = v;
+                }
+
+                if (scale) s *= math::norm(math::inverse(dia));
+
+                emax = std::max(emax, s);
+            }
+
+#pragma omp critical
+            radius = std::max(radius, emax);
+        }
+    } else {
+        // Power method.
+        backend::numa_vector<rhs_type> b0(n, false), b1(n, false);
+
+        // Fill the initial vector with random values.
+        // Also extract the inverted matrix diagonal values.
+        scalar_type b0_norm = 0;
+#pragma omp parallel
+        {
+#ifdef _OPENMP
+            int tid = omp_get_thread_num();
+#else
+            int tid = 0;
+#endif
+            std::mt19937 rng(tid);
+            std::uniform_real_distribution<scalar_type> rnd(-1, 1);
+
+            scalar_type loc_norm = 0;
+
+#pragma omp for nowait
+            for(ptrdiff_t i = 0; i < n; ++i) {
+                rhs_type v = math::constant<rhs_type>(rnd(rng));
+
+                b0[i] = v;
+                loc_norm += math::norm(math::inner_product(v,v));
+            }
+
+#pragma omp critical
+            b0_norm += loc_norm;
+        }
+
+        // Normalize b0
+        b0_norm = 1 / sqrt(b0_norm);
+#pragma omp parallel for
+        for(ptrdiff_t i = 0; i < n; ++i) {
+            b0[i] = b0_norm * b0[i];
+        }
+
+        for(int iter = 0; iter < power_iters;) {
+            // b1 = scale ? (D^1 * A) * b0 : A * b0
+            // b1_norm = ||b1||
+            // radius = <b1,b0>
+            scalar_type b1_norm = 0;
+            radius = 0;
+#pragma omp parallel
+            {
+                scalar_type loc_norm = 0;
+                scalar_type loc_radi = 0;
+                value_type  dia = math::identity<value_type>();
+
+#pragma omp for nowait
+                for(ptrdiff_t i = 0; i < n; ++i) {
+                    rhs_type s = math::zero<rhs_type>();
+
+                    for(ptrdiff_t j = A.ptr[i], e = A.ptr[i+1]; j < e; ++j) {
+                        ptrdiff_t  c = A.col[j];
+                        value_type v = A.val[j];
+                        if (scale && c == i) dia = v;
+                        s += v * b0[c];
+                    }
+
+                    if (scale) s = math::inverse(dia) * s;
+
+                    loc_norm += math::norm(math::inner_product(s, s));
+                    loc_radi += math::norm(math::inner_product(s, b0[i]));
+
+                    b1[i] = s;
+                }
+
+#pragma omp critical
+                {
+                    b1_norm += loc_norm;
+                    radius  += loc_radi;
+                }
+            }
+
+            if (++iter < power_iters) {
+                // b0 = b1 / b1_norm
+                b1_norm = 1 / sqrt(b1_norm);
+#pragma omp parallel for
+                for(ptrdiff_t i = 0; i < n; ++i) {
+                    b0[i] = b1_norm * b1[i];
+                }
+            }
+        }
+    }
+    AMGCL_TOC("spectral radius");
+
+    return radius < 0 ? static_cast<scalar_type>(2) : radius;
+}
+
 /**
- * The builtin backend does not have any dependencies except for the
- * <a href="http://www.boost.org">Boost</a> libraries, and uses OpenMP for
+ * The builtin backend does not have any dependencies, and uses OpenMP for
  * parallelization. Matrices are stored in the CRS format, and vectors are
  * instances of ``std::vector<value_type>``. There is no usual overhead of
  * moving the constructed hierarchy to the builtin backend, since the backend
@@ -500,7 +823,7 @@ struct builtin {
 
     typedef typename math::rhs_of<value_type>::type rhs_type;
 
-    struct provides_row_iterator : boost::true_type {};
+    struct provides_row_iterator : std::true_type {};
 
     typedef crs<value_type, index_type>    matrix;
     typedef numa_vector<rhs_type>          vector;
@@ -576,22 +899,19 @@ struct builtin {
 };
 
 template <class T>
-struct is_builtin_vector : boost::false_type {};
+struct is_builtin_vector : std::false_type {};
 
 template <class V>
-struct is_builtin_vector< std::vector<V> > : boost::is_arithmetic<V> {};
+struct is_builtin_vector< std::vector<V> > : std::is_arithmetic<V> {};
 
 template <class V>
-struct is_builtin_vector< numa_vector<V> > : boost::true_type {};
-
-template <class Iterator>
-struct is_builtin_vector< boost::iterator_range<Iterator> > : boost::true_type {};
+struct is_builtin_vector< numa_vector<V> > : std::true_type {};
 
 //---------------------------------------------------------------------------
 // Specialization of backend interface
 //---------------------------------------------------------------------------
 template <typename T1, typename T2>
-struct backends_compatible< builtin<T1>, builtin<T2> > : boost::true_type {};
+struct backends_compatible< builtin<T1>, builtin<T2> > : std::true_type {};
 
 template < typename V, typename C, typename P >
 struct value_type< crs<V, C, P> > {
@@ -612,11 +932,23 @@ struct cols_impl< crs<V, C, P> > {
     }
 };
 
+template < class Vec >
+struct bytes_impl<
+    Vec,
+    typename std::enable_if< is_builtin_vector<Vec>::value >::type
+    >
+{
+    static size_t get(const Vec &x) {
+        typedef typename backend::value_type<Vec>::type V;
+        return x.size() * sizeof(V);
+    }
+};
+
 template < typename V, typename C, typename P >
 struct ptr_data_impl< crs<V, C, P> > {
     typedef const P* type;
     static type get(const crs<V, C, P> &A) {
-        return A.ptr_data();
+        return &A.ptr[0];
     }
 };
 
@@ -624,7 +956,7 @@ template < typename V, typename C, typename P >
 struct col_data_impl< crs<V, C, P> > {
     typedef const C* type;
     static type get(const crs<V, C, P> &A) {
-        return A.col_data();
+        return &A.col[0];
     }
 };
 
@@ -632,7 +964,7 @@ template < typename V, typename C, typename P >
 struct val_data_impl< crs<V, C, P> > {
     typedef const V* type;
     static type get(const crs<V, C, P> &A) {
-        return A.val_data();
+        return &A.val[0];
     }
 };
 
@@ -669,7 +1001,7 @@ struct row_nonzeros_impl< crs<V, C, P> > {
 template < class Vec >
 struct clear_impl<
     Vec,
-    typename boost::enable_if< typename is_builtin_vector<Vec>::type >::type
+    typename std::enable_if< is_builtin_vector<Vec>::value >::type
     >
 {
     static void apply(Vec &x)
@@ -687,11 +1019,9 @@ struct clear_impl<
 template < class Vec1, class Vec2 >
 struct inner_product_impl<
     Vec1, Vec2,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename is_builtin_vector<Vec1>::type,
-                typename is_builtin_vector<Vec2>::type
-                >::type
+    typename std::enable_if<
+        is_builtin_vector<Vec1>::value &&
+        is_builtin_vector<Vec2>::value
         >::type
     >
 {
@@ -703,17 +1033,24 @@ struct inner_product_impl<
     {
         const size_t n = x.size();
 #ifdef _OPENMP
+        return_type              _sum_stat[64];
+        std::vector<return_type> _sum_dyna;
+        return_type              *sum;
+
         const int nt = omp_get_max_threads();
+
+        if (nt < 64) {
+            sum = _sum_stat;
+        } else {
+            _sum_dyna.resize(nt);
+            sum = _sum_dyna.data();
+        }
 #else
         const int nt = 1;
+        return_type sum[1];
 #endif
-        
-#if BOOST_VERSION > 105800
-        boost::container::small_vector<return_type, 64> sum(nt);
-#else
-        std::vector<return_type> sum(nt);
-#endif
-        
+
+
 #pragma omp parallel
         {
 #ifdef _OPENMP
@@ -736,18 +1073,16 @@ struct inner_product_impl<
             sum[tid] = s;
         }
 
-        return std::accumulate(sum.begin(), sum.end(), math::zero<return_type>());
+        return std::accumulate(sum, sum + nt, math::zero<return_type>());
     }
 };
 
 template <class A, class Vec1, class B, class Vec2 >
 struct axpby_impl<
     A, Vec1, B, Vec2,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename is_builtin_vector<Vec1>::type,
-                typename is_builtin_vector<Vec2>::type
-                >::type
+    typename std::enable_if<
+        is_builtin_vector<Vec1>::value &&
+        is_builtin_vector<Vec2>::value
         >::type
     >
 {
@@ -771,12 +1106,10 @@ struct axpby_impl<
 template < class A, class Vec1, class B, class Vec2, class C, class Vec3 >
 struct axpbypcz_impl<
     A, Vec1, B, Vec2, C, Vec3,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename is_builtin_vector<Vec1>::type,
-                typename is_builtin_vector<Vec2>::type,
-                typename is_builtin_vector<Vec3>::type
-                >::type
+    typename std::enable_if<
+        is_builtin_vector<Vec1>::value &&
+        is_builtin_vector<Vec2>::value &&
+        is_builtin_vector<Vec3>::value
         >::type
     >
 {
@@ -800,12 +1133,10 @@ struct axpbypcz_impl<
 template < class Alpha, class Vec1, class Vec2, class Beta, class Vec3 >
 struct vmul_impl<
     Alpha, Vec1, Vec2, Beta, Vec3,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename is_builtin_vector<Vec1>::type,
-                typename is_builtin_vector<Vec2>::type,
-                typename is_builtin_vector<Vec3>::type
-                >::type
+    typename std::enable_if<
+        is_builtin_vector<Vec1>::value &&
+        is_builtin_vector<Vec2>::value &&
+        is_builtin_vector<Vec3>::value
         >::type
     >
 {
@@ -829,11 +1160,9 @@ struct vmul_impl<
 template < class Vec1, class Vec2 >
 struct copy_impl<
     Vec1, Vec2,
-    typename boost::enable_if<
-            typename boost::mpl::and_<
-                typename is_builtin_vector<Vec1>::type,
-                typename is_builtin_vector<Vec2>::type
-                >::type
+    typename std::enable_if<
+        is_builtin_vector<Vec1>::value &&
+        is_builtin_vector<Vec2>::value
         >::type
     >
 {
@@ -847,22 +1176,27 @@ struct copy_impl<
     }
 };
 
-template < class Vec >
-struct copy_to_backend_impl<
-    Vec,
-    typename boost::enable_if<
-            typename is_builtin_vector<Vec>::type
-        >::type
-    > : copy_impl< std::vector<typename value_type<Vec>::type>, Vec > {};
-
 namespace detail {
 
 template <typename V, typename C, typename P>
 struct use_builtin_matrix_ops< amgcl::backend::crs<V, C, P> >
-    : boost::true_type
+    : std::true_type
 {};
 
 } // namespace detail
+
+} // namespace backend
+} // namespace amgcl
+
+
+// Allow to use boost::iterator_range as vector in builtin backend:
+namespace boost { template <class Iterator> class iterator_range; }
+
+namespace amgcl {
+namespace backend {
+
+template <class Iterator>
+struct is_builtin_vector< boost::iterator_range<Iterator> > : std::true_type {};
 
 } // namespace backend
 } // namespace amgcl

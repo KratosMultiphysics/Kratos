@@ -11,8 +11,8 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the mechanical solver base class
 import solid_mechanics_monolithic_solver as BaseSolver
 
-def CreateSolver(custom_settings):
-    return SegregatedSolver(custom_settings)
+def CreateSolver(custom_settings, Model):
+    return SegregatedSolver(Model, custom_settings)
 
 #Base class to develop other solvers
 class SegregatedSolver(BaseSolver.MonolithicSolver):
@@ -22,10 +22,11 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
 
     See solid_mechanics_monolithic_solver.py for more information.
     """
-    def __init__(self, custom_settings):
+    def __init__(self, Model, custom_settings):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "solving_model_part": "computing_domain",
             "solvers":[],
             "processes":[]
         }
@@ -38,25 +39,32 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
         # Create solvers list
         self.solvers = []
         solvers_list = self.settings["solvers"]
-        for i in range(0,len(solvers_list)):
+        for i in range(solvers_list.size()):
             solver_module = __import__(solvers_list[i]["solver_type"].GetString())
-            self.solvers.append(solver_module.CreateSolver(solvers_list[i]["Parameters"]))
+            self.solvers.append(solver_module.CreateSolver(solvers_list[i]["Parameters"], Model))
+
+        # Model
+        self.model = Model
 
         # Echo level
         self.echo_level = 0
 
-    def GetMinimumBufferSize(self):
-        buffer_size = 2
-        for solver in self.solvers:
-            size = solver.GetMinimumBufferSize()
-            if( size > buffer_size ):
-                buffer_size = size
-        return buffer_size;
+        # Solver processes
+        self.processes = []
 
-    def SetComputingModelPart(self, computing_model_part):
-        self.model_part = computing_model_part
+
+    def ExecuteInitialize(self):
         for solver in self.solvers:
-            solver.SetComputingModelPart(compution_model_part)
+            solver._set_model_info()
+
+        super(SegregatedSolver, self).ExecuteInitialize()
+
+    def ExecuteBeforeSolutionLoop(self):
+        for solver in self.solvers:
+            solver.ExecuteBeforeSolutionLoop()
+
+        self.SetEchoLevel(self.echo_level)
+
 
     def GetVariables(self):
         nodal_variables = []
@@ -69,30 +77,33 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
             solver.SetEchoLevel(level)
         self.echo_level = level
 
+    def Clear(self):
+        for solver in self.solvers:
+            solver.Clear()
+
     #### Solver internal methods ####
 
     def _check_initialized(self):
         if( not self._is_not_restarted() ):
             for solver in self.solvers:
-                solver._get_solution_scheme().Initialize(self.main_model_part)
                 if hasattr(mechanical_solver, 'SetInitializePerformedFlag'):
                     solver._get_mechanical_solver().SetInitializePerformedFlag(True)
                 else:
                     solver._get_mechanical_solver().Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
 
             if hasattr(mechanical_solver, 'SetInitializePerformedFlag'):
-                self._get_mechanical_solver.SetInitializePerformedFlag(True)
+                self._get_mechanical_solver().SetInitializePerformedFlag(True)
             else:
-                self._get_mechanical_solver.Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
-    #
+                self._get_mechanical_solver().Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
+
     def _create_mechanical_solver(self):
         strategies = []
         for solver in self.solvers:
             strategies.append(solver._get_mechanical_solver())
-
         options = KratosMultiphysics.Flags()
-        return KratosSolid.SegregatedStrategy(self.model_part, options, strategies)
-
+        mechanical_solver =  KratosSolid.SegregatedStrategy(self.model_part, options, strategies)
+        mechanical_solver.Set(KratosSolid.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
+        return mechanical_solver
     #
     def _get_dofs(self):
         dof_variables = []
@@ -104,6 +115,15 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
 
         return dof_variables, dof_reactions
 
+
+    def _add_dofs(self):
+        dof_variables, dof_reactions = self._get_dofs()
+        AddDofsProcess = KratosSolid.AddDofsProcess(self.main_model_part, dof_variables, dof_reactions)
+        AddDofsProcess.Execute()
+        if( self.echo_level > 1 ):
+            print(dof_variables + dof_reactions)
+            print("::[-------Solver------]:: DOF's ADDED")
+
     #
     def _get_time_integration_methods(self):
         scalar_integration_methods = {}
@@ -114,3 +134,12 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
             component_integration_methods.update(solver_component_integration_methods)
 
         return scalar_integration_methods, component_integration_methods
+
+    #
+    def _get_minimum_buffer_size(self):
+        buffer_size = 2
+        for solver in self.solvers:
+            size = solver._get_minimum_buffer_size()
+            if( size > buffer_size ):
+                buffer_size = size
+        return buffer_size;

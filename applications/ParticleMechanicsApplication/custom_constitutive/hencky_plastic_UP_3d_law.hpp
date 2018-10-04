@@ -10,9 +10,9 @@
 //  Main authors:    Ilaria Iaconeta
 //
 
+
 #if !defined (KRATOS_HENCKY_PLASTIC_UP_3D_LAW_H_INCLUDED)
 #define KRATOS_HENCKY_PLASTIC_UP_3D_LAW_H_INCLUDED
-
 
 // System includes
 
@@ -121,57 +121,6 @@ public:
     };
 
     void GetLawFeatures(Features& rFeatures) override;
-    /*  bool Has( const Variable<double>& rThisVariable );
-        bool Has( const Variable<Vector>& rThisVariable );
-        bool Has( const Variable<Matrix>& rThisVariable );
-
-        double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-        Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-        Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
-
-
-        void SetValue( const Variable<double>& rVariable,
-                       const double& Value,
-                       const ProcessInfo& rCurrentProcessInfo );
-        void SetValue( const Variable<Vector>& rThisVariable,
-                       const Vector& rValue,
-                       const ProcessInfo& rCurrentProcessInfo );
-        void SetValue( const Variable<Matrix>& rThisVariable,
-                       const Matrix& rValue,
-                       const ProcessInfo& rCurrentProcessInfo );
-    */
-
-    /**
-     * Material parameters are inizialized
-     */
-    //void InitializeMaterial( const Properties& rProps,
-    //const GeometryType& rGeom,
-    //const Vector& rShapeFunctionsValues );
-
-
-
-    /**
-     * Computes the material response:
-     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
-     */
-    //void CalculateMaterialResponseKirchhoff (Parameters & rValues);
-
-
-
-    /**
-     * This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param props
-     * @param geom
-     * @param CurrentProcessInfo
-     * @return
-     */
-    //int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
-
-
 
     /**
      * Input and output
@@ -197,14 +146,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-//    Matrix mElasticLeftCauchyGreen;
-
-//    FlowRulePointer mpFlowRule;
-
-//    YieldCriterionPointer mpYieldCriterion;
-
-//    HardeningLawPointer   mpHardeningLaw;
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -213,22 +154,10 @@ protected:
     ///@{
 
 
-    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
-        in a pullback fashion
-    */
-
-    //virtual Matrix SetConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix, const Matrix& rElastoPlasticTangentMatrix);
-
-    //virtual Vector SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix );
-
+    
     void CorrectDomainPressure( Matrix& rStressMatrix, const MaterialResponseVariables& rElasticVariables) override;
 
-    //virtual void CalculateElastoPlasticTangentMatrix( const FlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticMatrix, const MaterialResponseVariables& rElasticVariables);
-
-
-
     void GetDomainPressure( double& rPressure, const MaterialResponseVariables& rElasticVariables);
-
 
     void CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables) override;
 
@@ -252,66 +181,6 @@ protected:
     void CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables,Parameters & rValues,
                                        const MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
                                        Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix) override;
-    //double& TensorComponent(double & rCabcd,
-    //const Matrix& rMA, const Matrix& rMB,
-    //const unsigned int& a, const unsigned int& b,
-    //const unsigned int& c, const unsigned int& d);
-
-    //virtual void MyTensorProduct(const Matrix& rMA, const Matrix& rMB,
-    //Matrix& rEigenbasesProductMatrix);
-
-    //double& TensorComponent2(double & rCabcd,
-    //const Matrix& rMA, const Matrix& rMB,
-    //const unsigned int& a, const unsigned int& b,
-    //const unsigned int& c, const unsigned int& d);
-
-    //virtual void MyTensorProduct2(const Matrix& rMA, const Matrix& rMB,
-    //Matrix& rEigenbasesProductMatrix);
-
-    //double& TensorComponent3(double & rCabcd,
-    //const Matrix& rMA,
-    //const unsigned int& a, const unsigned int& b,
-    //const unsigned int& c, const unsigned int& d);
-
-    //virtual void MyTensorProduct3(const Matrix& rMA,
-    //Matrix& rEigenbasesProductMatrix);
-
-    //double& TensorComponent4(double & rCabcd,
-    //const Matrix& rMA,
-    //const unsigned int& a, const unsigned int& b,
-    //const unsigned int& c, const unsigned int& d);
-
-    //virtual void MyTensorProduct4(const Matrix& rMA,
-    //Matrix& rEigenbasesProductMatrix);
-
-
-    //virtual Matrix CalculateEigenbases(const FlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rEigenbasesMatrix);
-
-    //virtual void CalculateElastoPlasticTangentMatrix( const FlowRule::RadialReturnVariables & rReturnMappingVariables,
-    //const Matrix& rTrialElasticLeftCauchyGreen, const Matrix& rStressMatrix,
-    //Matrix& rElastoPlasticTangentMatrix, Matrix& rConsistentMatrix );
-
-    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
-        in the actual configuration
-    */
-
-    //Vector& GetStressVectorFromMatrix(const Matrix& rStressMatrix,
-    //Vector& rMainStress,
-    //const Matrix& rEigenVectors);
-
-    //virtual void CalculateHenckyMainStrain(const Matrix& rCauchyGreeMatrix,
-    //FlowRule::RadialReturnVariables& rReturnMappingVariables,
-    //Vector& rMainStrain);
-
-
-    /**
-     * This function is designed to be called when before the material response
-     * to check if all needed parameters for the constitutive are initialized
-     * @param Parameters
-     * @return
-     */
-    //virtual bool CheckParameters(Parameters& rValues);
-
 
 private:
 

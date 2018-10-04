@@ -28,9 +28,10 @@ SkinDetectionProcess<TDim>::SkinDetectionProcess(
 {
     Parameters default_parameters = Parameters(R"(
     {
-        "name_auxiliar_model_part" : "SkinModelPart",
-        "name_auxiliar_condition"  : "Condition",
-        "echo_level"               : 0
+        "name_auxiliar_model_part"              : "SkinModelPart",
+        "name_auxiliar_condition"               : "Condition",
+        "list_model_parts_to_assign_conditions" : [],
+        "echo_level"                            : 0
     })" );
 
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -134,7 +135,22 @@ void SkinDetectionProcess<TDim>::Execute()
     }
 
     // We create the auxiliar ModelPart
-    ModelPart::Pointer p_auxiliar_model_part = mrModelPart.CreateSubModelPart(mThisParameters["name_auxiliar_model_part"].GetString());
+    const std::string& name_auxiliar_model_part = mThisParameters["name_auxiliar_model_part"].GetString();
+    if (!(mrModelPart.HasSubModelPart(name_auxiliar_model_part))) {
+        mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
+    } else {
+        auto& conditions_array = mrModelPart.GetSubModelPart(name_auxiliar_model_part).Conditions();
+
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
+            (conditions_array.begin() + i)->Set(TO_ERASE, true);
+
+        mrModelPart.GetSubModelPart(name_auxiliar_model_part).RemoveConditionsFromAllLevels(TO_ERASE);
+
+        mrModelPart.RemoveSubModelPart(name_auxiliar_model_part);
+        mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
+    } 
+    ModelPart& r_auxiliar_model_part = mrModelPart.GetSubModelPart(name_auxiliar_model_part);
 
     // The auxiliar name of the condition
     const std::string& name_condition = mThisParameters["name_auxiliar_condition"].GetString();
@@ -143,7 +159,7 @@ void SkinDetectionProcess<TDim>::Execute()
         pre_name = "Surface";
 
     // The number of conditions
-    IndexType condition_id = mrModelPart.Conditions().size();
+    IndexType condition_id = mrModelPart.GetRootModelPart().Conditions().size();
 
     // The indexes of the nodes of the skin
     std::unordered_set<IndexType> nodes_in_the_skin;
@@ -160,24 +176,93 @@ void SkinDetectionProcess<TDim>::Execute()
 
         const std::string complete_name = pre_name + name_condition + std::to_string(TDim) + "D" + std::to_string(nodes_face.size()) + "N"; // If the condition doesn't follow this structure...sorry, we then need to modify this...
         auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop_0);
-        p_auxiliar_model_part->AddCondition(p_cond);
+        r_auxiliar_model_part.AddCondition(p_cond);
         p_cond->Set(INTERFACE, true);
+        p_cond->Initialize();
     }
 
     // Adding to the auxiliar model part
     VectorIndexType indexes_skin;
     indexes_skin.insert(indexes_skin.end(), nodes_in_the_skin.begin(), nodes_in_the_skin.end());
-    p_auxiliar_model_part->AddNodes(indexes_skin);
+    r_auxiliar_model_part.AddNodes(indexes_skin);
 
-    KRATOS_INFO_IF("SkinDetectionProcess", echo_level > 0) << inverse_face_map.size() << "have been created" << std::endl;
+    KRATOS_INFO_IF("SkinDetectionProcess", echo_level > 0) << inverse_face_map.size() << " have been created" << std::endl;
 
     // Now we set the falg on the nodes. The list of nodes of the auxiliar model part
-    auto& nodes_array = p_auxiliar_model_part->Nodes();
+    auto& nodes_array = r_auxiliar_model_part.Nodes();
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
         it_node->Set(INTERFACE, true);
+    }
+
+    // We detect the conditions in the boundary model parts
+    const SizeType n_model_parts = mThisParameters["list_model_parts_to_assign_conditions"].size();
+    if (n_model_parts > 0) {
+
+        // We build a database of indexes
+        std::unordered_map<IndexType, std::unordered_set<IndexType>> conditions_nodes_ids_map;
+
+        for (auto& cond : r_auxiliar_model_part.Conditions()) {
+            auto& geom = cond.GetGeometry();
+
+            for (auto& node : geom) {
+                auto set = conditions_nodes_ids_map.find(node.Id());
+                if(set != conditions_nodes_ids_map.end()) {
+                    conditions_nodes_ids_map[node.Id()].insert(cond.Id());
+                } else {
+                    std::unordered_set<IndexType> cond_index_ids ( {cond.Id()} );;
+                    conditions_nodes_ids_map.insert({node.Id(), cond_index_ids});
+                }
+            }
+        }
+
+        ModelPart& root_model_part = mrModelPart.GetRootModelPart();
+        for (IndexType i_mp = 0; i_mp < n_model_parts; ++i_mp){
+            const std::string& model_part_name = mThisParameters["list_model_parts_to_assign_conditions"].GetArrayItem(i_mp).GetString();
+            ModelPart& sub_model_part = root_model_part.GetSubModelPart(model_part_name);
+
+            std::vector<IndexType> conditions_ids;
+
+            #pragma omp parallel
+            {
+                // Creating a buffer for parallel vector fill
+                std::vector<IndexType> conditions_ids_buffer;
+
+                // We iterate over the nodes of this model part
+                auto& sub_nodes_array = sub_model_part.Nodes();
+                #pragma omp for
+                for(int i = 0; i < static_cast<int>(sub_nodes_array.size()); ++i) {
+                    auto it_node = sub_nodes_array.begin() + i;
+
+                    auto set = conditions_nodes_ids_map.find(it_node->Id());
+                    if(set != conditions_nodes_ids_map.end()) {
+                        for (auto& cond_id : conditions_nodes_ids_map[it_node->Id()]) {
+                            auto& r_condition = mrModelPart.GetCondition(cond_id);
+                            auto& geom = r_condition.GetGeometry();
+                            bool has_nodes = true;
+                            for (auto& node : geom) {
+                                if (!sub_model_part.GetMesh().HasNode(node.Id())) {
+                                    has_nodes = false;
+                                    break;
+                                }
+                            }
+                            // We append to the vector
+                            if (has_nodes) conditions_ids_buffer.push_back(r_condition.Id());
+                        }
+                    }
+                }
+
+                // Combine buffers together
+                #pragma omp critical
+                {
+                    std::move(conditions_ids_buffer.begin(),conditions_ids_buffer.end(),back_inserter(conditions_ids));
+                }
+            }
+
+            sub_model_part.AddConditions(conditions_ids);
+        }
     }
 
     KRATOS_CATCH("");

@@ -90,6 +90,8 @@ namespace Kratos
 
 			virtual void WriteMessage(LoggerMessage const& TheMessage);
 
+			virtual void Flush();
+
 			void SetMaxLevel(std::size_t TheLevel) {
 				mMaxLevel = TheLevel;
 			}

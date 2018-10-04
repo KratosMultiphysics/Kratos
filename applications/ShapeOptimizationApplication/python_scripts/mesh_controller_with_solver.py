@@ -56,13 +56,19 @@ class MeshControllerWithSolver(MeshController) :
         self.MeshSolverSettings["problem_data"].AddEmptyValue("domain_size")
         self.MeshSolverSettings["problem_data"]["domain_size"].SetInt(OptimizationModelPart.ProcessInfo[DOMAIN_SIZE])
 
+        self.MeshSolverSettings["problem_data"].AddEmptyValue("model_part_name")
+        self.MeshSolverSettings["problem_data"]["model_part_name"].SetString(OptimizationModelPart.Name)
+
         self.OptimizationModelPart = OptimizationModelPart
 
-        self.mesh_solver = MeshMovingAnalysis(self.MeshSolverSettings, OptimizationModelPart)
+        model = Model()
+        model.AddModelPart(self.OptimizationModelPart)
+
+        self._mesh_moving_analysis = MeshMovingAnalysis(model, self.MeshSolverSettings)
 
     # --------------------------------------------------------------------------
     def Initialize(self):
-        self.mesh_solver.Initialize()
+        self._mesh_moving_analysis.Initialize()
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable(self, InputVariable):
@@ -72,7 +78,7 @@ class MeshControllerWithSolver(MeshController) :
         VariableUtils().SetToZero_VectorVar(MESH_DISPLACEMENT,self.OptimizationModelPart.Nodes)
 
         sub_model_part_name = "surface_nodes"
-        GeometryUtilities(self.OptimizationModelPart).ExtractSurfaceNodes(sub_model_part_name)
+        GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes(sub_model_part_name)
         surface_nodes = self.OptimizationModelPart.GetSubModelPart(sub_model_part_name).Nodes
 
         VariableUtils().ApplyFixity(MESH_DISPLACEMENT_X, True, surface_nodes)
@@ -82,9 +88,9 @@ class MeshControllerWithSolver(MeshController) :
 
         time_before_mesh_update = self.OptimizationModelPart.ProcessInfo.GetValue(TIME)
 
-        self.mesh_solver.InitializeTimeStep()
-        self.mesh_solver.SolveTimeStep()
-        self.mesh_solver.FinalizeTimeStep()
+        if not self._mesh_moving_analysis.time < self._mesh_moving_analysis.end_time:
+            self._mesh_moving_analysis.end_time += 1
+        self._mesh_moving_analysis.RunSolutionLoop()
 
         self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_mesh_update)
 
@@ -94,6 +100,6 @@ class MeshControllerWithSolver(MeshController) :
 
     # --------------------------------------------------------------------------
     def Finalize(self):
-        self.mesh_solver.Finalize()
+        self._mesh_moving_analysis.Finalize()
 
 # ==============================================================================

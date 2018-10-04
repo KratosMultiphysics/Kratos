@@ -68,15 +68,15 @@ class ShellT3_CoordinateTransformation
   virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
   {
   }
-		
+
   virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
   {
   }
-		
+
   virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
   {
   }
-		
+
   virtual void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
   {
   }
@@ -94,7 +94,7 @@ class ShellT3_CoordinateTransformation
     return CreateReferenceCoordinateSystem();
   }
 
-  virtual Vector CalculateLocalDisplacements(const ShellT3_LocalCoordinateSystem & LCS, 
+  virtual Vector CalculateLocalDisplacements(const ShellT3_LocalCoordinateSystem & LCS,
                                              const VectorType & globalDisplacements)
   {
     MatrixType R(18, 18);

@@ -6,6 +6,7 @@ Begin Properties 1
     DENSITY  7850
     YOUNG_MODULUS  2.069e+11
     POISSON_RATIO  0.29
+    CONSTITUTIVE_LAW TrussConstitutiveLaw
 
 End Properties
 

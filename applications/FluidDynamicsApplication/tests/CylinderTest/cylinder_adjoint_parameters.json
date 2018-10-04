@@ -9,7 +9,7 @@
         "parallel_type"   : "OpenMP"
     },
     "solver_settings"                  : {
-        "solver_type"                  : "adjoint_vmsmonolithic_solver",
+        "solver_type"                  : "Monolithic",
         "scheme_settings" : {
             "scheme_type"              : "bossak",
             "alpha_bossak"             :-0.3
@@ -90,9 +90,9 @@
             "direction"       : [0.0,-1.0,0.0]
         }
     }],
-    "list_other_processes" :[{
+    "auxiliar_process_list" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_primal_input_process",
+        "python_module" : "single_mesh_temporal_input_process",
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
@@ -100,9 +100,10 @@
             "file_settings" : {
                 "file_access_mode" : "read_only"
             },
-            "nodal_results_settings" : {
+            "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
-            }
+            },
+            "file_name" : "primal_output"
         }
     },{
         "kratos_module"   : "KratosMultiphysics",
@@ -112,7 +113,9 @@
         "Parameters" : {
             "position"         : [4.0, 4.709493, 0.0],
             "model_part_name"  : "Parts_fluid",
-            "output_file_name" : "cylinder_adjoint_test_probe1.dat",
+            "output_file_settings": {
+                "file_name"  : "cylinder_adjoint_test_probe1.dat"
+            },
             "output_variables" : ["ADJOINT_VELOCITY_X", "ADJOINT_VELOCITY_Y"]
         }
      },{
@@ -123,7 +126,9 @@
         "Parameters" : {
             "position"         : [3.150768, 4.043068, 0.0],
             "model_part_name"  : "Parts_fluid",
-            "output_file_name" : "cylinder_adjoint_test_probe2.dat",
+            "output_file_settings": {
+                "file_name"  : "cylinder_adjoint_test_probe2.dat"
+            },
             "output_variables" : ["ADJOINT_PRESSURE"]
         }
      },{
@@ -134,7 +139,9 @@
         "Parameters" : {
             "position"         : [4.3256862406, 3.6206209380, 0.0],
             "model_part_name"  : "Parts_fluid",
-            "output_file_name" : "cylinder_adjoint_test_probe3.dat",
+            "output_file_settings": {
+                "file_name"  : "cylinder_adjoint_test_probe3.dat"
+            },
             "output_variables" : ["SHAPE_SENSITIVITY_X", "SHAPE_SENSITIVITY_Y"]
         }
     },{

@@ -319,7 +319,7 @@ protected:
 
     ///@}
 
-private:
+protected:
     ///@name Static Member Variables
     ///@{
 

@@ -649,7 +649,7 @@ protected:
 
         // iteration variables
         unsigned int iter = 0;
-        array_1d<double,3> dMomProj(3,0.0);
+        array_1d<double,3> dMomProj = ZeroVector(3);
         double dMassProj = 0.0;
 
         double RelMomErr = 1000.0 * RelTol;
@@ -810,7 +810,7 @@ protected:
         unsigned int nodes_in_cond = rGeometry.PointsNumber();
 
         double nodal_area = 0.0;
-        array_1d<double,3> momentum_projection(3,0.0);
+        array_1d<double,3> momentum_projection = ZeroVector(3);
         double mass_projection = 0.0;
         for ( unsigned int i = 0; i < nodes_in_cond; i++ )
         {

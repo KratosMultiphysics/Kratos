@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_AXISYM_SMALL_DISPLACEMENT_H_INCLUDED )
@@ -38,10 +38,10 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Axisymmetric Kinemaic Linear element 
+/// Axisymmetric Kinematic Linear element
 
 /**
- * Implements a Axisymmetric Kinemaic Linear definition for structural analysis.
+ * Implements a Axisymmetric Kinematic Linear definition for structural analysis.
  */
 
 class AxisymSmallDisplacement
@@ -52,10 +52,18 @@ public:
     ///@{
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
+
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
 
     /// Counted pointer of AxisymSmallDisplacement
     KRATOS_CLASS_POINTER_DEFINITION(AxisymSmallDisplacement);
@@ -78,11 +86,30 @@ public:
     ///@name Operations
     ///@{
     /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
      */
-    //TODO: ADD THE OTHER CREATE FUNCTION
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
     //std::string Info() const;
 
@@ -120,11 +147,11 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     AxisymSmallDisplacement() : SmallDisplacement()
     {
     }
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -150,7 +177,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -164,16 +191,16 @@ private:
         Matrix& rB,
         const Matrix& DN_DX,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
+        const IndexType PointNumber
         ) override;
-    
+
     /**
      * Calculation of the equivalent deformation gradient
      * @param StrainVector: The strain tensor (Voigt notation)
      * @return The deformation gradient F
      */
     Matrix ComputeEquivalentF(const Vector& rStrainVector) override;
-    
+
     /**
      * This functions computes the integration weight to consider
      * @param IntegrationPoints: The array containing the integration points
@@ -182,7 +209,7 @@ private:
      */
     double GetIntegrationWeight(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const double detJ
         ) override;
 
@@ -194,7 +221,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-    
+
     friend class Serializer;
 
     // A private default constructor necessary for serialization
@@ -225,4 +252,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_SMALL_DISPLACEMENT_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_SMALL_DISPLACEMENT_H_INCLUDED  defined

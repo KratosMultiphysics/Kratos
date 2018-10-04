@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -21,10 +21,10 @@ namespace Kratos
 {
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
-    
-    AxisymLineLoadCondition2D::AxisymLineLoadCondition2D( 
+
+    AxisymLineLoadCondition2D::AxisymLineLoadCondition2D(
         IndexType NewId,
-        GeometryType::Pointer pGeometry 
+        GeometryType::Pointer pGeometry
         )
             : LineLoadCondition2D( NewId, pGeometry )
     {
@@ -34,10 +34,10 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    AxisymLineLoadCondition2D::AxisymLineLoadCondition2D( 
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry, 
-        PropertiesType::Pointer pProperties 
+    AxisymLineLoadCondition2D::AxisymLineLoadCondition2D(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties
         )
             : LineLoadCondition2D( NewId, pGeometry, pProperties )
     {
@@ -45,7 +45,7 @@ namespace Kratos
 
     //********************************* CREATE *******************************************
     //************************************************************************************
-    
+
     Condition::Pointer AxisymLineLoadCondition2D::Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
@@ -57,11 +57,11 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    
-    Condition::Pointer AxisymLineLoadCondition2D::Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes,  
-        PropertiesType::Pointer pProperties 
+
+    Condition::Pointer AxisymLineLoadCondition2D::Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const
     {
         return Kratos::make_shared<AxisymLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
@@ -69,7 +69,7 @@ namespace Kratos
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
-    
+
     AxisymLineLoadCondition2D::~AxisymLineLoadCondition2D()
     {
     }
@@ -84,16 +84,16 @@ namespace Kratos
         const double detJ
         )
     {
-        // We calculate the axisymmetric coefficient 
+        // We calculate the axisymmetric coefficient
         Vector N;
         N = GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
         const double Radius = StructuralMechanicsMathUtilities::CalculateRadius(N, GetGeometry());
         const double Thickness = (GetProperties().Has( THICKNESS ) == true) ? this->GetProperties()[THICKNESS] : 1.0;
         const double AxiSymCoefficient = 2.0 * Globals::Pi * Radius/Thickness;
-        
+
         return AxiSymCoefficient * IntegrationPoints[PointNumber].Weight() * detJ;
     }
-    
+
 
     //************************************************************************************
     //************************************************************************************
@@ -103,10 +103,10 @@ namespace Kratos
         rSerializer.save( "Name", "AxisymLineLoadCondition2D" );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition2D );
     }
-    
+
     //************************************************************************************
     //************************************************************************************
-    
+
     void AxisymLineLoadCondition2D::load( Serializer& rSerializer )
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoadCondition2D );

@@ -36,9 +36,9 @@ namespace Kratos {
 
         return cohesive_force;
     }
-
-    double DEM_D_DMT_Cohesive_Law::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, DEMWall* const wall, const double indentation) {
-
+    
+    double DEM_D_DMT_Cohesive_Law::CalculateCohesiveNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation) {
+        
         const double cohesion         = element->GetParticleCohesion(); // For the time being, this represents the Surface Energy
         const double equiv_cohesion   = 0.5 * (cohesion + wall->GetProperties()[WALL_COHESION]);
         const double equiv_radius     = element->GetRadius(); // Equivalent Radius for RIGID WALLS

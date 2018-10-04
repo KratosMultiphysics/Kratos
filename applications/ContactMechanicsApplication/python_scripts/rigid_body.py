@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.PfemApplication as KratosPfem
+import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
 # Check that KratosMultiphysics was imported in the main script
@@ -18,7 +18,7 @@ class RigidBody(object):
     ##and the pointer to the main_model part.
     ##
     ##real construction shall be delayed to the function "Initialize" which
-    ##will be called once the modeler is already filled
+    ##will be called once the mesher is already filled
     def __init__(self, main_model_part, custom_settings):
 
         self.main_model_part = main_model_part
@@ -60,9 +60,8 @@ class RigidBody(object):
         for node in self.rigid_body_model_part.Nodes:
             node.Set(KratosMultiphysics.RIGID,True)
 
-        for node in self.rigid_body_model_part.Conditions:
-            node.Set(KratosMultiphysics.ACTIVE,False)
-
+        #for node in self.rigid_body_model_part.Elements:
+        #    node.Set(KratosMultiphysics.ACTIVE,False)
 
         #check for the bounding box of a compound wall
         box_settings = KratosMultiphysics.Parameters("""
@@ -90,14 +89,13 @@ class RigidBody(object):
             box_parameters["lower_point"][counter].SetDouble(i)
             counter+=1
 
-        self.bounding_box = KratosPfem.SpatialBoundingBox(box_settings)
+        self.bounding_box = KratosDelaunay.SpatialBoundingBox(box_settings)
 
         # construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
         creation_utility = KratosContact.RigidBodyCreationUtility()
         creation_utility.CreateRigidBodyElement(self.main_model_part, self.bounding_box, self.settings["rigid_body_settings"])
 
-
-        print("::[Rigid_Body]:: -BUILT-")
+        print(self._class_prefix()+" Ready")
 
     ####
 
@@ -149,3 +147,9 @@ class RigidBody(object):
 
     def Initialize(self):
         pass
+
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[-Rigid Body Create-]::"
+        return header

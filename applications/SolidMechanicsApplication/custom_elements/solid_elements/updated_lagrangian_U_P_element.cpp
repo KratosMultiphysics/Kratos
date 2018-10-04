@@ -75,7 +75,7 @@ UpdatedLagrangianUPElement&  UpdatedLagrangianUPElement::operator=(UpdatedLagran
 
 Element::Pointer UpdatedLagrangianUPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new UpdatedLagrangianUPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+  return Kratos::make_shared< UpdatedLagrangianUPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -94,11 +94,11 @@ Element::Pointer UpdatedLagrangianUPElement::Clone( IndexType NewId, NodesArrayT
     if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
       {
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
-	
+
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
 	  KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
       }
-    
+
 
     for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
       {
@@ -120,8 +120,8 @@ Element::Pointer UpdatedLagrangianUPElement::Clone( IndexType NewId, NodesArrayT
 
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
-    
-    return Element::Pointer( new UpdatedLagrangianUPElement(NewElement) );
+
+    return Kratos::make_shared< UpdatedLagrangianUPElement >(NewElement);
 }
 
 
@@ -148,7 +148,7 @@ void UpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<dou
 
     const unsigned int& integration_points_number = mConstitutiveLawVector.size();
 
-    
+
     for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
       {
 	mDeterminantF0[PointNumber] = rValues[PointNumber];
@@ -184,7 +184,7 @@ void UpdatedLagrangianUPElement::GetValueOnIntegrationPoints( const Variable<dou
 
     if ( rValues.size() != integration_points_number )
       rValues.resize( integration_points_number );
-    
+
     for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
       {
 	rValues[PointNumber] = mDeterminantF0[PointNumber];
@@ -210,7 +210,7 @@ void UpdatedLagrangianUPElement::Initialize()
     LargeDisplacementElement::Initialize();
 
     SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     //Resize historic deformation gradient
     if ( mDeformationGradientF0.size() != integration_points_number )
@@ -231,9 +231,9 @@ void UpdatedLagrangianUPElement::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangianUPElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    LargeDisplacementUPElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+    LargeDisplacementUPElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
     rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
@@ -249,10 +249,10 @@ void UpdatedLagrangianUPElement::InitializeElementVariables (ElementVariables & 
 ////************************************************************************************
 ////************************************************************************************
 
-void UpdatedLagrangianUPElement::FinalizeStepVariables( ElementVariables & rVariables, const double& rPointNumber )
-{ 
+void UpdatedLagrangianUPElement::FinalizeStepVariables( ElementDataType & rVariables, const double& rPointNumber )
+{
     //update internal (historical) variables
-    mDeterminantF0[rPointNumber]         = rVariables.detF * rVariables.detF0;
+    mDeterminantF0[rPointNumber] = rVariables.detF * rVariables.detF0;
     noalias(mDeformationGradientF0[rPointNumber]) = prod(rVariables.F, rVariables.F0);
 }
 
@@ -261,7 +261,7 @@ void UpdatedLagrangianUPElement::FinalizeStepVariables( ElementVariables & rVari
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+void UpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
 {
 
     //contributions to stiffness matrix calculated on the reference config
@@ -280,7 +280,7 @@ void UpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLoca
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void UpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
     //contribution to external forces
     rVariables.detF0   *= rVariables.detF;
@@ -300,7 +300,7 @@ void UpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLoca
 //************************************************************************************
 
 
-void UpdatedLagrangianUPElement::CalculateKinematics(ElementVariables& rVariables,
+void UpdatedLagrangianUPElement::CalculateKinematics(ElementDataType& rVariables,
         const double& rPointNumber)
 
 {
@@ -347,8 +347,8 @@ void UpdatedLagrangianUPElement::CalculateKinematics(ElementVariables& rVariable
 
 
     //Compute the deformation matrix B
-    CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
-
+    const GeometryType& rGeometry = GetGeometry();
+    ElementUtilities::CalculateLinearDeformationMatrix(rVariables.B,rGeometry,rVariables.DN_DX);
 
     KRATOS_CATCH( "" )
 }
@@ -363,15 +363,15 @@ void UpdatedLagrangianUPElement::CalculateDeformationGradient(Matrix& rF,
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     rF = identity_matrix<double> ( dimension );
 
     if( dimension == 2 )
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
             rF ( 0 , 0 ) += rDeltaPosition(i,0)*rDN_DX ( i , 0 );
             rF ( 0 , 1 ) += rDeltaPosition(i,0)*rDN_DX ( i , 1 );
@@ -383,7 +383,7 @@ void UpdatedLagrangianUPElement::CalculateDeformationGradient(Matrix& rF,
     else if( dimension == 3)
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 
             rF ( 0 , 0 ) += rDeltaPosition(i,0)*rDN_DX ( i , 0 );
@@ -409,89 +409,25 @@ void UpdatedLagrangianUPElement::CalculateDeformationGradient(Matrix& rF,
 }
 
 
-
-
 //************************************************************************************
 //************************************************************************************
 
-
-void UpdatedLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
-                                                            const Matrix& rF,
-                                                            const Matrix& rDN_DX)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    rB.clear(); //set all components to zero
-
-    if( dimension == 2 )
-    {
-
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            unsigned int index = 2 * i;
-
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 0 ) = rDN_DX( i, 1 );
-            rB( 2, index + 1 ) = rDN_DX( i, 0 );
-
-        }
-
-    }
-    else if( dimension == 3 )
-    {
-
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            unsigned int index = 3 * i;
-
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 2 ) = rDN_DX( i, 2 );
-
-            rB( 3, index + 0 ) = rDN_DX( i, 1 );
-            rB( 3, index + 1 ) = rDN_DX( i, 0 );
-
-            rB( 4, index + 1 ) = rDN_DX( i, 2 );
-            rB( 4, index + 2 ) = rDN_DX( i, 1 );
-
-            rB( 5, index + 0 ) = rDN_DX( i, 2 );
-            rB( 5, index + 2 ) = rDN_DX( i, 0 );
-
-        }
-    }
-    else
-    {
-
-        KRATOS_THROW_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
-
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void UpdatedLagrangianUPElement::GetHistoricalVariables( ElementVariables& rVariables, const double& rPointNumber )
+void UpdatedLagrangianUPElement::GetHistoricalVariables( ElementDataType& rVariables, const double& rPointNumber )
 {
     LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
 
     //Deformation Gradient F0
     rVariables.detF0 = mDeterminantF0[rPointNumber];
-    rVariables.F0    = mDeformationGradientF0[rPointNumber];
+    noalias(rVariables.F0) = mDeformationGradientF0[rPointNumber];
 }
 
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
 
-double& UpdatedLagrangianUPElement::CalculateVolumeChange( double& rVolumeChange, ElementVariables& rVariables )
+double& UpdatedLagrangianUPElement::CalculateVolumeChange( double& rVolumeChange, ElementDataType& rVariables )
 {
     KRATOS_TRY
-      
+
     rVolumeChange = 1.0 / (rVariables.detF * rVariables.detF0);
 
     return rVolumeChange;

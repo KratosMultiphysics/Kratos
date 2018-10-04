@@ -2,31 +2,31 @@ import KratosMultiphysics
 
 class PythonProcess(object):
     def __init__(self):
-        pass
+        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
         
     def ExecuteInitialize(self):
-        pass
+        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
     
     def ExecuteBeforeSolutionLoop(self):
-        pass
+        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
     
     def ExecuteInitializeSolutionStep(self):
-        pass
+        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
     
     def ExecuteFinalizeSolutionStep(self):
-        pass
+        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
     
     def ExecuteBeforeOutputStep(self):
-        pass
+        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
     
     def ExecuteAfterOutputStep(self):
-        pass
+        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
     
     def ExecuteFinalize(self):
-        pass
+        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
     
     def Clear(self):
-        pass
+        KratosMultiphysics.Logger.PrintWarning("PythonProcess", "You are deriving your process from PythonProcess instead of Process. This is deprecated, please change")
 
 
 def Factory(settings, Model):

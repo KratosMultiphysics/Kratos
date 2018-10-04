@@ -10,9 +10,8 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "Static",
+        "solver_type"                        : "formfinding",
         "echo_level"                         : 0,
-        "analysis_type"                      : "formfinding",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "formfinding_test/Fofi_4Point_Tent_Cable"
@@ -73,7 +72,21 @@
         }
     }
     ],
-    "print_output_process" : [
+    "_json_output_process" : [
+        {
+            "python_module" : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "",
+            "process_name"  : "JsonOutputProcess",
+            "Parameters"    : {
+                "output_variables" : ["DISPLACEMENT_Z"],
+                "output_file_name" : "formfinding_test/Fofi_4Point_Tent_Cable_test_results.json",
+                "model_part_name"  : "Structure",
+                "time_frequency"   : 0.90
+            }
+        }
+        ],
+    "_print_output_process" : [
     {
         "python_module"   : "json_output_process",
         "kratos_module" : "KratosMultiphysics",

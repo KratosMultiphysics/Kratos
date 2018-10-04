@@ -14,31 +14,22 @@ import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 # Import base class file
 import navier_stokes_embedded_solver
 
-def CreateSolver(main_model_part, structure_model_part, custom_settings):
-    return NavierStokesEmbeddedFMALEMonolithicSolver(main_model_part, structure_model_part, custom_settings)
+def CreateSolver(model, structure_model_part, custom_settings):
+    return NavierStokesEmbeddedFMALEMonolithicSolver(model, custom_settings)
 
 class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver):
 
-    def __init__(self, main_model_part, structure_model_part, custom_settings):
-
-        self.element_name = "EmbeddedNavierStokes"
-        self.condition_name = "NavierStokesWallCondition"
-        self.min_buffer_size = 3
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
-        self.structure_model_part = structure_model_part
-
-        ##settings string in json format
+    def _ValidateSettings(self, settings):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "embedded_solver_from_defaults",
+            "model_part_name": "",
+            "structure_model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "unknown_name"
+                "input_filename": "unknown_name",
+                "reorder": false
             },
             "distance_reading_settings": {
                 "import_mode": "from_mdpa",
@@ -55,7 +46,7 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings": {
-                "solver_type": "AMGCL_NS_Solver"
+                "solver_type": "AMGCL"
             },
             "volume_model_part_name": "volume_model_part",
             "skin_parts": [""],
@@ -67,25 +58,35 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
                 "maximum_delta_time": 1.0
             },
             "move_mesh_flag": false,
-            "reorder": false,
             "fm_ale_settings": {
                 "fm_ale_step_frequency": 1,
                 "search_radius" : 1.0
             }
         }""")
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
 
-        ## Construct the linear solver
-        import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        if settings["structure_model_part_name"].GetString() == "":
+            raise Exception('Please provide the name of the fixed model part as the "structure_model_part_name" (string) parameter!')
 
-        ## Set the distance reading filename
-        # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
-        if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
-            self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+".post.res")
+        return settings
+
+    def __init__(self, model, custom_settings):
+        super(NavierStokesEmbeddedFMALEMonolithicSolver,self).__init__(model,custom_settings)
+
+        self.element_name = "EmbeddedNavierStokes"
+        self.condition_name = "NavierStokesWallCondition"
+        self.min_buffer_size = 3
+
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
+
+        # Retrieve the structural model part using json input
+        structure_model_part_name = self.settings["model_part_name"].GetString()
+        if self.model.HasModelPart(structure_model_part_name):
+            self.structure_model_part = self.model.GetModelPart(structure_model_part_name)
+        else:
+            raise Exception("Structural model part {0} not found in model".format(structure_model_part_name))
 
         ## Set the FM-ALE framework
         self.fm_ale_step_frequency = self.settings["fm_ale_settings"]["fm_ale_step_frequency"].GetInt()

@@ -23,7 +23,7 @@ namespace Kratos
 {
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
-    
+
     PointMomentCondition3D::PointMomentCondition3D( IndexType NewId, GeometryType::Pointer pGeometry )
     : BaseLoadCondition( NewId, pGeometry )
     {
@@ -60,7 +60,7 @@ namespace Kratos
     PointMomentCondition3D::~PointMomentCondition3D()
     {
     }
-    
+
     //************************************************************************************
     //************************************************************************************
 
@@ -70,15 +70,15 @@ namespace Kratos
         ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
-        
+
         if (rResult.size() != 3) rResult.resize(3,false);
         rResult[0] = GetGeometry()[0].GetDof(ROTATION_X).EquationId();
         rResult[1] = GetGeometry()[0].GetDof(ROTATION_Y).EquationId();
         rResult[2] = GetGeometry()[0].GetDof(ROTATION_Z).EquationId();
-        
+
         KRATOS_CATCH("")
     }
-    
+
     //***********************************************************************
     //***********************************************************************
     void PointMomentCondition3D::GetDofList(
@@ -90,17 +90,17 @@ namespace Kratos
 
         rElementalDofList.resize(0);
         rElementalDofList.reserve(3);
-        
+
         rElementalDofList.push_back( GetGeometry()[0].pGetDof(ROTATION_X) );
         rElementalDofList.push_back( GetGeometry()[0].pGetDof(ROTATION_Y) );
         rElementalDofList.push_back( GetGeometry()[0].pGetDof(ROTATION_Z) );
-        
+
         KRATOS_CATCH("")
     }
-    
+
     //***********************************************************************
     //***********************************************************************
-    
+
     void PointMomentCondition3D::GetValuesVector(
         Vector& rValues,
         int Step
@@ -113,13 +113,13 @@ namespace Kratos
         rValues[1] = r_rotation[1];
         rValues[2] = r_rotation[2];
     }
-    
+
     //***********************************************************************
     //***********************************************************************
-    
+
     void PointMomentCondition3D::GetFirstDerivativesVector(
         Vector& rValues,
-        int Step 
+        int Step
         )
     {
         const array_1d<double, 3 > & r_angular_vel = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
@@ -129,13 +129,13 @@ namespace Kratos
         rValues[1] = r_angular_vel[1];
         rValues[2] = r_angular_vel[2];
     }
-    
+
     //***********************************************************************
     //***********************************************************************
-    
+
     void PointMomentCondition3D::GetSecondDerivativesVector(
         Vector& rValues,
-        int Step 
+        int Step
         )
     {
         const array_1d<double, 3 > & r_angular_acc = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
@@ -145,20 +145,20 @@ namespace Kratos
         rValues[1] = r_angular_acc[1];
         rValues[2] = r_angular_acc[2];
     }
-    
+
     //***********************************************************************
     //***********************************************************************
 
-    void PointMomentCondition3D::CalculateAll( 
-        MatrixType& rLeftHandSideMatrix, 
+    void PointMomentCondition3D::CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
+        bool CalculateResidualVectorFlag
         )
     {
         KRATOS_TRY
-        
+
         const unsigned int dim = 3;
 
         // Resizing as needed the LHS
@@ -191,12 +191,12 @@ namespace Kratos
         {
             noalias(point_moment) = this->GetValue( POINT_MOMENT );
         }
-        
+
         if( GetGeometry()[0].SolutionStepsDataHas( POINT_MOMENT ) )
         {
             noalias(point_moment) += GetGeometry()[0].FastGetSolutionStepValue( POINT_MOMENT );
         }
-        
+
         for(unsigned int k = 0; k < dim; ++k)
         {
             rRightHandSideVector[k] += GetPointMomentIntegrationWeight() * point_moment[k];
@@ -204,18 +204,18 @@ namespace Kratos
 
         KRATOS_CATCH( "" )
     }
-    
+
     //************************************************************************************
     //************************************************************************************
-    
+
     double PointMomentCondition3D::GetPointMomentIntegrationWeight()
     {
         return 1.0;
     }
-    
+
     //***********************************************************************
     //***********************************************************************
-    
+
     int PointMomentCondition3D::Check( const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_CHECK_VARIABLE_KEY(ROTATION);
@@ -226,7 +226,7 @@ namespace Kratos
         KRATOS_CHECK_DOF_IN_NODE(ROTATION_X, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z, r_node);
-        
+
         return 0;
     }
 

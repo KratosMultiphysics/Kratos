@@ -36,7 +36,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
   LineMomentCondition::LineMomentCondition( LineMomentCondition const& rOther )
-    : MomentCondition(rOther)     
+    : MomentCondition(rOther)
   {
   }
 
@@ -44,7 +44,7 @@ namespace Kratos
   //***********************************************************************************
   Condition::Pointer LineMomentCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new LineMomentCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<LineMomentCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -52,14 +52,14 @@ namespace Kratos
   //************************************************************************************
   Condition::Pointer LineMomentCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
-  
+
     LineMomentCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-    //-----------//      
-    return Condition::Pointer( new LineMomentCondition(NewCondition) );
+    //-----------//
+    return Kratos::make_shared<LineMomentCondition>(NewCondition);
 
   }
 
@@ -83,7 +83,7 @@ namespace Kratos
 
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
     rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
-  
+
     //Calculate Delta Position
     //rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
 
@@ -97,10 +97,10 @@ namespace Kratos
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
     KRATOS_CATCH( "" )
-	  
-  }    
- 
-  
+
+  }
+
+
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
@@ -109,18 +109,18 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
+
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
-    
+
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
     //get first vector of the plane
     rVariables.Tangent1[0] = rVariables.j[rPointNumber](0, 0); // x_1,e
     rVariables.Tangent1[1] = rVariables.j[rPointNumber](1, 0); // x_2,e
-   
+
     rVariables.Normal[0] = -rVariables.j[rPointNumber](1, 0); //-x_2,e
     rVariables.Normal[1] =  rVariables.j[rPointNumber](0, 0); // x_1,e
 
@@ -128,7 +128,7 @@ namespace Kratos
       rVariables.Tangent1[2] = rVariables.J[rPointNumber](2, 0); // x_3,e
       rVariables.Normal[2]   = rVariables.J[rPointNumber](2, 0); // x_3,e
     }
-    
+
     //Jacobian to the deformed configuration
     rVariables.Jacobian = norm_2(rVariables.Normal);
 
@@ -146,7 +146,7 @@ namespace Kratos
     if(dimension==3){
       rVariables.Tangent2[2] = rVariables.J[rPointNumber](2, 0); // x_3,e
     }
- 
+
     rVariables.Jacobian = norm_2(rVariables.Tangent2);
 
     //Set Shape Functions Values for this integration point
@@ -160,7 +160,7 @@ namespace Kratos
 
     //Get external load
     this->CalculateExternalMoment(rVariables);
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -173,26 +173,26 @@ namespace Kratos
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+
     if( rVariables.ExternalVectorValue.size() != dimension )
       rVariables.ExternalVectorValue.resize(dimension,false);
 
     noalias(rVariables.ExternalVectorValue) = ZeroVector(dimension);
-    
+
     //PRESSURE CONDITION:
     rVariables.ExternalVectorValue = rVariables.Normal;
     rVariables.ExternalScalarValue = 0.0;
 
     //MOMENT CONDITION:
-    
+
     //defined on condition
     if( this->Has( MOMENT_LOAD ) ){
       array_1d<double, 3 > & LineLoad = this->GetValue( MOMENT_LOAD );
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoad[k];
 	}
     }
@@ -201,23 +201,23 @@ namespace Kratos
     if( this->Has( MOMENT_LOAD_VECTOR ) ){
       Vector& LineLoads = this->GetValue( MOMENT_LOAD_VECTOR );
       unsigned int counter = 0;
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  counter = i*3;
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    {
 	      rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoads[counter+k];
 	    }
-	  
+
 	}
     }
-    
+
     //defined on geometry nodes
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for (SizeType i = 0; i < number_of_nodes; i++)
       {
 	if( GetGeometry()[i].SolutionStepsDataHas( MOMENT_LOAD ) ){
 	  array_1d<double, 3 > & LineLoad = GetGeometry()[i].FastGetSolutionStepValue( MOMENT_LOAD );
-	  for( unsigned int k = 0; k < dimension; k++ )
+	  for( SizeType k = 0; k < dimension; k++ )
 	    rVariables.ExternalVectorValue[k] += rVariables.N[i] * LineLoad[k];
 	}
       }
@@ -225,7 +225,7 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
-  
+
   //************* COMPUTING  METHODS
   //************************************************************************************
   //************************************************************************************
@@ -238,11 +238,11 @@ namespace Kratos
     KRATOS_TRY
 
     unsigned int MatSize = this->GetDofsSize();
-    if(rLeftHandSideMatrix.size1() != MatSize )
+    if(rLeftHandSideMatrix.size1() != MatSize ){
       rLeftHandSideMatrix.resize(MatSize,MatSize,false);
+      noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
+    }
 
-    noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
-      
     KRATOS_CATCH( "" )
   }
 
@@ -258,13 +258,13 @@ namespace Kratos
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = MomentCondition::Check(rCurrentProcessInfo);
-    
+
     // Check that all required variables have been registered
     KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD);
     KRATOS_CHECK_VARIABLE_KEY(MOMENT_LOAD_VECTOR);
 
     return ErrorCode;
-    
+
     KRATOS_CATCH( "" )
   }
 

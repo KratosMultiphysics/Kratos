@@ -74,7 +74,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) MisesHuberYieldCriterion
 
 
         /// Destructor.
-        virtual ~MisesHuberYieldCriterion();
+        ~MisesHuberYieldCriterion() override;
 
 
         ///@}
@@ -108,11 +108,11 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) MisesHuberYieldCriterion
 
         double& CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues) override;
 
-          
+
         ///@}
         ///@name Access
         ///@{
-        
+
 
         ///@}
         ///@name Inquiry
@@ -148,8 +148,8 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) MisesHuberYieldCriterion
         ///@}
         ///@name Protected member Variables
         ///@{
-	
-	
+
+
         ///@}
         ///@name Protected Operators
         ///@{
@@ -201,7 +201,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) MisesHuberYieldCriterion
         ///@name Private  Access
         ///@{
 
-	
+
 	///@}
 	///@name Serialization
 	///@{
@@ -257,6 +257,6 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) MisesHuberYieldCriterion
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED  defined 
+#endif // KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED  defined
 
 

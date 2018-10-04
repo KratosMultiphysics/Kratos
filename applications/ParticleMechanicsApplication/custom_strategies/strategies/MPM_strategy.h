@@ -7,20 +7,18 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
+
 
 #if !defined(KRATOS_MPM_STRATEGY )
 #define  KRATOS_MPM_STRATEGY
 
-
 /* System includes */
 #include <set>
-//#include <chrono>
-/* External includes */
-#include "boost/smart_ptr.hpp"
 
+/* External includes */
 
 /* Project includes */
 #include "spaces/ublas_space.h"
@@ -30,41 +28,31 @@
 #include "includes/kratos_flags.h"
 #include "geometries/geometry.h"
 #include "includes/element.h"
-#include "solid_mechanics_application.h"
-//geometry utilities
-#include "utilities/geometry_utilities.h"
 
+// Application includes
+#include "solid_mechanics_application.h"
 #include "particle_mechanics_application.h"
 
+// Geometry utilities
+#include "utilities/geometry_utilities.h"
+
+// Custom includes
+#include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
+#include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
 #include "custom_elements/updated_lagrangian.hpp"
 
-
-#include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
-
+// Core includes
+#include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-
-
+#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-
-//convergence criterias
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
-
-#include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
-//#include "custom_strategies/strategies/MPM_strategy.h"
-
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
 #include "linear_solvers/linear_solver.h"
-
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-
 #include "utilities/binbased_fast_point_locator.h"
-#include "custom_utilities/quad_binbased_fast_point_locator.h"
-
 
 namespace Kratos
 {
@@ -95,24 +83,6 @@ namespace Kratos
 /** Short class definition.
 Detail class definition.
 
-  \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-        \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-          \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-                \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-                        \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-                          \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-                                \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-                                  \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
  */
 template<class TSparseSpace,
          class TDenseSpace,
@@ -126,9 +96,10 @@ public:
     /*@{ */
     //		typedef std::set<Dof::Pointer,ComparePDof> DofSetType;
 
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
 
     typedef typename TSparseSpace::DataType TDataType;
     typedef typename TSparseSpace::MatrixType TSystemMatrixType;
@@ -140,7 +111,6 @@ public:
     typedef Node < 3 > NodeType;
     typedef Geometry<NodeType> GeometryType;
 
-
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
@@ -150,7 +120,7 @@ public:
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > SolvingStrategyType;
 
-    /** Counted pointer of ClassName */
+    // Counted pointer of ClassName 
     KRATOS_CLASS_POINTER_DEFINITION(MPMStrategy);
 
     typedef typename ModelPart::DofType TDofType;
@@ -183,11 +153,14 @@ public:
 
     /*@{ */
 
-    MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle", int NumPar = 3, bool BlockBuilder = false)
-        : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part), mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
+    MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,
+        Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle", 
+        int NumPar = 3, bool BlockBuilder = false, bool isMixedFormulation = false)
+        : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part), 
+        mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
     {
 
-        //assigning the nodes to the new model part
+        // Assigning the nodes to the new model part
         mpm_model_part.Nodes() = grid_model_part.Nodes();
 
         mpm_model_part.SetProcessInfo(grid_model_part.pGetProcessInfo());
@@ -198,132 +171,139 @@ public:
         array_1d<double,3> xg = ZeroVector(3);
         array_1d<double,3> MP_Displacement = ZeroVector(3);
         array_1d<double,3> MP_Velocity = ZeroVector(3);
-        
-        //double MP_KineticEnergy = 0.0;
-        //double MP_StrainEnergy = 0.0;
-        //Vector MP_CauchyVector = ZeroVector(3);
-        //Vector MP_AlmansiVector = ZeroVector(3);
-        //Matrix MP_ConstitutiveMatrix = ZeroMatrix(6,6);
 
         double MP_Mass;
         double MP_Volume;
+
+        // Prepare Dimension and Block Size
+        unsigned int TBlock = TDim;
+        if (isMixedFormulation) TBlock ++;
+
+        KRATOS_INFO("MPM_Strategy") << "Dimension Size = " << TDim << " and Block Size = " << TBlock << std::endl;
 
         unsigned int k = 0;
         const unsigned int number_elements = grid_model_part.NumberOfElements();
         const unsigned int number_nodes = grid_model_part.NumberOfNodes();
         int new_element_id = 0;
 
-        for (ModelPart::ElementIterator i = initial_model_part.ElementsBegin();
-                i != initial_model_part.ElementsEnd(); i++)
+        // Loop over the submodelpart of initial_model_part
+        for (ModelPart::SubModelPartIterator submodelpart_it = initial_model_part.SubModelPartsBegin();
+                submodelpart_it != initial_model_part.SubModelPartsEnd(); submodelpart_it++)
         {
-            if(i->IsDefined(ACTIVE))
+            ModelPart& submodelpart = *submodelpart_it;
+            std::string submodelpart_name = submodelpart.Name();
+
+            mpm_model_part.CreateSubModelPart(submodelpart_name);
+
+            // Loop over the element of submodelpart's submodelpart and generate mpm element to be appended to the mpm_model_part
+            for (ModelPart::ElementIterator i = submodelpart.ElementsBegin();
+                    i != submodelpart.ElementsEnd(); i++)
             {
-                Properties::Pointer properties = i->pGetProperties();
-                int Material_id = i->GetProperties().Id();
-                double Density  = i->GetProperties()[DENSITY];
-
-                Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
-                Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                if (m_GeometryElement == "Triangle")
+                if(i->IsDefined(ACTIVE))
                 {
-                    if(m_NumPar == 1)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
-                    }
-                    else if(m_NumPar == 3)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                    }
-                    else if(m_NumPar == 6)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
-                    }
-                    else if(m_NumPar == 16)
-                    {
-                        shape_functions_values = this->MP16ShapeFunctions();
-                    }
-                }
-                else if(m_GeometryElement == "Quadrilateral")
-                {
-                    if(m_NumPar == 1)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
-                    }
-                    else if(m_NumPar == 4)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                    }
-                    else if(m_NumPar == 9)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
-                    }
-                    else if(m_NumPar == 16)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
-                    }
-                }
+                    Properties::Pointer properties = i->pGetProperties();
+                    int material_id = i->GetProperties().Id();
+                    double density  = i->GetProperties()[DENSITY];
 
-                //INITIAL NUMBER OF MATERIAL POINTS PER ELEMENT
-                unsigned int integration_point_per_elements = shape_functions_values.size1();
-
-                //evaluation of element area/volume
-                double area = rGeom.Area();
-
-                MP_Mass = area * Density / integration_point_per_elements;
-                MP_Volume = area / integration_point_per_elements;
-
-                //loop over the material points that fall in each grid element
-                for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++ )
-                {
-                    if(number_elements > number_nodes)
+                    Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
+                    Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                    if (m_GeometryElement == "Triangle")
                     {
-                        new_element_id = (1+PointNumber+number_elements)+(integration_point_per_elements*k);
-                    }
-                    else
-                    {
-                        new_element_id = (1+PointNumber+number_nodes)+(integration_point_per_elements*k);
-                    }
-                    Element::Pointer p_element = NewElement.Create(new_element_id, rGeom, properties);
-                    double MP_Density  = Density;
-                    int MP_Material_Id = Material_id;
-
-                    xg.clear();
-
-                    //loop over the nodes of the grid element
-                    for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++)
-                    {
-                        for ( unsigned int j = 0; j < rGeom.size(); j ++)
+                        if(m_NumPar == 1)
                         {
-
-                            xg[dim] = xg[dim] + shape_functions_values(PointNumber, j) * rGeom[j].Coordinates()[dim];
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                        }
+                        else if(m_NumPar == 3)
+                        {
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                        }
+                        else if(m_NumPar == 6)
+                        {
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                        }
+                        else if(m_NumPar == 16)
+                        {
+                            shape_functions_values = this->MP16ShapeFunctions();
+                        }
+                    }
+                    else if(m_GeometryElement == "Quadrilateral")
+                    {
+                        if(m_NumPar == 1)
+                        {
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                        }
+                        else if(m_NumPar == 4)
+                        {
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                        }
+                        else if(m_NumPar == 9)
+                        {
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
+                        }
+                        else if(m_NumPar == 16)
+                        {
+                            shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                         }
                     }
 
-                    p_element -> SetValue(MP_NUMBER, integration_point_per_elements);
-                    p_element -> SetValue(MP_MATERIAL_ID, MP_Material_Id);
-                    p_element -> SetValue(MP_DENSITY, MP_Density);
-                    p_element -> SetValue(MP_MASS, MP_Mass);
-                    p_element -> SetValue(MP_VOLUME, MP_Volume);
-                    p_element -> SetValue(GAUSS_COORD, xg);
-                    p_element -> SetValue(MP_DISPLACEMENT, MP_Displacement);
-                    p_element -> SetValue(MP_VELOCITY, MP_Velocity);
+                    // Number of MP per elements
+                    const unsigned int integration_point_per_elements = shape_functions_values.size1();
 
-                    //p_element -> SetValue(MP_CAUCHY_STRESS_VECTOR, MP_CauchyVector);
-                    //p_element -> SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_AlmansiVector);
-                    //p_element -> SetValue(MP_CONSTITUTIVE_MATRIX, MP_ConstitutiveMatrix);
-                    //p_element -> SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);
-                    //p_element -> SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
-                    //push back to model_part
-                    
-                    mpm_model_part.Elements().push_back(p_element);
+                    // Evaluation of element area/volume
+                    const double area = rGeom.Area();
+
+                    MP_Mass   = area * density / integration_point_per_elements;
+                    MP_Volume = area / integration_point_per_elements;
+
+                    // Loop over the material points that fall in each grid element
+                    for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++ )
+                    {
+                        if(number_elements > number_nodes)
+                        {
+                            new_element_id = (1+PointNumber+number_elements)+(integration_point_per_elements*k);
+                        }
+                        else
+                        {
+                            new_element_id = (1+PointNumber+number_nodes)+(integration_point_per_elements*k);
+                        }
+                        Element::Pointer p_element = NewElement.Create(new_element_id, rGeom, properties);
+                        double MP_Density  = density;
+                        int MP_Material_Id = material_id;
+
+                        xg.clear();
+
+                        // Loop over the nodes of the grid element
+                        for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++)
+                        {
+                            for ( unsigned int j = 0; j < rGeom.size(); j ++)
+                            {
+                                xg[dim] = xg[dim] + shape_functions_values(PointNumber, j) * rGeom[j].Coordinates()[dim];
+                            }
+                        }
+
+                        p_element -> SetValue(MP_NUMBER, integration_point_per_elements);
+                        p_element -> SetValue(MP_MATERIAL_ID, MP_Material_Id);
+                        p_element -> SetValue(MP_DENSITY, MP_Density);
+                        p_element -> SetValue(MP_MASS, MP_Mass);
+                        p_element -> SetValue(MP_VOLUME, MP_Volume);
+                        p_element -> SetValue(GAUSS_COORD, xg);
+                        p_element -> SetValue(MP_DISPLACEMENT, MP_Displacement);
+                        p_element -> SetValue(MP_VELOCITY, MP_Velocity);
+
+                        // Add the MP Element to the model part
+                        mpm_model_part.GetSubModelPart(submodelpart_name).AddElement(p_element);
+                    }
+
+                    k +=1;
+
                 }
 
-                k +=1;
 
             }
 
         }
-        //define a standard static strategy to be used in the calculation
+
+        // Define a standard static strategy to be used in the calculation
         if(SolutionType == "StaticSolver" || SolutionType == "Static")
         {
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
@@ -338,53 +318,24 @@ public:
                 pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             }
 
-            double ratio_tolerance = 1e-04;
-            double always_converged_norm = 1e-09;
+            const double ratio_tolerance = 1e-04;
+            const double always_converged_norm = 1e-09;
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
 
-            int MaxIterations = 20;
-            bool CalculateReactions = false;
-            bool ReformDofAtEachIteration = false;
-            bool MoveMeshFlags = false;
+            int max_iteration = 20;
+            bool calculate_reaction = false;
+            bool reform_DOF_at_each_iteration = false;
+            bool move_mesh_flag = false;
 
-            mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofAtEachIteration,MoveMeshFlags) );
+            mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,max_iteration,calculate_reaction,reform_DOF_at_each_iteration,move_mesh_flag) );
         }
 
-        //define a dynamic strategy to be used in the calculation
-        else if(SolutionType == "DynamicSolver" || SolutionType == "Dynamic")
-        {
-            double Alpham;
-            double Dynamic;
-            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, Alpham = 0.0, Dynamic=1) );
-
-            typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
-            if(BlockBuilder == true){
-                KRATOS_INFO("MPM_Strategy") << "Block Builder is used" << std::endl;
-                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
-            }
-            else{
-                KRATOS_INFO("MPM_Strategy") << "Block Builder is not used" << std::endl;
-                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
-            }
-
-            double ratio_tolerance = 0.00005;
-            double always_converged_norm = 1e-09;
-
-            typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
-            int MaxIterations = 20;
-            bool CalculateReactions = false;
-            bool ReformDofAtEachIteration = false;
-            bool MoveMeshFlags = false;
-
-            mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofAtEachIteration,MoveMeshFlags) );
-        }
-
-        //define a quasi-static strategy to be used in the calculation
+        // Define a quasi-static strategy to be used in the calculation
         else if(SolutionType == "QuasiStaticSolver" || SolutionType == "Quasi-static")
         {
-            double Alpham;
-            double Dynamic;
-            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, Alpham = 0.00, Dynamic=0) );
+            double alpha_M;
+            double dynamic;
+            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, TBlock, alpha_M = 0.00, dynamic=0) );
 
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
             if(BlockBuilder == true){
@@ -396,18 +347,49 @@ public:
                 pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             }
 
-            double ratio_tolerance = 0.0001;
-            double always_converged_norm = 1e-09;
+            const double ratio_tolerance = 0.0001;
+            const double always_converged_norm = 1e-09;
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
 
-            int MaxIterations = 100;
-            bool CalculateReactions = false;
-            bool ReformDofAtEachIteration = false;
-            bool MoveMeshFlags = false;
+            int max_iteration = 100;
+            bool calculate_reaction = false;
+            bool reform_DOF_at_each_iteration = false;
+            bool move_mesh_flag = false;
 
-            mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofAtEachIteration,MoveMeshFlags) );
+            mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,max_iteration,calculate_reaction,reform_DOF_at_each_iteration,move_mesh_flag) );
         }
+
+        // Define a dynamic strategy to be used in the calculation
+        else if(SolutionType == "DynamicSolver" || SolutionType == "Dynamic")
+        {
+            double alpha_M;
+            double dynamic;
+            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, TBlock, alpha_M = 0.0, dynamic=1) );
+
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
+            if(BlockBuilder == true){
+                KRATOS_INFO("MPM_Strategy") << "Block Builder is used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
+            else{
+                KRATOS_INFO("MPM_Strategy") << "Block Builder is not used" << std::endl;
+                pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
+            }
+
+            const double ratio_tolerance = 0.00005;
+            const double always_converged_norm = 1e-09;
+
+            typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
+            int max_iteration = 20;
+            bool calculate_reaction = false;
+            bool reform_DOF_at_each_iteration = false;
+            bool move_mesh_flag = false;
+
+            mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,max_iteration,calculate_reaction,reform_DOF_at_each_iteration,move_mesh_flag) );
+        }
+
     }
+
     /*@} */
 
     /** Destructor.
@@ -418,6 +400,23 @@ public:
     {
     }
     /*@} */
+
+    /**
+     * @brief This sets the level of echo for the solution strategy
+     * @param Level of echo for the solution strategy
+     * @details
+     * {
+     * 0 -> Mute... no echo at all
+     * 1 -> Printing time and basic informations
+     * 2 -> Printing linear solver data
+     * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * }
+     */
+    void SetEchoLevel(const int Level) override
+    {
+        BaseType::mEchoLevel = Level;
+        mp_solving_strategy->SetEchoLevel(Level);
+    }
 
     //*********************************************************************************
     /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
@@ -443,21 +442,33 @@ public:
      */
     double Solve() override
     {
-        //check which nodes and elements are ACTIVE and populate the MPM model part
+        // Check which nodes and elements are ACTIVE and populate the MPM model part
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Start" <<std::endl;
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Search Element - Start" <<std::endl;
         this->SearchElement(mr_grid_model_part, mr_mpm_model_part);
 
+        // Only perform this once
         mp_solving_strategy->Initialize();
 
-        //the nodal initial conditions are computed
+        // The nodal initial conditions are computed
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - InitializeSolutionStep" <<std::endl;
         mp_solving_strategy->InitializeSolutionStep();
 
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Predict" <<std::endl;
         mp_solving_strategy->Predict();
-        //do solution iterations
+        
+        // Do solution iterations
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - SolveSolutionStep" <<std::endl;
         mp_solving_strategy->SolveSolutionStep();
 
-        //the nodal solution are mapped on MP
+        // The nodal solution are mapped from mesh to MP
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - FinalizeSolutionStep" <<std::endl;
         mp_solving_strategy->FinalizeSolutionStep();
+
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Clear" <<std::endl;
         mp_solving_strategy->Clear();
+
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - End" <<std::endl;
 
 		return 0.00;
     }
@@ -714,7 +725,6 @@ public:
         MP_ShapeFunctions(32,1) = Nh2;
         MP_ShapeFunctions(32,2) = Nh1;
 
-
         return MP_ShapeFunctions;
 
     }
@@ -738,51 +748,69 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
 			
-			auto elemItr = grid_model_part.Elements().begin() + i;
-			elemItr -> Reset(ACTIVE);
-            elemItr ->GetGeometry()[0].Reset(ACTIVE);
-            elemItr ->GetGeometry()[1].Reset(ACTIVE);
-            elemItr ->GetGeometry()[2].Reset(ACTIVE);
-            if (TDim ==3)
-            {
-                elemItr ->GetGeometry()[3].Reset(ACTIVE);
+			auto element_itr = grid_model_part.Elements().begin() + i;
+			element_itr -> Reset(ACTIVE);
+            if (m_GeometryElement == "Triangle"){
+                element_itr ->GetGeometry()[0].Reset(ACTIVE);
+                element_itr ->GetGeometry()[1].Reset(ACTIVE);
+                element_itr ->GetGeometry()[2].Reset(ACTIVE);
+
+                if (TDim ==3)
+                {
+                    element_itr ->GetGeometry()[3].Reset(ACTIVE);
+                }
+            }
+            else if (m_GeometryElement == "Quadrilateral"){
+                element_itr ->GetGeometry()[0].Reset(ACTIVE);
+                element_itr ->GetGeometry()[1].Reset(ACTIVE);
+                element_itr ->GetGeometry()[2].Reset(ACTIVE);
+                element_itr ->GetGeometry()[3].Reset(ACTIVE);
+
+                if (TDim ==3)
+                {
+                    element_itr->GetGeometry()[4].Reset(ACTIVE);
+                    element_itr->GetGeometry()[5].Reset(ACTIVE);
+                    element_itr->GetGeometry()[6].Reset(ACTIVE);
+                    element_itr->GetGeometry()[7].Reset(ACTIVE);
+                }
             }
 		}
 
         //******************SEARCH FOR TRIANGLES************************
+        // Initialize shape function vector to be passed to PointLocator function
+        Vector N;
 
         if (m_GeometryElement == "Triangle")
         {
-            const int max_results = 1000;
+            const int max_result = 1000;
 
             BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
             SearchStructure.UpdateSearchDatabase();
 
 			#pragma omp parallel
 			{
-                array_1d<double, TDim + 1 > N;
-                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
 
                 #pragma omp for
                 for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
 
-                    auto elemItr = mpm_model_part.Elements().begin() + i;
+                    auto element_itr = mpm_model_part.Elements().begin() + i;
                     
-                    array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
+                    array_1d<double,3> xg = element_itr -> GetValue(GAUSS_COORD);
                     typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
                     Element::Pointer pelem;
 
-                    //FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, max_results);
+                    // FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
 
                     if (is_found == true)
                     {
                         pelem->Set(ACTIVE);
                     
-                        elemItr->GetGeometry()(0) = pelem->GetGeometry()(0);
-                        elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
-                        elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
+                        element_itr->GetGeometry()(0) = pelem->GetGeometry()(0);
+                        element_itr->GetGeometry()(1) = pelem->GetGeometry()(1);
+                        element_itr->GetGeometry()(2) = pelem->GetGeometry()(2);
 
                         pelem->GetGeometry()[0].Set(ACTIVE);
                         pelem->GetGeometry()[1].Set(ACTIVE);
@@ -790,48 +818,66 @@ public:
                         
                         if (TDim ==3)
                         {
-                            elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
+                            element_itr->GetGeometry()(3) = pelem->GetGeometry()(3);
                             pelem->GetGeometry()[3].Set(ACTIVE);
                         }
                     }
                 }
 		    }
         }
-
+        
         //******************SEARCH FOR QUADRILATERALS************************
         else if(m_GeometryElement == "Quadrilateral")
         {
-            const int max_results = 1000;
+            const int max_result = 1000;
 
-            QuadBinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
+            BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
             SearchStructure.UpdateSearchDatabase();
 
 	        #pragma omp parallel
 			{
-                typename QuadBinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
 
-                //loop over the material points
+                // Loop over the material points
                 #pragma omp for
                 for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
 
-                    auto elemItr = mpm_model_part.Elements().begin() + i;
+                    auto element_itr = mpm_model_part.Elements().begin() + i;
                             
-                    array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
-                    typename QuadBinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+                    array_1d<double,3> xg = element_itr -> GetValue(GAUSS_COORD);
+                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
                     Element::Pointer pelem;
 
-                    //FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                    bool is_found = SearchStructure.FindPointOnMesh(xg, pelem, result_begin, max_results);
+                    // FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
                 
                     if (is_found == true)
                     {
                         pelem->Set(ACTIVE);
                         
-                        elemItr->GetGeometry()(0) = pelem->GetGeometry()(0);
-                        elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
-                        elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
-                        elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
+                        element_itr->GetGeometry()(0) = pelem->GetGeometry()(0);
+                        element_itr->GetGeometry()(1) = pelem->GetGeometry()(1);
+                        element_itr->GetGeometry()(2) = pelem->GetGeometry()(2);
+                        element_itr->GetGeometry()(3) = pelem->GetGeometry()(3);
+
+                        pelem->GetGeometry()[0].Set(ACTIVE);
+                        pelem->GetGeometry()[1].Set(ACTIVE);
+                        pelem->GetGeometry()[2].Set(ACTIVE);
+                        pelem->GetGeometry()[3].Set(ACTIVE);
+                        
+                        if (TDim ==3)
+                        {
+                            element_itr->GetGeometry()(4) = pelem->GetGeometry()(4);
+                            element_itr->GetGeometry()(5) = pelem->GetGeometry()(5);
+                            element_itr->GetGeometry()(6) = pelem->GetGeometry()(6);
+                            element_itr->GetGeometry()(7) = pelem->GetGeometry()(7);
+
+                            pelem->GetGeometry()[4].Set(ACTIVE);
+                            pelem->GetGeometry()[5].Set(ACTIVE);
+                            pelem->GetGeometry()[6].Set(ACTIVE);
+                            pelem->GetGeometry()[7].Set(ACTIVE);
+                        }
                     }
                 }
             }
@@ -840,7 +886,7 @@ public:
 
 
     /**
-     * function to perform expensive checks.
+     * Function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
     int Check() override

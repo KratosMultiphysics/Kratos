@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Josep Maria Carbonell
@@ -35,7 +35,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 1> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -74,7 +74,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 4> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -116,7 +116,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 9> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 9> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -165,7 +165,7 @@ public:
 
     typedef IntegrationPoint<2> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 16> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 16> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -218,7 +218,7 @@ public:
 
 	typedef IntegrationPoint<2> IntegrationPointType;
 
-	typedef boost::array<IntegrationPointType, 25> IntegrationPointsArrayType;
+	typedef std::array<IntegrationPointType, 25> IntegrationPointsArrayType;
 
 	typedef IntegrationPointType::PointType PointType;
 
@@ -236,7 +236,7 @@ public:
                     msIntegrationPoints[5*i + j] = IntegrationPointType( a[i], a[j], w[i] * w[j]);
                 }
             }
-            
+
             return msIntegrationPoints;
 	}
 
@@ -269,6 +269,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined 
+#endif // KRATOS_QUADRILATERAL_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined
 
 

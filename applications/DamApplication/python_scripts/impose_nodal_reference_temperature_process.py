@@ -15,7 +15,14 @@ class ImposeNodalReferenceTemperatureProcess(Process):
         model_part = Model[settings["model_part_name"].GetString()]
         variable_name = settings["variable_name"].GetString()
         initial_value = settings["initial_value"].GetDouble()
-        input_file_name = settings["input_file_name"].GetString()
+
+        # Checks if the parameter "input_file_name" exixts. If not, it create it and define it as "".
+        # This may be changed in the future, when the Nodal Reference Temp (input file) process will be fixed.
+
+        if settings.Has("input_file_name"):
+            input_file_name = settings["input_file_name"].GetString()
+        else:
+            input_file_name = ""
 
         if ((input_file_name == "") or (input_file_name == "- No file") or (input_file_name == "- Add new file")):
             self.table = PiecewiseLinearTable()

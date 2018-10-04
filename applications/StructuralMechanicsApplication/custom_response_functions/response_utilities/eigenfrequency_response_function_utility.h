@@ -29,6 +29,7 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
+#include "element_finite_difference_utility.h"
 
 // ==============================================================================
 
@@ -185,7 +186,7 @@ protected:
     ///@{
 
     // ==============================================================================
-    void CheckSettingsForGradientAnalysis(Parameters& rResponseSettings)
+    void CheckSettingsForGradientAnalysis(Parameters rResponseSettings)
     {
         const std::string gradient_mode = rResponseSettings["gradient_mode"].GetString();
 
@@ -210,7 +211,7 @@ protected:
     }
 
     // --------------------------------------------------------------------------
-    void CalculateLinearWeights(Parameters& rResponseSettings)
+    void CalculateLinearWeights(Parameters rResponseSettings)
     {
         KRATOS_ERROR_IF_NOT(rResponseSettings.Has("weighting_factors")) << "No weighting factors defined for given eigenfrequency response!" << std::endl;
         KRATOS_ERROR_IF_NOT(rResponseSettings["weighting_factors"].size() == mTracedEigenfrequencyIds.size()) << "The number of chosen eigenvalues does not fit to the number of weighting factors!" << std::endl;
@@ -262,19 +263,15 @@ protected:
         for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
         {
             traced_eigenvalues[i] = GetEigenvalue(mTracedEigenfrequencyIds[i]);
-            gradient_prefactors[i] = 1 / (4 * Globals::Pi * std::sqrt(traced_eigenvalues[i]));
+            gradient_prefactors[i] = 1.0 / (4.0 * Globals::Pi * std::sqrt(traced_eigenvalues[i]));
         }
 
         // Element-wise computation of gradients
         for (auto& elem_i : mrModelPart.Elements())
         {
             Matrix mass_matrix_org;
-            Matrix LHS_org;
-            Vector dummy;
-
+            //TODO improve this. Mass matrix is only computed in order to get the number of dofs
             elem_i.CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
-            elem_i.CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
-
             const std::size_t num_dofs_element = mass_matrix_org.size1();
             const std::size_t domain_size = CurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
@@ -284,37 +281,32 @@ protected:
             // Predetermine the necessary eigenvectors
             std::vector<Vector> eigenvectors_of_element(num_of_traced_eigenfrequencies,Vector(0));
             for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
-                DetermineEigenvectorOfElement(elem_i, mTracedEigenfrequencyIds[i], num_dofs_element, eigenvectors_of_element[i]);
+                DetermineEigenvectorOfElement(elem_i, mTracedEigenfrequencyIds[i], eigenvectors_of_element[i], CurrentProcessInfo);
+
+            const std::vector<ElementFiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_X, SHAPE_Y, SHAPE_Z};
 
             // Computation of derivative of state equation w.r.t. node coordinates
             for(auto& node_i : elem_i.GetGeometry())
             {
                 Vector gradient_contribution(3, 0.0);
-                Matrix perturbed_LHS = Matrix(num_dofs_element,num_dofs_element);
-                Matrix perturbed_mass_matrix = Matrix(num_dofs_element,num_dofs_element);
+                Matrix derived_LHS = Matrix(num_dofs_element,num_dofs_element);
+                Matrix derived_mass_matrix = Matrix(num_dofs_element,num_dofs_element);
 
                 for(std::size_t coord_dir_i = 0; coord_dir_i < domain_size; coord_dir_i++)
                 {
-                    node_i.GetInitialPosition()[coord_dir_i] += mDelta;
-
-                    elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
-                    noalias(perturbed_mass_matrix) = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-
-                    elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
-                    noalias(perturbed_LHS) = (perturbed_LHS - LHS_org) / mDelta;
+                    ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative(elem_i, coord_directions[coord_dir_i], node_i, mDelta, derived_LHS, CurrentProcessInfo);
+                    ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative(elem_i, coord_directions[coord_dir_i], node_i, mDelta, derived_mass_matrix, CurrentProcessInfo);
 
                     for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                     {
                         aux_matrix.clear();
                         aux_vector.clear();
 
-                        noalias(aux_matrix) = perturbed_LHS - perturbed_mass_matrix * traced_eigenvalues[i];
+                        noalias(aux_matrix) = derived_LHS - derived_mass_matrix * traced_eigenvalues[i];
                         noalias(aux_vector) = prod(aux_matrix , eigenvectors_of_element[i]);
 
                         gradient_contribution[coord_dir_i] += gradient_prefactors[i] * inner_prod(eigenvectors_of_element[i] , aux_vector) * mWeightingFactors[i];
                     }
-
-                   node_i.GetInitialPosition()[coord_dir_i] -= mDelta;
                 }
                 noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
             }
@@ -322,25 +314,34 @@ protected:
     }
 
     // --------------------------------------------------------------------------
-    double GetEigenvalue(int eigenfrequency_id)
+    double GetEigenvalue(const int eigenfrequency_id)
     {
         return (mrModelPart.GetProcessInfo()[EIGENVALUE_VECTOR])[eigenfrequency_id-1];
     }
 
     // --------------------------------------------------------------------------
-    void DetermineEigenvectorOfElement(ModelPart::ElementType& traced_element, int eigenfrequency_id, int size_of_eigenvector, Vector& rEigenvectorOfElement)
+    void DetermineEigenvectorOfElement(ModelPart::ElementType& rElement, const int eigenfrequency_id, Vector& rEigenvectorOfElement, ProcessInfo& CurrentProcessInfo)
     {
-        rEigenvectorOfElement.resize(size_of_eigenvector,false);
+        std::vector<std::size_t> eq_ids;
+        rElement.EquationIdVector(eq_ids, CurrentProcessInfo);
 
-        const std::size_t num_nodes = traced_element.GetGeometry().size();
-        const std::size_t num_node_dofs = size_of_eigenvector/num_nodes;
-
-        for (std::size_t node_index=0; node_index<num_nodes; node_index++)
+        if (rEigenvectorOfElement.size() != eq_ids.size())
         {
-            Matrix& rNodeEigenvectors = traced_element.GetGeometry()[node_index].GetValue(EIGENVECTOR_MATRIX);
+            rEigenvectorOfElement.resize(eq_ids.size(), false);
+        }
 
-            for (std::size_t dof_index = 0; dof_index < num_node_dofs; dof_index++)
-                rEigenvectorOfElement(dof_index+num_node_dofs*node_index) = rNodeEigenvectors((eigenfrequency_id-1),dof_index);
+        // sort the values of the eigenvector into the rEigenvectorOfElement according to the dof ordering at the element
+        for (auto& r_node_i : rElement.GetGeometry())
+        {
+            const auto& r_node_dofs = r_node_i.GetDofs();
+
+            const Matrix& rNodeEigenvectors = r_node_i.GetValue(EIGENVECTOR_MATRIX);
+            for (std::size_t dof_index = 0; dof_index < r_node_dofs.size(); dof_index++)
+            {
+                const auto& current_dof = std::begin(r_node_dofs) + dof_index;
+                const std::size_t dof_index_at_element = std::distance(eq_ids.begin(), std::find(eq_ids.begin(), eq_ids.end(), current_dof->EquationId()));
+                rEigenvectorOfElement(dof_index_at_element) = rNodeEigenvectors((eigenfrequency_id-1), dof_index);
+            }
         }
     }
 

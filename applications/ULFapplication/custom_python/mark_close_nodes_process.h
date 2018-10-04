@@ -122,7 +122,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~MarkCloseNodesProcess()
+    ~MarkCloseNodesProcess() override
     {
     }
 
@@ -141,7 +141,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
         KRATOS_TRY
         for(ModelPart::NodesContainerType::iterator in = mr_model_part.NodesBegin() ;
@@ -192,19 +192,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "MarkCloseNodesProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "MarkCloseNodesProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

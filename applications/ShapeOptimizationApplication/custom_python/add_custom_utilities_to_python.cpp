@@ -49,16 +49,19 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // ================================================================
     class_<MapperVertexMorphing >(m, "MapperVertexMorphing")
         .def(init<ModelPart&, Parameters>())
+        .def("InitializeMapping", &MapperVertexMorphing::InitializeMapping)
         .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
         ;
     class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
         .def(init<ModelPart&, Parameters>())
+        .def("InitializeMapping", &MapperVertexMorphingMatrixFree::InitializeMapping)
         .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
         ;
     class_<MapperVertexMorphingImprovedIntegration >(m, "MapperVertexMorphingImprovedIntegration")
         .def(init<ModelPart&, Parameters>())
+        .def("InitializeMapping", &MapperVertexMorphingImprovedIntegration::InitializeMapping)
         .def("MapToDesignSpace", &MapperVertexMorphingImprovedIntegration::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingImprovedIntegration::MapToGeometrySpace)
         ;
@@ -99,7 +102,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(init<ModelPart&>())
         .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
         .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
-        .def("ExtractSurfaceNodes", &GeometryUtilities::ExtractSurfaceNodes)
+        .def("ExtractBoundaryNodes", &GeometryUtilities::ExtractBoundaryNodes)
         ;
 
     // ========================================================================

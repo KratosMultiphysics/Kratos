@@ -13,7 +13,9 @@
 // System includes
 
 // External includes
-
+#ifdef KRATOS_USE_AMATRIX
+#include "boost/numeric/ublas/matrix.hpp" // for the sparse space dense vector
+#endif // KRATOS_USE_AMATRIX
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -52,7 +54,7 @@ using namespace pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
@@ -87,8 +89,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             (m,"ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")
             .def(init<double,double,unsigned int,Process::Pointer >() )
             .def(init<double,double,unsigned int >())// constructor without a turbulence model
-            .def(init<double,double,unsigned int,const Kratos::Variable<int>&>())// constructor without a turbulence model for periodic boundary conditions
-            .def(init<double,double,unsigned int,Kratos::Variable<double>&>())// constructor with a non-default flag for slip conditions
+            .def(init<double,unsigned int,const Kratos::Variable<int>&>())// constructor without a turbulence model for periodic boundary conditions
             ;
 
     typedef ResidualBasedSimpleSteadyScheme< SparseSpaceType, LocalSpaceType > ResidualBasedSimpleSteadySchemeType;
@@ -122,7 +123,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 		.def(init<unsigned int >())// constructor without a turbulence model
 		.def(init<unsigned int, Kratos::Variable<double>&>())// constructor with a non-default flag for slip conditions
 		;
-            
+
     class_< GearScheme< SparseSpaceType, LocalSpaceType >,
             typename GearScheme< SparseSpaceType, LocalSpaceType >::Pointer,
             BaseSchemeType >

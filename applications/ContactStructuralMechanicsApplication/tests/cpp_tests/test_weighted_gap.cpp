@@ -103,7 +103,7 @@ namespace Kratos
                 condition_nodes[1] = ThisModelPart.pGetNode((2 * i)+2);
                 condition_nodes[2] = ThisModelPart.pGetNode((2 * i)+4);
                 condition_nodes[3] = ThisModelPart.pGetNode((2 * i)+3);
-                Quadrilateral3D4 <NodeType> quad( condition_nodes);
+                Quadrilateral3D4 <NodeType> quad( PointerVector<NodeType>{condition_nodes} );
                 
                 Condition::Pointer pcond = ThisModelPart.CreateNewCondition("Condition3D4N", id_cond, quad, p_cond_prop);
                 slave_model_part.AddCondition(pcond);
@@ -145,7 +145,7 @@ namespace Kratos
                 condition_nodes[2] = ThisModelPart.pGetNode((2 * (i + NumberOfDivisions + 1)+2));
                 condition_nodes[1] = ThisModelPart.pGetNode((2 * (i + NumberOfDivisions + 1)+4));
                 condition_nodes[0] = ThisModelPart.pGetNode((2 * (i + NumberOfDivisions + 1)+3));
-                Quadrilateral3D4 <NodeType> quad( condition_nodes);
+                Quadrilateral3D4 <NodeType> quad( PointerVector<NodeType>{condition_nodes} );
                 
                 Condition::Pointer pcond = ThisModelPart.CreateNewCondition("Condition3D4N", id_cond, quad, p_cond_prop);
                 master_model_part.AddCondition(pcond);
@@ -173,9 +173,10 @@ namespace Kratos
             }
             
             // We set the mapper parameters
-            Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24})" );
+            Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24, "origin_variable_historical" : false,
+        "destination_variable_historical" : false})" );
             mapping_parameters["distance_threshold"].SetDouble(ThisModelPart.GetProcessInfo()[DISTANCE_THRESHOLD]);
-            typedef SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>, NonHistorical> MapperType;
+            typedef SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>> MapperType;
             MapperType mapper = MapperType(master_model_part, slave_model_part, AUXILIAR_COORDINATES, mapping_parameters);
             mapper.Execute();
             
