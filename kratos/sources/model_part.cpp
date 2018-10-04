@@ -1518,6 +1518,9 @@ int ModelPart::Check(ProcessInfo& rCurrentProcessInfo) const
         err = elem_iterator->Check(rCurrentProcessInfo);
     for (ConditionConstantIterator condition_iterator = ConditionsBegin(); condition_iterator != ConditionsEnd(); condition_iterator++)
         err = condition_iterator->Check(rCurrentProcessInfo);
+    for (MasterSlaveConstraintConstantIteratorType constraint_iterator = MasterSlaveConstraintsBegin(); 
+            constraint_iterator != MasterSlaveConstraintsEnd(); constraint_iterator++)
+        err = constraint_iterator->Check(rCurrentProcessInfo);
     return err;
     KRATOS_CATCH("");
 }
