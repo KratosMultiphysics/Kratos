@@ -521,7 +521,6 @@ public:
         if (! Internals::HasSlaveNode(rCurrentContainer.GetGeometry()))
             return;
         this->Reset();
-        typename TContainerType::EquationIdVectorType equation_ids = rEquationIds;
         // Saving th original system size
         const IndexType initial_sys_size = rLHSContribution.size1();
 
