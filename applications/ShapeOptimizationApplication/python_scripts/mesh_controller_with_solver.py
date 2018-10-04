@@ -24,7 +24,7 @@ from mesh_moving_analysis import MeshMovingAnalysis
 # # ==============================================================================
 class MeshControllerWithSolver(MeshController) :
     # --------------------------------------------------------------------------
-    def __init__(self, MeshSolverSettings, OptimizationModelPart):
+    def __init__(self, MeshSolverSettings, model, model_part_name):
         default_settings = Parameters("""
         {
             "apply_mesh_solver" : true,
@@ -53,16 +53,14 @@ class MeshControllerWithSolver(MeshController) :
         self.MeshSolverSettings = MeshSolverSettings
         self.MeshSolverSettings.ValidateAndAssignDefaults(default_settings)
 
+        self.OptimizationModelPart = model[model_part_name]
+
         self.MeshSolverSettings["problem_data"].AddEmptyValue("domain_size")
-        self.MeshSolverSettings["problem_data"]["domain_size"].SetInt(OptimizationModelPart.ProcessInfo[DOMAIN_SIZE])
+        self.MeshSolverSettings["problem_data"]["domain_size"].SetInt(self.OptimizationModelPart.ProcessInfo[DOMAIN_SIZE])
 
         self.MeshSolverSettings["problem_data"].AddEmptyValue("model_part_name")
-        self.MeshSolverSettings["problem_data"]["model_part_name"].SetString(OptimizationModelPart.Name)
+        self.MeshSolverSettings["problem_data"]["model_part_name"].SetString(self.OptimizationModelPart.Name)
 
-        self.OptimizationModelPart = OptimizationModelPart
-
-        model = Model()
-        model.AddModelPart(self.OptimizationModelPart)
 
         self._mesh_moving_analysis = MeshMovingAnalysis(model, self.MeshSolverSettings)
 
@@ -75,7 +73,7 @@ class MeshControllerWithSolver(MeshController) :
         print("\n> Starting to update the mesh...")
         startTime = timer.time()
 
-        VariableUtils().SetToZero_VectorVar(MESH_DISPLACEMENT,self.OptimizationModelPart.Nodes)
+        VariableUtils().SetToZero_VectorVar(MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
 
         sub_model_part_name = "surface_nodes"
         GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes(sub_model_part_name)
