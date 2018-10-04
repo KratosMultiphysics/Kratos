@@ -145,6 +145,12 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
         ;
+
+        // 3D surfaces
+        class_<MmgProcess<MMGLibray::MMGS>, MmgProcess<MMGLibray::MMGS>::Pointer, Process>(m, "MmgProcess3DSurfaces")
+        .def(init<ModelPart&>())
+        .def(init<ModelPart&, Parameters>())
+        ;
     #endif
 }
 
