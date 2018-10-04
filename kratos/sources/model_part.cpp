@@ -1614,6 +1614,7 @@ void ModelPart::save(Serializer& rSerializer) const
     rSerializer.save("Buffer Size", mBufferSize);
     rSerializer.save("ProcessInfo", mpProcessInfo);
     rSerializer.save("Tables", mTables);
+    rSerializer.save("Variables List", mpVariablesList);
     rSerializer.save("Meshes", mMeshes);
     
     rSerializer.save("NumberOfSubModelParts", NumberOfSubModelParts());
@@ -1636,10 +1637,11 @@ void ModelPart::load(Serializer& rSerializer)
     {
         KRATOS_ERROR << "trying to load a modelpart called :   " << ModelPartName << "    into an object named :   " << mName << " the two names should coincide but do not" << std::endl;
     }
-    
+
     rSerializer.load("Buffer Size", mBufferSize);
     rSerializer.load("ProcessInfo", mpProcessInfo);
     rSerializer.load("Tables", mTables);
+    rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
     
     SizeType number_of_submodelparts;
@@ -1652,11 +1654,11 @@ void ModelPart::load(Serializer& rSerializer)
         rSerializer.load("SubModelPartName",name);
         submodel_part_names.push_back(name);
     }
-    
+
     for(const auto& name : submodel_part_names)
     {
-        CreateSubModelPart(name);
-        rSerializer.load("SubModelPart",*(mSubModelParts.find(name)));
+        auto& subpart = CreateSubModelPart(name);
+        rSerializer.load("SubModelPart",subpart);
     }
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
