@@ -383,6 +383,9 @@ struct LocalIndices
         internal_index_vector.resize(0);
         master_index_vector.resize(0);
         slave_index_vector.resize(0);
+        container_master_weights.resize(0);
+        container_master_slaves.resize(0);
+        processed_master_indices.resize(0);
     }
 
     VectorIndexType internal_index_vector; // indicies corresponding to internal DOFs
@@ -521,7 +524,6 @@ public:
         if (! Internals::HasSlaveNode(rCurrentContainer.GetGeometry()))
             return;
         this->Reset();
-        typename TContainerType::EquationIdVectorType equation_ids = rEquationIds;
         // Saving th original system size
         const IndexType initial_sys_size = rLHSContribution.size1();
 
@@ -630,7 +632,7 @@ private:
 
         // For K(u,s) and K(s,u). This is to be done at the end only
         for (auto& slave_index : mLocalIndices.slave_index_vector) {
-            for (auto internal_index : mLocalIndices.internal_index_vector) {
+            for (auto& internal_index : mLocalIndices.internal_index_vector) {
                 rLHSContribution(slave_index, internal_index) = 0.0;
                 rLHSContribution(internal_index, slave_index) = 0.0;
             }
@@ -670,7 +672,7 @@ private:
                 //master_weight = mTransformationMatrixLocal(slave_index,master_index);
                 master_weight = master_weights_vector(i_master);
                 for (auto& internal_index : mLocalIndices.internal_index_vector) {
-                    rRHSContribution(internal_index) += -rLHSContribution(internal_index, slave_index) * slave_constant;
+                    rRHSContribution(internal_index) -= rLHSContribution(internal_index, slave_index) * slave_constant;
                 }
                 // For RHS(m) += A'*LHS(s,s)*B
                 for (auto& slave_index_other : mLocalIndices.slave_index_vector) {
