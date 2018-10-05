@@ -290,7 +290,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-                  const ProcessInfo& rCurrentProcessInfo)
+                  const ProcessInfo& rCurrentProcessInfo) const
     {
         if (rResult.size() != 0)
             rResult.resize(0);
@@ -302,7 +302,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofsVectorType& rConditionDofList,
-                const ProcessInfo& rCurrentProcessInfo)
+                const ProcessInfo& rCurrentProcessInfo) const
     {
         if (rConditionDofList.size() != 0)
             rConditionDofList.resize(0);
@@ -330,21 +330,21 @@ public:
     /**
      * Getting method to obtain the variable which defines the degrees of freedom
      */
-    virtual void GetValuesVector(Vector& values, int Step = 0)
+    virtual void GetValuesVector(Vector& values, int Step = 0) const
     {
     }
 
     /**
      * Getting method to obtain the time derivative of variable which defines the degrees of freedom
      */
-    virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
+    virtual void GetFirstDerivativesVector(Vector& values, int Step = 0) const
     {
     }
 
     /**
      * Getting method to obtain the second time derivative of variable which defines the degrees of freedom
      */
-    virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
+    virtual void GetSecondDerivativesVector(Vector& values, int Step = 0) const
     {
     }
 
