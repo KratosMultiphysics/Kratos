@@ -138,9 +138,9 @@ class ApplyPeriodicConditionProcess : public Process
     }
 
     /**
-     * @brief Function initializes the solution step
+     * @brief Function initializes the process
      */
-    void ExecuteInitializeSolutionStep() override
+    virtual void ExecuteInitialize() override
     {
         KRATOS_TRY;
         if (!mIsInitialized)
@@ -159,6 +159,13 @@ class ApplyPeriodicConditionProcess : public Process
         std::cout<<"Initialization of Periodic conditions finished .. !"<<std::endl;
 
         KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Function initializes the solution step
+     */
+    void ExecuteInitializeSolutionStep() override
+    {
     }
 
     /**
