@@ -59,7 +59,7 @@ namespace Kratos
 		mConditionName = TheParameters["condition_name"].GetString();
         mCreateSkinSubModelPart = TheParameters["create_skin_sub_model_part"].GetBool();
 
-        Check();
+        PerformChecks();
 
     }
 
@@ -236,7 +236,7 @@ namespace Kratos
 		}
 	}
 
-    void StructuredMeshGeneratorProcess::Check()
+    void StructuredMeshGeneratorProcess::PerformChecks()
     {
         KRATOS_TRY
 
