@@ -263,7 +263,8 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     ///@}
     ///@name Protected Operations
     ///@{
-    virtual void ConstructMatrixStructure(
+
+    void ConstructMatrixStructure(
         typename TSchemeType::Pointer pScheme,
         TSystemMatrixType &A,
         ModelPart &rModelPart) override
