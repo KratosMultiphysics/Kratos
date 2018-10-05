@@ -103,6 +103,7 @@ MmgProcess<TMMGLibray>::MmgProcess(
             "no_surf_mesh"                        : false,
             "no_insert_mesh"                      : false,
             "no_swap_mesh"                        : false,
+            "normal_regularization_mesh"          : false,
             "deactivate_detect_angle"             : false,
             "force_gradation_value"               : false,
             "gradation_value"                     : 1.3
@@ -2277,6 +2278,10 @@ void MmgProcess<MMGLibray::MMGS>::MMGLibCall()
     // Don't swap mesh
     if ( MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_noswap, static_cast<int>(mThisParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 )
         KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
+
+    // Disabled/enabled normal regularization
+    if ( MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_nreg, static_cast<int>(mThisParameters["advanced_parameters"]["normal_regularization_mesh"].GetBool())) != 1 )
+        KRATOS_ERROR << "Unable disabled/enabled normal regularization " << std::endl;
 
     // Set the angle detection
     const bool deactivate_detect_angle = mThisParameters["advanced_parameters"]["deactivate_detect_angle"].GetBool();
