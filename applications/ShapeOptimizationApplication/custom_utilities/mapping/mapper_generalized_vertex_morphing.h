@@ -118,29 +118,29 @@ public:
     ///@{
 
     // --------------------------------------------------------------------------
-    void InverseMap( const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable )
+    void InverseMap( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable )
     {
         BuiltinTimer mapping_time;
         std::cout << "\n> Starting inverse mapping..." << std::endl;
 
         ComputeMappingMatrixIfNecessary();
-        PrepareVectorsForInverseMapping( rDestinationVariable );
+        PrepareVectorsForInverseMapping( rVariable );
         PerformMultiplicationWithTransposeMappingMatrix();
-        AssignMappingResultsToNodalVariable( rOriginVariable, true );
+        AssignMappingResultsToNodalVariable( rMappedVariable, true );
 
         std::cout << "> Time needed for inverse mapping: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
-    void Map( const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable )
+    void Map( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable )
     {
         BuiltinTimer mapping_time;
         std::cout << "\n> Starting mapping..." << std::endl;
 
         ComputeMappingMatrixIfNecessary();
-        PrepareVectorsForMapping( rOriginVariable );
+        PrepareVectorsForMapping( rVariable );
         PerformMultiplicationWithMappingMatrix();
-        AssignMappingResultsToNodalVariable( rDestinationVariable, false );
+        AssignMappingResultsToNodalVariable( rMappedVariable, false );
 
         std::cout << "> Time needed for mapping: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
     }
@@ -422,7 +422,7 @@ private:
         y_values_in_destination_mdpa.clear();
         z_values_in_destination_mdpa.clear();
 
-        for(auto& node_i : mrOriginMdpa.Nodes())
+        for(auto& node_i : mrDestinationMdpa.Nodes())
         {
             int i = node_i.GetValue(MAPPING_ID);
             array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rNodalVariable);
