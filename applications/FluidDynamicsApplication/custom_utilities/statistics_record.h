@@ -94,6 +94,8 @@ public:
 
     void FinalizeStatistics(ModelPart::ElementsContainerType& rElements);
 
+    std::vector<double> OutputForTest(ModelPart::ElementsContainerType& rElements);
+
     ///@}
     ///@name Access
     ///@{
