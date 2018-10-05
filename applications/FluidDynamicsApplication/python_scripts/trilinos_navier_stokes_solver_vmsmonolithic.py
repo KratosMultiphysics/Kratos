@@ -223,7 +223,6 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         self.stabilization.SetProcessInfo(self.computing_model_part)
 
         (self.solver).Initialize()
-        (self.solver).Check()
 
         if self._IsPrintingRank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED

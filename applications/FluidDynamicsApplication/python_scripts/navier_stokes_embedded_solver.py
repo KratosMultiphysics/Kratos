@@ -160,7 +160,6 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         (self.solver).Initialize() # Initialize the solver. Otherwise the constitutive law is not initializated.
-        (self.solver).Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
