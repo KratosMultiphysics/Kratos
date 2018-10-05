@@ -26,9 +26,6 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
-        for node in main_model_part.Nodes:
-            node.AddDof(KratosMultiphysics.DISTANCE)
-
         # We import the model main_model_part
         file_path = os.path.dirname(os.path.realpath(__file__))
         KratosMultiphysics.ModelPartIO(file_path + "/mmg_eulerian_test/coarse_sphere_test").ReadModelPart(main_model_part)
@@ -176,16 +173,14 @@ class TestRemeshMMG(KratosUnittest.TestCase):
 
         # We add the variables needed
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-
-        for node in main_model_part.Nodes:
-            node.AddDof(KratosMultiphysics.DISTANCE)
 
         # We import the model main_model_part
         file_path = os.path.dirname(os.path.realpath(__file__))
         KratosMultiphysics.ModelPartIO(file_path + "/mmg_eulerian_test/coarse_sphere_skin_test").ReadModelPart(main_model_part)
+
+        for node in main_model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, abs(node.X))
 
         # We calculate the gradient of the distance variable
         find_nodal_h = KratosMultiphysics.FindNodalHProcess(main_model_part)
@@ -237,12 +232,12 @@ class TestRemeshMMG(KratosUnittest.TestCase):
                                         """)
                                     )
 
-        #gid_output.ExecuteInitialize()
-        #gid_output.ExecuteBeforeSolutionLoop()
-        #gid_output.ExecuteInitializeSolutionStep()
-        #gid_output.PrintOutput()
-        #gid_output.ExecuteFinalizeSolutionStep()
-        #gid_output.ExecuteFinalize()
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()
 
         from compare_two_files_check_process import CompareTwoFilesCheckProcess
         check_parameters = KratosMultiphysics.Parameters("""
@@ -263,24 +258,24 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         check_files.ExecuteFinalizeSolutionStep()
         check_files.ExecuteFinalize()
 
-        #model = KratosMultiphysics.Model()
-        #model.AddModelPart(main_model_part)
+        model = KratosMultiphysics.Model()
+        model.AddModelPart(main_model_part)
 
-        #import from_json_check_result_process
+        import from_json_check_result_process
 
-        #check_parameters = KratosMultiphysics.Parameters("""
-        #{
-            #"check_variables"      : ["DISTANCE"],
-            #"input_file_name"      : "mmg_eulerian_test/distante_extrapolation_skin.json",
-            #"model_part_name"      : "MainModelPart",
-            #"time_frequency"       : 0.0
-        #}
-        #""")
+        check_parameters = KratosMultiphysics.Parameters("""
+        {
+            "check_variables"      : ["DISTANCE"],
+            "input_file_name"      : "mmg_eulerian_test/distante_extrapolation_skin.json",
+            "model_part_name"      : "MainModelPart",
+            "time_frequency"       : 0.0
+        }
+        """)
 
-        #check = from_json_check_result_process.FromJsonCheckResultProcess(model, check_parameters)
-        #check.ExecuteInitialize()
-        #check.ExecuteBeforeSolutionLoop()
-        #check.ExecuteFinalizeSolutionStep()
+        check = from_json_check_result_process.FromJsonCheckResultProcess(model, check_parameters)
+        check.ExecuteInitialize()
+        check.ExecuteBeforeSolutionLoop()
+        check.ExecuteFinalizeSolutionStep()
 
         ## The following is used to create the solution database
         #import json_output_process
