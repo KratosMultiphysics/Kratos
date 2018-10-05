@@ -212,7 +212,7 @@ public:
     @return SizeType, working space dimension of this geometry.
     */
 
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please ask the geometry directly") SizeType WorkingSpaceDimension() const
+    SizeType WorkingSpaceDimension() const
     {
         return pGetGeometry()->WorkingSpaceDimension();
     }
@@ -887,7 +887,7 @@ public:
      * @param rMassMatrix the condition mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please remove it") virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
       rMassMatrix.resize(0, 0, false);
@@ -899,7 +899,7 @@ public:
      * @param coeff the given factor
      * @param rCurrentProcessInfo the current process info instance
      */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please remove it") virtual void AddMassMatrix(MatrixType& rLeftHandSideMatrix, double coeff, ProcessInfo& rCurrentProcessInfo)
+    virtual void AddMassMatrix(MatrixType& rLeftHandSideMatrix, double coeff, ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -909,7 +909,7 @@ public:
      * @param rDampMatrix the condition damping matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please remove it") virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+    virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampMatrix.size1() != 0)
       rDampMatrix.resize(0, 0, false);
@@ -919,7 +919,7 @@ public:
      * adds the inertia forces to the RHS --> performs residua = static_residua - coeff*M*acc
      * @param rCurrentProcessInfo the current process info instance
      */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please remove it") virtual void AddInertiaForces(VectorType& rRightHandSideVector, double coeff, ProcessInfo& rCurrentProcessInfo)
+    virtual void AddInertiaForces(VectorType& rRightHandSideVector, double coeff, ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -930,7 +930,7 @@ public:
      * @param rRightHandSideVector the condition right hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please remove it") virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampingMatrix.size1() != 0)
       rDampingMatrix.resize(0, 0, false);
