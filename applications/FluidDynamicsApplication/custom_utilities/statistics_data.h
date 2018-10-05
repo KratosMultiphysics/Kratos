@@ -98,35 +98,38 @@ public:
         ValueContainerType& rUpdate,
         std::size_t NumMeasurements)
     {
-        if (NumMeasurements <= 1)
+        KRATOS_DEBUG_ERROR_IF(NumMeasurements == 0)
+        << "Trying to update statistics, but providied number of recorded steps is zero" << std::endl;
+
+        if (NumMeasurements == 1)
         {
             InitializeStorage(pElement, rMeasurement.size());
         }
-        else
+
+        const Geometry<Node<3>> &r_geometry = pElement->GetGeometry();
+        const GeometryData::IntegrationMethod integration_method = pElement->GetIntegrationMethod();
+        Matrix shape_functions;
+        typename Geometry<Node<3>>::ShapeFunctionsGradientsType shape_gradients;
+        this->CalculateGeometryData(r_geometry, integration_method, shape_functions, shape_gradients);
+
+        for (unsigned int g = 0; g < shape_functions.size1(); g++)
         {
-            const Geometry<Node<3>> &r_geometry = pElement->GetGeometry();
-            const GeometryData::IntegrationMethod integration_method = pElement->GetIntegrationMethod();
-            Matrix shape_functions;
-            typename Geometry<Node<3>>::ShapeFunctionsGradientsType shape_gradients;
-            this->CalculateGeometryData(r_geometry, integration_method, shape_functions, shape_gradients);
+            auto N = row(shape_functions, g);
+            auto &rDN_DN = shape_gradients[g];
 
-            for (unsigned int g = 0; g < shape_functions.size1(); g++)
+            auto it_update_buffer = rUpdate.begin();
+            for (auto it_sampler = rStatisticsSamplers.begin(); it_sampler != rStatisticsSamplers.end(); ++it_sampler)
             {
-                auto N = row(shape_functions, g);
-                auto &rDN_DN = shape_gradients[g];
+                (**it_sampler).SampleDataPoint(r_geometry, N, rDN_DN, it_update_buffer);
+            }
 
-                auto it_measurement_buffer = rMeasurement.begin();
-                for (auto it_sampler = rStatisticsSamplers.begin(); it_sampler != rStatisticsSamplers.end(); ++it_sampler)
-                {
-                    (**it_sampler).SampleDataPoint(r_geometry, N, rDN_DN, it_measurement_buffer);
-                }
-
+            if (NumMeasurements > 1) { // Second order and higher statistics start from the second iteration
                 // loop on higer order statistics. They require the already written rMeasurements, (const) mData and the number of steps as input
+            }
 
-                for (unsigned int i = 0; i < rUpdate.size(); i++)
-                {
-                    mData(g,i) += rUpdate[i];
-                }
+            for (unsigned int i = 0; i < rUpdate.size(); i++)
+            {
+                mData(g,i) += rUpdate[i];
             }
         }
     }
