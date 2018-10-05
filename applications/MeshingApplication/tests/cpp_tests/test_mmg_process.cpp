@@ -116,7 +116,7 @@ namespace Kratos
             mmg_process.Execute();
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<true>(this_model_part);
             process.Execute();
 
 //             // DEBUG
@@ -274,7 +274,7 @@ namespace Kratos
             mmg_process.Execute();
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<true>(this_model_part);
             process.Execute();
 
 //             // DEBUG

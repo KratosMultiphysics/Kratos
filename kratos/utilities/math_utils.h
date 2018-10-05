@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -243,12 +243,12 @@ public:
                 ia2(j_sub++) = k;
 
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-		PermutationMatrix<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+        PermutationMatrix<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
 #else
-		boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+        boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
 #endif // KRATOS_USE_AMATRIX
-		const TDataType first_minor = DetMat(sub_mat);
-		return ((i + j) % 2) ? -first_minor : first_minor;
+        const TDataType first_minor = DetMat(sub_mat);
+        return ((i + j) % 2) ? -first_minor : first_minor;
     }
 
     template<class TMatrixType>
@@ -415,13 +415,13 @@ public:
         const VectorType& rB
         )
     {
-        const SizeType size1 = A.size1();
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-		AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
-		double determinant = lu_factorization.determinant();
-		KRATOS_ERROR_IF(std::abs(determinant) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << A << std::endl;
-		rX = lu_factorization.solve(rB);
+        AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
+        double determinant = lu_factorization.determinant();
+        KRATOS_ERROR_IF(std::abs(determinant) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << A << std::endl;
+        rX = lu_factorization.solve(rB);
 #else
+        const SizeType size1 = A.size1();
         rX = rB;
         typedef permutation_matrix<SizeType> pmatrix;
         pmatrix pm(size1);
@@ -429,7 +429,7 @@ public:
         KRATOS_DEBUG_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << A << std::endl;
         lu_substitute(A, pm, rX);
 #endif // ifdef KRATOS_USE_AMATRIX
-	}
+    }
 
     /**
      * It inverts matrices of order 2, 3 and 4
@@ -470,7 +470,7 @@ public:
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
             InputMatrixDet = lu_factorization.determinant();
             KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
-			InvertedMatrix = lu_factorization.inverse();
+            InvertedMatrix = lu_factorization.inverse();
 #else
 
             typedef permutation_matrix<SizeType> pmatrix;
@@ -1167,7 +1167,7 @@ public:
 
         const unsigned int size = ReducedMatrix.size2();
         unsigned int rowindex = 0;
-	unsigned int colindex = 0;
+    unsigned int colindex = 0;
 
         for (unsigned int i = 0; i < size; i++)
         {
@@ -1573,7 +1573,7 @@ public:
             )
     {
         bool is_converged = false;
-        eigen_values_matrix = ZeroMatrix(TDim);
+        eigen_values_matrix = ZeroMatrix(TDim,TDim);
         BoundedMatrix<TDataType, TDim, TDim> TempMat = A;
         BoundedMatrix<TDataType, TDim, TDim> AuxA;
 
