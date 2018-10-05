@@ -102,7 +102,7 @@ class TestModelPart(KratosUnittest.TestCase):
 
 
     def test_model_part_nodes(self):
-        
+
         current_model = Model()
 
         model_part= current_model.CreateModelPart("Main")
@@ -514,9 +514,9 @@ class TestModelPart(KratosUnittest.TestCase):
         model_part1= current_model.CreateModelPart("Main")
         sub1 = model_part1.CreateSubModelPart("sub1")
         sub2 = model_part1.CreateSubModelPart("sub2")
-        
+
         model_part2= current_model.CreateModelPart("Other")
-        
+
         model_part1.CreateNewNode(1,0.0,0.1,0.2)
         model_part1.CreateNewNode(2,2.0,0.1,0.2)
 
@@ -562,9 +562,9 @@ class TestModelPart(KratosUnittest.TestCase):
         model_part1= current_model.CreateModelPart("Main")
         sub1 = model_part1.CreateSubModelPart("sub1")
         sub2 = model_part1.CreateSubModelPart("sub2")
-        
+
         model_part2= current_model.CreateModelPart("Other")
-        
+
         model_part1.CreateNewNode(1,0.0,0.1,0.2)
         model_part1.CreateNewNode(2,2.0,0.1,0.2)
 
@@ -609,13 +609,13 @@ class TestModelPart(KratosUnittest.TestCase):
 
     def test_add_element(self):
         current_model = Model()
-        
+
         model_part1= current_model.CreateModelPart("Main")
         sub1 = model_part1.CreateSubModelPart("sub1")
         sub2 = model_part1.CreateSubModelPart("sub2")
-        
+
         model_part2= current_model.CreateModelPart("Other")
-        
+
         model_part1.CreateNewNode(1,0.0,0.1,0.2)
         model_part1.CreateNewNode(2,2.0,0.1,0.2)
 
@@ -727,6 +727,10 @@ class TestModelPart(KratosUnittest.TestCase):
         subsub1.RemoveMasterSlaveConstraintFromAllLevels(ss1)
 
         self.assertFalse(ss1 in model_part.MasterSlaveConstraints)
+
+    def test_no_constructor(self):
+        with self.assertRaisesRegex(TypeError, "Kratos.ModelPart: No constructor defined!"):
+            ModelPart()
 
 
 if __name__ == '__main__':
