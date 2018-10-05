@@ -31,7 +31,7 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         {
             "help"                        : "This process uses LinearMasterSlaveConstraint in order to impose a periodic boundary condition on the given submodelparts. The process takes the first provided submodelpart as master and the second as slave.",
             "computing_model_part_name"   : "computing_domain",
-            "model_part_name"             : "please_specify_model_part_name"
+            "model_part_name"             : "please_specify_model_part_name",
             "first_model_part_name"       : "please_specify_model_part_name",
             "second_model_part_name"      : "please_specify_model_part_name",
             "interval"                    : [0.0, 1e30],
