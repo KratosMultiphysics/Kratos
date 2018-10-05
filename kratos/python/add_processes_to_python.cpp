@@ -81,6 +81,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteBeforeOutputStep",&Process::ExecuteBeforeOutputStep)
     .def("ExecuteAfterOutputStep",&Process::ExecuteAfterOutputStep)
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
+    .def("Check",&Process::Check)
     .def("__repr__", &Process::Info)
     ;
 
@@ -88,7 +89,7 @@ void  AddProcessesToPython(pybind11::module& m)
     class_<FindNodalHProcess<true>, FindNodalHProcess<true>::Pointer, Process>(m,"FindNodalHProcess")
     .def(init<ModelPart&>())
     ;
-    
+
     // Find NODAL_H (Non-historical variables stored)
     class_<FindNodalHProcess<false>, FindNodalHProcess<false>::Pointer, Process>(m,"FindNodalHNonHistoricalProcess")
     .def(init<ModelPart&>())
