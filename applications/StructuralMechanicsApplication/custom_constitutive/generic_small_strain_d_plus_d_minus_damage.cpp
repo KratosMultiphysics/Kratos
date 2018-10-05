@@ -229,6 +229,20 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
         const DamageParameters& rParameters,
         ConstitutiveLaw::Parameters& rValues)
 {
+    // Matrix projection_operator, A;
+    // const Vector strain_vector = rValues.GetStrainVector();
+    // const Matrix strain_tensor = MathUtils<double>::StrainVectorToTensor(strain_vector);
+    // ConstitutiveLawUtilities<VoigtSize>::CalculateProjectionOperator(strain_vector, projection_operator);
+    // Matrix identity_matrix = IdentityMatrix(Dimension, Dimension);
+
+    // A = std::sqrt(1.0 - rParameters.DamageTension) * projection_operator + std::sqrt(1.0 - rParameters.DamageCompression) * (identity_matrix - projection_operator);
+
+    // const Properties material_props = rValues.GetMaterialProperties();
+    // const double E  = material_props[YOUNG_MODULUS];
+    // const double nu = material_props[POISSON_RATIO];
+    // Matrix constitutive_tensor = ZeroMatrix(Dimension, Dimension);
+	// this->CalculateLinearElasticMatrix(constitutive_tensor, E, nu);
+
     // Provisional!!!! TODO-> convertir A en voigt y S = A*D*A*E
     rIntegratedStressVector = (1.0 - rParameters.DamageTension) * rParameters.TensionStressVector +
                               (1.0 - rParameters.DamageCompression) * rParameters.CompressionStressVector;
