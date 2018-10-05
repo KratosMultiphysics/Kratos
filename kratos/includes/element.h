@@ -356,7 +356,7 @@ public:
      * if the element needs to perform any operation before any calculation is done
      * the elemental variables will be initialized and set using this method
      */
-    virtual void Initialize()
+    virtual void Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
