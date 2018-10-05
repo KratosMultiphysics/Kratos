@@ -130,16 +130,16 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         objGradientDict = self.Communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
         WriteDictionaryDataOnNodalVariable(objGradientDict, self.OptimizationModelPart, DF1DX)
 
-        if self.only_obj["project_gradient_on_surface_normals"].GetBool():
-            self.GeometryUtilities.ComputeUnitSurfaceNormals()
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
+        # if self.only_obj["project_gradient_on_surface_normals"].GetBool():
+        #     self.GeometryUtilities.ComputeUnitSurfaceNormals()
+        #     self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
 
-        if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(DF1DX)
+        # if self.isDampingSpecified:
+        #     self.DampingUtilities.DampNodalVariable(DF1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
-        self.__mapSensitivitiesToDesignSpace()
+        # self.__mapSensitivitiesToDesignSpace()
         self.OptimizationUtilities.ComputeSearchDirectionSteepestDescent()
         self.OptimizationUtilities.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()

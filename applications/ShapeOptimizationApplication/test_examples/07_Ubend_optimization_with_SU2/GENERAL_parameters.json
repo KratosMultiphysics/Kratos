@@ -1,13 +1,14 @@
 {
     "su2_interface_settings" : {
         "su2_related": {
-            "config_file"                : "CFD_ubend_flow.cfg",
-            "number_of_cores"            : 12,
-            "gradient_method"            : "DISCRETE_ADJOINT",
-            "mesh_file"                  : "CFD_ubend.su2",
-            "mesh_motion_file"           : "mesh_motion.dat",
-            "use_restart_in_adjoint_run" : "NO",
-            "design_surface_tag"         : "BOGEN"
+            "config_file"                 : "CFD_ubend_flow.cfg",
+            "number_of_cores"             : 12,
+            "gradient_method"             : "DISCRETE_ADJOINT",
+            "write_frequency_adjoint_run" : 1000,
+            "mesh_file"                   : "CFD_ubend.su2",
+            "mesh_motion_file"            : "mesh_motion.dat",
+            "use_restart_in_adjoint_run"  : "NO",
+            "design_surface_tag"          : "BOGEN"
         },
         "kratos_related": {
             "mdpa_file"      : "CFD_ubend.mdpa",
@@ -41,13 +42,13 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["MESH_DISPLACEMENT","MESH_CHANGE","POINT_LOAD","NORMAL","NORMALIZED_SURFACE_NORMAL"]
+            "nodal_results"       : ["MESH_DISPLACEMENT","MESH_CHANGE","POINT_LOAD","DF1DX","NORMAL","NORMALIZED_SURFACE_NORMAL"]
         },
         "point_data_configuration"  : []
     },
     "optimization_settings" : {
         "objectives" : [{
-                "identifier" : "strain_energy",
+                "identifier" : "pressure_loss",
                 "type"       : "minimization",
                 "use_kratos" : false,
                 "project_gradient_on_surface_normals" : false
