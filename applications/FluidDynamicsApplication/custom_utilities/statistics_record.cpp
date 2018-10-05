@@ -40,6 +40,22 @@ void StatisticsRecord::UpdateStatistics(Element* pElement)
     //r_elemental_statistics.UpdateMeasurement(mMeasurementBuffer);
 }
 
+void StatisticsRecord::FinalizeStatistics(ModelPart::ElementsContainerType& rElements)
+{
+    for (auto it_element = rElements.begin(); it_element != rElements.end(); ++it_element )
+    {
+        auto& r_statistics = it_element->GetValue(TURBULENCE_STATISTICS_DATA);
+        for (std::size_t g = 0; g < r_statistics.NumberOfIntegrationPoints(); g++)
+        {
+            auto data_iterator = r_statistics.DataIterator(g);
+            for (auto it_statistic = mAverageData.begin(); it_statistic != mAverageData.end(); ++it_statistic)
+            {
+                (*it_statistic)->Finalize(data_iterator, mRecordedSteps);
+            }
+        }
+    }
+}
+
 KRATOS_CREATE_VARIABLE( StatisticsRecord::Pointer, STATISTICS_CONTAINER)
 
 //TODO move somewhere else

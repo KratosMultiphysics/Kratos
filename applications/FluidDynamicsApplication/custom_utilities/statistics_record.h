@@ -21,6 +21,8 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
+#include "includes/ublas_interface.h"
 #include "statistics_utilities.h"
 
 namespace Kratos
@@ -52,7 +54,7 @@ namespace Kratos
   */
 class StatisticsRecord
 {
-  public:
+public:
     ///@name Type Definitions
     ///@{
 
@@ -88,6 +90,8 @@ class StatisticsRecord
 
     void UpdateStatistics(Element* pElement);
 
+    void FinalizeStatistics(ModelPart::ElementsContainerType& rElements);
+
     ///@}
     ///@name Access
     ///@{
@@ -120,7 +124,7 @@ class StatisticsRecord
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -150,7 +154,7 @@ class StatisticsRecord
 
     ///@}
 
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 
