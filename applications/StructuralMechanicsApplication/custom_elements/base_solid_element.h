@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED )
@@ -409,8 +409,8 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateOnIntegrationPoints(
-        const Variable<Matrix >& rVariable,
-        std::vector< Matrix >& rOutput,
+        const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -510,6 +510,11 @@ public:
          const ProcessInfo& rCurrentProcessInfo
          ) override;
 
+    // GetValueOnIntegrationPoints are TEMPORARY until they are removed!!!
+    // They will be removed from the derived elements; i.e. the implementation
+    // should be in CalculateOnIntegrationPoints!
+    // Adding these functions here is bcs GiD calls GetValueOnIntegrationPoints
+
     /**
      * @brief Get on rVariable a bool Value from the Element Constitutive Law
      * @param rVariable The variable we want to get
@@ -595,6 +600,7 @@ public:
         ) override;
 
     /**
+     * @todo To be renamed to CalculateOnIntegrationPoints!!!
      * @brief Get on rVariable Constitutive Law from the element
      * @param rVariable The variable we want to get
      * @param rValues The results in the integration points

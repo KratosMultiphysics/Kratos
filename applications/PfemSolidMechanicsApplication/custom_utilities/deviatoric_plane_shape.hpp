@@ -35,7 +35,7 @@ namespace Kratos
 {
 
 
-   class DeviatoricPlaneShapeUtilities
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) DeviatoricPlaneShapeUtilities
    {
 
       public:

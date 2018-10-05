@@ -15,6 +15,21 @@ class PfemSolution(MainSolid.Solution):
     #### Main internal methods ####
 
     def _get_processes_parameters(self):
+
+        # add fluid processes
+        add_fluid_process = True
+        if self.ProjectParameters.Has("problem_data"):
+            if self.ProjectParameters["problem_data"].Has("domain_type"):
+                if(self.ProjectParameters["problem_data"]["domain_type"].GetString() != "Solid"):
+                    add_fluid_process = False
+
+        if add_fluid_process is True:
+            return self._add_fluid_processes()
+        else:
+            return MainSolid.Solution._get_processes_parameters(self)
+
+    def _add_fluid_processes(self):
+
         # get processes parameters from base class
         processes_parameters = MainSolid.Solution._get_processes_parameters(self)
 
@@ -26,24 +41,28 @@ class PfemSolution(MainSolid.Solution):
             #print(" PROBLEM_PROCESSES ", processes_parameters["problem_process_list"].PrettyPrintJsonString())
             extended_problem_processes = self._set_particle_properties_process(problem_processes)
             processes_parameters.AddValue("problem_process_list", extended_problem_processes)
+            extended_problem_processes = self._set_volume_recovery_process(problem_processes)
+            processes_parameters.AddValue("problem_process_list", extended_problem_processes)
             #print(" EXTENDED_PROBLEM_PROCESSES ", processes_parameters["problem_process_list"].PrettyPrintJsonString())
 
         if(processes_parameters.Has("constraints_process_list")):
             constraints_processes = processes_parameters["constraints_process_list"]
-            if(self.echo_level>0):
+            if(self.echo_level>1):
                 print(" CONSTRAINTS_PROCESSES ", processes_parameters["constraints_process_list"].PrettyPrintJsonString())
             extended_constraints_processes = self._set_isolated_nodes_management_process(constraints_processes)
             processes_parameters.AddValue("constraints_process_list", extended_constraints_processes)
-            if(self.echo_level>0):
+            extended_constraints_processes = self._set_selected_elements_management_process(constraints_processes)
+            processes_parameters.AddValue("constraints_process_list", extended_constraints_processes)
+            if(self.echo_level>1):
                 print(" EXTENDED_CONSTRAINTS_PROCESSES ", processes_parameters["constraints_process_list"].PrettyPrintJsonString())
 
         if(processes_parameters.Has("loads_process_list")):
             loads_processes = processes_parameters["loads_process_list"]
-            if(self.echo_level>0):
+            if(self.echo_level>1):
                 print(" LOADS_PROCESSES ", processes_parameters["loads_process_list"].PrettyPrintJsonString())
             extended_loads_processes = self._set_volume_acceleration_process(loads_processes)
             processes_parameters.AddValue("loads_process_list", extended_loads_processes)
-            if(self.echo_level>0):
+            if(self.echo_level>1):
                 print(" EXTENDED_LOADS_PROCESSES ", processes_parameters["loads_process_list"].PrettyPrintJsonString())
 
         return processes_parameters
@@ -65,6 +84,22 @@ class PfemSolution(MainSolid.Solution):
 
         return constraints_processes
 
+    def _set_selected_elements_management_process(self, constraints_processes):
+
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+             "python_module" : "manage_selected_elements_process",
+             "kratos_module" : "KratosMultiphysics.PfemApplication",
+             "Parameters"    : {}
+        }
+        """)
+
+        model_part_name = self.model.GetMainModelPart().Name
+        default_settings["Parameters"].AddEmptyValue("model_part_name").SetString(model_part_name)
+
+        constraints_processes.Append(default_settings)
+
+        return constraints_processes
 
     def _set_volume_acceleration_process(self, loads_processes):
 
@@ -126,6 +161,25 @@ class PfemSolution(MainSolid.Solution):
             "Parameters"    : {
                   "fluid_mixture" : true,
                   "solid_mixture" : false
+            }
+        }
+        """)
+
+        model_part_name = self.model.GetMainModelPart().Name
+        default_settings["Parameters"].AddEmptyValue("model_part_name").SetString(model_part_name)
+
+        problem_processes.Append(default_settings)
+
+        return problem_processes
+
+
+    def _set_volume_recovery_process(self, problem_processes):
+
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+            "python_module" : "volume_recovery_process",
+            "kratos_module" : "KratosMultiphysics.PfemApplication",
+            "Parameters"    : {
             }
         }
         """)

@@ -25,15 +25,16 @@ class ModelManager(object):
            "bodies_list": [],
            "domain_parts_list": [],
            "processes_parts_list": [],
-           "output_model_part_name": "output_domain",
-           "computing_model_part_name": "computing_domain",
+           "output_model_part": "output_domain",
+           "solving_model_part": "computing_domain",
+           "composite_solving_parts": [],
            "input_file_settings": {
                 "type" : "mdpa",
                 "name" : "unknown_name",
                 "label": 0
            },
            "variables":[]
-         }
+        }
         """)
 
         # attention dofs mover to solid_solver
@@ -56,7 +57,40 @@ class ModelManager(object):
         # Variables settings
         self.nodal_variables = []
 
+        # Composite solving parts
+        self.transfer_solving_parts = []
 
+    ########
+
+    #
+    def ExecuteInitialize(self):
+        self.ImportModel()
+
+    #
+    def ExecuteBeforeSolutionLoop(self):
+        pass
+    #
+    def ExecuteInitializeSolutionStep(self):
+        if( self._domain_parts_updated() ):
+            self._update_composite_solving_parts()
+            # print(" UPDATE_SOLVING_PARTS Initialize")
+    #
+    def ExecuteFinalizeSolutionStep(self):
+        pass
+    #
+    def ExecuteBeforeOutputStep(self):
+        if( self._domain_parts_updated() ):
+            self._update_composite_solving_parts()
+            # print(" UPDATE_SOLVING_PARTS Before output")
+    #
+    def ExecuteAfterOutputStep(self):
+        if( self._domain_parts_updated() ):
+            self._update_composite_solving_parts()
+            # print(" UPDATE_SOLVING_PARTS After output")
+
+    ########
+
+    #
     def ImportModel(self):
 
         self._add_variables()
@@ -97,15 +131,21 @@ class ModelManager(object):
             serializer.Load(self.main_model_part.Name, self.main_model_part)
 
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
+            self.main_model_part.ProcessInfo[KratosSolid.RESTART_STEP_TIME] = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+
             #I use it to rebuild the contact conditions.
-            load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] +1;
+            load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] +1
             self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
             # print("   Finished loading model part from restart file ")
 
-            computing_model_part = self.settings["computing_model_part_name"].GetString()
-            self._add_model_part_to_model(computing_model_part)
+            print( self.main_model_part )
+
+            '''
+            solving_model_part = self.settings["solving_model_part"].GetString()
+            self._add_model_part_to_model(solving_model_part)
 
             # Get the list of the model_part's in the object Model
+
             for i in range(self.settings["domain_parts_list"].size()):
                 part_name = self.settings["domain_parts_list"][i].GetString()
                 self._add_model_part_to_model(part_name)
@@ -113,6 +153,17 @@ class ModelManager(object):
             for i in range(self.settings["processes_parts_list"].size()):
                 part_name = self.settings["processes_parts_list"][i].GetString()
                 self._add_model_part_to_model(part_name)
+
+            solving_parts = self.settings["composite_solving_parts"]
+            for i in range(solving_parts.size()):
+                part_name = solving_parts[i]["model_part_name"].GetString()
+                self._add_model_part_to_model(part_name)
+            
+            '''
+            for part in self.main_model_part.SubModelParts:
+                self._add_model_part_to_model(part.Name)
+
+            self._build_composite_solving_parts()
 
         else:
             raise Exception("Other input options are not yet implemented.")
@@ -122,7 +173,7 @@ class ModelManager(object):
         #print (self._class_prefix()+" Finished importing model part")
         print (self._class_prefix()+" Model Ready (DOFs:"+str(dofs)+")")
 
-
+    #
     def ExportModel(self):
         name_out_file = self.settings["input_file_settings"]["name"].GetString()+".out"
         file = open(name_out_file + ".mdpa","w")
@@ -130,6 +181,7 @@ class ModelManager(object):
         # Model part writing
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
+    #
     def CleanModel(self):
         self._clean_body_parts()
 
@@ -145,11 +197,11 @@ class ModelManager(object):
         return self.main_model_part
 
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        return self.main_model_part.GetSubModelPart(self.settings["solving_model_part"].GetString())
 
     def GetOutputModelPart(self):
-        #return self.main_model_part.GetSubModelPart(self.settings["output_model_part_name"].GetString())
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        #return self.main_model_part.GetSubModelPart(self.settings["output_model_part"].GetString())
+        return self.main_model_part.GetSubModelPart(self.settings["solving_model_part"].GetString())
 
     def SaveRestart(self):
         pass #one should write the restart file here
@@ -191,8 +243,8 @@ class ModelManager(object):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
             #print(" Added variable ", KratosMultiphysics.KratosGlobals.GetVariable(variable),"(",variable,")")
 
-        #print(self.nodal_variables)
-        #print(self._class_prefix()+" General Variables ADDED")
+        print(self.nodal_variables)
+        print(self._class_prefix()+" General Variables ADDED")
 
 
     def _set_input_variables(self):
@@ -203,15 +255,19 @@ class ModelManager(object):
     #
     def _execute_after_reading(self):
 
-        self._create_sub_model_part(self.settings["computing_model_part_name"].GetString())
-        #self._create_sub_model_part(self.settings["output_model_part_name"].GetString())
-
         # Build bodies
-        if( self._has_bodies() ):
+        if self._has_bodies():
             self._build_bodies()
 
-        # Build computing domain
-        self._build_computing_domain()
+        # Build solving model parts
+        self._build_solving_model_part()
+
+        # Build composite solving model parts
+        self._build_composite_solving_parts()
+        self._update_composite_solving_parts()
+
+        # Build output model part
+        #self._create_sub_model_part(self.settings["output_model_part"].GetString())
 
         # Build model
         self._build_model()
@@ -280,20 +336,21 @@ class ModelManager(object):
                 body_model_part.Set(KratosMultiphysics.RIGID)
                 rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
 
-
     #
-    def _build_computing_domain(self):
+    def _build_solving_model_part(self):
 
-        # The computing_model_part is labeled 'KratosMultiphysics.ACTIVE' flag (in order to recover it)
-        computing_model_part_name  = self.settings["computing_model_part_name"].GetString()
-        sub_model_part_names       = self.settings["domain_parts_list"]
+        # The solving_model_part is labeled 'KratosMultiphysics.ACTIVE' flag (in order to recover it)
+        self._create_sub_model_part(self.settings["solving_model_part"].GetString())
+
+        solving_model_part_name    = self.settings["solving_model_part"].GetString()
+        domain_model_part_names    = self.settings["domain_parts_list"]
         processes_model_part_names = self.settings["processes_parts_list"]
 
         fluid_parts = False
         solid_parts = False
         domain_parts = []
-        for i in range(sub_model_part_names.size()):
-            domain_part = self.main_model_part.GetSubModelPart(sub_model_part_names[i].GetString())
+        for i in range(domain_model_part_names.size()):
+            domain_part = self.main_model_part.GetSubModelPart(domain_model_part_names[i].GetString())
             if( domain_part.Is(KratosMultiphysics.FLUID) ):
                 fluid_parts = True
             elif( domain_part.Is(KratosMultiphysics.SOLID) ):
@@ -306,35 +363,50 @@ class ModelManager(object):
         for i in range(processes_model_part_names.size()):
             processes_parts.append(self.main_model_part.GetSubModelPart(processes_model_part_names[i].GetString()))
 
-        computing_model_part = self.main_model_part.GetSubModelPart(computing_model_part_name)
-        computing_model_part.ProcessInfo = self.main_model_part.ProcessInfo
-        computing_model_part.Properties  = self.main_model_part.Properties
+        solving_model_part = self.main_model_part.GetSubModelPart(solving_model_part_name)
+        solving_model_part.ProcessInfo = self.main_model_part.ProcessInfo
+        solving_model_part.Properties  = self.main_model_part.Properties
 
         #set flag to identify the fluid/solid body parts in the computing domain
         if( solid_parts ):
-            computing_model_part.Set(KratosMultiphysics.SOLID)
+            solving_model_part.Set(KratosMultiphysics.SOLID)
         if( fluid_parts ):
-            computing_model_part.Set(KratosMultiphysics.FLUID)
+            solving_model_part.Set(KratosMultiphysics.FLUID)
 
         #set flag to identify the computing model part
-        computing_model_part.Set(KratosMultiphysics.ACTIVE)
+        solving_model_part.Set(KratosMultiphysics.ACTIVE)
 
         entity_type = "Nodes"
-        transfer_process = KratosSolid.TransferEntitiesProcess(computing_model_part,self.main_model_part,entity_type)
+        transfer_process = KratosSolid.TransferEntitiesProcess(solving_model_part,self.main_model_part,entity_type)
         transfer_process.Execute()
 
         for part in domain_parts:
             entity_type = "Elements"
-            transfer_process = KratosSolid.TransferEntitiesProcess(computing_model_part,part,entity_type)
+            transfer_process = KratosSolid.TransferEntitiesProcess(solving_model_part,part,entity_type)
             transfer_process.Execute()
 
         for part in processes_parts:
             part.Set(KratosMultiphysics.BOUNDARY)
             entity_type = "Conditions"
             #condition flags as BOUNDARY or CONTACT are reserved to composite or contact conditions (do not set it here)
-            transfer_process = KratosSolid.TransferEntitiesProcess(computing_model_part,part,entity_type)
+            transfer_process = KratosSolid.TransferEntitiesProcess(solving_model_part,part,entity_type)
             transfer_process.Execute()
 
+    #
+    def _build_composite_solving_parts(self):
+
+        print(self._class_prefix()+" Composite Solving Parts")
+        solving_parts = self.settings["composite_solving_parts"]
+        for i in range(0,solving_parts.size()):
+            print(self._class_prefix()+" Build Part: "+solving_parts[i]["model_part_name"].GetString())
+            solving_part_transfer = KratosSolid.TransferSolvingModelPartProcess(self.main_model_part,solving_parts[i])
+            self.transfer_solving_parts.append(solving_part_transfer)
+
+    #
+    def _update_composite_solving_parts(self):
+        print(self._class_prefix()+" Update Solving Parts")
+        for transfer in self.transfer_solving_parts:
+            transfer.Execute()
     #
     def _build_model(self):
 
@@ -360,6 +432,11 @@ class ModelManager(object):
             if( self.main_model_part.HasSubModelPart(part_name) ):
                 self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
 
+        for i in range(self.settings["composite_solving_parts"].size()):
+            part_name = self.settings["composite_solving_parts"][i]["model_part_name"].GetString()
+            if( self.main_model_part.HasSubModelPart(part_name) ):
+                self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+
     #
     def _clean_body_parts(self):
 
@@ -373,6 +450,54 @@ class ModelManager(object):
                     self.main_model_part.RemoveSubModelPart(body_parts_name_list[j].GetString())
                     #print(self._class_prefix()+" Body Part Removed: "+ body_parts_name_list[j].GetString())
 
+    #
+    def _domain_parts_updated(self):
+        update_time = False
+        if not self._is_not_restarted():
+            if self.process_info.Has(KratosSolid.RESTART_STEP_TIME):
+                update_time = self._check_current_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME])
+                # print(" RESTART_STEP_TIME ",self.process_info[KratosSolid.RESTART_STEP_TIME], update_time)
+
+        if not update_time and self.process_info.Has(KratosSolid.MESHING_STEP_TIME):
+            update_time = self._check_previous_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
+
+        if not update_time and self.process_info.Has(KratosSolid.CONTACT_STEP_TIME):
+            update_time = self._check_previous_time_step(self.process_info[KratosSolid.CONTACT_STEP_TIME])
+
+        return update_time
+    #
+    def _check_current_time_step(self, step_time):
+        current_time  = self.process_info[KratosMultiphysics.TIME]
+        delta_time    = self.process_info[KratosMultiphysics.DELTA_TIME]
+        #arithmetic floating point tolerance
+        tolerance = delta_time * 0.001
+
+        if( step_time > current_time-tolerance and step_time < current_time+tolerance ):
+            return True
+        else:
+            return False
+    #
+    def _check_previous_time_step(self, step_time):
+        current_time  = self.process_info[KratosMultiphysics.TIME]
+        delta_time    = self.process_info[KratosMultiphysics.DELTA_TIME]
+        previous_time = current_time - delta_time
+
+        #arithmetic floating point tolerance
+        tolerance = delta_time * 0.001
+
+        if( step_time > previous_time-tolerance and step_time < previous_time+tolerance ):
+            return True
+        else:
+            return False
+    #
+    def _is_not_restarted(self):
+        if self.process_info.Has(KratosMultiphysics.IS_RESTARTED):
+            if self.process_info[KratosMultiphysics.IS_RESTARTED]:
+                return False
+            else:
+                return True
+        else:
+            return True
     #
     def _has_bodies(self):
         if( self.settings.Has("bodies_list") ):

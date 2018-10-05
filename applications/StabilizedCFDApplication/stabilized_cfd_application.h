@@ -80,7 +80,7 @@ public:
 	KratosStabilizedCFDApplication();
 
 	/// Destructor.
-	virtual ~KratosStabilizedCFDApplication(){}
+	~KratosStabilizedCFDApplication() override {}
 
 
 	///@}

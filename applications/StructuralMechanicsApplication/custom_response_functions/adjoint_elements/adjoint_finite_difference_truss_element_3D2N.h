@@ -37,10 +37,6 @@ public:
 
     ~AdjointFiniteDifferenceTrussElement() override;
 
-    void Calculate(const Variable<Vector >& rVariable,
-                        Vector& rOutput,
-                        const ProcessInfo& rCurrentProcessInfo) override;
-
     /**
      * Calculates the derivative of stresses/stress resultants w.r.t primal displacement. The calculation is done analytically.
      * The derivative consists of two parts: The analytic derivative of the current length w.r.t. displacement
@@ -57,8 +53,6 @@ private:
     void CheckDofs();
 
     void CheckProperties(const ProcessInfo& rCurrentProcessInfo);
-
-    double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) override;
 
     double CalculateReferenceLength();
 

@@ -28,93 +28,11 @@ AdjointFiniteDifferenceCrBeamElement::~AdjointFiniteDifferenceCrBeamElement()
 {
 }
 
-void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rVariable,
-                        Vector& rOutput,
-                        const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    if(rVariable == STRESS_ON_GP || rVariable == STRESS_ON_NODE)
-    {
-        TracedStressType traced_stress_type = static_cast<TracedStressType>(this->GetValue(TRACED_STRESS_TYPE));
-
-        std::vector< array_1d<double, 3 > > stress_vector;
-        int direction_1 = 0;
-        bool stress_is_moment = true;
-
-        switch (traced_stress_type)
-        {
-            case TracedStressType::MX:
-            {
-                direction_1 = 0;
-                break;
-            }
-            case TracedStressType::MY:
-            {
-                direction_1 = 1;
-                break;
-            }
-            case TracedStressType::MZ:
-            {
-                direction_1 = 2;
-                break;
-            }
-            case TracedStressType::FX:
-            {
-                direction_1 = 0;
-                stress_is_moment = false;
-                break;
-            }
-            case TracedStressType::FY:
-            {
-                direction_1 = 1;
-                stress_is_moment = false;
-                break;
-            }
-            case TracedStressType::FZ:
-            {
-                direction_1 = 2;
-                stress_is_moment = false;
-                break;
-            }
-            default:
-                KRATOS_ERROR << "Invalid stress type! Stress type not supported for this element!" << std::endl;
-        }
-
-        if(stress_is_moment)
-            mpPrimalElement->GetValueOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
-        else
-            mpPrimalElement->GetValueOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
-
-        if(rVariable == STRESS_ON_GP)
-        {
-            const SizeType  GP_num = GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
-
-            rOutput.resize(GP_num);
-            for(IndexType i = 0; i < GP_num ; i++)
-            {
-                rOutput(i) = stress_vector[i][direction_1];
-            }
-        }
-        else if(rVariable == STRESS_ON_NODE)
-        {
-            rOutput.resize(2);
-            rOutput(0) = 2 * stress_vector[0][direction_1] - stress_vector[1][direction_1];
-            rOutput(1) = 2 * stress_vector[2][direction_1] - stress_vector[1][direction_1];
-        }
-    }
-    else
-    {
-        rOutput.resize(3);
-        rOutput.clear();
-    }
-
-    KRATOS_CATCH("")
-}
-
 int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+    int return_value = AdjointFiniteDifferencingBaseElement::Check(rCurrentProcessInfo);
 
     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
@@ -168,25 +86,7 @@ int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProce
     KRATOS_ERROR_IF_NOT( this->GetProperties().Has(I33) )
     << "I33 not provided for this element" << this->Id() << std::endl;
 
-    return 0;
-
-    KRATOS_CATCH("")
-}
-
-double AdjointFiniteDifferenceCrBeamElement::GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable)
-{
-    KRATOS_TRY;
-
-    if(rDesignVariable == SHAPE)
-    {
-        double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-        double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-        double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-        double L = std::sqrt(dx*dx + dy*dy + dz*dz);
-        return L;
-    }
-    else
-        return 1.0;
+    return return_value;
 
     KRATOS_CATCH("")
 }
