@@ -11,7 +11,7 @@ import filecmp
 import os
 import math
 
-def Factory(settings, Model):
+def Factory(settings, current_model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return CompareTwoFilesCheckProcess(settings["Parameters"])

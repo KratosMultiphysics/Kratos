@@ -33,7 +33,7 @@ namespace Kratos
         * Test 1
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestFastTransferBetweenModelPartsProcess1, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess1, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -93,7 +93,7 @@ namespace Kratos
         * Test 2 (with flags)
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestFastTransferBetweenModelPartsProcess2, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess2, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -175,7 +175,7 @@ namespace Kratos
         * Test 3 (clone/replicate)
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestFastTransferBetweenModelPartsProcess3, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess3, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -235,7 +235,7 @@ namespace Kratos
         * Test 4 (clone/replicate with flags)
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestFastTransferBetweenModelPartsProcess4, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess4, KratosCoreFastSuite)
         {
             Model current_model;
             
