@@ -135,6 +135,8 @@ class CustomSU2Analyzer(AnalyzerBaseClass):
         if communicator.isRequestingValueOf("strain_energy") or \
            communicator.isRequestingGradientOf("strain_energy"):
 
+            scaling_fac = 10000
+
             # Initialize new structural solution
             csm_response.InitializeSolutionStep()
 
@@ -155,12 +157,14 @@ class CustomSU2Analyzer(AnalyzerBaseClass):
 
             # Calculate value
             csm_response.CalculateValue()
-            communicator.reportValue("strain_energy", csm_response.GetValue())
+            communicator.reportValue("strain_energy", scaling_fac*csm_response.GetValue())
 
             # Calculate gradient
             if communicator.isRequestingGradientOf("strain_energy"):
                 csm_response.CalculateGradient()
-                communicator.reportGradient("strain_energy", csm_response.GetShapeGradient())
+                gradient = csm_response.GetShapeGradient()
+                gradient.update({key: [scaling_fac*value[0],scaling_fac*value[1],scaling_fac*value[2]] for key, value in gradient.items()})
+                communicator.reportGradient("strain_energy", gradient)
 
             csm_response.FinalizeSolutionStep()
 
