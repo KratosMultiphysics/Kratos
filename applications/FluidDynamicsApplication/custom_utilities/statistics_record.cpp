@@ -31,6 +31,18 @@ void StatisticsRecord::InitializeStorage()
     mInitialized = true;
 }
 
+void StatisticsRecord::SampleIntegrationPointResults(ModelPart& rModelPart)
+{
+    mRecordedSteps++;
+
+    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    std::vector<double> dummy;
+    for( auto it_elem = rModelPart.ElementsBegin(); it_elem != rModelPart.ElementsEnd(); ++it_elem)
+    {
+        it_elem->GetValueOnIntegrationPoints(UPDATE_STATISTICS,dummy,r_process_info);
+    }
+}
+
 void StatisticsRecord::UpdateStatistics(Element* pElement)
 {
     KRATOS_DEBUG_ERROR_IF(pElement->Has(TURBULENCE_STATISTICS_DATA)) << "Trying to compute turbulent statistics, but " << pElement->Info() << " does not have TURBULENCE_STATISTICS_DATA defined." << std::endl;

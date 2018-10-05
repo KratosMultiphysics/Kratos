@@ -88,6 +88,8 @@ public:
 
     void InitializeStorage();
 
+    void SampleIntegrationPointResults(ModelPart& rModelPart);
+
     void UpdateStatistics(Element* pElement);
 
     void FinalizeStatistics(ModelPart::ElementsContainerType& rElements);
