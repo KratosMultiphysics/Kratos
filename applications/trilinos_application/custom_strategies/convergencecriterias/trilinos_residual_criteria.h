@@ -122,6 +122,8 @@ protected:
         long int global_dof_num = 0;
         rB.Comm().SumAll(&local_dof_num,&global_dof_num,1);
         rDofNum = static_cast<typename BaseType::SizeType>(global_dof_num);
+
+        rResidualSolutionNorm = std::sqrt(rResidualSolutionNorm);
     }
 
     ///@}
