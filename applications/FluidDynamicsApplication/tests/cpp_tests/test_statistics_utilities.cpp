@@ -47,8 +47,10 @@ void TestStatisticsUtilitiesInitializeModelPart(
 
     for (unsigned int i = 0; i < 4; i++) {
         Node<3>& r_node = r_geometry[i];
-        r_node.FastGetSolutionStepValue(PRESSURE) = 10.0 * r_node.Id();
-        r_node.FastGetSolutionStepValue(VELOCITY_X) = r_node.Id() + 5.0;
+        r_node.FastGetSolutionStepValue(PRESSURE) = 10.0; // * r_node.Id();
+        r_node.FastGetSolutionStepValue(VELOCITY_X) = 1.0;//r_node.Id() + 5.0;
+        r_node.FastGetSolutionStepValue(VELOCITY_Y) = 2.0;//r_node.Id() + 5.0;
+        r_node.FastGetSolutionStepValue(VELOCITY_Z) = 3.0;//r_node.Id() + 5.0;
     }
 
     // Element data
@@ -61,17 +63,17 @@ void TestStatisticsUtilitiesInitializeModelPart(
     for (unsigned int i = 1; i < BufferSize; i++) {
         rModelPart.CloneTimeStep(i * DeltaTime);
 
-        for (unsigned int j = 0; j < 4; j++) {
+/*        for (unsigned int j = 0; j < 4; j++) {
             Node<3>& r_node = r_geometry[j];
             r_node.FastGetSolutionStepValue(PRESSURE) += float(i);
             r_node.FastGetSolutionStepValue(VELOCITY_Y) = r_node.Id() + i;
-        }
+        }*/
     }
 }
 
 class MakeSamplerAtLocalCoordinate {
 public:
-    static std::function<double(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> ValueGetter(Variable<double> rVariable) {
+    static std::function<double(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> ValueGetter(Variable<double>& rVariable) {
         return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> double {
             KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeFunctions.size()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
             double value = 0.0;
@@ -83,7 +85,7 @@ public:
     }
 
 
-    static std::function< array_1d<double,3>(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > ValueGetter(Variable<array_1d<double,3>> rVariable) {
+    static std::function< array_1d<double,3>(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > ValueGetter(Variable<array_1d<double,3>>& rVariable) {
         return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> array_1d<double,3> {
             KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeFunctions.size()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
             array_1d<double,3> value = ZeroVector(3);
@@ -94,7 +96,7 @@ public:
         };
     }
 
-    static std::function< Matrix(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > ValueGetter(Variable<Matrix> rVariable) {
+    static std::function< Matrix(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > ValueGetter(Variable<Matrix>& rVariable) {
         return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> Matrix {
             KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeFunctions.size()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
             Matrix value = ZeroMatrix(3,3);
@@ -106,7 +108,7 @@ public:
     }
 
 
-    static std::function< array_1d<double,3>(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > GradientGetter(Variable<double> rVariable) {
+    static std::function< array_1d<double,3>(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > GradientGetter(Variable<double>& rVariable) {
         return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> array_1d<double,3> {
             KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeDerivatives.size1()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
             array_1d<double,3> gradient = ZeroVector(3);
@@ -120,7 +122,7 @@ public:
     }
 
 
-    static std::function< Matrix(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > GradientGetter(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, Variable<array_1d<double,3>> rVariable) {
+    static std::function< Matrix(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > GradientGetter(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, Variable<array_1d<double,3>>& rVariable) {
         return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> Matrix {
             KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeDerivatives.size1()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
             Matrix gradient = ZeroMatrix(3,3);
@@ -165,6 +167,10 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
     model_part.GetProcessInfo().SetValue(STATISTICS_CONTAINER,p_turbulence_statistics);
 
     p_turbulence_statistics->SampleIntegrationPointResults(model_part);
+
+    model_part.CloneTimeStep(0.2);
+    p_turbulence_statistics->SampleIntegrationPointResults(model_part);
+
     p_turbulence_statistics->FinalizeStatistics(model_part.Elements());
 
     //StatisticsUtilities::DumpToFile(p_turbulence_statistics,model_part,"filename.h5");
