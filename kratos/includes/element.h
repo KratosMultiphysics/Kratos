@@ -285,7 +285,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                  const ProcessInfo& rCurrentProcessInfo)
     {
         if (rResult.size() != 0)
             rResult.resize(0);
@@ -297,7 +297,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            ProcessInfo& rCurrentProcessInfo)
+                            const ProcessInfo& rCurrentProcessInfo)
     {
         if (rElementalDofList.size() != 0)
             rElementalDofList.resize(0);
@@ -389,7 +389,7 @@ public:
     /**
      * this is called in the beginning of each solution step
      */
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    virtual void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -397,14 +397,14 @@ public:
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    virtual void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     /**
      * this is called for non-linear analysis at the end of the iteration process
      */
-    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    virtual void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -412,7 +412,7 @@ public:
     /**
      * this is called at the end of each solution step
      */
-    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    virtual void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -434,7 +434,7 @@ public:
      */
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      const ProcessInfo& rCurrentProcessInfo)
     {
        if (rLeftHandSideMatrix.size1() != 0)
 	  rLeftHandSideMatrix.resize(0, 0, false);
@@ -455,7 +455,7 @@ public:
                                       const std::vector< Variable< MatrixType > >& rLHSVariables,
                                       std::vector< VectorType >& rRightHandSideVectors,
                                       const std::vector< Variable< VectorType > >& rRHSVariables,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -466,7 +466,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+                                       const ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
 	  rLeftHandSideMatrix.resize(0, 0, false);
@@ -481,7 +481,7 @@ public:
      */
     virtual void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
 					const std::vector< Variable< MatrixType > >& rLHSVariables,
-					ProcessInfo& rCurrentProcessInfo)
+					const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -492,7 +492,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        const ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
 	  rRightHandSideVector.resize(0, false);
@@ -507,7 +507,7 @@ public:
      */
     virtual void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
 					const std::vector< Variable< VectorType > >& rRHSVariables,
-					ProcessInfo& rCurrentProcessInfo)
+					const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -531,7 +531,7 @@ public:
      */
     virtual void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
 							VectorType& rRightHandSideVector,
-							ProcessInfo& rCurrentProcessInfo)
+							const ProcessInfo& rCurrentProcessInfo)
     {
        if (rLeftHandSideMatrix.size1() != 0)
 	  rLeftHandSideMatrix.resize(0, 0, false);
@@ -546,7 +546,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					      ProcessInfo& rCurrentProcessInfo)
+					      const ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
 	  rLeftHandSideMatrix.resize(0, 0, false);
@@ -560,7 +560,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
-					      ProcessInfo& rCurrentProcessInfo)
+					      const ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
 	  rRightHandSideVector.resize(0, false);
@@ -587,7 +587,7 @@ public:
      */
     virtual void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
 							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo)
+							 const ProcessInfo& rCurrentProcessInfo)
     {
        if (rLeftHandSideMatrix.size1() != 0)
 	  rLeftHandSideMatrix.resize(0, 0, false);
@@ -603,7 +603,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					       ProcessInfo& rCurrentProcessInfo)
+					       const ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
 	  rLeftHandSideMatrix.resize(0, 0, false);
@@ -617,7 +617,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-					       ProcessInfo& rCurrentProcessInfo)
+					       const ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
 	  rRightHandSideVector.resize(0, false);
@@ -637,7 +637,7 @@ public:
      * @param rMassMatrix the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
 	  rMassMatrix.resize(0, 0, false);
@@ -650,7 +650,7 @@ public:
      * @param rDampingMatrix the elemental damping matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+    virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampingMatrix.size1() != 0)
 	  rDampingMatrix.resize(0, 0, false);
@@ -674,7 +674,7 @@ public:
      * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
       * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
+    virtual void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -938,7 +938,7 @@ public:
      * @param rMassMatrix the elemental mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+    virtual void MassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
 	  rMassMatrix.resize(0, 0, false);
@@ -951,7 +951,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void AddMassMatrix(MatrixType& rLeftHandSideMatrix,
-                               double coeff, ProcessInfo& rCurrentProcessInfo)
+                               double coeff, const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -961,7 +961,7 @@ public:
      * @param rDampMatrix the elemental damping matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
+    virtual void DampMatrix(MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampMatrix.size1() != 0)
 	  rDampMatrix.resize(0, 0, false);
@@ -972,7 +972,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void AddInertiaForces(VectorType& rRightHandSideVector, double coeff,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                  const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -983,7 +983,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
-            VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+            VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampingMatrix.size1() != 0)
 	  rDampingMatrix.resize(0, 0, false);
