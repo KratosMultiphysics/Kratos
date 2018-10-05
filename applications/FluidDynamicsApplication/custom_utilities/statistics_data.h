@@ -182,12 +182,12 @@ public:
         return mData.size1();
     }
 
-    typename boost::numeric::ublas::matrix_row<Matrix>::iterator DataIterator(std::size_t IntegrationPointIndex)
+    typename Matrix::iterator2 DataIterator(std::size_t IntegrationPointIndex)
     {
         KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex >= mData.size1())
             << "Asking for integration point number " << IntegrationPointIndex
             << " but only " << mData.size1() << " points are recorded." << std::endl;
-        return matrix_row<Matrix>(mData,IntegrationPointIndex).begin();
+        return (mData.begin1() + IntegrationPointIndex).begin();
     }
 
     ///@}
