@@ -337,7 +337,20 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombYieldSurfa
     {
         return false;
     }
-		
+
+	/**
+     * @brief This method returns the scaling factor of the
+     * yield surface
+	 * surfacecompares with the tension tield stress
+     */
+    static double GetScaleFactorTension(const Properties& rMaterialProperties)
+    {
+        const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+        const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION]; 
+        return yield_compression / yield_tension;
+    }
+
+
     ///@}
     ///@name Access
     ///@{

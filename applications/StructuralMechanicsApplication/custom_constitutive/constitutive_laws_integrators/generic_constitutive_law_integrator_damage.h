@@ -213,7 +213,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     {
         KRATOS_CHECK_VARIABLE_KEY(SOFTENING_TYPE);
 
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "HARDENING_CURVE is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "SOFTENING_TYPE is not a defined value" << std::endl;
 
         return TYieldSurfaceType::Check(rMaterialProperties);
     }

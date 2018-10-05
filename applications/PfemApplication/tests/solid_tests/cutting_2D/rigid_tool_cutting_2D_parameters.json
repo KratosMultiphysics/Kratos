@@ -1,0 +1,332 @@
+{
+    "input_settings":{
+	"materials_file_name" : "solid_tests/cutting_2D/rigid_tool_cutting_2D_materials.json"
+    },
+    "problem_data" : {
+	"domain_type": "Solid",
+        "echo_level" : 1,
+        "threads"    : 2
+    },
+    "time_settings" : {
+        "time_step" : 1.25e-8,
+        "end_time"  : 1.25e-7
+    },
+    "model_settings" : {
+	"model_name" : "Main_Domain",
+        "dimension" : 2,
+	"bodies_list":[{
+	    "body_type": "Solid",
+	    "body_name": "Solid_Piece",
+	    "parts_list": ["Piece"]
+        },{
+	    "body_type": "Rigid",
+	    "body_name": "Rigid_Tool",
+	    "parts_list": ["Tool"]
+        }],
+        "domain_parts_list"    : ["Piece","Tool"],
+        "processes_parts_list" : ["tool_disp","piece_disp","ini_temp","full_temp","piece_gravity"],
+	"solving_model_part": "computing_domain",
+	"composite_solving_parts":[{
+            "model_part_name": "thermal_computing_domain",
+            "assign_flags": ["ACTIVE","THERMAL"],
+ 	    "composite_conditions": false,
+            "transfer_entities": [{
+                "origin_model_parts_list": ["computing_domain"],
+                "entity_type": "Node"
+            }],
+	    "generate_entities": [{
+                "origin_model_parts_list": ["computing_domain"],
+		"transfer_flags": ["NOT_RIGID"],
+                "entity_type": "Element",
+		"entity_kratos_type": "ThermalElement2D3N"
+	    }]
+	}],
+	"variables": ["VELOCITY","ACCELERATION"]
+    },
+    "solver_settings" : {
+        "solver_type" : "solid_mechanics_composite_solver",
+	"Parameters"  : {
+	    "solvers" : [{
+		"solver_type" : "solid_mechanics_static_solver",
+		"Parameters"  : {
+		    "time_integration_settings" : {
+			"solution_type"      : "Quasi-static",
+			"analysis_type"      : "Non-linear",
+			"integration_method" : "Static"
+		    },
+		    "solving_strategy_settings" : {
+			"line_search"            : true,
+			"implex"                 : true,
+			"compute_reactions"      : true,
+			"reform_dofs_at_each_step" : true,
+			"max_iteration"          : 15
+		    },
+		    "convergence_criterion_settings" : {
+			"convergence_criterion"       : "Residual_criterion",
+			"residual_relative_tolerance" : 1e-4,
+			"residual_absolute_tolerance" : 1e-9
+		    },
+		    "linear_solver_settings"    : {
+			"solver_type" : "SuperLUSolver",
+			"tolerance"   : 1e-7,
+			"max_iteration" : 5000,
+			"scaling"     : true
+		    },
+		    "dofs" : ["DISPLACEMENT","PRESSURE"],
+		    "solving_model_part": "computing_domain"
+		}
+            },{
+		"solver_type" : "solid_mechanics_static_solver",
+		"Parameters"  : {
+		    "time_integration_settings" : {
+			"solution_type"      : "Quasi-static",
+			"analysis_type"      : "Non-linear",
+			"integration_method" : "Static"
+		    },
+		    "solving_strategy_settings" : {
+			"line_search"            : false,
+			"implex"                 : false,
+			"compute_reactions"      : false,
+			"reform_dofs_at_each_step" : false,
+			"max_iteration"          : 10
+		    },
+		    "convergence_criterion_settings" : {
+			"convergence_criterion"       : "Residual_criterion",
+			"residual_relative_tolerance" : 1e-5,
+			"residual_absolute_tolerance" : 1e-9
+		    },
+		    "linear_solver_settings"    : {
+			"solver_type" : "SuperLUSolver",
+			"tolerance"   : 1e-7,
+			"max_iteration" : 5000,
+			"scaling"     : false
+		    },
+		    "dofs" : ["TEMPERATURE"],
+		    "solving_model_part": "thermal_computing_domain"
+		}
+	    }],
+	    "processes"   : []
+	}
+    },
+    "problem_process_list" : [{
+        "help"            : "This process applies meshing to the problem domains",
+        "kratos_module"   : "KratosMultiphysics.DelaunayMeshingApplication",
+        "python_module"   : "remesh_domains_process",
+        "process_name"    : "RemeshDomainsProcess",
+        "Parameters"      : {
+            "model_part_name"       : "Main_Domain",
+            "meshing_control_type"  : "step",
+            "meshing_frequency"     : 0.0,
+            "meshing_before_output" : true,
+            "meshing_domains" : [
+		{
+                    "python_module": "meshing_domain",
+                    "model_part_name": "Solid_Piece",
+                    "alpha_shape": 2.4,
+                    "offset_factor": 2e-6,
+                    "meshing_strategy":{
+			"python_module": "meshing_strategy",
+			"meshing_frequency": 0.0,
+			"remesh": true,
+			"refine": true,
+			"reconnect": true,
+			"transfer": false,
+			"constrained": true,
+			"mesh_smoothing": true,
+			"variables_smoothing": true,
+			"elemental_variables_to_smooth":[ "DETERMINANT_F" ],
+			"reference_element_type": "Element2D3N",
+			"reference_condition_type": "CompositeCondition2D2N"
+		    },
+		    "spatial_bounding_box":{
+			"upper_point": [0.0, 0.0, 0.0],
+			"lower_point": [0.0, 0.0, 0.0],
+			"velocity": [0.0, 0.0, 0.0]
+		    },
+		    "refining_parameters":{
+			"critical_size": 1e-6,
+			"threshold_variable": "PLASTIC_DISSIPATION",
+			"reference_threshold" : 100,
+			"error_variable": "PLASTIC_STRAIN",
+			"reference_error" : 2,
+			"add_nodes": true,
+			"insert_nodes": false,
+			"remove_nodes": {
+                            "apply_removal": false,
+                            "on_distance": true,
+                            "on_threshold": false,
+                            "on_error": true
+			},
+			"remove_boundary": {
+                            "apply_removal": false,
+                            "on_distance": true,
+                            "on_threshold": false,
+                            "on_error": false
+			},
+			"refine_elements": {
+                            "apply_refinement": false,
+                            "on_distance": true,
+                            "on_threshold": true,
+                            "on_error": false
+			},
+			"refine_boundary": {
+                            "apply_refinement": false,
+                            "on_distance": false,
+                            "on_threshold": false,
+                            "on_error": false
+			},
+			"refining_box":{
+                            "refine_in_box_only": false,
+                            "upper_point": [0,0,0],
+                            "lower_point": [0,0,0],
+                            "velocity": [0,0,0]
+			}
+		    },
+		    "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ]
+		}
+            ]
+        }
+    },{
+        "help"            : "This process applies parametric walls and search contact",
+        "kratos_module"   : "KratosMultiphysics.ContactMechanicsApplication",
+        "python_module"   : "parametric_walls_process",
+        "process_name"    : "ParametricWallsProcess",
+        "Parameters"      : {
+            "model_part_name"      : "Main_Domain",
+            "search_control_type"  : "step",
+            "search_frequency"     : 0.0,
+            "parametric_walls" : [
+                {
+                    "python_module": "parametric_wall",
+                    "model_part_name" : "Rigid_Tool",
+                    "rigid_body_settings":{
+                        "rigid_body_element_type": "TranslatoryRigidBodyElement2D1N",
+                        "fixed_body": true,
+                        "compute_body_parameters": false,
+                        "rigid_body_model_part_name": "Rigid_Tool",
+                        "rigid_body_parameters":{
+                            "center_of_gravity": [0.00702505,0.003525,0],
+                            "mass": 1,
+                            "main_inertias": [0, 0, 0],
+                            "main_axes": [ [1,0,0], [0,1,0], [0,0,1] ]
+                        }
+                    },
+                    "bounding_box_settings":{
+                        "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+                        "bounding_box_type": "CompoundNosesBoundingBox",
+                        "bounding_box_parameters":{
+                            "parameters_list":[
+                                {
+                                    "radius": 2.52166e-5,
+                                    "center": [0.00702505, 0.003525, 0],
+                                    "rake_angle": 0,
+                                    "clearance_angle": 5,
+                                    "convexity": 1
+                                }
+                            ],
+                            "velocity" : [0.0, 0.0, 0.0],
+                            "plane_size": 1.0e-3
+                        }
+
+                    },
+                    "contact_search_settings":{
+                        "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+                        "contact_search_type": "ParametricWallContactSearch",
+                        "contact_parameters":{
+                            "contact_condition_type": "PointContactPenaltyCondition2D1N",
+                            "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+                            "friction_law_type": "HardeningCoulombFrictionLaw",
+                            "variables_of_properties":{
+                                "FRICTION_ACTIVE": false,
+                                "MU_STATIC": 0.2,
+                                "MU_DYNAMIC": 0.3,
+                                "PENALTY_PARAMETER": 1000,
+                                "TANGENTIAL_PENALTY_RATIO": 0.1,
+                                "TAU_STAB": 1
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }],
+    "constraints_process_list" : [{
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "assign_vector_components_to_nodes_process",
+        "Parameters"      : {
+            "model_part_name" : "tool_disp",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : ["-3.333*t",0.0,null]
+        }
+    },{
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "assign_vector_components_to_nodes_process",
+        "Parameters"      : {
+            "model_part_name" : "piece_disp",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,0.0,null]
+        }
+    },{
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "assign_scalar_to_nodes_process",
+        "Parameters"      : {
+            "model_part_name" : "ini_temp",
+            "variable_name"   : "TEMPERATURE",
+            "interval"        : [0.0,0.0],
+            "value"           : 293.15
+        }
+    },{
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "assign_scalar_to_nodes_process",
+        "Parameters"      : {
+            "model_part_name" : "full_temp",
+            "variable_name"   : "TEMPERATURE",
+            "value"           : 293.15
+        }
+    }],
+    "loads_process_list"       : [{
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "assign_modulus_and_direction_to_nodes_process",
+        "Parameters"      : {
+            "model_part_name" : "piece_gravity",
+            "variable_name"   : "VOLUME_ACCELERATION",
+
+            "modulus"         : 9.8,
+            "direction"       : [0,-1,0]
+        }
+    }],
+    "_output_process_list" : [{
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "python_module"   : "restart_process",
+        "Parameters"      : {
+            "model_part_name"     : "Main_Domain",
+            "save_restart"        : false,
+            "restart_file_name"   : "machining_2d_lct_rigid",
+            "restart_file_label"  : "step",
+            "output_control_type" : "time",
+            "output_frequency"    : 0,
+            "json_output"         : false
+        }
+    }],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "MultipleFiles"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "time",
+            "output_frequency"    : 0.0,
+            "body_output"         : true,
+            "node_output"         : true,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT_REACTION","NORMAL","CONTACT_FORCE","PRESSURE","TEMPERATURE","DISPLACEMENT"],
+            "gauss_point_results" : ["CAUCHY_STRESS_TENSOR","GREEN_LAGRANGE_STRAIN_TENSOR","VON_MISES_STRESS","PLASTIC_STRAIN"],
+            "additional_list_files": [2,5,10,20]
+        }
+    }
+
+}

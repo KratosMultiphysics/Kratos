@@ -169,7 +169,7 @@ public:
      * @brief Integrates the predictive tension stress vector if necessary
      * @param F_compression = uniaxial_stress_tension - threshold
      */
-    void IntegrateStressTensionIfNecessary(
+    bool IntegrateStressTensionIfNecessary(
         const double F_tension, 
         DamageParameters& Parameters, 
         array_1d<double, VoigtSize>& IntegratedStressVectorTension,
@@ -180,7 +180,7 @@ public:
      * @brief Integrates the predictive tension stress vector if necessary
      * @param F_compression = uniaxial_stress_compression - threshold
      */
-    void IntegrateStressCompressionIfNecessary(
+    bool IntegrateStressCompressionIfNecessary(
         const double F_compression, 
         DamageParameters& Parameters,
         array_1d<double, VoigtSize>& IntegratedStressVectorCompression,
@@ -366,18 +366,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-    /**
-     * @brief This method computes the elastic tensor
-     * @param rLinearElasticMatrix The elastic tensor
-     * @param YoungModulus The properties of the material
-     * @param PoissonCoefficient The poisson coefficient
-     * @return 0 if OK, 1 otherwise
-     */
-    void CalculateLinearElasticMatrix(
-        Matrix& rLinearElasticMatrix, 
-        const double YoungModulus, 
-        const double PoissonCoefficient
-        );
     ///@}
     ///@name Access
     ///@{
@@ -432,6 +420,10 @@ protected:
     void SetCompressionDamage(const double toDamage) { mCompressionDamage = toDamage; }
     void SetNonConvCompressionThreshold(const double toThreshold) { mNonConvCompressionThreshold = toThreshold; }
     void SetNonConvCompressionDamage(const double toDamage) { mNonConvCompressionDamage = toDamage; }
+
+    void SetTensionStress(const double toS){mTensionUniaxialStress = toS;}
+    void SetCompressionStress(const double toS){mCompressionUniaxialStress = toS;}
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -456,7 +448,6 @@ private:
     // Converged values
     double mTensionDamage = 0.0;
     double mTensionThreshold = 0.0;
-    // double mUniaxialStress = 0.0;
 
     // Non Converged values
     double mNonConvTensionDamage = 0.0;
@@ -469,6 +460,9 @@ private:
     // Non Converged values
     double mNonConvCompressionDamage = 0.0;
     double mNonConvCompressionThreshold = 0.0;
+
+    double mTensionUniaxialStress = 0.0;
+    double mCompressionUniaxialStress = 0.0;
     ///@}
     ///@name Private Operators
     ///@{
@@ -482,6 +476,12 @@ private:
      * @param rValues The constitutive law parameters and flags
      */
     void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
+
+    /**
+     * @brief This method computes the secant tensor
+     * @param rValues The constitutive law parameters and flags
+     */
+    void CalculateSecantTensor(ConstitutiveLaw::Parameters& rValues, Matrix& rSecantTensor);
 
     ///@}
     ///@name Private  Access

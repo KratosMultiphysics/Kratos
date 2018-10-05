@@ -18,7 +18,8 @@
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_constitutive/generic_small_strain_d_plus_d_minus_damage.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
+#include "custom_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_compression_constitutive_law_integrator.h"
+#include "custom_constitutive/constitutive_laws_integrators/d+d-constitutive_law_integrators/generic_tension_constitutive_law_integrator.h"
 
 // Yield surfaces
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
@@ -73,6 +74,8 @@ template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompres
 void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    KRATOS_TRY
+
     // Integrate Stress Damage
     Vector& integrated_stress_vector = rValues.GetStressVector();
     array_1d<double, VoigtSize> auxiliar_integrated_stress_vector = integrated_stress_vector;
@@ -123,28 +126,35 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
         const double F_tension = damage_parameters.UniaxialTensionStress - damage_parameters.ThresholdTension;
         const double F_compression = damage_parameters.UniaxialCompressionStress - damage_parameters.ThresholdCompression;
 
-        this->IntegrateStressTensionIfNecessary(F_tension, damage_parameters, predictive_stress_vector_tension, rValues);
-        this->IntegrateStressCompressionIfNecessary(F_compression, damage_parameters, predictive_stress_vector_compression, rValues);
+        const bool is_damaging_tension = this->IntegrateStressTensionIfNecessary(F_tension, damage_parameters, predictive_stress_vector_tension, rValues);
+        const bool is_damaging_compression = this->IntegrateStressCompressionIfNecessary(F_compression, damage_parameters, predictive_stress_vector_compression, rValues);
   
         if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            this->CalculateTangentTensor(rValues);
-            noalias(r_tangent_tensor) = rValues.GetConstitutiveMatrix();
+            if (is_damaging_tension || is_damaging_compression) { // Perturbations
+                this->CalculateTangentTensor(rValues);
+                noalias(r_tangent_tensor) = rValues.GetConstitutiveMatrix();
+            } else { // Secant matrix
+                this->CalculateSecantTensor(rValues, r_tangent_tensor);
+            }
         }
 		this->CalculateIntegratedStressVector(integrated_stress_vector, damage_parameters, rValues);
     }
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
-void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
+bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     IntegrateStressTensionIfNecessary(
         const double F_tension, 
         DamageParameters& rParameters, 
         array_1d<double, VoigtSize>& IntegratedStressVectorTension,
         ConstitutiveLaw::Parameters& rValues)
 {
+    KRATOS_TRY
+    bool is_damaging = false;
     if (F_tension <= 0.0) { // Elastic case
         this->SetNonConvTensionDamage(rParameters.DamageTension);
         this->SetNonConvTensionThreshold(rParameters.ThresholdTension);
@@ -157,20 +167,33 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
             rParameters.DamageTension, rParameters.ThresholdTension, rValues, characteristic_length);
         this->SetNonConvTensionDamage(rParameters.DamageTension);
         this->SetNonConvTensionThreshold(rParameters.UniaxialTensionStress);
+        is_damaging =  true;
     }
+
+    // Just for plotting...
+    double uniaxial_stress_tension = 0.0;
+    TConstLawIntegratorTensionType::YieldSurfaceType::CalculateEquivalentStress(IntegratedStressVectorTension, rValues.GetStrainVector(),
+                                                                                uniaxial_stress_tension, rValues);
+    uniaxial_stress_tension /= TConstLawIntegratorTensionType::YieldSurfaceType::GetScaleFactorTension(rValues.GetMaterialProperties());
+    this->SetTensionStress(uniaxial_stress_tension);
+
+    return is_damaging;
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
-void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
+bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     IntegrateStressCompressionIfNecessary(
         const double F_compression, 
         DamageParameters& rParameters, 
         array_1d<double, VoigtSize>& IntegratedStressVectorCompression,
         ConstitutiveLaw::Parameters& rValues)
 {
+    KRATOS_TRY
+    bool is_damaging = false;
     if (F_compression <= 0.0) { // Elastic case
         this->SetNonConvCompressionDamage(rParameters.DamageCompression);
         this->SetNonConvCompressionThreshold(rParameters.ThresholdCompression);
@@ -183,7 +206,17 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
             rParameters.DamageCompression, rParameters.ThresholdCompression, rValues, characteristic_length);
         this->SetNonConvCompressionDamage(rParameters.DamageCompression);
         this->SetNonConvCompressionThreshold(rParameters.UniaxialCompressionStress);
+        is_damaging =  true;
     }
+
+    // Just for plotting...
+    double uniaxial_stress_compression = 0.0;
+    TConstLawIntegratorCompressionType::YieldSurfaceType::CalculateEquivalentStress(IntegratedStressVectorCompression, rValues.GetStrainVector(),
+                                                                                uniaxial_stress_compression, rValues);
+    this->SetCompressionStress(uniaxial_stress_compression);
+
+    return is_damaging;
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -210,7 +243,7 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     // Matrix constitutive_tensor = ZeroMatrix(Dimension, Dimension);
 	// this->CalculateLinearElasticMatrix(constitutive_tensor, E, nu);
 
-    // Provisional!!!! todo convertir A en voigt y S = A*D*A*E
+    // Provisional!!!! TODO-> convertir A en voigt y S = A*D*A*E
     rIntegratedStressVector = (1.0 - rParameters.DamageTension) * rParameters.TensionStressVector +
                               (1.0 - rParameters.DamageCompression) * rParameters.CompressionStressVector;
 }
@@ -231,6 +264,17 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
 
 template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
 void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
+    CalculateSecantTensor(ConstitutiveLaw::Parameters& rValues, Matrix& rSecantTensor)
+{
+    // TODO improve this
+    this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, rSecantTensor);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
+void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     InitializeMaterial(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
@@ -244,17 +288,8 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     double initial_threshold_tension, initial_threshold_compression;
     TConstLawIntegratorTensionType::GetInitialUniaxialThreshold(aux_param, initial_threshold_tension);
     this->SetTensionThreshold(initial_threshold_tension);
-
-    ConstitutiveLaw::Parameters modified_ones = aux_param;
-    // This is done to allow tension-driven yields to work as compression yields
-    if (TConstLawIntegratorCompressionType::YieldSurfaceType::IsWorkingWithTensionThreshold()) {
-		const double yield_compression = modified_ones.GetMaterialProperties()[YIELD_STRESS_COMPRESSION];
-		Properties material_props = modified_ones.GetMaterialProperties();
-		material_props.SetValue(YIELD_STRESS_TENSION, yield_compression);
-		modified_ones.SetMaterialProperties(material_props);
-    }
     
-    TConstLawIntegratorCompressionType::GetInitialUniaxialThreshold(modified_ones, initial_threshold_compression);
+    TConstLawIntegratorCompressionType::GetInitialUniaxialThreshold(aux_param, initial_threshold_compression);
     this->SetCompressionThreshold(initial_threshold_compression);
 }
 
@@ -270,8 +305,11 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-	/*this->SetDamage(this->GetNonConvDamage());
-	this->SetThreshold(this->GetNonConvThreshold());*/
+    this->SetTensionDamage(this->GetNonConvTensionDamage());
+    this->SetTensionThreshold(this->GetNonConvTensionThreshold());
+
+    this->SetCompressionDamage(this->GetNonConvCompressionDamage());
+    this->SetCompressionThreshold(this->GetNonConvCompressionThreshold());
 }
 
 /***********************************************************************************/
@@ -317,16 +355,21 @@ template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompres
 bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
     Has(const Variable<double>& rThisVariable)
 {
-    if (rThisVariable == DAMAGE) {
+    if (rThisVariable == DAMAGE_TENSION) {
         return true;
-    } else if (rThisVariable == THRESHOLD) {
+    } else if (rThisVariable == THRESHOLD_TENSION) {
         return true;
-    } else if (rThisVariable == UNIAXIAL_STRESS) {
-        return true;
+    } else if (rThisVariable == DAMAGE_COMPRESSION) {
+		return true;
+    } else if (rThisVariable == THRESHOLD_COMPRESSION) {
+		return true;
+    } else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION) {
+		return true; 
+    } else if (rThisVariable == UNIAXIAL_STRESS_TENSION) {
+		return true; 
     } else {
         return BaseType::Has(rThisVariable);
     }
-
     return false;
 }
 
@@ -361,16 +404,21 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    // todo
-    //if (rThisVariable == DAMAGE) {
-    //    mDamage = rValue;
-    //} else if (rThisVariable == THRESHOLD) {
-    //    mThreshold = rValue;
-    //} else if (rThisVariable == UNIAXIAL_STRESS) {
-    //    mUniaxialStress = rValue;
-    //} else {
-    //    return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    //}
+    if (rThisVariable == DAMAGE_TENSION) {
+       mTensionDamage = rValue;
+    } else if (rThisVariable == THRESHOLD_TENSION) {
+       mTensionThreshold = rValue;
+    } else if (rThisVariable == DAMAGE_COMPRESSION) {
+       mCompressionDamage = rValue;
+    } else if (rThisVariable == THRESHOLD_COMPRESSION) {
+       mCompressionThreshold = rValue;
+    } else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION) {
+       mCompressionUniaxialStress = rValue; 
+    } else if (rThisVariable == UNIAXIAL_STRESS_TENSION) {
+       mTensionUniaxialStress = rValue; 
+    } else {
+       return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    }
 }
 
 /***********************************************************************************/
@@ -383,16 +431,21 @@ double& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
     double& rValue
     )
 {
-    //if (rThisVariable == DAMAGE) {
-    //    rValue = mDamage;
-    //} else if (rThisVariable == THRESHOLD) {
-    //    rValue = mThreshold;
-    //} else if (rThisVariable == UNIAXIAL_STRESS) {
-    //    rValue = mUniaxialStress;
-    //} else {
-    //    return BaseType::GetValue(rThisVariable, rValue);
-    //}
-
+    if (rThisVariable == DAMAGE_TENSION) {
+       rValue = mTensionDamage;
+    } else if (rThisVariable == THRESHOLD_TENSION) {
+       rValue = mTensionThreshold;
+    } else if (rThisVariable == DAMAGE_COMPRESSION) {
+       rValue = mCompressionDamage;
+    } else if (rThisVariable == THRESHOLD_COMPRESSION) {
+       rValue = mCompressionThreshold;
+    } else if (rThisVariable == UNIAXIAL_STRESS_COMPRESSION) {
+       rValue = mCompressionUniaxialStress;
+    } else if (rThisVariable == UNIAXIAL_STRESS_TENSION) {
+       rValue = mTensionUniaxialStress;
+    } else {
+       return BaseType::GetValue(rThisVariable, rValue);
+    }
     return rValue;
 }
 
@@ -461,34 +514,34 @@ Matrix& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
     Matrix& rValue
     )
 {
-    //if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
-    //    //1.-Compute total deformation gradient
-    //    const Matrix& deformation_gradient_F = rParameterValues.GetDeformationGradientF();
-    //    //2.-Right Cauchy-Green tensor C
-    //    Matrix right_cauchy_green = prod(trans(deformation_gradient_F), deformation_gradient_F);
-    //    Vector strain_vector = ZeroVector(6);
+    if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
+        //1.-Compute total deformation gradient
+        const Matrix& deformation_gradient_F = rParameterValues.GetDeformationGradientF();
+        //2.-Right Cauchy-Green tensor C
+		KRATOS_WATCH(deformation_gradient_F)
+        Matrix right_cauchy_green = prod(trans(deformation_gradient_F), deformation_gradient_F);
+        Vector strain_vector = ZeroVector(6);
 
-    //    //E= 0.5*(FT*F-1) or E = 0.5*(C-1)
-    //    strain_vector[0] = 0.5 * (right_cauchy_green(0, 0) - 1.00);
-    //    strain_vector[1] = 0.5 * (right_cauchy_green(1, 1) - 1.00);
-    //    strain_vector[2] = 0.5 * (right_cauchy_green(2, 2) - 1.00);
-    //    strain_vector[3] = right_cauchy_green(0, 1); // xy
-    //    strain_vector[4] = right_cauchy_green(1, 2); // yz
-    //    strain_vector[5] = right_cauchy_green(0, 2); // xz
+        //E= 0.5*(FT*F-1) or E = 0.5*(C-1)
+        strain_vector[0] = 0.5 * (right_cauchy_green(0, 0) - 1.00);
+        strain_vector[1] = 0.5 * (right_cauchy_green(1, 1) - 1.00);
+        strain_vector[2] = 0.5 * (right_cauchy_green(2, 2) - 1.00);
+        strain_vector[3] = right_cauchy_green(0, 1); // xy
+        strain_vector[4] = right_cauchy_green(1, 2); // yz
+        strain_vector[5] = right_cauchy_green(0, 2); // xz
 
-    //    Matrix constitutive_matrix;
-    //    this->CalculateElasticMatrix(constitutive_matrix, rParameterValues);
+        Matrix constitutive_matrix;
+        this->CalculateElasticMatrix(constitutive_matrix, rParameterValues);
 
-    //    Vector stress = prod(constitutive_matrix, strain_vector);
-    //    stress *= (1.0 - mDamage);
-    //    rValue =  MathUtils<double>::StressVectorToTensor(stress);
-    //    return rValue;
-    //} else if (this->Has(rThisVariable)) {
-    //    return this->GetValue(rThisVariable, rValue);
-    //} else {
-    //    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-    //}
-    
+        Vector stress = prod(constitutive_matrix, strain_vector);
+        //stress *= (1.0 - mDamage);
+        rValue =  MathUtils<double>::StressVectorToTensor(stress);
+        return rValue;
+    } else if (this->Has(rThisVariable)) {
+        return this->GetValue(rThisVariable, rValue);
+    } else {
+        return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    }
     return rValue;
 }
 
@@ -504,60 +557,52 @@ int GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLa
     )
 {
     const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-
     const int check_integrator_tension = TConstLawIntegratorTensionType::Check(rMaterialProperties);
     const int check_integrator_compression = TConstLawIntegratorCompressionType::Check(rMaterialProperties);
-
-
     KRATOS_ERROR_IF_NOT(VoigtSize == this->GetStrainSize()) << "You are combining not compatible constitutive laws" << std::endl;
-    
     if ((check_base + check_integrator_tension + check_integrator_compression) > 0) return 1;
-
     return 0;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-template <class TConstLawIntegratorTensionType, class TConstLawIntegratorCompressionType>
-void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstLawIntegratorCompressionType>::
-    CalculateLinearElasticMatrix(Matrix& rLinearElasticMatrix, const double YoungModulus, const double PoissonCoefficient)
-{
-    rLinearElasticMatrix.clear();
-
-    rLinearElasticMatrix(0, 0) = (YoungModulus * (1.0 - PoissonCoefficient) / ((1.0 + PoissonCoefficient) * (1.0 - 2.0 * PoissonCoefficient)));
-    rLinearElasticMatrix(1, 1) = rLinearElasticMatrix(0, 0);
-    rLinearElasticMatrix(2, 2) = rLinearElasticMatrix(0, 0);
-
-    rLinearElasticMatrix(3, 3) = rLinearElasticMatrix(0, 0) * (1.0 - 2.0 * PoissonCoefficient) / (2.0 * (1.0 - PoissonCoefficient));
-    rLinearElasticMatrix(4, 4) = rLinearElasticMatrix(3, 3);
-    rLinearElasticMatrix(5, 5) = rLinearElasticMatrix(3, 3);
-
-    rLinearElasticMatrix(0, 1) = rLinearElasticMatrix(0, 0) * PoissonCoefficient / (1.0 - PoissonCoefficient);
-    rLinearElasticMatrix(1, 0) = rLinearElasticMatrix(0, 1);
-
-    rLinearElasticMatrix(0, 2) = rLinearElasticMatrix(0, 1);
-    rLinearElasticMatrix(2, 0) = rLinearElasticMatrix(0, 1);
-
-    rLinearElasticMatrix(1, 2) = rLinearElasticMatrix(0, 1);
-    rLinearElasticMatrix(2, 1) = rLinearElasticMatrix(0, 1);
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class GenericSmallStrainDplusDminusDamage<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>,
-    GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
-
-
-
-
-
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<6>>>>;
 
 } // Namespace Kratos
-
-
-
-
-
-
-

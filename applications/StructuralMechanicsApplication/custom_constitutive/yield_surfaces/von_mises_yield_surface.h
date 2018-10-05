@@ -140,9 +140,12 @@ public:
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+		//KRATOS_WATCH(r_material_properties[YIELD_STRESS_TENSION])
         const double yield_tension = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        rThreshold = std::abs(yield_tension);
+		// KRATOS_WATCH(yield_tension) 0
+        //KRATOS_WATCH(r_material_properties[YIELD_STRESS_TENSION]) 0
+		rThreshold = std::abs(yield_tension);
+
     }
 
     /**
@@ -262,7 +265,17 @@ public:
     {
         return true;
     }
-		
+
+	/**
+     * @brief This method returns the scaling factor of the
+     * yield surface
+	 * surfacecompares with the tension tield stress
+     */
+    static double GetScaleFactorTension(const Properties& rMaterialProperties)
+    {
+        return 1.0;
+    }
+
     ///@}
     ///@name Access
     ///@{
