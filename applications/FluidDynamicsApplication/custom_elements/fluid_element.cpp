@@ -541,7 +541,7 @@ array_1d<double, 3> FluidElement<TElementData>::GetAtCoordinate(
     const typename TElementData::NodalVectorData& rValues,
     const typename TElementData::ShapeFunctionsType& rN) const
 {
-    array_1d<double, 3> result(3, 0.0);
+    array_1d<double, 3> result = ZeroVector(3);
 
     for (size_t i = 0; i < NumNodes; i++) {
         for (size_t j = 0; j < Dim; j++) {

@@ -317,14 +317,14 @@ void FractionalStep<TDim>::CalculateOnIntegrationPoints(
         rValues.resize(NumGauss);
 
         double Density = 0.0;
-        array_1d<double,3> ConvVel(3,0.0);
-        array_1d<double,3> ConvProj(3,0.0);
+        array_1d<double,3> ConvVel = ZeroVector(3);
+        array_1d<double,3> ConvProj = ZeroVector(3);
 
         // Loop on integration points
         for (unsigned int g = 0; g < NumGauss; g++)
         {
             array_1d<double,3>& rOut = rValues[g];
-            rOut = array_1d<double,3>(3,0.0);
+            rOut = ZeroVector(3);
 
             const ShapeFunctionsType& N = row(NContainer,g);
             const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
@@ -359,8 +359,8 @@ void FractionalStep<TDim>::CalculateOnIntegrationPoints(
         rValues.resize(NumGauss);
 
         double Density = 0.0;
-        array_1d<double,3> PresProj(3,0.0);
-        array_1d<double,3> BodyForce(3,0.0);
+        array_1d<double,3> PresProj = ZeroVector(3);
+        array_1d<double,3> BodyForce = ZeroVector(3);
 
         // Loop on integration points
         for (unsigned int g = 0; g < NumGauss; g++)
@@ -548,8 +548,8 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
         // Evaluate required variables at the integration point
         double Density;
         double MassProjection;
-        array_1d<double,3> BodyForce(3,0.0);
-        array_1d<double,3> MomentumProjection(3,0.0);
+        array_1d<double,3> BodyForce = ZeroVector(3);
+        array_1d<double,3> MomentumProjection = ZeroVector(3);
 
         this->EvaluateInPoint(Density,DENSITY,N);
         this->EvaluateInPoint(MassProjection,DIVPROJ,N);
@@ -562,7 +562,7 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
         this->EvaluateInPoint(OldPressure,PRESSURE,N,0);
 
         // For ALE: convective velocity
-        array_1d<double,3> ConvVel(3,0.0);
+        array_1d<double,3> ConvVel = ZeroVector(3);
         this->EvaluateConvVelocity(ConvVel,N);
 
         double Viscosity = this->EffectiveViscosity(Density,N,rDN_DX,ElemSize,rCurrentProcessInfo);
@@ -643,10 +643,10 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
 
         // Evaluate required variables at the integration point
         double Density;
-//        array_1d<double,3> Velocity(3,0.0);
-//        array_1d<double,3> MeshVelocity(3,0.0);
-        array_1d<double,3> BodyForce(3,0.0);
-        array_1d<double,3> MomentumProjection(3,0.0);
+//        array_1d<double,3> Velocity = ZeroVector(3);
+//        array_1d<double,3> MeshVelocity = ZeroVector(3);
+        array_1d<double,3> BodyForce = ZeroVector(3);
+        array_1d<double,3> MomentumProjection = ZeroVector(3);
 
         this->EvaluateInPoint(Density,DENSITY,N);
 //        this->EvaluateInPoint(Velocity,VELOCITY,N);
@@ -659,14 +659,14 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
 //        double OldPressure;
 //        this->EvaluateInPoint(OldPressure,PRESSURE,N,0);
 
-        array_1d<double,TDim> OldPressureGradient(TDim,0.0);
+        array_1d<double,TDim> OldPressureGradient = ZeroVector(TDim);
         this->EvaluateGradientInPoint(OldPressureGradient,PRESSURE,rDN_DX);
 
 //        // For ALE: convective velocity
 //        array_1d<double,3> ConvVel = Velocity - MeshVelocity;
 
         // Stabilization parameters
-        array_1d<double,3> ConvVel(3,0.0);
+        array_1d<double,3> ConvVel = ZeroVector(3);
         this->EvaluateConvVelocity(ConvVel,N);
         double Viscosity = this->EffectiveViscosity(Density,N,rDN_DX,ElemSize,rCurrentProcessInfo);
         this->CalculateTau(TauOne,TauTwo,ElemSize,ConvVel,Density,Viscosity,rCurrentProcessInfo);
@@ -1081,8 +1081,7 @@ double FractionalStep<TDim>::ElementSize(/*ShapeFunctionDerivativesType &rDN_DX*
     const SizeType NumNodes = rGeom.PointsNumber();
 
     // calculate minimum element length (used in stabilization Tau)
-    array_1d<double,3> Edge(3,0.0);
-    Edge = rGeom[1].Coordinates() - rGeom[0].Coordinates();
+    array_1d<double,3> Edge = rGeom[1].Coordinates() - rGeom[0].Coordinates();
     double ElemSize = Edge[0]*Edge[0];
     for (SizeType d = 1; d < TDim; d++)
         ElemSize += Edge[d]*Edge[d];
@@ -1367,16 +1366,16 @@ void FractionalStep<TDim>::CalculateProjectionRHS(VectorType& rMomentumRHS,
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     double Density;
-    array_1d<double,3> BodyForce(3,0.0);
+    array_1d<double,3> BodyForce = ZeroVector(3);
 
     this->EvaluateInPoint(Density,DENSITY,rN);
     this->EvaluateInPoint(BodyForce,BODY_FORCE,rN);
-    array_1d<double,3> ConvVel(3,0.0);
+    array_1d<double,3> ConvVel = ZeroVector(3);
     this->EvaluateConvVelocity(ConvVel,rN);
     Vector ConvOp(NumNodes);
     this->ConvectionOperator(ConvOp,ConvVel,rDN_DX);
 
-    array_1d<double,3> Convection(3,0.0);
+    array_1d<double,3> Convection = ZeroVector(3);
     for (SizeType i = 0; i < NumNodes; ++i)
 	{
 		const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
@@ -1385,7 +1384,7 @@ void FractionalStep<TDim>::CalculateProjectionRHS(VectorType& rMomentumRHS,
 
 	}
 
-    array_1d<double,TDim> PressureGradient(TDim,0.0);
+    array_1d<double,TDim> PressureGradient = ZeroVector(TDim);
     this->EvaluateGradientInPoint(PressureGradient,PRESSURE,rDN_DX);
 
     double Divergence;
@@ -1413,18 +1412,18 @@ void FractionalStep<TDim>::CalculateProjectionRHS(VectorType& rConvTerm,
 {
     const unsigned int NumNodes = this->GetGeometry().PointsNumber();
     double Density;
-    array_1d<double,3> BodyForce(3,0.0);
+    array_1d<double,3> BodyForce = ZeroVector(3);
 
     this->EvaluateInPoint(Density,DENSITY,rN);
     this->EvaluateInPoint(BodyForce,BODY_FORCE,rN);
 
-    array_1d<double,3> ConvVel(3,0.0);
+    array_1d<double,3> ConvVel = ZeroVector(3);
     this->EvaluateConvVelocity(ConvVel,rN);
 
     Vector ConvOp = ZeroVector(NumNodes);
     this->ConvectionOperator(ConvOp,ConvVel,rDN_DX);
 
-    array_1d<double,3> Convection(3,0.0);
+    array_1d<double,3> Convection = ZeroVector(3);
     for (unsigned int i = 0; i < NumNodes; ++i)
 	{
 		const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
@@ -1432,7 +1431,7 @@ void FractionalStep<TDim>::CalculateProjectionRHS(VectorType& rConvTerm,
             Convection[d] += ConvOp[i] * vel[d];
 	}
 
-    array_1d<double,TDim> PressureGradient(TDim,0.0);
+    array_1d<double,TDim> PressureGradient = ZeroVector(TDim);
     this->EvaluateGradientInPoint(PressureGradient,PRESSURE,rDN_DX);
 
     double Divergence;
@@ -1471,7 +1470,7 @@ void FractionalStep<TDim>::ModulatedGradientDiffusion(MatrixType& rDampMatrix,
     }
 
     // Element lengths
-    array_1d<double,3> Delta(3,0.0);
+    array_1d<double,3> Delta;
     Delta[0] = std::fabs(rGeom[NumNodes-1].X()-rGeom[0].X());
     Delta[1] = std::fabs(rGeom[NumNodes-1].Y()-rGeom[0].Y());
     Delta[2] = std::fabs(rGeom[NumNodes-1].Z()-rGeom[0].Z());

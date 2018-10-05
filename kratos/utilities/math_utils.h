@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -242,9 +242,12 @@ public:
             if (k != j)
                 ia2(j_sub++) = k;
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        PermutationMatrix<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+#else
         boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+#endif // KRATOS_USE_AMATRIX
         const TDataType first_minor = DetMat(sub_mat);
-
         return ((i + j) % 2) ? -first_minor : first_minor;
     }
 
@@ -412,14 +415,20 @@ public:
         const VectorType& rB
         )
     {
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
+        double determinant = lu_factorization.determinant();
+        KRATOS_ERROR_IF(std::abs(determinant) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << A << std::endl;
+        rX = lu_factorization.solve(rB);
+#else
         const SizeType size1 = A.size1();
-
         rX = rB;
         typedef permutation_matrix<SizeType> pmatrix;
         pmatrix pm(size1);
         int singular = lu_factorize(A,pm);
         KRATOS_DEBUG_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << A << std::endl;
         lu_substitute(A, pm, rX);
+#endif // ifdef KRATOS_USE_AMATRIX
     }
 
     /**
@@ -456,6 +465,14 @@ public:
                 InvertedMatrix.resize(size1, size2,false);
             }
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+            Matrix temp(InputMatrix);
+            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
+            InputMatrixDet = lu_factorization.determinant();
+            KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
+            InvertedMatrix = lu_factorization.inverse();
+#else
+
             typedef permutation_matrix<SizeType> pmatrix;
             Matrix A(InputMatrix);
             pmatrix pm(A.size1());
@@ -471,7 +488,9 @@ public:
                 IndexType ki = pm[i] == i ? 0 : 1;
                 InputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
-        }
+
+ #endif // ifdef KRATOS_USE_AMATRIX
+       }
     }
 
     /**
@@ -629,6 +648,11 @@ public:
         }
         else
         {
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+            Matrix temp(A);
+            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
+            Det = lu_factorization.determinant();
+#else
             using namespace boost::numeric::ublas;
             typedef permutation_matrix<SizeType> pmatrix;
             Matrix Aux(A);
@@ -647,7 +671,8 @@ public:
                 unsigned int ki = pm[i] == i ? 0 : 1;
                 Det *= std::pow(-1.0, ki) * Aux(i,i);
             }
-        }
+#endif // ifdef KRATOS_USE_AMATRIX
+       }
 
         return Det;
     }
@@ -1142,7 +1167,7 @@ public:
 
         const unsigned int size = ReducedMatrix.size2();
         unsigned int rowindex = 0;
-	unsigned int colindex = 0;
+    unsigned int colindex = 0;
 
         for (unsigned int i = 0; i < size; i++)
         {
@@ -1190,43 +1215,46 @@ public:
      * \f$ [ s11, s22, s12 ] \f$ for 2D case.
      * @param rStressVector the given stress vector
      * @return the corresponding stress tensor in matrix form
+     * @tparam TVector The vector type considered
+     * @tparam TMatrixType The matrix returning type
      */
-    static inline MatrixType StressVectorToTensor(const Vector& rStressVector)
+    template<class TVector, class TMatrixType = MatrixType>
+    static inline TMatrixType StressVectorToTensor(const TVector& rStressVector)
     {
-        KRATOS_TRY
-        Matrix StressTensor;
+        KRATOS_TRY;
+        TMatrixType stress_tensor;
 
         if (rStressVector.size()==3) {
-            StressTensor.resize(2,2,false);
-            StressTensor(0,0) = rStressVector[0];
-            StressTensor(0,1) = rStressVector[2];
-            StressTensor(1,0) = rStressVector[2];
-            StressTensor(1,1) = rStressVector[1];
+            stress_tensor.resize(2,2,false);
+            stress_tensor(0,0) = rStressVector(0);
+            stress_tensor(0,1) = rStressVector(2);
+            stress_tensor(1,0) = rStressVector(2);
+            stress_tensor(1,1) = rStressVector(1);
         } else if (rStressVector.size()==4) {
-            StressTensor.resize(3,3,false);
-            StressTensor(0,0) = rStressVector[0];
-            StressTensor(0,1) = rStressVector[3];
-            StressTensor(0,2) = 0.0;
-            StressTensor(1,0) = rStressVector[3];
-            StressTensor(1,1) = rStressVector[1];
-            StressTensor(1,2) = 0.0;
-            StressTensor(2,0) = 0.0;
-            StressTensor(2,1) = 0.0;
-            StressTensor(2,2) = rStressVector[2];
+            stress_tensor.resize(3,3,false);
+            stress_tensor(0,0) = rStressVector(0);
+            stress_tensor(0,1) = rStressVector(3);
+            stress_tensor(0,2) = 0.0;
+            stress_tensor(1,0) = rStressVector(3);
+            stress_tensor(1,1) = rStressVector(1);
+            stress_tensor(1,2) = 0.0;
+            stress_tensor(2,0) = 0.0;
+            stress_tensor(2,1) = 0.0;
+            stress_tensor(2,2) = rStressVector(2);
         } else if (rStressVector.size()==6) {
-            StressTensor.resize(3,3,false);
-            StressTensor(0,0) = rStressVector[0];
-            StressTensor(0,1) = rStressVector[3];
-            StressTensor(0,2) = rStressVector[5];
-            StressTensor(1,0) = rStressVector[3];
-            StressTensor(1,1) = rStressVector[1];
-            StressTensor(1,2) = rStressVector[4];
-            StressTensor(2,0) = rStressVector[5];
-            StressTensor(2,1) = rStressVector[4];
-            StressTensor(2,2) = rStressVector[2];
+            stress_tensor.resize(3,3,false);
+            stress_tensor(0,0) = rStressVector(0);
+            stress_tensor(0,1) = rStressVector(3);
+            stress_tensor(0,2) = rStressVector(5);
+            stress_tensor(1,0) = rStressVector(3);
+            stress_tensor(1,1) = rStressVector(1);
+            stress_tensor(1,2) = rStressVector(4);
+            stress_tensor(2,0) = rStressVector(5);
+            stress_tensor(2,1) = rStressVector(4);
+            stress_tensor(2,2) = rStressVector(2);
         }
 
-        return StressTensor;
+        return stress_tensor;
 
         KRATOS_CATCH("");
     }
@@ -1351,20 +1379,24 @@ public:
     }
 
     /**
-     * Transforms a given symmetric Strain Tensor to Voigt Notation:
-     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
-     * \f$ [ e11, e22, e33, 2*e12, 2*e23, 2*e13 ] \f$ for 3D case and
-     * in the 2D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
-     * \f$ [ e11, e22, e33, 2*e12 ] \f$ fir 2D case.
-     * in the 2D case: from a second order tensor (2*2) Matrix  to a corresponing (3*1) Vector
-     * \f$ [ e11, e22, 2*e12 ] \f$ fir 2D case.
+     * @brief Transforms a given symmetric Strain Tensor to Voigt Notation:
+     * @details The following cases:
+     *  - In the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+     *    \f$ [ e11, e22, e33, 2*e12, 2*e23, 2*e13 ] \f$ for 3D case and
+     *  - In the 2D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
+     *    \f$ [ e11, e22, e33, 2*e12 ] \f$ fir 2D case.
+     *  - In the 2D case: from a second order tensor (2*2) Matrix  to a corresponing (3*1) Vector
+     *    \f$ [ e11, e22, 2*e12 ] \f$ fir 2D case.
      * @param rStrainTensor the given symmetric second order strain tensor
      * @return the corresponding strain tensor in vector form
+     * @tparam TMatrixType The matrix type considered
+     * @tparam TVector The vector returning type
      */
 
+    template<class TMatrixType, class TVector = Vector>
     static inline Vector StrainTensorToVector(
-        const Matrix& rStrainTensor,
-        unsigned int rSize = 0
+        const TMatrixType& rStrainTensor,
+        SizeType rSize = 0
         )
     {
         KRATOS_TRY;
@@ -1383,21 +1415,21 @@ public:
             StrainVector.resize(3,false);
             StrainVector[0] = rStrainTensor(0,0);
             StrainVector[1] = rStrainTensor(1,1);
-            StrainVector[2] = 2.00*rStrainTensor(0,1);
+            StrainVector[2] = 2.0*rStrainTensor(0,1);
         } else if (rSize == 4) {
             StrainVector.resize(4,false);
             StrainVector[0] = rStrainTensor(0,0);
             StrainVector[1] = rStrainTensor(1,1);
             StrainVector[2] = rStrainTensor(2,2);
-            StrainVector[3] = 2.00*rStrainTensor(0,1);
+            StrainVector[3] = 2.0*rStrainTensor(0,1);
         } else if (rSize == 6) {
             StrainVector.resize(6,false);
             StrainVector[0] = rStrainTensor(0,0);
             StrainVector[1] = rStrainTensor(1,1);
             StrainVector[2] = rStrainTensor(2,2);
-            StrainVector[3] = 2.00*rStrainTensor(0,1);
-            StrainVector[4] = 2.00*rStrainTensor(1,2);
-            StrainVector[5] = 2.00*rStrainTensor(0,2);
+            StrainVector[3] = 2.0*rStrainTensor(0,1);
+            StrainVector[4] = 2.0*rStrainTensor(1,2);
+            StrainVector[5] = 2.0*rStrainTensor(0,2);
         }
 
         return StrainVector;
@@ -1465,53 +1497,48 @@ public:
      }
 
     /**
-     * Transforms a given symmetric Tensor to Voigt Notation:
-     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
-     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
-     * in the 2D case: from a second order tensor (2*2) Matrix  to a corresponing (3*1) Vector
+     * @brief Transforms a given symmetric Tensor to Voigt Notation:
+     * @details The following cases:
+     *  - In the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+     *  - In the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
+     *  - In the 2D case: from a second order tensor (2*2) Matrix  to a corresponing (3*1) Vector
      * @param rTensor the given symmetric second order stress tensor
      * @return the corresponding stress tensor in vector form
+     * @tparam TMatrixType The matrix type considered
+     * @tparam TVector The vector returning type
      */
 
-    static inline Vector SymmetricTensorToVector(
-        const Matrix& rTensor,
-        unsigned int rSize = 0
+    template<class TMatrixType, class TVector = Vector>
+    static inline TVector SymmetricTensorToVector(
+        const TMatrixType& rTensor,
+        SizeType rSize = 0
         )
     {
         KRATOS_TRY;
 
         Vector vector;
 
-        if(rSize == 0)
-        {
-            if(rTensor.size1() == 2)
-            {
+        if(rSize == 0) {
+            if(rTensor.size1() == 2) {
                 rSize = 3;
-            }
-            else if(rTensor.size1() == 3)
-            {
+            } else if(rTensor.size1() == 3) {
                 rSize = 6;
             }
         }
 
-        if (rSize == 3)
-        {
+        if (rSize == 3) {
             vector.resize(3,false);
             vector[0]= rTensor(0,0);
             vector[1]= rTensor(1,1);
             vector[2]= rTensor(0,1);
 
-        }
-        else if (rSize==4)
-        {
+        } else if (rSize==4) {
             vector.resize(4,false);
             vector[0]= rTensor(0,0);
             vector[1]= rTensor(1,1);
             vector[2]= rTensor(2,2);
             vector[3]= rTensor(0,1);
-        }
-        else if (rSize==6)
-        {
+        } else if (rSize==6) {
             vector.resize(6);
             vector[0]= rTensor(0,0);
             vector[1]= rTensor(1,1);
@@ -1546,11 +1573,11 @@ public:
             )
     {
         bool is_converged = false;
-        eigen_values_matrix = ZeroMatrix(TDim);
+        eigen_values_matrix = ZeroMatrix(TDim,TDim);
         BoundedMatrix<TDataType, TDim, TDim> TempMat = A;
         BoundedMatrix<TDataType, TDim, TDim> AuxA;
 
-        const BoundedMatrix<TDataType, TDim, TDim> Indentity = IdentityMatrix(TDim, TDim);
+        const BoundedMatrix<TDataType, TDim, TDim> Indentity = IdentityMatrix(TDim);
         BoundedMatrix<TDataType, TDim, TDim> V = Indentity;
         BoundedMatrix<TDataType, TDim, TDim> Vaux;
         BoundedMatrix<TDataType, TDim, TDim> Rotation;

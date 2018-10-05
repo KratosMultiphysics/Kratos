@@ -113,6 +113,41 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertEqual(len(model_part1.Conditions) , len(new_model_part.Conditions))
         self.assertEqual(len(model_part1.Elements) , len(new_model_part.Elements))
 
-        
+    def test_variable_list_merging(self):
+        model_part1 = KratosMultiphysics.ModelPart("mp1")
+        model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+
+        model_part2 = KratosMultiphysics.ModelPart("mp1")
+        model_part2.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        model_part2.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+
+        #check before merging variable lists
+        self.assertTrue(model_part1.HasNodalSolutionStepVariable(KratosMultiphysics.DISTANCE))
+        self.assertTrue(model_part1.HasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT))
+        self.assertFalse(model_part1.HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
+        self.assertFalse(model_part1.HasNodalSolutionStepVariable(KratosMultiphysics.VELOCITY))
+        self.assertFalse(model_part2.HasNodalSolutionStepVariable(KratosMultiphysics.DISTANCE))
+        self.assertFalse(model_part2.HasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT))
+        self.assertTrue(model_part2.HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
+        self.assertTrue(model_part2.HasNodalSolutionStepVariable(KratosMultiphysics.VELOCITY))
+
+        KratosMultiphysics.MergeVariableListsUtility().Merge(model_part1, model_part2)
+
+        #check after merging variable lists
+        self.assertTrue(model_part1.HasNodalSolutionStepVariable(KratosMultiphysics.DISTANCE))
+        self.assertTrue(model_part1.HasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT))
+        self.assertTrue(model_part1.HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
+        self.assertTrue(model_part1.HasNodalSolutionStepVariable(KratosMultiphysics.VELOCITY))
+        self.assertTrue(model_part2.HasNodalSolutionStepVariable(KratosMultiphysics.DISTANCE))
+        self.assertTrue(model_part2.HasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT))
+        self.assertTrue(model_part2.HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
+        self.assertTrue(model_part2.HasNodalSolutionStepVariable(KratosMultiphysics.VELOCITY))
+
+
+
+
+
+
 if __name__ == '__main__':
     KratosUnittest.main()

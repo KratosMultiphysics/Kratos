@@ -574,7 +574,7 @@ public:
 //         Vector enrichment_terms_horizontal = ZeroVector(LocalSize);
 //         double enrichment_diagonal = 0.0;
 //         double enriched_rhs = 0.0;
-        array_1d<double,3> bf(3,0.0);
+        array_1d<double,3> bf = ZeroVector(3);
 
         double positive_volume = 0.0;
         double negative_volume = 0.0;
@@ -611,7 +611,7 @@ public:
 //                 for (unsigned int inode = 0; inode < TNumNodes; inode++)
 //                 {
 //                     int base_index = (TDim + 1) * inode;
-//                     array_1d<double,TNumNodes> AGradN(TNumNodes,0.0);
+//                     array_1d<double,TNumNodes> AGradN = ZeroVector(TNumNodes);
 //                     this->GetConvectionOperator(AGradN,AdvVel,DN_DX);
 //                     //momentum term
 //                     for (unsigned int k = 0; k < TDim; k++)
@@ -820,7 +820,7 @@ public:
             array_1d<double, TNumNodes> N;
             BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-            array_1d< double, 3 > ElementalMomRes(3, 0.0);
+            array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
             double ElementalMassRes(0);
             //get position of the cut surface
             Vector distances(TNumNodes);
@@ -887,7 +887,7 @@ public:
             array_1d<double, TNumNodes> N;
             BoundedMatrix<double, TNumNodes, TDim> DN_DX;
             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-            array_1d< double, 3 > ElementalMomRes(3, 0.0);
+            array_1d< double, 3 > ElementalMomRes = ZeroVector(3);
             double ElementalMassRes(0);
             //get position of the cut surface
             Vector distances(TNumNodes);
@@ -1216,7 +1216,7 @@ protected:
                                       const array_1d< double, TNumNodes>& rShapeFunc,
                                       const double Weight = 1.0)
     {
-        array_1d<double, 3 > temp(3, 0.0);
+        array_1d<double, 3 > temp = ZeroVector(3);
         this->EvaluateInPoint(temp, rVariable, rShapeFunc);
         rResult += Weight*temp;
     }
@@ -1238,7 +1238,7 @@ protected:
         for (unsigned int i = 0; i < TNumNodes; i++)
             dist += rShapeFunc[i] * this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         double navg = 0.0;
-        array_1d< double, 3 > value(3, 0.0);
+        array_1d< double, 3 > value = ZeroVector(3);
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
             if (dist * this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE) > 0.0)

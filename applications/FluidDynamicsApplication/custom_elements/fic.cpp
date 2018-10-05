@@ -241,14 +241,14 @@ void FIC<TElementData>::AddVelocitySystem(
     double TauMomentum;
     array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
 
-    array_1d<double,3> TauGrad(3,0.0);
+    array_1d<double,3> TauGrad = ZeroVector(3);
     this->CalculateTau(rData,convective_velocity,TauIncompr,TauMomentum,TauGrad);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
 
     // Residual (used by FIC shock-capturing term)
-    array_1d<double,3> MomRes(3,0.0);
+    array_1d<double,3> MomRes = ZeroVector(3);
     this->AlgebraicMomentumResidual(rData,AGradN,MomRes);
 
     // Multiplying some quantities by density to have correct units
@@ -373,7 +373,7 @@ void FIC<TElementData>::AddMassStabilization(
     double TauMomentum;
     array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
 
-    array_1d<double,3> TauGrad(3,0.0);
+    array_1d<double,3> TauGrad = ZeroVector(3);
     this->CalculateTau(rData,convective_velocity,TauIncompr,TauMomentum,TauGrad);
 
     Vector AGradN;
@@ -499,12 +499,15 @@ void FIC<TElementData>::CalculateTau(
         Hvel = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(r_geometry,Velocity);
     }
 
-    double InvTau = rData.Density * ( c1 * rData.EffectiveViscosity / (Havg*Havg) + c2 * velocity_norm / Havg );
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
+
+    double InvTau = c1 * viscosity / (Havg*Havg) + density * c2 * velocity_norm / Havg;
     TauIncompr = 1.0/InvTau;
-    TauMomentum = (Hvel / (rData.Density * c2 * velocity_norm) );
+    TauMomentum = (Hvel / (density * c2 * velocity_norm) );
 
     // TAU limiter for momentum equation: tau = min{ h/2u, dt }
-    double TimeTerm = rData.DeltaTime/rData.Density;
+    double TimeTerm = rData.DeltaTime/density;
     if (TauMomentum > TimeTerm)
     {
         TauMomentum = TimeTerm;
@@ -514,7 +517,7 @@ void FIC<TElementData>::CalculateTau(
 
     // Coefficients for FIC shock-capturing term
     this->CalculateTauGrad(rData,TauGrad);
-    TauGrad /= rData.Density;
+    TauGrad /= density;
     for (unsigned int d = 0; d < Dim; d++)
         if (TauGrad[d] > Havg*TimeTerm)
             TauGrad[d] = Havg*TimeTerm;
@@ -546,11 +549,11 @@ void FIC<TElementData>::CalculateTauGrad(
 
     // Calculate characteristic lenghts on the gradient directions and gradient norms
     const Geometry< Node<3> >& r_geometry = this->GetGeometry();
-    array_1d<double,3> Hg(3,0.0);
-    array_1d<double,3> GradNorm(3,0.0);
+    array_1d<double,3> Hg = ZeroVector(3);
+    array_1d<double,3> GradNorm;
     for (unsigned int d = 0; d < Dim; d++)
     {
-        array_1d<double,3> Gi(3,0.0);
+        array_1d<double,3> Gi;
         Gi[0] = Gradient(d,0);
         Gi[1] = Gradient(d,1);
         Gi[2] = Gradient(d,2);

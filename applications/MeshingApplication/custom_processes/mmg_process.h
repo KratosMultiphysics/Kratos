@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -70,11 +70,21 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-    
+
+    /**
+     * @brief This enum defines the type of MMG libray used
+     */
+    enum class MMGLibray
+    {
+        MMG2D = 0,
+        MMG3D = 1,
+        MMGS  = 2
+    };
+
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -82,23 +92,23 @@ namespace Kratos
 /**
  * @class MmgProcess
  * @ingroup MeshingApplication
- * @brief This class is a remesher which uses the MMG library 
+ * @brief This class is a remesher which uses the MMG library
  * @details This class is a remesher which uses the MMG library. The class uses a class for the 2D and 3D cases.
  * The remesher keeps the previous submodelparts and interpolates the nodal values between the old and new mesh
  * @author Vicente Mataix Ferrandiz
  */
-template<SizeType TDim>
-class MmgProcess 
+template<MMGLibray TMMGLibray>
+class MmgProcess
     : public Process
 {
 public:
 
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of MmgProcess
     KRATOS_CLASS_POINTER_DEFINITION(MmgProcess);
-    
+
     /// Node containers definition
     typedef ModelPart::NodesContainerType                        NodesArrayType;
     /// Elements containers definition
@@ -132,10 +142,16 @@ public:
     typedef MeshType::ElementConstantIterator           ElementConstantIterator;
 
     /// Conditions array size
-    static constexpr SizeType ConditionsArraySize = (TDim == 2) ? 1 : 2;
-    
+    static constexpr SizeType Dimension = (TMMGLibray == MMGLibray::MMG2D) ? 2 : 3;
+
+    /// Conditions array size
+    static constexpr SizeType ConditionsArraySize = (Dimension == 2) ? 1 : 2;
+
     /// Elements array size
-    static constexpr SizeType ElementsArraySize = (TDim == 2) ? 1 : 2;
+    static constexpr SizeType ElementsArraySize = (Dimension == 2) ? 1 : 2;
+
+    /// The type of array considered for the tensor
+    typedef typename std::conditional<Dimension == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
 
     /// Double vector
     typedef std::vector<double> DoubleVectorType;
@@ -149,34 +165,37 @@ public:
     /// Colors map
     typedef std::unordered_map<IndexType,IndexType> ColorsMapType;
 
+    /// Index pair
+    typedef std::pair<IndexType,IndexType> IndexPairType;
+
     ///@}
     ///@name  Enum's
     ///@{
-    
+
     /**
      * @brief This enums allows to differentiate the working framework
      */
     enum class FrameworkEulerLagrange {EULERIAN = 0, LAGRANGIAN = 1, ALE = 2};
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
-     
+
     // Constructor
-    
+
     /**
-     * @brief This is the default constructor, which is used to read the input files 
+     * @brief This is the default constructor, which is used to read the input files
      * @param rThisModelPart The model part
      * @param ThisParameters The parameters
      */
     MmgProcess(
-        ModelPart& rThisModelPart, 
+        ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})")
         );
 
     /// Destructor.
     ~MmgProcess() override = default;
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -192,17 +211,17 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
     ///@name Operators
     ///@{
-    
+
     void operator()();
 
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief Execute method is used to execute the Process algorithms.
      */
@@ -227,7 +246,7 @@ public:
      * @brief This function will be executed at every time step AFTER performing the solve phase
      */
     void ExecuteFinalizeSolutionStep() override;
-    
+
     /**
      * @brief This function will be executed at every time step BEFORE  writing the output
      */
@@ -256,7 +275,7 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -273,16 +292,16 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
     }
-    
+
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -304,7 +323,7 @@ protected:
     ///@{
 
     ///@}
-    
+
 private:
     ///@name Static Member Variables
     ///@{
@@ -313,19 +332,19 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
-    ModelPart& mrThisModelPart;                                      /// The model part to compute           
+
+    ModelPart& mrThisModelPart;                                      /// The model part to compute
     Parameters mThisParameters;                                      /// The parameters (can be used for general pourposes)
     NodeType::DofsContainerType  mDofs;                              /// Storage for the dof of the node
-    
+
     char* mFilename;                                                 /// I/O file name
     std::string mStdStringFilename;                                  /// I/O file name (string)
     IndexType mEchoLevel;                                            /// The echo level
 
     FrameworkEulerLagrange mFramework;                               /// The framework
-    
+
     std::unordered_map<IndexType,std::vector<std::string>> mColors;  /// Where the sub model parts IDs are stored
-    
+
     std::unordered_map<IndexType,Element::Pointer>   mpRefElement;   /// Reference condition
     std::unordered_map<IndexType,Condition::Pointer> mpRefCondition; /// Reference element
 
@@ -342,14 +361,14 @@ private:
      * @param Str The string
      * @return FrameworkEulerLagrange: The equivalent enum
      */
-        
+
     static inline FrameworkEulerLagrange ConvertFramework(const std::string& Str)
     {
-        if(Str == "Lagrangian" || Str == "LAGRANGIAN") 
+        if(Str == "Lagrangian" || Str == "LAGRANGIAN")
             return FrameworkEulerLagrange::LAGRANGIAN;
-        else if(Str == "Eulerian" || Str == "EULERIAN") 
+        else if(Str == "Eulerian" || Str == "EULERIAN")
             return FrameworkEulerLagrange::EULERIAN;
-        else if(Str == "ALE") 
+        else if(Str == "ALE")
             return FrameworkEulerLagrange::ALE;
         else
             return FrameworkEulerLagrange::EULERIAN;
@@ -358,70 +377,70 @@ private:
     /**
      * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
      */
-    
+
     void InitializeMeshData();
-    
+
     /**
      *@brief This function generates the metric MMG5 structure from a Kratos Model Part
      */
-    
+
     void InitializeSolData();
-    
+
     /**
      * @brief We execute the MMg library and build the new model part from the old model part
      */
-    
+
     void ExecuteRemeshing();
-    
+
     /**
      * @brief This function reorder the nodes, conditions and elements to avoid problems with non-consecutive ids
      */
-    
+
     void ReorderAllIds();
-    
+
     /**
      * @brief After we have transfer the information from the previous modelpart we initilize the elements and conditions
      */
-    
+
     void InitializeElementsAndConditions();
-    
+
     /**
      * @brief It checks if the nodes are repeated and remove the repeated ones
      */
-    
+
     IndexVectorType CheckNodes();
-    
+
     /**
      * @brief It checks if the conditions are repeated and remove the repeated ones
      */
-    
+
     IndexVectorType CheckConditions0();
-    
+
     /**
      * @brief It checks if the conditions are repeated and remove the repeated ones
      */
-        
+
     IndexVectorType CheckConditions1();
-    
+
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
      */
-    
+
     IndexVectorType CheckElements0();
-    
+
     /**
      * @brief It checks if the elemenst are removed and remove the repeated ones
      */
-        
+
     IndexVectorType CheckElements1();
-    
+
     /**
      * @brief It blocks certain nodes before remesh the model
      * @param iNode The index of the noode
      */
-    
+
     void BlockNode(IndexType iNode);
-    
+
     /**
      * @brief It creates the new node
      * @param iNode The index of the new noode
@@ -429,13 +448,13 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pNode The pointer to the new node created
      */
-    
+
     NodeType::Pointer CreateNode(
         IndexType iNode,
-        int& Ref, 
+        int& Ref,
         int& IsRequired
         );
-    
+
     /**
      * @brief It creates the new condition
      * @param CondId The id of the condition
@@ -443,14 +462,14 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pCondition The pointer to the new condition created
      */
-    
+
     ConditionType::Pointer CreateCondition0(
         const IndexType CondId,
-        int& PropId, 
+        int& PropId,
         int& IsRequired,
         bool SkipCreation
         );
-    
+
     /**
      * @brief It creates the new condition
      * @param CondId The id of the condition
@@ -458,14 +477,14 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pCondition The pointer to the new condition created
      */
-    
+
     ConditionType::Pointer CreateCondition1(
         const IndexType CondId,
-        int& PropId, 
+        int& PropId,
         int& IsRequired,
         bool SkipCreation
         );
-    
+
     /**
      * @brief It creates the new element
      * @param ElemId The id of the element
@@ -473,14 +492,14 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pElement The pointer to the new condition created
      */
-    
+
     ElementType::Pointer CreateElement0(
         const IndexType ElemId,
-        int& PropId, 
+        int& PropId,
         int& IsRequired,
         bool SkipCreation
         );
-    
+
     /**
      * @brief It creates the new element
      * @param ElemId The id of the element
@@ -488,103 +507,103 @@ private:
      * @param IsRequired MMG value (I don't know that it does)
      * @return pElement The pointer to the new condition created
      */
-    
+
     ElementType::Pointer CreateElement1(
         const IndexType ElemId,
-        int& PropId, 
+        int& PropId,
         int& IsRequired,
         bool SkipCreation
         );
-    
+
     /**
      * @brief It saves the solution and mesh to files (for debugging pourpose g.e)
      * @param PostOutput If the file to save is after or before remeshing
      */
-    
+
     void SaveSolutionToFile(const bool PostOutput);
-    
+
     /**
      * @brief It frees the memory used during all the process
      */
-    
+
     void FreeMemory();
-    
-    /** 
+
+    /**
      * @brief Initialisation of mesh and sol structures
      * @detauils Initialisation of mesh and sol structures args of InitMesh:
      * -# MMG5_ARG_start we start to give the args of a variadic func
      * -# MMG5_ARG_ppMesh next arg will be a pointer over a MMG5_pMesh
      * -# &mmgMesh pointer toward your MMG5_pMesh (that store your mesh)
      * -# MMG5_ARG_ppMet next arg will be a pointer over a MMG5_pSol storing a metric
-     * -# &mmgSol pointer toward your MMG5_pSol (that store your metric) 
+     * -# &mmgSol pointer toward your MMG5_pSol (that store your metric)
      */
-    
+
     void InitMesh();
-    
-    /** 
-     * @brief Here the verbosity is set 
+
+    /**
+     * @brief Here the verbosity is set
      */
-    
+
     void InitVerbosity();
-    
-    /** 
+
+    /**
      * @brief Here the verbosity is set using the API
      * @param VerbosityMMG The equivalent verbosity level in the MMG API
      */
-        
+
     void InitVerbosityParameter(const IndexType VerbosityMMG);
-    
+
     /**
      * @brief This sets the size of the mesh
      * @param NumNodes Number of nodes
      * @param NumArrayElements Number of Elements
      * @param NumArrayConditions Number of Conditions
      */
-    
+
     void SetMeshSize(
         const SizeType NumNodes,
         const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
         const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions
         );
-    
+
     /**
      * @brief This sets the size of the solution for the scalar case
      * @param NumNodes Number of nodes
      */
-    
+
     void SetSolSizeScalar(const SizeType NumNodes);
-    
+
     /**
      * @brief This sets the size of the solution for the vector case
      * @param NumNodes Number of nodes
      */
-    
+
     void SetSolSizeVector(const SizeType NumNodes);
-    
+
     /**
      * @brief This sets the size of the solution for the tensor case
      * @param NumNodes Number of nodes
      */
-    
+
     void SetSolSizeTensor(const SizeType NumNodes);
-    
+
     /**
      * @brief This checks the mesh data and prints if it is OK
      */
-    
+
     void CheckMeshData();
-    
+
     /**
      * @brief This sets the output mesh
      * @param PostOutput If the ouput file is the solution after take into account the metric or not
      * @param Step The step to postprocess
      */
-    
+
     void OutputMesh(
-        const bool PostOutput, 
+        const bool PostOutput,
         const IndexType Step
         );
-    
+
     /**
      * @brief This sets the output mesh in a .mdpa format
      */
@@ -595,33 +614,29 @@ private:
      * @param PostOutput If the ouput file is the solution after take into account the metric or not
      * @param Step The step to postprocess
      */
-    
     void OutputSol(
-        const bool PostOutput, 
+        const bool PostOutput,
         const IndexType Step
         );
-    
+
     /**
      * @brief This loads the solution
      */
-    
     void MMGLibCall();
-    
+
     /**
      * @brief This frees the MMG structures
      */
-    
     void FreeAll();
-    
+
     /**
      * @brief This sets the nodes of the mesh
      * @param X Coordinate X
      * @param Y Coordinate Y
      * @param Z Coordinate Z
      * @param Color Reference of the node(submodelpart)
-     * @param Index The index number of the node 
+     * @param Index The index number of the node
      */
-    
     void SetNodes(
         const double X,
         const double Y,
@@ -629,74 +644,73 @@ private:
         const IndexType Color,
         const IndexType Index
         );
-    
+
     /**
      * @brief This sets the conditions of the mesh
      * @param Geom The geometry of the condition
      * @param Color Reference of the node(submodelpart)
-     * @param Index The index number of the node 
+     * @param Index The index number of the node
      */
-    
     void SetConditions(
         GeometryType& Geom,
         const IndexType Color,
         const IndexType Index
         );
-    
+
     /**
      * @brief This sets elements of the mesh
      * @param Geom The geometry of the element
      * @param Color Reference of the node(submodelpart)
-     * @param Index The index number of the node 
+     * @param Index The index number of the node
      */
-    
     void SetElements(
         GeometryType& Geom,
         const IndexType Color,
         const IndexType Index
         );
-    
+
     /**
      * @brief This function is used to compute the metric scalar
      * @param Metric The inverse of the size node
      */
-
     void SetMetricScalar(
         const double Metric,
-        const IndexType NodeId 
+        const IndexType NodeId
         );
-    
+
     /**
      * @brief This function is used to compute the metric vector (x, y, z)
      * @param Metric This array contains the components of the metric vector
      */
-
     void SetMetricVector(
-        const array_1d<double, TDim>& Metric,
-        const IndexType NodeId 
+        const array_1d<double, Dimension>& Metric,
+        const IndexType NodeId
         );
-    
+
     /**
      * @brief This function is used to compute the Hessian metric tensor, note that when using the Hessian, more than one metric can be defined simultaneously, so in consecuence we need to define the elipsoid which defines the volume of maximal intersection
      * @param Metric This array contains the components of the metric tensor in the MMG defined order
      */
-
     void SetMetricTensor(
-        const Vector& Metric,
-        const IndexType NodeId 
+        const TensorArrayType& Metric,
+        const IndexType NodeId
         );
 
     /**
      * @brief This function generates a list of submodelparts to be able to reassign flags after remesh
      */
-
     void CreateAuxiliarSubModelPartForFlags();
 
     /**
      * @brief This function assigns the flags and clears the auxiliar sub model part for flags
      */
-
     void AssignAndClearAuxiliarSubModelPartForFlags();
+
+    /**
+     * @brief This function creates an before/after remesh output file
+     * @param rOldModelPart The old model part before remesh
+     */
+    void CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart);
 
     ///@}
     ///@name Private  Access
@@ -719,7 +733,7 @@ private:
 //     MmgProcess(MmgProcess const& rOther);
 
     ///@}
-    
+
 };// class MmgProcess
 ///@}
 
@@ -732,14 +746,14 @@ private:
 ///@{
 
 /// input stream function
-template<SizeType TDim>
+template<MMGLibray TMMGLibray>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  MmgProcess<TDim>& rThis);
+                                  MmgProcess<TMMGLibray>& rThis);
 
 /// output stream function
-template<SizeType TDim>
+template<MMGLibray TMMGLibray>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const MmgProcess<TDim>& rThis)
+                                  const MmgProcess<TMMGLibray>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

@@ -1385,16 +1385,6 @@ protected:
         );
 
     /**
-     * @brief Calculation of the Hencky strain tensor:
-     * @param rC The right Cauchy tensor
-     * @param rStrainVector The Hencky strain tensor
-     */
-    void CalculateHenckyStrain(
-        const Vector& rC,
-        Vector& rStrainVector
-        );
-
-    /**
      * @brief This function calculates the variation of the element volume
      * @param rVolumeChange Volume variation of the element
      * @param rVariables The internal variables in the element

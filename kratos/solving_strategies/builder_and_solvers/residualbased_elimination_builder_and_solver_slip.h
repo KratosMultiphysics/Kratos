@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SLIP )
@@ -25,7 +25,6 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */
@@ -381,12 +380,12 @@ public:
     // If reactions are to be calculated, we check if all the dofs have reactions defined
     // This is tobe done only in debug mode
 
-    #ifdef KRATOS_DEBUG        
+    #ifdef KRATOS_DEBUG
 
     if(BaseType::GetCalculateReactionsFlag())
     {
         for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-        { 
+        {
                 KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
                     << "Node : "<<dof_iterator->Id()<< std::endl
                     << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;

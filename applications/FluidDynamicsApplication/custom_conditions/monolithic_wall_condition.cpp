@@ -137,7 +137,7 @@ void MonolithicWallCondition<TDim,TNumNodes>::CalculateLocalVelocityContribution
 //        ExternalPressure += rGeom[d].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
 //    ExternalPressure *= NodeFactor;
 
-//    array_1d<double,3> AreaNormal(3,0.0);
+//    array_1d<double,3> AreaNormal = ZeroVector(3);
 //    this->CalculateNormal(AreaNormal);
 
 //    unsigned int Row = 0;
@@ -304,7 +304,7 @@ void MonolithicWallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &
             }
 
             // Velocity inflow correction
-            array_1d<double,3> Vel(3,0.0);
+            array_1d<double,3> Vel = ZeroVector(3);
             double Density = 0.0;
 
             for (unsigned int i = 0; i < TNumNodes; i++)

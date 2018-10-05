@@ -27,7 +27,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/gid_io.h"
 #include "geometries/geometry_data.h"
 
 #define tet10_a 0.108103018168070

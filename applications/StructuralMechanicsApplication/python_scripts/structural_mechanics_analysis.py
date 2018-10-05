@@ -91,7 +91,11 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",
                 "json_check_process", "check_analytic_results_process", "contact_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the processes, this will be removed!")
+                info_msg  = "Using the old way to create the processes, this will be removed!\n"
+                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                info_msg += "for a description of the new format"
+                KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", info_msg)
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
@@ -100,10 +104,14 @@ class StructuralMechanicsAnalysis(AnalysisStage):
             else: # Processes are given in the new format
                 for process_name in processes_block_names:
                     if (self.project_parameters.Has(process_name) is True):
-                        raise Exception("Mixing of process initialization is not alowed!")
+                        raise Exception("Mixing of process initialization is not allowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
-                #KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
+                info_msg  = "Using the old way to create the gid-output, this will be removed!\n"
+                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                info_msg += "for a description of the new format"
+                KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", info_msg)
                 gid_output= self._SetUpGiDOutput()
                 list_of_processes += [gid_output,]
         else:

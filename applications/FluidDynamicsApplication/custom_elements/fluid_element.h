@@ -92,7 +92,11 @@ public:
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     /// Type for shape function values container
+    #ifdef KRATOS_USE_AMATRIX
+    typedef AMatrix::MatrixRow< Matrix > ShapeFunctionsType;
+    #else
     typedef boost::numeric::ublas::matrix_row< Matrix > ShapeFunctionsType;
+    #endif
 
     /// Type for a matrix containing the shape function gradients
     typedef Kratos::Matrix ShapeFunctionDerivativesType;

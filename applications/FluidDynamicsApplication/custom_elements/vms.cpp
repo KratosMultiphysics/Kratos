@@ -268,7 +268,7 @@ void VMS<2>::CalculateOnIntegrationPoints(
 
         // Set output vector (for a single integration point)
         rOutput.resize(1);
-        array_1d<double,3> MomError(3,0.0);
+        array_1d<double,3> MomError = ZeroVector(3);
         if (rCurrentProcessInfo[OSS_SWITCH]==1)
         {
             this->OSSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
@@ -351,7 +351,7 @@ void VMS<3>::CalculateOnIntegrationPoints(
 
         // Set output vector (for a single integration point)
         rOutput.resize(1);
-        array_1d<double,3> MomError(3,0.0);
+        array_1d<double,3> MomError = ZeroVector(3);
         if (rCurrentProcessInfo[OSS_SWITCH]==1)
         {
             this->OSSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
@@ -387,7 +387,7 @@ double VMS<2,3>::EquivalentStrainRate(const BoundedMatrix<double,3,2> &rDN_DX) c
     const GeometryType& rGeom = this->GetGeometry();
 
     // Calculate Symetric gradient (Voigt notation)
-    array_1d<double,3> S(3,0.0);
+    array_1d<double,3> S = ZeroVector(3);
     for (unsigned int n = 0; n < 3; ++n)
     {
         const array_1d<double,3>& rVel = rGeom[n].FastGetSolutionStepValue(VELOCITY);
@@ -407,7 +407,7 @@ double VMS<3,4>::EquivalentStrainRate(const BoundedMatrix<double,4,3> &rDN_DX) c
     const GeometryType& rGeom = this->GetGeometry();
 
     // Calculate Symetric gradient (Voigt notation)
-    array_1d<double,6> S(6,0.0);
+    array_1d<double,6> S = ZeroVector(6);
     for (unsigned int n = 0; n < 4; ++n)
     {
         const array_1d<double,3>& rVel = rGeom[n].FastGetSolutionStepValue(VELOCITY);

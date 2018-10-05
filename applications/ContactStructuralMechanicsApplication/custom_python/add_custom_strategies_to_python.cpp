@@ -45,6 +45,8 @@
 
 // Builders and solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints.h"
 #include "custom_strategies/custom_builder_and_solvers/contact_residualbased_block_builder_and_solver.h"
 
 // Linear solvers
@@ -96,6 +98,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Linear solvers
 
     // Custom builder and solvers types
+    typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
+    typedef ResidualBasedBlockBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsType;
+    typedef ContactResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, ResidualBasedBlockBuilderAndSolverType > ContactResidualBasedBlockBuilderAndSolverType;
+    typedef ContactResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, ResidualBasedBlockBuilderAndSolverWithConstraintsType > ContactResidualBasedBlockBuilderAndSolverWithConstraintsType;
 
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
@@ -255,8 +261,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
 
-    typedef ContactResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ContactResidualBasedBlockBuilderAndSolverType;
-    class_< ContactResidualBasedBlockBuilderAndSolverType, typename ContactResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolver")
+    // Contact block builder and solver
+    class_< ContactResidualBasedBlockBuilderAndSolverType, ContactResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolver")
+    .def(init< LinearSolverType::Pointer > ());
+
+    // Contact block buiklder and sokver with constraints
+    class_< ContactResidualBasedBlockBuilderAndSolverWithConstraintsType, ContactResidualBasedBlockBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolverWithConstraints")
     .def(init< LinearSolverType::Pointer > ());
 }
 
