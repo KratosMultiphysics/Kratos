@@ -278,28 +278,28 @@ public:
     /**
      * @brief This is called in the beginning of each solution step
      */
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    virtual void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     /**
      * @brief This is called for non-linear analysis at the beginning of the iteration process
      */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    virtual void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     /**
      * @brief This is called for non-linear analysis at the end of the iteration process
      */
-    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    virtual void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     /**
      * @brief This is called at the end of each solution step
      */
-    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    virtual void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -312,8 +312,8 @@ public:
     virtual void GetDofList(
         DofPointerVectorType& rSlaveDofList,
         DofPointerVectorType& rMasterDofList,
-        ProcessInfo& rCurrentProcessInfo
-        )
+        const ProcessInfo& rCurrentProcessInfo
+        ) const
     {
         KRATOS_ERROR << "Create not implemented in MasterSlaveConstraintBaseClass" << std::endl;
     }
@@ -327,8 +327,8 @@ public:
     virtual void EquationIdVector(
         EquationIdVectorType& rSlaveEquationIds,
         EquationIdVectorType& rMasterEquationIds,
-        ProcessInfo& rCurrentProcessInfo
-        )
+        const ProcessInfo& rCurrentProcessInfo
+        ) const
     {
         if (rSlaveEquationIds.size() != 0)
             rSlaveEquationIds.resize(0);
@@ -347,7 +347,7 @@ public:
     virtual void CalculateLocalSystem(
         MatrixType& rTransformationMatrix,
         VectorType& rConstantVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
         if (rTransformationMatrix.size1() != 0) {
