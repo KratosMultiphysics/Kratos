@@ -179,8 +179,8 @@ namespace Kratos
     ///@{
 
 
-    // calculate ratial return
-    bool CalculateRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
+    // calculate return mapping
+    bool CalculateReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -189,7 +189,7 @@ namespace Kratos
       //Start 1rst Newton Raphson iteration
       rVariables.State().Set(ConstitutiveModelData::PLASTIC_RATE_REGION,true);
       rVariables.RateFactor=1; //plastic rate region on
-      converged = CalculateRateDependentRadialReturn(rVariables,rStressMatrix);
+      converged = CalculateRateDependentReturnMapping(rVariables,rStressMatrix);
 
       // if(!converged)
       //   std::cout<<" ConstitutiveLaw did not converge on the rate dependent return mapping"<<std::endl;
@@ -215,7 +215,7 @@ namespace Kratos
 	rVariables.State().Set(ConstitutiveModelData::PLASTIC_RATE_REGION,false);
 	rVariables.RateFactor=0; //plastic rate region on
 
-	converged = CalculateRateIndependentRadialReturn(rVariables,rStressMatrix);
+	converged = CalculateRateIndependentReturnMapping(rVariables,rStressMatrix);
 
 	// if(!converged)
 	//   std::cout<<" ConstitutiveLaw did not converge on the rate independent return mapping"<<std::endl;
@@ -228,7 +228,7 @@ namespace Kratos
     }
 
 
-    bool CalculateRateDependentRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    bool CalculateRateDependentReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
 
@@ -296,7 +296,7 @@ namespace Kratos
     }
 
 
-    bool CalculateRateIndependentRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix)
+    bool CalculateRateIndependentReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix)
     {
       KRATOS_TRY
 
@@ -357,7 +357,7 @@ namespace Kratos
 
 
     // implex protected methods
-    void CalculateImplexRadialReturn(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
+    void CalculateImplexReturnMapping(PlasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 

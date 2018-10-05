@@ -66,7 +66,7 @@ namespace Kratos
 
         // Copy the origin model part elements
         auto &r_elems = rOriginModelPart.Elements();
-        for(auto elem : r_elems){
+        for(auto &elem : r_elems){
             // Set the array of virtual nodes to create the element from the original ids.
             PointsArrayType nodes_array;
             auto &r_orig_geom = elem.GetGeometry();

@@ -23,7 +23,6 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
-#include "custom_python/add_cross_sections_to_python.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 namespace Kratos
@@ -49,8 +48,9 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     AddCustomProcessesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
-    AddCrossSectionsToPython(m);
     AddCustomResponseFunctionUtilitiesToPython(m);
+
+    class_<Variable<ShellCrossSection::Pointer>,VariableData >(m,"ShellCrossSectionVariable");
 
     // General pourpose
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_ORDER); // The integration order considered on the element

@@ -17,6 +17,7 @@ class convergence_criterion:
         self.echo_level = convergence_criterion_parameters["echo_level"].GetInt()
         self.convergence_criterion_name = convergence_criterion_parameters["convergence_criterion"].GetString()
         self.mortar_type = convergence_criterion_parameters["mortar_type"].GetString()
+        self.frictional_decomposed = convergence_criterion_parameters["frictional_decomposed"].GetBool()
         self.print_convergence_criterion = convergence_criterion_parameters["print_convergence_criterion"].GetBool()
         self.gidio_debug = convergence_criterion_parameters["gidio_debug"].GetBool()
         if "contact" in self.convergence_criterion_name:
@@ -28,6 +29,10 @@ class convergence_criterion:
             CD_AT = convergence_criterion_parameters["contact_displacement_absolute_tolerance"].GetDouble()
             CR_RT = convergence_criterion_parameters["contact_residual_relative_tolerance"].GetDouble()
             CR_AT = convergence_criterion_parameters["contact_residual_absolute_tolerance"].GetDouble()
+            FCD_RT = convergence_criterion_parameters["frictional_contact_displacement_relative_tolerance"].GetDouble()
+            FCD_AT = convergence_criterion_parameters["frictional_contact_displacement_absolute_tolerance"].GetDouble()
+            FCR_RT = convergence_criterion_parameters["frictional_contact_residual_relative_tolerance"].GetDouble()
+            FCR_AT = convergence_criterion_parameters["frictional_contact_residual_absolute_tolerance"].GetDouble()
             condn_convergence_criterion = convergence_criterion_parameters["condn_convergence_criterion"].GetBool()
             ensure_contact = convergence_criterion_parameters["ensure_contact"].GetBool()
 
@@ -35,15 +40,24 @@ class convergence_criterion:
                 KM.Logger.PrintInfo("::[Mechanical Solver]:: ", "CONVERGENCE CRITERION : " + self.convergence_criterion_name)
 
             if(self.convergence_criterion_name == "contact_displacement_criterion"):
-                self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, D_RT, D_AT, ensure_contact, self.print_convergence_criterion)
+                if (self.mortar_type == "ALMContactFrictional" and self.frictional_decomposed):
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierFrictionalContactCriteria(D_RT, D_AT, CD_RT, CD_AT, FCD_RT, FCD_AT, ensure_contact, self.print_convergence_criterion)
+                else:
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierContactCriteria(D_RT, D_AT, CD_RT, CD_AT, ensure_contact, self.print_convergence_criterion)
                 self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
 
             elif(self.convergence_criterion_name == "contact_residual_criterion"):
-                self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, self.print_convergence_criterion)
+                if (self.mortar_type == "ALMContactFrictional" and self.frictional_decomposed):
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierResidualFrictionalContactCriteria(R_RT, R_AT, CR_RT, CR_AT, FCR_RT, FCR_AT, ensure_contact, self.print_convergence_criterion)
+                else:
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierResidualContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, self.print_convergence_criterion)
                 self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
 
             elif(self.convergence_criterion_name == "contact_mixed_criterion"):
-                self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, self.print_convergence_criterion)
+                if (self.mortar_type == "ALMContactFrictional" and self.frictional_decomposed):
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedFrictionalontactCriteria(R_RT, R_AT, CR_RT, CR_AT, FCR_RT, FCR_AT, ensure_contact, self.print_convergence_criterion)
+                else:
+                    self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedContactCriteria(R_RT, R_AT, CR_RT, CR_AT, ensure_contact, self.print_convergence_criterion)
                 self.mechanical_convergence_criterion.SetEchoLevel(self.echo_level)
 
             elif(self.convergence_criterion_name == "contact_and_criterion"):

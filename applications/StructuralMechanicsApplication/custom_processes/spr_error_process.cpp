@@ -81,17 +81,11 @@ void SPRErrorProcess<TDim>::Execute()
 template<SizeType TDim>
 void SPRErrorProcess<TDim>::CalculateSuperconvergentStresses()
 {
-    // Array of nodes
-    NodesArrayType& nodes_array = mThisModelPart.Nodes();
-
     // We do a find of neighbours
-    {
-        FindNodalNeighboursProcess find_neighbours(mThisModelPart);
-        if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
-        find_neighbours.Execute();
-    }
+    FindNodalNeighbours(mThisModelPart);
 
     // Iteration over all nodes -- construction of patches
+    NodesArrayType& nodes_array = mThisModelPart.Nodes();
     const int num_nodes = static_cast<int>(nodes_array.size());
 
     #pragma omp parallel for
@@ -116,7 +110,7 @@ void SPRErrorProcess<TDim>::CalculateSuperconvergentStresses()
                 Vector sigma_recovered_i(SigmaSize,0);
 
                 IndexType count_i = 0;
-                for(IndexType i_node_loop = 0; i_node_loop < num_nodes; ++i_node_loop) { // FIXME: Avoid this double loop, extreamily expensive
+                for(int i_node_loop = 0; i_node_loop < num_nodes; ++i_node_loop) { // FIXME: Avoid this double loop, extreamily expensive
                     auto it_node_loop = nodes_array.begin() + i_node_loop;
                     const SizeType size_elem_neigh = it_node_loop->GetValue(NEIGHBOUR_ELEMENTS).size();
                     if (it_node_loop->Id() == it_neighbour_nodes->Id() && size_elem_neigh > TDim){
@@ -272,7 +266,20 @@ void SPRErrorProcess<TDim>::CalculatePatch(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) class SPRErrorProcess<2>;
-template KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) class SPRErrorProcess<3>;
+template<SizeType TDim>
+inline void SPRErrorProcess<TDim>::FindNodalNeighbours(ModelPart& rModelPart)
+{
+    FindNodalNeighboursProcess find_neighbours(rModelPart);
+    // Array of nodes
+    NodesArrayType& nodes_array = rModelPart.Nodes();
+    if (nodes_array.begin()->Has(NEIGHBOUR_ELEMENTS)) find_neighbours.ClearNeighbours();
+    find_neighbours.Execute();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SPRErrorProcess<2>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SPRErrorProcess<3>;
 
 };// namespace Kratos.

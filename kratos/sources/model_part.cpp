@@ -447,7 +447,7 @@ void ModelPart::RemoveNodeFromAllLevels(ModelPart::NodeType::Pointer pThisNode, 
     RemoveNode(pThisNode, ThisIndex);
 }
 
-void ModelPart::RemoveNodes(Flags identifier_flag)
+void ModelPart::RemoveNodes(Flags IdentifierFlag)
 {
     // This method is optimized to free the memory
     //loop over all the meshes
@@ -462,7 +462,7 @@ void ModelPart::RemoveNodes(Flags identifier_flag)
         {
             ModelPart::NodesContainerType::iterator i_node = i_mesh->NodesBegin() + i;
 
-            if( i_node->IsNot(identifier_flag) )
+            if( i_node->IsNot(IdentifierFlag) )
                 erase_count++;
         }
 
@@ -473,20 +473,20 @@ void ModelPart::RemoveNodes(Flags identifier_flag)
 
         for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
         {
-            if( i_node->IsNot(identifier_flag) )
+            if( i_node->IsNot(IdentifierFlag) )
                 (i_mesh->Nodes()).push_back(std::move(*(i_node.base())));
         }
     }
 
     //now recursively remove the nodes in the submodelparts
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveNodes(identifier_flag);
+        i_sub_model_part->RemoveNodes(IdentifierFlag);
 }
 
-void ModelPart::RemoveNodesFromAllLevels(Flags identifier_flag)
+void ModelPart::RemoveNodesFromAllLevels(Flags IdentifierFlag)
 {
     ModelPart& root_model_part = GetRootModelPart();
-    root_model_part.RemoveNodes(identifier_flag);
+    root_model_part.RemoveNodes(IdentifierFlag);
 }
 
 ModelPart& ModelPart::GetRootModelPart()
@@ -812,7 +812,7 @@ void ModelPart::RemoveElementFromAllLevels(ModelPart::ElementType::Pointer pThis
     RemoveElement(pThisElement, ThisIndex);
 }
 
-void ModelPart::RemoveElements(Flags identifier_flag)
+void ModelPart::RemoveElements(Flags IdentifierFlag)
 {
     // This method is optimized to free the memory
     //loop over all the meshes
@@ -827,7 +827,7 @@ void ModelPart::RemoveElements(Flags identifier_flag)
         {
             auto i_elem = i_mesh->ElementsBegin() + i;
 
-            if( i_elem->IsNot(identifier_flag) )
+            if( i_elem->IsNot(IdentifierFlag) )
                 erase_count++;
         }
 
@@ -838,20 +838,20 @@ void ModelPart::RemoveElements(Flags identifier_flag)
 
         for(ModelPart::ElementsContainerType::iterator i_elem = temp_elements_container.begin() ; i_elem != temp_elements_container.end() ; i_elem++)
         {
-            if( i_elem->IsNot(identifier_flag) )
+            if( i_elem->IsNot(IdentifierFlag) )
                 (i_mesh->Elements()).push_back(std::move(*(i_elem.base())));
         }
     }
 
     //now recursively remove the elements in the submodelparts
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveElements(identifier_flag);
+        i_sub_model_part->RemoveElements(IdentifierFlag);
 }
 
-void ModelPart::RemoveElementsFromAllLevels(Flags identifier_flag)
+void ModelPart::RemoveElementsFromAllLevels(Flags IdentifierFlag)
 {
     ModelPart& root_model_part = GetRootModelPart();
-    root_model_part.RemoveElements(identifier_flag);
+    root_model_part.RemoveElements(IdentifierFlag);
 }
 
 
@@ -1119,6 +1119,50 @@ void ModelPart::RemoveMasterSlaveConstraintFromAllLevels(ModelPart::MasterSlaveC
     RemoveMasterSlaveConstraint(ThisMasterSlaveConstraint, ThisIndex);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ModelPart::RemoveMasterSlaveConstraints(Flags IdentifierFlag)
+{
+    // This method is optimized to free the memory loop over all the meshes
+    auto& meshes = this->GetMeshes();
+    for(auto it_mesh = meshes.begin() ; it_mesh != meshes.end() ; it_mesh++) {
+        // Count the constraints to be erase
+        const SizeType nconstraints = it_mesh->MasterSlaveConstraints().size();
+        SizeType erase_count = 0;
+        #pragma omp parallel for reduction(+:erase_count)
+        for(int i=0; i<static_cast<int>(nconstraints); ++i) {
+            auto it_const = it_mesh->MasterSlaveConstraintsBegin() + i;
+
+            if( it_const->IsNot(IdentifierFlag) )
+                erase_count++;
+        }
+
+        ModelPart::MasterSlaveConstraintContainerType temp_constraints_container;
+        temp_constraints_container.reserve(it_mesh->MasterSlaveConstraints().size() - erase_count);
+
+        temp_constraints_container.swap(it_mesh->MasterSlaveConstraints());
+
+        for(auto it_const = temp_constraints_container.begin() ; it_const != temp_constraints_container.end(); it_const++) {
+            if( it_const->IsNot(IdentifierFlag) )
+                (it_mesh->MasterSlaveConstraints()).push_back(std::move(*(it_const.base())));
+        }
+    }
+
+    // Now recursively remove the constraints in the submodelparts
+    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+        i_sub_model_part->RemoveMasterSlaveConstraints(IdentifierFlag);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ModelPart::RemoveMasterSlaveConstraintsFromAllLevels(Flags IdentifierFlag)
+{
+    ModelPart& root_model_part = GetRootModelPart();
+    root_model_part.RemoveMasterSlaveConstraints(IdentifierFlag);
+}
+
 /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
 ModelPart::MasterSlaveConstraintType::Pointer ModelPart::pGetMasterSlaveConstraint(ModelPart::IndexType MasterSlaveConstraintId, IndexType ThisIndex)
 {
@@ -1332,7 +1376,7 @@ void ModelPart::RemoveConditionFromAllLevels(ModelPart::ConditionType::Pointer p
     RemoveCondition(pThisCondition, ThisIndex);
 }
 
-void ModelPart::RemoveConditions(Flags identifier_flag)
+void ModelPart::RemoveConditions(Flags IdentifierFlag)
 {
     // This method is optimized to free the memory
     //loop over all the meshes
@@ -1347,7 +1391,7 @@ void ModelPart::RemoveConditions(Flags identifier_flag)
         {
             auto i_cond = i_mesh->ConditionsBegin() + i;
 
-            if( i_cond->IsNot(identifier_flag) )
+            if( i_cond->IsNot(IdentifierFlag) )
                 erase_count++;
         }
 
@@ -1358,20 +1402,20 @@ void ModelPart::RemoveConditions(Flags identifier_flag)
 
         for(ModelPart::ConditionsContainerType::iterator i_cond = temp_conditions_container.begin() ; i_cond != temp_conditions_container.end() ; i_cond++)
         {
-            if( i_cond->IsNot(identifier_flag) )
+            if( i_cond->IsNot(IdentifierFlag) )
                 (i_mesh->Conditions()).push_back(std::move(*(i_cond.base())));
         }
     }
 
     //now recursively remove the conditions in the submodelparts
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-        i_sub_model_part->RemoveConditions(identifier_flag);
+        i_sub_model_part->RemoveConditions(IdentifierFlag);
 }
 
-void ModelPart::RemoveConditionsFromAllLevels(Flags identifier_flag)
+void ModelPart::RemoveConditionsFromAllLevels(Flags IdentifierFlag)
 {
     ModelPart& root_model_part = GetRootModelPart();
-    root_model_part.RemoveConditions(identifier_flag);
+    root_model_part.RemoveConditions(IdentifierFlag);
 }
 
 

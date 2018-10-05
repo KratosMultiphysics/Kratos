@@ -122,6 +122,7 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         for Condition in self.model_part.Conditions:
             Condition.Properties = self.properties
 
+
     def _GetLawFromModule(self,my_string):
         splitted = my_string.split(".")
         if(len(splitted) == 0):
