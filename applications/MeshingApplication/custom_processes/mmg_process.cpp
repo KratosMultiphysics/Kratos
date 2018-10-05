@@ -328,8 +328,8 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
         num_array_elements[0] = num_tetra;  // Tetrahedron
         num_array_elements[1] = num_prisms; // Prisms
 
-        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_tetra) < elements_array.size()) && mEchoLevel > 0) <<
-        "Number of Elements: " << elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_tetra << std::endl;
+        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_prisms) < elements_array.size()) && mEchoLevel > 0) <<
+        "Number of Elements: " << elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
 
         /* Conditions */
         std::size_t num_tri = 0, num_quad = 0;
