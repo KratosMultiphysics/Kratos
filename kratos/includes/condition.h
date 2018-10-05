@@ -212,7 +212,7 @@ public:
     @return SizeType, working space dimension of this geometry.
     */
 
-    SizeType WorkingSpaceDimension() const
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please ask the geometry directly") SizeType WorkingSpaceDimension() const
     {
         return pGetGeometry()->WorkingSpaceDimension();
     }
