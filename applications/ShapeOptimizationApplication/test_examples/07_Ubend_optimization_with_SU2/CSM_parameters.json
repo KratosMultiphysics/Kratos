@@ -16,7 +16,7 @@
             "time_step"       : 1.0
         },
         "model_import_settings"              : {
-            "input_type"     : "mdpa",
+            "input_type"     : "use_input_model_part",
             "input_filename" : "CSM_model_thin"
         },
             "material_import_settings" :{
@@ -33,7 +33,7 @@
             "solver_type"         : "eigen_pardiso_llt"
         },
         "problem_domain_sub_model_part_list" : ["solid_part"],
-        "processes_sub_model_part_list"      : ["supports","loaded_surface","wet_surface"],
+        "processes_sub_model_part_list"      : ["supports","loaded_surface","wet_surface_with_opt_conditions"],
         "rotation_dofs"                      : false
     },
     "constraints_process_list" : [{

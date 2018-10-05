@@ -26,27 +26,24 @@
         "step_size"              : 1e-8,
         "consider_discretization": false
     },
-    "mesh_motion_settings" : {
-        "problem_data" : {
-            "echo_level" : 0,
-            "time_step" : 1.1,
-            "start_time" : 0.0,
-            "end_time" : 1.0,
-            "domain_size" : 3,
-            "model_part_name" : "CSM_model_thin",
-            "parallel_type" : "OpenMP"
+    "cfd_interface_output_settings": {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["MESH_DISPLACEMENT","MESH_CHANGE","POINT_LOAD","NORMAL","NORMALIZED_SURFACE_NORMAL"]
         },
-        "solver_settings" : {
-            "solver_type": "mesh_solver_structural_similarity",
-            "model_import_settings"              : {
-                "input_type"     : "use_input_model_part",
-                "input_filename" : "CSM_model_thin"
-            },
-            "mesh_motion_linear_solver_settings"  : {
-                "solver_type" : "eigen_pardiso_llt"
-            },
-            "compute_reactions"     : true
-        }
+        "point_data_configuration"  : []
     },
     "optimization_settings" : {
         "objectives" : [{
@@ -58,8 +55,8 @@
         "constraints" : [],
         "design_variables" : {
             "type"                               : "vertex_morphing",
-            "optimization_model_part_name"       : "CFD_ubend",
-            "design_surface_sub_model_part_name" : "BOGEN",
+            "optimization_model_part_name"       : "CSM_model_thin",
+            "design_surface_sub_model_part_name" : "wet_surface_with_opt_conditions",
             "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
@@ -80,12 +77,23 @@
                 ]
             },
             "mesh_motion" : {
-                "apply_mesh_solver" : false
+                "apply_mesh_solver" : true,
+                "solver_settings" : {
+                    "solver_type": "mesh_solver_structural_similarity",
+                    "model_import_settings"              : {
+                        "input_type"     : "use_input_model_part",
+                        "input_filename" : "CSM_model_thin"
+                    },
+                    "mesh_motion_linear_solver_settings"  : {
+                        "solver_type" : "eigen_pardiso_llt"
+                    },
+                    "compute_reactions"     : true
+                }
             }
         },
         "optimization_algorithm" : {
             "name"                : "steepest_descent",
-            "max_iterations"      : 100,
+            "max_iterations"      : 10,
             "relative_tolerance"  : -1e-1,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
@@ -105,8 +113,7 @@
                                           "CONTROL_POINT_CHANGE",
                                           "SHAPE_UPDATE",
                                           "SHAPE_CHANGE",
-                                          "NORMALIZED_SURFACE_NORMAL",
-                                          "COUPLING_VARIABLE_1" ],
+                                          "NORMALIZED_SURFACE_NORMAL" ],
             "output_format" : {
                 "name"              : "gid",
                 "gid_configuration" : {
