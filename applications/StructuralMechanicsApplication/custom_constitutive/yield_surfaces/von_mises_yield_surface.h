@@ -140,12 +140,8 @@ public:
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
-		//KRATOS_WATCH(r_material_properties[YIELD_STRESS_TENSION])
         const double yield_tension = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-		// KRATOS_WATCH(yield_tension) 0
-        //KRATOS_WATCH(r_material_properties[YIELD_STRESS_TENSION]) 0
 		rThreshold = std::abs(yield_tension);
-
     }
 
     /**

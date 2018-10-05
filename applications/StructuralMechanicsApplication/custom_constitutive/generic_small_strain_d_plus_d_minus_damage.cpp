@@ -153,7 +153,6 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
         array_1d<double, VoigtSize>& IntegratedStressVectorTension,
         ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY
     bool is_damaging = false;
     if (F_tension <= 0.0) { // Elastic case
         this->SetNonConvTensionDamage(rParameters.DamageTension);
@@ -178,7 +177,6 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     this->SetTensionStress(uniaxial_stress_tension);
 
     return is_damaging;
-    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -192,7 +190,6 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
         array_1d<double, VoigtSize>& IntegratedStressVectorCompression,
         ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY
     bool is_damaging = false;
     if (F_compression <= 0.0) { // Elastic case
         this->SetNonConvCompressionDamage(rParameters.DamageCompression);
@@ -216,7 +213,6 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
     this->SetCompressionStress(uniaxial_stress_compression);
 
     return is_damaging;
-    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
