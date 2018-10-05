@@ -262,7 +262,7 @@ public:
      * @brief It is called to initialize the constraint
      * @details If the constraint needs to perform any operation before any calculation is done
      */
-    virtual void Initialize()
+    virtual void Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -270,7 +270,7 @@ public:
      * @brief It is called to finalize the constraint
      * @details If the constraint needs to perform any operation before any calculation is done
      */
-    virtual void Finalize()
+    virtual void Finalize(const ProcessInfo& rCurrentProcessInfo)
     {
         this->Clear();
     }
