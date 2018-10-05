@@ -53,7 +53,6 @@ class CustomSU2Analyzer(AnalyzerBaseClass):
         self.cfd_interface_mdpa = self.cfd_mdpa.GetSubModelPart("BOGEN")
         self.csm_mdpa = csm_model.GetModelPart("CSM_model_thin")
         self.csm_support_mdpa = self.csm_mdpa.GetSubModelPart("supports")
-        self.csm_outer_surface_mdpa = self.csm_mdpa.GetSubModelPart("outer_surface_with_opt_conditions")
         self.csm_interface_mdpa = self.csm_mdpa.GetSubModelPart("wet_surface_with_opt_conditions")
 
         # Initialize SU2 interface
@@ -83,7 +82,7 @@ class CustomSU2Analyzer(AnalyzerBaseClass):
         # Update fluid mesh (structure is controlled by the optimization algorithm)
         self.cfd_interface_mdpa.ProcessInfo[TIME] = optimization_iteration
 
-        generalized_vm_mapper = MapperGeneralizedVertexMorphing(self.csm_interface_mdpa, self.cfd_interface_mdpa, parameters["optimization_settings"]["design_variables"]["filter"])
+        generalized_vm_mapper = MapperGeneralizedVertexMorphing(current_design, self.cfd_interface_mdpa, parameters["optimization_settings"]["design_variables"]["filter"])
         generalized_vm_mapper.Map(CONTROL_POINT_UPDATE, MESH_DISPLACEMENT)
 
         if parameters["optimization_settings"]["design_variables"]["damping"]["perform_damping"].GetBool():
@@ -123,8 +122,8 @@ class CustomSU2Analyzer(AnalyzerBaseClass):
 
                 generalized_vm_mapper.InverseMap(DF1DX,DF1DX_MAPPED)
 
-                mapped_pressure_gradient = ReadNodalVariableToDictionary(self.csm_interface_mdpa, DF1DX)
-                communicator.reportGradient("pressure_loss", mapped_pressure_gradient)
+                pressure_gradient = ReadNodalVariableToDictionary(current_design, DF1DX)
+                communicator.reportGradient("pressure_loss", pressure_gradient)
 
         # Output results on CFD interface
         self.cfd_interface_gid_output.ExecuteInitializeSolutionStep()
@@ -135,7 +134,7 @@ class CustomSU2Analyzer(AnalyzerBaseClass):
         if communicator.isRequestingValueOf("strain_energy") or \
            communicator.isRequestingGradientOf("strain_energy"):
 
-            scaling_fac = 10000
+            scaling_fac = 1e7
 
             # Initialize new structural solution
             csm_response.InitializeSolutionStep()

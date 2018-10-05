@@ -63,18 +63,18 @@
         "design_variables" : {
             "type"                               : "vertex_morphing",
             "optimization_model_part_name"       : "CSM_model_thin",
-            "design_surface_sub_model_part_name" : "wet_surface_with_opt_conditions",
+            "design_surface_sub_model_part_name" : "combined_surface_with_opt_conditions",
             "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
-                "filter_radius"              : 0.02,
+                "filter_radius"              : 0.01,
                 "max_nodes_in_filter_radius" : 50000,
                 "matrix_free_filtering"      : false
             },
             "damping" : {
                 "perform_damping" : true,
                 "damping_regions" : [{
-                        "sub_model_part_name"   : "fix_nodes",
+                        "sub_model_part_name"   : "inner_and_outer_ring",
                         "damp_X"                : true,
                         "damp_Y"                : true,
                         "damp_Z"                : true,
