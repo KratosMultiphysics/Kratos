@@ -230,7 +230,6 @@ class MechanicalSolver(PythonSolver):
                 mechanical_solution_strategy.SetInitializePerformedFlag(True)
             except AttributeError:
                 pass
-        self.Check()
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
 
     def Solve(self):
