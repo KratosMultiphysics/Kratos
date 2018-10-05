@@ -120,7 +120,7 @@ class MmgProcess(KratosMultiphysics.Process):
             },
             "debug_mode"                       : false,
             "debug_result_mesh"                : false,
-            "initialize_entities"              : false,
+            "initialize_entities"              : true,
             "echo_level"                       : 3
         }
         """)
