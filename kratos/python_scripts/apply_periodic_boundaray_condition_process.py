@@ -1,5 +1,4 @@
 import KratosMultiphysics as KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -79,7 +78,7 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         periodic_parameters.AddValue("dir_of_translation", settings["dir_of_translation"])
         periodic_parameters.AddValue("magnitude", settings["magnitude"])
 
-        self.periodic_bc_process = StructuralMechanicsApplication.ApplyPeriodicBoundaryConditionProcess(self.main_model_part, rigid_parameters)
+        self.periodic_bc_process = KratosMultiphysics.ApplyPeriodicBoundaryConditionProcess(self.main_model_part, rigid_parameters)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
