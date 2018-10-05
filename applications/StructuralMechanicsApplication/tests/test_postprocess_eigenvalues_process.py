@@ -106,7 +106,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         settings_check_process["reference_file_name"].SetString(GetFilePath("test_postprocess_eigenvalues_process.ref"))
         settings_check_process["output_file_name"].SetString("Structure_EigenResults_0.post.res")
 
-        check_process = CompareTwoFilesCheckProcess(test_model, settings_check_process)
+        check_process = CompareTwoFilesCheckProcess(settings_check_process)
 
         check_process.ExecuteInitialize()
         check_process.ExecuteBeforeSolutionLoop()
