@@ -55,22 +55,22 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         if(settings.Has("variable_names")):
-            if(setting["variable_names"].size()) == 0):
+            if(settings["variable_names"].size() == 0):
                 raise Exception("No variables specified to apply periodic boundary conditions.")
 
         # The computing model part
-        computing_model_part_name = settings["computing_model_part_name"].GetString()
-        self.computing_model_part = Model[computing_model_part_name]
         main_model_part_name = settings["model_part_name"].GetString()
         self.main_model_part = Model[main_model_part_name]
+        computing_model_part_name = settings["computing_model_part_name"].GetString()
+        self.computing_model_part = Model[main_model_part_name+"."+computing_model_part_name]
 
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
         # Create the process
         periodic_parameters = KratosMultiphysics.Parameters("""{}""")
-        periodic_parameters.AddValue("master_part_name", settings["first_model_part_name"])
-        periodic_parameters.AddValue("slave_part_name", settings["second_model_part_name"])
+        periodic_parameters.AddValue("master_model_part_name", settings["first_model_part_name"])
+        periodic_parameters.AddValue("slave_model_part_name", settings["second_model_part_name"])
         periodic_parameters.AddValue("variable_names", settings["variable_names"])
         periodic_parameters.AddValue("center", settings["center"])
         periodic_parameters.AddValue("axis_of_rotation", settings["axis_of_rotation"])
@@ -78,7 +78,7 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         periodic_parameters.AddValue("dir_of_translation", settings["dir_of_translation"])
         periodic_parameters.AddValue("magnitude", settings["magnitude"])
 
-        self.periodic_bc_process = KratosMultiphysics.ApplyPeriodicBoundaryConditionProcess(self.main_model_part, rigid_parameters)
+        self.periodic_bc_process = KratosMultiphysics.ApplyPeriodicConditionProcess(self.main_model_part, periodic_parameters)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -98,7 +98,7 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         """
         self.periodic_bc_process.ExecuteInitializeSolutionStep()
 
-        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         # We activate/deactivate conditions dependeding of interval
         if (self.interval.IsInInterval(current_time)):

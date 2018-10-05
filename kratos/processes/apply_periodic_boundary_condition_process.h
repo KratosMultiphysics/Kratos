@@ -68,8 +68,8 @@ class ApplyPeriodicConditionProcess : public Process
     {
         Parameters default_parameters(R"(
                                             {
-                                            "master_sub_model_part_name":"default_master",
-                                            "slave_sub_model_part_name":"default_slave",
+                                            "master_model_part_name":"default_master",
+                                            "slave_model_part_name":"default_slave",
                                             "variable_names":[],
                                             "center":[0,0,0],
                                             "axis_of_rotation":[0.0,0.0,0.0],
@@ -126,8 +126,8 @@ class ApplyPeriodicConditionProcess : public Process
      */
     void RemoveCommonNodesFromSlaveModelPart()
     {
-        ModelPart &r_slave_model_part = mrMainModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
-        ModelPart &r_master_model_part = mrMainModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+        ModelPart &r_slave_model_part = mrMainModelPart.GetSubModelPart(mParameters["slave_model_part_name"].GetString());
+        ModelPart &r_master_model_part = mrMainModelPart.GetSubModelPart(mParameters["master_model_part_name"].GetString());
         for (auto& slave_node : r_slave_model_part.Nodes())
         {
             auto iterator = r_master_model_part.Nodes().find(slave_node);
@@ -198,9 +198,9 @@ class ApplyPeriodicConditionProcess : public Process
     void ApplyConstraintsForPeriodicConditions()
     {
         const double start_apply = OpenMPUtils::GetCurrentTime();
-        ModelPart &r_slave_model_part = mrMainModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
+        ModelPart &r_slave_model_part = mrMainModelPart.GetSubModelPart(mParameters["slave_model_part_name"].GetString());
         const int num_vars = mParameters["variable_names"].size();
-        ModelPart &r_master_model_part = mrMainModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+        ModelPart &r_master_model_part = mrMainModelPart.GetSubModelPart(mParameters["master_model_part_name"].GetString());
         BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(r_master_model_part);
         bin_based_point_locator.UpdateSearchDatabase();
 
