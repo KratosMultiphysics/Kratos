@@ -117,8 +117,8 @@ class ScalarAverageSampler: public StatisticsSampler
 {
 public:
 
-ScalarAverageSampler(unsigned int Offset, std::function<double(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter):
-  StatisticsSampler(1, Offset),
+ScalarAverageSampler(std::function<double(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter):
+  StatisticsSampler(1),
   mGetter(Getter)
 {}
 
