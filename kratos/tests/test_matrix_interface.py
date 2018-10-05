@@ -6,7 +6,6 @@ import math
 
 
 class TestMatrixInterface(KratosUnittest.TestCase):
-
         
     def test_assignement(self):
         a = Matrix(2,3)
