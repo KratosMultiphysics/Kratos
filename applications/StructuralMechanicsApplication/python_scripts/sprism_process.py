@@ -33,6 +33,7 @@ class SPRISMProcess(KM.Process):
         Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
+        KratosMultiphysics.Process.__init__(self)
 
         # Settings string in json format
         default_parameters = KM.Parameters("""
