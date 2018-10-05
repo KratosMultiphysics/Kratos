@@ -94,7 +94,6 @@ public:
     void UpdateMeasurement(
         /*const*/ Element* pElement,
         const std::vector<StatisticsSampler::Pointer>& rStatisticsSamplers,
-        ValueContainerType& rMeasurement,
         ValueContainerType& rUpdate,
         std::size_t NumMeasurements)
     {
@@ -103,7 +102,7 @@ public:
 
         if (NumMeasurements == 1)
         {
-            InitializeStorage(pElement, rMeasurement.size());
+            InitializeStorage(pElement, rUpdate.size());
         }
 
         const Geometry<Node<3>> &r_geometry = pElement->GetGeometry();
