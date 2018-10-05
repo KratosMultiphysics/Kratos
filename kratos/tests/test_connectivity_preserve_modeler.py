@@ -6,8 +6,7 @@ import KratosMultiphysics
 class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
 
     def test_connectivity_preserve_modeler(self):
-        current_model = KratosMultiphysics.Model()
-        model_part1 = current_model.CreateModelPart("Main")
+        model_part1 = KratosMultiphysics.ModelPart("Main")
         model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
         model_part1.CreateNewNode(1,0.0,0.1,0.2)
@@ -27,8 +26,7 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         model_part1.CreateNewCondition("Condition2D2N", 2, [2,4], model_part1.GetProperties()[1])
         sub1.AddConditions([2])
 
-        current_model = KratosMultiphysics.Model()
-        new_model_part = current_model.CreateModelPart("Other")
+        new_model_part = KratosMultiphysics.ModelPart("Other")
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "Condition2D2N")
 
@@ -68,8 +66,7 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertEqual(new_model_part.GetSubModelPart("sub1").Conditions[2].GetValue(KratosMultiphysics.TEMPERATURE), 0.0)
 
     def test_repeated_call(self):
-        current_model = KratosMultiphysics.Model()
-        model_part1 = current_model.CreateModelPart("Main")
+        model_part1 = KratosMultiphysics.ModelPart("Main")
         model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
         model_part1.CreateNewNode(1,0.0,0.1,0.2)
@@ -88,10 +85,9 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         model_part1.CreateNewCondition("Condition2D2N", 1, [1,2], model_part1.GetProperties()[1])
         sub1.AddConditions([2])
 
-        current_model = KratosMultiphysics.Model()
-        new_model_part = current_model.CreateModelPart("New1")
-        new_model_part2 = current_model.CreateModelPart("New2")
 
+        new_model_part = KratosMultiphysics.ModelPart("New1")
+        new_model_part2 = KratosMultiphysics.ModelPart("New2")
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "Condition2D2N")
         self.assertEqual(len(model_part1.Nodes) , len(new_model_part.Nodes))
@@ -118,12 +114,11 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertEqual(len(model_part1.Elements) , len(new_model_part.Elements))
 
     def test_variable_list_merging(self):
-        current_model = KratosMultiphysics.Model()
-        model_part1 = current_model.CreateModelPart("mp1")
+        model_part1 = KratosMultiphysics.ModelPart("mp1")
         model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
-        model_part2 = current_model.CreateModelPart("mp2")
+        model_part2 = KratosMultiphysics.ModelPart("mp1")
         model_part2.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         model_part2.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
 
@@ -150,18 +145,7 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertTrue(model_part2.HasNodalSolutionStepVariable(KratosMultiphysics.VELOCITY))
 
 
-    def test_with_submodelpart(self):
-        current_model = KratosMultiphysics.Model()
-        model_part1 = current_model.CreateModelPart("mp1")
-        sub_model_part1 = model_part1.CreateSubModelPart("smp1")
-        model_part2 = current_model.CreateModelPart("mp2")
-        sub_model_part2 = model_part2.CreateSubModelPart("smp2")
 
-        modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-        with self.assertRaisesRegex(RuntimeError, "Error: ConnectivityPreserveModeler expects to work on root modelparts. This is not the case for the ORIGIN model part named: smp1"):
-            modeler.GenerateModelPart(sub_model_part1, model_part2, "Element2D3N", "Condition2D2N")
-        with self.assertRaisesRegex(RuntimeError, "Error: ConnectivityPreserveModeler expects to work on root modelparts. This is not the case for the DESTINATION model part named: smp2"):
-            modeler.GenerateModelPart(model_part1, sub_model_part2, "Element2D3N", "Condition2D2N")
 
 
 
