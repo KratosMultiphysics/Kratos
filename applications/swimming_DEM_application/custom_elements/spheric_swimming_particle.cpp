@@ -1169,24 +1169,24 @@ double SphericSwimmingParticle<TBaseElement>::ComputeWeatherfordDragCoefficient(
     double drag_coeff;
 
     if (!non_newtonian_option){ // Newtonian
-        ComputeParticleReynoldsNumber(reynolds);
+      ComputeParticleReynoldsNumber(reynolds);
 
-        if (!non_newtonian_option && reynolds < 0.01){
-            reynolds = 0.01;
-        }
+      if (!non_newtonian_option && reynolds < 0.01){
+	reynolds = 0.01;
+      }
 
-	// CalculateNewtonianDragCoefficient(non_newtonian_option, reynolds, mSphericity, drag_coeff, drag_modifier_type);
-	// drag_coeff *= 0.5 *  mFluidDensity * area * drag_coeff * mNormOfSlipVel;
-
-	//to avoid numerical problems it is better to compute the drag coeff as follows (division by zero and multiplication among very small numbers and big numbers are avoided)
-	if(reynolds==0){
-	  drag_coeff = 6.0 * Globals::Pi * mKinematicViscosity * mFluidDensity * mRadius * (0.5 *  mFluidDensity * area * mNormOfSlipVel) ; //I use the Stoke coefficient
-        }else if (reynolds > 1000){
-	  drag_coeff = 0.44 *  (0.5 *  mFluidDensity * area * mNormOfSlipVel);
-	}else{
-	  drag_coeff = 12.0 * mKinematicViscosity / mRadius * (1.0 + 0.15 * pow(reynolds, 0.687)) * (0.5 *  mFluidDensity * area);
+      if (mSphericity < 0.9999){
+	drag_coeff = CalculateDragCoeffFromSphericity(reynolds, mSphericity, drag_modifier_type);
+	drag_coeff *= 0.5 *  mFluidDensity * area * mNormOfSlipVel;
+      }
+      else if (reynolds > 1000){
+	drag_coeff = 0.44 *  (0.5 *  mFluidDensity * area * mNormOfSlipVel);
+      }
+      else{
+	drag_coeff = 12.0 * mKinematicViscosity / mRadius * (1.0 + 0.15 * pow(reynolds, 0.687)) * (0.5 *  mFluidDensity * area);
       }
     }
+  
 
     else {
         const double gel_strength                  = GetGeometry()[0].FastGetSolutionStepValue(YIELD_STRESS);
