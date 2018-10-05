@@ -100,6 +100,7 @@ void Finalize(TIteratorType& rBufferIterator, std::size_t NumberOfMeasurements)
 {
     for (std::size_t i = 0; i < mNumValues; i++) {
         *rBufferIterator /= NumberOfMeasurements;
+        KRATOS_WATCH(*rBufferIterator);
         ++rBufferIterator;
     }
 }
