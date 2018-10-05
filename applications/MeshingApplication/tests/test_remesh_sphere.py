@@ -120,7 +120,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
                             """)
         check_parameters["reference_file_name"].SetString(file_path + "/" + check_parameters["reference_file_name"].GetString())
         check_parameters["output_file_name"].SetString(file_path + "/" + check_parameters["output_file_name"].GetString())
-        check_files = CompareTwoFilesCheckProcess(main_model_part, check_parameters)
+        check_files = CompareTwoFilesCheckProcess(check_parameters)
 
         check_files.ExecuteInitialize()
         check_files.ExecuteBeforeSolutionLoop()
