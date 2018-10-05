@@ -91,6 +91,16 @@ public:
     ///@name Operations
     ///@{
 
+
+    void InitializeStorage(Element& rElement, std::size_t MeasurementSize)
+    {
+        const GeometryData::IntegrationMethod integration_method = rElement.GetIntegrationMethod();
+        std::size_t number_of_integration_points = rElement.GetGeometry().IntegrationPointsNumber(integration_method);
+
+        mData.resize(number_of_integration_points, MeasurementSize, false);
+        mData = ZeroMatrix(number_of_integration_points, MeasurementSize);
+    }
+
     void UpdateMeasurement(
         /*const*/ Element* pElement,
         const std::vector<StatisticsSampler::Pointer>& rStatisticsSamplers,
@@ -99,11 +109,6 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(NumMeasurements == 0)
         << "Trying to update statistics, but providied number of recorded steps is zero" << std::endl;
-
-        if (NumMeasurements == 1)
-        {
-            InitializeStorage(pElement, rUpdate.size());
-        }
 
         const Geometry<Node<3>> &r_geometry = pElement->GetGeometry();
         const GeometryData::IntegrationMethod integration_method = pElement->GetIntegrationMethod();
@@ -289,15 +294,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void InitializeStorage(Element* pElement, std::size_t MeasurementSize)
-    {
-        const GeometryData::IntegrationMethod integration_method = pElement->GetIntegrationMethod();
-        std::size_t number_of_integration_points = pElement->GetGeometry().IntegrationPointsNumber(integration_method);
-
-        mData.resize(number_of_integration_points, MeasurementSize, false);
-        mData = ZeroMatrix(number_of_integration_points, MeasurementSize);
-    }
 
     ///@}
     ///@name Private  Access

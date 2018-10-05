@@ -24,9 +24,15 @@ void StatisticsRecord::AddResult(StatisticsSampler::Pointer pResult)
     KRATOS_CATCH("")
 }
 
-void StatisticsRecord::InitializeStorage()
+void StatisticsRecord::InitializeStorage(ModelPart::ElementsContainerType& rElements)
 {
     mUpdateBuffer.resize(mDataBufferSize);
+
+    // Note: this should be done on a serial loop to avoid race conditions.
+    for (auto it_element = rElements.begin(); it_element != rElements.end(); ++it_element)
+    {
+        it_element->GetValue(TURBULENCE_STATISTICS_DATA).InitializeStorage(*it_element,mDataBufferSize);
+    }
     mInitialized = true;
 }
 
@@ -44,7 +50,7 @@ void StatisticsRecord::SampleIntegrationPointResults(ModelPart& rModelPart)
 
 void StatisticsRecord::UpdateStatistics(Element* pElement)
 {
-    //KRATOS_DEBUG_ERROR_IF(!pElement->Has(TURBULENCE_STATISTICS_DATA)) << "Trying to compute turbulent statistics, but " << pElement->Info() << " does not have TURBULENCE_STATISTICS_DATA defined." << std::endl;
+    KRATOS_DEBUG_ERROR_IF(!pElement->Has(TURBULENCE_STATISTICS_DATA)) << "Trying to compute turbulent statistics, but " << pElement->Info() << " does not have TURBULENCE_STATISTICS_DATA defined." << std::endl;
     auto &r_elemental_statistics = pElement->GetValue(TURBULENCE_STATISTICS_DATA);
     r_elemental_statistics.UpdateMeasurement(pElement, mAverageData, mUpdateBuffer, mRecordedSteps);
     //r_elemental_statistics.CalculateUpdateDelta(pElement, mAverageData, mMeasurementBuffer, mUpdateBuffer, mRecordedSteps);

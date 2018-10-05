@@ -163,7 +163,7 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
     //auto pressure_skewness = ThirdOrderMoment(average_pressure,pressure_variance);
     //p_turbulence_statistics->AddQuantity(pressure_skewness);
 
-    p_turbulence_statistics->InitializeStorage();
+    p_turbulence_statistics->InitializeStorage(model_part.Elements());
     model_part.GetProcessInfo().SetValue(STATISTICS_CONTAINER,p_turbulence_statistics);
 
     p_turbulence_statistics->SampleIntegrationPointResults(model_part);

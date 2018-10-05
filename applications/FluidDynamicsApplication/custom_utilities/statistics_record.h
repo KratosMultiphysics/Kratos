@@ -86,7 +86,7 @@ public:
 
     void AddResult(StatisticsSampler::Pointer pResult);
 
-    void InitializeStorage();
+    void InitializeStorage(ModelPart::ElementsContainerType& rElements);
 
     void SampleIntegrationPointResults(ModelPart& rModelPart);
 
