@@ -9,8 +9,6 @@ def Factory(settings, Model):
 ## All the processes python should be derived from "Process"
 class AssignVectorByDirectionToConditionProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
-
-
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
