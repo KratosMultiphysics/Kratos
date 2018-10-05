@@ -511,13 +511,29 @@ private:
 
     /**
      * @brief This methoid a boundary model part in the reference and target model part
+     * @param rAuxiliarNameModelPart The name of the model part to be created
      */
-    void GenerateBoundary();
+    void GenerateBoundary(const std::string& rAuxiliarNameModelPart);
 
     /**
      * @brief This methoid a boundary model part in the reference and target model part
+     * @param rModelPart The model part to compute
+     * @param rAuxiliarNameModelPart The name of the model part to be created
      */
-    void ExtrapolateValues(std::vector<NodeType::Pointer>& rToExtrapolateNodes);
+    void GenerateBoundaryFromElements(
+        ModelPart& rModelPart,
+        const std::string& rAuxiliarNameModelPart
+        );
+
+    /**
+     * @brief This methoid a boundary model part in the reference and target model part
+     * @param rAuxiliarNameModelPart The name of the model part to be created
+     * @param rToExtrapolateNodes The list of nodes to extrapolate
+     */
+    void ExtrapolateValues(
+        const std::string& rAuxiliarNameModelPart,
+        std::vector<NodeType::Pointer>& rToExtrapolateNodes
+        );
 
     /**
      * @brief This method computes the normal in a skin model part (saved in non historical variables)
