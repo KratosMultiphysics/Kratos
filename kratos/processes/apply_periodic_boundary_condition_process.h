@@ -82,7 +82,7 @@ class ApplyPeriodicConditionProcess : public Process
         mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
         mCenterOfRotation.push_back(mParameters["center"][0].GetDouble());
-        mCenterOfRotation.push_back(mParameters["center"][1].GetDouble()); 
+        mCenterOfRotation.push_back(mParameters["center"][1].GetDouble());
         mCenterOfRotation.push_back(mParameters["center"][2].GetDouble());
 
         mAxisOfRotationVector.push_back(mParameters["axis_of_rotation"][0].GetDouble());

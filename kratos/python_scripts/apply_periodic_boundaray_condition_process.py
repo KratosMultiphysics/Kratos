@@ -30,7 +30,7 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                        : "This process uses LinearMasterSlaveConstraint in order to impose a periodic boundary condition on the given submodelparts. The process takes the first provided submodelpart as master and the second as slave.",
-            "computing_model_part_name"   : "computing_domain",
+            "computing_model_part_name"   : "",
             "model_part_name"             : "please_specify_model_part_name",
             "first_model_part_name"       : "please_specify_model_part_name",
             "second_model_part_name"      : "please_specify_model_part_name",
@@ -62,7 +62,8 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         main_model_part_name = settings["model_part_name"].GetString()
         self.main_model_part = Model[main_model_part_name]
         computing_model_part_name = settings["computing_model_part_name"].GetString()
-        self.computing_model_part = Model[main_model_part_name+"."+computing_model_part_name]
+        if(computing_model_part_name != ""):
+            self.computing_model_part = Model[main_model_part_name+"."+computing_model_part_name]
 
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
