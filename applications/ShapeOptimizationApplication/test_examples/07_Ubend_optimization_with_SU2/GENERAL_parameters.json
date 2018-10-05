@@ -53,7 +53,13 @@
                 "use_kratos" : false,
                 "project_gradient_on_surface_normals" : false
         }],
-        "constraints" : [],
+        "constraints" : [{
+            "identifier" : "strain_energy",
+            "type"       : "=",
+            "reference"  : "initial_value",
+            "use_kratos" : false,
+            "project_gradient_on_surface_normals" : false
+        }],
         "design_variables" : {
             "type"                               : "vertex_morphing",
             "optimization_model_part_name"       : "CSM_model_thin",
@@ -93,9 +99,11 @@
             }
         },
         "optimization_algorithm" : {
-            "name"                : "steepest_descent",
-            "max_iterations"      : 10,
-            "relative_tolerance"  : -1e-1,
+            "name"                    : "penalized_projection",
+            "correction_scaling"      : 0.1,
+            "use_adaptive_correction" : true,
+            "max_iterations"          : 50,
+            "relative_tolerance"      : -1e-0,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,

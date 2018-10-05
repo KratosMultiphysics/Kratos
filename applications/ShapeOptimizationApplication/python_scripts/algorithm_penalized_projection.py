@@ -139,17 +139,17 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         WriteDictionaryDataOnNodalVariable(objGradientDict, self.OptimizationModelPart, DF1DX)
         WriteDictionaryDataOnNodalVariable(conGradientDict, self.OptimizationModelPart, DC1DX)
 
-        if self.only_obj["project_gradient_on_surface_normals"].GetBool() or self.only_con["project_gradient_on_surface_normals"].GetBool():
-            self.GeometryUtilities.ComputeUnitSurfaceNormals()
+        # if self.only_obj["project_gradient_on_surface_normals"].GetBool() or self.only_con["project_gradient_on_surface_normals"].GetBool():
+        #     self.GeometryUtilities.ComputeUnitSurfaceNormals()
 
-        if self.only_obj["project_gradient_on_surface_normals"].GetBool():
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
+        # if self.only_obj["project_gradient_on_surface_normals"].GetBool():
+        #     self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
 
-        if self.only_con["project_gradient_on_surface_normals"].GetBool():
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
+        # if self.only_con["project_gradient_on_surface_normals"].GetBool():
+        #     self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
 
         if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(DF1DX)
+            # self.DampingUtilities.DampNodalVariable(DF1DX)
             self.DampingUtilities.DampNodalVariable(DC1DX)
 
     # --------------------------------------------------------------------------
@@ -169,7 +169,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):
-        self.Mapper.MapToDesignSpace(DF1DX, DF1DX_MAPPED)
+        # self.Mapper.MapToDesignSpace(DF1DX, DF1DX_MAPPED)
         self.Mapper.MapToDesignSpace(DC1DX, DC1DX_MAPPED)
 
     # --------------------------------------------------------------------------
