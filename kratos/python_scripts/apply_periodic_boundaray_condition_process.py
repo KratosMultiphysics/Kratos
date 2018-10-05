@@ -64,6 +64,8 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         computing_model_part_name = settings["computing_model_part_name"].GetString()
         if(computing_model_part_name != ""):
             self.computing_model_part = Model[main_model_part_name+"."+computing_model_part_name]
+        else:
+            self.computing_model_part = Model[main_model_part_name]
 
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
