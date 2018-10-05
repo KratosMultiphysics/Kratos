@@ -15,7 +15,6 @@
 #include "includes/kratos_version.h"
 #include "input_output/logger.h"
 
-
 namespace Kratos {
 Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
                 std::string("KratosMultiphysics"))) {

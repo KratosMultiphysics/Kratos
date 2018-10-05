@@ -9,9 +9,6 @@ from time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    if(type(Model) != KratosMultiphysics.Model):
-        raise Exception("expected input shall be a Model object")
-    
     return PointOutputProcess(Model, settings["Parameters"])
 
 class PointOutputProcess(KratosMultiphysics.Process):

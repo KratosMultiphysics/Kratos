@@ -228,9 +228,9 @@ namespace Kratos
 		void Tester::SelectTestCasesByPattern(std::string const& TestCasesNamePattern)
 		{
 			// creating the regex pattern replacing * with ".*"
-#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9))) 
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9)))
 			KRATOS_ERROR << "This method is not compiled well. You should use a GCC 4.9 or higher" << std::endl;
-#else  
+#else
 			std::regex replace_star("\\*");
 			std::stringstream regex_pattern_string;
 			std::regex_replace(std::ostreambuf_iterator<char>(regex_pattern_string),
@@ -244,7 +244,7 @@ namespace Kratos
                         i_test->second->UnSelect();
                     }
                 }
-#endif  
+#endif
 		}
 
 		int Tester::RunSelectedTestCases()
@@ -256,9 +256,7 @@ namespace Kratos
 			for (auto i_test = GetInstance().mTestCases.begin();
 			i_test != GetInstance().mTestCases.end(); i_test++)
 			{
-                                
 				if (i_test->second->IsSelected()) {
-                                        
 					StartShowProgress(test_number, number_of_run_tests, i_test->second);
 					if (GetInstance().mVerbosity != Verbosity::TESTS_OUTPUTS) {
 						std::stringstream output_stream;
@@ -270,7 +268,6 @@ namespace Kratos
 					else
 						i_test->second->Run();
 					EndShowProgress(++test_number, number_of_run_tests, i_test->second);
-                                        
 				}
 			}
 

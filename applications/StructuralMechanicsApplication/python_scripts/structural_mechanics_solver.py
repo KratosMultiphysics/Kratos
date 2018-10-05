@@ -334,11 +334,6 @@ class MechanicalSolver(PythonSolver):
 
     def _execute_after_reading(self):
         """Prepare computing model part and import constitutive laws. """
-        # This will be removed once the Model is fully supported! => It wont e necessary anymore
-        # NOTE: We do this here in case the model is empty, so the properties can be assigned
-        if not self.model.HasModelPart(self.main_model_part.Name):
-            self.model.AddModelPart(self.main_model_part)
-
         # Auxiliary parameters object for the CheckAndPepareModelProcess
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name",self.settings["model_part_name"])

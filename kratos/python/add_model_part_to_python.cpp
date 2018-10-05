@@ -20,7 +20,6 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "includes/kernel.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "python/add_model_part_to_python.h"

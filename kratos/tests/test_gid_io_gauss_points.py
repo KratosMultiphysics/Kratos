@@ -38,7 +38,7 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
         with WorkFolderScope(self.workFolder):
             for suffix in ['_0.post.res', '_0.post.msh']:
                 kratos_utils.DeleteFileIfExisting(self.output_file_name+suffix)
-                
+
 
     def setModelPart(self):
         self.model = Model()

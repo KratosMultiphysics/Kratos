@@ -1,16 +1,14 @@
 import math
 import KratosMultiphysics
 
-def Factory(settings, current_model):
+def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return AssignVectorByDirectionToConditionProcess(current_model, settings["Parameters"])
+    return AssignVectorByDirectionToConditionProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
 class AssignVectorByDirectionToConditionProcess(KratosMultiphysics.Process):
-    def __init__(self, current_model, settings ):
-        
-
+    def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
@@ -44,8 +42,8 @@ class AssignVectorByDirectionToConditionProcess(KratosMultiphysics.Process):
                     raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
 
         settings.ValidateAndAssignDefaults(default_settings)
-        self.model_part = current_model[settings["model_part_name"].GetString()]
-    
+        self.model_part = Model[settings["model_part_name"].GetString()]
+
         # Construct the component by component parameter objects
         x_params = KratosMultiphysics.Parameters("{}")
         y_params = KratosMultiphysics.Parameters("{}")
@@ -122,9 +120,9 @@ class AssignVectorByDirectionToConditionProcess(KratosMultiphysics.Process):
         import assign_scalar_variable_to_conditions_process
 
         self.aux_processes = []
-        self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(current_model, x_params) )
-        self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(current_model, y_params) )
-        self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(current_model, z_params) )
+        self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(Model, x_params) )
+        self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(Model, y_params) )
+        self.aux_processes.append( assign_scalar_variable_to_conditions_process.AssignScalarVariableToConditionsProcess(Model, z_params) )
 
     def ExecuteInitializeSolutionStep(self):
         for process in self.aux_processes:

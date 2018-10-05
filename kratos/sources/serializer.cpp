@@ -11,20 +11,9 @@
 //
 
 
-
-
-
-
-
-
-
-
-
 #include "includes/serializer.h"
 #include "containers/variable.h"
 #include "includes/kratos_components.h"
-#include "includes/kernel.h"
-#include "containers/model.h"
 
 
 namespace Kratos

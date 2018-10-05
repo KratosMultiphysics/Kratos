@@ -162,9 +162,6 @@ class MeshSolverBase(PythonSolver):
         if not self.mesh_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self._set_and_fill_buffer()
 
-        if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
-            self.model.AddModelPart(self.mesh_model_part)
-
     def GetComputingModelPart(self):
         return self.mesh_model_part
 

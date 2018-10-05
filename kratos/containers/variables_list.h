@@ -3,14 +3,14 @@
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_VARIABLES_LIST_H_INCLUDED )
@@ -44,7 +44,7 @@ namespace Kratos
 	/** This class works tightly with VariablesListDataValueContainer and provides the
 	the positions of variables for that containers
 	*/
-	class VariablesList 
+	class VariablesList
 	{
 	public:
 		///@name Type Definitions

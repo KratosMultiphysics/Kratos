@@ -17,7 +17,6 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "includes/kernel.h"
 #include "containers/model.h"
 #include "python/add_model_to_python.h"
 
@@ -34,7 +33,6 @@ void  AddModelToPython(pybind11::module& m)
     class_<Model >(m,"Model")
     .def(init<>())
     .def("Reset", &Model::Reset)
-    // .def("AddModelPart", &Model::AddModelPart)
     .def("CreateModelPart", [&](Model& self, const std::string& Name){return &self.CreateModelPart(Name);}, return_value_policy::reference_internal )
     .def("CreateModelPart", [&](Model& self, const std::string& Name, unsigned int BufferSize){return &self.CreateModelPart(Name, BufferSize);}, return_value_policy::reference_internal )
     .def("DeleteModelPart", &Model::DeleteModelPart)

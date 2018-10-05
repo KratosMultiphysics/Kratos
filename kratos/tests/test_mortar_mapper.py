@@ -16,10 +16,6 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
 
         self.main_model_part = self.StructureModel.CreateModelPart("Structure",2)
 
-        ## Creation of the Kratos model (build sub_model_parts or submeshes)
-        self.model = KratosMultiphysics.Model()
-        self.model.AddModelPart(self.main_model_part)
-
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -120,7 +116,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         else:
             check_parameters["input_file_name"].SetString(input_filename+".json")
 
-        check = from_json_check_result_process.FromJsonCheckResultProcess(self.model, check_parameters)
+        check = from_json_check_result_process.FromJsonCheckResultProcess(self.StructureModel, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
@@ -142,7 +138,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         #else:
             #out_parameters["output_file_name"].SetString(input_filename+".json")
 
-        #out = json_output_process.JsonOutputProcess(self.model, out_parameters)
+        #out = json_output_process.JsonOutputProcess(self.StructureModel, out_parameters)
         #out.ExecuteInitialize()
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()

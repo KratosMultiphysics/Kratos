@@ -36,7 +36,6 @@ class StructuralMechanicsTestFactoryMPI(StructuralMechanicsTestFactory):
         self.input_filename = project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
 
     def tearDown(self):
-        KratosMultiphysics.Model().Reset()
         super(StructuralMechanicsTestFactoryMPI, self).tearDown()
 
         # Now delete the partitioned mdpa files

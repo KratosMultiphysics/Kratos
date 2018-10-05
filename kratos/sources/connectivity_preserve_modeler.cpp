@@ -37,11 +37,6 @@ void ConnectivityPreserveModeler::GenerateModelPart(
 {
     KRATOS_TRY;
 
-    if(rOriginModelPart.IsSubModelPart() == true) 
-        KRATOS_ERROR << "ConnectivityPreserveModeler expects to work on root modelparts. This is not the case for the ORIGIN model part named: " << rOriginModelPart << std::endl;
-    if(rDestinationModelPart.IsSubModelPart() == true) 
-        KRATOS_ERROR << "ConnectivityPreserveModeler expects to work on root modelparts. This is not the case for the DESTINATION model part named: " << rDestinationModelPart << std::endl;
-    
     this->CheckVariableLists(rOriginModelPart, rDestinationModelPart);
 
     this->ResetModelPart(rDestinationModelPart);
@@ -236,14 +231,14 @@ void ConnectivityPreserveModeler::DuplicateSubModelParts(
     {
         if( ! rDestinationModelPart.HasSubModelPart(i_part->Name()))
             rDestinationModelPart.CreateSubModelPart(i_part->Name());
-            
+
         ModelPart& destination_part = rDestinationModelPart.GetSubModelPart(i_part->Name());
 
         destination_part.AddNodes(i_part->NodesBegin(), i_part->NodesEnd());
 
         std::vector<ModelPart::IndexType> ids;
         ids.reserve(i_part->Elements().size());
-        
+
         //adding by index
         for(auto it=i_part->ElementsBegin(); it!=i_part->ElementsEnd(); ++it)
             ids.push_back(it->Id());

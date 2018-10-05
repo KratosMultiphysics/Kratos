@@ -21,6 +21,7 @@
 /* Project includes */
 #include "includes/mesh_moving_variables.h"
 #include "includes/model_part.h"
+#include "containers/model.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
@@ -94,7 +95,7 @@ public:
                                         bool ComputeReactions = false,
                                         bool CalculateMeshVelocities = true,
                                         int EchoLevel = 0)
-        : 
+        :
         SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part),
         mrReferenceModelPart(model_part)
     {
