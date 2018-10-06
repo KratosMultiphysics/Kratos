@@ -71,30 +71,47 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 
     // We check if we extrapolate values
     const bool extrapolate_values = mThisParameters["extrapolate_contour_values"].GetBool();
+
     std::vector<NodeType::Pointer> to_extrapolate_nodes; // In this vector we will store the nodes to be extrapolated
 
-    /* Nodes */
-    #pragma omp parallel for firstprivate(point_locator)
-    for(int i = 0; i < static_cast<int>(num_nodes); ++i) {
-        auto it_node = nodes_array.begin() + i;
+    // Creating a buffer for parallel vector fill
+    const int num_threads = OpenMPUtils::GetNumThreads();
+    std::vector<std::vector<NodeType::Pointer>> to_extrapolate_nodes_buffer(num_threads);
 
-        Vector shape_functions;
-        Element::Pointer p_element;
+    #pragma omp parallel
+    {
+        const int thread_id = OpenMPUtils::ThisThread();
 
-        const array_1d<double, 3>& coordinates = it_node->Coordinates();
-        const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mThisParameters["max_number_of_searchs"].GetInt(), 5.0e-2);
+        /* Nodes */
+        #pragma omp for firstprivate(point_locator)
+        for(int i = 0; i < static_cast<int>(num_nodes); ++i) {
+            auto it_node = nodes_array.begin() + i;
 
-        if (!is_found) {
-            if (extrapolate_values) to_extrapolate_nodes.push_back(*(it_node.base()));
-            if (mThisParameters["echo_level"].GetInt() > 0 || ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
-                KRATOS_WARNING_IF("NodalValuesInterpolationProcess", !extrapolate_values) << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
-                KRATOS_WARNING_IF("NodalValuesInterpolationProcess", ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN && !extrapolate_values ) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
+            Vector shape_functions;
+            Element::Pointer p_element;
+
+            const array_1d<double, 3>& coordinates = it_node->Coordinates();
+            const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mThisParameters["max_number_of_searchs"].GetInt(), 5.0e-2);
+
+            if (!is_found) {
+                if (extrapolate_values) to_extrapolate_nodes_buffer[thread_id].push_back(*(it_node.base()));
+                if (mThisParameters["echo_level"].GetInt() > 0 || ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
+                    KRATOS_WARNING_IF("NodalValuesInterpolationProcess", !extrapolate_values) << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
+                    KRATOS_WARNING_IF("NodalValuesInterpolationProcess", ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN && !extrapolate_values ) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
+                }
+            } else {
+                if (mThisParameters["interpolate_non_historical"].GetBool())
+                    CalculateData<Element>(*(it_node.base()), p_element, shape_functions);
+                for(int i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
+                    CalculateStepData<Element>(*(it_node.base()), p_element, shape_functions, i_step);
             }
-        } else {
-            if (mThisParameters["interpolate_non_historical"].GetBool())
-                CalculateData<Element>(*(it_node.base()), p_element, shape_functions);
-            for(int i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
-                CalculateStepData<Element>(*(it_node.base()), p_element, shape_functions, i_step);
+        }
+
+        // Combine buffers together
+        #pragma omp single
+        {
+            for( auto& buffer : to_extrapolate_nodes_buffer)
+                std::move(buffer.begin(),buffer.end(),back_inserter(to_extrapolate_nodes));
         }
     }
 
