@@ -516,7 +516,7 @@ double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
     const Variable<double>& rThisVariable,
     double& rValue)
 {
-    return this->GetValue(rThisVariable, rValue);
+    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
