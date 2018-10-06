@@ -106,14 +106,13 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
         rank_to_scatter_from = 0
         my_rank = mpi.rank
         size = mpi.size
-        offset_1 = 21.4
-        offset_2 = 0.22
+        offset = 21.4
         vals_to_scatter = list()
         if my_rank == rank_to_scatter_from:
             for i in range(size):
-                vals_to_scatter.append(offset_1 + offset_2 + i)
+                vals_to_scatter.append(offset + i)
         scattered_val = mpi.scatter_double(mpi.world, vals_to_scatter, rank_to_scatter_from)
-        self.assertAlmostEqual(scattered_val, mpi.rank+offset_1+offset_2)
+        self.assertAlmostEqual(scattered_val, mpi.rank+offset)
 
     def test_scatterv_int(self):
         rank_to_scatter_from = 0
