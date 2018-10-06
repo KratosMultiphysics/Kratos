@@ -122,6 +122,7 @@ MmgProcess<TMMGLibray>::MmgProcess(
         "echo_level"                           : 3,
         "debug_result_mesh"                    : false,
         "step_data_size"                       : 0,
+        "initialize_entities"                  : true,
         "remesh_at_non_linear_iteration"       : false,
         "buffer_size"                          : 0
     })" );
@@ -788,7 +789,8 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
     InterpolateNodalValues.Execute();
 
     /* We initialize elements and conditions */
-    InitializeElementsAndConditions();
+    if (mThisParameters["initialize_entities"].GetBool())
+        InitializeElementsAndConditions();
 
     /* We do some operations related with the Lagrangian framework */
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
