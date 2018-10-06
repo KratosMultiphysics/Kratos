@@ -74,7 +74,7 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
     std::vector<NodeType::Pointer> to_extrapolate_nodes; // In this vector we will store the nodes to be extrapolated
 
     /* Nodes */
-    #pragma omp parallel for
+    #pragma omp parallel for firstprivate(point_locator)
     for(int i = 0; i < static_cast<int>(num_nodes); ++i) {
         auto it_node = nodes_array.begin() + i;
 
