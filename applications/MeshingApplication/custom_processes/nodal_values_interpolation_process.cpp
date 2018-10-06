@@ -153,6 +153,36 @@ void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
 template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::GenerateBoundary(const std::string& rAuxiliarNameModelPart)
 {
+    // Auxiliar zero array
+    const array_1d<double, 3> zero_array = ZeroVector(3);
+
+    // Initialize values of Normal
+    /* Origin model part */
+    NodesArrayType& nodes_array_origin = mrOriginMainModelPart.Nodes();
+    const int num_nodes_origin = static_cast<int>(nodes_array_origin.size());
+    NodesArrayType& nodes_array_destiny = mrDestinationMainModelPart.Nodes();
+    const int num_nodes_destiny = static_cast<int>(nodes_array_destiny.size());
+
+    #pragma omp parallel for
+    for(int i = 0; i < num_nodes_origin; ++i)
+        (nodes_array_origin.begin() + i)->SetValue(NORMAL, zero_array);
+    #pragma omp parallel for
+    for(int i = 0; i < num_nodes_destiny; ++i)
+        (nodes_array_destiny.begin() + i)->SetValue(NORMAL, zero_array);
+
+    /* Destination model part */
+    ConditionsArrayType& conditions_array_origin = mrOriginMainModelPart.Conditions();
+    const int num_conditions_origin = static_cast<int>(conditions_array_origin.size());
+    ConditionsArrayType& conditions_array_destiny = mrDestinationMainModelPart.Conditions();
+    const int num_conditions_destiny = static_cast<int>(conditions_array_destiny.size());
+
+    #pragma omp parallel for
+    for(int i = 0; i < num_conditions_origin; ++i)
+        (conditions_array_origin.begin() + i)->SetValue(NORMAL, zero_array);
+    #pragma omp parallel for
+    for(int i = 0; i < num_conditions_destiny; ++i)
+        (conditions_array_destiny.begin() + i)->SetValue(NORMAL, zero_array);
+
     Parameters skin_parameters = Parameters(R"(
     {
         "name_auxiliar_model_part" : ""
@@ -310,16 +340,6 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
 template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelPart)
 {
-    NodesArrayType& nodes_array = rModelPart.Nodes();
-    const int num_nodes = static_cast<int>(nodes_array.size());
-
-    // Auxiliar zero array
-    const array_1d<double, 3> zero_array = ZeroVector(3);
-
-    #pragma omp parallel for
-    for(int i = 0; i < num_nodes; ++i)
-        (nodes_array.begin() + i)->SetValue(NORMAL, zero_array);
-
     // Sum all the nodes normals
     ConditionsArrayType& conditions_array = rModelPart.Conditions();
 
@@ -347,6 +367,9 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
             }
         }
     }
+
+    NodesArrayType& nodes_array = rModelPart.Nodes();
+    const int num_nodes = static_cast<int>(nodes_array.size());
 
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i) {
