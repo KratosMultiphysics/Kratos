@@ -17,6 +17,7 @@
 #include "adjoint_finite_difference_base_element.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
+#include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
 #include "includes/checks.h"
 
 
@@ -281,53 +282,13 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 {
     KRATOS_TRY;
 
-    if ( mpPrimalElement->GetProperties().Has(rDesignVariable) )
-    {
-        // define working variables
-        Vector RHS_unperturbed;
-        Vector RHS_perturbed;
-
-        ProcessInfo copy_process_info = rCurrentProcessInfo;
-
-        // Get perturbation size
-        const double delta = this->GetPerturbationSize(rDesignVariable);
-
-        // Compute RHS before perturbion
-        mpPrimalElement->CalculateRightHandSide(RHS_unperturbed, copy_process_info);
-
-        if ( (rOutput.size1() != 1) || (rOutput.size2() != RHS_unperturbed.size() ) )
-            rOutput.resize(1, RHS_unperturbed.size());
-
-        // Save property pointer
-        Properties::Pointer p_global_properties = mpPrimalElement->pGetProperties();
-
-        // Create new property and assign it to the element
-        Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
-        mpPrimalElement->SetProperties(p_local_property);
-
-        // perturb the design variable
-        const double current_property_value = mpPrimalElement->GetProperties()[rDesignVariable];
-        p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
-
-        // Compute RHS after perturbation
-        mpPrimalElement->CalculateRightHandSide(RHS_perturbed, copy_process_info);
-
-        // Compute derivative of RHS w.r.t. design variable with finite differences
-        for(IndexType i = 0; i < RHS_perturbed.size(); ++i)
-            rOutput(0, i) = (RHS_perturbed[i] - RHS_unperturbed[i]) / delta;
-
-        // Give element original properties back
-        mpPrimalElement->SetProperties(p_global_properties);
-
-        //call one last time to make sure everything is as it was before TODO improve this..
-        mpPrimalElement->CalculateRightHandSide(RHS_perturbed, copy_process_info);
-    }
-    else
-        if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
-            rOutput.resize(0,0,false);
+    // Get perturbation size
+    const double delta = this->GetPerturbationSize(rDesignVariable);
+    ProcessInfo process_info = rCurrentProcessInfo;
+    // Get pseudo-load from utility
+    ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), rDesignVariable, delta, rOutput, process_info);
 
     KRATOS_CATCH("")
-
 }
 
 void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput,
@@ -335,70 +296,37 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 {
     KRATOS_TRY;
 
-    #ifdef _OPENMP
-        KRATOS_ERROR_IF(omp_get_thread_num() > 0) <<
-            "AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix " <<
-            "is not thread safe for shape sensitivities!" << omp_get_thread_num();
-    #endif
+    const double delta = this->GetPerturbationSize(rDesignVariable);
+    ProcessInfo process_info = rCurrentProcessInfo;
 
-    if(rDesignVariable == SHAPE)
+    if( rDesignVariable == SHAPE )
     {
-        // define working variables
-        Vector RHS_unperturbed;
-        Vector RHS_perturbed;
-        ProcessInfo copy_process_info = rCurrentProcessInfo;
-
-        // Get perturbation size
-        const double delta = this->GetPerturbationSize(rDesignVariable);
-
         const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
         const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
         const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
         const SizeType local_size = number_of_nodes * num_dofs_per_node;
+        const std::vector<ElementFiniteDifferenceUtility::array_1d_component_type> coord_directions = {SHAPE_X, SHAPE_Y, SHAPE_Z};
+        Vector derived_RHS;
 
         if ( (rOutput.size1() != dimension * number_of_nodes) || (rOutput.size2() != local_size ) )
             rOutput.resize(dimension * number_of_nodes, local_size);
-
-        // compute RHS before perturbion
-        mpPrimalElement->CalculateRightHandSide(RHS_unperturbed, copy_process_info);
 
         IndexType index = 0;
         for(auto& node_i : mpPrimalElement->GetGeometry())
         {
             for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i)
             {
-                // perturb the design variable
-                node_i.GetInitialPosition()[coord_dir_i] += delta;
-                node_i[coord_dir_i] += delta;
+                // Get pseudo-load contribution from utility
+                ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), coord_directions[coord_dir_i],
+                                                                            node_i, delta, derived_RHS, process_info);
 
-                // compute RHS after perturbation
-                mpPrimalElement->CalculateRightHandSide(RHS_perturbed, copy_process_info);
+                KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
 
-                //compute derivative of RHS w.r.t. design variable with finite differences
-                for(IndexType i = 0; i < RHS_perturbed.size(); ++i)
-                    rOutput( (coord_dir_i + index*dimension), i) = (RHS_perturbed[i]-RHS_unperturbed[i])/delta;
-
-                // Reset perturbed vector
-                noalias(RHS_perturbed) = ZeroVector(RHS_perturbed.size());
-
-                // unperturb the design variable
-                node_i.GetInitialPosition()[coord_dir_i] -= delta;
-                node_i[coord_dir_i] -= delta;
-
+                for(IndexType i = 0; i < derived_RHS.size(); ++i)
+                    rOutput( (coord_dir_i + index*dimension), i) = derived_RHS[i];
             }
             index++;
-
-            //call one last time to make sure everything is as it was before TODO improve this..
-            mpPrimalElement->CalculateRightHandSide(RHS_perturbed, copy_process_info);
-
-        }// end loop over element nodes
-
-    }
-    else
-    {
-        KRATOS_WARNING("AdjointFiniteDifferencingBaseElement") << "Unsupported nodal design variable: " << rDesignVariable << std::endl;
-        if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
-            rOutput.resize(0,0,false);
+        }
     }
 
     KRATOS_CATCH("")
