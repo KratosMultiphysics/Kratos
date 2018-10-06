@@ -111,13 +111,13 @@ public:
     ///@{
 
     /// Default constructor.
-    Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mSubPropetiesList() {}
+    Properties(IndexType NewId = 0) : BaseType(NewId), mData(), mTables(), mSubPropertiesList() {}
 
     /// Default of properties with subproperties
-    Properties(IndexType NewId, PropertiesContainerType SubPropetiesList) : BaseType(NewId), mData(), mTables(), mSubPropetiesList(SubPropetiesList) {}
+    Properties(IndexType NewId, PropertiesContainerType SubPropetiesList) : BaseType(NewId), mData(), mTables(), mSubPropertiesList(SubPropetiesList) {}
 
     /// Copy constructor.
-    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables), mSubPropetiesList(rOther.mSubPropetiesList) {}
+    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData), mTables(rOther.mTables), mSubPropertiesList(rOther.mSubPropertiesList) {}
 
     /// Destructor.
     ~Properties() override {}
@@ -132,7 +132,7 @@ public:
     {
         BaseType::operator=(rOther);
         mData = rOther.mData;
-        mSubPropetiesList = rOther.mSubPropetiesList;
+        mSubPropertiesList = rOther.mSubPropertiesList;
         return *this;
     }
 
@@ -301,7 +301,7 @@ public:
      */
     std::size_t NumberOfSubproperties()
     {
-        return mSubPropetiesList.size();
+        return mSubPropertiesList.size();
     }
 
     /**
@@ -310,7 +310,7 @@ public:
      */
     void AddSubProperty(Properties::Pointer pNewSubProperty)
     {
-        mSubPropetiesList.insert(mSubPropetiesList.begin(), pNewSubProperty);
+        mSubPropertiesList.insert(mSubPropertiesList.begin(), pNewSubProperty);
     }
 
     /**
@@ -320,7 +320,7 @@ public:
      */
     Properties::Pointer pGetSubProperty(IndexType SubPropertyIndex)
     {
-        return mSubPropetiesList(SubPropertyIndex);
+        return mSubPropertiesList(SubPropertyIndex);
     }
 
     /**
@@ -330,7 +330,7 @@ public:
      */
     Properties& GetSubProperty(IndexType SubPropertyIndex)
     {
-        return *(mSubPropetiesList(SubPropertyIndex));
+        return *(mSubPropertiesList(SubPropertyIndex));
     }
 
     /**
@@ -340,7 +340,7 @@ public:
      */
     Properties& GetSubProperty(IndexType SubPropertyIndex) const
     {
-        return *(mSubPropetiesList.find(SubPropertyIndex));
+        return *(mSubPropertiesList.find(SubPropertyIndex));
     }
 
     /**
@@ -367,7 +367,7 @@ public:
      */
     void SetSubProperties(PropertiesContainerType& rSubPropetiesList)
     {
-        mSubPropetiesList = rSubPropetiesList;
+        mSubPropertiesList = rSubPropetiesList;
     }
 
     ///@}
@@ -398,7 +398,7 @@ public:
      */
     PropertiesContainerType& SubPropetiesList()
     {
-        return mSubPropetiesList;
+        return mSubPropertiesList;
     }
 
     /**
@@ -407,7 +407,7 @@ public:
      */
     PropertiesContainerType const& SubPropetiesList() const
     {
-        return mSubPropetiesList;
+        return mSubPropertiesList;
     }
 
     ///@}
@@ -448,9 +448,9 @@ public:
     {
         mData.PrintData(rOStream);
         rOStream << "This properties contains " << mTables.size() << " tables";
-        if (mSubPropetiesList.size() > 0) {
-            rOStream << "\nThis properties contains the following subproperties " << mSubPropetiesList.size() << " subproperties" << std::endl;
-            for (auto& subprop : mSubPropetiesList) {
+        if (mSubPropertiesList.size() > 0) {
+            rOStream << "\nThis properties contains the following subproperties " << mSubPropertiesList.size() << " subproperties" << std::endl;
+            for (auto& subprop : mSubPropertiesList) {
                 subprop.PrintData(rOStream);
             }
         }
@@ -513,7 +513,7 @@ private:
     ContainerType mData;
     TablesContainerType mTables;
 
-    PropertiesContainerType mSubPropetiesList; /// The vector containing the list of subproperties
+    PropertiesContainerType mSubPropertiesList; /// The vector containing the list of subproperties
 
     ///@}
     ///@name Private Operators
@@ -536,7 +536,7 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.save("Data", mData);
         rSerializer.save("Tables", mTables);
-        rSerializer.save("SubPropetiesList", mSubPropetiesList);
+        rSerializer.save("SubPropetiesList", mSubPropertiesList);
     }
 
     void load(Serializer& rSerializer) override
@@ -544,7 +544,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.load("Data", mData);
         rSerializer.load("Tables", mTables);
-        rSerializer.load("SubPropetiesList", mSubPropetiesList);
+        rSerializer.load("SubPropetiesList", mSubPropertiesList);
     }
 
     ///@}
