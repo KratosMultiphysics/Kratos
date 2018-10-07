@@ -85,12 +85,10 @@ public:
 
     /**
      * @brief Constructor with values
-     * @param rSubPropertiesIDs The list of subproperties ids
      * @param rCombinationFactors The list of subproperties combination factors
      * @param rMaterialRotationAngles The rotation angles of the layers
      */
     RuleOfMixturesLaw(
-        const std::vector<IndexType>& rSubPropertiesIDs,
         const std::vector<double>& rCombinationFactors,
         const std::vector<double>& rMaterialRotationAngles
         );
