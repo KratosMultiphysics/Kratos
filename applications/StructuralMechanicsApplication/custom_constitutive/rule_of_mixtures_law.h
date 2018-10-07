@@ -671,9 +671,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::unordered_map<IndexType, ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The map containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
-    std::unordered_map<IndexType, double> mCombinationFactors;                 /// The map containing the combination factors of the different layers of the material
-    std::unordered_map<IndexType, double> mMaterialRotationAngles;             /// The map containing the rotation angles of the different layers
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
+    std::vector<double> mCombinationFactors;                 /// The vector containing the combination factors of the different layers of the material
+    std::vector<double> mMaterialRotationAngles;             /// The vector containing the rotation angles of the different layers
 
     ///@}
     ///@name Private Operators

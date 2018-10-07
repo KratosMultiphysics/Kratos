@@ -56,7 +56,7 @@ Parameters GetTwoLayersParameters()
         "Material"        : {
             "constitutive_law" : {
                 "name" : "RuleOfMixturesLaw",
-                "sub_properties_indexes"   : [ 11,  13 ],
+                "sub_properties_indexes"   : [ 1,  2 ],
                 "combination_factors"      : [0.4, 0.6 ],
                 "material_rotation_angles" : [ 0,  90 ]
             },
@@ -69,7 +69,7 @@ Parameters GetTwoLayersParameters()
             "Tables"           : {}
         },
         "sub_properties" : [{
-            "properties_id"   : 11,
+            "properties_id"   : 1,
             "Material"        : {
                 "constitutive_law" : {
                     "name" : "LinearElastic3DLaw"
@@ -82,7 +82,7 @@ Parameters GetTwoLayersParameters()
                 "Tables"           : {}
             }
         },{
-            "properties_id"   : 13,
+            "properties_id"   : 2,
             "Material"        : {
                 "constitutive_law" : {
                     "name" : "HyperElastic3DLaw"
@@ -111,7 +111,7 @@ Parameters GetThreeLayersParameters()
         "Material"        : {
             "constitutive_law" : {
                 "name" : "RuleOfMixturesLaw",
-                "sub_properties_indexes"   : [ 11,  12,  13 ],
+                "sub_properties_indexes"   : [ 1,  2,  3 ],
                 "combination_factors"      : [0.4, 0.3, 0.3 ],
                 "material_rotation_angles" : [ 0,   45,  90 ]
             },
@@ -124,7 +124,7 @@ Parameters GetThreeLayersParameters()
             "Tables"           : {}
         },
         "sub_properties" : [{
-            "properties_id"   : 11,
+            "properties_id"   : 1,
             "Material"        : {
                 "constitutive_law" : {
                     "name" : "LinearElastic3DLaw"
@@ -137,7 +137,7 @@ Parameters GetThreeLayersParameters()
                 "Tables"           : {}
             }
         },{
-            "properties_id"   : 12,
+            "properties_id"   : 2,
             "Material"        : {
                 "constitutive_law" : {
                     "name" : "LinearElastic3DLaw"
@@ -150,7 +150,7 @@ Parameters GetThreeLayersParameters()
                 "Tables"           : {}
             }
         },{
-            "properties_id"   : 13,
+            "properties_id"   : 3,
             "Material"        : {
                 "constitutive_law" : {
                     "name" : "HyperElastic3DLaw"
