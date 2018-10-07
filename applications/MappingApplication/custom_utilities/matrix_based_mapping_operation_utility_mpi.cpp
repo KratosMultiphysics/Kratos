@@ -31,19 +31,20 @@ using DenseSpaceType = MapperDefinitions::DenseSpaceType;
 using UtilityType = MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType>;
 
 using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
-using MappingWeightsVector = typename MapperLocalSystem::MappingWeightsVector;
+using MatrixType = typename MapperLocalSystem::MappingWeightsVector;
 
+// TODO rename this fct and reorder Aguments
 void Assemble_Vectors(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
                         EquationIdVectorType& rOriginIds,
                         EquationIdVectorType& rDestinationIds,
-                        MappingWeightsVector& rMappingWeights)
+                        MatrixType& rLocalMappingMatrix)
 {
     const int ierr = rpMdo->SumIntoGlobalValues(
-        // rDestinationIds.size(), rDestinationIds.data(),
-        1, rDestinationIds.data(),
+        rDestinationIds.size(), rDestinationIds.data(),
+        // 1, rDestinationIds.data(),
         rOriginIds.size(),      rOriginIds.data(),
-        rMappingWeights.data(),
-        Epetra_FECrsMatrix::ROW_MAJOR );
+        rLocalMappingMatrix.data(), // TODO I think this changes with AMatrix
+        Epetra_FECrsMatrix::ROW_MAJOR ); // TODO check if this is still appropriate and if it changes with AMatrix
 
     KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
         << "Error code: " << ierr << std::endl;
@@ -219,7 +220,7 @@ void UtilityType::ResizeAndInitializeVectors(
 
     // rpQo->GlobalAssemble();
     // rpQd->GlobalAssemble();
-    MappingWeightsVector mapping_weights;
+    MatrixType local_mapping_matrix;
 
     // rModelPartOrigin.GetCommunicator().Barrier();
     // std::cout << "Before Assembly\n" << *p_Mdo << std::endl;
@@ -227,16 +228,16 @@ void UtilityType::ResizeAndInitializeVectors(
 
     for (auto& rp_local_sys : rMapperLocalSystems)
     {
-        rp_local_sys->CalculateLocalSystem(mapping_weights, origin_ids, destination_ids);
+        rp_local_sys->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
 
-        KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != origin_ids.size())
-            << "OriginID vector size mismatch" << std::endl;
-        KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != destination_ids.size())
+        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size1() != destination_ids.size())
             << "DestinationID vector size mismatch" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size2() != origin_ids.size())
+            << "OriginID vector size mismatch" << std::endl;
 
         if (mapping_weights.size() > 0)
         {
-            Assemble_Vectors(p_Mdo, origin_ids, destination_ids, mapping_weights);
+            Assemble_Vectors(p_Mdo, origin_ids, destination_ids, local_mapping_matrix);
             // Assemble_SerialDenseObjs(p_Mdo, origin_ids, destination_ids, mapping_weights);
             // const int ierr = p_Mdo->SumIntoGlobalValues(
             //     destination_ids.size(), destination_ids.data(),

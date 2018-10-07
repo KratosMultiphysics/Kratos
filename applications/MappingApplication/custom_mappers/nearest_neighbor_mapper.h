@@ -117,7 +117,7 @@ public:
     using MapperLocalSystemUniquePointer = typename BaseType::MapperLocalSystemUniquePointer;
     using NodePointerType = typename BaseType::NodePointerType;
 
-    using MappingWeightsVector = typename BaseType::MappingWeightsVector;
+    typedef MatrixType typename BaseType::MappingWeightsVector;
     using EquationIdVectorType = typename BaseType::EquationIdVectorType;
 
     using SizeType = typename BaseType::IndexType;
@@ -135,7 +135,7 @@ public:
         return Kratos::make_unique<NearestNeighborLocalSystem>(pNode);
     }
 
-    void CalculateAll(MappingWeightsVector& rMappingWeights,
+    void CalculateAll(MatrixType& rLocalMappingMatrix,
                       EquationIdVectorType& rOriginIds,
                       EquationIdVectorType& rDestinationIds,
                       MapperLocalSystem::PairingStatus& rPairingStatus) const override;

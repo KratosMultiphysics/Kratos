@@ -159,22 +159,25 @@ void UtilityType::BuildMappingMatrix(
     const MapperLocalSystemPointerVector& rMapperLocalSystems,
     TSystemMatrixType& rMdo) const
 {
-    MappingWeightsVector mapping_weights;
+    MatrixType local_mapping_matrix;
 
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
 
     for (auto& r_local_sys : rMapperLocalSystems) // TODO omp
     {
-        r_local_sys->CalculateLocalSystem(mapping_weights, origin_ids, destination_ids);
-        KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != origin_ids.size())
-            << "OriginID vector size mismatch" << std::endl;
-        KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != destination_ids.size())
+        r_local_sys->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
+        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size1() != destination_ids.size())
             << "DestinationID vector size mismatch" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size2() != origin_ids.size())
+            << "OriginID vector size mismatch" << std::endl;
 
         // Insert the mapping weights from the local_systems into the mapping matrix
-        for (IndexType i=0; i<mapping_weights.size(); ++i)
-            rMdo(destination_ids[i], origin_ids[i]) += mapping_weights[i];
+        for (IndexType i=0; i<destination_ids.size(); ++i) {
+            for (IndexType j=0; j<origin_ids.size(); ++j) {
+                rMdo(destination_ids[i], origin_ids[j]) += local_mapping_matrix(i,j);
+            }
+        }
 
         r_local_sys->Clear();
     }

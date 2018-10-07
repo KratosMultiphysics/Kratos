@@ -111,24 +111,20 @@ void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const Inte
     SetIsApproximation();
 }
 
-void NearestElementLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeights,
+void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                     EquationIdVectorType& rOriginIds,
                     EquationIdVectorType& rDestinationIds,
                     MapperLocalSystem::PairingStatus& rPairingStatus) const
 {
-    if (mInterfaceInfos.size() > 0)
-    {
+    if (mInterfaceInfos.size() > 0) {
         double distance;
         double min_distance = std::numeric_limits<double>::max();
         int found_idx = -1;
-        for (IndexType i=0; i<mInterfaceInfos.size(); ++i)
-        {
+        for (IndexType i=0; i<mInterfaceInfos.size(); ++i) {
             // the approximations will be processed in the next step if necessary
-            if (!mInterfaceInfos[i]->GetIsApproximation())
-            {
+            if (!mInterfaceInfos[i]->GetIsApproximation()) {
                 mInterfaceInfos[i]->GetValue(distance);
-                if (distance < min_distance)
-                {
+                if (distance < min_distance) {
                     min_distance = distance;
                     found_idx = static_cast<int>(i); // TODO explicit conversion needed?
                     rPairingStatus = MapperLocalSystem::PairingStatus::InterfaceInfoFound;
@@ -136,16 +132,11 @@ void NearestElementLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeigh
             }
         }
 
-        if (found_idx == -1) // this means that no valid projection exists for this LocalSystem
-        {
-            for (IndexType i=0; i<mInterfaceInfos.size(); ++i)
-            {
+        if (found_idx == -1) { // this means that no valid project {
                 // now the approximations are being checked
-                if (mInterfaceInfos[i]->GetIsApproximation())
-                {
+                if (mInterfaceInfos[i]->GetIsApproximation()) {
                     mInterfaceInfos[i]->GetValue(distance);
-                    if (distance < min_distance)
-                    {
+                    if (distance < min_distance) {
                         min_distance = distance;
                         found_idx = static_cast<int>(i); // TODO explicit conversion needed?
                         rPairingStatus = MapperLocalSystem::PairingStatus::Approximation;
@@ -155,17 +146,28 @@ void NearestElementLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeigh
         }
 
         KRATOS_ERROR_IF(found_idx == -1) << "Not even an approximation is found, this should not happen!"
-            << std::endl;
+            << std::endl; // TODO should thi sbe an error?
 
-        mInterfaceInfos[found_idx]->GetValue(rMappingWeights);
+        std::vector<double> sf_values;
+
+        mInterfaceInfos[found_idx]->GetValue(sf_values);
+
+        if (rLocalMappingMatrix.size1() != 1 || rLocalMappingMatrix.size2() != sf_values.size()) {
+            rLocalMappingMatrix.resize(1, sf_values.size(), false);
+        }
+        for (IndexType i=0; i<sf_values.size(); ++i) {
+            rLocalMappingMatrix(0,i) = sf_values[i];
+        }
+
         mInterfaceInfos[found_idx]->GetValue(rOriginIds);
 
         KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
 
-        if (rDestinationIds.size() != rOriginIds.size()) rDestinationIds.resize(rOriginIds.size());
-        std::fill(rDestinationIds.begin(), rDestinationIds.end(), mpNode->GetValue(INTERFACE_EQUATION_ID));
+        if (rDestinationIds.size() != 1) rDestinationIds.resize(1); {
+            rDestinationIds[0] = mpNode->GetValue(INTERFACE_EQUATION_ID);
+        }
     }
-    else ResizeToZero(rMappingWeights, rOriginIds, rDestinationIds, rPairingStatus);
+    else ResizeToZero(rLocalMappingMatrix, rOriginIds, rDestinationIds, rPairingStatus);
 }
 
 std::string NearestElementLocalSystem::PairingInfo(const int EchoLevel, const int CommRank) const

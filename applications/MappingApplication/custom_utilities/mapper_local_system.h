@@ -79,8 +79,8 @@ public:
     using SizeType = std::size_t;
     using IndexType = std::size_t;
 
-    using MappingWeightsVector = std::vector<double>;
-    using EquationIdVectorType = std::vector<int>; // int bcs of mpi
+    typedef Matrix MatrixType;
+    typedef std::vector<int> EquationIdVectorType; // int bcs of mpi
 
     using NodeType = Node<3>;
     using NodePointerType = Kratos::shared_ptr<Node<3>>;
@@ -142,7 +142,7 @@ public:
         rDestinationIds = mDestinationIds;
     }
 
-    void CalculateLocalSystem(MappingWeightsVector& rMappingWeights,
+    void CalculateLocalSystem(MatrixType& rLocalMappingMatrix,
                               EquationIdVectorType& rOriginIds,
                               EquationIdVectorType& rDestinationIds) // TODO should be const if it werent for the PairingStatus
     {
@@ -171,14 +171,14 @@ public:
     * @see CalculateAll
     * @author Philipp Bucher
     */
-    void ResizeToZero(MappingWeightsVector& rMappingWeights,
+    void ResizeToZero(MatrixType& rLocalMappingMatrix,
                       EquationIdVectorType& rOriginIds,
                       EquationIdVectorType& rDestinationIds,
                       MapperLocalSystem::PairingStatus& rPairingStatus) const
     {
         rPairingStatus = MapperLocalSystem::PairingStatus::NoInterfaceInfo;
 
-        rMappingWeights.resize(0);
+        rMappingWeights.resize(0, 0, false);
         rOriginIds.resize(0);
         rDestinationIds.resize(0);
     }
@@ -205,7 +205,7 @@ public:
     virtual void Clear()
     {
         mInterfaceInfos.clear();
-        mMappingWeights.clear();
+        mLocalMappingMatrix.clear();
         mOriginIds.clear();
         mDestinationIds.clear();
         mIsComputed = false;
@@ -262,7 +262,7 @@ protected:
 
     bool mIsComputed = false;
 
-    MappingWeightsVector mMappingWeights;
+    MatrixType mLocalMappingMatrix;
     EquationIdVectorType mOriginIds;
     EquationIdVectorType mDestinationIds;
 
@@ -280,7 +280,7 @@ protected:
     // This function calculates the components necessary for the mapping
     // Note that it is "const", therefore it can NOT modify its members
     // Whether members are to be saved is decided in other functions of this class
-    virtual void CalculateAll(MappingWeightsVector& rMappingWeights,
+    virtual void CalculateAll(MatrixType& rLocalMappingMatrix,,
                               EquationIdVectorType& rOriginIds,
                               EquationIdVectorType& rDestinationIds,
                               MapperLocalSystem::PairingStatus& rPairingStatus) const = 0;

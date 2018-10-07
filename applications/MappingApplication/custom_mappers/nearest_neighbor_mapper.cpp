@@ -31,23 +31,23 @@ void NearestNeighborInterfaceInfo::ProcessSearchResult(const InterfaceObject::Po
 {
     SetLocalSearchWasSuccessful();
 
-    if (NeighborDistance < mNearestNeighborDistance)
-    {
+    if (NeighborDistance < mNearestNeighborDistance) {
         mNearestNeighborDistance = NeighborDistance;
         mNearestNeighborId = rpInterfaceObject->pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
     }
 }
 
-void NearestNeighborLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeights,
+void NearestNeighborLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                     EquationIdVectorType& rOriginIds,
                     EquationIdVectorType& rDestinationIds,
                     MapperLocalSystem::PairingStatus& rPairingStatus) const
 {
-    if (mInterfaceInfos.size() > 0)
-    {
+    if (mInterfaceInfos.size() > 0) {
         rPairingStatus = MapperLocalSystem::PairingStatus::InterfaceInfoFound;
 
-        if (rMappingWeights.size() != 1) rMappingWeights.resize(1);
+        if (rLocalMappingMatrix.size1() != 1 || rLocalMappingMatrix.size2() != 1) {
+            rLocalMappingMatrix.resize(1, 1, false);
+        }
         if (rOriginIds.size()      != 1) rOriginIds.resize(1);
         if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
 
@@ -56,26 +56,24 @@ void NearestNeighborLocalSystem::CalculateAll(MappingWeightsVector& rMappingWeig
         mInterfaceInfos[0]->GetValue(nearest_neighbor_id);
         mInterfaceInfos[0]->GetValue(nearest_neighbor_distance);
 
-        for (SizeType i=1; i<mInterfaceInfos.size(); ++i)
-        {
+        for (SizeType i=1; i<mInterfaceInfos.size(); ++i) {
             // no check if this InterfaceInfo is an approximation is necessary
             // bcs this does not exist for NearestNeighbor
             double distance;
             mInterfaceInfos[i]->GetValue(distance);
 
-            if (distance < nearest_neighbor_distance)
-            {
+            if (distance < nearest_neighbor_distance) {
                 nearest_neighbor_distance = distance;
                 mInterfaceInfos[i]->GetValue(nearest_neighbor_id);
             }
         }
 
-        rMappingWeights[0] = 1.0;
+        rLocalMappingMatrix(0,0) = 1.0;
         rOriginIds[0] = nearest_neighbor_id;
         KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
         rDestinationIds[0] = mpNode->GetValue(INTERFACE_EQUATION_ID);
     }
-    else ResizeToZero(rMappingWeights, rOriginIds, rDestinationIds, rPairingStatus);
+    else ResizeToZero(rLocalMappingMatrix, rOriginIds, rDestinationIds, rPairingStatus);
 }
 
 std::string NearestNeighborLocalSystem::PairingInfo(const int EchoLevel, const int CommRank) const
