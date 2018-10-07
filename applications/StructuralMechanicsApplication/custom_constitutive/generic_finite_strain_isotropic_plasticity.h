@@ -32,7 +32,7 @@ namespace Kratos
 
     // The size type definition
     typedef std::size_t SizeType;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -69,7 +69,7 @@ public:
 
     /// The define the Voigt size, already defined in the  integrator
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
-    
+
     /// Definition of the base class
     typedef TElasticBehaviourLaw BaseType;
 
@@ -81,10 +81,10 @@ public:
 
     /// Counted pointer of GenericFiniteStrainIsotropicPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericFiniteStrainIsotropicPlasticity);
-    
+
     /// The node definition
     typedef Node<3> NodeType;
-    
+
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
 
@@ -225,7 +225,7 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Vector> &rThisVariable) override;
-    
+
     /**
      * @brief Returns whether this constitutive Law has specified variable (Matrix)
      * @param rThisVariable the variable to be checked for
@@ -326,7 +326,7 @@ public:
         const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
-        
+
     /**
      * @brief Returns the value of a specified variable (matrix)
      * @param rParameterValues the needed parameters for the CL calculation
@@ -429,12 +429,12 @@ protected:
     // Converged values
     double mPlasticDissipation = 0.0;
     double mThreshold = 0.0;
-    Matrix mPlasticDeformationGradient = ZeroMatrix(Dimension, Dimension);
+    Matrix mPlasticDeformationGradient = IdentityMatrix(Dimension, Dimension);
 
     // Non Converged values
     double mNonConvPlasticDissipation = 0.0;
     double mNonConvThreshold = 0.0;
-    Matrix mNonConvPlasticDeformationGradient = ZeroMatrix(Dimension, Dimension);
+    Matrix mNonConvPlasticDeformationGradient = IdentityMatrix(Dimension, Dimension);
 
     // Auxiliar to print (NOTE: Alejandro do we need this now?)
     double mUniaxialStress = 0.0;
