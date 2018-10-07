@@ -7,10 +7,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import run_cpp_unit_tests
 
-# Import the tests o test_classes to create the suits
+# Import the tests or test_classes to create the suits
 from SmallTests import NearestNeighborTest_1 as TNearestNeighborTest_1
 from SmallTests import NearestElementTest2D_1 as TNearestElementTest2D_1
 from SmallTests import MapperTests as TMapperTests
+from test_mapper_tests import MapperTests
+from test_mapper_flags_tests import MapperFlagsTests
 
 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 def AssembleTestSuites():
@@ -34,6 +36,9 @@ def AssembleTestSuites():
     # smallSuite.addTest(TNearestNeighborTest_1('test_execution'))
     # smallSuite.addTest(TNearestElementTest2D_1('test_execution'))
     smallSuite.addTest(TMapperTests('test_execution'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MapperTests]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MapperFlagsTests]))
+
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
