@@ -25,8 +25,8 @@ def AssembleTestSuites():
 
     ### Small MPI tests ########################################################
     smallMPISuite = suites['mpi_small']
-    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MapperMPITests]))
     smallMPISuite.addTest(TMapperTests('test_execution'))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MapperMPITests]))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
