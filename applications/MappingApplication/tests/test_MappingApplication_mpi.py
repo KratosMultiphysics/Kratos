@@ -7,6 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suits
 from test_mapper_mpi_tests import MapperMPITests
+from SmallTests import MapperTests as TMapperTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -25,6 +26,7 @@ def AssembleTestSuites():
     ### Small MPI tests ########################################################
     smallMPISuite = suites['mpi_small']
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MapperMPITests]))
+    smallMPISuite.addTest(TMapperTests('test_execution'))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']
