@@ -18,6 +18,62 @@ class MapperFlagsTests(MapperTestsBase, KratosUnittest.TestCase):
         }""")
         values_file_name = "nearest_neighbor_line"
 
+    def test_ADD_VALUES(self):
+        mapper_settings = KratosMultiphysics.Parameters("""{
+            "mapper_type": "nearest_neighbor",
+            "interface_submodel_part_origin": "LineLoad3D_mapping_line_tri",
+            "interface_submodel_part_destination": "LineLoad3D_mapping_line_quad"
+        }""")
+        values_file_name = "nearest_neighbor_line"
+
+    def test_TO_NON_HISTORICAL(self):
+        mapper_settings = KratosMultiphysics.Parameters("""{
+            "mapper_type": "nearest_neighbor",
+            "interface_submodel_part_origin": "LineLoad3D_mapping_line_tri",
+            "interface_submodel_part_destination": "LineLoad3D_mapping_line_quad"
+        }""")
+        values_file_name = "nearest_neighbor_line"
+
+        # self.__ExecuteMapperTests(mapper_settings, values_file_name)
+
+    def test_FROM_NON_HISTORICAL(self):
+        mapper_settings = KratosMultiphysics.Parameters("""{
+            "mapper_type": "nearest_neighbor",
+            "interface_submodel_part_origin": "LineLoad3D_mapping_line_tri",
+            "interface_submodel_part_destination": "LineLoad3D_mapping_line_quad"
+        }""")
+        values_file_name = "nearest_neighbor_line"
+
+        # self.__ExecuteMapperTests(mapper_settings, values_file_name)
+
+    def test_NON_HISTORICAL(self):
+        mapper_settings = KratosMultiphysics.Parameters("""{
+            "mapper_type": "nearest_neighbor",
+            "interface_submodel_part_origin": "LineLoad3D_mapping_line_tri",
+            "interface_submodel_part_destination": "LineLoad3D_mapping_line_quad"
+        }""")
+        values_file_name = "nearest_neighbor_line"
+
+        # self.__ExecuteMapperTests(mapper_settings, values_file_name)
+
+    def test_SWAP_SIGN_and_ADD_VALUES(self):
+        mapper_settings = KratosMultiphysics.Parameters("""{
+            "mapper_type": "nearest_neighbor",
+            "interface_submodel_part_origin": "LineLoad3D_mapping_line_tri",
+            "interface_submodel_part_destination": "LineLoad3D_mapping_line_quad"
+        }""")
+        values_file_name = "nearest_neighbor_line"
+
+        # self.__ExecuteMapperTests(mapper_settings, values_file_name)
+
+    def test_SWAP_SIGN_and_ADD_VALUES_and_CONSERVATIVE(self):
+        mapper_settings = KratosMultiphysics.Parameters("""{
+            "mapper_type": "nearest_neighbor",
+            "interface_submodel_part_origin": "LineLoad3D_mapping_line_tri",
+            "interface_submodel_part_destination": "LineLoad3D_mapping_line_quad"
+        }""")
+        values_file_name = "nearest_neighbor_line"
+
         # self.__ExecuteMapperTests(mapper_settings, values_file_name)
 
     def _CreateMapper(self, mapper_settings):

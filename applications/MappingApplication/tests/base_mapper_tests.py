@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
+import KratosMultiphysics.MappingApplication as KratosMapping
 
 class MapperTestsBase(object):
     '''This is the baseclass for the Mapper-Tests
@@ -70,6 +71,13 @@ class BaseMapperTests(MapperTestsBase):
     '''This is the baseclass for the Mapper-Tests
     It defines methods that are to be tested both in serial and in MPI
     '''
+
+    def test_CONSERVATIVE(self):
+        pass
+
+    def test_overlapping_interface(self):
+        pass
+
     def test_NearestNeighborMapper_line(self):
         mapper_settings = KratosMultiphysics.Parameters("""{
             "mapper_type": "nearest_neighbor",
@@ -145,16 +153,20 @@ class BaseMapperTests(MapperTestsBase):
         self.__MapConstantScalarValues()
         self.__InverseMapConstantScalarValues()
 
+        self.mapper.UpdateInterface()
+
         self.__MapConstantVectorValues()
         self.__InverseMapConstantVectorValues()
+
+        self.mapper.UpdateInterface(KratosMapping.Mapper.REMESHED)
 
         self.__MapNonConstantScalarValues()
         self.__InverseMapNonConstantScalarValues()
 
+        self.mapper.UpdateInterface(0.0000000000005) # TODO choose radius such that the search radius has to be increased => first implement the passing of the search-radius!
+
         self.__MapNonConstantVectorValues()
         self.__InverseMapNonConstantVectorValues()
-
-        self.__MapConservative()
 
     def __ReadValuesFiles(self, values_file_name):
         pass
@@ -260,12 +272,6 @@ class BaseMapperTests(MapperTestsBase):
         pass
 
     def __InverseMapNonConstantVectorValues(self):
-        pass
-
-    def __MapConservative(self):
-        '''This function check if conservative mapping works properly,
-        i.e. mapping with the transpose of the mapping matrix
-        '''
         pass
 
 
