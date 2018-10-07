@@ -164,8 +164,6 @@ void UtilityType::BuildMappingMatrix(
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
 
-    std::cout << "BuildMappingMatrix, non-mpi: " << "Entering" << std::endl;
-
     for (auto& r_local_sys : rMapperLocalSystems) // TODO omp
     {
         r_local_sys->CalculateLocalSystem(mapping_weights, origin_ids, destination_ids);
@@ -173,11 +171,6 @@ void UtilityType::BuildMappingMatrix(
             << "OriginID vector size mismatch" << std::endl;
         KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != destination_ids.size())
             << "DestinationID vector size mismatch" << std::endl;
-
-        KRATOS_WATCH(mapping_weights)
-        KRATOS_WATCH(origin_ids)
-        KRATOS_WATCH(destination_ids)
-        std::cout << std::endl;
 
         // Insert the mapping weights from the local_systems into the mapping matrix
         for (IndexType i=0; i<mapping_weights.size(); ++i)
