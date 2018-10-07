@@ -215,12 +215,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
             // The increment of the deformation is not added but multiplied in finite strain
             aux_plastic_deformation_gradient = prod(plastic_deformation_gradient_increment, rPlasticDeformationGradient);
             noalias(rPlasticDeformationGradient) = aux_plastic_deformation_gradient;
+            rValues.SetDeterminantF(MathUtils<double>::DetMat(plastic_deformation_gradient_increment));
             rValues.SetDeformationGradientF(plastic_deformation_gradient_increment);
             rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, delta_plastic_strain);
 
             // We compute the new predictive stress vector
             noalias(inverse_plastic_deformation_gradient_increment) = MathUtils<double>::InvertMatrix<Dimension>(plastic_deformation_gradient_increment, aux_det);
             predictive_deformation_gradient = prod(inverse_plastic_deformation_gradient_increment, predictive_deformation_gradient);
+            rValues.SetDeterminantF(MathUtils<double>::DetMat(predictive_deformation_gradient));
             rValues.SetDeformationGradientF(predictive_deformation_gradient);
             Vector aux_vector;
             rConstitutiveLaw.CalculateValue(rValues, rStressVariable, aux_vector);

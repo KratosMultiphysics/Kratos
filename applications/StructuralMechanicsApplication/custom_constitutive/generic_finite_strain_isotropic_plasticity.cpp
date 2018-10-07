@@ -67,7 +67,6 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         // Elastic Matrix
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX_KIRCHHOFF, r_constitutive_matrix);
 
         // We get some variables
         double& r_threshold = this->GetThreshold();
@@ -80,6 +79,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             predictive_stress_vector = rValues.GetStressVector();
         } else {
             // We backup the deformation gradient
+            const double det_deformation_gradient_backup = rValues.GetDeterminantF();
             const Matrix deformation_gradient_backup = rValues.GetDeformationGradientF();
 
             // We compute the elastic deformation gradient  Fe = plastic_indicator * inv(Fp)
@@ -88,21 +88,26 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             MathUtils<double>::InvertMatrix( r_plastic_deformation_gradient, inverse_F_p, aux_det_Fp);
             const Matrix elastic_deformation_gradient = prod(deformation_gradient_backup, inverse_F_p);
 
+            rValues.SetDeterminantF(MathUtils<double>::DetMat(elastic_deformation_gradient));
             rValues.SetDeformationGradientF(elastic_deformation_gradient);
             Vector auxiliar_predictive_stress_vector;
             this->CalculateValue(rValues, KIRCHHOFF_STRESS_VECTOR, auxiliar_predictive_stress_vector);
             for (std::size_t i_voigt = 0; i_voigt < VoigtSize; ++i_voigt) {
-                auxiliar_predictive_stress_vector[i_voigt] =  auxiliar_predictive_stress_vector[i_voigt];
+                predictive_stress_vector[i_voigt] =  auxiliar_predictive_stress_vector[i_voigt];
             }
 
             // We revert the deformation gradient
+            rValues.SetDeterminantF(det_deformation_gradient_backup);
             rValues.SetDeformationGradientF(deformation_gradient_backup);
         }
 
         // We compute the plastic strain
+        const double det_f = rValues.GetDeterminantF();
         const Matrix deformation_gradient = rValues.GetDeformationGradientF();
+        rValues.SetDeterminantF(MathUtils<double>::DetMat(r_plastic_deformation_gradient));
         rValues.SetDeformationGradientF(r_plastic_deformation_gradient);
         this->CalculateValue(rValues, ALMANSI_STRAIN_VECTOR, plastic_strain);
+        rValues.SetDeterminantF(det_f);
         rValues.SetDeformationGradientF(deformation_gradient);
 
         // Initialize Plastic Parameters
@@ -198,6 +203,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             predictive_stress_vector = rValues.GetStressVector();
         } else {
             // We backup the deformation gradient
+            const double det_deformation_gradient_backup = rValues.GetDeterminantF();
             const Matrix deformation_gradient_backup = rValues.GetDeformationGradientF();
 
             // We compute the elastic deformation gradient  Fe = plastic_indicator * inv(Fp)
@@ -206,6 +212,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             MathUtils<double>::InvertMatrix( r_plastic_deformation_gradient, inverse_F_p, aux_det_Fp);
             const Matrix elastic_deformation_gradient = prod(deformation_gradient_backup, inverse_F_p);
 
+            rValues.SetDeterminantF(MathUtils<double>::DetMat(elastic_deformation_gradient));
             rValues.SetDeformationGradientF(elastic_deformation_gradient);
             Vector auxiliar_predictive_stress_vector;
             this->CalculateValue(rValues, PK2_STRESS_VECTOR, auxiliar_predictive_stress_vector);
@@ -214,13 +221,17 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             }
 
             // We revert the deformation gradient
+            rValues.SetDeterminantF(det_deformation_gradient_backup);
             rValues.SetDeformationGradientF(deformation_gradient_backup);
         }
 
         // We compute the plastic strain
+        const double det_f = rValues.GetDeterminantF();
         const Matrix deformation_gradient = rValues.GetDeformationGradientF();
+        rValues.SetDeterminantF(MathUtils<double>::DetMat(r_plastic_deformation_gradient));
         rValues.SetDeformationGradientF(r_plastic_deformation_gradient);
         this->CalculateValue(rValues, GREEN_LAGRANGE_STRAIN_VECTOR, plastic_strain);
+        rValues.SetDeterminantF(det_f);
         rValues.SetDeformationGradientF(deformation_gradient);
 
         // Initialize Plastic Parameters
