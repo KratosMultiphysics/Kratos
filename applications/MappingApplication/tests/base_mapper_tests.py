@@ -154,6 +154,8 @@ class BaseMapperTests(MapperTestsBase):
         self.__MapNonConstantVectorValues()
         self.__InverseMapNonConstantVectorValues()
 
+        self.__MapConservative()
+
     def __ReadValuesFiles(self, values_file_name):
         pass
 
@@ -258,6 +260,12 @@ class BaseMapperTests(MapperTestsBase):
         pass
 
     def __InverseMapNonConstantVectorValues(self):
+        pass
+
+    def __MapConservative(self):
+        '''This function check if conservative mapping works properly,
+        i.e. mapping with the transpose of the mapping matrix
+        '''
         pass
 
 
