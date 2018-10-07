@@ -155,7 +155,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
     TestT = cl_parameters.GetStressVector();
 
     //Check the results
-    for (int comp = 0; comp < 3; comp++)
+    for (int comp = 0; comp < 6; comp++)
     {
         KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 0.0001e6);
         KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 0.0001e6);
