@@ -157,46 +157,50 @@ public:
         const double det_deformation_gradient_gp = rValues.GetDeterminantF();
 
         double aux_det;
-        Matrix inverse_deformation_gradient_perturbed(deformation_gradient_gp.size1(), deformation_gradient_gp.size2());
-        Matrix deformation_gradient_perturbed(deformation_gradient_gp.size1(), deformation_gradient_gp.size2());
+        Matrix inverse_perturbed_deformation_gradient(deformation_gradient_gp.size1(), deformation_gradient_gp.size2());
+        Matrix perturbed_deformation_gradient(deformation_gradient_gp);
         Matrix deformation_gradient_increment(deformation_gradient_gp.size1(), deformation_gradient_gp.size2());
 
         Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
         tangent_tensor.clear();
 
-        const std::size_t num_components = strain_vector_gp.size();
+        const std::size_t size1 = deformation_gradient_gp.size1();
+        const std::size_t size2 = deformation_gradient_gp.size2();
+
         // Loop over components of the strain
         Vector& perturbed_strain = rValues.GetStrainVector();
         Vector& perturbed_stress = rValues.GetStressVector();
-        for (std::size_t i_component = 0; i_component < num_components; ++i_component) {
-            // Calculate the perturbation
-            double pertubation;
-            CalculatePerturbation(perturbed_strain, i_component, pertubation);
+        for (std::size_t i_component = 0; i_component < size1; ++i_component) {
+            for (std::size_t j_component = 0; j_component < size2; ++j_component) {
+                // Calculate the perturbation
+                double pertubation;
+                CalculatePerturbationFiniteDeformation(perturbed_deformation_gradient, i_component, j_component, pertubation);
 
-            // We check that the perturbation has a threshold value of PerturbationThreshold
-            if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
+                // We check that the perturbation has a threshold value of PerturbationThreshold
+                if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
 
-            // Apply the perturbation
-            PerturbateStrainVector(perturbed_strain, strain_vector_gp, pertubation, i_component);
+                // Apply the perturbation
+                PerturbateDeformationGradient(perturbed_deformation_gradient, deformation_gradient_gp, pertubation, i_component, j_component);
 
-            // We continue with the calculations
-            IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+                // We continue with the calculations
+                IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
-            // We compute the new predictive stress vector
-            MathUtils<double>::InvertMatrix(deformation_gradient_perturbed,inverse_deformation_gradient_perturbed, aux_det);
-            deformation_gradient_increment = prod(inverse_deformation_gradient_perturbed, deformation_gradient_gp);
-            rValues.SetDeterminantF(MathUtils<double>::DetMat(deformation_gradient_increment));
-            rValues.SetDeformationGradientF(deformation_gradient_increment);
-            Vector delta_stress;
-            pConstitutiveLaw->CalculateValue(rValues, r_stress_variable, delta_stress);
+                // We compute the new predictive stress vector
+                MathUtils<double>::InvertMatrix(perturbed_deformation_gradient,inverse_perturbed_deformation_gradient, aux_det);
+                deformation_gradient_increment = prod(inverse_perturbed_deformation_gradient, deformation_gradient_gp);
+                rValues.SetDeterminantF(MathUtils<double>::DetMat(deformation_gradient_increment));
+                rValues.SetDeformationGradientF(deformation_gradient_increment);
+                Vector delta_stress;
+                pConstitutiveLaw->CalculateValue(rValues, r_stress_variable, delta_stress);
 
-            AssignComponentsToTangentTensor(tangent_tensor, delta_stress, pertubation, i_component);
+                AssignComponentsToTangentTensor(tangent_tensor, delta_stress, pertubation, i_component);
 
-            // Reset the values to the initial ones
-            perturbed_strain = strain_vector_gp;
-            perturbed_stress = stress_vector_gp;
-            rValues.SetDeformationGradientF(deformation_gradient_gp);
-            rValues.SetDeterminantF(det_deformation_gradient_gp);
+                // Reset the values to the initial ones
+                perturbed_strain = strain_vector_gp;
+                perturbed_stress = stress_vector_gp;
+                rValues.SetDeformationGradientF(deformation_gradient_gp);
+                rValues.SetDeterminantF(det_deformation_gradient_gp);
+            }
         }
     }
 
@@ -227,6 +231,34 @@ public:
     }
 
     /**
+     * @brief This method computes the pertubation (for finite deformation problems)
+     * @param rDeformationGradient The deformation gradient
+     * @param ComponentI Index i of the component to compute
+     * @param ComponentJ Index j of the component to compute
+     * @param rPerturbation The resulting perturbation
+     */
+    static void CalculatePerturbationFiniteDeformation(
+        const Matrix& rDeformationGradient,
+        const std::size_t ComponentI,
+        const std::size_t ComponentJ,
+        double& rPerturbation
+        )
+    {
+        double perturbation_1, perturbation_2;
+        if (std::abs(rDeformationGradient(ComponentI, ComponentJ)) > tolerance) {
+            perturbation_1 = PerturbationCoefficient1 * rDeformationGradient(ComponentI, ComponentJ);
+        } else {
+            double min_strain_component;
+            GetMinAbsValue(rDeformationGradient, min_strain_component);
+            perturbation_1 = PerturbationCoefficient1 * min_strain_component;
+        }
+        double max_strain_component;
+        GetMaxAbsValue(rDeformationGradient, max_strain_component);
+        perturbation_2 = PerturbationCoefficient2 * max_strain_component;
+        rPerturbation = std::max(perturbation_1, perturbation_2);
+    }
+
+    /**
      * @brief This method perturbates the strain vector
      * @param rPerturbedStrainVector The strain vector to be perturbated
      * @param rStrainVectorGP It is the original strain vector
@@ -242,6 +274,26 @@ public:
     {
         rPerturbedStrainVector = rStrainVectorGP;
         rPerturbedStrainVector[Component] += Perturbation;
+    }
+
+    /**
+     * @brief This method perturbates the  deformation gradient
+     * @param rPerturbedDeformationGradient The deformation gradient to be perturbated
+     * @param rDeformationGradientGP It is the original deformation gradient
+     * @param Perturbation The perturbation to be applied
+     * @param ComponentI Component i of the matrix to be perturbated
+     * @param ComponentJ Component j of the matrix to be perturbated
+     */
+    static void PerturbateDeformationGradient(
+        Matrix& rPerturbedDeformationGradient,
+        const Matrix& rDeformationGradientGP,
+        const double Perturbation,
+        const std::size_t ComponentI,
+        const std::size_t ComponentJ
+        )
+    {
+        rPerturbedDeformationGradient = rDeformationGradientGP;
+        rPerturbedDeformationGradient(ComponentI, ComponentJ) += Perturbation;
     }
 
     /**
@@ -269,7 +321,7 @@ public:
     }
 
     /**
-     * @brief This method computes the maximum absolut value
+     * @brief This method computes the maximum absolut value (Vector)
      * @param rArrayValues The array containing the values
      * @param rMaxValue The value to be computed
      */
@@ -297,7 +349,38 @@ public:
     }
 
     /**
-     * @brief This method computes the minimim absolut value
+     * @brief This method computes the maximum absolut value (Matrix)
+     * @param rArrayValues The array containing the values
+     * @param rMaxValue The value to be computed
+     */
+    static void GetMaxAbsValue(
+        const Matrix& rMatrixValues,
+        double& rMaxValue
+        )
+    {
+        const std::size_t size1 = rMatrixValues.size1();
+        const std::size_t size2 = rMatrixValues.size2();
+        std::vector<double> non_zero_values;
+
+        for (std::size_t i = 0; i < size1; ++i) {
+            for (std::size_t j = 0; j < size2; ++j) {
+                if (std::abs(rMatrixValues(i, j)) > tolerance)
+                    non_zero_values.push_back(std::abs(rMatrixValues(i, j)));
+            }
+        }
+        KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The deformation gradient is full of 0's..." << std::endl;
+
+        double aux = std::abs(non_zero_values[0]);
+        for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
+            if (non_zero_values[i] > aux)
+                aux = non_zero_values[i];
+        }
+
+        rMaxValue = aux;
+    }
+
+    /**
+     * @brief This method computes the minimim absolut value (Vector)
      * @param rArrayValues The array containing the values
      * @param rMinValue The value to be computed
      */
@@ -314,6 +397,37 @@ public:
                 non_zero_values.push_back(std::abs(rArrayValues[i]));
         }
         KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
+
+        double aux = std::abs(non_zero_values[0]);
+        for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
+            if (non_zero_values[i] < aux)
+                aux = non_zero_values[i];
+        }
+
+        rMinValue = aux;
+    }
+
+    /**
+     * @brief This method computes the minimim absolut value (Matrix)
+     * @param rArrayValues The array containing the values
+     * @param rMinValue The value to be computed
+     */
+    static void GetMinAbsValue(
+        const Matrix& rMatrixValues,
+        double& rMinValue
+        )
+    {
+        const std::size_t size1 = rMatrixValues.size1();
+        const std::size_t size2 = rMatrixValues.size2();
+        std::vector<double> non_zero_values;
+
+        for (std::size_t i = 0; i < size1; ++i) {
+            for (std::size_t j = 0; j < size2; ++j) {
+                if (std::abs(rMatrixValues(i, j)) > tolerance)
+                    non_zero_values.push_back(std::abs(rMatrixValues(i, j)));
+            }
+        }
+        KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The deformation gradient is full of 0's..." << std::endl;
 
         double aux = std::abs(non_zero_values[0]);
         for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
