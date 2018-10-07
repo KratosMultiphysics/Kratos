@@ -255,7 +255,7 @@ void UtilityType::ResizeAndInitializeVectors(
 
     // std::cout << "After Assembly\n" << *p_Mdo << std::endl;
 
-    // p_Mdo->GlobalAssemble(epetra_domain_map, epetra_range_map);
+    p_Mdo->GlobalAssemble(epetra_domain_map, epetra_range_map);
 
     // rModelPartOrigin.GetCommunicator().Barrier();
 
