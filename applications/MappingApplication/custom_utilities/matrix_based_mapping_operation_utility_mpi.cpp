@@ -34,9 +34,9 @@ using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
 using MappingWeightsVector = typename MapperLocalSystem::MappingWeightsVector;
 
 void Assemble_Vectors(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
-                                  EquationIdVectorType& rOriginIds,
-                                  EquationIdVectorType& rDestinationIds,
-                                  MappingWeightsVector& rMappingWeights)
+                        EquationIdVectorType& rOriginIds,
+                        EquationIdVectorType& rDestinationIds,
+                        MappingWeightsVector& rMappingWeights)
 {
     const int ierr = rpMdo->SumIntoGlobalValues(
         // rDestinationIds.size(), rDestinationIds.data(),
@@ -46,60 +46,6 @@ void Assemble_Vectors(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
         Epetra_FECrsMatrix::ROW_MAJOR );
 
     KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
-        << "Error code: " << ierr << std::endl;
-}
-void Assemble_VectorsOneByOne(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
-                                  EquationIdVectorType& rOriginIds,
-                                  EquationIdVectorType& rDestinationIds,
-                                  MappingWeightsVector& rMappingWeights)
-{
-    // for (std::size_t i=0; i<rMappingWeights.size(), ++i)
-    // const int ierr = rpMdo->SumIntoGlobalValues(
-    //     1, &rDestinationIds[i],
-    //     1, &rOriginIds[i],
-    //     &rMappingWeights[i],
-    //     Epetra_FECrsMatrix::ROW_MAJOR );
-
-    // KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
-    //     << "Error code: " << ierr << std::endl;
-}
-
-void Assemble_SerialDenseObjs(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
-                              EquationIdVectorType& rOriginIds,
-                              EquationIdVectorType& rDestinationIds,
-                              MappingWeightsVector& rMappingWeights)
-{
-    // TODO in case I end up using this, this can be optimized,
-    // i.e. construct an actual recangular matrix!
-
-    KRATOS_ERROR << " IMPORTANT, this function is currently NOT working!!!" << std::endl;
-
-    int num_rows = rDestinationIds.size();
-    int num_cols = rOriginIds.size();
-    Epetra_IntSerialDenseVector row_id_vector(num_rows);
-    Epetra_IntSerialDenseVector col_id_vector(num_cols);
-
-    Epetra_SerialDenseMatrix values(num_rows, num_cols);
-
-    // filling the objects
-    for (std::size_t i=0; i<num_rows; ++i) {
-        row_id_vector[i] = rDestinationIds[i];
-    }
-    for (std::size_t i=0; i<num_cols; ++i) {
-        col_id_vector[i] = rOriginIds[i];
-    }
-    for (std::size_t i=0; i<rMappingWeights.size(); ++i) {
-        values(rDestinationIds[i], rOriginIds[i]) = rMappingWeights[i];
-    }
-
-    const int ierr = rpMdo->SumIntoGlobalValues(
-        row_id_vector,
-        col_id_vector,
-        values
-        ,Epetra_FECrsMatrix::ROW_MAJOR //???
-        );
-
-    KRATOS_ERROR_IF( ierr < 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
         << "Error code: " << ierr << std::endl;
 }
 
@@ -125,7 +71,8 @@ void UtilityType::ResizeAndInitializeVectors(
     MapperLocalSystemPointerVector& rMapperLocalSystems) const
 {
     if (rModelPartOrigin.GetCommunicator().MyPID() == 0)
-        std::cout << "\n\n\nENTERING the Matrix and Vector Assembly" << std::endl;
+        std::cout << "\nENTERING the Matrix and Vector Assembly" << std::endl;
+
     // big TODO what if the rank doesn't have local nodes ... ?
 
     const int num_local_nodes_orig = rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
@@ -381,17 +328,21 @@ void FillSystemVector(UtilityType::TSystemVectorType& rVector,
     // Here we construct a function pointer to not have the if all the time inside the loop
     const auto fill_fct = MapperUtilities::GetFillFunction<TVarType>(rMappingOptions);
 
-    // as alternative:
-    // try to loop through the local values of the vector => check if size and num_nodes are equal!
+    const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
 
-    for (const auto& r_node : rModelPart.GetCommunicator().LocalMesh().Nodes())
-    {
-        const int global_index = r_node.GetValue(INTERFACE_EQUATION_ID); // TODO find a better solution, this might have been overwritten by a different mapper!!! (if parts of the interface are shared)
-        const int local_index = rVector.Map().LID(global_index);
-        fill_fct(r_node, rVariable, rVector[0][local_index]);
+    KRATOS_DEBUG_ERROR_IF(num_local_nodes != rVector.MyLength())
+        << "The local number of nodes is different from the number "
+        << "of local entries in the Vector!" << std::endl;
+
+    const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
+
+    #pragma omp parallel for
+    for (int i=0; i<num_local_nodes; i++) {
+        // rVector is a MultiVector, we only use the first one
+        fill_fct(*(nodes_begin + i), rVariable, rVector[0][i]);
     }
 
-    // rVector.GlobalAssemble(); // I am quite sure this is not needed, since one node is one entry ...
+    // rVector.GlobalAssemble(); // TODO I am quite sure this is not needed, since one node is one entry ...
     if (EchoLevel > 2)
         SparseSpaceType::WriteMatrixMarketVector("TrilinosFillSystemVector", rVector);
 }
@@ -411,17 +362,21 @@ void Update(UtilityType::TSystemVectorType& rVector,
                                         std::placeholders::_2,
                                         std::placeholders::_3,
                                         factor);
+    const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
 
-    for (auto& r_node : rModelPart.GetCommunicator().LocalMesh().Nodes())
-    {
-        const int global_index = r_node.GetValue(INTERFACE_EQUATION_ID);
-        const int local_index = rVector.Map().LID(global_index);
-        update_fct(r_node, rVariable, rVector[0][local_index]);
+    KRATOS_DEBUG_ERROR_IF(num_local_nodes != rVector.MyLength())
+        << "The local number of nodes is different from the number "
+        << "of local entries in the Vector!" << std::endl;
+
+    const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
+
+    #pragma omp parallel for
+    for (int i=0; i<num_local_nodes; i++) {
+        // rVector is a MultiVector, we only use the first one
+        update_fct(*(nodes_begin + i), rVariable, rVector[0][i]);
     }
 
-    // for (int localIndex = 0; localIndex < rVector.MyLength(); ++localIndex)
-    //     std::cout << "Updates | rVector[localIndex]: " << rVector[0][localIndex] << std::endl;
-    // rVector.GlobalAssemble(); // I am quite sure this is not needed, since one node is one entry ...
+    // rVector.GlobalAssemble(); // TODO I am quite sure this is not needed, since one node is one entry ...
     if (EchoLevel > 2)
         SparseSpaceType::WriteMatrixMarketVector("TrilinosUpdate", rVector);
 }
