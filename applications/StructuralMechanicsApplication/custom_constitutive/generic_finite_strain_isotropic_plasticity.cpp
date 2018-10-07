@@ -140,7 +140,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             this->SetNonConvThreshold(r_threshold);
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
+                this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff); // this modifies the ConstitutiveMatrix
                 noalias(tangent_tensor) = rValues.GetConstitutiveMatrix();
                 this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
@@ -264,7 +264,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             this->SetNonConvThreshold(r_threshold);
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
+                this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2); // this modifies the ConstitutiveMatrix
                 noalias(tangent_tensor) = rValues.GetConstitutiveMatrix();
                 this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
             }
@@ -293,10 +293,13 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 
 template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
-void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateTangentTensor(
+    ConstitutiveLaw::Parameters& rValues,
+    const ConstitutiveLaw::StressMeasure& rStressMeasure
+    )
 {
     // Calculates the Tangent Constitutive Tensor by perturbation
-    TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this);
+    TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, rStressMeasure);
 }
 
 /***********************************************************************************/
