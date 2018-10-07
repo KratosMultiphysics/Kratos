@@ -117,7 +117,7 @@ public:
     using MapperLocalSystemUniquePointer = typename BaseType::MapperLocalSystemUniquePointer;
     using NodePointerType = typename BaseType::NodePointerType;
 
-    typedef MatrixType typename BaseType::MappingWeightsVector;
+    typedef typename BaseType::MatrixType MatrixType;
     using EquationIdVectorType = typename BaseType::EquationIdVectorType;
 
     using SizeType = typename BaseType::IndexType;

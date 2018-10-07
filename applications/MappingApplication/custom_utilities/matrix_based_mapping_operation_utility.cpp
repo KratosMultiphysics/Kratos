@@ -30,7 +30,7 @@ using DenseSpaceType = MapperDefinitions::DenseSpaceType;
 using UtilityType = MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType>;
 
 using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
-using MappingWeightsVector = typename MapperLocalSystem::MappingWeightsVector;
+typedef typename MapperLocalSystem::MatrixType MatrixType;
 
 using SizeType = std::size_t;
 using IndexType = std::size_t;

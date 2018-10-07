@@ -31,7 +31,7 @@ using DenseSpaceType = MapperDefinitions::DenseSpaceType;
 using UtilityType = MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType>;
 
 using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
-using MatrixType = typename MapperLocalSystem::MappingWeightsVector;
+typedef typename MapperLocalSystem::MatrixType MatrixType;
 
 // TODO rename this fct and reorder Aguments
 void Assemble_Vectors(UtilityType::TSystemMatrixUniquePointerType& rpMdo,

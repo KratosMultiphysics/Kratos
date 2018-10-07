@@ -134,7 +134,7 @@ public:
                            EquationIdVectorType& rDestinationIds)
     {
         if (!mIsComputed) {
-            CalculateAll(mMappingWeights, mOriginIds, mDestinationIds, mPairingStatus);
+            CalculateAll(mLocalMappingMatrix, mOriginIds, mDestinationIds, mPairingStatus);
             mIsComputed = true;
         }
 
@@ -149,14 +149,14 @@ public:
         if (mIsComputed) {
             // This will be called if the EquationIdVectors have been querried before
             // i.e. matrix-based mapping
-            rMappingWeights = mMappingWeights;
+            rLocalMappingMatrix = mLocalMappingMatrix;
             rOriginIds      = mOriginIds;
             rDestinationIds = mDestinationIds;
         }
         else {
             // This will be called if the EquationIdVectors have NOT been querried before
             // i.e. matrix-free mapping
-            CalculateAll(rMappingWeights, rOriginIds, rDestinationIds, mPairingStatus);
+            CalculateAll(rLocalMappingMatrix, rOriginIds, rDestinationIds, mPairingStatus);
         }
     }
 
@@ -164,7 +164,7 @@ public:
     * @brief Resizing the output if no InterfaceInfo is available
     * This function resizes the system vectors to zero and also sets that no valid
     * Information from the other side could be found to compute the local system
-    * @param rMappingWeights The vector conatining the mapping weights
+    * @param rLocalMappingMatrix The vector conatining the mapping weights
     * @param rOriginIds The vector containing the ids on the origin
     * @param rDestinationIds The vector containing the ids on the destination
     * @param rPairingStatus The pairingstatus of the MapperLocalSystem
@@ -178,7 +178,7 @@ public:
     {
         rPairingStatus = MapperLocalSystem::PairingStatus::NoInterfaceInfo;
 
-        rMappingWeights.resize(0, 0, false);
+        rLocalMappingMatrix.resize(0, 0, false);
         rOriginIds.resize(0);
         rDestinationIds.resize(0);
     }
@@ -280,7 +280,7 @@ protected:
     // This function calculates the components necessary for the mapping
     // Note that it is "const", therefore it can NOT modify its members
     // Whether members are to be saved is decided in other functions of this class
-    virtual void CalculateAll(MatrixType& rLocalMappingMatrix,,
+    virtual void CalculateAll(MatrixType& rLocalMappingMatrix,
                               EquationIdVectorType& rOriginIds,
                               EquationIdVectorType& rDestinationIds,
                               MapperLocalSystem::PairingStatus& rPairingStatus) const = 0;

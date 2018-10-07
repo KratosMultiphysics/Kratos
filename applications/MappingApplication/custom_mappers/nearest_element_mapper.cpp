@@ -133,6 +133,7 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         }
 
         if (found_idx == -1) { // this means that no valid project {
+            for (IndexType i=0; i<mInterfaceInfos.size(); ++i) {
                 // now the approximations are being checked
                 if (mInterfaceInfos[i]->GetIsApproximation()) {
                     mInterfaceInfos[i]->GetValue(distance);
@@ -163,9 +164,8 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
         KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
 
-        if (rDestinationIds.size() != 1) rDestinationIds.resize(1); {
-            rDestinationIds[0] = mpNode->GetValue(INTERFACE_EQUATION_ID);
-        }
+        if (rDestinationIds.size() != 1) rDestinationIds.resize(1);
+        rDestinationIds[0] = mpNode->GetValue(INTERFACE_EQUATION_ID);
     }
     else ResizeToZero(rLocalMappingMatrix, rOriginIds, rDestinationIds, rPairingStatus);
 }
