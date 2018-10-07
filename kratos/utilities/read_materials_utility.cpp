@@ -209,7 +209,6 @@ void ReadMaterialsUtility::CreateProperty(
 
 void ReadMaterialsUtility::CreateSubProperties(
     ModelPart& rModelPart,
-    const IndexType MeshId,
     Parameters Data,
     Properties::Pointer& pNewProperty
     )
@@ -219,15 +218,25 @@ void ReadMaterialsUtility::CreateSubProperties(
         PointerVectorSet<Properties, IndexedObject> list_sub_properties;
 
         const std::size_t number_of_subproperties = Data["sub_properties"].size();
+
+        // We do a check of ordered ids
+        IndexType counter = 1;
+        for(std::size_t i_sub_prop=0; i_sub_prop < number_of_subproperties; ++i_sub_prop) {
+            const int sub_property_id = Data["sub_properties"][i_sub_prop]["properties_id"].GetInt();
+            KRATOS_ERROR_IF_NOT(sub_property_id == counter) << "Id's of the subproperties must be ordered and start on 1. Change your suproperties ids" << std::endl;
+            ++counter;
+        }
+
+        // We assign the subproperties now
         for(std::size_t i_sub_prop=0; i_sub_prop < number_of_subproperties; ++i_sub_prop) {
             // Copy of the current parameters
             Parameters sub_prop = Data["sub_properties"][i_sub_prop];
 
             const int sub_property_id = sub_prop["properties_id"].GetInt();
-            Properties::Pointer p_new_sub_prop = rModelPart.pGetProperties(sub_property_id, MeshId);
+            Properties::Pointer p_new_sub_prop = Kratos::make_shared<Properties>(sub_property_id);
 
             // Read the recursively subproperties
-            CreateSubProperties(rModelPart, MeshId, sub_prop, p_new_sub_prop);
+            CreateSubProperties(rModelPart, sub_prop, p_new_sub_prop);
 
             // We create the new sub property
             CreateProperty(sub_prop["Material"], p_new_sub_prop);
@@ -284,7 +293,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     }
 
     // If the property has subproperties block we allocate this properties first
-    CreateSubProperties(r_model_part, mesh_id, Data, p_prop);
+    CreateSubProperties(r_model_part, Data, p_prop);
 
     // We create the new property
     CreateProperty(Data["Material"], p_prop);
