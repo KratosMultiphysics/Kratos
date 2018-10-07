@@ -220,7 +220,7 @@ void ReadMaterialsUtility::CreateSubProperties(
         const std::size_t number_of_subproperties = Data["sub_properties"].size();
 
         // We do a check of ordered ids
-        IndexType counter = 1;
+        int counter = 1;
         for(std::size_t i_sub_prop=0; i_sub_prop < number_of_subproperties; ++i_sub_prop) {
             const int sub_property_id = Data["sub_properties"][i_sub_prop]["properties_id"].GetInt();
             KRATOS_ERROR_IF_NOT(sub_property_id == counter) << "Id's of the subproperties must be ordered and start on 1. Change your suproperties ids" << std::endl;
