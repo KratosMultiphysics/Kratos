@@ -135,6 +135,56 @@ public:
     }
 
     /**
+     * @brief Main method that computes the tangent tensor (for finite deformation problems)
+     * @param rValues The properties of the CL
+     * @param pConstitutiveLaw Pointer to the CL
+     * @param rStressMeasure The stress measure of the law
+     */
+    static void CalculateTangentTensorFiniteDeformation(
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveLaw *pConstitutiveLaw,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        )
+    {
+        // Converged values to be storaged
+        const Vector& strain_vector_gp = rValues.GetStrainVector();
+        const Vector& stress_vector_gp = rValues.GetStressVector();
+        const Matrix& deformation_gradient_gp = rValues.GetDeformationGradientF();
+        const double det_deformation_gradient_gp = rValues.GetDeterminantF();
+
+        Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
+        tangent_tensor.clear();
+
+        const std::size_t num_components = strain_vector_gp.size();
+        // Loop over components of the strain
+        Vector& perturbed_strain = rValues.GetStrainVector();
+        for (std::size_t i_component = 0; i_component < num_components; ++i_component) {
+            // Calculate the perturbation
+            double pertubation;
+            CalculatePerturbation(perturbed_strain, i_component, pertubation);
+
+            // We check that the perturbation has a threshold value of PerturbationThreshold
+            if (pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
+
+            // Apply the perturbation
+            PerturbateStrainVector(perturbed_strain, strain_vector_gp, pertubation, i_component);
+
+            // We continue with the calculations
+            IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
+
+            Vector& perturbed_integrated_stress = rValues.GetStressVector(); // now integrated
+            const Vector& delta_stress = perturbed_integrated_stress - stress_vector_gp;
+            AssignComponentsToTangentTensor(tangent_tensor, delta_stress, pertubation, i_component);
+
+            // Reset the values to the initial ones
+            noalias(perturbed_strain) = strain_vector_gp;
+            noalias(perturbed_integrated_stress) = stress_vector_gp;
+            rValues.SetDeformationGradientF(deformation_gradient_gp);
+            rValues.SetDeterminantF(det_deformation_gradient_gp);
+        }
+    }
+
+    /**
      * @brief This method computes the pertubation
      * @param rStrainVector The vector of strains
      * @param Component Index of the component to compute
@@ -278,7 +328,7 @@ public:
         }
     }
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -307,7 +357,7 @@ public:
     ///@{
 
     ///@}
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 

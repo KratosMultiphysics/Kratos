@@ -299,7 +299,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     )
 {
     // Calculates the Tangent Constitutive Tensor by perturbation
-    TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, rStressMeasure);
+    TangentOperatorCalculatorUtility::CalculateTangentTensorFiniteDeformation(rValues, this, rStressMeasure);
 }
 
 /***********************************************************************************/
