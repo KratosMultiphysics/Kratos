@@ -202,6 +202,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
             plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
             noalias(plastic_deformation_gradient_increment) = plastic_consistency_factor_increment * MathUtils<double>::StressVectorToTensor<BoundedArrayType, BoundedMatrixType>(rPlasicPotentialDerivative);
 
+            // We check that the increment is not a zero matrix
+            if (norm_frobenius(plastic_deformation_gradient_increment) < 1.0e-8) {
+                Vector& r_strain_vector = rValues.GetStrainVector();
+                rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, r_strain_vector);
+                Vector aux_vector;
+                rConstitutiveLaw.CalculateValue(rValues, rStressVariable, aux_vector);
+                noalias(rPredictiveStressVector) = aux_vector;
+                break;
+            }
+
             // The increment of the deformation is not added but multiplied in finite strain
             aux_plastic_deformation_gradient = prod(plastic_deformation_gradient_increment, rPlasticDeformationGradient);
             noalias(rPlasticDeformationGradient) = aux_plastic_deformation_gradient;

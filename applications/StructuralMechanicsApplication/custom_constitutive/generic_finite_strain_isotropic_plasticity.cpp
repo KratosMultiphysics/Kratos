@@ -186,7 +186,6 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         // Elastic Matrix
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX_PK2, r_constitutive_matrix);
 
         // We get some variables
         double& r_threshold = this->GetThreshold();
@@ -211,7 +210,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             Vector auxiliar_predictive_stress_vector;
             this->CalculateValue(rValues, PK2_STRESS_VECTOR, auxiliar_predictive_stress_vector);
             for (std::size_t i_voigt = 0; i_voigt < VoigtSize; ++i_voigt) {
-                auxiliar_predictive_stress_vector[i_voigt] =  auxiliar_predictive_stress_vector[i_voigt];
+                predictive_stress_vector[i_voigt] =  auxiliar_predictive_stress_vector[i_voigt];
             }
 
             // We revert the deformation gradient
