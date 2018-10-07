@@ -7,6 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:   Alejandro Cornejo & Lucia Barbu
+//  Collaborator:   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_TANGENT_OPERATOR_CALCULATOR_UTILITY_H_INCLUDED)
@@ -18,6 +19,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -143,14 +145,21 @@ public:
     static void CalculateTangentTensorFiniteDeformation(
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveLaw *pConstitutiveLaw,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_PK2
         )
     {
+        const Variable<Vector>& r_stress_variable = rStressMeasure == ConstitutiveLaw::StressMeasure_PK2 ? PK2_STRESS_VECTOR : KIRCHHOFF_STRESS_VECTOR;
+
         // Converged values to be storaged
         const Vector& strain_vector_gp = rValues.GetStrainVector();
         const Vector& stress_vector_gp = rValues.GetStressVector();
         const Matrix& deformation_gradient_gp = rValues.GetDeformationGradientF();
         const double det_deformation_gradient_gp = rValues.GetDeterminantF();
+
+        double aux_det;
+        Matrix inverse_deformation_gradient_perturbed(deformation_gradient_gp.size1(), deformation_gradient_gp.size2());
+        Matrix deformation_gradient_perturbed(deformation_gradient_gp.size1(), deformation_gradient_gp.size2());
+        Matrix deformation_gradient_increment(deformation_gradient_gp.size1(), deformation_gradient_gp.size2());
 
         Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
         tangent_tensor.clear();
@@ -158,6 +167,7 @@ public:
         const std::size_t num_components = strain_vector_gp.size();
         // Loop over components of the strain
         Vector& perturbed_strain = rValues.GetStrainVector();
+        Vector& perturbed_stress = rValues.GetStressVector();
         for (std::size_t i_component = 0; i_component < num_components; ++i_component) {
             // Calculate the perturbation
             double pertubation;
@@ -172,13 +182,19 @@ public:
             // We continue with the calculations
             IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
-            Vector& perturbed_integrated_stress = rValues.GetStressVector(); // now integrated
-            const Vector& delta_stress = perturbed_integrated_stress - stress_vector_gp;
+            // We compute the new predictive stress vector
+            MathUtils<double>::InvertMatrix(deformation_gradient_perturbed,inverse_deformation_gradient_perturbed, aux_det);
+            deformation_gradient_increment = prod(inverse_deformation_gradient_perturbed, deformation_gradient_gp);
+            rValues.SetDeterminantF(MathUtils<double>::DetMat(deformation_gradient_increment));
+            rValues.SetDeformationGradientF(deformation_gradient_increment);
+            Vector delta_stress;
+            pConstitutiveLaw->CalculateValue(rValues, r_stress_variable, delta_stress);
+
             AssignComponentsToTangentTensor(tangent_tensor, delta_stress, pertubation, i_component);
 
             // Reset the values to the initial ones
-            noalias(perturbed_strain) = strain_vector_gp;
-            noalias(perturbed_integrated_stress) = stress_vector_gp;
+            perturbed_strain = strain_vector_gp;
+            perturbed_stress = stress_vector_gp;
             rValues.SetDeformationGradientF(deformation_gradient_gp);
             rValues.SetDeterminantF(det_deformation_gradient_gp);
         }
