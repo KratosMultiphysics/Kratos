@@ -5,7 +5,7 @@
         "Material"        : {
             "constitutive_law" : {
                 "name" : "RuleOfMixturesLaw",
-                "sub_properties_indexes"   : [ 11,  12,  13 ],
+                "sub_properties_indexes"   : [ 1,  2,  3 ],
                 "combination_factors"      : [0.4, 0.3, 0.3 ],
                 "material_rotation_angles" : [ 0,   45,  90 ],
                 "other_features..."        : [null,null,null]
@@ -19,7 +19,7 @@
             "Tables"           : {}
         },
         "sub_properties" : [{
-            "properties_id"   : 11,
+            "properties_id"   : 1,
             "Material"        : {
                 "constitutive_law" : {
                     "name" : "HyperElastic3DLaw"
@@ -32,7 +32,7 @@
                 },
                 "Tables"           : {}
             },"sub_properties" : [{
-                "properties_id"   : 15,
+                "properties_id"   : 1,
                 "Material"        : {
                     "constitutive_law" : {
                         "name" : "HyperElastic3DLaw"
@@ -46,7 +46,7 @@
                     "Tables"           : {}
                 }
             },{
-                "properties_id"   : 16,
+                "properties_id"   : 2,
                 "Material"        : {
                     "constitutive_law" : {
                         "name" : "LinearElastic3DLaw"
@@ -61,7 +61,7 @@
                 }
             }]
         },{
-            "properties_id"   : 12,
+            "properties_id"   : 2,
             "Material"        : {
                 "constitutive_law" : {
                     "name" : "LinearElastic3DLaw"
@@ -75,7 +75,7 @@
                 "Tables"           : {}
             }
         },{
-            "properties_id"   : 13,
+            "properties_id"   : 3,
             "Material"        : {
                 "constitutive_law" : {
                     "name" : "HyperElastic3DLaw"
