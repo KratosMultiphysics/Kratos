@@ -33,8 +33,8 @@ def AssembleTestSuites():
     # Create a test suit with the selected tests (Small tests):
     # smallSuite will contain the following tests:
     smallSuite = suites['small']
-    # smallSuite.addTest(TNearestNeighborTest_1('test_execution'))
-    # smallSuite.addTest(TNearestElementTest2D_1('test_execution'))
+    smallSuite.addTest(TNearestNeighborTest_1('test_execution'))
+    smallSuite.addTest(TNearestElementTest2D_1('test_execution'))
     smallSuite.addTest(TMapperTests('test_execution'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MapperTests]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([MapperFlagsTests]))
