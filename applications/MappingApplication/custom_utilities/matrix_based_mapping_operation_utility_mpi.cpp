@@ -33,6 +33,33 @@ typedef MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType> Util
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 
+void ConstructRowColIdVectors(UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems,
+                              std::vector<int>& rRowEquationIdsVector,
+                              std::vector<int>& rColEquationIdsVector)
+{
+    // TODO improve this!
+    EquationIdVectorType origin_ids;
+    EquationIdVectorType destination_ids;
+
+    for (auto& rp_local_sys : rMapperLocalSystems)
+    {
+        rp_local_sys->EquationIdVectors(origin_ids, destination_ids);
+
+        rRowEquationIdsVector.reserve( rRowEquationIdsVector.size() + destination_ids.size() );
+        rRowEquationIdsVector.insert( rRowEquationIdsVector.end(), destination_ids.begin(), destination_ids.end() );
+        rColEquationIdsVector.reserve( rColEquationIdsVector.size() + origin_ids.size() );
+        rColEquationIdsVector.insert( rColEquationIdsVector.end(), origin_ids.begin(), origin_ids.end() );
+    }
+    rRowEquationIdsVector.shrink_to_fit();
+    rColEquationIdsVector.shrink_to_fit(); // TODO remove ...?
+
+    // "Uniqueify" the vectors
+    std::sort( rRowEquationIdsVector.begin(), rRowEquationIdsVector.end() );
+    rRowEquationIdsVector.erase( std::unique( rRowEquationIdsVector.begin(), rRowEquationIdsVector.end() ), rRowEquationIdsVector.end() );
+    std::sort( rColEquationIdsVector.begin(), rColEquationIdsVector.end() );
+    rColEquationIdsVector.erase( std::unique( rColEquationIdsVector.begin(), rColEquationIdsVector.end() ), rColEquationIdsVector.end() );
+}
+
 void FillMatrixGraph(Epetra_FECrsGraph& rGraph,
                      UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems)
 {
@@ -110,59 +137,43 @@ void UtilityType::ResizeAndInitializeVectors(
     ModelPart& rModelPartDestination,
     MapperLocalSystemPointerVector& rMapperLocalSystems) const
 {
+    // big TODO what if the rank doesn't have local nodes ... ?
     if (rModelPartOrigin.GetCommunicator().MyPID() == 0)
         std::cout << "\nENTERING the Matrix and Vector Assembly" << std::endl;
 
-    // big TODO what if the rank doesn't have local nodes ... ?
+    // ***** Creating vectors with information abt which IDs are local *****
+    const auto& r_local_mesh_origin = rModelPartOrigin.GetCommunicator().LocalMesh();
+    const auto& r_local_mesh_destination = rModelPartDestination.GetCommunicator().LocalMesh();
 
-    const int num_local_nodes_orig = rModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
-    const int num_local_nodes_dest = rModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes();
+    const int num_local_nodes_orig = r_local_mesh_origin.NumberOfNodes();
+    const int num_local_nodes_dest = r_local_mesh_destination.NumberOfNodes();
 
-    const Epetra_MpiComm epetra_comm(MPI_COMM_WORLD); // TODO do I have to save this as member???
+    std::vector<int> global_equation_ids_origin(num_local_nodes_orig);
+    std::vector<int> global_equation_ids_destination(num_local_nodes_dest);
 
-    std::vector<int> global_elements_orig(num_local_nodes_orig);
-    std::vector<int> global_elements_dest(num_local_nodes_dest);
-
-    const auto nodes_begin_orig = rModelPartOrigin.GetCommunicator().LocalMesh().NodesBegin();
+    const auto nodes_begin_orig = r_local_mesh_origin.NodesBegin();
     #pragma omp parallel for
     for (int i=0; i<num_local_nodes_orig; ++i) {
-        global_elements_orig[i] = ( nodes_begin_orig + i )->GetValue(INTERFACE_EQUATION_ID);
+        global_equation_ids_origin[i] = ( nodes_begin_orig + i )->GetValue(INTERFACE_EQUATION_ID);
     }
 
-    const auto nodes_begin_dest = rModelPartDestination.GetCommunicator().LocalMesh().NodesBegin();
+    const auto nodes_begin_dest = r_local_mesh_destination.NodesBegin();
     #pragma omp parallel for
     for (int i=0; i<num_local_nodes_dest; ++i) {
-        global_elements_dest[i] = ( nodes_begin_dest + i )->GetValue(INTERFACE_EQUATION_ID);
+        global_equation_ids_destination[i] = ( nodes_begin_dest + i )->GetValue(INTERFACE_EQUATION_ID);
     }
 
-    // Construct vectors containing all the indices this processor contributes to
-    // TODO improve this!
-    std::vector<int> row_indices; // using number of nodes as size estimation
-    std::vector<int> col_indices;
+    // Construct vectors containing all the equation ids of rows and columns this processor contributes to
+    std::vector<int> row_equation_ids; // using number of nodes as size estimation
+    std::vector<int> col_equation_ids;
 
-    row_indices.reserve(num_local_nodes_dest*2);
-    col_indices.reserve(num_local_nodes_orig*2);
+    row_equation_ids.reserve(num_local_nodes_dest*2);
+    col_equation_ids.reserve(num_local_nodes_orig*2);
 
-    EquationIdVectorType origin_ids;
-    EquationIdVectorType destination_ids;
+    ConstructRowColIdVectors(rMapperLocalSystems, row_equation_ids, col_equation_ids);
 
-    for (auto& rp_local_sys : rMapperLocalSystems)
-    {
-        rp_local_sys->EquationIdVectors(origin_ids, destination_ids);
-
-        col_indices.reserve( col_indices.size() + origin_ids.size() );
-        col_indices.insert( col_indices.end(), origin_ids.begin(), origin_ids.end() );
-        row_indices.reserve( row_indices.size() + destination_ids.size() );
-        row_indices.insert( row_indices.end(), destination_ids.begin(), destination_ids.end() );
-    }
-    col_indices.shrink_to_fit(); // TODO remove ...?
-    row_indices.shrink_to_fit();
-
-    // "Uniqueify" the vectors
-    std::sort( col_indices.begin(), col_indices.end() );
-    col_indices.erase( std::unique( col_indices.begin(), col_indices.end() ), col_indices.end() );
-    std::sort( row_indices.begin(), row_indices.end() );
-    row_indices.erase( std::unique( row_indices.begin(), row_indices.end() ), row_indices.end() );
+    // ***** Creating the maps for the MappingMatrix and the SystemVectors *****
+    const Epetra_MpiComm epetra_comm(MPI_COMM_WORLD);
 
     // Epetra_Map (long long NumGlobalElements, int NumMyElements, const long long *MyGlobalElements, int IndexBase, const Epetra_Comm &Comm)
 
@@ -170,26 +181,26 @@ void UtilityType::ResizeAndInitializeVectors(
     const int index_base = 0; // for C/C++
 
     Epetra_Map epetra_col_map(num_global_elements,
-                              col_indices.size(),
-                              col_indices.data(), // taken as const
+                              col_equation_ids.size(),
+                              col_equation_ids.data(), // taken as const
                               index_base,
                               epetra_comm);
 
     Epetra_Map epetra_row_map(num_global_elements,
-                              row_indices.size(),
-                              row_indices.data(), // taken as const
+                              row_equation_ids.size(),
+                              row_equation_ids.data(), // taken as const
                               index_base,
                               epetra_comm);
 
     Epetra_Map epetra_domain_map(num_global_elements,
-                                 num_local_nodes_orig,
-                                 global_elements_orig.data(), // taken as const
+                                 global_equation_ids_origin.size(),
+                                 global_equation_ids_origin.data(), // taken as const
                                  index_base,
                                  epetra_comm);
 
     Epetra_Map epetra_range_map(num_global_elements,
-                                num_local_nodes_dest,
-                                global_elements_dest.data(), // taken as const
+                                global_equation_ids_destination.size(),
+                                global_equation_ids_destination.data(), // taken as const
                                 index_base,
                                 epetra_comm);
 
@@ -225,8 +236,9 @@ void UtilityType::ResizeAndInitializeVectors(
     KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.GlobalAssemble. "
         << "Error code: " << ierr << std::endl;
 
-    if (GetEchoLevel() > 2)
+    if (GetEchoLevel() > 2) {
         SparseSpaceType::WriteMatrixMarketMatrix("TrilinosMappingMatrix", *p_Mdo, false);
+    }
 
     rpMdo.swap(p_Mdo);
 
@@ -313,8 +325,9 @@ void FillSystemVector(UtilityType::TSystemVectorType& rVector,
     }
 
     // rVector.GlobalAssemble(); // TODO I am quite sure this is not needed, since one node is one entry ...
-    if (EchoLevel > 2)
+    if (EchoLevel > 2) {
         SparseSpaceType::WriteMatrixMarketVector("TrilinosFillSystemVector", rVector);
+    }
 }
 
 template< class TVarType >
@@ -347,8 +360,9 @@ void Update(UtilityType::TSystemVectorType& rVector,
     }
 
     // rVector.GlobalAssemble(); // TODO I am quite sure this is not needed, since one node is one entry ...
-    if (EchoLevel > 2)
+    if (EchoLevel > 2) {
         SparseSpaceType::WriteMatrixMarketVector("TrilinosUpdate", rVector);
+    }
 }
 
 
