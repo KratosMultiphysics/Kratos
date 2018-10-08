@@ -536,9 +536,9 @@ public:
         ResizeAndInitializeLocalMatrices(rLHSContribution, rRHSContribution, rEquationIds.size());
 
         // Calculating the F = T'*(F-K*g) which is local to this container
-        ModifyRHS(rLHSContribution, rRHSContribution, rEquationIds);
+        ModifyRHSForConstraints(rLHSContribution, rRHSContribution, rEquationIds);
         // Calculating the K = T' * K *T which is local to this container
-        ModifyLHS(rLHSContribution, rRHSContribution, rEquationIds);
+        ModifyLHSForConstraints(rLHSContribution, rRHSContribution, rEquationIds);
 
         KRATOS_CATCH("ResidualBasedBlockBuilderAndSolverWithConstraints:: Applying Multipoint constraints failed ..");
     }
@@ -579,7 +579,7 @@ private:
      * @param   rRHSContribution The rhs vector of the container
      * @param   rEquationIds the list of equation ids (extended with the masters).
      */
-    void ModifyLHS(MatrixType &rLHSContribution, VectorType& rRHSContribution, EquationIdVectorType &rEquationIds)
+    void ModifyLHSForConstraints(MatrixType &rLHSContribution, VectorType& rRHSContribution, EquationIdVectorType &rEquationIds)
     {
         mLocalIndices.container_master_weights.reserve(mLocalIndices.master_index_vector.size());
         mLocalIndices.container_master_slaves.reserve(mLocalIndices.master_index_vector.size());
@@ -647,7 +647,7 @@ private:
      * @param   rRHSContribution The rhs vector of the container
      * @param   rEquationIds the list of equation ids (extended with the masters).
      */
-    void ModifyRHS(MatrixType &rLHSContribution, VectorType& rRHSContribution, EquationIdVectorType &rEquationIds)
+    void ModifyRHSForConstraints(MatrixType &rLHSContribution, VectorType& rRHSContribution, EquationIdVectorType &rEquationIds)
     {
         IndexType slave_equation_id;
         EquationIdVectorType master_equation_ids;
