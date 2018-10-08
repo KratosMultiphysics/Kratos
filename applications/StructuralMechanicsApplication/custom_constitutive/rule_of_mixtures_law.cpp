@@ -33,10 +33,7 @@ RuleOfMixturesLaw::RuleOfMixturesLaw()
 /******************************CONSTRUCTOR******************************************/
 /***********************************************************************************/
 
-RuleOfMixturesLaw::RuleOfMixturesLaw(
-    const std::vector<double>& rCombinationFactors,
-    const std::vector<double>& rMaterialRotationAngles
-    ) : ConstitutiveLaw()
+RuleOfMixturesLaw::RuleOfMixturesLaw(const std::vector<double>& rCombinationFactors) : ConstitutiveLaw()
 {
     // We compute the proportion of the factors (must be over 1)
     double aux_factor = 0.0;
@@ -48,12 +45,10 @@ RuleOfMixturesLaw::RuleOfMixturesLaw(
 
     // Resize
     mCombinationFactors.resize(rCombinationFactors.size());
-    mMaterialRotationAngles.resize(rCombinationFactors.size());
 
     // We fill the maps
     for (IndexType i = 0; i < rCombinationFactors.size(); ++i) {
         mCombinationFactors[i] = rCombinationFactors[i]/aux_factor;
-        mMaterialRotationAngles[i] =  rMaterialRotationAngles[i];
     }
 }
 
@@ -62,8 +57,8 @@ RuleOfMixturesLaw::RuleOfMixturesLaw(
 
 RuleOfMixturesLaw::RuleOfMixturesLaw(const RuleOfMixturesLaw& rOther)
     : ConstitutiveLaw(rOther),
-      mCombinationFactors(rOther.mCombinationFactors),
-      mMaterialRotationAngles(rOther.mMaterialRotationAngles)
+      mConstitutiveLaws(rOther.mConstitutiveLaws),
+      mCombinationFactors(rOther.mCombinationFactors)
 {
 }
 
@@ -82,24 +77,18 @@ ConstitutiveLaw::Pointer RuleOfMixturesLaw::Create(Kratos::Parameters NewParamet
 {
     // We do some checks
     KRATOS_ERROR_IF_NOT(NewParameters.Has("combination_factors")) << "RuleOfMixturesLaw: Please define combination_factors" << std::endl;
-    KRATOS_ERROR_IF_NOT(NewParameters.Has("material_rotation_angles")) << "RuleOfMixturesLaw: Please define material_rotation_angles" << std::endl;
 
     const SizeType number_of_factors = NewParameters["combination_factors"].size();
-    const SizeType number_of_angles = NewParameters["material_rotation_angles"].size();
-
-    KRATOS_ERROR_IF(number_of_factors != number_of_angles) << "The vectors sub_properties_indexes and material_rotation_angles must have the same size" << std::endl;
 
     // We create the vectors
     std::vector<double> combination_factors(number_of_factors);
-    std::vector<double> rotation_angles(number_of_angles);
 
     for (IndexType i_layer = 0; i_layer < number_of_factors; ++i_layer) {
         combination_factors[i_layer] = NewParameters["combination_factors"][i_layer].GetDouble();
-        rotation_angles[i_layer] = NewParameters["material_rotation_angles"][i_layer].GetDouble();
     }
 
     // We create the law
-    return Kratos::make_shared<RuleOfMixturesLaw>(combination_factors, rotation_angles);
+    return Kratos::make_shared<RuleOfMixturesLaw>(combination_factors);
 }
 
 //*******************************DESTRUCTOR*******************************************

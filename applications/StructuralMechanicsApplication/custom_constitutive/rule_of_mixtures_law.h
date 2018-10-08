@@ -86,12 +86,8 @@ public:
     /**
      * @brief Constructor with values
      * @param rCombinationFactors The list of subproperties combination factors
-     * @param rMaterialRotationAngles The rotation angles of the layers
      */
-    RuleOfMixturesLaw(
-        const std::vector<double>& rCombinationFactors,
-        const std::vector<double>& rMaterialRotationAngles
-        );
+    RuleOfMixturesLaw(const std::vector<double>& rCombinationFactors);
 
     /**
      * @brief Copy constructor.
@@ -671,7 +667,6 @@ private:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
     std::vector<double> mCombinationFactors;                 /// The vector containing the combination factors of the different layers of the material
-    std::vector<double> mMaterialRotationAngles;             /// The vector containing the rotation angles of the different layers
 
     ///@}
     ///@name Private Operators
@@ -695,15 +690,15 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+        rSerializer.save("ConstitutiveLaws", mConstitutiveLaws);
         rSerializer.save("CombinationFactors", mCombinationFactors);
-        rSerializer.save("MaterialRotationAngles", mMaterialRotationAngles);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
+        rSerializer.load("ConstitutiveLaws", mConstitutiveLaws);
         rSerializer.load("CombinationFactors", mCombinationFactors);
-        rSerializer.load("MaterialRotationAngles", mMaterialRotationAngles);
     }
 
 

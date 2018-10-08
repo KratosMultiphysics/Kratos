@@ -56,9 +56,7 @@ Parameters GetTwoLayersParameters()
         "Material"        : {
             "constitutive_law" : {
                 "name" : "RuleOfMixturesLaw",
-                "sub_properties_indexes"   : [ 1,  2 ],
-                "combination_factors"      : [0.4, 0.6 ],
-                "material_rotation_angles" : [ 0,  90 ]
+                "combination_factors"      : [0.4, 0.6 ]
             },
             "Variables"        : {
                 "THICKNESS"     : null,
@@ -111,9 +109,7 @@ Parameters GetThreeLayersParameters()
         "Material"        : {
             "constitutive_law" : {
                 "name" : "RuleOfMixturesLaw",
-                "sub_properties_indexes"   : [ 1,  2,  3 ],
-                "combination_factors"      : [0.4, 0.3, 0.3 ],
-                "material_rotation_angles" : [ 0,   45,  90 ]
+                "combination_factors"      : [0.4, 0.3, 0.3 ]
             },
             "Variables"        : {
                 "THICKNESS"     : null,
