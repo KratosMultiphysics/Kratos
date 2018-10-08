@@ -77,6 +77,8 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
 	# ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/damage_tc_plane_stress_2d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/plane_stress_tc_damage_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/plane_stress_2d_tc_damage_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/plane_stress_2d_kinematically_enriched_law.cpp
 )
 ## generate variables with the sources
 set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_PYTHON_INTERFACE

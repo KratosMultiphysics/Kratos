@@ -44,17 +44,20 @@ namespace Kratos
                 {
                     if (Is(IGAFlags::FIX_DISPLACEMENT_X))
                     {
-                        GetGeometry()[i].SetValue(DISPLACEMENT_X, displacement[0]);
+                        GetGeometry()[i].Free(DISPLACEMENT_X);
+                        GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X) = displacement[0];
                         GetGeometry()[i].Fix(DISPLACEMENT_X);
                     }
                     if (Is(IGAFlags::FIX_DISPLACEMENT_Y))
                     {
-                        GetGeometry()[i].SetValue(DISPLACEMENT_Y, displacement[1]);
+                        GetGeometry()[i].Free(DISPLACEMENT_Y);
+                        GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y) = displacement[1];
                         GetGeometry()[i].Fix(DISPLACEMENT_Y);
                     }
                     if (Is(IGAFlags::FIX_DISPLACEMENT_Z))
                     {
-                        GetGeometry()[i].SetValue(DISPLACEMENT_Z, displacement[2]);
+                        GetGeometry()[i].Free(DISPLACEMENT_Z);
+                        GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z) = displacement[2];
                         GetGeometry()[i].Fix(DISPLACEMENT_Z);
                     }
                 }

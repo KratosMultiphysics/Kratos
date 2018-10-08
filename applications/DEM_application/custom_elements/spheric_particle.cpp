@@ -1158,6 +1158,12 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
         rigid_element_force[1] -= GlobalContactForce[1];
         rigid_element_force[2] -= GlobalContactForce[2];
 
+        //std::cout << "points are found! 12" << std::endl;
+        Vector GlobalContactForceVector(3);
+        DEM_COPY_SECOND_TO_FIRST_3(GlobalContactForceVector, GlobalContactForce)
+            //KRATOS_WATCH(GlobalContactForceVector)
+        wall->SetValue(EXTERNAL_FORCES_VECTOR, GlobalContactForceVector);
+
         if (this->Is(DEMFlags::HAS_ROTATION)) {
             ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], this, indentation, true); //WARNING: sending itself as the neighbor!!
         }

@@ -163,6 +163,22 @@ namespace Kratos
             }
             rOutput = displacements;
         }
+        //else if (rVariable == REACTION) {
+        //    const int& number_of_nodes = GetGeometry().size();
+        //    Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
+
+        //    array_1d<double, 3> reactions = ZeroVector(3);
+        //    for (SizeType i = 0; i < number_of_nodes; i++)
+        //    {
+        //        const NodeType& iNode = GetGeometry()[i];
+        //        const array_1d<double, 3>& reaction = iNode.FastGetSolutionStepValue(REACTION);
+
+        //        reactions[0] += N[i] * reaction[0];
+        //        reactions[1] += N[i] * reaction[1];
+        //        reactions[2] += N[i] * reaction[2];
+        //    }
+        //    rOutput = reactions;
+        //}
         else
         {
             Condition::Calculate(rVariable, rOutput, rCurrentProcessInfo);
@@ -200,6 +216,8 @@ namespace Kratos
                 const NodeType & iNode = GetGeometry()[i];
                 const array_1d<double, 3>& forces = iNode.GetValue(EXTERNAL_FORCES_VECTOR);
 
+                KRATOS_WATCH(forces)
+
                 condition_coords[0] += N[i] * forces[0];
                 condition_coords[1] += N[i] * forces[1];
                 condition_coords[2] += N[i] * forces[2];
@@ -231,71 +249,31 @@ namespace Kratos
         }
     }
 
-    ///***********************************************************************************/
-    ///// SetValuesOnIntegrationPoints
-    ///***********************************************************************************/
-    //void BaseDiscreteCondition::SetValuesOnIntegrationPoints(
-    //    const Variable<double>& rVariable,
-    //    std::vector<double>& rValues,
-    //    const ProcessInfo& rCurrentProcessInfo)
-    //{
-    //    mConstitutiveLawVector[0]->SetValue(rVariable,
-    //        rValues[0],
-    //        rCurrentProcessInfo
-    //    );
-    //}
+    /***********************************************************************************/
+    /// SetValuesOnIntegrationPoints
+    /***********************************************************************************/
+    void BaseDiscreteCondition::SetValueOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        const int number_of_control_points = GetGeometry().size();
+        const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
 
-    ///***********************************************************************************/
-    ///***********************************************************************************/
-    //void BaseDiscreteCondition::SetValuesOnIntegrationPoints(
-    //    const Variable<Vector>& rVariable,
-    //    std::vector<Vector>& rValues,
-    //    const ProcessInfo& rCurrentProcessInfo)
-    //{
-    //    const int number_of_control_points = GetGeometry().size();
-    //    const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
+        if (rVariable == EXTERNAL_FORCES_VECTOR) {
+            for (SizeType i = 0; i < number_of_control_points; i++)
+            {
+                NodeType & iNode = GetGeometry()[i];
 
-    //    if (rVariable == EXTERNAL_FORCES_VECTOR) {
-    //        for (SizeType i = 0; i < number_of_control_points; i++)
-    //        {
-    //            NodeType & iNode = GetGeometry()[i];
+                Vector external_variable = N[i] * rValues[0] + iNode.GetValue(rVariable);
+                iNode.SetValue(rVariable, external_variable);
+            }
+        }
+        else
+        {
+        }
+    }
 
-    //            Vector external_variable = N[i] * rValues[0] + iNode.GetValue(rVariable);
-    //            iNode.SetValue(rVariable, external_variable);
-    //        }
-    //    }
-    //    else
-    //    {
-    //        mConstitutiveLawVector[0]->SetValue(rVariable,
-    //            rValues[0],
-    //            rCurrentProcessInfo
-    //        );
-    //    }
-    //}
-
-    ///***********************************************************************************/
-    ///***********************************************************************************/
-    //void BaseDiscreteCondition::SetValuesOnIntegrationPoints(
-    //    const Variable<Matrix>& rVariable,
-    //    std::vector<Matrix>& rValues,
-    //    const ProcessInfo& rCurrentProcessInfo)
-    //{
-    //    mConstitutiveLawVector[0]->SetValue(rVariable,
-    //        rValues[0],
-    //        rCurrentProcessInfo
-    //    );
-    //}
-
-    ///***********************************************************************************/
-    ///***********************************************************************************/
-    //void BaseDiscreteCondition::SetValuesOnIntegrationPoints(
-    //    const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    //    std::vector<ConstitutiveLaw::Pointer>& rValues,
-    //    const ProcessInfo& rCurrentProcessInfo)
-    //{
-    //    if (rVariable == CONSTITUTIVE_LAW)
-    //        mConstitutiveLawVector[0] = rValues[0];
-    //}
 
     /***********************************************************************************/
     /***********************************************************************************/

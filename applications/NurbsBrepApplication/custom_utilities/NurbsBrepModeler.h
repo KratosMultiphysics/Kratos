@@ -85,6 +85,7 @@ namespace Kratos
         ModelPart& rModelPart);
 
     void GetUpdatedLocation(ModelPart& rIGAModelPart);
+    void GetUpdatedLocationNewModelPart(ModelPart& rIGAModelPart, ModelPart& rIGAModelPartIntegrationDomain);
     ///@} 
     ///@name Life Cycle 
     ///@{ 

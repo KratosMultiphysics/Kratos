@@ -136,7 +136,7 @@ namespace Kratos
 		const double& rAccuracy, const double& rModelTolerance, const int& rMaxIterations);
 
 	// Finds location of node with initial guess
-	void GetClosestIntegrationNode(
+	bool GetClosestIntegrationNode(
 		Node<3>::Pointer& rClosestNode,
 		const Node<3>::Pointer& rSpaceNode,
 		const int& rShapefunctionOrder,
@@ -210,6 +210,12 @@ namespace Kratos
 
 	std::vector<Node<3>::Pointer> GetIntegrationNodes(
 		std::vector<array_1d<double, 4>>& rPoints, const int& rShapefunctionOrder);
+
+    bool GetIntegrationNodeUpdated(
+        Node<3>::Pointer& rClosestNode,
+        const Node<3>::Pointer& rSpaceNode,
+        const int& rShapefunctionOrder,
+        const double& rAccuracy, const int& rMaxIterations);
 
 	void EvaluateIntegrationNode(
 		const double& rU, const double& rV,

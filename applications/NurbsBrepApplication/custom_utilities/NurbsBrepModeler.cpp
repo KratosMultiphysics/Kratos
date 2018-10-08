@@ -175,6 +175,7 @@ namespace Kratos
 		ModelPart& model_part_faces = rIntegrationDomainModelPart.CreateSubModelPart("FACES");
 		ModelPart& model_part_coupling_edges = rIntegrationDomainModelPart.CreateSubModelPart("COUPLING_EDGES");
 		ModelPart& model_part_edges = rIntegrationDomainModelPart.CreateSubModelPart("EDGES");
+        ModelPart& model_part_points = rIntegrationDomainModelPart.CreateSubModelPart("POINTS");
 
 		for (unsigned int brep_itr = 0; brep_itr < m_brep_model_vector.size(); brep_itr++)
 		{
@@ -271,7 +272,6 @@ namespace Kratos
 			{
 				//ModelPart& model_part_points = ModelPart("Point");
 				//if (!rIntegrationDomainModelPart.HasSubModelPart("POINTS"))
-                ModelPart& model_part_points = rIntegrationDomainModelPart.CreateSubModelPart("POINTS");
                 //ModelPart&   model_part_points = rIntegrationDomainModelPart.CreateSubModelPart("POINTS");
 				//else
                      //model_part_points = rIntegrationDomainModelPart.GetSubModelPart("POINTS");
@@ -536,16 +536,12 @@ namespace Kratos
     //        node_on_geometry->SetValue(LOCAL_PARAMETERS, rNeighborResults[i]->pGetBaseElement()->GetValue(LOCAL_PARAMETERS));
     //        BrepFace& face = GetFace(face_id_of_nearest_point);
     //        face.GetClosestIntegrationNode(node_on_geometry, node, 2, 1e-7, 30);
-
     //        double distance_radius = std::sqrt(std::pow(node->X() - node_on_geometry->X(), 2) +
     //            std::pow(node->Y() - node_on_geometry->Y(), 2) +
     //            std::pow(node->Z() - node_on_geometry->Z(), 2));
-
-
     //        if (distance_radius <= radius + 1e-7)
     //        {
     //            bool new_condition = false;
-
     //            if (rInterfaceList.size() == 0)
     //            {
     //                new_condition = true;
@@ -564,7 +560,6 @@ namespace Kratos
     //                    {
     //                        break;
     //                    }
-
     //                    Vector g3_new_node = ZeroVector(3);
     //                    CalculateSurfaceNormal(g3_new_node, node_on_geometry, rModelPart);
 
@@ -596,11 +591,13 @@ namespace Kratos
     void NurbsBrepModeler::GetInterfaceConditionsAdvanced(ModelPart& rParticleModelPart, ModelPart& rIGAModelPart, ModelPart& rInterfaceConditionsModelPart)
     {
         BinsIgaConfigure::ContainerType BinsIGAObjs;
+        BinsIGAObjs.resize(rIGAModelPart.NumberOfElements());
         const auto elements_begin = rIGAModelPart.Elements().ptr_begin();
+        
         for (int i = 0; i < rIGAModelPart.NumberOfElements(); ++i)
         {
             auto it_elem = elements_begin + i;
-            BinsIGAObjs.push_back(Kratos::make_shared<BinsIgaObject>(*it_elem));
+            BinsIGAObjs[i] = (Kratos::make_shared<BinsIgaObject>(*it_elem));
         }
         auto iga_bins_structure = BinsObjectDynamic<BinsIgaConfigure>(BinsIGAObjs.begin(), BinsIGAObjs.end());
 
@@ -611,29 +608,37 @@ namespace Kratos
 
         auto particle_obj = Kratos::make_shared<BinsIgaObject>(array_1d<double, 3>(0.0));
 
+
+
         for (auto particle_element_ptr = rParticleModelPart.ElementsBegin(); particle_element_ptr != rParticleModelPart.ElementsEnd(); particle_element_ptr++)
         {
             auto results_itr = neighbor_results.begin();
             auto distance_itr = neighbor_distances.begin();
 
             double radius = particle_element_ptr->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-            double search_radius = 1;
-            //std::cout << "search_radius: " << search_radius << std::endl;
+            double search_radius = 6;            //std::cout << "search_radius: " << search_radius << std::endl;
 
-
+            
+            //std::cout << "check" << std::endl;
             array_1d<double, 3> coords = particle_element_ptr->GetGeometry()[0].Coordinates();
             particle_obj->UpdateCoordinates(coords);
+
+            //KRATOS_WATCH(coords)
+
+            //if (coords[0] > 100 || coords[0] < -100 || coords[1] > 100 || coords[1] < -100 || coords[2] > 100 || coords[2] < -100)
+            //    KRATOS_ERROR << "BUGGGGER" << coords << std::endl;
 
             //std::cout << "Start closest point in radius: " << std::endl;
             const std::size_t number_of_results = iga_bins_structure.SearchObjectsInRadius(
                 particle_obj, search_radius, results_itr,
                 distance_itr, num_interface_obj_bin);
 
-            std::cout << "closest points in radius found: " << number_of_results << std::endl;
-            std::cout << "Number of interfaces in obj bin: " << num_interface_obj_bin << std::endl;
+            //std::cout << "Number of interfaces in obj bin: " << num_interface_obj_bin << std::endl;
 
             if (number_of_results > 0)
             {
+                //std::cout << "closest points in radius found: " << number_of_results << std::endl;
+
                 std::vector<Condition*> new_conditions;
                 std::vector<array_1d<double, 3>> new_elastic_forces;
                 std::vector<array_1d<double, 3>> new_total_forces;
@@ -652,16 +657,44 @@ namespace Kratos
                     Node<3>::Pointer node_on_geometry = Kratos::make_shared<Node<3>>(0, 0, 0, 0);
                     node_on_geometry->SetValue(LOCAL_PARAMETERS, neighbor_results[i]->pGetBaseElement()->GetValue(LOCAL_PARAMETERS));
                     BrepFace& face = GetFace(face_id_of_nearest_point);
-                    face.GetClosestIntegrationNode(node_on_geometry, node, 2, 1e-7, 30);
+                    //KRATOS_WATCH(neighbor_results[i]->pGetBaseElement()->GetValue(LOCAL_PARAMETERS))
+                    //std::cout << "here" << std::endl;
+                    bool success = face.GetClosestIntegrationNode(node_on_geometry, node, 2, 1e-5, 30);
+                    if (!success)
+                    {
+                        std::cout << "no success 2" << std::endl;
+                        continue;
+                    }
+                        //std::cout << "here 2" << std::endl;
+
+                    Vector location = ZeroVector(3);
+                    location(0) = node_on_geometry->X();
+                    location(1) = node_on_geometry->Y();
+                    location(2) = node_on_geometry->Z();
+
+                    //KRATOS_WATCH(location)
+
+                    if (!face.CheckIfPointIsInside(location))
+                    {
+                        //std::cout << "Point inside" << std::endl;
+                    //    continue;
+                    }
+                    else
+                    {
+                        std::cout << "Point ouside" << std::endl;
+
+                    }
 
                     double distance_radius = std::sqrt(std::pow(node->X() - node_on_geometry->X(), 2) +
                         std::pow(node->Y() - node_on_geometry->Y(), 2) +
                         std::pow(node->Z() - node_on_geometry->Z(), 2));
 
                     //std::cout << "Node location: " << node_on_geometry->X() << ", " << node_on_geometry->Y() << ", " << node_on_geometry->Z() << std::endl;
+                    //KRATOS_WATCH(distance_radius)
 
                     if (distance_radius <= radius + 1e-7)
                     {
+                        //std::cout << "new_nodes.size(): " << new_nodes.size() << std::endl;
                         if (new_nodes.size() == 0)
                         {
                             new_nodes.push_back(node_on_geometry);
@@ -691,13 +724,13 @@ namespace Kratos
                                 distance[2] = (*node_ptr)->Z() - node_on_geometry->Z();
 
 
-                                //double scalar_product = g3_new_node[0] * distance[0] + g3_new_node[1] * distance[1] + g3_new_node[2] * distance[2];
+                                double scalar_product = g3_new_node[0] * distance[0] + g3_new_node[1] * distance[1] + g3_new_node[2] * distance[2];
 
-                                //if (scalar_product < 1e-4)
-                                //{
-                                //    add_node = false;
-                                //    break;
-                                //}
+                                if (scalar_product < 1e-4)
+                                {
+                                    add_node = false;
+                                    break;
+                                }
 
                                 add_node = true;
 
@@ -706,12 +739,13 @@ namespace Kratos
                                 new_nodes.push_back(node_on_geometry);
                         }
                     }
+                    //std::cout << "New run" << std::endl;
                 }
 
 
 
-
-                std::cout << "new_nodes.size()" << new_nodes.size() << std::endl;
+                //if (new_nodes.size() > 1)
+                //std::cout << "new_nodes.size()" << new_nodes.size() << std::endl;
                 //KRATOS_ERROR_IF(new_nodes.size() > 1) << "da is was falsch" << std::endl;
                 for (int i = 0; i < new_nodes.size(); ++i)
                 {
@@ -751,17 +785,21 @@ namespace Kratos
                     //KRATOS_WATCH(condition_length)
                     Vector coords2 = ZeroVector(3);
                     bool success = false;
-                    for (int i = 0; i < condition_length; ++i)
+                    for (int j = 0; j < condition_length; ++j)
                     {
-                        particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS)[i]->Calculate(COORDINATES, coords2, emptyProcessInfo);
-
-                        double distance_radius = std::sqrt(std::pow(coords2[0] - new_nodes[i]->X(), 2) +
+                        particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS)[j]->Calculate(COORDINATES, coords2, emptyProcessInfo);
+                        //KRATOS_WATCH(coords2)
+                        //std::cout << "new_nodes[i]->X(): " << new_nodes[i]->X() << "new_nodes[i]->Y(): " << new_nodes[i]->Y() << "new_nodes[i]->Z(): " << new_nodes[i]->Z() << std::endl;
+                        double distance_radius = std::sqrt(std::abs(std::pow(coords2[0] - new_nodes[i]->X(), 2) +
                             std::pow(coords2[1] - new_nodes[i]->Y(), 2) +
-                            std::pow(coords2[2] - new_nodes[i]->Z(), 2));
+                            std::pow(coords2[2] - new_nodes[i]->Z(), 2)));
+                        //KRATOS_WATCH(distance_radius)
                         if (distance_radius < radius / 5)
                         {
                             new_elastic_forces.push_back(particle_element_ptr->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES)[i]);
+                            //KRATOS_WATCH(particle_element_ptr->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES)[i])
                             new_total_forces.push_back(particle_element_ptr->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES)[i]);
+                            //KRATOS_WATCH(particle_element_ptr->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES)[i])
                             success = true;
                             break;
                         }
@@ -776,6 +814,7 @@ namespace Kratos
 
 
                 int condition_length = particle_element_ptr->GetValue(WALL_POINT_CONDITION_POINTERS).size();
+                //KRATOS_WATCH(condition_length)
                 std::vector<Vector> coords;
                 ProcessInfo emptyProcessInfo = ProcessInfo();
                 for (int i = 0; i < condition_length; ++i)
@@ -786,12 +825,14 @@ namespace Kratos
                 particle_element_ptr->SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, new_elastic_forces);
                 particle_element_ptr->SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, new_total_forces);
                 particle_element_ptr->SetValue(WALL_POINT_CONDITION_POINTERS, new_conditions);
-                std::cout << "check 1 " << new_elastic_forces.size() << std::endl;
-                std::cout << "check 1 " << new_total_forces.size() << std::endl;
-                std::cout << "check 1 " << new_conditions.size() << std::endl;
+                //std::cout << "check 1 " << new_elastic_forces.size() << std::endl;
+                //std::cout << "check 1 " << new_total_forces.size() << std::endl;
+                //std::cout << "check 1 " << new_conditions.size() << std::endl;
 
+                //std::cout << "finished particle" << std::endl;
             }
         }
+        std::cout << "Numer of Conditions: " << rInterfaceConditionsModelPart.NumberOfConditions() << std::endl;
     }
 
 
@@ -959,6 +1000,95 @@ namespace Kratos
 		}
 	}
 
+    void NurbsBrepModeler::GetUpdatedLocationNewModelPart(ModelPart& rIGAModelPart, ModelPart& rIGAModelPartIntegrationDomain)
+    {
+        for (auto element = rIGAModelPartIntegrationDomain.ElementsBegin(); element != rIGAModelPartIntegrationDomain.ElementsEnd(); element++)
+        {
+            Vector coords = ZeroVector(3);
+            ProcessInfo process_info;
+            element->Calculate(COORDINATES, coords, process_info);
+            Node<3>::Pointer node = Kratos::make_shared<Node<3>>(0, coords(0), coords(1), coords(2)); // ::Pointer(new Node<3>(0));
+            Node<3>::Pointer node_on_geometry = Node<3>::Pointer(new Node<3>(0, coords(0), coords(1), coords(2)));
+
+            unsigned int face_id_of_nearest_point = 2; // element->GetValue(FACE_BREP_ID);
+            //KRATOS_WATCH(face_id_of_nearest_point)
+
+            BrepFace& face = GetFace(face_id_of_nearest_point);
+            Vector local_parameter(2);
+            local_parameter[0] = coords(0);
+            local_parameter[1] = coords(1);
+            node_on_geometry->SetValue(LOCAL_PARAMETERS, local_parameter);
+            face.GetIntegrationNodeUpdated(node_on_geometry, node, 2, 1e-7, 30);
+            //KRATOS_WATCH(node)
+
+
+
+            int number_of_cps = node_on_geometry->GetValue(CONTROL_POINT_IDS).size();
+            //KRATOS_WATCH(number_of_cps)
+            Vector CPS1 = node_on_geometry->GetValue(CONTROL_POINT_IDS);
+            //KRATOS_WATCH(CPS1)
+            std::vector<Node<3>::Pointer> cps;
+            std::vector<std::size_t> cps_ids;
+            for (int i = 0; i < number_of_cps; ++i)
+            {
+                cps.push_back(rIGAModelPart.pGetNode((int)CPS1[i])); 
+                cps_ids.push_back(static_cast<std::size_t>(CPS1[i]));
+            }
+
+            std::string element_name = "ShellKLDiscreteElement";
+            Element::Pointer elem = rIGAModelPart.CreateNewElement(element_name, element->Id(), cps_ids, element->pGetProperties(),0);
+
+            elem->SetValue(SHAPE_FUNCTION_VALUES, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTIONS));
+            elem->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTION_DERIVATIVES));
+            elem->SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTION_SECOND_DERIVATIVES));
+            elem->SetValue(FACE_BREP_ID, 2);
+            //std::cout << "Number of CPS: " << cps.size() << std::endl;
+            //std::cout << "aslkjhasdflkasljkjladfs" << std::endl;
+            //element->GetGeometry() = Geometry< shared_ptr<Node<3>> >(cps);
+        }
+        std::cout << "update finished elements" << std::endl;
+
+        for (auto condition = rIGAModelPartIntegrationDomain.ConditionsBegin(); condition != rIGAModelPartIntegrationDomain.ConditionsEnd(); condition++)
+        {
+            Vector coords = ZeroVector(3);
+            ProcessInfo process_info;
+            condition->Calculate(COORDINATES, coords, process_info);
+
+            Node<3>::Pointer node = Kratos::make_shared<Node<3>>(0, coords(0), coords(1), coords(2)); // ::Pointer(new Node<3>(0));
+            Node<3>::Pointer node_on_geometry = Node<3>::Pointer(new Node<3>(0, coords(0), coords(1), coords(2)));
+
+            unsigned int face_id_of_nearest_point = condition->GetValue(FACE_BREP_ID);
+
+            BrepFace& face = GetFace(face_id_of_nearest_point);
+
+            Vector local_parameter(2);
+            local_parameter[0] = coords(0);
+            local_parameter[1] = coords(1);
+            node_on_geometry->SetValue(LOCAL_PARAMETERS, local_parameter);
+            face.GetIntegrationNodeUpdated(node_on_geometry, node, 2, 1e-7, 30);
+
+            int number_of_cps = node_on_geometry->GetValue(CONTROL_POINT_IDS).size();
+            Vector CPS = node_on_geometry->GetValue(CONTROL_POINT_IDS);
+            std::vector<Node<3>::Pointer> cps;
+            std::vector<std::size_t> cps_ids;
+            for (int i = 0; i < number_of_cps; ++i)
+            {
+                cps.push_back(rIGAModelPart.pGetNode((int)CPS[i]));
+                cps_ids.push_back(static_cast<std::size_t>(CPS[i]));
+            }
+
+            std::string condition_name = "SupportPenaltyCurveDiscreteElement";
+            Element::Pointer cond = rIGAModelPart.CreateNewElement(condition_name, condition->Id(), cps_ids, condition->pGetProperties(), 0);
+
+            cond->SetValue(SHAPE_FUNCTION_VALUES, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTIONS));
+            cond->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTION_DERIVATIVES));
+            cond->SetValue(FACE_BREP_ID, 2);
+            //condition->GetGeometry() = Geometry< Node<3> >(cps);
+        }
+        std::cout << "update finished conditions" << std::endl;
+    }
+
+
     void NurbsBrepModeler::GetUpdatedLocation(ModelPart& rIGAModelPart)
     {
         for (auto element = rIGAModelPart.ElementsBegin(); element != rIGAModelPart.ElementsEnd(); element++)
@@ -988,13 +1118,15 @@ namespace Kratos
             Vector CPS1 = node_on_geometry->GetValue(CONTROL_POINT_IDS);
             //KRATOS_WATCH(CPS1)
             std::vector<Node<3>::Pointer> cps;
+            Element::GeometryType::PointsArrayType cps_id;
             for (int i = 0; i < number_of_cps; ++i)
             {
                 cps.push_back(rIGAModelPart.pGetNode((int)CPS1[i]));
+                cps_id.push_back(rIGAModelPart.pGetNode((int)CPS1[i]));
             }
             //std::cout << "Number of CPS: " << cps.size() << std::endl;
             //std::cout << "aslkjhasdflkasljkjladfs" << std::endl;
-            //element->GetGeometry() = Geometry< Node<3> >(cps);
+            element->GetGeometry() = Geometry< Node<3> >(cps_id);
         }
         std::cout << "update finished elements" << std::endl;
 
@@ -1015,7 +1147,7 @@ namespace Kratos
             local_parameter[0] = coords(0);
             local_parameter[1] = coords(1);
             node_on_geometry->SetValue(LOCAL_PARAMETERS, local_parameter);
-            face.GetClosestIntegrationNode(node_on_geometry, node, 2, 1e-7, 30);
+            face.GetIntegrationNodeUpdated(node_on_geometry, node, 2, 1e-7, 30);
 
             condition->SetValue(SHAPE_FUNCTION_VALUES, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTIONS));
             condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, node_on_geometry->GetValue(NURBS_SHAPE_FUNCTION_DERIVATIVES));
@@ -1023,13 +1155,15 @@ namespace Kratos
             int number_of_cps = node_on_geometry->GetValue(CONTROL_POINT_IDS).size();
             Vector CPS = node_on_geometry->GetValue(CONTROL_POINT_IDS);
             std::vector<Node<3>::Pointer> cps;
+            Element::GeometryType::PointsArrayType cps_id;
             for (int i = 0; i < number_of_cps; ++i)
             {
                 cps.push_back(rIGAModelPart.pGetNode((int)CPS[i]));
+                cps_id.push_back(rIGAModelPart.pGetNode((int)CPS[i]));
             }
-            //condition->GetGeometry() = Geometry< Node<3> >(cps);
+            condition->GetGeometry() = Geometry< Node<3> >(cps_id);
         }
-        std::cout << "update finished" << std::endl;
+        std::cout << "update finished conditions" << std::endl;
     }
 
     void NurbsBrepModeler::ComputeArea(ModelPart& rModelPart)

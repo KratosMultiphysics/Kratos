@@ -64,9 +64,13 @@
 #include "custom_conditions/meshless_surface_support_condition.h"
 #include "custom_conditions/meshless_lagrange_coupling_condition.h"
 #include "custom_conditions/meshless_lagrange_coupling_condition_2.h"
-//#include "custom_conditions/meshless_penalty_coupling_rotation_condition.h"
+#include "custom_conditions/meshless_penalty_coupling_rotation_condition.h"
 #include "custom_conditions/meshless_penalty_coupling_crack_condition.h"
 #include "custom_conditions/meshless_force_interface_condition.h"
+
+
+#include "custom_constitutive/plane_stress_2d_kinematically_enriched_law.h"
+#include "custom_constitutive/plane_stress_2d_tc_damage_law.h"
 
 namespace Kratos {
 
@@ -110,6 +114,20 @@ namespace Kratos {
 
         KRATOS_DEFINE_VARIABLE(Vector, PRINCIPAL_STRESSES)
         KRATOS_DEFINE_VARIABLE(Vector, PRINCIPAL_FORCES)
+
+
+    KRATOS_DEFINE_VARIABLE(double, UNIAXIAL_COMPRESSIVE_STRENGTH)
+    KRATOS_DEFINE_VARIABLE(double, UNIAXIAL_TENSILE_STRENGTH)
+    KRATOS_DEFINE_VARIABLE(double, RATE_BIAXIAL_UNIAXIAL)
+
+    KRATOS_DEFINE_VARIABLE(double, COMPRESSION_PARAMETER_A)
+    KRATOS_DEFINE_VARIABLE(double, COMPRESSION_PARAMETER_B)
+    KRATOS_DEFINE_VARIABLE(double, TENSION_PARAMETER_A)
+
+    KRATOS_DEFINE_VARIABLE(double, BETA)
+
+    KRATOS_DEFINE_VARIABLE(double, FRACTURE_ENERGY_TENSION)
+    KRATOS_DEFINE_VARIABLE(double, FRACTURE_ENERGY_COMPRESSION)
 
     // for damage constitutive law
     KRATOS_DEFINE_VARIABLE(Vector, GAP_INTERFACE)
@@ -293,7 +311,12 @@ private:
     const MeshlessLagrangeCouplingCondition        mMeshlessLagrangeCouplingCondition;
     const MeshlessLagrangeCouplingCondition2       mMeshlessLagrangeCouplingCondition2;
     const MeshlessPenaltyCouplingCrackCondition    mMeshlessPenaltyCouplingCrackCondition;
+    const MeshlessPenaltyCouplingRotationCondition mMeshlessPenaltyCouplingRotationCondition;
     const MeshlessForceInterfaceCondition          mMeshlessForceInterfaceCondition;
+
+
+    const PlaneStress2dKinematicallyEnrichedLaw mPlaneStress2dKinematicallyEnrichedLaw;
+    const PlaneStress2dTCDamageLaw mPlaneStress2dTCDamageLaw;
     ///@}
 
     ///@name Private Operators

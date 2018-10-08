@@ -12,9 +12,10 @@
           "YOUNG_MODULUS": 200000,
           "POISSON_RATIO": 0,
           "YIELD_STRESS": 150000,
-          "DENSITY": 1,
+          "DENSITY": 100,
           "THICKNESS": 1,
-          "PENALTY_FACTOR": 10000000.1
+          "PENALTY_FACTOR": 10000000.1,
+          "MEMBRANE_PRESTRESS_TENSOR_PK2":  [1, 1, 0]
         },
         "Tables": { }
       }

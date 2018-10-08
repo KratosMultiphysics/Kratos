@@ -58,6 +58,7 @@ namespace Python
             .def("GetInterfaceConditions", &NurbsBrepModeler::GetInterfaceConditions)
             .def("GetInterfaceConditionsAdvanced", &NurbsBrepModeler::GetInterfaceConditionsAdvanced)
             .def("GetUpdatedLocation", &NurbsBrepModeler::GetUpdatedLocation)
+            .def("GetUpdatedLocationNewModelPart", &NurbsBrepModeler::GetUpdatedLocationNewModelPart)
             ;
 
         class_<BrepModelGeometryReader, typename BrepModelGeometryReader::Pointer>(m, "BrepModelGeometryReader")

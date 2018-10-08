@@ -14,7 +14,7 @@
 // Project includes
 #include "BrepFace.h"
 
-
+//#include "define.h"
 
 namespace Kratos
 {
@@ -873,7 +873,7 @@ namespace Kratos
 			std::cout << "Punkt X: " << pNode->X() << std::endl;
 			std::cout << "Punkt Y: " << pNode->Y() << std::endl;
 			std::cout << "Punkt Z: " << pNode->Z() << std::endl;
-			KRATOS_WATCH(new_point)
+            KRATOS_WATCH(new_point);
 		}
 
 		if (rShapefunctionOrder > -1)
@@ -901,54 +901,100 @@ namespace Kratos
 		const double& rAccuracy, const int& rMaxIterations)
 	{
 		double norm_delta_u = 1e10;
+        //KRATOS_WATCH(rMaxIterations)
+        for (int i = 0; i < rMaxIterations; ++i)
+        {
+            // newton_raphson_point is evaluated
+            Point newton_raphson_point;
+            EvaluateSurfacePoint(newton_raphson_point, u, v);
 
-		for (int i = 0; i < rMaxIterations; ++i)
-		{
-			// newton_raphson_point is evaluated
-			Point newton_raphson_point;
-			EvaluateSurfacePoint(newton_raphson_point, u, v);
+            Vector difference = ZeroVector(3);
+            // Distance between current Q_k and P
+            // The distance between Q (on the CAD surface) and P (on the FE-mesh) is evaluated
+            difference(0) = newton_raphson_point[0] - rPoint[0];
+            difference(1) = newton_raphson_point[1] - rPoint[1];
+            difference(2) = newton_raphson_point[2] - rPoint[2];
 
-			Vector difference = ZeroVector(3);
-			// Distance between current Q_k and P
-			// The distance between Q (on the CAD surface) and P (on the FE-mesh) is evaluated
-			difference(0) = newton_raphson_point[0] - rPoint[0];
-			difference(1) = newton_raphson_point[1] - rPoint[1];
-			difference(2) = newton_raphson_point[2] - rPoint[2];
+            Matrix hessian = ZeroMatrix(2, 2);
+            Vector gradient = ZeroVector(2);
+            // The distance is used to compute Hessian and gradient
+            EvaluateGradientsForClosestPointSearch(difference, hessian, gradient, u, v);
 
-			Matrix hessian = ZeroMatrix(2, 2);
-			Vector gradient = ZeroVector(2);
-			// The distance is used to compute Hessian and gradient
-			EvaluateGradientsForClosestPointSearch(difference, hessian, gradient, u, v);
+            //std::cout << "4" << std::endl;
+            double det_H = 0;
+            Matrix inv_H = ZeroMatrix(2, 2);
 
-			double det_H = 0;
-			Matrix inv_H = ZeroMatrix(2, 2);
+            // u and v are updated
+            MathUtils<double>::InvertMatrix(hessian, inv_H, det_H);
+            Vector delta_u = prod(inv_H, gradient);
+            u -= delta_u(0);
+            v -= delta_u(1);
+            //std::cout << "u: " << u << ", v: " << v << std::endl;
+            //KRATOS_WATCH(delta_u)
 
-			// u and v are updated
-			MathUtils<double>::InvertMatrix(hessian, inv_H, det_H);
-			Vector delta_u = prod(inv_H, gradient);
-			u -= delta_u(0);
-			v -= delta_u(1);
-			//std::cout << "u: " << u << ", v: " << v << std::endl;
-			//KRATOS_WATCH(delta_u)
-			EvaluateSurfacePoint(newton_raphson_point, u, v);
-			difference(0) = newton_raphson_point[0] - rPoint[0];
-			difference(1) = newton_raphson_point[1] - rPoint[1];
-			difference(2) = newton_raphson_point[2] - rPoint[2];
+            //if (u >= (std::max(m_knot_vector_u[m_knot_vector_u.size() - 1], m_knot_vector_u[0])+1e-6))
+            //{
+            //    //std::cout << "u: " << u
+            //    //    << ", m_knot_vector_u[m_knot_vector_u.size() - 1]: " << m_knot_vector_u[m_knot_vector_u.size() - 1]
+            //    //    << ", m_knot_vector_v[0]: " << m_knot_vector_u[0] << std::endl;
+            //    u = std::max(m_knot_vector_u[m_knot_vector_u.size() - 1], m_knot_vector_u[0]) - 1e-7;
+            //    //std::cout << "out of borders" << std::endl;
+            //    //std::cout << "u: " << u << std::endl;
+            //    //return false;
+            //}
+            //if (u <= (std::min(m_knot_vector_u[m_knot_vector_u.size() - 1], m_knot_vector_u[0]) - 1e-6))
+            //{
+            //    //std::cout << "u: " << u
+            //    //    << ", m_knot_vector_u[m_knot_vector_u.size() - 1]: " << m_knot_vector_u[m_knot_vector_u.size() - 1]
+            //    //    << ", m_knot_vector_u[0]: " << m_knot_vector_u[0] << std::endl;
+            //    u = std::min(m_knot_vector_u[m_knot_vector_u.size() - 1], m_knot_vector_u[0]) + 1e-7;
+            //    //std::cout << "out of borders" << std::endl;
+            //    //std::cout << "u: " << u << std::endl;
+            //    //return false;
+            //}
 
-			norm_delta_u = norm_2(difference);
+            //if (v >= (std::max(m_knot_vector_v[m_knot_vector_v.size() - 1], m_knot_vector_v[0]) + 1e-6))
+            //{
+            //    v = std::max(m_knot_vector_v[m_knot_vector_v.size() - 1], m_knot_vector_v[0]) - 1e-7;
+            //    //std::cout << "v: " << v
+            //    //    << ", m_knot_vector_v[m_knot_vector_v.size() - 1]: " << m_knot_vector_v[m_knot_vector_v.size() - 1]
+            //    //    << ", m_knot_vector_v[0]: " << m_knot_vector_v[0] << std::endl;
+            //    //std::cout << "out of borders" << std::endl;
+            //    //std::cout << "v: " << v << std::endl;
+            //    //return false;
+            //}
+            //if (v <= (std::min(m_knot_vector_v[m_knot_vector_v.size() - 1], m_knot_vector_v[0]) - 1e-6))
+            //{
+            //    v = std::min(m_knot_vector_v[m_knot_vector_v.size() - 1], m_knot_vector_v[0]) + 1e-7;
+            //    //std::cout << "v: " << v 
+            //    //    << ", m_knot_vector_v[m_knot_vector_v.size() - 1]: " << m_knot_vector_v[m_knot_vector_v.size() - 1] 
+            //    //    << ", m_knot_vector_v[0]: " << m_knot_vector_v[0] << std::endl;
+            //    //std::cout << "out of borders" << std::endl;
+            //    //std::cout << "v: " << v << std::endl;
+            //    //return false;
+            //}
 
-			if (u > std::max(m_knot_vector_u[m_knot_vector_u.size() - 1], m_knot_vector_u[0]))
-				u = std::max(m_knot_vector_u[m_knot_vector_u.size() - 1], m_knot_vector_u[0]);
-			if (u < std::min(m_knot_vector_u[m_knot_vector_u.size() - 1], m_knot_vector_u[0]))
-				u = std::min(m_knot_vector_u[m_knot_vector_u.size() - 1], m_knot_vector_u[0]);
-			if (v > std::max(m_knot_vector_v[m_knot_vector_v.size() - 1], m_knot_vector_v[0]))
-				v = std::max(m_knot_vector_v[m_knot_vector_v.size() - 1], m_knot_vector_v[0]);
-			if (v < std::min(m_knot_vector_v[m_knot_vector_v.size() - 1], m_knot_vector_v[0]))
-				v = std::min(m_knot_vector_v[m_knot_vector_v.size() - 1], m_knot_vector_v[0]);
+            EvaluateSurfacePoint(newton_raphson_point, u, v);
+            //KRATOS_WATCH(newton_raphson_point)
+            difference(0) = newton_raphson_point[0] - rPoint[0];
+            difference(1) = newton_raphson_point[1] - rPoint[1];
+            difference(2) = newton_raphson_point[2] - rPoint[2];
 
-			if (norm_delta_u < rAccuracy)
-				return true;
-		}
+            //std::cout << "5" << std::endl;
+            norm_delta_u = norm_2(difference);
+            
+            if (norm_2(delta_u) < rAccuracy)
+            {
+                return true;
+                //std::cout << "projection completed with orthogonal acceptance" << std::endl;
+            }
+            if (norm_delta_u < rAccuracy)
+            {
+                return true;
+                //std::cout << "projection completed" << std::endl;
+            }
+        }
+        std::cout << "projection not completed with norm delta u: " << norm_delta_u << std::endl;
 		return false;
 	}
 	/* Uses Newton-Raphson projection to project point to closest point on surface.
@@ -1170,30 +1216,75 @@ namespace Kratos
 	/* Obtains the closest surface point including the specified number of
 	*  shape function and derivatives, the local parameter location, the
 	*/
-	void BrepFace::GetClosestIntegrationNode(
-		Node<3>::Pointer& rClosestNode,
-		const Node<3>::Pointer& rSpaceNode,
-		const int& rShapefunctionOrder,
-		const double& rAccuracy, const int& rMaxIterations)
-	{
+    bool BrepFace::GetClosestIntegrationNode(
+        Node<3>::Pointer& rClosestNode,
+        const Node<3>::Pointer& rSpaceNode,
+        const int& rShapefunctionOrder,
+        const double& rAccuracy, const int& rMaxIterations)
+    {
         //std::cout << "shit debugging" << std::endl;
-		Point point(rSpaceNode->X(), rSpaceNode->Y(), rSpaceNode->Z());
+        Point point(rSpaceNode->X(), rSpaceNode->Y(), rSpaceNode->Z());
         //std::cout << rSpaceNode->X() << "  " << rSpaceNode->Y() << "  " << rSpaceNode->Z() << std::endl;
         //std::cout << "shit debugging 1" << std::endl;
 
-		Vector local_parameter = rClosestNode->GetValue(LOCAL_PARAMETERS);
+        Vector local_parameter = rClosestNode->GetValue(LOCAL_PARAMETERS);
         //std::cout << "shit debugging 2" << std::endl;
         //KRATOS_WATCH(local_parameter)
-		double u = local_parameter(0);
-		double v = local_parameter(1);
+        double u = local_parameter(0);
+        double v = local_parameter(1);
         //KRATOS_WATCH(u)
             //KRATOS_WATCH(v)
-		ProjectionNewtonRaphson(point, u, v, rAccuracy, rMaxIterations);
-        //std::cout << "shit debugging 3" << std::endl;
+        double success = ProjectionNewtonRaphson(point, u, v, rAccuracy, rMaxIterations);
 
-		EvaluateIntegrationNode(u, v, rShapefunctionOrder, rClosestNode);
+        if (success == false)
+        {
+            std::cout << "no success" << std::endl;
+            return success;
+        }
+        //std::cout << "shit debugging 3" << std::endl;
+    //KRATOS_WATCH(u)
+    //KRATOS_WATCH(v)
+        EvaluateIntegrationNode(u, v, rShapefunctionOrder, rClosestNode);
+        return success;
         //KRATOS_WATCH(rClosestNode->GetValue(CONTROL_POINT_IDS))
-	}
+    }
+
+
+    /* Obtains the closest surface point including the specified number of
+    *  shape function and derivatives, the local parameter location, the
+    */
+    bool BrepFace::GetIntegrationNodeUpdated(
+        Node<3>::Pointer& rClosestNode,
+        const Node<3>::Pointer& rSpaceNode,
+        const int& rShapefunctionOrder,
+        const double& rAccuracy, const int& rMaxIterations)
+    {
+        //std::cout << "shit debugging" << std::endl;
+        Point point(rSpaceNode->X(), rSpaceNode->Y(), rSpaceNode->Z());
+        //std::cout << rSpaceNode->X() << "  " << rSpaceNode->Y() << "  " << rSpaceNode->Z() << std::endl;
+        //std::cout << "shit debugging 1" << std::endl;
+
+        Vector local_parameter = rClosestNode->GetValue(LOCAL_PARAMETERS);
+        //std::cout << "shit debugging 2" << std::endl;
+        //KRATOS_WATCH(local_parameter)
+        double u = local_parameter(0);
+        double v = local_parameter(1);
+        //KRATOS_WATCH(u)
+        //KRATOS_WATCH(v)
+        //double success = ProjectionNewtonRaphson(point, u, v, rAccuracy, rMaxIterations);
+
+        //if (success == false)
+        //{
+        //    std::cout << "no success" << std::endl;
+        //    return success;
+        //}
+        //std::cout << "shit debugging 3" << std::endl;
+        //KRATOS_WATCH(u)
+        //KRATOS_WATCH(v)
+        EvaluateIntegrationNode(u, v, rShapefunctionOrder, rClosestNode);
+        return true;
+        //KRATOS_WATCH(rClosestNode->GetValue(CONTROL_POINT_IDS))
+    }
 
   //// --------------------------------------------------------------------------
   //void BrepFace::MapNodeNewtonRaphson(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry)

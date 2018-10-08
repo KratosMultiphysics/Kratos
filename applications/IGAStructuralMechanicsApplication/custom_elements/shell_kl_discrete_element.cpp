@@ -79,6 +79,21 @@ namespace Kratos
             constitutive_variables_membrane, constitutive_variables_curvature, 
             Values, ConstitutiveLaw::StressMeasure_PK2);
 
+        //BoundedMatrix<double, 2, 2> mat33;
+        //BoundedMatrix<double, 2, 2> eigenmat33;
+        //BoundedMatrix<double, 2, 2> vectormat33;
+
+        //mat33(0, 0) = constitutive_variables_membrane.E(0);
+        //mat33(0, 1) = constitutive_variables_membrane.E(2);
+        //mat33(1, 0) = constitutive_variables_membrane.E(2);
+        //mat33(1, 1) = constitutive_variables_membrane.E(1);
+
+        //bool converged = MathUtils<double>::EigenSystem<2>(mat33, vectormat33, eigenmat33);
+
+        //KRATOS_WATCH(mat33)
+        //    KRATOS_WATCH(vectormat33)
+        //    KRATOS_WATCH(eigenmat33)
+
         // calculate B MATRICES
         Matrix BMembrane = ZeroMatrix(3, mat_size);
         Matrix BCurvature = ZeroMatrix(3, mat_size);

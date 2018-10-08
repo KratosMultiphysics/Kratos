@@ -57,20 +57,20 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
 
         with open(self.output_file_name, 'w') as file:
             file.write("Rhino Post Results File 1.0\n") 
-            for i in range(self.params["nodal_results"].size()):
-                out = self.params["nodal_results"][i]
-                variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
+            #for i in range(self.params["nodal_results"].size()):
+            #    out = self.params["nodal_results"][i]
+            #    variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
 
-                file.write("Result \"" + out.GetString() + "\" \"Load Case\" 0  Vector OnNodes\n")
-                file.write("Values\n")
-                for node in self.sub_model_part.Nodes:
-                    value = node.GetSolutionStepValue(variable, 0)
-                    if isinstance(value,float):
-                        file.write(str(node.Id) + "  " + str(value))
-                    else: # It is a vector
-                        file.write(str(node.Id) + "  " + str(value[0]) + "  " + str(value[1]) + "  " + str(value[2]) + "\n")
+            #    file.write("Result \"" + out.GetString() + "\" \"Load Case\" 0  Vector OnNodes\n")
+            #    file.write("Values\n")
+            #    for node in self.sub_model_part.Nodes:
+            #        value = node.GetSolutionStepValue(variable, 0)
+            #        if isinstance(value,float):
+            #            file.write(str(node.Id) + "  " + str(value))
+            #        else: # It is a vector
+            #            file.write(str(node.Id) + "  " + str(value[0]) + "  " + str(value[1]) + "  " + str(value[2]) + "\n")
 
-                file.write("End Values\n")
+            #    file.write("End Values\n")
 
             #for i in range(self.params["integration_point_results"].size()):
             #    out = self.params["integration_point_results"][i]
@@ -118,7 +118,13 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
                     out = self.params["nodal_results"][i]
                     variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
 
-                    file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(self.step) + " Vector OnNodes\n")
+                    if type(variable) == KratosMultiphysics.DoubleVariable:
+                        type_name = "Scalar"
+                    else:
+                        type_name = "Vector"
+
+                    file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(self.step) + " " + type_name + " OnNodes\n")
+
                     file.write("Values\n")
                     for node in self.sub_model_part.Nodes:
                         value = node.GetSolutionStepValue(variable, 0)
@@ -133,13 +139,12 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
                     out = self.params["integration_point_results"][i]
                     variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
 
-                    value = self.sub_model_part.Elements[100].Calculate(variable, self.sub_model_part.ProcessInfo)
-                    if isinstance(value,float):
-                        type = "Scalar"
+                    if type(variable) == KratosMultiphysics.DoubleVariable:
+                        type_name = "Scalar"
                     else:
-                        type = "Vector"
+                        type_name = "Vector"
 
-                    file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(self.step) + " " + type + " OnGaussPoints\n")
+                    file.write("Result \"" + out.GetString() + "\" \"Load Case\" " + str(self.step) + " " + type_name + " OnGaussPoints\n")
                     file.write("Values\n")
 
                     for element in self.sub_model_part.Elements:
@@ -150,7 +155,7 @@ class NurbsBrepProcess(KratosMultiphysics.Process):
                         if isinstance(value,float):
                             file.write(str(element.Id) + "  " + str(value) + "\n")
                         else: # It is a vector
-                            file.write(str(element.Id) + "  " + str(value[0]) + "  " + str(value[1]) + "  " + str(value[2]) + "\n")
+                            file.write(str(element.Id) + "  " + str(value[0]) + "  " +  str(value[1]) + "  " + str(value[2]) + "\n")
                     file.write("End Values\n")
 
         if(self.params.Has("write_points")):

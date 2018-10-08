@@ -67,6 +67,22 @@ namespace Kratos
             }
         }
 
+        // Point loads
+        if (this->Has(EXTERNAL_FORCES_VECTOR))
+        {
+            const array_1d<double, 3 > PointLoad = this->GetValue(EXTERNAL_FORCES_VECTOR);
+
+            for (unsigned int i = 0; i < number_of_control_points; i++)
+            {
+                int index = 3 * i;
+                fLoads[index] = PointLoad[0] * N[i];
+                fLoads[index + 1] = PointLoad[1] * N[i];
+                fLoads[index + 2] = PointLoad[2] * N[i];
+            }
+
+            //FinalizeSolutionStep(rCurrentProcessInfo);
+        }
+
         // Pressure loads
         if (this->Has(PRESSURE))
         {
@@ -93,5 +109,20 @@ namespace Kratos
         }
 
         noalias(rRightHandSideVector) -= fLoads;
+    }
+
+    void LoadPointDiscreteCondition::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    {
+        //std::cout << "arrived here" << std::endl;
+        // Interface Condition
+        if (this->Has(EXTERNAL_FORCES_VECTOR))
+        {
+            std::vector<Vector> PointLoads(1);
+            PointLoads[0] = this->GetValue(EXTERNAL_FORCES_VECTOR);
+
+            KRATOS_WATCH(PointLoads[0])
+
+            SetValueOnIntegrationPoints(EXTERNAL_FORCES_VECTOR, PointLoads, rCurrentProcessInfo);
+        }
     }
 } // Namespace Kratos

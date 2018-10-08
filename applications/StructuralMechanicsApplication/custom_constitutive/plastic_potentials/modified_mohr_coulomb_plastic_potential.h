@@ -54,7 +54,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPot
     /// Counted pointer of ModifiedMohrCoulombPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(ModifiedMohrCoulombPlasticPotential);
 
-    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+    double tolerance = 100000000;// std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name Life Cycle
@@ -139,7 +139,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPot
         const double K3 = 0.5 * (1 + alpha) * sin_dil - 0.5 * (1 - alpha);
 
         double c1, c2, c3;
-        if (std::abs(sin_dil) > tolerance)
+        if (std::abs(sin_dil) > 0.01)
             c1 = CFL * K3 / 3.0;
         else
             c1 = 0.0; // check
@@ -153,7 +153,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ModifiedMohrCoulombPlasticPot
         {
             c3 = 0.0;
             double Aux = 1.0;
-            if (std::abs(lode_angle) > tolerance)
+            if (std::abs(lode_angle) > 0.01)
                 Aux = -1.0;
             c2 = 0.5 * CFL * (K1 * Root3 + Aux * K2 * sin_dil / Root3);
         }

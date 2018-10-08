@@ -64,7 +64,7 @@ class IGAStructuralMechanicsSolver:
 		# Add displacements
 		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 		self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VECTOR_LAGRANGE_MULTIPLIER)
+		#self.model_part.AddNodalSolutionStepVariable(EXTERNAL_FORCES_VECTOR)
 		#self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 		print("Added Variables: DISPLACEMENT")
 

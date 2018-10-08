@@ -101,6 +101,11 @@ namespace Kratos
             pGetGeometry()->PrintData(rOStream);
         }
 
+        /**
+        * this is called at the end of each solution step
+        */
+        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
         ///@}
 
     protected:

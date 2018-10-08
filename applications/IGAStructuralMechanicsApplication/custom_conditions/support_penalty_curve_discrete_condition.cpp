@@ -61,13 +61,13 @@ namespace Kratos
         Vector g1, g2, g3;
         GetBaseVectorsSurface(ShapeFunctionDerivatives, g1, g2, g3);
 
-        // t1 normal to trim, t2 tangential to trim
-        array_1d<double, 3> t2 = Tangents(0)*m_g10 + Tangents(1)*m_g20;
-        array_1d<double, 3> t1 = ZeroVector(3);
-        MathUtils<double>::CrossProduct(t1, t2, m_g30);
+        // T1 normal to trim, T2 tangential to trim
+        array_1d<double, 3> T2 = Tangents(0)*m_g10 + Tangents(1)*m_g20;
+        array_1d<double, 3> T1 = ZeroVector(3);
+        MathUtils<double>::CrossProduct(T1, T2, m_g30);
 
-        t2 = t2 / norm_2(t2);
-        t1 = t1 / norm_2(t1);
+        T2 = T2 / norm_2(T2);
+        T1 = T1 / norm_2(T1);
 
         // computation of the a3 displacement
         array_1d<double, 3> w = g3 - m_g30;
@@ -75,8 +75,8 @@ namespace Kratos
         MathUtils<double>::CrossProduct(SinusOmegaVector, m_g30, w);
 
         array_1d<double, 2> SinusOmega;
-        SinusOmega(0) = inner_prod(SinusOmegaVector, t2);
-        SinusOmega(1) = inner_prod(SinusOmegaVector, t1);
+        SinusOmega(0) = inner_prod(SinusOmegaVector, T2);
+        SinusOmega(1) = inner_prod(SinusOmegaVector, T1);
 
         if (SinusOmega(0) > 1.0)
             SinusOmega(0) = 0.999999;
@@ -86,7 +86,7 @@ namespace Kratos
         Phi(1) = asin(SinusOmega(1));
 
         //variation of the a3
-        array_1d<double, 3> t3 = g3;
+        array_1d<double, 3> t3 = g3/norm_2(g3);
         array_1d<double, 3> tilde_t3; //g3
         MathUtils<double>::CrossProduct(tilde_t3, g1, g2);
         double Length_t3 = norm_2(tilde_t3);
@@ -112,9 +112,9 @@ namespace Kratos
                 array_1d<double, 3> t3_r = tilde_3_r / Length_t3 - line_t3_r * t3 / Length_t3;
                 array_1d<double, 3> SinusOmega_r = ZeroVector(3);
                 MathUtils<double>::CrossProduct(SinusOmega_r, m_g30, t3_r);
-                Phi_r(n * 3 + i) = 1.0 / sqrt(1.0 - pow(SinusOmega(0), 2))*inner_prod(SinusOmega_r, t2);
+                Phi_r(n * 3 + i) = 1.0 / sqrt(1.0 - pow(SinusOmega(0), 2))*inner_prod(SinusOmega_r, T2);
                 // if needed at some point:
-                //Phi_r_2(i * 3 + j) = 1.0 / sqrt(1.0 - pow(SinusOmega(1), 2))*inner_prod(SinusOmega_r, t1);
+                //Phi_r_2(i * 3 + j) = 1.0 / sqrt(1.0 - pow(SinusOmega(1), 2))*inner_prod(SinusOmega_r, T1);
             }
         }
         for (unsigned int n = 0; n < number_of_points; n++)
@@ -171,8 +171,8 @@ namespace Kratos
                         array_1d<double, 3> SinusOmega_rs;
                         MathUtils<double>::CrossProduct(SinusOmega_rs, m_g30, t3_rs);
 
-                        Phi_rs(n * 3 + i, m * 3 + j) = inner_prod(SinusOmega_rs, t2) / sqrt(1.0 - pow(SinusOmega(0), 2))
-                            + inner_prod(SinusOmega_r_m, t2)*inner_prod(SinusOmega_r_n, t2)*SinusOmega(0) / pow(1.0
+                        Phi_rs(n * 3 + i, m * 3 + j) = inner_prod(SinusOmega_rs, T2) / sqrt(1.0 - pow(SinusOmega(0), 2))
+                            + inner_prod(SinusOmega_r_m, T2)*inner_prod(SinusOmega_r_n, T2)*SinusOmega(0) / pow(1.0
                                 - pow(SinusOmega(0), 2), 1.5);
                     }
                 }

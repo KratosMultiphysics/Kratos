@@ -94,7 +94,7 @@ namespace Kratos
       {
           Vector variable = ZeroVector(3);
           node->Calculate(COORDINATES, variable, model_part.GetProcessInfo());
-          file << variable[0] << " " << variable[1] << " " << variable[2] << " " << "\n";
+          file << node->Id() << " " << variable[0] << " " << variable[1] << " " << variable[2] << " " << "\n";
       }
       file.close();
 

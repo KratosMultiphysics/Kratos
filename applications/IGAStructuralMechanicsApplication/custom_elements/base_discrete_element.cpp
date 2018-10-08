@@ -295,13 +295,17 @@ namespace Kratos
             rOutput = condition_coords;
         }
         else if (rVariable == EXTERNAL_FORCES_VECTOR) {
+            //std::cout << "here something!!" << std::endl;
             const int& number_of_control_points = GetGeometry().size();
             const Vector& N = this->GetValue(SHAPE_FUNCTION_VALUES);
             Vector condition_coords = ZeroVector(3);
             for (SizeType i = 0; i < number_of_control_points; i++)
             {
                 const NodeType & iNode = GetGeometry()[i];
-                const array_1d<double, 3>& forces = iNode.GetValue(EXTERNAL_FORCES_VECTOR);
+                //std::cout << "here something!!" << std::endl;
+                Vector forces = iNode.GetValue(EXTERNAL_FORCES_VECTOR);
+                //std::cout << "but not here something!!" << std::endl;
+                //KRATOS_WATCH(forces)
 
                 condition_coords[0] += N[i] * forces[0];
                 condition_coords[1] += N[i] * forces[1];

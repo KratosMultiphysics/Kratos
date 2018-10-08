@@ -87,7 +87,7 @@ namespace Kratos
       ShapeFunctions[i + ShapeFunctionsN.size()] = -NSlave[i];
     }
     //KRATOS_WATCH(ShapeFunctions)
-		const double Penalty = this->GetValue(PENALTY_FACTOR);
+    const double Penalty = 10000000;// this->GetValue(PENALTY_FACTOR);
     //KRATOS_WATCH(Penalty)
 		const double Weighting = this->GetValue(INTEGRATION_WEIGHT);
     //KRATOS_WATCH(Weighting)
@@ -100,17 +100,17 @@ namespace Kratos
 		localTrimTangentsMaster[0] = localTrimTangents[0];
 		localTrimTangentsMaster[1] = localTrimTangents[1];
 
-		const int displacement_rotation_fix = this->GetValue(DISPLACEMENT_ROTATION_FIX);
+		//const int displacement_rotation_fix = this->GetValue(DISPLACEMENT_ROTATION_FIX);
     //KRATOS_WATCH(displacement_rotation_fix)
 
 		// Read out information of which elements are fixed
 		// int cheaper to store than 4 bool
-		int rot = displacement_rotation_fix / 1000;
-		int dispX = (displacement_rotation_fix % 1000) / 100;
-		int dispY = (displacement_rotation_fix % 100) / 10;
-		int dispZ = (displacement_rotation_fix % 10) / 1;
+		//int rot = displacement_rotation_fix / 1000;
+		//int dispX = (displacement_rotation_fix % 1000) / 100;
+		//int dispY = (displacement_rotation_fix % 100) / 10;
+		//int dispZ = (displacement_rotation_fix % 10) / 1;
 
-		if (rot == 1)
+		if (false)//(rot == 1)
 		{
 			Vector Phi_r = ZeroVector(number_of_points * 3);
 			Vector Phi_r_Lambda = ZeroVector(number_of_points * 3);
@@ -140,13 +140,13 @@ namespace Kratos
 		Matrix Hcomplete = ZeroMatrix(3, number_of_points * 3);
 		for (unsigned int i = 0; i < number_of_points; i++)
 		{
-			if (dispX == 1)
+			if (true)//(dispX == 1)
 				Hcomplete(0, 3 * i)     = ShapeFunctions[i];
 
-			if (dispY == 1)
+			if (true)//(dispY == 1)
 				Hcomplete(1, 3 * i + 1) = ShapeFunctions[i];
 
-			if (dispZ == 1)
+			if (true)//(dispZ == 1)
 				Hcomplete(2, 3 * i + 2) = ShapeFunctions[i];
 		}
 		//KRATOS_WATCH(ShapeFunctions)
