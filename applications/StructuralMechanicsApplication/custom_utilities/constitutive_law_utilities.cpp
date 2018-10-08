@@ -436,13 +436,19 @@ void ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(
     CalculateI1Invariant(norm_stress_vector, I1);
     CalculateI2Invariant(norm_stress_vector, I2);
     CalculateI3Invariant(norm_stress_vector, I3);
+
     const double II1 = std::pow(I1, 2);
 
     const double R = (2.0 * II1 * I1 - 9.0 * I2 * I1 + 27.0 * I3) / 54.0;
     const double Q = (3.0 * I2 - II1) / 9.0;
 
     if (std::abs(Q) > tolerance) {
-        const double phi = std::acos(R / (std::sqrt(-std::pow(Q, 3))));
+        double cos_phi = R / (std::sqrt(-std::pow(Q, 3)));
+        if (cos_phi >= 1.0)
+            cos_phi = 1.0;
+        else if (cos_phi <= -1.0)
+            cos_phi = -1.0;
+        const double phi = std::acos(cos_phi);
         const double phi_3 = phi / 3.0;
 
         const double aux1 = 2.0 * std::sqrt(-Q);
