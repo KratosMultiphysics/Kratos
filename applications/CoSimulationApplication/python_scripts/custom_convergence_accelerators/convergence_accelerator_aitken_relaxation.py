@@ -75,6 +75,8 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
     #
     #  @param self            The object pointer.
     def InitializeNonLinearIteration(self):
+        self._ComputeResidual()
+        self.ComputeUpdate()
         pass
 
     ## FinalizeNonLinearIteration : Function finalizes the non linear iteration (coupling iteration)
@@ -88,7 +90,8 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
     #
     #  @param self            The object pointer.
     def ComputeUpdate(self):
-        pass
+        print(tools.bcolors.HEADER + "\t\tComputing update . Initial alpha is ", self.init_alpha_max, ", current alpha is : ", self.alpha_old,""+tools.bcolors.ENDC )
+
 
     ## PrintInfo : Function to print the information of the convergence accelerator
     #
@@ -107,3 +110,6 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
     #  @param self            The object pointer.
     def _Name(self):
         return "aitken"
+
+    def _ComputeResidual(self):
+        pass

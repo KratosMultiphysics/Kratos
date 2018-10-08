@@ -1,5 +1,6 @@
 import warnings
 
+# TODO: make it recursive by default
 def ValidateAndAssignInputParameters(default, input, warnUnused=True):
     output = dict()
     for key in default.keys():

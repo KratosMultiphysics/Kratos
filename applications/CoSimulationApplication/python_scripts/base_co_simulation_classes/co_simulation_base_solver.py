@@ -17,14 +17,13 @@ class CoSimulationBaseSolver(object):
     #  @param self                      The object pointer.
     #  @param cosim_solver_settings     python dictionary : with the solver settings.
     def __init__(self, cosim_solver_settings):
-        defaultSettings = {}
-        defaultSettings["name"] = str # MANDATORY
-        defaultSettings["settings"] = dict # MANDATORY
-        defaultSettings["data"] = list # MANDATORY
-        defaultSettings["echo_level"] = 0
-        self.cosim_solver_settings = tools.ValidateAndAssignInputParameters(defaultSettings, cosim_solver_settings, False)
+        default_settings = {}
+        default_settings["name"] = str # MANDATORY
+        default_settings["settings"] = dict # MANDATORY
+        default_settings["data"] = list # MANDATORY
+        default_settings["echo_level"] = 0
+        self.cosim_solver_settings = tools.ValidateAndAssignInputParameters(default_settings, cosim_solver_settings, False)
         self.SetEchoLevel( self.cosim_solver_settings["echo_level"] )
-
         self.data_list = self._GetDataList()
 
         self.io_is_initialized = False
@@ -102,7 +101,7 @@ class CoSimulationBaseSolver(object):
         else:
             raise Exception(tools.bcolors.FAIL+ "Requested data field " + data_name + " does not exist in the solver "+self.cosim_solver_settings[name]+tools.bcolors.ENDC)
 
-    ## ImportData : This function imports the requesed data from
+    ## ImportData : This function imports the requested data from
     #               from_client
     #
     #  @param self            The object pointer.
@@ -114,7 +113,7 @@ class CoSimulationBaseSolver(object):
         data_conf = self.GetDataConfig(data_name)
         self.io.ImportData(data_conf, from_client)
 
-    ## ImportMesh : This function imports the requesed surface/volume
+    ## ImportMesh : This function imports the requested surface/volume
     #               mesh from from_client
     #
     #  @param self            The object pointer.
@@ -125,7 +124,7 @@ class CoSimulationBaseSolver(object):
             raise Exception('IO for "' + solver_name + '" is not initialized!')
         self.io.ImportMesh(mesh_name, from_client)
 
-    ## ExportData : This function exports the requesed data to
+    ## ExportData : This function exports the requested data to
     #               to_client
     #
     #  @param self            The object pointer.
@@ -134,7 +133,7 @@ class CoSimulationBaseSolver(object):
             raise Exception('IO for "' + solver_name + '" is not initialized!')
         self.io.ExportData(data_name, to_client)
 
-    ## ExportMesh : This function exports the requesed surface/volume
+    ## ExportMesh : This function exports the requested surface/volume
     #               to to_client
     #
     #  @param self            The object pointer.
@@ -182,7 +181,7 @@ class CoSimulationBaseSolver(object):
     def _GetIOType(self):
         raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBaseSolver : Calling _GetIOName function from base Co-Simulation Solver class!" + tools.bcolors.ENDC)
 
-    ## _GetIOType : Private Function to obtain the list of data objects
+    ## _GetDataList : Private Function to obtain the list of data objects
     #
     #  @param self            The object pointer.
     def _GetDataList(self):

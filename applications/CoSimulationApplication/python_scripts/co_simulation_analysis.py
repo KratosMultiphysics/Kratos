@@ -14,18 +14,6 @@ class CoSimulationAnalysis(object):
         self.cosim_settings = cosim_settings
         self.flush_stdout = False
 
-        if "parallel_type" in self.cosim_settings["problem_data"]:
-            parallel_type = self.cosim_settings["problem_data"]["parallel_type"]
-            if parallel_type == "OpenMP":
-                self.flush_stdout = True
-                cs_tools.PRINTING_RANK = True
-            elif parallel_type == "MPI":
-                self.flush_stdout = False
-                cs_tools.COSIM_SPACE = CoSimulationMPISpace()
-                cs_tools.PRINTING_RANK = (cs_tools.COSIM_SPACE.Rank() == 0)
-            else:
-                raise Exception('"parallel_type" can only be "OpenMP" or "MPI"!')
-
         self.echo_level = 0
         if "echo_level" in self.cosim_settings["problem_data"]:
             self.echo_level = self.cosim_settings["problem_data"]["echo_level"]
