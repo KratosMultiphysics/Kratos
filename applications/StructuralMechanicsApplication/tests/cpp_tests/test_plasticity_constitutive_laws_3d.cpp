@@ -132,12 +132,16 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticity, KratosStruct
     TestT = cl_parameters.GetStressVector();
 
     //Check the results
-    for (int comp = 0; comp < 3; comp++)
-    {
-        KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 0.0001e6);
-        KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 0.0001e6);
-        KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 0.0001e6);
-        KRATOS_CHECK_NEAR(Tres[comp], TestT[comp], 0.0001e6);
+    const double tolerance = 1.0e-4;
+    for (std::size_t comp = 0; comp < 6; ++comp){
+        KRATOS_CHECK(!std::isnan(TestMC[comp]));
+        KRATOS_CHECK_LESS_EQUAL(std::abs((MCres[comp] - TestMC[comp])/MCres[comp]), tolerance);
+        KRATOS_CHECK(!std::isnan(VMres[comp]));
+        KRATOS_CHECK_LESS_EQUAL(std::abs((VMres[comp] - TestVM[comp])/VMres[comp]), tolerance);
+        KRATOS_CHECK(!std::isnan(DPres[comp]));
+        KRATOS_CHECK_LESS_EQUAL(std::abs((DPres[comp] - TestDP[comp])/DPres[comp]), tolerance);
+        KRATOS_CHECK(!std::isnan(TestT[comp]));
+        KRATOS_CHECK_LESS_EQUAL(std::abs((Tres[comp] - TestT[comp])/Tres[comp]), tolerance);
     }
 }
 } // namespace Testing

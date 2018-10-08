@@ -6,11 +6,11 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo & Lucia Barbu
+//  Main authors:    Alejandro Cornejo 
 //
 
-#if !defined(KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_DAMAGE_H_INCLUDED)
-#define KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_DAMAGE_H_INCLUDED
+#if !defined(KRATOS_GENERIC_TENSION_CONSTITUTIVE_LAW_INTEGRATOR_DAMAGE_H_INCLUDED)
+#define KRATOS_GENERIC_TENSION_CONSTITUTIVE_LAW_INTEGRATOR_DAMAGE_H_INCLUDED
 
 // System includes
 
@@ -24,6 +24,7 @@
 
 namespace Kratos
 {
+
 ///@name Kratos Globals
 ///@{
 
@@ -47,20 +48,20 @@ namespace Kratos
 ///@{
 
 /**
- * @class GenericConstitutiveLawIntegratorDamage
+ * @class GenericTensionConstitutiveLawIntegratorDplusDminusDamage
  * @ingroup StructuralMechanicsApplication
- * @brief: This object integrates the predictive stress using the isotropic damage theory by means of
- * linear/exponential softening.
+ * @brief: This object integrates the predictive stress using the isotropic the d+d- damage theory 
  * @details The definitions of these classes is completely static, the derivation is done in a static way
  * The damage integrator requires the definition of the following properties:
  * - SOFTENING_TYPE: The fosftening behaviour considered (linear, exponential,etc...)
  * @tparam TYieldSurfaceType The yield surface considered
- * @author Alejandro Cornejo & Lucia Barbu
+ * @author Alejandro Cornejo 
  */
 template <class TYieldSurfaceType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegratorDamage
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericTensionConstitutiveLawIntegratorDplusDminusDamage
 {
   public:
+
     ///@name Type Definitions
     ///@{
 
@@ -76,27 +77,27 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     /// The type of plastic potential
     typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
-    /// Counted pointer of GenericConstitutiveLawIntegratorDamage
-    KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegratorDamage);
+    /// Counted pointer of GenericTensionConstitutiveLawIntegratorDplusDminusDamage
+    KRATOS_CLASS_POINTER_DEFINITION(GenericTensionConstitutiveLawIntegratorDplusDminusDamage);
 
     /// Initialization constructor
-    GenericConstitutiveLawIntegratorDamage()
+    GenericTensionConstitutiveLawIntegratorDplusDminusDamage()
     {
     }
 
     /// Copy constructor
-    GenericConstitutiveLawIntegratorDamage(GenericConstitutiveLawIntegratorDamage const &rOther)
+    GenericTensionConstitutiveLawIntegratorDplusDminusDamage(GenericTensionConstitutiveLawIntegratorDplusDminusDamage const &rOther)
     {
     }
 
     /// Assignment operator
-    GenericConstitutiveLawIntegratorDamage &operator=(GenericConstitutiveLawIntegratorDamage const &rOther)
+    GenericTensionConstitutiveLawIntegratorDplusDminusDamage &operator=(GenericTensionConstitutiveLawIntegratorDplusDminusDamage const &rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~GenericConstitutiveLawIntegratorDamage()
+    virtual ~GenericTensionConstitutiveLawIntegratorDplusDminusDamage()
     {
     }
 
@@ -166,7 +167,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     {
         double initial_threshold;
         TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
-        rDamage = 1.0 - (initial_threshold / UniaxialStress) * std::exp(DamageParameter * 
+        rDamage = 1.0 - (initial_threshold / UniaxialStress) * std::exp(DamageParameter *
                  (1.0 - UniaxialStress / initial_threshold));
     }
 
@@ -212,9 +213,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     static int Check(const Properties& rMaterialProperties)
     {
         KRATOS_CHECK_VARIABLE_KEY(SOFTENING_TYPE);
-
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "SOFTENING_TYPE is not a defined value" << std::endl;
-
         return TYieldSurfaceType::Check(rMaterialProperties);
     }
 
@@ -308,18 +307,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
 
     ///@}
 
-}; // Class GenericYieldSurface
-
-///@}
-
-///@name Type Definitions
-///@{
-
-///@}
-///@name Input and output
-///@{
-
-///@}
-
-} // namespace Kratos.
+};
+} // namespace Kratos
 #endif
