@@ -244,11 +244,58 @@ double Finalize(double Value, std::size_t SampleSize) const override
     return Value / (SampleSize - 1);
 }
 
+protected:
+
+VarianceSampler(const StatisticsSampler::Pointer pQuantity1, const StatisticsSampler::Pointer pQuantity2, std::size_t DataSize):
+    StatisticsSampler(DataSize),
+    mpQuantity1(pQuantity1),
+    mpQuantity2(pQuantity2)
+{}
+
+StatisticsSampler::Pointer GetQuantity1()
+{
+    return mpQuantity1;
+}
+
 private:
 
 const StatisticsSampler::Pointer mpQuantity1;
 
 const StatisticsSampler::Pointer mpQuantity2;
+
+};
+
+class SymmetricVarianceSampler: public VarianceSampler
+{
+public:
+
+SymmetricVarianceSampler(const StatisticsSampler::Pointer pQuantity1):
+    VarianceSampler(pQuantity1, pQuantity1, ((pQuantity1->GetSize()+1) * pQuantity1->GetSize()) / 2)
+{}
+
+void SampleDataPoint(
+    std::vector<double>::iterator& BufferIterator,
+    const StatisticsSampler::IntegrationPointDataView& rCurrentStatistics,
+    const std::vector<double>& rNewMeasurement,
+    const std::size_t NumberOfMeasurements) override
+{
+    const double update_factor = 1.0 / ((NumberOfMeasurements-1)*NumberOfMeasurements);
+    for (std::size_t i = 0; i < GetQuantity1()->GetSize(); i++)
+    {
+        double current_total_i = *(rCurrentStatistics.begin() + GetQuantity1()->GetComponentOffset(i));
+        double new_measurement_i = rNewMeasurement[GetQuantity1()->GetComponentOffset(i)];
+        double delta_i = (NumberOfMeasurements-1)*current_total_i - new_measurement_i;
+        for (std::size_t j = i; j < GetQuantity1()->GetSize(); j++)
+        {
+            double current_total_j = *(rCurrentStatistics.begin() + GetQuantity1()->GetComponentOffset(j));
+            double new_measurement_j = rNewMeasurement[GetQuantity1()->GetComponentOffset(j)];
+            double delta_j = (NumberOfMeasurements-1)*current_total_j - new_measurement_j;
+            (*BufferIterator) = update_factor * delta_i * delta_j;
+            ++BufferIterator;
+        }
+    }
+
+}
 
 };
 
