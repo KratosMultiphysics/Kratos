@@ -12,6 +12,7 @@
 
 
 #include "includes/serializer.h"
+#include "containers/model.h"
 #include "containers/variable.h"
 #include "includes/kratos_components.h"
 
