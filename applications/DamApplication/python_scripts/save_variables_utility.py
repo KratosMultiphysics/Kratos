@@ -19,18 +19,8 @@ class SaveVariablesUtility:
 
         mechanical_parts = []
 
-        if (ProjectParameters["problem_data"]["consider_construction"].GetBool()):
-            for i in range(mechanical_loads_sub_model_part_list.size()):
-                with open(ProjectParameters["construction_process"]["construction_input_file_name"].GetString(),'r') as construction_file:
-                    for Line in construction_file:
-                        Line = Line.strip('\n')# Remove the line-ending characters
-                        if (str(mechanical_loads_sub_model_part_list[i].GetString()) == str("Parts_" + Line.split()[1])):
-                            if int(Line.split()[0]) <= time:
-                                mechanical_parts.append(main_model_part.GetSubModelPart(mechanical_loads_sub_model_part_list[i].GetString()))
-                            break
-        else:
-            for i in range(mechanical_loads_sub_model_part_list.size()):
-                mechanical_parts.append(main_model_part.GetSubModelPart(mechanical_loads_sub_model_part_list[i].GetString()))
+        for i in range(mechanical_loads_sub_model_part_list.size()):
+            mechanical_parts.append(main_model_part.GetSubModelPart(mechanical_loads_sub_model_part_list[i].GetString()))
 
         OutputMdpa.write('Begin NodalData DISPLACEMENT')
         for part in mechanical_parts:
@@ -86,18 +76,8 @@ class SaveVariablesUtility:
 
         thermal_parts = []
 
-        if (ProjectParameters["problem_data"]["consider_construction"].GetBool()):
-            for i in range(thermal_loads_sub_model_part_list.size()):
-                with open(ProjectParameters["construction_process"]["construction_input_file_name"].GetString(),'r') as construction_file:
-                    for Line in construction_file:
-                        Line = Line.strip('\n')# Remove the line-ending characters
-                        if (str(thermal_loads_sub_model_part_list[i].GetString()) == str("Thermal_" + Line.split()[1])):
-                            if int(Line.split()[0]) <= time:
-                                thermal_parts.append(main_model_part.GetSubModelPart(thermal_loads_sub_model_part_list[i].GetString()))
-                            break
-        else:
-            for i in range(thermal_loads_sub_model_part_list.size()):
-                thermal_parts.append(main_model_part.GetSubModelPart(thermal_loads_sub_model_part_list[i].GetString()))
+        for i in range(thermal_loads_sub_model_part_list.size()):
+            thermal_parts.append(main_model_part.GetSubModelPart(thermal_loads_sub_model_part_list[i].GetString()))
 
         OutputMdpa.write('Begin NodalData TEMPERATURE')
         for part in thermal_parts:
