@@ -102,7 +102,7 @@ public:
     }
 
     void UpdateMeasurement(
-        /*const*/ Element* pElement,
+        const Element* pElement,
         const std::vector<StatisticsSampler::Pointer>& rStatisticsSamplers,
         ValueContainerType& rUpdate,
         std::size_t NumMeasurements)
@@ -196,7 +196,7 @@ public:
 //                (**it_sampler).SampleDataPoint(r_geometry, N, rDN_DN, it_update_buffer);
 //            }
 
-            for (unsigned int i = 0; i < mData.size2(); i++)
+            for (unsigned int i = 0; i < NumberOfStatisticalQuantities(); i++)
             {
                 rOutputStream << ", " << mData(g,i) / NumberOfMeasurements;
             }
@@ -223,6 +223,11 @@ public:
     std::size_t NumberOfIntegrationPoints() const
     {
         return mData.size1();
+    }
+
+    std::size_t NumberOfStatisticalQuantities() const
+    {
+        return mData.size2();
     }
 
     typename Matrix::iterator1 DataIterator(std::size_t IntegrationPointIndex)
