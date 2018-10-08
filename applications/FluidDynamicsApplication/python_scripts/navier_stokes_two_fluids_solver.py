@@ -168,6 +168,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.bdf_process).Execute()                    # Recompute the BDF2 coefficients
             (self.level_set_convection_process).Execute()   # Convect the level-set according to the previous step velocity
             (self.variational_distance_process).Execute()   # Recompute the distance field according to the new level set position
+            self._set_physical_properties()                 # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level set
             (self.solver).InitializeSolutionStep()          # Initialize the solver current step
 
     def _set_physical_properties(self):
