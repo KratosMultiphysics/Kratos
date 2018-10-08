@@ -1215,43 +1215,46 @@ public:
      * \f$ [ s11, s22, s12 ] \f$ for 2D case.
      * @param rStressVector the given stress vector
      * @return the corresponding stress tensor in matrix form
+     * @tparam TVector The vector type considered
+     * @tparam TMatrixType The matrix returning type
      */
-    static inline MatrixType StressVectorToTensor(const Vector& rStressVector)
+    template<class TVector, class TMatrixType = MatrixType>
+    static inline TMatrixType StressVectorToTensor(const TVector& rStressVector)
     {
-        KRATOS_TRY
-        Matrix StressTensor;
+        KRATOS_TRY;
+        TMatrixType stress_tensor;
 
         if (rStressVector.size()==3) {
-            StressTensor.resize(2,2,false);
-            StressTensor(0,0) = rStressVector[0];
-            StressTensor(0,1) = rStressVector[2];
-            StressTensor(1,0) = rStressVector[2];
-            StressTensor(1,1) = rStressVector[1];
+            stress_tensor.resize(2,2,false);
+            stress_tensor(0,0) = rStressVector(0);
+            stress_tensor(0,1) = rStressVector(2);
+            stress_tensor(1,0) = rStressVector(2);
+            stress_tensor(1,1) = rStressVector(1);
         } else if (rStressVector.size()==4) {
-            StressTensor.resize(3,3,false);
-            StressTensor(0,0) = rStressVector[0];
-            StressTensor(0,1) = rStressVector[3];
-            StressTensor(0,2) = 0.0;
-            StressTensor(1,0) = rStressVector[3];
-            StressTensor(1,1) = rStressVector[1];
-            StressTensor(1,2) = 0.0;
-            StressTensor(2,0) = 0.0;
-            StressTensor(2,1) = 0.0;
-            StressTensor(2,2) = rStressVector[2];
+            stress_tensor.resize(3,3,false);
+            stress_tensor(0,0) = rStressVector(0);
+            stress_tensor(0,1) = rStressVector(3);
+            stress_tensor(0,2) = 0.0;
+            stress_tensor(1,0) = rStressVector(3);
+            stress_tensor(1,1) = rStressVector(1);
+            stress_tensor(1,2) = 0.0;
+            stress_tensor(2,0) = 0.0;
+            stress_tensor(2,1) = 0.0;
+            stress_tensor(2,2) = rStressVector(2);
         } else if (rStressVector.size()==6) {
-            StressTensor.resize(3,3,false);
-            StressTensor(0,0) = rStressVector[0];
-            StressTensor(0,1) = rStressVector[3];
-            StressTensor(0,2) = rStressVector[5];
-            StressTensor(1,0) = rStressVector[3];
-            StressTensor(1,1) = rStressVector[1];
-            StressTensor(1,2) = rStressVector[4];
-            StressTensor(2,0) = rStressVector[5];
-            StressTensor(2,1) = rStressVector[4];
-            StressTensor(2,2) = rStressVector[2];
+            stress_tensor.resize(3,3,false);
+            stress_tensor(0,0) = rStressVector(0);
+            stress_tensor(0,1) = rStressVector(3);
+            stress_tensor(0,2) = rStressVector(5);
+            stress_tensor(1,0) = rStressVector(3);
+            stress_tensor(1,1) = rStressVector(1);
+            stress_tensor(1,2) = rStressVector(4);
+            stress_tensor(2,0) = rStressVector(5);
+            stress_tensor(2,1) = rStressVector(4);
+            stress_tensor(2,2) = rStressVector(2);
         }
 
-        return StressTensor;
+        return stress_tensor;
 
         KRATOS_CATCH("");
     }

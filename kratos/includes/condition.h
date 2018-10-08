@@ -869,18 +869,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    //METHODS TO BE CLEANED: DEPRECATED start
-
-
-    //NOTE: They will be deleted in December, 2015
-
-
-    /**
-     * CONDITIONS inherited from this class must implement this methods
-     * if they need to add dynamic condition contributions
-     * MassMatrix, AddMassMatrix, DampingMatrix, AddInertiaForces methods are: OPTIONAL and OBSOLETE
-     */
-
     /**
      * this is called during the assembling process in order
      * to calculate the condition mass matrix
