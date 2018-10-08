@@ -213,7 +213,7 @@ public:
     virtual void EquationIdsVector(IndexType& rSlaveEquationId,
                                   EquationIdVectorType& rMasterEquationIds)
     {
-        if (rMasterEquationIds.size() == 0)
+        if (rMasterEquationIds.size() != mMasterEquationIdVector.size())
             rMasterEquationIds.resize(this->NumberOfMasters(), false);
 
         rSlaveEquationId = this->SlaveEquationId();
@@ -230,7 +230,7 @@ public:
     virtual void CalculateLocalSystem(VectorType &rMasterWeightsVector,
                                       double &rConstant)
     {
-        if (rMasterWeightsVector.size() == 0)
+        if (rMasterWeightsVector.size() != this->NumberOfMasters())
             rMasterWeightsVector.resize(this->NumberOfMasters(), false);
 
         for (IndexType i = 0; i < this->NumberOfMasters(); ++i)

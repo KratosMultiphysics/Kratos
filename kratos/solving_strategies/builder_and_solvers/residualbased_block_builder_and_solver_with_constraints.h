@@ -192,11 +192,11 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         KRATOS_TRY
 
         BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
-	
-	// Getting process info
-	ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-	
-	// Computing constraints
+
+	    // Getting process info
+	    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
+	    // Computing constraints
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
 #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
@@ -218,11 +218,11 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     {
         KRATOS_TRY
         BaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
-	
-	// Getting process info
-	ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-	
-	// Computing constraints
+
+	    // Getting process info
+	    const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+
+	    // Computing constraints
         const int n_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
         const auto constraints_begin = rModelPart.MasterSlaveConstraintsBegin();
 #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
