@@ -189,6 +189,8 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesVariance, FluidDynamicsApplicationFa
     StatisticsSampler::Pointer average_velocity = StatisticsSampler::Pointer(new VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3));
     p_turbulence_statistics->AddResult(average_velocity);
 
+    StatisticsSampler::Pointer pressure_correlation = Kratos::make_shared<VarianceSampler>(average_pressure, average_velocity);
+    p_turbulence_statistics->AddHigherOrderStatistic(pressure_correlation);
     StatisticsSampler::Pointer reynolds_stresses = Kratos::make_shared<VarianceSampler>(average_velocity, average_velocity);
     p_turbulence_statistics->AddHigherOrderStatistic(reynolds_stresses);
 
@@ -199,6 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesVariance, FluidDynamicsApplicationFa
     {
         it_node->FastGetSolutionStepValue(VELOCITY_X) -= 0.5;
         it_node->FastGetSolutionStepValue(VELOCITY_Z) += 1.0;
+        it_node->FastGetSolutionStepValue(PRESSURE) += 5.0;
     }
 
     p_turbulence_statistics->SampleIntegrationPointResults(model_part);
@@ -208,16 +211,19 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesVariance, FluidDynamicsApplicationFa
     {
         it_node->FastGetSolutionStepValue(VELOCITY_X) += 1.0;
         it_node->FastGetSolutionStepValue(VELOCITY_Z) -= 2.0;
+        it_node->FastGetSolutionStepValue(PRESSURE) -= 10.0;
     }
 
     p_turbulence_statistics->SampleIntegrationPointResults(model_part);
 
+    p_turbulence_statistics->PrintToFile(model_part);
+
     std::vector<double> expected_output{
-    //  p   u  v  w   uu   uv uw    vu vv vw  wu   wv ww
-        10.,1.,2.,3., 0.25,0.,-0.5, 0.,0.,0., -0.5,0.,1.,
-        10.,1.,2.,3., 0.25,0.,-0.5, 0.,0.,0., -0.5,0.,1.,
-        10.,1.,2.,3., 0.25,0.,-0.5, 0.,0.,0., -0.5,0.,1.,
-        10.,1.,2.,3., 0.25,0.,-0.5, 0.,0.,0., -0.5,0.,1.};
+    //  p   u  v  w   pu  pv pw   uu  uv uw   vu vv vw  wu  wv ww
+        10.,1.,2.,3., -5.,0.,10., 0.5,0.,-1., 0.,0.,0., -1.,0.,2.,
+        10.,1.,2.,3., -5.,0.,10., 0.5,0.,-1., 0.,0.,0., -1.,0.,2.,
+        10.,1.,2.,3., -5.,0.,10., 0.5,0.,-1., 0.,0.,0., -1.,0.,2.,
+        10.,1.,2.,3., -5.,0.,10., 0.5,0.,-1., 0.,0.,0., -1.,0.,2.};
     std::vector<double> obtained_output = p_turbulence_statistics->OutputForTest(model_part.Elements());
 
     //std::cout << "Expected size " << expected_output.size() << " obtained size " << obtained_output.size() << std::endl;

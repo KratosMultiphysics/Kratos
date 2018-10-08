@@ -81,10 +81,22 @@ std::vector<double> StatisticsRecord::OutputForTest(ModelPart::ElementsContainer
         auto& r_statistics = it_element->GetValue(TURBULENCE_STATISTICS_DATA);
         for (std::size_t g = 0; g < r_statistics.NumberOfIntegrationPoints(); g++)
         {
-            auto data_iterator = r_statistics.DataIterator(g);
-            for (auto it = data_iterator.begin(); it != data_iterator.end(); ++it)
+            auto data_iterator = r_statistics.DataIterator(g).begin();
+            for (auto it_average = mAverageData.begin(); it_average != mAverageData.end(); ++it_average)
             {
-                result.push_back(*it / mRecordedSteps);
+                for(std::size_t index = 0; index < it_average->GetSize(); index++)
+                {
+                    result.push_back(it_average->Finalize(*data_iterator,mRecordedSteps));
+                    ++data_iterator;
+                }
+            }
+            for (auto it_higher_order = mHigherOrderData.begin(); it_higher_order != mHigherOrderData.end(); ++it_higher_order)
+            {
+                for(std::size_t index = 0; index < it_higher_order->GetSize(); index++)
+                {
+                    result.push_back(it_higher_order->Finalize(*data_iterator,mRecordedSteps));
+                    ++data_iterator;
+                }
             }
         }
     }
@@ -103,7 +115,7 @@ void StatisticsRecord::PrintToFile(const ModelPart& rModelPart) const
          it != rModelPart.GetCommunicator().LocalMesh().ElementsEnd(); it++)
     {
         auto &r_elemental_statistics = it->GetValue(TURBULENCE_STATISTICS_DATA);
-        r_elemental_statistics.WriteToCSVOutput(stats_file, *it, mAverageData, mRecordedSteps);
+        r_elemental_statistics.WriteToCSVOutput(stats_file, *it, mAverageData, mHigherOrderData, mRecordedSteps);
     }
 
     stats_file.close();

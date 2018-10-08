@@ -63,6 +63,7 @@ public:
     typedef std::vector<double> ValueContainerType;
 
     typedef Matrix::iterator1 IntegrationPointDataView;
+    typedef Matrix::const_iterator1 IntegrationPointDataConstView;
 
     ///@}
     ///@name Life Cycle
@@ -179,6 +180,7 @@ public:
         std::ofstream& rOutputStream,
         const Element& rElement,
         const PointerVector<StatisticsSampler>& rRecordedStatistics,
+        const PointerVector<StatisticsSampler>& rHigherOrderStatistics,
         std::size_t NumberOfMeasurements) const
     {
         const Geometry<Node<3>> &r_geometry = rElement.GetGeometry();
@@ -186,6 +188,8 @@ public:
         Matrix shape_functions;
         typename Geometry<Node<3>>::ShapeFunctionsGradientsType shape_gradients;
         this->CalculateGeometryData(r_geometry, integration_method, shape_functions, shape_gradients);
+
+        std::string separator(", ");
 
         for (unsigned int g = 0; g < shape_functions.size1(); g++)
         {
@@ -196,17 +200,19 @@ public:
             array_1d<double,3> coordinates(3,0.0);
             for (unsigned int n = 0; n < shape_functions.size2(); n++)
                 coordinates += shape_functions(g,n) * r_geometry[n].Coordinates();
-            rOutputStream << coordinates[0] << ", " << coordinates[1] << ", " << coordinates[2]; // << ", ";
+            rOutputStream << coordinates[0] << separator << coordinates[1] << separator << coordinates[2]; // << ", ";
 
-//            for (auto it_sampler = rRecordedStatistics.begin(); it_sampler != rRecordedStatistics.end(); ++it_sampler)
-//            {
-//                (**it_sampler).SampleDataPoint(r_geometry, N, rDN_DN, it_update_buffer);
-//            }
-
-            for (unsigned int i = 0; i < NumberOfStatisticalQuantities(); i++)
+            auto data_iterator = DataIterator(g).begin();
+            for (auto it_sampler = rRecordedStatistics.begin(); it_sampler != rRecordedStatistics.end(); ++it_sampler)
             {
-                rOutputStream << ", " << mData(g,i) / NumberOfMeasurements;
+                it_sampler->OutputResult(rOutputStream,data_iterator,NumberOfMeasurements,separator);
             }
+
+            for (auto it_sampler = rHigherOrderStatistics.begin(); it_sampler != rHigherOrderStatistics.end(); ++it_sampler)
+            {
+                it_sampler->OutputResult(rOutputStream,data_iterator,NumberOfMeasurements,separator);
+            }
+
             rOutputStream << "\n";
         }
     }
@@ -238,6 +244,14 @@ public:
     }
 
     IntegrationPointDataView DataIterator(std::size_t IntegrationPointIndex)
+    {
+        KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex >= mData.size1())
+            << "Asking for integration point number " << IntegrationPointIndex
+            << " but only " << mData.size1() << " points are recorded." << std::endl;
+        return (mData.begin1() + IntegrationPointIndex);
+    }
+
+    IntegrationPointDataConstView DataIterator(std::size_t IntegrationPointIndex) const
     {
         KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex >= mData.size1())
             << "Asking for integration point number " << IntegrationPointIndex

@@ -56,6 +56,7 @@ class StatisticsSampler
 public:
 
 typedef Matrix::iterator1 IntegrationPointDataView;
+typedef Matrix::const_iterator2 IntegrationPointDataViewIterator;
 
 StatisticsSampler(unsigned int NumValues, unsigned int Offset = 0):
     mNumValues(NumValues),
@@ -114,15 +115,22 @@ void SetOffset(std::size_t Offset) {
     mOffset = Offset;
 }
 
-template<class TIteratorType>
-void Finalize(TIteratorType& rBufferIterator, std::size_t NumberOfMeasurements)
+virtual void OutputResult(
+    std::ofstream& rOutStream,
+    IntegrationPointDataViewIterator& rDataBuffer,
+    std::size_t SampleSize,
+    std::string& rSeparator) const
 {
     for (std::size_t i = 0; i < mNumValues; i++) {
-        *rBufferIterator /= NumberOfMeasurements;
-        ++rBufferIterator;
+        rOutStream << rSeparator << Finalize(*rDataBuffer, SampleSize);
+        ++rDataBuffer;
     }
 }
 
+virtual double Finalize(double Value, std::size_t SampleSize) const
+{
+    return Value / SampleSize;
+}
 
 private:
 
@@ -227,6 +235,13 @@ void SampleDataPoint(
         }
     }
 
+}
+
+
+// Override the Finalize method to implement the unbiased variance (divide by n-1)
+double Finalize(double Value, std::size_t SampleSize) const override
+{
+    return Value / (SampleSize - 1);
 }
 
 private:
