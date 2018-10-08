@@ -33,22 +33,62 @@ typedef MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType> Util
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 
-// TODO rename this fct and reorder Aguments
-void Assemble_Vectors(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
-                        EquationIdVectorType& rOriginIds,
-                        EquationIdVectorType& rDestinationIds,
-                        MatrixType& rLocalMappingMatrix)
+void FillMatrixGraph(Epetra_FECrsGraph& rGraph,
+                     UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems)
 {
-    const int ierr = rpMdo->SumIntoGlobalValues(
-        rDestinationIds.size(), rDestinationIds.data(),
-        rOriginIds.size(),      rOriginIds.data(),
-        rLocalMappingMatrix.data().begin(), // TODO I think this changes with AMatrix
-        Epetra_FECrsMatrix::ROW_MAJOR ); // TODO check if this is still appropriate and if it changes with AMatrix
+    EquationIdVectorType origin_ids;
+    EquationIdVectorType destination_ids;
+    int ierr;
 
-    KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
-        << "Error code: " << ierr << std::endl;
+    for (auto& rp_local_sys : rMapperLocalSystems) {
+        rp_local_sys->EquationIdVectors(origin_ids, destination_ids);
+
+        if (origin_ids.size() > 0) {
+            ierr = rGraph.InsertGlobalIndices(
+                destination_ids.size(), destination_ids.data(),
+                origin_ids.size(),      origin_ids.data());
+
+            // TODO maybe change this to a debug error only
+            KRATOS_ERROR_IF( ierr < 0 ) << "Epetra failure in Epetra_FECrsGraph.InsertGlobalIndices. "
+                << "Error code: " << ierr << std::endl;
+        }
+    }
 }
 
+void FillMappingMatrix(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
+                       UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems)
+{
+    MatrixType local_mapping_matrix;
+    EquationIdVectorType origin_ids;
+    EquationIdVectorType destination_ids;
+    int ierr;
+
+    for (auto& rp_local_sys : rMapperLocalSystems)
+    {
+        rp_local_sys->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
+
+        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size1() != destination_ids.size())
+            << "DestinationID vector size mismatch" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size2() != origin_ids.size())
+            << "OriginID vector size mismatch" << std::endl;
+
+        if (local_mapping_matrix.size1() > 0) {
+            ierr = rpMdo->SumIntoGlobalValues(
+                destination_ids.size(), destination_ids.data(),
+                origin_ids.size(), origin_ids.data(),
+                local_mapping_matrix.data().begin(), // TODO I think this changes with AMatrix
+                Epetra_FECrsMatrix::ROW_MAJOR ); // TODO check if this is still appropriate and if it changes with AMatrix
+
+            // TODO maybe change this to a debug error only
+            KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
+                << "Error code: " << ierr << std::endl;
+        }
+
+        // The local-systems are always cleared since they would be recomputed
+        // to fill a new MappingMatrix
+        rp_local_sys->Clear();
+    }
+}
 
 /***********************************************************************************/
 /* PUBLIC Methods */
@@ -124,15 +164,9 @@ void UtilityType::ResizeAndInitializeVectors(
     std::sort( row_indices.begin(), row_indices.end() );
     row_indices.erase( std::unique( row_indices.begin(), row_indices.end() ), row_indices.end() );
 
-    // rModelPartOrigin.GetCommunicator().Barrier();
-    // std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " row_indices: " << row_indices << std::endl;
-    // std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " col_indices: " << col_indices << std::endl;
-    // std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " global_elements_dest: " << global_elements_dest << std::endl;
-    // std::cout << "RANK: " << rModelPartOrigin.GetCommunicator().MyPID() << " global_elements_orig: " << global_elements_orig << std::endl << std::endl << std::endl;
-
     // Epetra_Map (long long NumGlobalElements, int NumMyElements, const long long *MyGlobalElements, int IndexBase, const Epetra_Comm &Comm)
 
-    const int num_global_elements = -1; // this means its gonna be computed by Epetra_Map
+    const int num_global_elements = -1; // this means its gonna be computed by Epetra_Map // TODO I think I know this...
     const int index_base = 0; // for C/C++
 
     Epetra_Map epetra_col_map(num_global_elements,
@@ -159,106 +193,48 @@ void UtilityType::ResizeAndInitializeVectors(
                                 index_base,
                                 epetra_comm);
 
-    // rModelPartOrigin.GetCommunicator().Barrier();
-    // std::cout << "COL_MAP\n" << epetra_col_map << std::endl;
-    // rModelPartOrigin.GetCommunicator().Barrier();
-    // std::cout << "\n\n\nROW_MAP\n" << epetra_row_map << std::endl;
-    // rModelPartOrigin.GetCommunicator().Barrier();
-    // std::cout << "\n\n\nDOMAIN_MAP\n" << epetra_domain_map << std::endl;
-    // rModelPartOrigin.GetCommunicator().Barrier();
-    // std::cout << "\n\n\nRANGE_MAP\n" << epetra_range_map << std::endl;
-    // rModelPartOrigin.GetCommunicator().Barrier();
-
+    // ***** Creating the graph for the MappingMatrix *****
     // explanation in here: https://trilinos.org/docs/dev/packages/epetra/doc/html/classEpetra__CrsGraph.html
     const int num_indices_per_row = 5; // TODO this is to be tested => set to zero maybe ...
 
-    // TODO do I even need the graph? I think I could directly use the Matrix and perform the same operations ...
     // Performance optimization see https://trilinos.org/docs/dev/packages/epetra/doc/html/classEpetra__CrsGraph.html
     Epetra_FECrsGraph epetra_graph(Epetra_DataAccess::Copy,
                                    epetra_row_map,
                                    epetra_col_map,
                                    num_indices_per_row);
 
+    FillMatrixGraph(epetra_graph, rMapperLocalSystems);
 
-    for (auto& rp_local_sys : rMapperLocalSystems)
-    {
-        rp_local_sys->EquationIdVectors(origin_ids, destination_ids);
-
-        if (origin_ids.size() > 0)
-        {
-            const int ierr = epetra_graph.InsertGlobalIndices(
-                destination_ids.size(), destination_ids.data(),
-                origin_ids.size(),      origin_ids.data());
-
-            KRATOS_ERROR_IF( ierr < 0 ) << "Epetra failure in Epetra_FECrsGraph.InsertGlobalIndices. "
-                << "Error code: " << ierr << std::endl;
-        }
-    }
-
+    // range- and domain-map have to be passed since the matrix is rectangular
     int ierr = epetra_graph.GlobalAssemble(epetra_domain_map, epetra_range_map); // TODO check if it should call "FillComplete"
+
     KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsGraph.GlobalAssemble. "
         << "Error code: " << ierr << std::endl;
 
     epetra_graph.OptimizeStorage(); // TODO is an extra-call needed?
 
-    // rModelPartOrigin.GetCommunicator().Barrier();
-    // std::cout << "GRAPH\n" << epetra_graph << std::endl;
-    // rModelPartOrigin.GetCommunicator().Barrier();
+    // ***** Creating the MappingMatrix *****
+    TSystemMatrixUniquePointerType p_Mdo =
+        Kratos::make_unique<TSystemMatrixType>(Epetra_DataAccess::Copy, epetra_graph);
 
-    // // TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(Copy,Agraph) );
-    // // https://trilinos.org/docs/dev/packages/epetra/doc/html/Epetra__DataAccess_8h.html#ad1a985e79f94ad63030815a0d7d90928
-    TSystemMatrixUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(Epetra_DataAccess::Copy, epetra_graph);
-    TSystemVectorUniquePointerType p_new_vector_destination = Kratos::make_unique<TSystemVectorType>(epetra_range_map);
-    TSystemVectorUniquePointerType p_new_vector_origin = Kratos::make_unique<TSystemVectorType>(epetra_domain_map);
+    FillMappingMatrix(p_Mdo, rMapperLocalSystems);
 
-    // rpQo->GlobalAssemble();
-    // rpQd->GlobalAssemble();
-    MatrixType local_mapping_matrix;
+    // range- and domain-map have to be passed since the matrix is rectangular
+    ierr = p_Mdo->GlobalAssemble(epetra_domain_map, epetra_range_map);
 
-    // rModelPartOrigin.GetCommunicator().Barrier();
-    // std::cout << "Before Assembly\n" << *p_Mdo << std::endl;
-    // rModelPartOrigin.GetCommunicator().Barrier();
-
-    for (auto& rp_local_sys : rMapperLocalSystems)
-    {
-        rp_local_sys->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
-
-        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size1() != destination_ids.size())
-            << "DestinationID vector size mismatch" << std::endl;
-        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size2() != origin_ids.size())
-            << "OriginID vector size mismatch" << std::endl;
-
-        if (local_mapping_matrix.size1() > 0)
-        {
-            Assemble_Vectors(p_Mdo, origin_ids, destination_ids, local_mapping_matrix);
-            // Assemble_SerialDenseObjs(p_Mdo, origin_ids, destination_ids, mapping_weights);
-            // const int ierr = p_Mdo->SumIntoGlobalValues(
-            //     destination_ids.size(), destination_ids.data(),
-            //     origin_ids.size(),      origin_ids.data(),
-            //     mapping_weights.data(),
-            //     Epetra_FECrsMatrix::ROW_MAJOR );
-
-            // KRATOS_ERROR_IF( ierr < 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
-            //     << "Error code: " << ierr << std::endl;
-        }
-
-        rp_local_sys->Clear();
-    }
-
-    // rModelPartOrigin.GetCommunicator().Barrier();
-
-    // std::cout << "After Assembly\n" << *p_Mdo << std::endl;
-
-    p_Mdo->GlobalAssemble(epetra_domain_map, epetra_range_map);
-
-    // rModelPartOrigin.GetCommunicator().Barrier();
-
-    // std::cout << "After GlobalAssemble\n" << *p_Mdo << std::endl;
+    KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.GlobalAssemble. "
+        << "Error code: " << ierr << std::endl;
 
     if (GetEchoLevel() > 2)
         SparseSpaceType::WriteMatrixMarketMatrix("TrilinosMappingMatrix", *p_Mdo, false);
 
     rpMdo.swap(p_Mdo);
+
+    // ***** Creating the SystemVectors *****
+    TSystemVectorUniquePointerType p_new_vector_destination =
+        Kratos::make_unique<TSystemVectorType>(epetra_range_map);
+    TSystemVectorUniquePointerType p_new_vector_origin =
+        Kratos::make_unique<TSystemVectorType>(epetra_domain_map);
     rpQd.swap(p_new_vector_destination);
     rpQo.swap(p_new_vector_origin);
 }
