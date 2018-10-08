@@ -111,6 +111,17 @@ unsigned int mNumValues;
 
 unsigned int mOffset;
 
+friend class Serializer;
+
+void save(Serializer& rSerializer) const {}
+
+void load(Serializer& rSerializer) {}
+
+StatisticsSampler():
+    mNumValues(0),
+    mOffset(0)
+{}
+
 };
 
 class ScalarAverageSampler: public StatisticsSampler
@@ -193,6 +204,20 @@ const StatisticsSampler::Pointer mpQuantity2;
 ///@}
 ///@name Input and output
 ///@{
+
+/// input stream function
+inline std::istream &operator>>(std::istream &rIStream,
+                                StatisticsSampler &rThis)
+{
+    return rIStream;
+}
+
+/// output stream function
+inline std::ostream &operator<<(std::ostream &rOStream,
+                                const StatisticsSampler &rThis)
+{
+    return rOStream;
+}
 
 ///@}
 
