@@ -172,7 +172,7 @@ public:
         std::ofstream& rOutputStream,
         const Element& rElement,
         const std::vector<StatisticsSampler::Pointer>& rRecordedStatistics,
-        std::size_t NumberOfMeasurements)
+        std::size_t NumberOfMeasurements) const
     {
         const Geometry<Node<3>> &r_geometry = rElement.GetGeometry();
         const GeometryData::IntegrationMethod integration_method = rElement.GetIntegrationMethod();

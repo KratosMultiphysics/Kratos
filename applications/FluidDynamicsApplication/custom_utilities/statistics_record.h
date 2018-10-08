@@ -92,9 +92,7 @@ public:
 
     void UpdateStatistics(Element* pElement);
 
-    void FinalizeStatistics(ModelPart::ElementsContainerType& rElements);
-
-    std::vector<double> OutputForTest(ModelPart::ElementsContainerType& rElements);
+    std::vector<double> OutputForTest(ModelPart::ElementsContainerType& rElements) const;
 
     void PrintToFile(const ModelPart &rModelPart) const;
 

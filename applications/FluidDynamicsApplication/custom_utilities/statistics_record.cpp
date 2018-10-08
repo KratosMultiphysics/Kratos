@@ -58,24 +58,7 @@ void StatisticsRecord::UpdateStatistics(Element* pElement)
     r_elemental_statistics.UpdateMeasurement(pElement, mAverageData, mUpdateBuffer, mRecordedSteps);
 }
 
-void StatisticsRecord::FinalizeStatistics(ModelPart::ElementsContainerType& rElements)
-{
-    for (auto it_element = rElements.begin(); it_element != rElements.end(); ++it_element )
-    {
-        auto& r_statistics = it_element->GetValue(TURBULENCE_STATISTICS_DATA);
-        for (std::size_t g = 0; g < r_statistics.NumberOfIntegrationPoints(); g++)
-        {
-            auto data_iterator = r_statistics.DataIterator(g).begin();
-            for (auto it_statistic = mAverageData.begin(); it_statistic != mAverageData.end(); ++it_statistic)
-            {
-                (*it_statistic)->Finalize(data_iterator, mRecordedSteps);
-            }
-        }
-    }
-}
-
-
-std::vector<double> StatisticsRecord::OutputForTest(ModelPart::ElementsContainerType& rElements)
+std::vector<double> StatisticsRecord::OutputForTest(ModelPart::ElementsContainerType& rElements) const
 {
     std::vector<double> result;
     for (auto it_element = rElements.begin(); it_element != rElements.end(); ++it_element )
@@ -84,10 +67,9 @@ std::vector<double> StatisticsRecord::OutputForTest(ModelPart::ElementsContainer
         for (std::size_t g = 0; g < r_statistics.NumberOfIntegrationPoints(); g++)
         {
             auto data_iterator = r_statistics.DataIterator(g);
-            unsigned int aux = 0;
             for (auto it = data_iterator.begin(); it != data_iterator.end(); ++it)
             {
-                result.push_back(*it);
+                result.push_back(*it / mRecordedSteps);
             }
         }
     }

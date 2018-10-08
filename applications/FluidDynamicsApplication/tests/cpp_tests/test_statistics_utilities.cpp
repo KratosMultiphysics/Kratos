@@ -171,8 +171,6 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
     model_part.CloneTimeStep(0.2);
     p_turbulence_statistics->SampleIntegrationPointResults(model_part);
 
-    p_turbulence_statistics->FinalizeStatistics(model_part.Elements());
-
     std::vector<double> expected_output{10.,1.,2.,3.,10.,1.,2.,3.,10.,1.,2.,3.,10.,1.,2.,3.};
     std::vector<double> obtained_output = p_turbulence_statistics->OutputForTest(model_part.Elements());
 
