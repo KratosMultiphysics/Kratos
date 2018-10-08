@@ -183,7 +183,7 @@ namespace Kratos
 
     //1.- Initialize hyperelastic model parameters
     LawDataType& rVariables = rModelValues.rConstitutiveLawData();
-    rVariables.StressMeasure = ConstitutiveModelData::StressMeasure_Kirchhoff; //set required stress measure
+    rVariables.StressMeasure = ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff; //set required stress measure
 
     this->InitializeModelData(rValues, rModelValues);
 

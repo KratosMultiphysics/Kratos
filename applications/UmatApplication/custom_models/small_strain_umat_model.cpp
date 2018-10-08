@@ -137,7 +137,7 @@ namespace Kratos
          rValues.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector, rValues.StrainMatrix);
       }
 
-      rValues.SetStrainMeasure( ConstitutiveModelData::CauchyGreen_None);
+      rValues.SetStrainMeasure( ConstitutiveModelData::StrainMeasureType::CauchyGreen_None);
 
       rVariables.TotalStrainMatrix = rValues.StrainMatrix;
       rVariables.IncrementalDeformation = rValues.GetDeltaDeformationMatrix();

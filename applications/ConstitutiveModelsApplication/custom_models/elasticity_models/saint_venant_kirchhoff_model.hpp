@@ -149,7 +149,7 @@ namespace Kratos
 
       const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){
 
 	const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
 
@@ -179,7 +179,7 @@ namespace Kratos
       // it is computationally expensive but relevant for the convergence of the method
       const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){
         const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
         ConstitutiveModelUtilities::PushForwardConstitutiveMatrix(rConstitutiveMatrix, rTotalDeformationMatrix);
       }
@@ -211,7 +211,7 @@ namespace Kratos
 
       const StressMeasureType& rStressMeasure = rValues.GetStressMeasure();
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){
 
 	const MatrixType& rTotalDeformationMatrix = rValues.GetTotalDeformationMatrix();
 
@@ -329,10 +329,10 @@ namespace Kratos
 
       const StressMeasureType& rStressMeasure  = rValues.GetStressMeasure();
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Strain.Matrix = GreenLagrangeTensor
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //Strain.Matrix = GreenLagrangeTensor
 
 	//set working strain measure
-	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Right);
+	rValues.SetStrainMeasure(ConstitutiveModelData::StrainMeasureType::CauchyGreen_Right);
 
 	//historical strain matrix
 	rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
@@ -355,10 +355,10 @@ namespace Kratos
 	rValues.State.Set(ConstitutiveModelData::STRAIN_COMPUTED);
 
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Strain.Matrix = GreenLagrangeTensor
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //Strain.Matrix = GreenLagrangeTensor
 
 	//set working strain measure
-	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Left);
+	rValues.SetStrainMeasure(ConstitutiveModelData::StrainMeasureType::CauchyGreen_Left);
 
 	//historical strain matrix
 	rValues.StrainMatrix = ConstitutiveModelUtilities::VectorToSymmetricTensor(this->mHistoryVector,rValues.StrainMatrix);
@@ -381,7 +381,7 @@ namespace Kratos
       else{
 
 	//set working strain measure
-	rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_None);
+	rValues.SetStrainMeasure(ConstitutiveModelData::StrainMeasureType::CauchyGreen_None);
 	KRATOS_ERROR << "calling initialize SaintVenantKirchhoffModel .. StressMeasure is inconsistent"  << std::endl;
 
       }

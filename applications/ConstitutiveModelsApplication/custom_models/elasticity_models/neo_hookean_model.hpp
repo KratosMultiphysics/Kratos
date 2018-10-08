@@ -221,7 +221,7 @@ namespace Kratos
     //   double Factor = 0;
     //   this->CalculateVolumetricFactor(rVariables,Factor);
 
-    //   if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
+    //   if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
 
     // 	StressMatrix  = rMaterial.GetLameLambda() * Factor * rVariables.Strain.InverseMatrix;
     //     StressMatrix += rMaterial.GetLameMu() * ( msIdentityMatrix - rVariables.Strain.InverseMatrix);
@@ -229,7 +229,7 @@ namespace Kratos
     // 	rStressMatrix += StressMatrix;
 
     //   }
-    //   else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
+    //   else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
 
     // 	StressMatrix  = rMaterial.GetLameLambda() * Factor * msIdentityMatrix;
     //     StressMatrix += rMaterial.GetLameMu() * ( rVariables.Strain.Matrix - msIdentityMatrix );
@@ -263,11 +263,11 @@ namespace Kratos
     //   double FactorB = 0;
     //   this->CalculateVolumetricFactor(rVariables,FactorB);
 
-    //   if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
+    //   if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C)
     // 	Cabcd  = FactorA * rMaterial.GetLameLambda() * (rVariables.Strain.InverseMatrix(a,b)*rVariables.Strain.InverseMatrix(c,d));
     // 	Cabcd += (rMaterial.GetLameMu() - rMaterial.GetLameLambda() * FactorB) * (rVariables.Strain.InverseMatrix(a,c)*rVariables.Strain.InverseMatrix(b,d)+rVariables.Strain.InverseMatrix(a,d)*rVariables.Strain.InverseMatrix(b,c));
     //   }
-    //   else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
+    //   else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b)
     // 	Cabcd  = FactorA * rMaterial.GetLameLambda() * (msIdentityMatrix(a,b)*msIdentityMatrix(c,d));
     // 	Cabcd += (rMaterial.GetLameMu() - rMaterial.GetLameLambda() * FactorB) * (msIdentityMatrix(a,c)*msIdentityMatrix(b,d)+msIdentityMatrix(a,d)*msIdentityMatrix(b,c));
     //   }

@@ -71,7 +71,7 @@ namespace Kratos
     KRATOS_DEFINE_LOCAL_FLAG( RETURN_MAPPING_COMPUTED );
     KRATOS_DEFINE_LOCAL_FLAG( UPDATE_INTERNAL_VARIABLES );
 
-    enum StrainMeasureType  //supplied cauchy green strain measure
+    enum class StrainMeasureType  //supplied cauchy green strain measure
     {
       CauchyGreen_None,            //no strain measure supplied
       CauchyGreen_Left,            //left cauchy-green tensor
@@ -79,7 +79,7 @@ namespace Kratos
     };
 
 
-    enum StressMeasureType  //required stress measure
+    enum class StressMeasureType  //required stress measure
     {
       StressMeasure_PK1,            //stress related to reference configuration non-symmetric
       StressMeasure_PK2,            //stress related to reference configuration
@@ -148,7 +148,7 @@ namespace Kratos
     {
     private:
 
-      enum VarType { INTEGER, DOUBLE, VECTOR, MATRIX, ARRAY3, ARRAY6, NONE };
+      enum class VarType { INTEGER, DOUBLE, VECTOR, MATRIX, ARRAY3, ARRAY6, NONE };
 
       VarType                                        mType;
       VariableValue<int>                    *mpIntVariable;
@@ -163,7 +163,7 @@ namespace Kratos
       //Constructor
       VariableValueData()
       {
-	mType            = NONE;
+	mType            = VarType::NONE;
 	mpIntVariable    = nullptr;
 	mpDoubleVariable = nullptr;
 	mpVectorVariable = nullptr;
@@ -177,25 +177,25 @@ namespace Kratos
       {
 	switch(mType)
 	  {
-	  case INTEGER:
+	  case VarType::INTEGER:
 	    delete mpIntVariable;
 	    break;
-	  case DOUBLE:
+	  case VarType::DOUBLE:
 	    delete mpDoubleVariable;
 	    break;
-	  case VECTOR:
+	  case VarType::VECTOR:
 	    delete mpVectorVariable;
 	    break;
-	  case MATRIX:
+	  case VarType::MATRIX:
 	    delete mpMatrixVariable;
 	    break;
-	  case ARRAY3:
+	  case VarType::ARRAY3:
 	    delete mpArray3Variable;
 	    break;
-	  case ARRAY6:
+	  case VarType::ARRAY6:
 	    delete mpArray6Variable;
 	    break;
-	  case NONE:
+	  case VarType::NONE:
 	    break;
 	  default:
 	    break;
@@ -206,42 +206,42 @@ namespace Kratos
 
       void SetIntVariableValue(const Variable<int>& rVariable, int& rValue)
       {
-	mType = INTEGER;
+	mType = VarType::INTEGER;
 	typedef VariableValue<int> VariableValueType;
 	mpIntVariable = new VariableValueType(rVariable,rValue);
       }
 
       void SetDoubleVariableValue(const Variable<double>& rVariable, double& rValue)
       {
-	mType = DOUBLE;
+	mType = VarType::DOUBLE;
 	typedef VariableValue<double> VariableValueType;
 	mpDoubleVariable = new VariableValueType(rVariable,rValue);
       }
 
       void SetVectorVariableValue(const Variable<Vector>& rVariable, Vector& rValue)
       {
-	mType = VECTOR;
+	mType = VarType::VECTOR;
 	typedef VariableValue<Vector> VariableValueType;
 	mpVectorVariable = new VariableValueType(rVariable,rValue);
       }
 
       void SetMatrixVariableValue(const Variable<Matrix>& rVariable, Matrix& rValue)
       {
-	mType = MATRIX;
+	mType = VarType::MATRIX;
 	typedef VariableValue<Matrix> VariableValueType;
 	mpMatrixVariable = new VariableValueType(rVariable,rValue);
       }
 
       void SetArray3VariableValue(const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& rValue)
       {
-	mType = ARRAY3;
+	mType = VarType::ARRAY3;
 	typedef VariableValue<array_1d<double,3> > VariableValueType;
 	mpArray3Variable = new VariableValueType(rVariable,rValue);
       }
 
       void SetArray6VariableValue(const Variable<array_1d<double,6> >& rVariable, array_1d<double,6>& rValue)
       {
-	mType = ARRAY6;
+	mType = VarType::ARRAY6;
 	typedef VariableValue<array_1d<double,6> > VariableValueType;
 	mpArray6Variable = new VariableValueType(rVariable,rValue);
       }

@@ -92,12 +92,12 @@ namespace Kratos
     rVariables.SetModelData(rValues);
     rVariables.SetState(rValues.State);
 
-    // ConstitutiveModelData::StressMeasure_Kirchhoff  allowed only
+    // ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff  allowed only
 
     // symmetric spatial velocity gradient
     noalias(rVariables.StrainMatrix) = 0.5 * (rValues.StrainMatrix + trans(rValues.StrainMatrix)); // spatial velocity gradient is rValues.StrainMatrix
 
-    rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_None);
+    rValues.SetStrainMeasure(ConstitutiveModelData::StrainMeasureType::CauchyGreen_None);
     rValues.MaterialParameters.LameMuBar = rValues.MaterialParameters.LameMu;
 
     KRATOS_CATCH(" ")

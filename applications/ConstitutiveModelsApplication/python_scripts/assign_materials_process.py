@@ -65,14 +65,29 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         self.tables  = self.settings["tables"]
         for key, table in self.tables.items():
             table_name = key
-            input_variable  = self._GetItemFromModule(table["input_variable"].GetString())
-            output_variable = self._GetItemFromModule(table["output_variable"].GetString())
-
-            new_table = KratosMultiphysics.PiecewiseLinearTable()
-            for i in range(0, table["data"].size() ):
-                new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
-
-            self.properties.SetTable(input_variable,output_variable,new_table)
+            print(" table",key)
+            if table.Has("table_file_name"):
+                import os
+                problem_path = os.getcwd()
+                table_path = os.path.join(problem_path, table["table_file_name"].GetString() )
+                import csv
+                with open(table_path, 'r') as table_file:
+                    reader = csv.DictReader(table_file)
+                    new_table = KratosMultiphysics.PiecewiseLinearTable()
+                    input_variable_name  = reader.fieldnames[0]
+                    output_variable_name = reader.fieldnames[1]
+                    input_variable  = self._GetItemFromModule("KratosMultiphysics."+str(input_variable_name))
+                    output_variable = self._GetItemFromModule("KratosMultiphysics."+str(output_variable_name))
+                    for line in reader:
+                        new_table.AddRow(float(line[input_variable_name]), float(line[output_variable_name]))
+                    self.properties.SetTable(input_variable,output_variable,new_table)
+            else:
+                input_variable  = self._GetItemFromModule(table["input_variable"].GetString())
+                output_variable = self._GetItemFromModule(table["output_variable"].GetString())
+                new_table = KratosMultiphysics.PiecewiseLinearTable()
+                for i in range(0, table["data"].size() ):
+                    new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
+                self.properties.SetTable(input_variable,output_variable,new_table)
 
         #create constitutive law
         self.material_law = self._GetLawFromModule(self.settings["constitutive_law"]["name"].GetString())

@@ -101,7 +101,7 @@ namespace Kratos
        rValues.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector, rValues.StrainMatrix);
     }
 
-    rValues.SetStrainMeasure( ConstitutiveModelData::CauchyGreen_None);
+    rValues.SetStrainMeasure( ConstitutiveModelData::StrainMeasureType::CauchyGreen_None);
     rValues.MaterialParameters.LameMuBar = rValues.MaterialParameters.LameMu;
 
     KRATOS_CATCH(" ")
