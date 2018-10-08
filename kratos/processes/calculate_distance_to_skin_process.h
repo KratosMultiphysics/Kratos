@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:		     BSD License
+//					         Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -83,7 +83,7 @@ namespace Kratos
 
       void CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects) override;
 
-      double CalculateDistanceToNode(Element &rElement1, int NodeIndex, PointerVector<GeometricalObject> &rIntersectedObjects, const double Epsilon);
+      double CalculateDistanceToNode(Element &rElement1, const int NodeIndex, PointerVector<GeometricalObject> &rIntersectedObjects, const double Epsilon);
 
       void CalculateElementalDistances(std::vector<PointerVector<GeometricalObject>> &rIntersectedObjects);
 
@@ -103,7 +103,6 @@ namespace Kratos
                                        OctreeType::key_type* ray_key, int direction,
                                        std::vector<std::pair<double, Element::GeometryType*> >& intersections); //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
 
-      virtual int IntersectionTriangleSegment(Element::GeometryType& rGeometry, double* RayPoint1, double* RayPoint2, double* IntersectionPoint); //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
 
 	  void Execute() override;
 
@@ -141,6 +140,22 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
+      double inline CalculatePointDistance(
+        const Element::GeometryType &rIntObjGeom,
+        const Point &rDistancePoint);
+
+      int ComputeRayIntersection(
+        Element::GeometryType& rGeometry,
+        const double* pRayPoint1,
+        const double* pRayPoint2,
+        double* pIntersectionPoint);
+
+      //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
+      int IntersectionTriangleSegment(
+        Element::GeometryType& rGeometry,
+        const double* RayPoint1,
+        const double* RayPoint2,
+        double* IntersectionPoint);
 
       ///@}
       ///@name Private  Access

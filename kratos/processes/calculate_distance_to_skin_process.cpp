@@ -21,6 +21,7 @@
 #include "geometries/plane_3d.h"
 #include "processes/calculate_distance_to_skin_process.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/intersection_utilities.h"
 
 
 namespace Kratos
@@ -83,7 +84,7 @@ namespace Kratos
 			else 
 			{
 				// This function assumes tetrahedra element and triangle intersected object as input at this moment
-				constexpr int number_of_tetrahedra_points = 4;
+				constexpr int number_of_tetrahedra_points = TDim + 1;
 				constexpr double epsilon = std::numeric_limits<double>::epsilon();
 				Vector &elemental_distances = r_element.GetValue(ELEMENTAL_DISTANCES);
 
@@ -109,21 +110,31 @@ namespace Kratos
 	}
 
 	template<std::size_t TDim>
-	double CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon)
+	double CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToNode(
+		Element& rElement1,
+		const int NodeIndex,
+		PointerVector<GeometricalObject>& rIntersectedObjects,
+		const double Epsilon)
 	{
 		double result_distance = std::numeric_limits<double>::max();
-		for (auto triangle : rIntersectedObjects.GetContainer()) {
-			auto distance = GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[NodeIndex]);
-			if (fabs(result_distance) > distance)
+		for (auto it_int_obj : rIntersectedObjects.GetContainer()) {
+			const auto &r_int_obj_geom = it_int_obj->GetGeometry();
+			const double distance = this->CalculatePointDistance(r_int_obj_geom, rElement1.GetGeometry()[NodeIndex]);
+			if (std::abs(result_distance) > distance)
 			{
 				if (distance < Epsilon) {
 					result_distance = -Epsilon;
-				}
-				else {
+				} else {
 					result_distance = distance;
-					Plane3D plane(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2]);
-					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[NodeIndex]) < 0)
+					std::vector<array_1d<double,3>> plane_pts;
+					for (unsigned int i_node = 0; i_node < r_int_obj_geom.PointsNumber(); ++i_node){
+						plane_pts.push_back(r_int_obj_geom[i_node]);
+					}
+					Plane3D plane = this->SetIntersectionPlane(plane_pts);
+
+					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[NodeIndex]) < 0){
 						result_distance = -result_distance;
+					}
 				}
 			}
 		}
@@ -135,7 +146,7 @@ namespace Kratos
 	{
 		ModelPart& ModelPart1 = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess).GetModelPart1();
 
-		constexpr int number_of_tetrahedra_points = 4;
+		constexpr int number_of_tetrahedra_points = TDim + 1;
 		for (auto& element : ModelPart1.Elements())
 		{
 			if (element.Is(TO_SPLIT))
@@ -145,8 +156,9 @@ namespace Kratos
 				{
 					Node<3>& r_node = element.GetGeometry()[i];
 					double& r_distance = r_node.GetSolutionStepValue(DISTANCE);
-					if (fabs(r_distance) > fabs(r_elemental_distances[i]))
+					if (std::abs(r_distance) > std::abs(r_elemental_distances[i])){
 						r_distance = r_elemental_distances[i];
+					}
 				}
 			}
 		}
@@ -192,41 +204,42 @@ namespace Kratos
 
         intersections_container_type intersections;
 
-        const int dimension = 3;
         const double epsilon = 1e-12;
+		array_1d<double,TDim> distances;
 
-        double distances[3] = {1.0, 1.0, 1.0};
+        for (int i_direction = 0; i_direction < TDim; i_direction++){
+			// Initialize the current direction distance
+			distances[i_direction] = 1.0;
 
-        for (int i_direction = 0; i_direction < dimension; i_direction++)
-        {
             // Creating the ray
             double ray[3] = {coords[0], coords[1], coords[2]};
 
 			OctreeType* pOctree = CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess.GetOctreePointer();
             pOctree->NormalizeCoordinates(ray);
+			// This is a workaround to avoid the z-component in 2D
+			// The octree sets it when normalizing the coordinates
+			if (TDim == 2){
+				ray[2] = 0.0;
+			}
             ray[i_direction] = 0; // starting from the lower extreme
 
             this->GetRayIntersections(ray, i_direction, intersections);
 
-            int ray_color= 1;
+            int ray_color = 1;
             std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
             while (i_intersection != intersections.end())
 			{
                 double d = coords[i_direction] - i_intersection->first;
-                if (d > epsilon)
-				{
+                if (d > epsilon) {
                     ray_color = -ray_color;
                     distances[i_direction] = d;
-                }
-				else if (d > -epsilon)
-				{
+                } else if (d > -epsilon) {
                     distances[i_direction] = 0.00;
                     break;
-                }
-				else
-				{
-                    if(distances[i_direction] > -d)
+                } else {
+                    if(distances[i_direction] > -d) {
                         distances[i_direction] = -d;
+					}
                     break;
                 }
 
@@ -236,14 +249,19 @@ namespace Kratos
             distances[i_direction] *= ray_color;
         }
 
-        double distance = (fabs(distances[0]) > fabs(distances[1])) ? distances[1] : distances[0];
-        distance = (fabs(distance) > fabs(distances[2])) ? distances[2] : distance;
+        double distance = (std::abs(distances[0]) > std::abs(distances[1])) ? distances[1] : distances[0];
+		if (TDim == 3){
+        	distance = (std::abs(distance) > std::abs(distances[2])) ? distances[2] : distance;
+		}
 
         return distance;
 	}
 
 	template<std::size_t TDim>
-	void CalculateDistanceToSkinProcess<TDim>::GetRayIntersections(double* ray, int direction, std::vector<std::pair<double,Element::GeometryType*> >& intersections)
+	void CalculateDistanceToSkinProcess<TDim>::GetRayIntersections(
+		double* ray,
+		int direction,
+		std::vector<std::pair<double,Element::GeometryType*> >& intersections)
 	{
 		//This function passes the ray through the model and gives the hit point to all objects in its way
         //ray is of dimension (3) normalized in (0,1)^3 space
@@ -277,7 +295,6 @@ namespace Kratos
                 cell = NULL;
         }
 
-
         // now eliminating the repeated objects
         if (!intersections.empty())
 		{
@@ -297,9 +314,12 @@ namespace Kratos
 	}
 
 	template<std::size_t TDim>
-	int  CalculateDistanceToSkinProcess<TDim>::GetCellIntersections(OctreeType::cell_type* cell, double* ray,
-							 			  					  OctreeType::key_type* ray_key, int direction,
-							 		  	  					  std::vector<std::pair<double, Element::GeometryType*> >& intersections)
+	int  CalculateDistanceToSkinProcess<TDim>::GetCellIntersections(
+		OctreeType::cell_type* cell,
+		double* ray,
+		OctreeType::key_type* ray_key,
+		int direction,
+		std::vector<std::pair<double, Element::GeometryType*> >& intersections)
 	{
 		//This function passes the ray through the cell and gives the hit point to all objects in its way
 		//ray is of dimension (3) normalized in (0,1)^3 space
@@ -328,14 +348,20 @@ namespace Kratos
 		pOctree->ScaleBackToOriginalCoordinate(ray_point1);
 		pOctree->ScaleBackToOriginalCoordinate(ray_point2);
 
+		// This is a workaround to avoid the z-component in 2D
+		if (TDim == 2){
+			ray_point1[2] = 0.0;
+			ray_point2[2] = 0.0;
+		}
+
 		for (object_container_type::iterator i_object = objects->begin(); i_object != objects->end(); i_object++)
 		{
 			double intersection[3]={0.00,0.00,0.00};
 
-			int is_intersected = IntersectionTriangleSegment((*i_object)->GetGeometry(), ray_point1, ray_point2, intersection); // This intersection has to be optimized for axis aligned rays
-
-			if (is_intersected == 1) // There is an intersection but not coplanar
+			int is_intersected = ComputeRayIntersection((*i_object)->GetGeometry(), ray_point1, ray_point2, intersection);
+			if (is_intersected == 1){ // There is an intersection but not coplanar
 				intersections.push_back(std::pair<double, Element::GeometryType*>(intersection[direction], &((*i_object)->GetGeometry())));
+			}
 		}
 
 		return 0;
@@ -343,7 +369,11 @@ namespace Kratos
 
 	//TODO: This method has been adapted from the previous implementation. It is still pending to update it.
 	template<std::size_t TDim>
-	int CalculateDistanceToSkinProcess<TDim>::IntersectionTriangleSegment(Element::GeometryType& rGeometry, double* RayPoint1, double* RayPoint2, double* IntersectionPoint)
+	int CalculateDistanceToSkinProcess<TDim>::IntersectionTriangleSegment(
+		Element::GeometryType& rGeometry,
+		const double* RayPoint1,
+		const double* RayPoint2,
+		double* IntersectionPoint)
 	{
 		const double epsilon = 1.00e-12;
 
@@ -420,6 +450,70 @@ namespace Kratos
 
         return 1;                      // I is in T
 
+	}
+
+	template<>
+	int CalculateDistanceToSkinProcess<2>::ComputeRayIntersection(
+		Element::GeometryType& rGeometry,
+        const double* pRayPoint1,
+        const double* pRayPoint2,
+        double* pIntersectionPoint)
+	{
+		// Auxiliar arrays 
+		array_1d<double,3> int_pt;
+		array_1d<double,3> ray_pt_1;
+		array_1d<double,3> ray_pt_2;
+		for (unsigned int i = 0; i < 3; ++i){
+			ray_pt_1[i] = pRayPoint1[i];
+			ray_pt_2[i] = pRayPoint2[i];
+		}
+
+		// Call the line - line intersection util
+		const int is_intersected =  IntersectionUtilities::ComputeLineLineIntersection(
+			rGeometry,
+			ray_pt_1,
+			ray_pt_2,
+			int_pt);
+
+		// Convert the auxiliar intersection point to the original type
+		for (unsigned int i = 0; i < 3; ++i){
+			pIntersectionPoint[i] = int_pt[i];
+		}
+
+		return is_intersected;
+	}
+
+	template<>
+	int CalculateDistanceToSkinProcess<3>::ComputeRayIntersection(
+		Element::GeometryType& rGeometry,
+        const double* pRayPoint1,
+        const double* pRayPoint2,
+        double* pIntersectionPoint)
+	{
+		return IntersectionTriangleSegment(rGeometry, pRayPoint1, pRayPoint2, pIntersectionPoint); 
+	}
+
+	template<>
+	double inline CalculateDistanceToSkinProcess<2>::CalculatePointDistance(
+		const Element::GeometryType &rIntObjGeom,
+		const Point &rDistancePoint)
+	{
+		return GeometryUtils::PointDistanceToLineSegment3D(
+			rIntObjGeom[0],
+			rIntObjGeom[1],
+			rDistancePoint);
+	}
+
+	template<>
+	double inline CalculateDistanceToSkinProcess<3>::CalculatePointDistance(
+		const Element::GeometryType &rIntObjGeom,
+		const Point &rDistancePoint)
+	{
+		return GeometryUtils::PointDistanceToTriangle3D(
+			rIntObjGeom[0],
+			rIntObjGeom[1],
+			rIntObjGeom[2],
+			rDistancePoint);
 	}
 
 	template<std::size_t TDim>
