@@ -3,7 +3,8 @@
     {
         "start_time" : 0.0,
         "end_time" : 1.0,
-        "echo_level" : 1
+        "echo_level" : 1,
+        "data_structure" : "kratos"
     },
     "coupled_solver_settings" :
     {
@@ -87,23 +88,19 @@
             "name" : "dummy_one",
             "solver_type" : "dummy",
             "settings":{
-                "working_directory" : "dummy_two",
-                "input_file"  : "dummy_two_input.file"
+                "working_directory" : "dummy_one",
+                "input_file"  : "dummy_one_input.file"
             },
             "data" : [
                 {
                     "name"            : "disp",
                     "dimension"       : 1,
-                    "geometry_name"   : "dummy_geo_one",
-                    "data_identifier" : "disp_one",
-                    "data_format"     : "array"
+                    "geometry_name"   : "dummy_geo_one"
                 },
                 {
                     "name"            : "force",
                     "geometry_name"   : "dummy_geo_one",
-                    "dimension"       : 1,
-                    "data_identifier" : "force_one",
-                    "data_format"     : "array"
+                    "dimension"       : 1
                 }
             ]
         },
@@ -112,21 +109,17 @@
             "solver_type" : "dummy",
             "settings":{
                 "working_directory" : "dummy_two",
-                "input_file"  : "dummy_two_input"
+                "input_file"  : "dummy_two_input.file"
             },
             "data" : [
                 {
                     "name"            : "disp",
                     "geometry_name"   : "dummy_geo_two",
-                    "dimension"       : 1,
-                    "data_identifier" : "disp_two",
-                    "data_format"     : "array"
+                    "dimension"       : 1
                 },
                 {   "name"            : "force",
                     "geometry_name"   : "dummy_geo_two",
-                    "dimension"       : 1,
-                    "data_identifier" : "force_two",
-                    "data_format"     : "array"
+                    "dimension"       : 1
                 }
             ]
         }
