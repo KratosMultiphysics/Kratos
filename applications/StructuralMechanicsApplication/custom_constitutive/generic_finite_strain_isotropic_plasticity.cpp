@@ -67,6 +67,9 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         // Elastic Matrix
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        if( r_constitutive_law_options.IsNot( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+            this->CalculateValue(rValues, CONSTITUTIVE_MATRIX_KIRCHHOFF, r_constitutive_matrix);
+        }
 
         // We get some variables
         double& r_threshold = this->GetThreshold();
@@ -191,6 +194,9 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         // Elastic Matrix
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        if( r_constitutive_law_options.IsNot( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+            this->CalculateValue(rValues, CONSTITUTIVE_MATRIX_KIRCHHOFF, r_constitutive_matrix);
+        }
 
         // We get some variables
         double& r_threshold = this->GetThreshold();
