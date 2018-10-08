@@ -173,14 +173,17 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
 
     p_turbulence_statistics->FinalizeStatistics(model_part.Elements());
 
-    std::vector<double> expected_output{1.,2.,3.,10.,1.,2.,3.,10.,1.,2.,3.,10.,1.,2.,3.,10.};
+    std::vector<double> expected_output{10.,1.,2.,3.,10.,1.,2.,3.,10.,1.,2.,3.,10.,1.,2.,3.};
     std::vector<double> obtained_output = p_turbulence_statistics->OutputForTest(model_part.Elements());
+
+    //std::cout << "Expected size " << expected_output.size() << " obtained size " << obtained_output.size() << std::endl;
+    KRATOS_CHECK_EQUAL(expected_output.size(), obtained_output.size());
+
     for (unsigned int i = 0; i < expected_output.size(); i++)
     {
+        //std::cout << "i: " << i << " expected " << expected_output[i] << " obtained " << obtained_output[i] << std::endl;
         KRATOS_CHECK_NEAR(expected_output[i],obtained_output[i], 1e-12);
     }
-
-    //StatisticsUtilities::DumpToFile(p_turbulence_statistics,model_part,"filename.h5");
 }
 
 }

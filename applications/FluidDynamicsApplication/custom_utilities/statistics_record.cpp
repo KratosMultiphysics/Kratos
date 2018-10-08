@@ -50,11 +50,12 @@ void StatisticsRecord::SampleIntegrationPointResults(ModelPart& rModelPart)
 
 void StatisticsRecord::UpdateStatistics(Element* pElement)
 {
-    KRATOS_DEBUG_ERROR_IF(!pElement->Has(TURBULENCE_STATISTICS_DATA)) << "Trying to compute turbulent statistics, but " << pElement->Info() << " does not have TURBULENCE_STATISTICS_DATA defined." << std::endl;
+    KRATOS_DEBUG_ERROR_IF(!pElement->Has(TURBULENCE_STATISTICS_DATA))
+    << "Trying to compute turbulent statistics, but " << pElement->Info()
+    << " does not have TURBULENCE_STATISTICS_DATA defined." << std::endl;
+
     auto &r_elemental_statistics = pElement->GetValue(TURBULENCE_STATISTICS_DATA);
     r_elemental_statistics.UpdateMeasurement(pElement, mAverageData, mUpdateBuffer, mRecordedSteps);
-    //r_elemental_statistics.CalculateUpdateDelta(pElement, mAverageData, mMeasurementBuffer, mUpdateBuffer, mRecordedSteps);
-    //r_elemental_statistics.UpdateMeasurement(mMeasurementBuffer);
 }
 
 void StatisticsRecord::FinalizeStatistics(ModelPart::ElementsContainerType& rElements)
@@ -64,7 +65,7 @@ void StatisticsRecord::FinalizeStatistics(ModelPart::ElementsContainerType& rEle
         auto& r_statistics = it_element->GetValue(TURBULENCE_STATISTICS_DATA);
         for (std::size_t g = 0; g < r_statistics.NumberOfIntegrationPoints(); g++)
         {
-            auto data_iterator = r_statistics.DataIterator(g);
+            auto data_iterator = r_statistics.DataIterator(g).begin();
             for (auto it_statistic = mAverageData.begin(); it_statistic != mAverageData.end(); ++it_statistic)
             {
                 (*it_statistic)->Finalize(data_iterator, mRecordedSteps);
@@ -83,12 +84,32 @@ std::vector<double> StatisticsRecord::OutputForTest(ModelPart::ElementsContainer
         for (std::size_t g = 0; g < r_statistics.NumberOfIntegrationPoints(); g++)
         {
             auto data_iterator = r_statistics.DataIterator(g);
+            unsigned int aux = 0;
             for (auto it = data_iterator.begin(); it != data_iterator.end(); ++it)
             {
                 result.push_back(*it);
             }
         }
     }
+    return result;
+}
+
+void StatisticsRecord::PrintToFile(const ModelPart& rModelPart) const
+{
+    // Open output file
+    std::stringstream file_name;
+    file_name << "gp_statistics_" << rModelPart.GetCommunicator().MyPID() << ".csv";
+    std::ofstream stats_file;
+    stats_file.open(file_name.str().c_str(), std::ios::out | std::ios::trunc);
+
+    for (ModelPart::ElementsContainerType::const_iterator it = rModelPart.GetCommunicator().LocalMesh().ElementsBegin();
+         it != rModelPart.GetCommunicator().LocalMesh().ElementsEnd(); it++)
+    {
+        auto &r_elemental_statistics = it->GetValue(TURBULENCE_STATISTICS_DATA);
+        r_elemental_statistics.WriteToCSVOutput(stats_file, *it, mAverageData, mRecordedSteps);
+    }
+
+    stats_file.close();
 }
 
 KRATOS_CREATE_VARIABLE( StatisticsRecord::Pointer, STATISTICS_CONTAINER)

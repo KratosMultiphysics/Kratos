@@ -168,6 +168,42 @@ public:
 
     void Combine(const StatisticsData& rOther) {}
 
+    void WriteToCSVOutput(
+        std::ofstream& rOutputStream,
+        const Element& rElement,
+        const std::vector<StatisticsSampler::Pointer>& rRecordedStatistics,
+        std::size_t NumberOfMeasurements)
+    {
+        const Geometry<Node<3>> &r_geometry = rElement.GetGeometry();
+        const GeometryData::IntegrationMethod integration_method = rElement.GetIntegrationMethod();
+        Matrix shape_functions;
+        typename Geometry<Node<3>>::ShapeFunctionsGradientsType shape_gradients;
+        this->CalculateGeometryData(r_geometry, integration_method, shape_functions, shape_gradients);
+
+        for (unsigned int g = 0; g < shape_functions.size1(); g++)
+        {
+            // Print element ID and integration point index
+            rOutputStream << rElement.Id() << ", " << g << ", ";
+
+            // Print integration point coordinates
+            array_1d<double,3> coordinates(3,0.0);
+            for (unsigned int n = 0; n < shape_functions.size2(); n++)
+                coordinates += shape_functions(g,n) * r_geometry[n].Coordinates();
+            rOutputStream << coordinates[0] << ", " << coordinates[1] << ", " << coordinates[2]; // << ", ";
+
+//            for (auto it_sampler = rRecordedStatistics.begin(); it_sampler != rRecordedStatistics.end(); ++it_sampler)
+//            {
+//                (**it_sampler).SampleDataPoint(r_geometry, N, rDN_DN, it_update_buffer);
+//            }
+
+            for (unsigned int i = 0; i < mData.size2(); i++)
+            {
+                rOutputStream << ", " << mData(g,i) / NumberOfMeasurements;
+            }
+            rOutputStream << "\n";
+        }
+    }
+
     /*ValueContainerType Output() {
         return mData;
     }*/
@@ -189,12 +225,12 @@ public:
         return mData.size1();
     }
 
-    typename Matrix::iterator2 DataIterator(std::size_t IntegrationPointIndex)
+    typename Matrix::iterator1 DataIterator(std::size_t IntegrationPointIndex)
     {
         KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex >= mData.size1())
             << "Asking for integration point number " << IntegrationPointIndex
             << " but only " << mData.size1() << " points are recorded." << std::endl;
-        return (mData.begin1() + IntegrationPointIndex).begin();
+        return (mData.begin1() + IntegrationPointIndex);
     }
 
     ///@}

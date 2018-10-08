@@ -96,6 +96,8 @@ public:
 
     std::vector<double> OutputForTest(ModelPart::ElementsContainerType& rElements);
 
+    void PrintToFile(const ModelPart &rModelPart) const;
+
     ///@}
     ///@name Access
     ///@{
