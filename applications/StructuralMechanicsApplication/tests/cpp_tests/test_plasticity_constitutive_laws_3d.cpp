@@ -123,6 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     cl_parameters.SetElementGeometry(Geom);
+    cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
@@ -169,10 +170,15 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
 */
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKirchoff, KratosStructuralMechanicsFastSuite)
 {
-    typedef GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<FiniteStrainModifiedMohrCoulombYieldSurface<FiniteStrainModifiedMohrCoulombPlasticPotential<6>>>> MC;
-    typedef GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<FiniteStrainVonMisesYieldSurface<FiniteStrainVonMisesPlasticPotential<6>>>> VM;
-    typedef GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<FiniteStrainDruckerPragerYieldSurface<FiniteStrainDruckerPragerPlasticPotential<6>>>> DP;
-    typedef GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<FiniteStrainTrescaYieldSurface<FiniteStrainTrescaPlasticPotential<6>>>> T;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> VM;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>> DP;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>> T;
+
+    typedef GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<FiniteStrainModifiedMohrCoulombYieldSurface<FiniteStrainModifiedMohrCoulombPlasticPotential<6>>>> MCFS;
+    typedef GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<FiniteStrainVonMisesYieldSurface<FiniteStrainVonMisesPlasticPotential<6>>>> VMFS;
+    typedef GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<FiniteStrainDruckerPragerYieldSurface<FiniteStrainDruckerPragerPlasticPotential<6>>>> DPFS;
+    typedef GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<FiniteStrainTrescaYieldSurface<FiniteStrainTrescaPlasticPotential<6>>>> TFS;
 
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
@@ -189,12 +195,12 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
 
     stress_vector = ZeroVector(6);
     strain_vector = ZeroVector(6);
-//     strain_vector[0] = 0.0;
-//     strain_vector[1] = 0.0;
-//     strain_vector[2] = -8.0e-5;
-//     strain_vector[3] = 0.0;
-//     strain_vector[4] = 0.0;
-//     strain_vector[5] = -1.6941e-21;
+    strain_vector[0] = 0.0;
+    strain_vector[1] = 0.0;
+    strain_vector[2] = -8.0e-5;
+    strain_vector[3] = 0.0;
+    strain_vector[4] = 0.0;
+    strain_vector[5] = -1.6941e-21;
     Matrix deformation_gradient = ZeroMatrix(3, 3);
     deformation_gradient(0,0) = 1.0;
     deformation_gradient(1,1) = 1.0;
@@ -214,9 +220,9 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     cl_parameters.SetElementGeometry(Geom);
     cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
@@ -228,31 +234,59 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
     Matrix const_matrix = ZeroMatrix(6, 6);
     cl_parameters.SetConstitutiveMatrix(const_matrix);
 
-    // Create the CL's
+    // Create the CL's (Infinitesimal strain) (We will check if for the same results in finite strain)
     MC MohrCoulombCL = MC();
     VM VonMisesCL = VM();
     DP DruckerPragerCL = DP();
     T TrescaCL = T();
 
-    std::vector<double> MCres, VMres, DPres, Tres;
-    MCres = {-9.07094e+06, -9.07094e+06, -1.18581e+07, 0, 0, -2.95111e-11};
-    VMres = {-9.09506e+06, -9.09506e+06, -1.18099e+07, 0, 0, -2.87449e-11};
-    DPres = {-5.40984e+06, -5.40984e+06, -1.91803e+07, 0, 0, -1.45804e-10};
-    Tres = {-9.09506e+06, -9.09506e+06, -1.18099e+07, 0, 0, -2.87449e-11};
+    Vector MCres, VMres, DPres, Tres;
+
+    // Mohr Coulomb
+    ConstitutiveLaw::Parameters cl_parameters_MC_res(cl_parameters);
+    MohrCoulombCL.CalculateMaterialResponseCauchy(cl_parameters_MC_res);
+    MCres = cl_parameters_MC_res.GetStressVector();
+
+    // Von Mises
+    ConstitutiveLaw::Parameters cl_parameters_VM_res(cl_parameters);
+    VonMisesCL.CalculateMaterialResponseCauchy(cl_parameters_VM_res);
+    VMres = cl_parameters_MC_res.GetStressVector();
+
+    // Drucker Pragger
+    ConstitutiveLaw::Parameters cl_parameters_DP_res(cl_parameters);
+    DruckerPragerCL.CalculateMaterialResponseCauchy(cl_parameters_DP_res);
+    DPres = cl_parameters_DP_res.GetStressVector();
+
+    // Tresca
+    ConstitutiveLaw::Parameters cl_parameters_T_res(cl_parameters);
+    TrescaCL.CalculateMaterialResponseCauchy(cl_parameters_T_res);
+    Tres = cl_parameters_T_res.GetStressVector();
+
+    // Create the CL's (Finite strain)
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    MCFS MohrCoulombCLFS = MCFS();
+    VMFS VonMisesCLFS = VMFS();
+    DPFS DruckerPragerCLFS = DPFS();
+    TFS TrescaCLFS = TFS();
 
     Vector TestMC, TestVM, TestDP, TestT;
+
+    // Mohr Coulomb
     ConstitutiveLaw::Parameters cl_parameters_MC(cl_parameters);
-    MohrCoulombCL.CalculateMaterialResponsePK2(cl_parameters_MC);
+    MohrCoulombCLFS.CalculateMaterialResponsePK2(cl_parameters_MC);
     TestMC = cl_parameters_MC.GetStressVector();
 
-    ConstitutiveLaw::Parameters cl_parameters_CL(cl_parameters);
-    VonMisesCL.CalculateMaterialResponsePK2(cl_parameters_CL);
-    TestVM = cl_parameters_CL.GetStressVector();
+    // Von Mises
+    ConstitutiveLaw::Parameters cl_parameters_VM(cl_parameters);
+    VonMisesCL.CalculateMaterialResponsePK2(cl_parameters_VM);
+    TestVM = cl_parameters_VM.GetStressVector();
 
+    // Drucker Pragger
     ConstitutiveLaw::Parameters cl_parameters_DP(cl_parameters);
     DruckerPragerCL.CalculateMaterialResponsePK2(cl_parameters_DP);
     TestDP = cl_parameters_DP.GetStressVector();
 
+    // Tresca
     ConstitutiveLaw::Parameters cl_parameters_T(cl_parameters);
     TrescaCL.CalculateMaterialResponsePK2(cl_parameters_T);
     TestT = cl_parameters_T.GetStressVector();
