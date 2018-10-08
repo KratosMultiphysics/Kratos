@@ -23,14 +23,14 @@
 namespace Kratos {
 namespace Testing {
 
-using SizeType = std::size_t;
-using IndexType = std::size_t;
+typedef std::size_t IndexType;
+typedef std::size_t SizeType;
 
-using MapperInterfaceInfoUniquePointerType = Kratos::unique_ptr<MapperInterfaceInfo>;
+typedef Kratos::unique_ptr<MapperInterfaceInfo> MapperInterfaceInfoUniquePointerType;
 
-using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
-using MapperInterfaceInfoPointerVectorType = std::vector<std::vector<MapperInterfaceInfoPointerType>>;
-using MapperInterfaceInfoPointerVectorPointerType = Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType>;
+typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
+typedef std::vector<std::vector<MapperInterfaceInfoPointerType>> MapperInterfaceInfoPointerVectorType;
+typedef Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType> MapperInterfaceInfoPointerVectorPointerType;
 
 void CreateNodesForMapping(ModelPart& rModelPart, const int NumNodes)
 {
@@ -140,9 +140,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_PointIsInsideBoundingBox, KratosMappin
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMappingApplicationSerialTestSuite)
 {
-    using MapperLocalSystemPointer = Kratos::unique_ptr<MapperLocalSystem>;
-    using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
-    using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
+    typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
+    typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
+    typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
 
     MapperLocalSystemPointerVectorPointer p_local_systems(Kratos::make_shared<MapperLocalSystemPointerVector>());
 
@@ -409,11 +409,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     // Note that the same checks are performed before and after ther serialization
     // to make sure that the objects are properly initialized
 
-    using MapperInterfaceInfoUniquePointerType = Kratos::unique_ptr<MapperInterfaceInfo>;
-
-    using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
-    using MapperInterfaceInfoPointerVectorType = std::vector<std::vector<MapperInterfaceInfoPointerType>>;
-    using MapperInterfaceInfoPointerVectorPointerType = Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType>;
+    typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
+    typedef std::vector<std::vector<MapperInterfaceInfoPointerType>> MapperInterfaceInfoPointerVectorType;
+    typedef Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType> MapperInterfaceInfoPointerVectorPointerType;
 
     // A "NearestNeighborInterfaceInfo" is being used since "MapperInterfaceInfo" is a pure virtual class
     Point coords_1(1.0, 2.45, 33.8);
@@ -559,7 +557,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SerializingForMPI, KratosMappingApplicationSerialTestSuite)
 {
 
-    using BufferTypeChar = std::vector<std::vector<char>>;
+    typedef std::vector<std::vector<char>> BufferTypeChar;
 
     const int comm_rank = 1; // Whatever is on this rank is not being serialized, since no sending is required
     const int comm_size = 4;

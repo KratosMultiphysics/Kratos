@@ -33,17 +33,17 @@ namespace MapperUtilities
 typedef std::size_t SizeType;
 typedef std::size_t IndexType;
 
-using NodeType = Node<3>;
+typedef Node<3> NodeType;
 
-using MapperInterfaceInfoUniquePointerType = Kratos::unique_ptr<MapperInterfaceInfo>;
+typedef Kratos::unique_ptr<MapperInterfaceInfo> MapperInterfaceInfoUniquePointerType;
 
-using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
-using MapperInterfaceInfoPointerVectorType = std::vector<std::vector<MapperInterfaceInfoPointerType>>;
-using MapperInterfaceInfoPointerVectorPointerType = Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType>;
+typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
+typedef std::vector<std::vector<MapperInterfaceInfoPointerType>> MapperInterfaceInfoPointerVectorType;
+typedef Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType> MapperInterfaceInfoPointerVectorPointerType;
 
-using MapperLocalSystemPointer = Kratos::unique_ptr<MapperLocalSystem>;
-using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
-using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
+typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
+typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
+typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
 
 
 template< class TVarType >

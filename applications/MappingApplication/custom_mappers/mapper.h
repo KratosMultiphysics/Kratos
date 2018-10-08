@@ -81,29 +81,25 @@ public:
 
     typedef MappingOperationUtility<TSparseSpace, TDenseSpace> MappingOperationUtilityType;
     typedef typename Kratos::unique_ptr<MappingOperationUtilityType> MappingOperationUtilityPointerType;
-    using InterfacePreprocessorPointerType = Kratos::unique_ptr<InterfacePreprocessor>;
-    using InterfaceCommunicatorType = InterfaceCommunicator;
-    using InterfaceCommunicatorPointerType = Kratos::unique_ptr<InterfaceCommunicatorType>;
-    using SizeType = std::size_t;
-    using IndexType = std::size_t;
+    typedef Kratos::unique_ptr<InterfacePreprocessor> InterfacePreprocessorPointerType;
+    typedef Kratos::unique_ptr<InterfaceCommunicator> InterfaceCommunicatorPointerType;
+    typedef std::size_t IndexType;
 
-    using MapperUniquePointerType = Kratos::unique_ptr<Mapper>;
+    typedef Kratos::unique_ptr<Mapper> MapperUniquePointerType;
 
-    using MapperInterfaceInfoUniquePointerType = typename InterfaceCommunicatorType::MapperInterfaceInfoUniquePointerType;
+    typedef typename InterfaceCommunicator::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
 
-    using MapperLocalSystemPointer = typename MappingOperationUtilityType::MapperLocalSystemPointer;
-    using MapperLocalSystemPointerVector = typename MappingOperationUtilityType::MapperLocalSystemPointerVector;
-    using MapperLocalSystemPointerVectorPointer = typename MappingOperationUtilityType::MapperLocalSystemPointerVectorPointer;
+    typedef typename MappingOperationUtilityType::MapperLocalSystemPointer MapperLocalSystemPointer;
+    typedef typename MappingOperationUtilityType::MapperLocalSystemPointerVector MapperLocalSystemPointerVector;
+    typedef typename MappingOperationUtilityType::MapperLocalSystemPointerVectorPointer MapperLocalSystemPointerVectorPointer;
 
-    using TSystemMatrixType = typename MappingOperationUtilityType::TSystemMatrixType;
-    using TSystemVectorType = typename MappingOperationUtilityType::TSystemVectorType;
+    typedef typename MappingOperationUtilityType::TSystemMatrixType TSystemMatrixType;
+    typedef typename MappingOperationUtilityType::TSystemVectorType TSystemVectorType;
 
-    using TSystemMatrixUniquePointerType = typename MappingOperationUtilityType::TSystemMatrixUniquePointerType;
-    using TSystemVectorUniquePointerType = typename MappingOperationUtilityType::TSystemVectorUniquePointerType;
+    typedef typename MappingOperationUtilityType::TSystemMatrixUniquePointerType TSystemMatrixUniquePointerType;
+    typedef typename MappingOperationUtilityType::TSystemVectorUniquePointerType TSystemVectorUniquePointerType;
 
-    using DoubleVariableType = typename MappingOperationUtilityType::DoubleVariableType;
-    using ComponentVariableType = typename MappingOperationUtilityType::ComponentVariableType;
-    using Array3VariableType = typename MappingOperationUtilityType::Array3VariableType;
+    typedef typename MappingOperationUtilityType::ComponentVariableType ComponentVariableType;
 
 
     ///@}

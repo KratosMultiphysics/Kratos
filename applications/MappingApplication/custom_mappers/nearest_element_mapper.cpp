@@ -26,6 +26,7 @@
 namespace Kratos
 {
 
+typedef std::size_t IndexType;
 typedef std::size_t SizeType;
 
 /***********************************************************************************/

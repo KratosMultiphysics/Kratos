@@ -22,8 +22,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/node.h"
-#include "geometries/geometry.h"
 #include "custom_searching/interface_object.h"
 
 
@@ -63,12 +61,12 @@ public:
     /// Pointer definition of MapperInterfaceInfo
     KRATOS_CLASS_POINTER_DEFINITION(MapperInterfaceInfo);
 
-    using IndexType = std::size_t;
+    typedef std::size_t IndexType;
 
-    using CoordinatesArrayType = typename InterfaceObject::CoordinatesArrayType;
+    typedef typename InterfaceObject::CoordinatesArrayType CoordinatesArrayType;
 
-    using NodeType = Node<3>;
-    using GeometryType = Geometry<NodeType>;
+    typedef InterfaceObject::NodeType NodeType;
+    typedef InterfaceObject::GeometryType GeometryType;
 
     ///@}
     ///@name  Enum's

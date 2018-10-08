@@ -127,15 +127,6 @@ private:
 class NearestElementLocalSystem : public MapperLocalSystem
 {
 public:
-    using BaseType = MapperLocalSystem;
-    using MapperLocalSystemUniquePointer = typename BaseType::MapperLocalSystemUniquePointer;
-    using NodePointerType = typename BaseType::NodePointerType;
-
-    typedef typename BaseType::MatrixType MatrixType;
-    using EquationIdVectorType = typename BaseType::EquationIdVectorType;
-
-    using SizeType = typename BaseType::IndexType;
-    using IndexType = typename BaseType::IndexType;
 
     NearestElementLocalSystem() { }
 
@@ -188,11 +179,11 @@ public:
     /// Pointer definition of NearestElementMapper
     KRATOS_CLASS_POINTER_DEFINITION(NearestElementMapper);
 
-    using BaseType = Mapper<TSparseSpace, TDenseSpace>;
-    using MapperUniquePointerType = typename BaseType::MapperUniquePointerType;
+    typedef Mapper<TSparseSpace, TDenseSpace> BaseType;
+    typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
 
-    using MapperInterfaceInfoUniquePointerType = typename BaseType::MapperInterfaceInfoUniquePointerType;
-    using MapperLocalSystemPointer = typename BaseType::MapperLocalSystemPointer;
+    typedef typename BaseType::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
+    typedef typename BaseType::MapperLocalSystemPointer MapperLocalSystemPointer;
 
     ///@}
     ///@name Life Cycle

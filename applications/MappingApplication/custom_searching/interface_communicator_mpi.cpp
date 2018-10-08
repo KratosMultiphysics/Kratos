@@ -24,8 +24,8 @@
 
 namespace Kratos
 {
-using SizeType = std::size_t;
-using IndexType = std::size_t;
+
+typedef std::size_t SizeType;
 
 /***********************************************************************************/
 /* PUBLIC Methods */
@@ -142,8 +142,9 @@ void InterfaceCommunicatorMPI::ComputeGlobalBoundingBoxes()
 {
     const auto local_bounding_box = MapperUtilities::ComputeLocalBoundingBox(mrModelPartOrigin); // TODO is const ok here?
 
-    if (static_cast<int>(mGlobalBoundingBoxes.size()) != 6*mCommSize)
+    if (static_cast<int>(mGlobalBoundingBoxes.size()) != 6*mCommSize) {
         mGlobalBoundingBoxes.resize(6*mCommSize);
+    }
 
     MPI_Allgather(local_bounding_box.data(),   6, MPI_DOUBLE,
                   mGlobalBoundingBoxes.data(), 6, MPI_DOUBLE,
@@ -165,8 +166,7 @@ int InterfaceCommunicatorMPI::ExchangeDataAsync(
     int num_comm_events     = 0;
     int num_comm_events_idx = 0;
 
-    for(int i=0; i<mCommSize; ++i)
-    {
+    for(int i=0; i<mCommSize; ++i) {
         if(i != mCommRank && mRecvSizes[i]) num_comm_events++;
         if(i != mCommRank && mSendSizes[i]) num_comm_events++;
     }
@@ -178,20 +178,18 @@ int InterfaceCommunicatorMPI::ExchangeDataAsync(
     const MPI_Datatype mpi_datatype(GetMPIDatatype(TDataType()));
 
     // Exchange the data
-    for (int i=0; i<mCommSize; ++i)
-    {
-        if (i != mCommRank && mRecvSizes[i]) // TODO check what "mRecvSizes[i]" returns
-        {
-            if (rRecvBuffer[i].size() != static_cast<SizeType>(mRecvSizes[i]))
+    for (int i=0; i<mCommSize; ++i) {
+        if (i != mCommRank && mRecvSizes[i]) { // TODO check what "mRecvSizes[i]" returns
+            if (rRecvBuffer[i].size() != static_cast<SizeType>(mRecvSizes[i])) {
                 rRecvBuffer[i].resize(mRecvSizes[i]);
+            }
 
             MPI_Irecv(rRecvBuffer[i].data(), mRecvSizes[i],
                       mpi_datatype, i, 0,
                       MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);
         }
 
-        if (i != mCommRank && mSendSizes[i])
-        {
+        if (i != mCommRank && mSendSizes[i]) {
             MPI_Isend(rSendBuffer[i].data(), mSendSizes[i],
                       mpi_datatype, i, 0,
                       MPI_COMM_WORLD, &reqs[num_comm_events_idx++]);

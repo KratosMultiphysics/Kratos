@@ -65,24 +65,19 @@ class MappingOperationUtility
     /// Pointer definition of MappingOperationUtility
     KRATOS_CLASS_POINTER_DEFINITION(MappingOperationUtility);
 
-    using SizeType = std::size_t;
-    using IndexType = std::size_t;
+    typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
+    typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
+    typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
 
-    using MapperLocalSystemPointer = Kratos::unique_ptr<MapperLocalSystem>;
-    using MapperLocalSystemPointerVector = std::vector<MapperLocalSystemPointer>;
-    using MapperLocalSystemPointerVectorPointer = Kratos::shared_ptr<MapperLocalSystemPointerVector>;
+    typedef typename TSparseSpace::MatrixType TSystemMatrixType;
+    typedef typename TSparseSpace::VectorType TSystemVectorType;
 
-    using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
+    typedef Kratos::unique_ptr<TSystemMatrixType> TSystemMatrixUniquePointerType;
+    typedef Kratos::unique_ptr<TSystemVectorType> TSystemVectorUniquePointerType;
 
-    using TSystemMatrixType = typename TSparseSpace::MatrixType;
-    using TSystemVectorType = typename TSparseSpace::VectorType;
-
-    using TSystemMatrixUniquePointerType = Kratos::unique_ptr<TSystemMatrixType>;
-    using TSystemVectorUniquePointerType = Kratos::unique_ptr<TSystemVectorType>;
-
-    using DoubleVariableType = Variable<double>;
-    using ComponentVariableType = VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > >;
-    using Array3VariableType = Variable<array_1d<double, 3>>;
+    typedef Variable<double> DoubleVariableType;
+    typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentVariableType;
+    typedef Variable<array_1d<double, 3>> Array3VariableType;
 
     ///@}
     ///@name Life Cycle

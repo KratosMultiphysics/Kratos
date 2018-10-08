@@ -62,14 +62,9 @@ class MatrixBasedMappingOperationUtility
     /// Pointer definition of MatrixBasedMappingOperationUtility
     KRATOS_CLASS_POINTER_DEFINITION(MatrixBasedMappingOperationUtility);
 
-    using BaseType = MappingOperationUtility<TSparseSpace, TDenseSpace>;
+    typedef MappingOperationUtility<TSparseSpace, TDenseSpace> BaseType;
 
-    using SizeType = typename BaseType::SizeType;
-    using IndexType = typename BaseType::IndexType;
-
-    using MapperLocalSystemPointerType = typename BaseType::MapperLocalSystemPointer;
-    using MapperLocalSystemPointerVector = typename BaseType::MapperLocalSystemPointerVector;
-    using MapperLocalSystemPointerVectorPointer = typename BaseType::MapperLocalSystemPointerVectorPointer;
+    typedef typename BaseType::MapperLocalSystemPointerVector MapperLocalSystemPointerVector;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
@@ -77,8 +72,8 @@ class MatrixBasedMappingOperationUtility
     typedef typename BaseType::TSystemMatrixUniquePointerType TSystemMatrixUniquePointerType;
     typedef typename BaseType::TSystemVectorUniquePointerType TSystemVectorUniquePointerType;
 
-    using DoubleVariableType = typename BaseType::DoubleVariableType;
-    using ComponentVariableType = typename BaseType::ComponentVariableType;
+    typedef typename BaseType::DoubleVariableType DoubleVariableType;
+    typedef typename BaseType::ComponentVariableType ComponentVariableType;
 
     ///@}
     ///@name Life Cycle

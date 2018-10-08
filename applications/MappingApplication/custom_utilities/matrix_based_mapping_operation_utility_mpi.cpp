@@ -25,13 +25,13 @@
 
 namespace Kratos
 {
-using SparseSpaceType = MapperDefinitions::MPISparseSpaceType;
-using DenseSpaceType = MapperDefinitions::DenseSpaceType;
+typedef typename MapperDefinitions::MPISparseSpaceType SparseSpaceType;
+typedef typename MapperDefinitions::DenseSpaceType DenseSpaceType;
 
-using UtilityType = MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType>;
+typedef MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType> UtilityType;
 
-using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
 typedef typename MapperLocalSystem::MatrixType MatrixType;
+typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 
 // TODO rename this fct and reorder Aguments
 void Assemble_Vectors(UtilityType::TSystemMatrixUniquePointerType& rpMdo,

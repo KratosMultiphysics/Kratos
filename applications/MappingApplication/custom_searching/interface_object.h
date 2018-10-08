@@ -65,15 +65,15 @@ public:
     /// Pointer definition of InterfaceObject
     KRATOS_CLASS_POINTER_DEFINITION(InterfaceObject);
 
-    using BaseType = Point;
+    typedef Point BaseType;
 
-    using CoordinatesArrayType = typename BaseType::CoordinatesArrayType;
+    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
-    using NodeType = Node<3>;
-    using NodePointerType = Kratos::shared_ptr<NodeType>;
+    typedef Node<3> NodeType;
+    typedef Kratos::shared_ptr<NodeType> NodePointerType;
 
-    using GeometryType = Geometry<NodeType>;
-    using GeometryPointerType = Kratos::shared_ptr<GeometryType>;
+    typedef Geometry<NodeType> GeometryType;
+    typedef Kratos::shared_ptr<GeometryType> GeometryPointerType;
 
     ///@}
     ///@name  Enum's
@@ -296,8 +296,7 @@ private:
 class InterfaceNode : public InterfaceObject
 {
 public:
-    using BaseType = InterfaceObject;
-    using NodePointerType = BaseType::NodePointerType;
+    typedef InterfaceObject::NodePointerType NodePointerType;
 
     InterfaceNode() {}
 
@@ -335,8 +334,7 @@ private:
 class InterfaceGeometryObject : public InterfaceObject
 {
 public:
-    using BaseType = InterfaceObject;
-    using GeometryPointerType = BaseType::GeometryPointerType;
+    typedef InterfaceObject::GeometryPointerType GeometryPointerType;
 
     InterfaceGeometryObject() {}
 

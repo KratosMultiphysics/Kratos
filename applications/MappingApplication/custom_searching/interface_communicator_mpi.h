@@ -66,14 +66,8 @@ public:
     /// Pointer definition of InterfaceCommunicatorMPI
     KRATOS_CLASS_POINTER_DEFINITION(InterfaceCommunicatorMPI);
 
-    using BaseType = InterfaceCommunicator;
-
-    using MapperLocalSystemPointer = typename BaseType::MapperLocalSystemPointer;
-    using MapperLocalSystemPointerVector = typename BaseType::MapperLocalSystemPointerVector;
-    using MapperLocalSystemPointerVectorPointer = typename BaseType::MapperLocalSystemPointerVectorPointer;
-
-    using BufferTypeDouble = std::vector<std::vector<double>>;
-    using BufferTypeChar   = std::vector<std::vector<char>>;
+    typedef std::vector<std::vector<double>> BufferTypeDouble;
+    typedef std::vector<std::vector<char>> BufferTypeChar;
 
     ///@}
     ///@name Life Cycle

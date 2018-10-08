@@ -25,9 +25,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/node.h"
-#include "geometries/geometry.h"
-
 #include "mapper_interface_info.h"
 
 
@@ -71,21 +68,16 @@ public:
     /// Pointer definition of MapperLocalSystem
     KRATOS_CLASS_POINTER_DEFINITION(MapperLocalSystem);
 
-    using MapperInterfaceInfoPointerType = Kratos::shared_ptr<MapperInterfaceInfo>;
-    using MapperLocalSystemUniquePointer = Kratos::unique_ptr<MapperLocalSystem>;
+    typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
+    typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemUniquePointer;
 
-    using CoordinatesArrayType = typename MapperInterfaceInfo::CoordinatesArrayType;
-
-    using SizeType = std::size_t;
-    using IndexType = std::size_t;
+    typedef typename MapperInterfaceInfo::CoordinatesArrayType CoordinatesArrayType;
 
     typedef Matrix MatrixType;
     typedef std::vector<int> EquationIdVectorType; // int bcs of mpi
 
-    using NodeType = Node<3>;
-    using NodePointerType = Kratos::shared_ptr<Node<3>>;
-    using GeometryType = Geometry<NodeType>;
-    using GeometryPointerType = Kratos::shared_ptr<GeometryType>;
+    typedef InterfaceObject::NodePointerType NodePointerType;
+    typedef InterfaceObject::GeometryPointerType GeometryPointerType;
 
     ///@}
     ///@name  Enum's

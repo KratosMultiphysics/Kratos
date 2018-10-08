@@ -24,17 +24,16 @@
 
 namespace Kratos
 {
-using SparseSpaceType = MapperDefinitions::SparseSpaceType;
-using DenseSpaceType = MapperDefinitions::DenseSpaceType;
+typedef typename MapperDefinitions::SparseSpaceType SparseSpaceType;
+typedef typename MapperDefinitions::DenseSpaceType DenseSpaceType;
 
-using UtilityType = MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType>;
+typedef MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType> UtilityType;
 
-using EquationIdVectorType = typename MapperLocalSystem::EquationIdVectorType;
 typedef typename MapperLocalSystem::MatrixType MatrixType;
+typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 
-using SizeType = std::size_t;
-using IndexType = std::size_t;
-
+typedef std::size_t IndexType;
+typedef std::size_t SizeType;
 
 /***********************************************************************************/
 /* Functions for internal use in this file */
@@ -43,15 +42,13 @@ void InitializeVector(UtilityType::TSystemVectorUniquePointerType& rpVector,
                         const SizeType VectorSize)
 {
     // The vectors dont have graphs, that why we don't always have to reinitialize them
-    if (rpVector == nullptr || rpVector->size() != VectorSize) //if the pointer is not initialized initialize it to an empty vector
-    {
+    if (rpVector == nullptr || rpVector->size() != VectorSize) { //if the pointer is not initialized initialize it to an empty vector
         UtilityType::TSystemVectorUniquePointerType p_new_vector = Kratos::make_unique<UtilityType::TSystemVectorType>(VectorSize);
         rpVector.swap(p_new_vector);
 
         // TODO do I also have to set to zero the contents?
     }
-    else
-    {
+    else {
         SparseSpaceType::SetToZero(*rpVector);
     }
 }
@@ -64,8 +61,7 @@ void ConstructMatrixStructure(UtilityType::MapperLocalSystemPointerVector& rMapp
     EquationIdVectorType destination_ids;
 
     // TODO omp
-    for (/*const*/auto& r_local_sys : rMapperLocalSystems) // TODO I think this can be const bcs it is the ptr
-    {
+    for (/*const*/auto& r_local_sys : rMapperLocalSystems) { // TODO I think this can be const bcs it is the ptr
         r_local_sys->EquationIdVectors(origin_ids, destination_ids);
 
     }
@@ -83,8 +79,9 @@ void FillSystemVector(UtilityType::TSystemVectorType& rVector,
     const auto nodes_begin = rModelPart.NodesBegin();
 
     #pragma omp parallel for
-    for (int i = 0; i<static_cast<int>(rModelPart.NumberOfNodes()); i++)
+    for (int i = 0; i<static_cast<int>(rModelPart.NumberOfNodes()); i++) {
         fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
+    }
 }
 
 template< class TVarType >
