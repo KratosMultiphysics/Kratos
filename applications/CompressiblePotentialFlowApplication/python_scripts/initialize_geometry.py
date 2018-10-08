@@ -1,5 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CompressiblePotentialFlow
+import KratosMultiphysics.MeshingApplication as MeshingApplication
 import math
 import sys
 import pprint
@@ -63,20 +64,80 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             }  """ );
 
         settings.ValidateAndAssignDefaults(default_parameters)
-        self.model_part = Model.GetModelPart(settings["model_part_name"].GetString())
+        self.model_part = Model.GetModelPart(settings["model_part_name"].GetString()).GetRootModelPart()
         self.initial_case=settings["initial_case"].GetString()
         self.geometry_parameter = settings["geometry_parameter"].GetDouble();        
         self.initial_point = KratosMultiphysics.Vector(2)
         self.initial_point[0] = settings["initial_point"][0].GetDouble()
         self.initial_point[1] = settings["initial_point"][1].GetDouble()
 
+          # We set to zero the metric
+        ZeroVector = KratosMultiphysics.Vector(3)
+        ZeroVector[0] = 0.0
+        ZeroVector[1] = 0.0
+        ZeroVector[2] = 0.0
+        for node in self.model_part.Nodes:
+            node.SetValue(MeshingApplication.METRIC_TENSOR_2D, ZeroVector)
+
+        self.MetricParameters = KratosMultiphysics.Parameters("""
+        {
+            "minimal_size"                      : 1.0e-2,
+            "enforce_current"                   : true,
+            "anisotropy_remeshing"              : false,
+            "anisotropy_parameters"             :{
+                "hmin_over_hmax_anisotropic_ratio"  : 0.15,
+                "boundary_layer_max_distance"       : 1.0e-4,
+                "interpolation"                     : "Linear"
+            }
+        }
+        """)
+    
     def Execute(self):
         print("Executing Initialize Geometry")
+        self.DefineGeometry()
+
+        self.RefineMesh()
+        # print(self.model_part)
+        self.DefineGeometry()
+
+        self.ApplyFlags()
+        print("Level Set geometry initialized")
+        
+        
+    def ExecuteInitialize(self):
+        self.Execute()
+    def RefineMesh(self):
+        local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(self.model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
+        local_gradient.Execute()
+
+        find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.model_part)
+        find_nodal_h.Execute()
+
+        metric_process = MeshingApplication.ComputeLevelSetSolMetricProcess2D(self.model_part, KratosMultiphysics.DISTANCE_GRADIENT, self.MetricParameters)
+        metric_process.Execute()
+
+        mmg_parameters = KratosMultiphysics.Parameters("""
+        {
+            "save_external_files"              : true,
+            "initialize_entities"              : false,
+            "echo_level"                       : 1
+        }
+        """)
+
+        # We create the remeshing utility
+        # mmg_parameters["filename"].SetString(file_path + "/" + mmg_parameters["filename"].GetString())
+        mmg_process = MeshingApplication.MmgProcess2D(self.model_part, mmg_parameters)
+
+        # We remesh
+        # print(self.model_part)
+        mmg_process.Execute()
+       
+    def DefineGeometry(self):
         # points=np.loadtxt('n0012.dat')
         # levelset=CompressiblePotentialFlow.InitializeLevelSetProcess(self.model_part,points)
         # levelset.Execute()
         if self.initial_case == "0012":
-            multiplier = 1
+            multiplier = 2
             angle=self.geometry_parameter
             points = np.loadtxt('n0012.dat')*multiplier
             points = rotate([0, 0], points, angle)
@@ -89,6 +150,8 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                     dist=math.sqrt((node.X-points[i,0])**2+(node.Y-points[i,1])**2)
                     if dist<min_dist:
                         min_dist=dist
+                if abs(min_dist)==0.0:
+                    in_ellipse=1e-5
                 if abs(point[0])<2 and abs(point[1])<2: 
                     if not in_hull(points, point):  # positive distance for fluid
                         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,min_dist)
@@ -135,15 +198,6 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,in_ellipse-1)
         else:
             raise Exception("Initial geometry case not added")
-
-        self.ApplyFlags()
-        print("Level Set geometry initialized")
-        
-        
-    def ExecuteInitialize(self):
-        self.Execute()
-        
-
     def ApplyFlags(self):
 
         for element in self.model_part.Elements:
@@ -157,28 +211,18 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
                     IsNegative=True           
             if IsPositive and IsNegative:
                 element.Set(KratosMultiphysics.BOUNDARY,True)
+                for node in element.GetNodes():
+                    node.Set(KratosMultiphysics.VISITED,True)
             elif IsPositive:
                 element.Set(KratosMultiphysics.FLUID,True)
             else:
                 element.Set(KratosMultiphysics.FLUID,False)
                 element.Set(KratosMultiphysics.ACTIVE,False)
-        # for element in self.model_part.Elements:
-        #     IsPositive=False
-        #     IsNegative=False
-        #     for node in element.GetNodes():
-        #         distance=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-        #         if distance>0:
-        #             IsPositive=True
-        #         else:
-        #             IsNegative=True     
-
-        #     if not IsPositive and IsNegative:
-        #         element.Set(KratosMultiphysics.FLUID,False)
-        #         element.Set(KratosMultiphysics.ACTIVE,False)
                 # for node in element.GetNodes():
-                #     if node.IsNot(KratosMultiphysics.VISITED):
-                #         node.Set(KratosMultiphysics.VISITED,True)
-                        # node.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE,0)
-                        # node.Fix(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
+                    # if node.IsNot(KratosMultiphysics.VISITED):
+                        # node.Set(KratosMultiphysics.VISITED,True)
+                        # node.SetSolutionStepValue(CompressiblePotentialFlow.POSITIVE_POTENTIAL,0)
+                        # node.Fix(CompressiblePotentialFlow.POSITIVE_POTENTIAL)
+                        # node.Fix(CompressiblePotentialFlow.NEGATIVE_POTENTIAL)
 
         

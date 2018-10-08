@@ -55,13 +55,25 @@ class PotentialFlowAnalysis(AnalysisStage):
             self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
+            self.gid_output= self._SetUpGiDOutput()
+            self.gid_output.ExecuteInitialize()
+            self.gid_output.ExecuteBeforeSolutionLoop()
+            self.gid_output.ExecuteInitializeSolutionStep()
+            self.gid_output.PrintOutput()
+            self.gid_output.ExecuteFinalize()
+        # def _GetListOfOutputProcesses(self):
+        #     self._list_of_output_processes=super(PotentialFlowAnalysis,self)._GetListOfOutputProcesses()
+        #     if self.project_parameters.Has("output_configuration"):                
+        #         gid_output= self._SetUpGiDOutput()
+        #         self._list_of_output_processes += [gid_output,]
+        #     return self._list_of_output_processes
 
         def _CreateProcesses(self, parameter_name, initialization_order):
             list_of_processes = super(PotentialFlowAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
-            if self.project_parameters.Has("output_configuration"):
+            # if self.project_parameters.Has("output_configuration"):
                 
-                gid_output= self._SetUpGiDOutput()
-                list_of_processes += [gid_output,]
+            #     self.gid_output= self._SetUpGiDOutput()
+            #     list_of_processes += [self.gid_output,]
 
 
             return list_of_processes

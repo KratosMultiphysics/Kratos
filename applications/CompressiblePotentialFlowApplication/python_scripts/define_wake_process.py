@@ -41,15 +41,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.fluid_model_part = Model.GetModelPart(settings["fluid_part_name"].GetString())
         self.model=Model
         self.wake_model_part_name=settings["model_part_name"].GetString()
+    
 
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-
-        # Neigbour search tool instance
-        AvgElemNum = 10
-        AvgNodeNum = 10
-        nodal_neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.fluid_model_part,AvgElemNum, AvgNodeNum)
-        # Find neighbours
-        nodal_neighbour_search.Execute()
         
         self.stl_filename = settings["stl_filename"].GetString()
     def DefineWakeFromLevelSet(self):
@@ -114,6 +107,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.model.AddModelPart(model_part_kutta)
         self.kutta_model_part=model_part_kutta
         self.kutta_model_part.AddNode(kutta_node,0)
+     
 
         
     def Execute(self):
@@ -123,6 +117,14 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             self.DefineWakeFromLevelSet()
         else:
             self.kutta_model_part = self.model.GetModelPart(self.wake_model_part_name)         
+        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+
+        # Neigbour search tool instance
+        AvgElemNum = 10
+        AvgNodeNum = 10
+        nodal_neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.fluid_model_part,AvgElemNum, AvgNodeNum)
+        # Find neighbours
+        nodal_neighbour_search.Execute()
 
         #mark as STRUCTURE and deactivate the elements that touch the kutta node
         for node in self.kutta_model_part.Nodes:

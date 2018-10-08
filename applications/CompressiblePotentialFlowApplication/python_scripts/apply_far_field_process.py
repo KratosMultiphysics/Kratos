@@ -46,30 +46,30 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         
         #find the node with the minimal x
         x0 = node1.X
-        y0 = node1.X
-        z0 = node1.X
+        y0 = node1.Y
+        z0 = node1.Z
 
         pos = 1e30
         for node in self.model_part.Nodes:
-            dx = node.X - x0
-            dy = node.Y - y0
-            dz = node.Z - z0
-            
-            tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
-            
-            if(tmp < pos):
-                pos = tmp
+                dx = node.X - x0
+                dy = node.Y - y0
+                dz = node.Z - z0
 
+                tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
+
+                if(tmp < pos):
+                    pos = tmp
+      
         for node in self.model_part.Nodes:
-            dx = node.X - x0
-            dy = node.Y - y0
-            dz = node.Z - z0
+                dx = node.X - x0
+                dy = node.Y - y0
+                dz = node.Z - z0
             
-            tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
-            
-            if(tmp < pos+1e-9):
-                node.Fix(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL)
-                node.SetSolutionStepValue(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL,0,self.inlet_phi)
+                tmp = dx*self.velocity_infinity[0] + dy*self.velocity_infinity[1] + dz*self.velocity_infinity[2]
+                
+                if(tmp < pos+1e-9):
+                    node.Fix(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL)
+                    node.SetSolutionStepValue(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL,0,self.inlet_phi)
         
     def ExecuteInitializeSolutionStep(self):
         self.Execute()

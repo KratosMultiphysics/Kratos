@@ -426,9 +426,12 @@ protected:
         {
             for (SizeType i = 0; i < TDim; i++)
             {
-                WeakPointerVector<Element> &rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
-                for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
-                    ElementCandidates.push_back(rNodeElementCandidates(j));
+                if (rGeom[i].Has(NEIGHBOUR_ELEMENTS)) {
+                    WeakPointerVector<Element> &rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
+                    for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
+                        ElementCandidates.push_back(rNodeElementCandidates(j));
+                } else
+                    std::cout << "fuck" << std::endl; 
             }
         }
 
@@ -447,7 +450,9 @@ protected:
         {
             for (SizeType i = 0; i < ElementCandidates.size(); i++)
             {
+                
                 GeometryType &rElemGeom = ElementCandidates[i].GetGeometry();
+                
                 GetSortedIds(ElementNodeIds, rElemGeom);
 
                 if (std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()))

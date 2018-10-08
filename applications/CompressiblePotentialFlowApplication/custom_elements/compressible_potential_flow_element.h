@@ -346,7 +346,7 @@ public:
         }
         else //it is a wake element
         {   
-            if(this->Is(BOUNDARY)) std::cout<<"Element Wake & LevelSet:"<<this->Id()<<std::endl;
+            if(this->Is(BOUNDARY)) std::cout<<"Element with both embedded Wake & LevelSet functions:"<<this->Id()<<std::endl;
             GetWakeDistances(data.distances);
             
             //note that the lhs and rhs have double the size!!
