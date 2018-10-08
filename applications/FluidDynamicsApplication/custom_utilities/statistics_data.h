@@ -220,7 +220,7 @@ public:
     ///@name Inquiry
     ///@{
 
-    std::size_t NumberOfIntegrationPoints()
+    std::size_t NumberOfIntegrationPoints() const
     {
         return mData.size1();
     }
