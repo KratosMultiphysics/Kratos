@@ -62,6 +62,8 @@ public:
 
     typedef std::vector<double> ValueContainerType;
 
+    typedef Matrix::iterator1 IntegrationPointDataView;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -104,6 +106,7 @@ public:
     void UpdateMeasurement(
         const Element* pElement,
         const PointerVector<StatisticsSampler>& rStatisticsSamplers,
+        const PointerVector<StatisticsSampler>& rHigherOrderStatistics,
         ValueContainerType& rUpdate,
         std::size_t NumMeasurements)
     {
@@ -129,6 +132,10 @@ public:
 
             if (NumMeasurements > 1) { // Second order and higher statistics start from the second iteration
                 // loop on higer order statistics. They require the already written rMeasurements, (const) mData and the number of steps as input
+                for (auto it_statistic = rHigherOrderStatistics.begin(); it_statistic != rHigherOrderStatistics.end(); ++it_statistic)
+                {
+                    it_statistic->SampleDataPoint(it_update_buffer, DataIterator(g), rUpdate, NumMeasurements);
+                }
             }
 
             for (unsigned int i = 0; i < rUpdate.size(); i++)
@@ -230,7 +237,7 @@ public:
         return mData.size2();
     }
 
-    typename Matrix::iterator1 DataIterator(std::size_t IntegrationPointIndex)
+    IntegrationPointDataView DataIterator(std::size_t IntegrationPointIndex)
     {
         KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex >= mData.size1())
             << "Asking for integration point number " << IntegrationPointIndex

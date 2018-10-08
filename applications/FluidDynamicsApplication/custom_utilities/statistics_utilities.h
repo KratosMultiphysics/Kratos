@@ -24,8 +24,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
-#include "geometries/geometry.h"
 #include "includes/ublas_interface.h"
+#include "geometries/geometry.h"
 
 namespace Kratos
 {
@@ -55,6 +55,8 @@ class StatisticsSampler
 {
 public:
 
+typedef Matrix::iterator1 IntegrationPointDataView;
+
 StatisticsSampler(unsigned int NumValues, unsigned int Offset = 0):
     mNumValues(NumValues),
     mOffset(Offset)
@@ -64,7 +66,20 @@ KRATOS_CLASS_POINTER_DEFINITION(StatisticsSampler);
 
 virtual ~StatisticsSampler() {}
 
-virtual void SampleDataPoint(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives, std::vector<double>::iterator& BufferIterator)
+// For first-order statistics: read data directly
+virtual void SampleDataPoint(
+    const Geometry< Node<3> >& rGeometry,
+    const Vector& rShapeFunctions,
+    const Matrix& rShapeDerivatives,
+    std::vector<double>::iterator& BufferIterator)
+{}
+
+// For higher-order statistics: operate on first order data
+virtual void SampleDataPoint(
+    std::vector<double>::iterator& BufferIterator,
+    const StatisticsSampler::IntegrationPointDataView& rCurrentStatistics,
+    const std::vector<double>& rNewMeasurement,
+    const std::size_t NumberOfMeasurements)
 {}
 
 unsigned int GetSize() const {
@@ -78,7 +93,11 @@ virtual unsigned int GetValueOffset() const
 
 virtual unsigned int GetComponentOffset(unsigned int i) const
 {
-    KRATOS_ERROR << "Method not implemented" << std::endl;
+    KRATOS_DEBUG_ERROR_IF(i >= mNumValues)
+    << "Trying to access component index " << i << ", but only "
+    << mNumValues << " components are stored." << std::endl;
+
+    return mOffset + i;
 }
 
 virtual unsigned int GetComponentOffset(unsigned int i, unsigned int j) const
@@ -186,7 +205,29 @@ VarianceSampler(const StatisticsSampler::Pointer pQuantity1, const StatisticsSam
     mpQuantity2(pQuantity2)
 {}
 
-//virtual void SampleDataPoint(std::vector<double>::iterator& BufferIterator, ) override
+void SampleDataPoint(
+    std::vector<double>::iterator& BufferIterator,
+    const StatisticsSampler::IntegrationPointDataView& rCurrentStatistics,
+    const std::vector<double>& rNewMeasurement,
+    const std::size_t NumberOfMeasurements) override
+{
+    const double update_factor = 1.0 / ((NumberOfMeasurements-1)*NumberOfMeasurements);
+    for (std::size_t i = 0; i < mpQuantity1->GetSize(); i++)
+    {
+        double current_total_i = *(rCurrentStatistics.begin() + mpQuantity1->GetComponentOffset(i));
+        double new_measurement_i = rNewMeasurement[mpQuantity1->GetComponentOffset(i)];
+        double delta_i = (NumberOfMeasurements-1)*current_total_i - new_measurement_i;
+        for (std::size_t j = 0; j < mpQuantity2->GetSize(); j++)
+        {
+            double current_total_j = *(rCurrentStatistics.begin() + mpQuantity2->GetComponentOffset(j));
+            double new_measurement_j = rNewMeasurement[mpQuantity2->GetComponentOffset(j)];
+            double delta_j = (NumberOfMeasurements-1)*current_total_j - new_measurement_j;
+            (*BufferIterator) = update_factor * delta_i * delta_j;
+            ++BufferIterator;
+        }
+    }
+
+}
 
 private:
 

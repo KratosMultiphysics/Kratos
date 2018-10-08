@@ -24,6 +24,21 @@ void StatisticsRecord::AddResult(StatisticsSampler::Pointer pResult)
     KRATOS_CATCH("")
 }
 
+void StatisticsRecord::AddHigherOrderStatistic(StatisticsSampler::Pointer pResult)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(mInitialized) << "Trying to add statistical data after Initialization of the internal storage." << std::endl;
+
+    std::size_t result_size = pResult->GetSize();
+    pResult->SetOffset(mDataBufferSize);
+
+    mDataBufferSize += result_size;
+    mHigherOrderData.push_back(pResult);
+
+    KRATOS_CATCH("")
+}
+
 void StatisticsRecord::InitializeStorage(ModelPart::ElementsContainerType& rElements)
 {
     mUpdateBuffer.resize(mDataBufferSize);
@@ -55,7 +70,7 @@ void StatisticsRecord::UpdateStatistics(Element* pElement)
     << " does not have TURBULENCE_STATISTICS_DATA defined." << std::endl;
 
     auto &r_elemental_statistics = pElement->GetValue(TURBULENCE_STATISTICS_DATA);
-    r_elemental_statistics.UpdateMeasurement(pElement, mAverageData, mUpdateBuffer, mRecordedSteps);
+    r_elemental_statistics.UpdateMeasurement(pElement, mAverageData, mHigherOrderData, mUpdateBuffer, mRecordedSteps);
 }
 
 std::vector<double> StatisticsRecord::OutputForTest(ModelPart::ElementsContainerType& rElements) const

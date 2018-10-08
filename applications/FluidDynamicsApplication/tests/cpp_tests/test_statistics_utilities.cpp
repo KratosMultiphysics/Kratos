@@ -152,16 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
     auto average_velocity_getter = Internals::MakeSamplerAtLocalCoordinate::ValueGetter(VELOCITY);
     auto average_velocity_sampler = VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3);
     StatisticsSampler::Pointer average_velocity = StatisticsSampler::Pointer(new VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3));
-    //StatisticsSampler::Pointer average_velocity = Kratos::make_shared<VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3);
     p_turbulence_statistics->AddResult(average_velocity);
-    //auto uu_correlation = SecondOrderMoment(average_velocity.GetComponent(0),average_velocity.GetComponent(0));
-    //p_turbulence_statistics->AddQuantity(uu_correlation);
-    //auto up_correlation = SecondOrderMoment(average_velocity.GetComponent(0),average_pressure.GetValue());
-    //p_turbulence_statistics->AddQuantity(up_correlation);
-    //auto pressure_variance = SecondOrderMoment(average_pressure,average_pressure);
-    //p_turbulence_statistics->AddQuantity(pressure_variance);
-    //auto pressure_skewness = ThirdOrderMoment(average_pressure,pressure_variance);
-    //p_turbulence_statistics->AddQuantity(pressure_skewness);
 
     p_turbulence_statistics->InitializeStorage(model_part.Elements());
     model_part.GetProcessInfo().SetValue(STATISTICS_CONTAINER,p_turbulence_statistics);
@@ -172,6 +163,61 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
     p_turbulence_statistics->SampleIntegrationPointResults(model_part);
 
     std::vector<double> expected_output{10.,1.,2.,3.,10.,1.,2.,3.,10.,1.,2.,3.,10.,1.,2.,3.};
+    std::vector<double> obtained_output = p_turbulence_statistics->OutputForTest(model_part.Elements());
+
+    //std::cout << "Expected size " << expected_output.size() << " obtained size " << obtained_output.size() << std::endl;
+    KRATOS_CHECK_EQUAL(expected_output.size(), obtained_output.size());
+
+    for (unsigned int i = 0; i < expected_output.size(); i++)
+    {
+        //std::cout << "i: " << i << " expected " << expected_output[i] << " obtained " << obtained_output[i] << std::endl;
+        KRATOS_CHECK_NEAR(expected_output[i],obtained_output[i], 1e-12);
+    }
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesVariance, FluidDynamicsApplicationFastSuite) {
+    ModelPart model_part("TestModelPart");
+    Internals::TestStatisticsUtilitiesInitializeModelPart(model_part, 0.1 ,2);
+
+    StatisticsRecord::Pointer p_turbulence_statistics = Kratos::make_shared<StatisticsRecord>();
+    auto average_pressure_getter = Internals::MakeSamplerAtLocalCoordinate::ValueGetter(PRESSURE);
+    StatisticsSampler::Pointer average_pressure = Kratos::make_shared<ScalarAverageSampler>(average_pressure_getter);
+    p_turbulence_statistics->AddResult(average_pressure);
+    auto average_velocity_getter = Internals::MakeSamplerAtLocalCoordinate::ValueGetter(VELOCITY);
+    auto average_velocity_sampler = VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3);
+    StatisticsSampler::Pointer average_velocity = StatisticsSampler::Pointer(new VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3));
+    p_turbulence_statistics->AddResult(average_velocity);
+
+    StatisticsSampler::Pointer reynolds_stresses = Kratos::make_shared<VarianceSampler>(average_velocity, average_velocity);
+    p_turbulence_statistics->AddHigherOrderStatistic(reynolds_stresses);
+
+    p_turbulence_statistics->InitializeStorage(model_part.Elements());
+    model_part.GetProcessInfo().SetValue(STATISTICS_CONTAINER,p_turbulence_statistics);
+
+    for (auto it_node = model_part.NodesBegin(); it_node != model_part.NodesEnd(); ++it_node)
+    {
+        it_node->FastGetSolutionStepValue(VELOCITY_X) -= 0.5;
+        it_node->FastGetSolutionStepValue(VELOCITY_Z) += 1.0;
+    }
+
+    p_turbulence_statistics->SampleIntegrationPointResults(model_part);
+
+    model_part.CloneTimeStep(0.2);
+    for (auto it_node = model_part.NodesBegin(); it_node != model_part.NodesEnd(); ++it_node)
+    {
+        it_node->FastGetSolutionStepValue(VELOCITY_X) += 1.0;
+        it_node->FastGetSolutionStepValue(VELOCITY_Z) -= 2.0;
+    }
+
+    p_turbulence_statistics->SampleIntegrationPointResults(model_part);
+
+    std::vector<double> expected_output{
+    //  p   u  v  w   uu   uv uw    vu vv vw  wu   wv ww
+        10.,1.,2.,3., 0.25,0.,-0.5, 0.,0.,0., -0.5,0.,1.,
+        10.,1.,2.,3., 0.25,0.,-0.5, 0.,0.,0., -0.5,0.,1.,
+        10.,1.,2.,3., 0.25,0.,-0.5, 0.,0.,0., -0.5,0.,1.,
+        10.,1.,2.,3., 0.25,0.,-0.5, 0.,0.,0., -0.5,0.,1.};
     std::vector<double> obtained_output = p_turbulence_statistics->OutputForTest(model_part.Elements());
 
     //std::cout << "Expected size " << expected_output.size() << " obtained size " << obtained_output.size() << std::endl;
