@@ -165,6 +165,26 @@ private:
 std::function<VectorType(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> mGetter;
 };
 
+class VarianceSampler : public StatisticsSampler
+{
+public:
+
+VarianceSampler(const StatisticsSampler::Pointer pQuantity1, const StatisticsSampler::Pointer pQuantity2):
+    StatisticsSampler(pQuantity1->GetSize() * pQuantity2->GetSize()),
+    mpQuantity1(pQuantity1),
+    mpQuantity2(pQuantity2)
+{}
+
+//virtual void SampleDataPoint(std::vector<double>::iterator& BufferIterator, ) override
+
+private:
+
+const StatisticsSampler::Pointer mpQuantity1;
+
+const StatisticsSampler::Pointer mpQuantity2;
+
+};
+
 ///@}
 
 ///@name Type Definitions
