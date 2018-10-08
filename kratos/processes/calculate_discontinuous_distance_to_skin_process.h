@@ -116,6 +116,11 @@ namespace Kratos
 
       ///@}
 
+    protected:
+
+    Plane3D SetIntersectionPlane(
+      const std::vector<array_1d<double,3>> &rIntPtsVector);
+
     private:
 
       ///@name Member Variables
@@ -164,9 +169,6 @@ namespace Kratos
     void inline ComputeIntersectionNormalFromGeometry(
       const Element::GeometryType &rGeometry,
       array_1d<double,3> &rIntObjNormal);
-
-    Plane3D inline SetIntersectionPlane(
-      const std::vector<array_1d<double,3>> &rIntPtsVector);
 
       ///@}
 

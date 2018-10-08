@@ -382,7 +382,7 @@ namespace Kratos
 	}
 
 	template<>
-	Plane3D inline CalculateDiscontinuousDistanceToSkinProcess<2>::SetIntersectionPlane(
+	Plane3D CalculateDiscontinuousDistanceToSkinProcess<2>::SetIntersectionPlane(
 		const std::vector<array_1d<double,3>> &rIntPtsVector)
 	{
 		// Since the Plane3D object only works in 3D, in 2D we set the intersection 
@@ -393,7 +393,7 @@ namespace Kratos
 	}
 
 	template<>
-	Plane3D inline CalculateDiscontinuousDistanceToSkinProcess<3>::SetIntersectionPlane(
+	Plane3D CalculateDiscontinuousDistanceToSkinProcess<3>::SetIntersectionPlane(
 		const std::vector<array_1d<double,3>> &rIntPtsVector)
 	{
 		return Plane3D(rIntPtsVector[0], rIntPtsVector[1], rIntPtsVector[2]);
