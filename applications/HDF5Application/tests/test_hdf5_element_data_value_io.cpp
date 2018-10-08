@@ -48,17 +48,20 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     read_model_part.SetBufferSize(2);
     write_model_part.SetBufferSize(2);
 
+    std::vector<std::string> variables_list = {{"DISPLACEMENT"},
+                                               {"PRESSURE"},
+                                               {"REFINEMENT_LEVEL"},
+                                               {"GREEN_LAGRANGE_STRAIN_TENSOR"}};
+
     for (auto& r_element : write_model_part.Elements())
     {
-        r_element.SetValue(DISPLACEMENT, array_1d<double, 3>(3, r_element.Id() + 0.2345));
-        r_element.SetValue(PRESSURE, r_element.Id() + 0.2345);
-        r_element.SetValue(REFINEMENT_LEVEL, r_element.Id() + 4);
+        TestModelPartFactory::AssignDataValueContainer(r_element.Data(), variables_list);
     }
 
     Parameters io_params(R"(
         {
             "prefix": "/Step",
-            "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL"]
+            "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL", "GREEN_LAGRANGE_STRAIN_TENSOR"]
         })");
 
     HDF5::ElementDataValueIO data_io(io_params, p_test_file);
@@ -68,17 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementResults, KratosHDF5TestSuite
     for (auto& r_write_element : write_model_part.Elements())
     {
         HDF5::ElementType& r_read_element = read_model_part.Elements()[r_write_element.Id()];
-
-        KRATOS_CHECK(r_read_element.GetValue(DISPLACEMENT_X) ==
-                     r_write_element.GetValue(DISPLACEMENT_X));
-        KRATOS_CHECK(r_read_element.GetValue(DISPLACEMENT_Y) ==
-                     r_write_element.GetValue(DISPLACEMENT_Y));
-        KRATOS_CHECK(r_read_element.GetValue(DISPLACEMENT_Z) ==
-                     r_write_element.GetValue(DISPLACEMENT_Z));
-        KRATOS_CHECK(r_read_element.GetValue(PRESSURE) ==
-                     r_write_element.GetValue(PRESSURE));
-        KRATOS_CHECK(r_read_element.GetValue(REFINEMENT_LEVEL) ==
-                     r_write_element.GetValue(REFINEMENT_LEVEL));
+        CompareDataValueContainers(r_read_element.Data(), r_write_element.Data());
     }
 }
 

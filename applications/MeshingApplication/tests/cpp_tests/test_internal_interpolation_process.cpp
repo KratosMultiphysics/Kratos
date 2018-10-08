@@ -248,6 +248,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2PlasticityPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -298,7 +300,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolation(this_model_part, "pre1");
 
-            MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -344,6 +346,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2PlasticityPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -395,10 +399,10 @@ namespace Kratos
 //             GiDIODebugInternalInterpolation(this_model_part, "pre1");
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<true>(this_model_part);
             process.Execute();
 
-            MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -445,6 +449,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2Plasticity3DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -495,7 +501,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolation(this_model_part, "pre2");
 
-            MmgProcess<3> mmg_process = MmgProcess<3>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -542,6 +548,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2Plasticity3DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -593,10 +601,10 @@ namespace Kratos
 //             GiDIODebugInternalInterpolation(this_model_part, "pre2");
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<true>(this_model_part);
             process.Execute();
 
-            MmgProcess<3> mmg_process = MmgProcess<3>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -643,6 +651,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -675,7 +685,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre1");
 
-            MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -720,6 +730,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -753,10 +765,10 @@ namespace Kratos
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre1");
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<true>(this_model_part);
             process.Execute();
 
-            MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -802,6 +814,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -834,7 +848,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre2");
 
-            MmgProcess<3> mmg_process = MmgProcess<3>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -880,6 +894,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -913,10 +929,10 @@ namespace Kratos
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre2");
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<true>(this_model_part);
             process.Execute();
 
-            MmgProcess<3> mmg_process = MmgProcess<3>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG

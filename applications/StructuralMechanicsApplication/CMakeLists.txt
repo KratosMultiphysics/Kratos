@@ -29,6 +29,9 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/stress_response_definitions.cpp
 
+  ## DIFFERENTIATION UTILITIES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/response_utilities/element_finite_difference_utility.cpp
+
   ## PROCESSES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/postprocess_eigenvalues_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/total_structural_mass_process.cpp
@@ -67,6 +70,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_viscoplasticity_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/viscous_generalized_kelvin.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/viscous_generalized_maxwell.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_d_plus_d_minus_damage.cpp
 
   ## ELEMENTS
 

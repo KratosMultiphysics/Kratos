@@ -19,7 +19,6 @@
 #include <omp.h>
 #endif
 
-#include "boost/smart_ptr.hpp"
 #include <boost/timer.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>

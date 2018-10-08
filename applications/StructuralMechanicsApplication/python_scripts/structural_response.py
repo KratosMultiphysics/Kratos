@@ -310,7 +310,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
     def CalculateValue(self):
         startTime = timer.time()
-        value = self._GetResponseFunctionUtility().CalculateValue(self.adjoint_model_part)
+        value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
         Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
         self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
@@ -361,15 +361,4 @@ class AdjointResponseFunction(ResponseFunctionBase):
             adjoint_node.Y = primal_node.Y
             adjoint_node.Z = primal_node.Z
 
-# ==============================================================================
-class AdjointLinearStrainEnergyResponse(AdjointResponseFunction):
-    def __init__(self, identifier, project_parameters, model):
-        super(AdjointLinearStrainEnergyResponse, self).__init__(identifier, project_parameters, model)
 
-    def CalculateValue(self):
-        startTime = timer.time()
-        #The linear strain energy response needs the primal model part to calculate the response value!
-        value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
-        Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
-
-        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value

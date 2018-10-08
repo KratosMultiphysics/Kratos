@@ -19,7 +19,7 @@
 #include "mmg/libmmg.h"
 #include "mmg/mmg2d/libmmg2d.h"
 #include "mmg/mmg3d/libmmg3d.h"
-// #include "mmg/mmgs/libmmgs.h"
+#include "mmg/mmgs/libmmgs.h"
 
 // Project includes
 #include "custom_processes/mmg_process.h"
@@ -34,6 +34,7 @@
 // Include the spatial containers needed for search
 #include "spatial_containers/spatial_containers.h" // kd-tree
 #include "includes/io.h"
+#include "includes/gid_io.h"
 #include "includes/model_part_io.h"
 
 
@@ -68,8 +69,8 @@ MMG5_pSol  mmgSol;
 /************************************* CONSTRUCTOR *********************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-MmgProcess<TDim>::MmgProcess(
+template<MMGLibray TMMGLibray>
+MmgProcess<TMMGLibray>::MmgProcess(
     ModelPart& rThisModelPart,
     Parameters ThisParameters
     ):mrThisModelPart(rThisModelPart),
@@ -102,6 +103,7 @@ MmgProcess<TDim>::MmgProcess(
             "no_surf_mesh"                        : false,
             "no_insert_mesh"                      : false,
             "no_swap_mesh"                        : false,
+            "normal_regularization_mesh"          : false,
             "deactivate_detect_angle"             : false,
             "force_gradation_value"               : false,
             "gradation_value"                     : 1.3
@@ -109,8 +111,18 @@ MmgProcess<TDim>::MmgProcess(
         "save_external_files"                  : false,
         "save_mdpa_file"                       : false,
         "max_number_of_searchs"                : 1000,
+        "interpolate_non_historical"           : true,
+        "extrapolate_contour_values"           : true,
+        "surface_elements"                     : false,
+        "search_parameters"                    : {
+            "allocation_size"                     : 1000,
+            "bucket_size"                         : 4,
+            "search_factor"                       : 2.0
+        },
         "echo_level"                           : 3,
+        "debug_result_mesh"                    : false,
         "step_data_size"                       : 0,
+        "initialize_entities"                  : true,
         "remesh_at_non_linear_iteration"       : false,
         "buffer_size"                          : 0
     })" );
@@ -132,8 +144,8 @@ MmgProcess<TDim>::MmgProcess(
 /*************************************** EXECUTE ***********************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::Execute()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::Execute()
 {
     KRATOS_TRY;
 
@@ -148,8 +160,8 @@ void MmgProcess<TDim>::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteInitialize()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteInitialize()
 {
     KRATOS_TRY;
 
@@ -162,8 +174,8 @@ void MmgProcess<TDim>::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteBeforeSolutionLoop()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteBeforeSolutionLoop()
 {
     KRATOS_TRY;
 
@@ -173,8 +185,8 @@ void MmgProcess<TDim>::ExecuteBeforeSolutionLoop()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteInitializeSolutionStep()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
 
@@ -217,8 +229,8 @@ void MmgProcess<TDim>::ExecuteInitializeSolutionStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteFinalizeSolutionStep()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteFinalizeSolutionStep()
 {
     KRATOS_TRY;
 
@@ -228,8 +240,8 @@ void MmgProcess<TDim>::ExecuteFinalizeSolutionStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteBeforeOutputStep()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteBeforeOutputStep()
 {
     KRATOS_TRY;
 
@@ -239,8 +251,8 @@ void MmgProcess<TDim>::ExecuteBeforeOutputStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteAfterOutputStep()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteAfterOutputStep()
 {
     KRATOS_TRY;
 
@@ -250,8 +262,8 @@ void MmgProcess<TDim>::ExecuteAfterOutputStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::ExecuteFinalize()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteFinalize()
 {
     KRATOS_TRY;
 
@@ -264,8 +276,8 @@ void MmgProcess<TDim>::ExecuteFinalize()
 /************************************* OPERATOR() **********************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::operator()()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::operator()()
 {
     Execute();
 }
@@ -273,8 +285,8 @@ void MmgProcess<TDim>::operator()()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::InitializeMeshData()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::InitializeMeshData()
 {
     // We create a list of submodelparts to later reassign flags after remesh
     CreateAuxiliarSubModelPartForFlags();
@@ -296,10 +308,10 @@ void MmgProcess<TDim>::InitializeMeshData()
     /* Manually set of the mesh */
     array_1d<SizeType, ConditionsArraySize> num_array_conditions;
     array_1d<SizeType, ElementsArraySize> num_array_elements;
-    if (TDim == 2) {
+    if (TMMGLibray == MMGLibray::MMG2D) { // 2D
         num_array_conditions[0] = conditions_array.size();
         num_array_elements[0]   = elements_array.size();
-    } else {
+    } else if (TMMGLibray == MMGLibray::MMG3D) { // 3D
         /* Elements */
         std::size_t num_tetra = 0, num_prisms = 0;
         #pragma omp parallel for reduction(+:num_tetra,num_prisms)
@@ -317,12 +329,12 @@ void MmgProcess<TDim>::InitializeMeshData()
         num_array_elements[0] = num_tetra;  // Tetrahedron
         num_array_elements[1] = num_prisms; // Prisms
 
-        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_tetra) < elements_array.size()) && mEchoLevel > 0) <<
-        "Number of Elements: " << elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_tetra << std::endl;
+        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_prisms) < elements_array.size()) && mEchoLevel > 0) <<
+        "Number of Elements: " << elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
 
         /* Conditions */
         std::size_t num_tri = 0, num_quad = 0;
-        #pragma omp parallel for reduction(+:num_tetra,num_prisms)
+        #pragma omp parallel for reduction(+:num_tri,num_quad)
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
             auto it_cond = conditions_array.begin() + i;
 
@@ -339,6 +351,9 @@ void MmgProcess<TDim>::InitializeMeshData()
 
         KRATOS_INFO_IF("MmgProcess", ((num_tri + num_quad) < conditions_array.size()) && mEchoLevel > 0) <<
         "Number of Conditions: " << conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
+    } else { // Surfaces
+        num_array_conditions[0] = conditions_array.size();
+        num_array_elements[0]   = elements_array.size();
     }
 
     SetMeshSize(nodes_array.size(), num_array_elements, num_array_conditions);
@@ -359,7 +374,7 @@ void MmgProcess<TDim>::InitializeMeshData()
             bool blocked = false;
             if (it_node->IsDefined(BLOCKED))
                 blocked = it_node->Is(BLOCKED);
-            if (TDim == 3 && blocked)
+            if (Dimension == 3 && blocked)
                 BlockNode(i + 1);
 
             // RESETING THE ID OF THE NODES (important for non consecutive meshes)
@@ -376,7 +391,7 @@ void MmgProcess<TDim>::InitializeMeshData()
             bool blocked = false;
             if (it_node->IsDefined(BLOCKED))
                 blocked = it_node->Is(BLOCKED);
-            if (TDim == 3 && blocked)
+            if (Dimension == 3 && blocked)
                 BlockNode(i + 1);
 
             // RESETING THE ID OF THE NODES (important for non consecutive meshes)
@@ -398,60 +413,51 @@ void MmgProcess<TDim>::InitializeMeshData()
         SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], i + 1);
     }
 
+    // Create auxiliar colors maps
+    ColorsMapType aux_ref_cond;
+    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)  {
+        auto it_cond = conditions_array.begin() + i;
+        const IndexType cond_id = it_cond->Id();
+        const IndexType color = cond_colors[cond_id];
+        if (!(aux_ref_cond.find(color) != aux_ref_cond.end()))
+            aux_ref_cond.insert (IndexPairType(color,cond_id));
+    }
+    ColorsMapType aux_ref_elem;
+    for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
+        auto it_elem = elements_array.begin() + i;
+        const IndexType elem_id = it_elem->Id();
+        const IndexType color = elem_colors[elem_id];
+        if (!(aux_ref_elem.find(color) != aux_ref_elem.end()))
+            aux_ref_elem.insert (IndexPairType(color,elem_id));
+    }
+
     /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
     // First we add the main model part
-    bool to_check_cond = false, to_check_elem = false;
     if (conditions_array.size() > 0) {
-        const std::string type_name = (TDim == 2) ? "Condition2D2N" : "Condition3D";
+        const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibray == MMGLibray::MMG3D) ? "Condition3D" : "Condition3D2N";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
         mpRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), conditions_array.begin()->pGetProperties());
-//         mpRefCondition[0] = conditions_array.begin()->Create(0, conditions_array.begin()->GetGeometry(), conditions_array.begin()->pGetProperties());
-        to_check_cond = true;
     }
     if (elements_array.size() > 0) {
         mpRefElement[0] = elements_array.begin()->Create(0, elements_array.begin()->GetGeometry(), elements_array.begin()->pGetProperties());
-        to_check_elem = true;
     }
-    // Now we iterate over the model parts
-    for (auto & color_list : mColors) {
-        const IndexType key = color_list.first;
 
-        if (((to_check_cond == false) && (to_check_elem == false))) break;
-
-        if (key != 0) { // NOTE: key == 0 is the MainModelPart
-            bool cond_added = false, elem_added = false;
-
-            for (auto sub_model_part_name : color_list.second) {
-                ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
-
-                if (to_check_cond) {
-                    ConditionsArrayType& conditions_array_sub_model_part = r_sub_model_part.Conditions();
-
-                    if (conditions_array_sub_model_part.size() > 0) {
-                        mpRefCondition[key] = conditions_array_sub_model_part.begin()->Create(0, conditions_array_sub_model_part.begin()->GetGeometry(), conditions_array_sub_model_part.begin()->pGetProperties());
-                        cond_added = true;
-                    }
-                }
-                if (to_check_elem) {
-                    ElementsArrayType& elements_array_sub_model_part = r_sub_model_part.Elements();
-
-                    if (elements_array_sub_model_part.size() > 0) {
-                        mpRefElement[key] = elements_array_sub_model_part.begin()->Create(0, elements_array_sub_model_part.begin()->GetGeometry(), elements_array_sub_model_part.begin()->pGetProperties());
-                        elem_added = true;
-                    }
-                }
-
-                if ((cond_added && elem_added)) break;
-            }
-        }
+    // Now we add the reference elements and conditions
+    for (auto& ref_cond : aux_ref_cond) {
+        Condition::Pointer p_cond = mrThisModelPart.pGetCondition(ref_cond.second);
+        mpRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry(), p_cond->pGetProperties());
+    }
+    for (auto& ref_elem : aux_ref_elem) {
+        Element::Pointer p_elem = mrThisModelPart.pGetElement(ref_elem.second);
+        mpRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
     }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< SizeType TDim>
-void MmgProcess<TDim>::InitializeSolData()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::InitializeSolData()
 {
     ////////* SOLUTION FILE *////////
 
@@ -461,13 +467,13 @@ void MmgProcess<TDim>::InitializeSolData()
     // Set size of the solution
     SetSolSizeTensor(nodes_array.size());
 
-    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
+    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(Dimension)+"D");
 
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
 
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(tensor_variable)) << "METRIC_TENSOR_" + std::to_string(TDim) + "D  not defined for node " << it_node->Id() << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
 
         // We get the metric
         const TensorArrayType& metric = it_node->GetValue(tensor_variable);
@@ -480,8 +486,8 @@ void MmgProcess<TDim>::InitializeSolData()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <SizeType TDim>
-void MmgProcess<TDim>::ExecuteRemeshing()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 {
     // Getting the parameters
     const bool save_to_file = mThisParameters["save_external_files"].GetBool();
@@ -502,31 +508,41 @@ void MmgProcess<TDim>::ExecuteRemeshing()
 
     const SizeType number_of_nodes = mmgMesh->np;
     array_1d<SizeType, 2> n_conditions;
-    if (TDim == 2) {
+    if (TMMGLibray == MMGLibray::MMG2D) { // 2D
         n_conditions[0] = mmgMesh->na;
         n_conditions[1] = 0;
-    } else {
+    } else if (TMMGLibray == MMGLibray::MMG3D) { // 3D
         n_conditions[0] = mmgMesh->nt;
         n_conditions[1] = mmgMesh->nquad;
+    } else { // Surfaces
+        n_conditions[0] = mmgMesh->na;
+        n_conditions[1] = 0;
     }
     array_1d<SizeType, 2> n_elements;
-    if (TDim == 2) {
+    if (TMMGLibray == MMGLibray::MMG2D) { // 2D
         n_elements[0] = mmgMesh->nt;
         n_elements[1] = 0;
-    } else {
+    } else if (TMMGLibray == MMGLibray::MMG3D) { // 3D
         n_elements[0] = mmgMesh->ne;
         n_elements[1] = mmgMesh->nprism;
+    } else { // Surfaces
+        n_elements[0] = mmgMesh->nt;
+        n_elements[1] = 0;
     }
 
     KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "\tNodes created: " << number_of_nodes << std::endl;
-    if (TDim == 2) {// 2D
+    if (TMMGLibray == MMGLibray::MMG2D) { // 2D
         KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) <<
         "Conditions created: " << n_conditions[0] << "\n" <<
         "Elements created: " << n_elements[0] << std::endl;
-    } else {// 3D
+    } else if (TMMGLibray == MMGLibray::MMG3D) { // 3D
         KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) <<
         "Conditions created: " << n_conditions[0] + n_conditions[1] << "\n\tTriangles: " << n_conditions[0] << "\tQuadrilaterals: " << n_conditions[1] << "\n" <<
         "Elements created: " << n_elements[0] + n_elements[1] << "\n\tTetrahedron: " << n_elements[0] << "\tPrisms: " << n_elements[1] << std::endl;
+    } else { // Surfaces
+        KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) <<
+        "Conditions created: " << n_conditions[0] << "\n" <<
+        "Elements created: " << n_elements[0] << std::endl;
     }
 
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
@@ -752,18 +768,29 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         }
     }
 
+    // We create an auxiliar mesh for debugging purposes
+    if (mThisParameters["debug_result_mesh"].GetBool()) {
+        CreateDebugPrePostRemeshOutput(r_old_model_part);
+    }
+
     /* We interpolate all the values */
-    Parameters InterpolateParameters = Parameters(R"({"echo_level": 1, "framework": "Eulerian", "max_number_of_searchs": 1000, "step_data_size": 0, "buffer_size": 0})" );
-    InterpolateParameters["echo_level"].SetInt(mThisParameters["echo_level"].GetInt());
-    InterpolateParameters["framework"].SetString(mThisParameters["framework"].GetString());
-    InterpolateParameters["max_number_of_searchs"].SetInt(mThisParameters["max_number_of_searchs"].GetInt());
-    InterpolateParameters["step_data_size"].SetInt(mThisParameters["step_data_size"].GetInt());
-    InterpolateParameters["buffer_size"].SetInt(mThisParameters["buffer_size"].GetInt());
-    NodalValuesInterpolationProcess<TDim> InterpolateNodalValues = NodalValuesInterpolationProcess<TDim>(r_old_model_part, mrThisModelPart, InterpolateParameters);
+    Parameters interpolate_parameters = Parameters(R"({})" );
+    interpolate_parameters.AddValue("echo_level", mThisParameters["echo_level"]);
+    interpolate_parameters.AddValue("framework", mThisParameters["framework"]);
+    interpolate_parameters.AddValue("max_number_of_searchs", mThisParameters["max_number_of_searchs"]);
+    interpolate_parameters.AddValue("step_data_size", mThisParameters["step_data_size"]);
+    interpolate_parameters.AddValue("buffer_size", mThisParameters["buffer_size"]);
+    interpolate_parameters.AddValue("interpolate_non_historical", mThisParameters["interpolate_non_historical"]);
+    interpolate_parameters.AddValue("extrapolate_contour_values", mThisParameters["extrapolate_contour_values"]);
+    interpolate_parameters.AddValue("surface_elements", mThisParameters["surface_elements"]);
+    interpolate_parameters.AddValue("search_parameters", mThisParameters["search_parameters"]);
+    if (TMMGLibray == MMGLibray::MMGS) interpolate_parameters["surface_elements"].SetBool(true);
+    NodalValuesInterpolationProcess<Dimension> InterpolateNodalValues = NodalValuesInterpolationProcess<Dimension>(r_old_model_part, mrThisModelPart, interpolate_parameters);
     InterpolateNodalValues.Execute();
 
     /* We initialize elements and conditions */
-    InitializeElementsAndConditions();
+    if (mThisParameters["initialize_entities"].GetBool())
+        InitializeElementsAndConditions();
 
     /* We do some operations related with the Lagrangian framework */
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
@@ -790,8 +817,8 @@ void MmgProcess<TDim>::ExecuteRemeshing()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::ReorderAllIds()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ReorderAllIds()
 {
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
     for(SizeType i = 0; i < nodes_array.size(); ++i)
@@ -809,8 +836,8 @@ void MmgProcess<TDim>::ReorderAllIds()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::InitializeElementsAndConditions()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::InitializeElementsAndConditions()
 {
     ConditionsArrayType& condition_array = mrThisModelPart.Conditions();
     for(SizeType i = 0; i < condition_array.size(); ++i)
@@ -824,14 +851,14 @@ void MmgProcess<TDim>::InitializeElementsAndConditions()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-IndexVectorType MmgProcess<TDim>::CheckNodes()
+template<MMGLibray TMMGLibray>
+IndexVectorType MmgProcess<TMMGLibray>::CheckNodes()
 {
     DoubleVectorMapType node_map;
 
     IndexVectorType nodes_to_remove_ids;
 
-    DoubleVectorType coords(TDim);
+    DoubleVectorType coords(Dimension);
 
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
 
@@ -840,7 +867,7 @@ IndexVectorType MmgProcess<TDim>::CheckNodes()
 
         const array_1d<double, 3>& coordinates = it_node->Coordinates();
 
-        for(IndexType i_coord = 0; i_coord < TDim; i_coord++)
+        for(IndexType i_coord = 0; i_coord < Dimension; i_coord++)
             coords[i_coord] = coordinates[i_coord];
 
         node_map[coords] += 1;
@@ -858,7 +885,7 @@ IndexVectorType MmgProcess<TDim>::CheckNodes()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<2>::CheckConditions0()
+IndexVectorType MmgProcess<MMGLibray::MMG2D>::CheckConditions0()
 {
     IndexVectorMapType edge_map;
 
@@ -892,7 +919,7 @@ IndexVectorType MmgProcess<2>::CheckConditions0()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<3>::CheckConditions0()
+IndexVectorType MmgProcess<MMGLibray::MMG3D>::CheckConditions0()
 {
     IndexVectorMapType triangle_map;
 
@@ -926,7 +953,41 @@ IndexVectorType MmgProcess<3>::CheckConditions0()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<2>::CheckConditions1()
+IndexVectorType MmgProcess<MMGLibray::MMGS>::CheckConditions0()
+{
+    IndexVectorMapType edge_map;
+
+    IndexVectorType ids(2);
+
+    IndexVectorType conditions_to_remove;
+
+    // Iterate in the conditions
+    for(int i = 0; i < mmgMesh->na; ++i) {
+        int edge_0, edge_1, prop_id, is_ridge, is_required;
+
+        if (MMGS_Get_edge(mmgMesh, &edge_0, &edge_1, &prop_id, &is_ridge, &is_required) != 1 )
+            exit(EXIT_FAILURE);
+
+        ids[0] = edge_0;
+        ids[1] = edge_1;
+
+        //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+        std::sort(ids.begin(), ids.end());
+
+        edge_map[ids] += 1;
+
+        if (edge_map[ids] > 1)
+            conditions_to_remove.push_back(i + 1);
+    }
+
+    return conditions_to_remove;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+IndexVectorType MmgProcess<MMGLibray::MMG2D>::CheckConditions1()
 {
     IndexVectorType conditions_to_remove(0);
 
@@ -937,7 +998,7 @@ IndexVectorType MmgProcess<2>::CheckConditions1()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<3>::CheckConditions1()
+IndexVectorType MmgProcess<MMGLibray::MMG3D>::CheckConditions1()
 {
     IndexVectorMapType quadrilateral_map;
 
@@ -972,7 +1033,18 @@ IndexVectorType MmgProcess<3>::CheckConditions1()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<2>::CheckElements0()
+IndexVectorType MmgProcess<MMGLibray::MMGS>::CheckConditions1()
+{
+    IndexVectorType conditions_to_remove(0);
+
+    return conditions_to_remove;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+IndexVectorType MmgProcess<MMGLibray::MMG2D>::CheckElements0()
 {
     IndexVectorMapType triangle_map;
 
@@ -1007,7 +1079,7 @@ IndexVectorType MmgProcess<2>::CheckElements0()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<3>::CheckElements0()
+IndexVectorType MmgProcess<MMGLibray::MMG3D>::CheckElements0()
 {
     IndexVectorMapType triangle_map;
 
@@ -1042,7 +1114,42 @@ IndexVectorType MmgProcess<3>::CheckElements0()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<2>::CheckElements1()
+IndexVectorType MmgProcess<MMGLibray::MMGS>::CheckElements0()
+{
+    IndexVectorMapType triangle_map;
+
+    IndexVectorType ids_triangles(3);
+
+    IndexVectorType elements_to_remove;
+
+    // Iterate in the elements
+    for(int i = 0; i < mmgMesh->nt; ++i) {
+        int vertex_0, vertex_1, vertex_2, prop_id, is_required;
+
+        if (MMGS_Get_triangle(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &prop_id, &is_required) != 1 )
+            exit(EXIT_FAILURE);
+
+        ids_triangles[0] = vertex_0;
+        ids_triangles[1] = vertex_1;
+        ids_triangles[2] = vertex_2;
+
+        //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+        std::sort(ids_triangles.begin(), ids_triangles.end());
+
+        triangle_map[ids_triangles] += 1;
+
+        if (triangle_map[ids_triangles] > 1)
+            elements_to_remove.push_back(i + 1);
+    }
+
+    return elements_to_remove;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+IndexVectorType MmgProcess<MMGLibray::MMG2D>::CheckElements1()
 {
     IndexVectorType elements_to_remove(0);
     return elements_to_remove;
@@ -1052,7 +1159,7 @@ IndexVectorType MmgProcess<2>::CheckElements1()
 /***********************************************************************************/
 
 template<>
-IndexVectorType MmgProcess<3>::CheckElements1()
+IndexVectorType MmgProcess<MMGLibray::MMG3D>::CheckElements1()
 {
     IndexVectorMapType prism_map;
 
@@ -1089,7 +1196,17 @@ IndexVectorType MmgProcess<3>::CheckElements1()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::BlockNode(IndexType iNode)
+IndexVectorType MmgProcess<MMGLibray::MMGS>::CheckElements1()
+{
+    IndexVectorType elements_to_remove(0);
+    return elements_to_remove;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::BlockNode(IndexType iNode)
 {
     if (MMG2D_Set_requiredVertex(mmgMesh, iNode) != 1 )
         exit(EXIT_FAILURE);
@@ -1100,7 +1217,7 @@ void MmgProcess<2>::BlockNode(IndexType iNode)
 
 
 template<>
-void MmgProcess<3>::BlockNode(IndexType iNode)
+void MmgProcess<MMGLibray::MMG3D>::BlockNode(IndexType iNode)
 {
     if (MMG3D_Set_requiredVertex(mmgMesh, iNode) != 1 )
         exit(EXIT_FAILURE);
@@ -1110,7 +1227,17 @@ void MmgProcess<3>::BlockNode(IndexType iNode)
 /***********************************************************************************/
 
 template<>
-NodeType::Pointer MmgProcess<2>::CreateNode(
+void MmgProcess<MMGLibray::MMGS>::BlockNode(IndexType iNode)
+{
+    if (MMGS_Set_requiredVertex(mmgMesh, iNode) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+NodeType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateNode(
     IndexType iNode,
     int& Ref,
     int& IsRequired
@@ -1131,7 +1258,7 @@ NodeType::Pointer MmgProcess<2>::CreateNode(
 /***********************************************************************************/
 
 template<>
-NodeType::Pointer MmgProcess<3>::CreateNode(
+NodeType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateNode(
     IndexType iNode,
     int& Ref,
     int& IsRequired
@@ -1152,13 +1279,38 @@ NodeType::Pointer MmgProcess<3>::CreateNode(
 /***********************************************************************************/
 
 template<>
-ConditionType::Pointer MmgProcess<2>::CreateCondition0(
+NodeType::Pointer MmgProcess<MMGLibray::MMGS>::CreateNode(
+    IndexType iNode,
+    int& Ref,
+    int& IsRequired
+    )
+{
+    double coord_0, coord_1, coord_2;
+    int is_corner;
+
+    if (MMGS_Get_vertex(mmgMesh, &coord_0, &coord_1, &coord_2, &Ref, &is_corner, &IsRequired) != 1 )
+        exit(EXIT_FAILURE);
+
+    NodeType::Pointer p_node = mrThisModelPart.CreateNewNode(iNode, coord_0, coord_1, coord_2);
+
+    return p_node;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition0(
     const IndexType CondId,
     int& PropId,
     int& IsRequired,
     bool SkipCreation
     )
 {
+    // Sometimes MMG creates conditions where there are not, then we skip
+    if (mpRefCondition[PropId] == nullptr) return nullptr;
+
+    // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
     int edge_0, edge_1, is_ridge;
@@ -1186,13 +1338,17 @@ ConditionType::Pointer MmgProcess<2>::CreateCondition0(
 /***********************************************************************************/
 
 template<>
-ConditionType::Pointer MmgProcess<3>::CreateCondition0(
+ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition0(
     const IndexType CondId,
     int& PropId,
     int& IsRequired,
     bool SkipCreation
     )
 {
+    // Sometimes MMG creates conditions where there are not, then we skip
+    if (mpRefCondition[PropId] == nullptr) return nullptr;
+
+    // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
     int vertex_0, vertex_1, vertex_2;
@@ -1222,7 +1378,45 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition0(
 /***********************************************************************************/
 
 template<>
-ConditionType::Pointer MmgProcess<2>::CreateCondition1(
+ConditionType::Pointer MmgProcess<MMGLibray::MMGS>::CreateCondition0(
+    const IndexType CondId,
+    int& PropId,
+    int& IsRequired,
+    bool SkipCreation
+    )
+{
+    // Sometimes MMG creates conditions where there are not, then we skip
+    if (mpRefCondition[PropId] == nullptr) return nullptr;
+
+    // We create the default one
+    ConditionType::Pointer p_condition = nullptr;
+
+    int edge_0, edge_1, is_ridge;
+
+    if (MMGS_Get_edge(mmgMesh, &edge_0, &edge_1, &PropId, &is_ridge, &IsRequired) != 1 )
+        exit(EXIT_FAILURE);
+
+    // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
+    if (edge_0 == 0) SkipCreation = true;
+    if (edge_1 == 0) SkipCreation = true;
+
+    if (SkipCreation == false) {
+        std::vector<NodeType::Pointer> condition_nodes (2);
+        condition_nodes[0] = mrThisModelPart.pGetNode(edge_0);
+        condition_nodes[1] = mrThisModelPart.pGetNode(edge_1);
+
+        p_condition = mpRefCondition[PropId]->Create(CondId, PointerVector<NodeType>{condition_nodes}, mpRefCondition[PropId]->pGetProperties());
+    } else if (mEchoLevel > 2)
+        KRATOS_INFO("MmgProcess") << "Condition creation avoided" << std::endl;
+
+    return p_condition;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition1(
     const IndexType CondId,
     int& PropId,
     int& IsRequired,
@@ -1236,7 +1430,7 @@ ConditionType::Pointer MmgProcess<2>::CreateCondition1(
 /***********************************************************************************/
 
 template<>
-ConditionType::Pointer MmgProcess<3>::CreateCondition1(
+ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition1(
     const IndexType CondId,
     int& PropId,
     int& IsRequired,
@@ -1274,7 +1468,21 @@ ConditionType::Pointer MmgProcess<3>::CreateCondition1(
 /***********************************************************************************/
 
 template<>
-ElementType::Pointer MmgProcess<2>::CreateElement0(
+ConditionType::Pointer MmgProcess<MMGLibray::MMGS>::CreateCondition1(
+    const IndexType CondId,
+    int& PropId,
+    int& IsRequired,
+    bool SkipCreation
+    )
+{
+    return nullptr;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement0(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
@@ -1310,7 +1518,7 @@ ElementType::Pointer MmgProcess<2>::CreateElement0(
 /***********************************************************************************/
 
 template<>
-ElementType::Pointer MmgProcess<3>::CreateElement0(
+ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement0(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
@@ -1348,7 +1556,43 @@ ElementType::Pointer MmgProcess<3>::CreateElement0(
 /***********************************************************************************/
 
 template<>
-ElementType::Pointer MmgProcess<2>::CreateElement1(
+ElementType::Pointer MmgProcess<MMGLibray::MMGS>::CreateElement0(
+    const IndexType ElemId,
+    int& PropId,
+    int& IsRequired,
+    bool SkipCreation
+    )
+{
+    ElementType::Pointer p_element = nullptr;
+
+    int vertex_0, vertex_1, vertex_2;
+
+    if (MMGS_Get_triangle(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &PropId, &IsRequired) != 1 )
+        exit(EXIT_FAILURE);
+
+    // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
+    if (vertex_0 == 0) SkipCreation = true;
+    if (vertex_1 == 0) SkipCreation = true;
+    if (vertex_2 == 0) SkipCreation = true;
+
+    if (SkipCreation == false) {
+        std::vector<NodeType::Pointer> element_nodes (3);
+        element_nodes[0] = mrThisModelPart.pGetNode(vertex_0);
+        element_nodes[1] = mrThisModelPart.pGetNode(vertex_1);
+        element_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
+
+        p_element = mpRefElement[PropId]->Create(ElemId, PointerVector<NodeType>{element_nodes}, mpRefElement[PropId]->pGetProperties());
+    } else if (mEchoLevel > 2)
+        KRATOS_WARNING("MmgProcess") << "Element creation avoided" << std::endl;
+
+    return p_element;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement1(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
@@ -1362,7 +1606,7 @@ ElementType::Pointer MmgProcess<2>::CreateElement1(
 /***********************************************************************************/
 
 template<>
-ElementType::Pointer MmgProcess<3>::CreateElement1(
+ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement1(
     const IndexType ElemId,
     int& PropId,
     int& IsRequired,
@@ -1403,8 +1647,22 @@ ElementType::Pointer MmgProcess<3>::CreateElement1(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::SaveSolutionToFile(const bool PostOutput)
+template<>
+ElementType::Pointer MmgProcess<MMGLibray::MMGS>::CreateElement1(
+    const IndexType ElemId,
+    int& PropId,
+    int& IsRequired,
+    bool SkipCreation
+    )
+{
+    return nullptr;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::SaveSolutionToFile(const bool PostOutput)
 {
     /* GET RESULTS */
 
@@ -1424,8 +1682,8 @@ void MmgProcess<TDim>::SaveSolutionToFile(const bool PostOutput)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::FreeMemory()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::FreeMemory()
 {
     // Free the MMG structures
     FreeAll();
@@ -1443,7 +1701,7 @@ void MmgProcess<TDim>::FreeMemory()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::InitMesh()
+void MmgProcess<MMGLibray::MMG2D>::InitMesh()
 {
     mmgMesh = nullptr;
     mmgSol = nullptr;
@@ -1458,7 +1716,7 @@ void MmgProcess<2>::InitMesh()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::InitMesh()
+void MmgProcess<MMGLibray::MMG3D>::InitMesh()
 {
     mmgMesh = nullptr;
     mmgSol = nullptr;
@@ -1472,13 +1730,28 @@ void MmgProcess<3>::InitMesh()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::InitVerbosity()
+template<>
+void MmgProcess<MMGLibray::MMGS>::InitMesh()
+{
+    mmgMesh = nullptr;
+    mmgSol = nullptr;
+
+    // We init the MMG mesh and sol
+    MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end);
+
+    InitVerbosity();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::InitVerbosity()
 {
     /* We set the MMG verbosity */
     int verbosity_mmg;
     if (mEchoLevel == 0)
-        verbosity_mmg = 0;
+        verbosity_mmg = -1;
     else if (mEchoLevel == 1)
         verbosity_mmg = 0; // NOTE: This way just the essential info from MMG will be printed, but the custom message will appear
     else if (mEchoLevel == 2)
@@ -1495,7 +1768,7 @@ void MmgProcess<TDim>::InitVerbosity()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::InitVerbosityParameter(const IndexType VerbosityMMG)
+void MmgProcess<MMGLibray::MMG2D>::InitVerbosityParameter(const IndexType VerbosityMMG)
 {
     if ( !MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_verbose, VerbosityMMG) )
         exit(EXIT_FAILURE);
@@ -1505,7 +1778,7 @@ void MmgProcess<2>::InitVerbosityParameter(const IndexType VerbosityMMG)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::InitVerbosityParameter(const IndexType VerbosityMMG)
+void MmgProcess<MMGLibray::MMG3D>::InitVerbosityParameter(const IndexType VerbosityMMG)
 {
     if ( !MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_verbose, VerbosityMMG) )
         exit(EXIT_FAILURE);
@@ -1515,7 +1788,17 @@ void MmgProcess<3>::InitVerbosityParameter(const IndexType VerbosityMMG)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetMeshSize(
+void MmgProcess<MMGLibray::MMGS>::InitVerbosityParameter(const IndexType VerbosityMMG)
+{
+    if ( !MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_verbose, VerbosityMMG) )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::SetMeshSize(
     const SizeType NumNodes,
     const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
     const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions
@@ -1530,7 +1813,7 @@ void MmgProcess<2>::SetMeshSize(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetMeshSize(
+void MmgProcess<MMGLibray::MMG3D>::SetMeshSize(
     const SizeType NumNodes,
     const array_1d<SizeType, ElementsArraySize>& NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
     const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
@@ -1545,7 +1828,22 @@ void MmgProcess<3>::SetMeshSize(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetSolSizeScalar(const SizeType NumNodes)
+void MmgProcess<MMGLibray::MMGS>::SetMeshSize(
+    const SizeType NumNodes,
+    const array_1d<SizeType, ElementsArraySize>& NumArrayElements,
+    const array_1d<SizeType, ConditionsArraySize>& NumArrayConditions
+    )
+{
+    //Give the size of the mesh: NumNodes vertices, num_elements triangles, num_conditions edges (2D)
+    if ( MMGS_Set_meshSize(mmgMesh, NumNodes, NumArrayElements[0], NumArrayConditions[0]) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::SetSolSizeScalar(const SizeType NumNodes)
 {
     if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 )
         exit(EXIT_FAILURE);
@@ -1555,7 +1853,7 @@ void MmgProcess<2>::SetSolSizeScalar(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetSolSizeScalar(const SizeType NumNodes)
+void MmgProcess<MMGLibray::MMG3D>::SetSolSizeScalar(const SizeType NumNodes)
 {
     if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 )
         exit(EXIT_FAILURE);
@@ -1565,7 +1863,17 @@ void MmgProcess<3>::SetSolSizeScalar(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetSolSizeVector(const SizeType NumNodes)
+void MmgProcess<MMGLibray::MMGS>::SetSolSizeScalar(const SizeType NumNodes)
+{
+    if ( MMGS_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Scalar) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::SetSolSizeVector(const SizeType NumNodes)
 {
     if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 )
         exit(EXIT_FAILURE);
@@ -1575,7 +1883,7 @@ void MmgProcess<2>::SetSolSizeVector(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetSolSizeVector(const SizeType NumNodes)
+void MmgProcess<MMGLibray::MMG3D>::SetSolSizeVector(const SizeType NumNodes)
 {
     if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 )
         exit(EXIT_FAILURE);
@@ -1585,7 +1893,17 @@ void MmgProcess<3>::SetSolSizeVector(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetSolSizeTensor(const SizeType NumNodes)
+void MmgProcess<MMGLibray::MMGS>::SetSolSizeVector(const SizeType NumNodes)
+{
+    if ( MMGS_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Vector) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::SetSolSizeTensor(const SizeType NumNodes)
 {
     if ( MMG2D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 )
         exit(EXIT_FAILURE);
@@ -1595,7 +1913,7 @@ void MmgProcess<2>::SetSolSizeTensor(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetSolSizeTensor(const SizeType NumNodes)
+void MmgProcess<MMGLibray::MMG3D>::SetSolSizeTensor(const SizeType NumNodes)
 {
     if ( MMG3D_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 )
         exit(EXIT_FAILURE);
@@ -1605,7 +1923,17 @@ void MmgProcess<3>::SetSolSizeTensor(const SizeType NumNodes)
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::CheckMeshData()
+void MmgProcess<MMGLibray::MMGS>::SetSolSizeTensor(const SizeType NumNodes)
+{
+    if ( MMGS_Set_solSize(mmgMesh,mmgSol,MMG5_Vertex,NumNodes,MMG5_Tensor) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::CheckMeshData()
 {
     if ( MMG2D_Chk_meshData(mmgMesh, mmgSol) != 1 )
         exit(EXIT_FAILURE);
@@ -1615,7 +1943,7 @@ void MmgProcess<2>::CheckMeshData()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::CheckMeshData()
+void MmgProcess<MMGLibray::MMG3D>::CheckMeshData()
 {
     if ( MMG3D_Chk_meshData(mmgMesh, mmgSol) != 1 )
         exit(EXIT_FAILURE);
@@ -1625,7 +1953,17 @@ void MmgProcess<3>::CheckMeshData()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::OutputMesh(
+void MmgProcess<MMGLibray::MMGS>::CheckMeshData()
+{
+    if ( MMGS_Chk_meshData(mmgMesh, mmgSol) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::OutputMesh(
     const bool PostOutput,
     const IndexType Step
     )
@@ -1650,7 +1988,7 @@ void MmgProcess<2>::OutputMesh(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::OutputMesh(
+void MmgProcess<MMGLibray::MMG3D>::OutputMesh(
     const bool PostOutput,
     const IndexType Step
     )
@@ -1674,8 +2012,33 @@ void MmgProcess<3>::OutputMesh(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::OutputMdpa()
+template<>
+void MmgProcess<MMGLibray::MMGS>::OutputMesh(
+    const bool PostOutput,
+    const IndexType Step
+    )
+{
+    std::string mesh_name;
+    if (PostOutput)
+        mesh_name = mStdStringFilename+"_step="+std::to_string(Step)+".o.mesh";
+    else
+        mesh_name = mStdStringFilename+"_step="+std::to_string(Step)+".mesh";
+
+    auto  mesh_file = new char [mesh_name.length() + 1];
+    std::strcpy (mesh_file, mesh_name.c_str());
+
+    // a)  Give the ouptut mesh name using MMGS_Set_outputMeshName (by default, the mesh is saved in the "mesh.o.mesh" file
+    MMGS_Set_outputMeshName(mmgMesh,mesh_file);
+
+    // b) function calling
+    KRATOS_INFO_IF("MmgProcess", MMGS_saveMesh(mmgMesh,mesh_file) != 1) << "UNABLE TO SAVE MESH" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::OutputMdpa()
 {
     std::ofstream output_file;
     ModelPartIO model_part_io("output", IO::WRITE);
@@ -1686,7 +2049,7 @@ void MmgProcess<TDim>::OutputMdpa()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::OutputSol(
+void MmgProcess<MMGLibray::MMG2D>::OutputSol(
     const bool PostOutput,
     const IndexType Step
     )
@@ -1711,7 +2074,7 @@ void MmgProcess<2>::OutputSol(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::OutputSol(
+void MmgProcess<MMGLibray::MMG3D>::OutputSol(
     const bool PostOutput,
     const IndexType Step
     )
@@ -1736,7 +2099,32 @@ void MmgProcess<3>::OutputSol(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::MMGLibCall()
+void MmgProcess<MMGLibray::MMGS>::OutputSol(
+    const bool PostOutput,
+    const IndexType Step
+    )
+{
+    std::string sol_name;
+    if (PostOutput)
+        sol_name = mStdStringFilename+"_step="+std::to_string(Step)+".o.sol";
+    else
+        sol_name = mStdStringFilename+"_step="+std::to_string(Step)+".sol";
+
+    auto  sol_file = new char [sol_name.length() + 1];
+    std::strcpy (sol_file, sol_name.c_str());
+
+    // a)  Give the ouptut sol name using MMGS_Set_outputSolName (by default, the mesh is saved in the "mesh.o.sol" file
+    MMGS_Set_outputSolName(mmgMesh, mmgSol, sol_file);
+
+    // b) Function calling
+    KRATOS_INFO_IF("MmgProcess", MMGS_saveSol(mmgMesh,mmgSol, sol_file) != 1)<< "UNABLE TO SAVE SOL" << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::MMGLibCall()
 {
     KRATOS_TRY;
 
@@ -1803,7 +2191,7 @@ void MmgProcess<2>::MMGLibCall()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::MMGLibCall()
+void MmgProcess<MMGLibray::MMG3D>::MMGLibCall()
 {
     KRATOS_TRY;
 
@@ -1870,7 +2258,74 @@ void MmgProcess<3>::MMGLibCall()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::FreeAll()
+void MmgProcess<MMGLibray::MMGS>::MMGLibCall()
+{
+    KRATOS_TRY;
+
+    /* Advanced configurations */
+    // Global hausdorff value (default value = 0.01) applied on the whole boundary
+    if (mThisParameters["advanced_parameters"]["force_hausdorff_value"].GetBool()) {
+        if ( MMGS_Set_dparameter(mmgMesh,mmgSol,MMGS_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
+    }
+
+    // Avoid/allow point relocation
+    if ( MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_nomove, static_cast<int>(mThisParameters["advanced_parameters"]["no_move_mesh"].GetBool())) != 1 )
+        KRATOS_ERROR << "Unable to fix the nodes" << std::endl;
+
+    // Don't insert nodes on mesh
+    if ( MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_noinsert, static_cast<int>(mThisParameters["advanced_parameters"]["no_insert_mesh"].GetBool())) != 1 )
+        KRATOS_ERROR << "Unable to set no insertion/suppression point" << std::endl;
+
+    // Don't swap mesh
+    if ( MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_noswap, static_cast<int>(mThisParameters["advanced_parameters"]["no_swap_mesh"].GetBool())) != 1 )
+        KRATOS_ERROR << "Unable to set no edge flipping" << std::endl;
+
+    // Disabled/enabled normal regularization
+    if ( MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_nreg, static_cast<int>(mThisParameters["advanced_parameters"]["normal_regularization_mesh"].GetBool())) != 1 )
+        KRATOS_ERROR << "Unable disabled/enabled normal regularization " << std::endl;
+
+    // Set the angle detection
+    const bool deactivate_detect_angle = mThisParameters["advanced_parameters"]["deactivate_detect_angle"].GetBool();
+    if ( deactivate_detect_angle) {
+        if ( MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_angle, static_cast<int>(!deactivate_detect_angle)) != 1 )
+            KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
+    }
+
+    // Set the gradation
+    if (mThisParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
+        if ( MMGS_Set_dparameter(mmgMesh,mmgSol,MMGS_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set gradation" << std::endl;
+    }
+
+    // Minimal edge size
+    if (mThisParameters["force_sizes"]["force_min"].GetBool()) {
+        if ( MMGS_Set_dparameter(mmgMesh,mmgSol,MMGS_DPARAM_hmin, mThisParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set the minimal edge size " << std::endl;
+    }
+
+    // Minimal edge size
+    if (mThisParameters["force_sizes"]["force_max"].GetBool()) {
+        if ( MMGS_Set_dparameter(mmgMesh,mmgSol,MMGS_DPARAM_hmax, mThisParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
+            KRATOS_ERROR << "Unable to set the maximal edge size " << std::endl;
+        }
+    }
+
+    const int ier = MMGS_mmgslib(mmgMesh, mmgSol);
+
+    if ( ier == MMG5_STRONGFAILURE )
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMGSLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
+    else if ( ier == MMG5_LOWFAILURE )
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMGSLIB. ier: " << ier << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::FreeAll()
 {
     MMG2D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mmgMesh,MMG5_ARG_ppMet,&mmgSol,MMG5_ARG_end);
 }
@@ -1879,7 +2334,7 @@ void MmgProcess<2>::FreeAll()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::FreeAll()
+void MmgProcess<MMGLibray::MMG3D>::FreeAll()
 {
     MMG3D_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mmgMesh,MMG5_ARG_ppMet,&mmgSol,MMG5_ARG_end);
 }
@@ -1888,7 +2343,16 @@ void MmgProcess<3>::FreeAll()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetNodes(
+void MmgProcess<MMGLibray::MMGS>::FreeAll()
+{
+    MMGS_Free_all(MMG5_ARG_start,MMG5_ARG_ppMesh,&mmgMesh,MMG5_ARG_ppMet,&mmgSol,MMG5_ARG_end);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::SetNodes(
     const double X,
     const double Y,
     const double Z,
@@ -1904,7 +2368,7 @@ void MmgProcess<2>::SetNodes(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetNodes(
+void MmgProcess<MMGLibray::MMG3D>::SetNodes(
     const double X,
     const double Y,
     const double Z,
@@ -1920,7 +2384,23 @@ void MmgProcess<3>::SetNodes(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetConditions(
+void MmgProcess<MMGLibray::MMGS>::SetNodes(
+    const double X,
+    const double Y,
+    const double Z,
+    const IndexType Color,
+    const IndexType Index
+    )
+{
+    if ( MMGS_Set_vertex(mmgMesh, X, Y, Z, Color, Index) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::SetConditions(
     GeometryType & Geom,
     const IndexType Color,
     const IndexType Index
@@ -1956,7 +2436,7 @@ void MmgProcess<2>::SetConditions(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetConditions(
+void MmgProcess<MMGLibray::MMG3D>::SetConditions(
     GeometryType & Geom,
     const IndexType Color,
     const IndexType Index
@@ -2023,7 +2503,43 @@ void MmgProcess<3>::SetConditions(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetElements(
+void MmgProcess<MMGLibray::MMGS>::SetConditions(
+    GeometryType & Geom,
+    const IndexType Color,
+    const IndexType Index
+    )
+{
+    if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point3D) // Point
+        KRATOS_ERROR << "ERROR:: Nodal condition, will be meshed with the node. Condition existence after meshing not guaranteed" << std::endl;
+    else if (Geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2) { // Line
+        const IndexType id_1 = Geom[0].Id(); // First node id
+        const IndexType id_2 = Geom[1].Id(); // Second node id
+
+        if ( MMGS_Set_edge(mmgMesh, id_1, id_2, Color, Index) != 1 )
+            exit(EXIT_FAILURE);
+
+        // Set fixed boundary
+        bool blocked_1 = false;
+        if (Geom[0].IsDefined(BLOCKED))
+            blocked_1 = Geom[0].Is(BLOCKED);
+        bool blocked_2 = false;
+        if (Geom[1].IsDefined(BLOCKED))
+            blocked_2 = Geom[1].Is(BLOCKED);
+
+        if ((blocked_1 && blocked_2))
+            if ( MMGS_Set_requiredEdge(mmgMesh, Index) != 1 )
+                exit(EXIT_FAILURE);
+    } else {
+        const IndexType size_geometry = Geom.size();
+        KRATOS_ERROR << "ERROR: I DO NOT KNOW WHAT IS THIS. Size: " << size_geometry << " Type: " << Geom.GetGeometryType() << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::SetElements(
     GeometryType & Geom,
     const IndexType Color,
     const IndexType Index
@@ -2041,7 +2557,7 @@ void MmgProcess<2>::SetElements(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetElements(
+void MmgProcess<MMGLibray::MMG3D>::SetElements(
     GeometryType & Geom,
     const IndexType Color,
     const IndexType Index
@@ -2079,7 +2595,25 @@ void MmgProcess<3>::SetElements(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetMetricScalar(
+void MmgProcess<MMGLibray::MMGS>::SetElements(
+    GeometryType & Geom,
+    const IndexType Color,
+    const IndexType Index
+    )
+{
+    const IndexType id_1 = Geom[0].Id(); // First node Id
+    const IndexType id_2 = Geom[1].Id(); // Second node Id
+    const IndexType id_3 = Geom[2].Id(); // Third node Id
+
+    if ( MMGS_Set_triangle(mmgMesh, id_1, id_2, id_3, Color, Index) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::SetMetricScalar(
     const double Metric,
     const IndexType NodeId
     )
@@ -2092,7 +2626,7 @@ void MmgProcess<2>::SetMetricScalar(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetMetricScalar(
+void MmgProcess<MMGLibray::MMG3D>::SetMetricScalar(
     const double Metric,
     const IndexType NodeId
     )
@@ -2105,7 +2639,20 @@ void MmgProcess<3>::SetMetricScalar(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetMetricVector(
+void MmgProcess<MMGLibray::MMGS>::SetMetricScalar(
+    const double Metric,
+    const IndexType NodeId
+    )
+{
+    if ( MMGS_Set_scalarSol(mmgSol, Metric, NodeId) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::SetMetricVector(
     const array_1d<double, 2>& Metric,
     const IndexType NodeId
     )
@@ -2118,7 +2665,7 @@ void MmgProcess<2>::SetMetricVector(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetMetricVector(
+void MmgProcess<MMGLibray::MMG3D>::SetMetricVector(
     const array_1d<double, 3>& Metric,
     const IndexType NodeId
     )
@@ -2131,7 +2678,20 @@ void MmgProcess<3>::SetMetricVector(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<2>::SetMetricTensor(
+void MmgProcess<MMGLibray::MMGS>::SetMetricVector(
+    const array_1d<double, 3>& Metric,
+    const IndexType NodeId
+    )
+{
+    if ( MMGS_Set_vectorSol(mmgSol, Metric[0], Metric[1], Metric[2], NodeId) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::SetMetricTensor(
     const array_1d<double, 3>& Metric,
     const IndexType NodeId
     )
@@ -2145,7 +2705,7 @@ void MmgProcess<2>::SetMetricTensor(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<3>::SetMetricTensor(
+void MmgProcess<MMGLibray::MMG3D>::SetMetricTensor(
     const array_1d<double, 6>& Metric,
     const IndexType NodeId
     )
@@ -2158,8 +2718,22 @@ void MmgProcess<3>::SetMetricTensor(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::CreateAuxiliarSubModelPartForFlags()
+template<>
+void MmgProcess<MMGLibray::MMGS>::SetMetricTensor(
+    const array_1d<double, 6>& Metric,
+    const IndexType NodeId
+    )
+{
+    // The order is XX, XY, XZ, YY, YZ, ZZ
+    if ( MMGS_Set_tensorSol(mmgSol, Metric[0], Metric[3], Metric[5], Metric[1], Metric[4], Metric[2], NodeId) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::CreateAuxiliarSubModelPartForFlags()
 {
     ModelPart& r_auxiliar_model_part = mrThisModelPart.CreateSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
 
@@ -2185,8 +2759,8 @@ void MmgProcess<TDim>::CreateAuxiliarSubModelPartForFlags()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TDim>
-void MmgProcess<TDim>::AssignAndClearAuxiliarSubModelPartForFlags()
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::AssignAndClearAuxiliarSubModelPartForFlags()
 {
     const auto& flags = KratosComponents<Flags>::GetComponents();
 
@@ -2207,7 +2781,71 @@ void MmgProcess<TDim>::AssignAndClearAuxiliarSubModelPartForFlags()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class MmgProcess<2>;
-template class MmgProcess<3>;
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
+{
+    ModelPart auxiliar_model_part("auxiliar_thing");
+
+    Properties::Pointer p_prop_1 = auxiliar_model_part.pGetProperties(1);
+    Properties::Pointer p_prop_2 = auxiliar_model_part.pGetProperties(2);
+
+    // We just transfer nodes and elements
+    // Current model part
+    FastTransferBetweenModelPartsProcess transfer_process_current = FastTransferBetweenModelPartsProcess(auxiliar_model_part, mrThisModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
+    transfer_process_current.Set(MODIFIED); // We replicate, not transfer
+    transfer_process_current.Execute();
+
+    ElementsArrayType& elements_array_1 = auxiliar_model_part.Elements();
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(elements_array_1.size()); ++i) {
+        auto it_elem = elements_array_1.begin() + i;
+        it_elem->SetProperties(p_prop_1);
+    }
+    // Old model part
+    ModelPart copy_old_model_part("old_model_part_copy");
+    FastTransferBetweenModelPartsProcess transfer_process_old = FastTransferBetweenModelPartsProcess(copy_old_model_part, rOldModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
+    transfer_process_current.Set(MODIFIED); // We replicate, not transfer
+    transfer_process_old.Execute();
+
+    ElementsArrayType& elements_array_2 = copy_old_model_part.Elements();
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(elements_array_2.size()); ++i) {
+        auto it_elem = elements_array_2.begin() + i;
+        it_elem->SetProperties(p_prop_2);
+    }
+
+    // Reorder ids to ensure be consecuent
+    NodesArrayType& auxiliar_nodes_array = auxiliar_model_part.Nodes();
+    const SizeType auxiliar_number_of_nodes = (auxiliar_nodes_array.end() - 1)->Id();
+    NodesArrayType& copy_old_nodes_array = copy_old_model_part.Nodes();
+
+    for(IndexType i = 0; i < copy_old_nodes_array.size(); ++i) {
+        auto it_node = copy_old_nodes_array.begin() + i;
+        it_node->SetId(auxiliar_number_of_nodes + i + 1);
+    }
+
+    // Last transfer
+    FastTransferBetweenModelPartsProcess transfer_process_last = FastTransferBetweenModelPartsProcess(auxiliar_model_part, copy_old_model_part, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
+    transfer_process_last.Set(MODIFIED);
+    transfer_process_last.Execute();
+
+    const int step = mrThisModelPart.GetProcessInfo()[STEP];
+    const double label = static_cast<double>(step);
+    GidIO<> gid_io("BEFORE_AND_AFTER_MMG_MESH_STEP=" + std::to_string(step), GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+
+    gid_io.InitializeMesh(label);
+    gid_io.WriteMesh(auxiliar_model_part.GetMesh());
+    gid_io.FinalizeMesh();
+    gid_io.InitializeResults(label, auxiliar_model_part.GetMesh());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template class MmgProcess<MMGLibray::MMG2D>;
+template class MmgProcess<MMGLibray::MMG3D>;
+template class MmgProcess<MMGLibray::MMGS>;
 
 }// namespace Kratos.

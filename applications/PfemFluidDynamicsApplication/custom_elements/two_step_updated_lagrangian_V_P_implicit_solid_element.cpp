@@ -369,11 +369,11 @@ namespace Kratos {
     rElementalVariables.VolumetricDefRate=1;
     rElementalVariables.SpatialDefRate.resize(voigtsize);
     rElementalVariables.MDGreenLagrangeMaterial.resize(voigtsize);
-    rElementalVariables.Fgrad.resize(TDim,TDim);
-    rElementalVariables.InvFgrad.resize(TDim,TDim);
-    rElementalVariables.FgradVel.resize(TDim,TDim);
-    rElementalVariables.InvFgradVel.resize(TDim,TDim);
-    rElementalVariables.SpatialVelocityGrad.resize(TDim,TDim);
+    rElementalVariables.Fgrad.resize(TDim,TDim,false);
+    rElementalVariables.InvFgrad.resize(TDim,TDim,false);
+    rElementalVariables.FgradVel.resize(TDim,TDim,false);
+    rElementalVariables.InvFgradVel.resize(TDim,TDim,false);
+    rElementalVariables.SpatialVelocityGrad.resize(TDim,TDim,false);
 
     rElementalVariables.MeanPressure=0;
     rElementalVariables.CurrentTotalCauchyStress.resize(voigtsize);
@@ -593,7 +593,7 @@ namespace Kratos {
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != NumNodes )
-      rLeftHandSideMatrix.resize(NumNodes,NumNodes);
+      rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
 
     rLeftHandSideMatrix = ZeroMatrix(NumNodes,NumNodes);
 
