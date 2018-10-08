@@ -200,7 +200,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
         // Backward Euler
         while (iteration <= max_iter) {
             plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
-            noalias(plastic_deformation_gradient_increment) = plastic_consistency_factor_increment * MathUtils<double>::StressVectorToTensor<BoundedArrayType, BoundedMatrixType>(rPlasicPotentialDerivative);
+            noalias(plastic_deformation_gradient_increment) = IdentityMatrix(Dimension, Dimension) + plastic_consistency_factor_increment * MathUtils<double>::StressVectorToTensor<BoundedArrayType, BoundedMatrixType>(rPlasicPotentialDerivative);
 
             // We check that the increment is not a zero matrix
             if (norm_frobenius(plastic_deformation_gradient_increment) < 1.0e-8) {
