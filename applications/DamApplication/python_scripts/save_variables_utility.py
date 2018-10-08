@@ -34,7 +34,6 @@ class SaveVariablesUtility:
 
         OutputMdpa.write('Begin NodalData DISPLACEMENT')
         for part in mechanical_parts:
-            print(part)
             for node in part.Nodes:
                 OutputMdpa.write('\n' + str(node.Id) + ' 0 ' + str(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)))
         OutputMdpa.write('\nEnd NodalData\n')
