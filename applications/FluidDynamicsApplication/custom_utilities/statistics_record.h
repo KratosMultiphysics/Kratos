@@ -20,6 +20,7 @@
 // External includes
 
 // Project includes
+#include "containers/pointer_vector.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
@@ -175,9 +176,9 @@ private:
 
     std::size_t mRecordedSteps;
 
-    std::vector<StatisticsSampler::Pointer> mAverageData;
+    PointerVector<StatisticsSampler> mAverageData;
 
-    std::vector<StatisticsSampler::Pointer> mHigherOrderData;
+    PointerVector<StatisticsSampler> mHigherOrderData;
 
     ///@}
     ///@name Serialization

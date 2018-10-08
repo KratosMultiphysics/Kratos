@@ -103,7 +103,7 @@ public:
 
     void UpdateMeasurement(
         const Element* pElement,
-        const std::vector<StatisticsSampler::Pointer>& rStatisticsSamplers,
+        const PointerVector<StatisticsSampler>& rStatisticsSamplers,
         ValueContainerType& rUpdate,
         std::size_t NumMeasurements)
     {
@@ -124,7 +124,7 @@ public:
             auto it_update_buffer = rUpdate.begin();
             for (auto it_sampler = rStatisticsSamplers.begin(); it_sampler != rStatisticsSamplers.end(); ++it_sampler)
             {
-                (**it_sampler).SampleDataPoint(r_geometry, N, rDN_DN, it_update_buffer);
+                it_sampler->SampleDataPoint(r_geometry, N, rDN_DN, it_update_buffer);
             }
 
             if (NumMeasurements > 1) { // Second order and higher statistics start from the second iteration
@@ -171,7 +171,7 @@ public:
     void WriteToCSVOutput(
         std::ofstream& rOutputStream,
         const Element& rElement,
-        const std::vector<StatisticsSampler::Pointer>& rRecordedStatistics,
+        const PointerVector<StatisticsSampler>& rRecordedStatistics,
         std::size_t NumberOfMeasurements) const
     {
         const Geometry<Node<3>> &r_geometry = rElement.GetGeometry();
