@@ -105,12 +105,10 @@ void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos::Flags Mapping
     KRATOS_ERROR_IF_NOT(mpMappingOperationUtility) << "mpMappingOperationUtility is a nullptr!" << std::endl;
 
     // this function can always be called, it won't do anything if the sizes are correct
-    mpMappingOperationUtility->ResizeAndInitializeVectors(mpMdo, mpQo, mpQd,
-                                                          mrModelPartOrigin,
-                                                          mrModelPartDestination,
-                                                          *mpMapperLocalSystems);
-
-    mpMappingOperationUtility->BuildMappingMatrix(*mpMapperLocalSystems, *mpMdo);
+    mpMappingOperationUtility->BuildMappingSystem(mpMdo, mpQo, mpQd,
+                                                  mrModelPartOrigin,
+                                                  mrModelPartDestination,
+                                                  *mpMapperLocalSystems);
 
     if (mEchoLevel > 0) PrintPairingInfo();
 }

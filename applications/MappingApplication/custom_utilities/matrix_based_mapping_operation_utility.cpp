@@ -118,7 +118,7 @@ UtilityType::MatrixBasedMappingOperationUtility(Parameters Settings)
 }
 
 template<>
-void UtilityType::ResizeAndInitializeVectors(
+void UtilityType::BuildMappingSystem(
     TSystemMatrixUniquePointerType& rpMdo,
     TSystemVectorUniquePointerType& rpQo,
     TSystemVectorUniquePointerType& rpQd,
@@ -144,25 +144,12 @@ void UtilityType::ResizeAndInitializeVectors(
     // TODO do I also have to set to zero the contents?
     // SparseSpaceType::SetToZero(*rpMdo);
 
-    InitializeVector(rpQo, num_nodes_origin);
-    InitializeVector(rpQd, num_nodes_destination);
-
-    KRATOS_CATCH("")
-}
-
-// The "Build" function
-template<>
-void UtilityType::BuildMappingMatrix(
-    const MapperLocalSystemPointerVector& rMapperLocalSystems,
-    TSystemMatrixType& rMdo) const
-{
     MatrixType local_mapping_matrix;
 
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
 
-    for (auto& r_local_sys : rMapperLocalSystems) // TODO omp
-    {
+    for (auto& r_local_sys : rMapperLocalSystems) {// TODO omp
         r_local_sys->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
         KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size1() != destination_ids.size())
             << "DestinationID vector size mismatch" << std::endl;
@@ -172,7 +159,7 @@ void UtilityType::BuildMappingMatrix(
         // Insert the mapping weights from the local_systems into the mapping matrix
         for (IndexType i=0; i<destination_ids.size(); ++i) {
             for (IndexType j=0; j<origin_ids.size(); ++j) {
-                rMdo(destination_ids[i], origin_ids[j]) += local_mapping_matrix(i,j);
+                (*rpMdo)(destination_ids[i], origin_ids[j]) += local_mapping_matrix(i,j);
             }
         }
 
@@ -181,8 +168,14 @@ void UtilityType::BuildMappingMatrix(
 
     std::cout << "BuildMappingMatrix, non-mpi: " << "Leaving" << std::endl;
 
-    if (GetEchoLevel() > 2)
-        SparseSpaceType::WriteMatrixMarketMatrix("MappingMatrix", rMdo, false);
+    if (GetEchoLevel() > 2) {
+        SparseSpaceType::WriteMatrixMarketMatrix("MappingMatrix", *rpMdo, false);
+    }
+
+    InitializeVector(rpQo, num_nodes_origin);
+    InitializeVector(rpQd, num_nodes_destination);
+
+    KRATOS_CATCH("")
 }
 
 template<class TVarType>

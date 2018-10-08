@@ -95,17 +95,13 @@ class MatrixBasedMappingOperationUtility
     ///@name Operations
     ///@{
 
-    void ResizeAndInitializeVectors(
+    void BuildMappingSystem(
         TSystemMatrixUniquePointerType& rpMdo,
         TSystemVectorUniquePointerType& rpQo,
         TSystemVectorUniquePointerType& rpQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
         MapperLocalSystemPointerVector& rMapperLocalSystems) const override;
-
-    // The "Build" function
-    void BuildMappingMatrix(const MapperLocalSystemPointerVector& rMapperLocalSystems,
-                            TSystemMatrixType& rMdo) const override;
 
     // The "Solve" function
     void InitializeMappingStep(

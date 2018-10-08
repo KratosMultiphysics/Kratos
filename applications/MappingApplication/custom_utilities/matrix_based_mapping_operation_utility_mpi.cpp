@@ -129,7 +129,7 @@ UtilityType::MatrixBasedMappingOperationUtility(Parameters Settings)
 }
 
 template<>
-void UtilityType::ResizeAndInitializeVectors(
+void UtilityType::BuildMappingSystem(
     TSystemMatrixUniquePointerType& rpMdo,
     TSystemVectorUniquePointerType& rpQo,
     TSystemVectorUniquePointerType& rpQd,
@@ -249,55 +249,6 @@ void UtilityType::ResizeAndInitializeVectors(
         Kratos::make_unique<TSystemVectorType>(epetra_domain_map);
     rpQd.swap(p_new_vector_destination);
     rpQo.swap(p_new_vector_origin);
-}
-
-// The "Build" function
-template<>
-void UtilityType::BuildMappingMatrix(
-    const MapperLocalSystemPointerVector& rMapperLocalSystems,
-    TSystemMatrixType& rMdo) const
-{
-    // MappingWeightsVector mapping_weights;
-
-    // EquationIdVectorType origin_ids;
-    // EquationIdVectorType destination_ids;
-
-    // std::cout << "Before Assembly" << std::endl;
-
-    // for (auto& rp_local_sys : rMapperLocalSystems)
-    // {
-    //     rp_local_sys->CalculateLocalSystem(mapping_weights, origin_ids, destination_ids);
-
-    //     KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != origin_ids.size())
-    //         << "OriginID vector size mismatch" << std::endl;
-    //     KRATOS_DEBUG_ERROR_IF(mapping_weights.size() != destination_ids.size())
-    //         << "DestinationID vector size mismatch" << std::endl;
-
-    //     KRATOS_WATCH(mapping_weights)
-    //     KRATOS_WATCH(origin_ids)
-    //     KRATOS_WATCH(destination_ids)
-    //     std::cout << std::endl;
-
-    //     if (mapping_weights.size() > 0)
-    //     {
-    //         const int ierr = rMdo.SumIntoGlobalValues(
-    //             destination_ids.size(), destination_ids.data(),
-    //             origin_ids.size(),      origin_ids.data(),
-    //             mapping_weights.data());
-
-    //         KRATOS_ERROR_IF( ierr < 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
-    //             << "Error code: " << ierr << std::endl;
-    //     }
-
-    //     rp_local_sys->Clear();
-    // }
-
-    // std::cout << "After Assembly" << std::endl;
-
-    // // rMdo.GlobalAssemble(epetra_domain_map, epetra_range_map);
-
-    // if (GetEchoLevel() > 2)
-    //     SparseSpaceType::WriteMatrixMarketMatrix("TrilinosMappingMatrix", rMdo, false);
 }
 
 template< class TVarType >

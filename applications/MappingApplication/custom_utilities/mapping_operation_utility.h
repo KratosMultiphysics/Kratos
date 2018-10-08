@@ -105,17 +105,13 @@ class MappingOperationUtility
     ///@name Operations
     ///@{
 
-    virtual void ResizeAndInitializeVectors(
+    virtual void BuildMappingSystem(
         TSystemMatrixUniquePointerType& rpMdo,
         TSystemVectorUniquePointerType& rpQo,
         TSystemVectorUniquePointerType& rpQd,
         ModelPart& rModelPartOrigin,
         ModelPart& rModelPartDestination,
         MapperLocalSystemPointerVector& rMapperLocalSystems) const = 0;
-
-    // The "Build" function
-    virtual void BuildMappingMatrix(const MapperLocalSystemPointerVector& rMapperLocalSystems,
-                                    TSystemMatrixType& rMdo) const = 0;
 
 
     // The "Solve" function
