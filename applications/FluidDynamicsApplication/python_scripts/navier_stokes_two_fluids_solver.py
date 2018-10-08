@@ -84,8 +84,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Construction of NavierStokesTwoFluidsSolver finished.")
 
     def AddVariables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY) # TODO: Remove this once the "old" embedded elements get the density from the properties (or once we delete them)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY) # TODO: Remove this once the "old" embedded elements get the density from the properties (or once we delete them)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
@@ -98,6 +98,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
 
@@ -219,7 +220,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def _set_level_set_convection_process(self):
         # Construct the level set convection process
-        if self.main_model_part.ProcessInfo[DOMAIN_SIZE] == 2:
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             level_set_convection_process = KratosMultiphysics.LevelSetConvectionProcess2D(
                 KratosMultiphysics.DISTANCE,
                 self.main_model_part,
@@ -235,13 +236,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
     def _set_variational_distance_process(self):
         # Construct the variational distance calculation process
         maximum_iterations = 2 #TODO: Make this user-definable
-        if self.main_model_part.ProcessInfo[DOMAIN_SIZE] == 2:
-            variational_distance_process = KratosMultiphysics.LevelSetConvectionProcess2D(
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
                 self.main_model_part,
                 self.linear_solver,
                 maximum_iterations)
         else:
-            variational_distance_process = KratosMultiphysics.LevelSetConvectionProcess3D(
+            variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
                 self.main_model_part,
                 self.linear_solver,
                 maximum_iterations)
