@@ -134,7 +134,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         } else { // Plastic case
             // while loop backward euler
             /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
-            TConstLawIntegratorType::IntegrateStressVector(*this, KIRCHHOFF_STRESS_VECTOR, ALMANSI_STRAIN_VECTOR, predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, r_plastic_deformation_gradient, rValues);
+            TConstLawIntegratorType::IntegrateStressVector(*this, ALMANSI_STRAIN_VECTOR, KIRCHHOFF_STRESS_VECTOR, predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, r_plastic_deformation_gradient, rValues);
 
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
@@ -261,7 +261,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         } else { // Plastic case
             // while loop backward euler
             /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
-            TConstLawIntegratorType::IntegrateStressVector(*this, PK2_STRESS_VECTOR, GREEN_LAGRANGE_STRAIN_VECTOR, predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, r_plastic_deformation_gradient, rValues);
+            TConstLawIntegratorType::IntegrateStressVector(*this, GREEN_LAGRANGE_STRAIN_VECTOR, PK2_STRESS_VECTOR, predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, r_plastic_deformation_gradient, rValues);
 
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
