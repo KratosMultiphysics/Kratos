@@ -41,9 +41,8 @@ void Assemble_Vectors(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
 {
     const int ierr = rpMdo->SumIntoGlobalValues(
         rDestinationIds.size(), rDestinationIds.data(),
-        // 1, rDestinationIds.data(),
         rOriginIds.size(),      rOriginIds.data(),
-        rLocalMappingMatrix.data(), // TODO I think this changes with AMatrix
+        rLocalMappingMatrix.data().begin(), // TODO I think this changes with AMatrix
         Epetra_FECrsMatrix::ROW_MAJOR ); // TODO check if this is still appropriate and if it changes with AMatrix
 
     KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
@@ -110,9 +109,6 @@ void UtilityType::ResizeAndInitializeVectors(
     for (auto& rp_local_sys : rMapperLocalSystems)
     {
         rp_local_sys->EquationIdVectors(origin_ids, destination_ids);
-
-        KRATOS_DEBUG_ERROR_IF(origin_ids.size() != destination_ids.size())
-            << "EquationID vectors have size mismatch!" << std::endl;
 
         col_indices.reserve( col_indices.size() + origin_ids.size() );
         col_indices.insert( col_indices.end(), origin_ids.begin(), origin_ids.end() );
@@ -188,9 +184,6 @@ void UtilityType::ResizeAndInitializeVectors(
     {
         rp_local_sys->EquationIdVectors(origin_ids, destination_ids);
 
-        KRATOS_DEBUG_ERROR_IF(origin_ids.size() != destination_ids.size())
-            << "EquationID vectors have size mismatch!" << std::endl;
-
         if (origin_ids.size() > 0)
         {
             const int ierr = epetra_graph.InsertGlobalIndices(
@@ -235,7 +228,7 @@ void UtilityType::ResizeAndInitializeVectors(
         KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size2() != origin_ids.size())
             << "OriginID vector size mismatch" << std::endl;
 
-        if (mapping_weights.size() > 0)
+        if (local_mapping_matrix.size1() > 0)
         {
             Assemble_Vectors(p_Mdo, origin_ids, destination_ids, local_mapping_matrix);
             // Assemble_SerialDenseObjs(p_Mdo, origin_ids, destination_ids, mapping_weights);

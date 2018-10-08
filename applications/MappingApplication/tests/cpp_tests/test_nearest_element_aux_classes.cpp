@@ -21,10 +21,10 @@
 namespace Kratos {
 namespace Testing {
 
-using MappingWeightsVector = std::vector<double>;
-using EquationIdVectorType = std::vector<int>;
+typedef typename MapperLocalSystem::MatrixType MatrixType;
+typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 
-using NodeType = Node<3>;
+typedef Node<3> NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_BasicTests, KratosMappingApplicationSerialTestSuite)
 {
@@ -246,7 +246,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApp
 
     // Computing the local system
     // this should return nothing since no InterfaceInfos are available
-    MappingWeightsVector weights;
+    MatrixType local_mapping_matrix;
     EquationIdVectorType origin_ids;
     EquationIdVectorType origin_ids2;
     EquationIdVectorType destination_ids;
@@ -257,8 +257,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApp
     KRATOS_CHECK_EQUAL(origin_ids.size(), 0);
     KRATOS_CHECK_EQUAL(destination_ids.size(), 0);
 
-    local_sys->CalculateLocalSystem(weights, origin_ids2, destination_ids2);
-    KRATOS_CHECK_EQUAL(weights.size(), 0);
+    local_sys->CalculateLocalSystem(local_mapping_matrix, origin_ids2, destination_ids2);
+    KRATOS_CHECK_EQUAL(local_mapping_matrix.size1(), 0);
+    KRATOS_CHECK_EQUAL(local_mapping_matrix.size2(), 0);
     KRATOS_CHECK_EQUAL(origin_ids2.size(), 0);
     KRATOS_CHECK_EQUAL(destination_ids2.size(), 0);
 
