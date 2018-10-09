@@ -96,7 +96,7 @@ private:
          * @param itValue The iterator to adapt
          * @param pRoot The root Parameter pointer
          */
-        iterator_adaptor(value_iterator itValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpParameters(new Parameters(&(*itValue), pRoot)) {}
+        iterator_adaptor(value_iterator itValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpParameters(new Parameters(itValue, pRoot)) {}
 
         /**
          * @brief Default constructor (just iterator)
@@ -238,7 +238,7 @@ private:
          * @param itValue The iterator to adapt
          * @param pRoot The root Parameter pointer
          */
-        const_iterator_adaptor(value_iterator itValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpParameters(new Parameters(const_cast<nlohmann::json*>(&(*itValue)), pRoot)) {}
+        const_iterator_adaptor(value_iterator itValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpParameters(new Parameters(itValue, pRoot)) {}
 
         /**
          * @brief Default constructor (just constant iterator)
@@ -1429,6 +1429,34 @@ private:
         : mpValue(pValue),
           mpRoot(pRoot)
     {}
+
+    /**
+     * @brief Direct constructor. It takes as parameters the "member" variables of the Parameters class
+     * @param itValue The nlohmann::json class iterator
+     * @param pRoot A shared pointer to a nlohmann::json class
+     * @warning Please DO NOT use this constructor. It assumes nlohmann::json and hence it should be considered as an implementation detail
+     */
+    Parameters(json_iterator itValue, Kratos::shared_ptr<nlohmann::json> pRoot)
+        : mpValue(nullptr),
+          mpRoot(pRoot)
+    {
+        if (itValue != mpRoot.get()->end())
+            mpValue = &(*itValue);
+    }
+
+    /**
+     * @brief Direct constructor. It takes as parameters the "member" variables of the Parameters class
+     * @param itValue The nlohmann::json class iterator
+     * @param pRoot A shared pointer to a nlohmann::json class
+     * @warning Please DO NOT use this constructor. It assumes nlohmann::json and hence it should be considered as an implementation detail
+     */
+    Parameters(json_const_iterator itValue, Kratos::shared_ptr<nlohmann::json> pRoot)
+        : mpValue(nullptr),
+          mpRoot(pRoot)
+    {
+        if (itValue != mpRoot.get()->cend())
+            mpValue = const_cast<nlohmann::json*>(&(*itValue));
+    }
 
     //ATTENTION: please DO NOT use this constructor. It assumes nlohmann::json and hence it should be considered as an implementation detail
 //     Parameters(const json::iterator& it): mpValue(*it)
