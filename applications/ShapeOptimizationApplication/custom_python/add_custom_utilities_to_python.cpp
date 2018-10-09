@@ -70,6 +70,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(init<ModelPart&, ModelPart&, Parameters>())
         .def("Map", &MapperGeneralizedVertexMorphing::Map)
         .def("InverseMap", &MapperGeneralizedVertexMorphing::InverseMap)
+        .def("UpdateMappingMatrix", &MapperGeneralizedVertexMorphing::UpdateMappingMatrix)
         ;
 
     // ================================================================

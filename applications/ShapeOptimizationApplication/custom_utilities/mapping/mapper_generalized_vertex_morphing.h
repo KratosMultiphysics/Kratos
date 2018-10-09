@@ -101,6 +101,8 @@ public:
         CreateFilterFunction();
         InitializeMappingVariables();
         AssignMappingIds();
+        InitializeComputationOfMappingMatrix();
+        ComputeMappingMatrix();
     }
 
     /// Destructor.
@@ -118,12 +120,24 @@ public:
     ///@{
 
     // --------------------------------------------------------------------------
-    void InverseMap( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable )
+    void Map( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable)
+    {
+        BuiltinTimer mapping_time;
+        std::cout << "\n> Starting mapping..." << std::endl;
+
+        PrepareVectorsForMapping( rVariable );
+        PerformMultiplicationWithMappingMatrix();
+        AssignMappingResultsToNodalVariable( rMappedVariable, false );
+
+        std::cout << "> Time needed for mapping: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void InverseMap( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable)
     {
         BuiltinTimer mapping_time;
         std::cout << "\n> Starting inverse mapping..." << std::endl;
 
-        ComputeMappingMatrixIfNecessary();
         PrepareVectorsForInverseMapping( rVariable );
         PerformMultiplicationWithTransposeMappingMatrix();
         AssignMappingResultsToNodalVariable( rMappedVariable, true );
@@ -132,18 +146,12 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void Map( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable )
+    void UpdateMappingMatrix()
     {
-        BuiltinTimer mapping_time;
-        std::cout << "\n> Starting mapping..." << std::endl;
-
-        ComputeMappingMatrixIfNecessary();
-        PrepareVectorsForMapping( rVariable );
-        PerformMultiplicationWithMappingMatrix();
-        AssignMappingResultsToNodalVariable( rMappedVariable, false );
-
-        std::cout << "> Time needed for mapping: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
+        InitializeComputationOfMappingMatrix();
+        ComputeMappingMatrix();
     }
+
     // --------------------------------------------------------------------------
 
     ///@}
@@ -256,8 +264,6 @@ private:
     SparseMatrixType mMappingMatrix;
     Vector x_values_in_original_mdpa, y_values_in_original_mdpa, z_values_in_original_mdpa;
     Vector x_values_in_destination_mdpa, y_values_in_destination_mdpa, z_values_in_destination_mdpa;
-    double mControlSum = -1.0;
-    bool is_initial_computation_of_mapping_matrix = true;
 
     ///@}
     ///@name Private Operators
@@ -401,18 +407,6 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void ComputeMappingMatrixIfNecessary()
-    {
-        if(is_initial_computation_of_mapping_matrix || HasGeometryChanged())
-        {
-            is_initial_computation_of_mapping_matrix = false;
-
-            InitializeComputationOfMappingMatrix();
-            ComputeMappingMatrix();
-        }
-    }
-
-    // --------------------------------------------------------------------------
     void PrepareVectorsForInverseMapping( const Variable<array_3d> &rNodalVariable )
     {
         x_values_in_original_mdpa.clear();
@@ -496,25 +490,6 @@ private:
                 node_vector(2) = z_values_in_destination_mdpa[i];
                 node_i.FastGetSolutionStepValue(rNodalVariable) = node_vector;
             }
-        }
-    }
-
-    // --------------------------------------------------------------------------
-    bool HasGeometryChanged()
-    {
-        double sumOfAllCoordinates = 0.0;
-        for(auto& node_i : mrOriginMdpa.Nodes())
-        {
-            array_3d& coord = node_i.Coordinates();
-            sumOfAllCoordinates += std::abs(coord[0]) + std::abs(coord[1]) + std::abs(coord[2]);
-        }
-
-        if(mControlSum == sumOfAllCoordinates)
-            return false;
-        else
-        {
-            mControlSum = sumOfAllCoordinates;
-            return true;
         }
     }
 
