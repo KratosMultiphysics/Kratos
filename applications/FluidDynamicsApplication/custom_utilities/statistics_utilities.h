@@ -60,9 +60,9 @@ KRATOS_CLASS_POINTER_DEFINITION(StatisticsSampler);
 typedef Matrix::iterator1 IntegrationPointDataView;
 typedef Matrix::const_iterator2 IntegrationPointDataViewIterator;
 
-StatisticsSampler(unsigned int NumValues, unsigned int Offset = 0):
+StatisticsSampler(unsigned int NumValues):
     mNumValues(NumValues),
-    mOffset(Offset)
+    mOffset(0)
 {}
 
 virtual ~StatisticsSampler() {}
@@ -75,7 +75,7 @@ virtual void SampleDataPoint(
     std::vector<double>::iterator& BufferIterator)
 {}
 
-// For higher-order statistics: operate on first order data
+// For higher-order statistics: operate on lower order data
 virtual void SampleDataPoint(
     std::vector<double>::iterator& BufferIterator,
     const StatisticsSampler::IntegrationPointDataView& rCurrentStatistics,
@@ -124,7 +124,7 @@ virtual void OutputResult(
     std::ofstream& rOutStream,
     IntegrationPointDataViewIterator& rDataBuffer,
     std::size_t SampleSize,
-    std::string& rSeparator) const
+    const std::string& rSeparator) const
 {
     for (std::size_t i = 0; i < mNumValues; i++) {
         rOutStream << rSeparator << Finalize(*rDataBuffer, SampleSize);
@@ -132,9 +132,30 @@ virtual void OutputResult(
     }
 }
 
+virtual void OutputHeader(
+    std::ofstream& rOutStream,
+    const std::string& rSeparator) const
+{
+}
+
 virtual double Finalize(double Value, std::size_t SampleSize) const
 {
     return Value / SampleSize;
+}
+
+std::string GetTag(std::size_t ComponentIndex) const
+{
+    KRATOS_DEBUG_ERROR_IF(ComponentIndex >= mNumValues)
+    << "Requesting tag for component " << ComponentIndex
+    << " but only " << mNumValues << " components are stored." << std::endl;
+    return mTags[ComponentIndex];
+}
+
+protected:
+
+void AddTag(std::string Tag)
+{
+    mTags.push_back(Tag);
 }
 
 private:
@@ -142,6 +163,8 @@ private:
 const std::size_t mNumValues;
 
 std::size_t mOffset;
+
+std::vector<std::string> mTags;
 
 friend class Serializer;
 
@@ -160,10 +183,12 @@ class ScalarAverageSampler: public StatisticsSampler
 {
 public:
 
-ScalarAverageSampler(std::function<double(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter):
-  StatisticsSampler(1),
-  mGetter(Getter)
-{}
+ScalarAverageSampler(std::function<double(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter,const std::string& Tag):
+    StatisticsSampler(1),
+    mGetter(Getter)
+{
+    AddTag(Tag);
+}
 
 ~ScalarAverageSampler() override {}
 
@@ -177,6 +202,13 @@ unsigned int GetValueOffset() const override {
     return this->GetOffset();
 }
 
+void OutputHeader(
+    std::ofstream& rOutStream,
+    const std::string& rSeparator) const override
+{
+    rOutStream << "<" << GetTag(0) << ">" << rSeparator;
+}
+
 private:
 
 std::function<double(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> mGetter;
@@ -188,10 +220,15 @@ class VectorAverageSampler: public StatisticsSampler
 {
 public:
 
-VectorAverageSampler(std::function<VectorType(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter, unsigned int VectorSize):
+VectorAverageSampler(std::function<VectorType(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter, unsigned int VectorSize, std::vector<std::string>& Tags):
     StatisticsSampler(VectorSize),
     mGetter(Getter)
-{}
+{
+    for (auto it_tag = Tags.begin(); it_tag != Tags.end(); ++it_tag)
+    {
+        AddTag(*it_tag);
+    }
+}
 
 ~VectorAverageSampler() override {}
 
@@ -200,6 +237,16 @@ void SampleDataPoint(const Geometry< Node<3> >& rGeometry, const Vector& rShapeF
     for (unsigned int i = 0; i < this->GetSize(); i++) {
         *BufferIterator = result[i];
         ++BufferIterator;
+    }
+}
+
+void OutputHeader(
+    std::ofstream& rOutStream,
+    const std::string& rSeparator) const override
+{
+    for (std::size_t i = 0; i < GetSize(); i++)
+    {
+        rOutStream << "<" << GetTag(i) << ">" << rSeparator;
     }
 }
 
@@ -266,6 +313,19 @@ const StatisticsSampler::Pointer GetQuantity2() const
     return mpQuantity2;
 }
 
+void OutputHeader(
+    std::ofstream& rOutStream,
+    const std::string& rSeparator) const override
+{
+    for (std::size_t i = 0; i < mpQuantity1->GetSize(); i++)
+    {
+        for (std::size_t j = 0; j < mpQuantity2->GetSize(); j++)
+        {
+            rOutStream << "<" << mpQuantity1->GetTag(i) << "'" << mpQuantity2->GetTag(j) << "'>" << rSeparator;
+        }
+    }
+}
+
 private:
 
 const StatisticsSampler::Pointer mpQuantity1;
@@ -317,6 +377,20 @@ void SampleDataPoint(
     }
 }
 
+void OutputHeader(
+    std::ofstream& rOutStream,
+    const std::string& rSeparator) const override
+{
+    for (std::size_t i = 0; i < GetQuantity1()->GetSize(); i++)
+    {
+        for (std::size_t j = i; j < GetQuantity1()->GetSize(); j++)
+        {
+            rOutStream << "<" << GetQuantity1()->GetTag(i) << "'" << GetQuantity1()->GetTag(j) << "'>" << rSeparator;
+        }
+    }
+}
+
+
 };
 
 class ComponentwiseVarianceSampler: public VarianceSampler
@@ -350,6 +424,14 @@ void SampleDataPoint(
     double delta_j = (NumberOfMeasurements-1)*new_measurement_j - current_total_j;
     (*BufferIterator) = update_factor * delta_i * delta_j;
     ++BufferIterator;
+}
+
+
+void OutputHeader(
+    std::ofstream& rOutStream,
+    const std::string& rSeparator) const override
+{
+    rOutStream << "<" << GetQuantity1()->GetTag(mComponent1) << "'" << GetQuantity2()->GetTag(mComponent2) << "'>" << rSeparator;
 }
 
 private:
@@ -433,6 +515,16 @@ void SampleDataPoint(
 
     (*BufferIterator) = update;
     ++BufferIterator;
+}
+
+virtual void OutputHeader(
+    std::ofstream& rOutStream,
+    const std::string& rSeparator) const
+{
+    rOutStream << "<"
+    << mpQuantity1->GetTag(mComponent1) << "'"
+    << mpQuantity2->GetTag(mComponent2) << "'"
+    << mpQuantity3->GetTag(mComponent3) << "'>" << rSeparator;
 }
 
 private:

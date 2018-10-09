@@ -111,11 +111,25 @@ void StatisticsRecord::PrintToFile(const ModelPart& rModelPart) const
     std::ofstream stats_file;
     stats_file.open(file_name.str().c_str(), std::ios::out | std::ios::trunc);
 
+    // write header
+    std::string separator(", ");
+    stats_file << "Element Id" << separator << "Integration point" << separator;
+    stats_file << "x" << separator << "y" << separator << "z" << separator;
+    for (auto it_statistic = mAverageData.begin(); it_statistic != mAverageData.end(); ++it_statistic)
+    {
+        it_statistic->OutputHeader(stats_file,separator);
+    }
+    for (auto it_statistic = mHigherOrderData.begin(); it_statistic != mHigherOrderData.end(); ++it_statistic)
+    {
+        it_statistic->OutputHeader(stats_file,separator);
+    }
+    stats_file << "\n";
+
     for (ModelPart::ElementsContainerType::const_iterator it = rModelPart.GetCommunicator().LocalMesh().ElementsBegin();
          it != rModelPart.GetCommunicator().LocalMesh().ElementsEnd(); it++)
     {
         auto &r_elemental_statistics = it->GetValue(TURBULENCE_STATISTICS_DATA);
-        r_elemental_statistics.WriteToCSVOutput(stats_file, *it, mAverageData, mHigherOrderData, mRecordedSteps);
+        r_elemental_statistics.WriteToCSVOutput(stats_file, *it, mAverageData, mHigherOrderData, mRecordedSteps, separator);
     }
 
     stats_file.close();

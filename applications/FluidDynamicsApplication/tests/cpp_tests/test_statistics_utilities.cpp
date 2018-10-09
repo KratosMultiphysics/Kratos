@@ -147,11 +147,14 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
 
     StatisticsRecord::Pointer p_turbulence_statistics = Kratos::make_shared<StatisticsRecord>();
     auto average_pressure_getter = Internals::MakeSamplerAtLocalCoordinate::ValueGetter(PRESSURE);
-    StatisticsSampler::Pointer average_pressure = Kratos::make_shared<ScalarAverageSampler>(average_pressure_getter);
+    StatisticsSampler::Pointer average_pressure = Kratos::make_shared<ScalarAverageSampler>(average_pressure_getter,std::string("p"));
     p_turbulence_statistics->AddResult(average_pressure);
     auto average_velocity_getter = Internals::MakeSamplerAtLocalCoordinate::ValueGetter(VELOCITY);
-    auto average_velocity_sampler = VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3);
-    StatisticsSampler::Pointer average_velocity = StatisticsSampler::Pointer(new VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3));
+    std::vector<std::string> velocity_tags;
+    velocity_tags.push_back(std::string("u"));
+    velocity_tags.push_back(std::string("v"));
+    velocity_tags.push_back(std::string("w"));
+    StatisticsSampler::Pointer average_velocity = StatisticsSampler::Pointer(new VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3,velocity_tags));
     p_turbulence_statistics->AddResult(average_velocity);
 
     p_turbulence_statistics->InitializeStorage(model_part.Elements());
@@ -181,11 +184,14 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesSecondThirdOrder, FluidDynamicsAppli
 
     StatisticsRecord::Pointer p_turbulence_statistics = Kratos::make_shared<StatisticsRecord>();
     auto average_pressure_getter = Internals::MakeSamplerAtLocalCoordinate::ValueGetter(PRESSURE);
-    StatisticsSampler::Pointer average_pressure = Kratos::make_shared<ScalarAverageSampler>(average_pressure_getter);
+    StatisticsSampler::Pointer average_pressure = Kratos::make_shared<ScalarAverageSampler>(average_pressure_getter,std::string("p"));
     p_turbulence_statistics->AddResult(average_pressure);
     auto average_velocity_getter = Internals::MakeSamplerAtLocalCoordinate::ValueGetter(VELOCITY);
-    auto average_velocity_sampler = VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3);
-    StatisticsSampler::Pointer average_velocity = StatisticsSampler::Pointer(new VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3));
+    std::vector<std::string> velocity_tags;
+    velocity_tags.push_back(std::string("u"));
+    velocity_tags.push_back(std::string("v"));
+    velocity_tags.push_back(std::string("w"));
+    StatisticsSampler::Pointer average_velocity = StatisticsSampler::Pointer(new VectorAverageSampler<array_1d<double,3>>(average_velocity_getter,3,velocity_tags));
     p_turbulence_statistics->AddResult(average_velocity);
 
     StatisticsSampler::Pointer pressure_correlation = Kratos::make_shared<VarianceSampler>(average_pressure, average_velocity);

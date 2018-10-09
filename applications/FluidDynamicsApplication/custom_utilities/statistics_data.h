@@ -181,15 +181,14 @@ public:
         const Element& rElement,
         const PointerVector<StatisticsSampler>& rRecordedStatistics,
         const PointerVector<StatisticsSampler>& rHigherOrderStatistics,
-        std::size_t NumberOfMeasurements) const
+        std::size_t NumberOfMeasurements,
+        const std::string& rSeparator) const
     {
         const Geometry<Node<3>> &r_geometry = rElement.GetGeometry();
         const GeometryData::IntegrationMethod integration_method = rElement.GetIntegrationMethod();
         Matrix shape_functions;
         typename Geometry<Node<3>>::ShapeFunctionsGradientsType shape_gradients;
         this->CalculateGeometryData(r_geometry, integration_method, shape_functions, shape_gradients);
-
-        std::string separator(", ");
 
         for (unsigned int g = 0; g < shape_functions.size1(); g++)
         {
@@ -200,17 +199,17 @@ public:
             array_1d<double,3> coordinates(3,0.0);
             for (unsigned int n = 0; n < shape_functions.size2(); n++)
                 coordinates += shape_functions(g,n) * r_geometry[n].Coordinates();
-            rOutputStream << coordinates[0] << separator << coordinates[1] << separator << coordinates[2]; // << ", ";
+            rOutputStream << coordinates[0] << rSeparator << coordinates[1] << rSeparator << coordinates[2]; // << ", ";
 
             auto data_iterator = DataIterator(g).begin();
             for (auto it_sampler = rRecordedStatistics.begin(); it_sampler != rRecordedStatistics.end(); ++it_sampler)
             {
-                it_sampler->OutputResult(rOutputStream,data_iterator,NumberOfMeasurements,separator);
+                it_sampler->OutputResult(rOutputStream,data_iterator,NumberOfMeasurements,rSeparator);
             }
 
             for (auto it_sampler = rHigherOrderStatistics.begin(); it_sampler != rHigherOrderStatistics.end(); ++it_sampler)
             {
-                it_sampler->OutputResult(rOutputStream,data_iterator,NumberOfMeasurements,separator);
+                it_sampler->OutputResult(rOutputStream,data_iterator,NumberOfMeasurements,rSeparator);
             }
 
             rOutputStream << "\n";
