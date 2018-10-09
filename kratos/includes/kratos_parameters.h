@@ -102,7 +102,7 @@ private:
          * @brief Default constructor (just iterator)
          * @param itValue The iterator to adapt
          */
-        iterator_adaptor(const iterator_adaptor& itValue) : mValueIterator(itValue.mValueIterator),  mpParameters(new Parameters(*(itValue.mpParameters))) {}
+        iterator_adaptor(const iterator_adaptor& itValue) : mValueIterator(itValue.mValueIterator),  mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage())) {}
 
         ///@}
         ///@name Operators
@@ -245,7 +245,7 @@ private:
          * @param itValue The iterator to adapt
          * @todo Use copy constructor in the following method
          */
-        const_iterator_adaptor(const const_iterator_adaptor& itValue) : mValueIterator(itValue.mValueIterator), mpParameters(new Parameters(*(itValue.mpParameters))) {}
+        const_iterator_adaptor(const const_iterator_adaptor& itValue) : mValueIterator(itValue.mValueIterator), mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage()))  {}
 
         ///@}
         ///@name Operators
@@ -1452,6 +1452,16 @@ private:
     }
 
     /**
+     * @brief This method is created in order to access from the iterators to the database
+     * @return mpValue The database storage
+     * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
+     */
+    nlohmann::json* GetUnderlyingStorage() const
+    {
+        return mpValue;
+    }
+
+    /**
      * @brief This method is created in order to set the database
      * @param pNewValue The database storage
      * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
@@ -1467,6 +1477,16 @@ private:
      * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
      */
     Kratos::shared_ptr<nlohmann::json> GetUnderlyingRootStorage()
+    {
+        return mpRoot;
+    }
+
+    /**
+     * @brief This method is created in order to access from the iterators to the database
+     * @return mpValue The database storage
+     * @warning Please DO NOT use this method. It is a low level accessor, and may change in the future
+     */
+    Kratos::shared_ptr<nlohmann::json> GetUnderlyingRootStorage() const
     {
         return mpRoot;
     }
