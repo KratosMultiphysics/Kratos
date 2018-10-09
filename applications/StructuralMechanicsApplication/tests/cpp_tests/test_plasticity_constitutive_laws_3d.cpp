@@ -209,8 +209,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
     deformation_gradient(0,0) = 1.0;
     deformation_gradient(1,1) = 1.0;
     deformation_gradient(2,2) = (1.0 - 8.0e-5);
-    deformation_gradient(2,0) = -1.6941e-21;
-    deformation_gradient(0,2) = -1.6941e-21;
+    deformation_gradient(2,0) = 0.5 * -1.6941e-21;
+    deformation_gradient(0,2) = 0.5 * -1.6941e-21;
 
     material_properties.SetValue(YOUNG_MODULUS, 210e9);
     material_properties.SetValue(POISSON_RATIO, 0.22);
