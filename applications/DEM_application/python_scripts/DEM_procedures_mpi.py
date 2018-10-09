@@ -140,7 +140,7 @@ class MultifileList(object):
 
 class DEMIo(DEM_procedures.DEMIo):
 
-    def __init__(self, DEM_parameters, post_path):
+    def __init__(self, model, DEM_parameters, post_path):
         super(DEMIo,self).__init__(DEM_parameters, post_path)
 
     def AddMpiVariables(self):

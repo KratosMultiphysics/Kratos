@@ -1311,12 +1311,12 @@ class MultifileList(object):
 
 class DEMIo(object):
 
-    def __init__(self, DEM_parameters, post_path):
+    def __init__(self, model, DEM_parameters, post_path):
 
         self.post_path = post_path
-        self.mixed_model_part = ModelPart("Mixed_Part")
-        self.mixed_spheres_and_clusters_model_part = ModelPart("MixedSpheresAndClustersPart")
-        self.mixed_spheres_not_in_cluster_and_clusters_model_part = ModelPart("MixedSpheresNotInClusterAndClustersPart")
+        self.mixed_model_part = model.CreateModelPart("Mixed_Part")
+        self.mixed_spheres_and_clusters_model_part = model.CreateModelPart("MixedSpheresAndClustersPart")
+        self.mixed_spheres_not_in_cluster_and_clusters_model_part = model.CreateModelPart("MixedSpheresNotInClusterAndClustersPart")
 
         # Printing variables
         self.DEM_parameters = DEM_parameters
