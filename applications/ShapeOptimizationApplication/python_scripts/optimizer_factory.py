@@ -26,7 +26,19 @@ import algorithm_factory
 # ==============================================================================
 def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyzer()):
 
-    model_part_controller = model_part_controller_factory.CreateController(optimization_settings, model)
+    default_settings = Parameters("""
+    {
+        "model_settings" : { },
+        "objectives" : [ ],
+        "constraints" : [ ],
+        "design_variables" : { },
+        "optimization_algorithm" : { },
+        "output" : { }
+    }""")
+
+    optimization_settings.ValidateAndAssignDefaults(default_settings)
+
+    model_part_controller = model_part_controller_factory.CreateController(optimization_settings["model_settings"], model)
 
     analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer)
 

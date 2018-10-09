@@ -59,11 +59,6 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.GeometryUtilities = GeometryUtilities(self.DesignSurface)
         self.OptimizationUtilities = OptimizationUtilities(self.DesignSurface, OptimizationSettings)
 
-        self.isDampingSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
-        if self.isDampingSpecified:
-            damping_regions = self.ModelPartController.GetDampingRegions()
-            self.DampingUtilities = DampingUtilities(self.DesignSurface, damping_regions, OptimizationSettings)
-
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
         if self.objectives.size() > 1:
@@ -148,9 +143,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         if self.only_con["project_gradient_on_surface_normals"].GetBool():
             self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
 
-        if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(DF1DX)
-            self.DampingUtilities.DampNodalVariable(DC1DX)
+        self.ModelPartController.DampNodalVariable(DF1DX)
+        self.ModelPartController.DampNodalVariable(DC1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
@@ -164,8 +158,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.OptimizationUtilities.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
 
-        if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(SHAPE_UPDATE)
+        self.ModelPartController.DampNodalVariable(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):

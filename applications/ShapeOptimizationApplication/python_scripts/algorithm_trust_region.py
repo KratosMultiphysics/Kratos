@@ -61,11 +61,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.geometry_utilities = GeometryUtilities(self.design_surface)
         self.optimization_utilities = OptimizationUtilities(self.design_surface, optimization_settings)
 
-        self.is_damping_specified = optimization_settings["design_variables"]["damping"]["perform_damping"].GetBool()
-        if self.is_damping_specified:
-            damping_regions = self.model_part_controller.GetDampingRegions()
-            self.damping_utilities = DampingUtilities(self.design_surface, damping_regions, optimization_settings)
-
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
         if self.objectives.size() > 1:
@@ -171,8 +166,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             self.geometry_utilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
 
         # Damping
-        if self.is_damping_specified:
-            self.damping_utilities.DampNodalVariable(nodal_variable)
+        self.model_part_controller.DampNodalVariable(nodal_variable)
 
         # Mapping
         nodal_variable_mapped = KratosGlobals.GetVariable("DF1DX_MAPPED")
@@ -180,8 +174,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
 
         # Damping
-        if self.is_damping_specified:
-            self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
+        self.model_part_controller.DampNodalVariable(nodal_variable_mapped)
 
         # Process constraint gradients
         for itr in range(self.constraints.size()):
@@ -198,8 +191,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
                 self.geometry_utilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
 
             # Damping
-            if self.is_damping_specified:
-                self.damping_utilities.DampNodalVariable(nodal_variable)
+            self.model_part_controller.DampNodalVariable(nodal_variable)
 
             # Mapping
             nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
@@ -207,8 +199,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
 
             # Damping
-            if self.is_damping_specified:
-                self.damping_utilities.DampNodalVariable(nodal_variable_mapped)
+            self.model_part_controller.DampNodalVariable(nodal_variable_mapped)
 
     # --------------------------------------------------------------------------
     def __ConvertAnalysisResultsToLengthDirectionFormat(self):

@@ -57,10 +57,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.GeometryUtilities = GeometryUtilities(self.DesignSurface)
         self.OptimizationUtilities = OptimizationUtilities(self.DesignSurface, OptimizationSettings)
 
-        self.isDampingSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
-        if self.isDampingSpecified:
-            damping_regions = self.ModelPartController.GetDampingRegions()
-            self.DampingUtilities = DampingUtilities(self.DesignSurface, damping_regions, OptimizationSettings)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -134,8 +130,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             self.GeometryUtilities.ComputeUnitSurfaceNormals()
             self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
 
-        if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(DF1DX)
+        self.ModelPartController.DampNodalVariable(DF1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
@@ -144,8 +139,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.OptimizationUtilities.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
 
-        if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(SHAPE_UPDATE)
+        self.ModelPartController.DampNodalVariable(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):
@@ -154,10 +148,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __mapDesignUpdateToGeometrySpace(self):
         self.Mapper.MapToGeometrySpace(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
-
-    # --------------------------------------------------------------------------
-    def __dampShapeUpdate(self):
-        self.DampingUtilities.DampNodalVariable(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
