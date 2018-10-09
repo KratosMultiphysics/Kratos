@@ -987,6 +987,7 @@ public:
      * @param a First resulting vector
      * @param b Second resulting vector
      * @param c The input vector
+     * @note Orthonormal basis taken from: http://orbit.dtu.dk/files/126824972/onb_frisvad_jgt2012_v2.pdf
      */
     template< class T1, class T2 , class T3>
     static inline void OrthonormalBasis(const T1& c,T2& a,T3& b ){
