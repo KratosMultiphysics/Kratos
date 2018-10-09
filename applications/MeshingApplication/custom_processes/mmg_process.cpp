@@ -122,6 +122,7 @@ MmgProcess<TMMGLibray>::MmgProcess(
         "echo_level"                           : 3,
         "debug_result_mesh"                    : false,
         "step_data_size"                       : 0,
+        "initialize_entities"                  : true,
         "remesh_at_non_linear_iteration"       : false,
         "buffer_size"                          : 0
     })" );
@@ -328,8 +329,8 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
         num_array_elements[0] = num_tetra;  // Tetrahedron
         num_array_elements[1] = num_prisms; // Prisms
 
-        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_tetra) < elements_array.size()) && mEchoLevel > 0) <<
-        "Number of Elements: " << elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_tetra << std::endl;
+        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_prisms) < elements_array.size()) && mEchoLevel > 0) <<
+        "Number of Elements: " << elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
 
         /* Conditions */
         std::size_t num_tri = 0, num_quad = 0;
@@ -788,7 +789,8 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
     InterpolateNodalValues.Execute();
 
     /* We initialize elements and conditions */
-    InitializeElementsAndConditions();
+    if (mThisParameters["initialize_entities"].GetBool())
+        InitializeElementsAndConditions();
 
     /* We do some operations related with the Lagrangian framework */
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {

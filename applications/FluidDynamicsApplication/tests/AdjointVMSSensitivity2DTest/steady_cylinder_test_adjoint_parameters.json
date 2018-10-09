@@ -1,10 +1,10 @@
 {
-    "problem_data" : {
-        "problem_name"    : "one_element",
+    "problem_data"                     : {
+        "problem_name"    : "steady_cylinder_test",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
-        "start_step"      : 4.0,
-        "nsteps"          : 3,
+        "start_step"      : 2.0,
+        "nsteps"          : 1,
         "echo_level"      : 0,
         "parallel_type"   : "OpenMP"
     },
@@ -28,35 +28,36 @@
         },
         "point_data_configuration"  : []
     },
-    "solver_settings" : {
-        "solver_type"                   : "Monolithic",
+    "solver_settings"                  : {
+        "solver_type"                  : "Monolithic",
         "scheme_settings" : {
-            "scheme_type"               : "bossak",
-            "alpha_bossak"              :-0.3
+            "scheme_type"              : "steady"
         },
         "response_function_settings" : {
             "response_type"            : "drag",
-            "sensitivity_model_part_name"  : "Boundary",
+            "sensitivity_model_part_name" : "NoSlip2D_Cylinder",
             "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
             "custom_settings" : {
-                "structure_model_part_name" : "Structure",
+                "structure_model_part_name" : "NoSlip2D_Cylinder",
                 "drag_direction"            : [1.0, 0.0, 0.0]
             }
         },
-        "dynamic_tau"                   : 1.0,
-        "oss_switch"                    : 0,
-        "echo_level"                    : 0,
-        "volume_model_part_name"        : "Parts_Fluid",
-        "skin_parts"                    : ["Inlet", "Outlet", "Boundary", "Structure"],
-        "linear_solver_settings" : {
+        "dynamic_tau"                  : 0,
+        "oss_switch"                   : 0,
+        "echo_level"                   : 0,
+        "volume_model_part_name"       : "Parts_Fluid",
+        "skin_parts"                   : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Cylinder","NoSlip2D_Wall"],
+        "linear_solver_settings"       : {
             "solver_type"         : "AMGCL",
-            "verbosity"           : 0
+            "verbosity"           : 0,
+            "coarse_enough"       : 500,
+            "tolerance"           : 1e-7
         },
-        "model_import_settings" : {
+        "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "AdjointVMSSensitivity2DTest/one_element_test"
+            "input_filename" : "AdjointVMSSensitivity2DTest/steady_cylinder_test"
         },
-        "time_stepping"                : {
+        "time_stepping"               : {
             "automatic_time_step" : false,
             "time_step"           : -1.0
         }
@@ -68,17 +69,17 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "Inlet",
+            "model_part_name" : "Inlet2D_Inlet",
             "variable_name"   : "ADJOINT_VELOCITY",
             "value"           : [0.0, 0.0, 0.0]
         }
     },{
         "python_module" : "assign_scalar_variable_process",
-        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "kratos_module" : "KratosMultiphysics",
         "process_name"  : "AssignScalarVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "Outlet",
+            "model_part_name" : "Outlet2D_Outlet",
             "variable_name"   : "ADJOINT_PRESSURE",
             "value"           : 0
         }
@@ -88,7 +89,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "Boundary",
+            "model_part_name" : "NoSlip2D_Cylinder",
             "variable_name"   : "ADJOINT_VELOCITY",
             "value"           : [0.0, 0.0, 0.0]
         }
@@ -98,13 +99,24 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "Outlet",
+            "model_part_name" : "NoSlip2D_Wall",
             "variable_name"   : "ADJOINT_VELOCITY",
-            "constrained"     : [false,true,true],
             "value"           : [0.0, 0.0, 0.0]
         }
     }],
-    "gravity" : [],
+    "gravity"                          : [{
+        "python_module" : "assign_vector_by_direction_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignVectorByDirectionProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Parts_Fluid",
+            "variable_name"   : "BODY_FORCE",
+            "modulus"         : 0.0,
+            "constrained"     : false,
+            "direction"       : [0.0,-1.0,0.0]
+        }
+    }],
     "auxiliar_process_list" :[{
         "kratos_module" : "KratosMultiphysics.HDF5Application",
         "python_module" : "single_mesh_temporal_input_process",
@@ -116,7 +128,7 @@
                 "file_access_mode" : "read_only"
             },
             "nodal_solution_step_data_settings" : {
-                "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+                "list_of_variables": ["VELOCITY", "PRESSURE"]
             }
         }
     }]
