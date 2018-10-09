@@ -229,12 +229,12 @@ void SampleDataPoint(
     {
         double current_total_i = *(rCurrentStatistics.begin() + mpQuantity1->GetComponentOffset(i));
         double new_measurement_i = rNewMeasurement[mpQuantity1->GetComponentOffset(i)];
-        double delta_i = (NumberOfMeasurements-1)*current_total_i - new_measurement_i;
+        double delta_i = (NumberOfMeasurements-1)*new_measurement_i - current_total_i;
         for (std::size_t j = 0; j < mpQuantity2->GetSize(); j++)
         {
             double current_total_j = *(rCurrentStatistics.begin() + mpQuantity2->GetComponentOffset(j));
             double new_measurement_j = rNewMeasurement[mpQuantity2->GetComponentOffset(j)];
-            double delta_j = (NumberOfMeasurements-1)*current_total_j - new_measurement_j;
+            double delta_j = (NumberOfMeasurements-1)*new_measurement_j - current_total_j;
             (*BufferIterator) = update_factor * delta_i * delta_j;
             ++BufferIterator;
         }
@@ -300,12 +300,12 @@ void SampleDataPoint(
     {
         double current_total_i = *(rCurrentStatistics.begin() + GetQuantity1()->GetComponentOffset(i));
         double new_measurement_i = rNewMeasurement[GetQuantity1()->GetComponentOffset(i)];
-        double delta_i = (NumberOfMeasurements-1)*current_total_i - new_measurement_i;
+        double delta_i = (NumberOfMeasurements-1)*new_measurement_i - current_total_i;
         for (std::size_t j = i; j < GetQuantity1()->GetSize(); j++)
         {
             double current_total_j = *(rCurrentStatistics.begin() + GetQuantity1()->GetComponentOffset(j));
             double new_measurement_j = rNewMeasurement[GetQuantity1()->GetComponentOffset(j)];
-            double delta_j = (NumberOfMeasurements-1)*current_total_j - new_measurement_j;
+            double delta_j = (NumberOfMeasurements-1)*new_measurement_j - current_total_j;
             (*BufferIterator) = update_factor * delta_i * delta_j;
             ++BufferIterator;
         }
@@ -338,11 +338,11 @@ void SampleDataPoint(
 
     double current_total_i = *(rCurrentStatistics.begin() + GetQuantity1()->GetComponentOffset(mComponent1));
     double new_measurement_i = rNewMeasurement[GetQuantity1()->GetComponentOffset(mComponent1)];
-    double delta_i = (NumberOfMeasurements-1)*current_total_i - new_measurement_i;
+    double delta_i = (NumberOfMeasurements-1)*new_measurement_i - current_total_i;
 
     double current_total_j = *(rCurrentStatistics.begin() + GetQuantity1()->GetComponentOffset(mComponent2));
     double new_measurement_j = rNewMeasurement[GetQuantity1()->GetComponentOffset(mComponent2)];
-    double delta_j = (NumberOfMeasurements-1)*current_total_j - new_measurement_j;
+    double delta_j = (NumberOfMeasurements-1)*new_measurement_j - current_total_j;
     (*BufferIterator) = update_factor * delta_i * delta_j;
     ++BufferIterator;
 }
@@ -352,6 +352,111 @@ private:
 std::size_t mComponent1;
 
 std::size_t mComponent2;
+
+};
+
+
+class ThirdOrderCorrelationSampler : public StatisticsSampler
+{
+public:
+
+ThirdOrderCorrelationSampler(
+    const StatisticsSampler::Pointer pQuantity1,
+    const std::size_t QuantityComponent1,
+    const StatisticsSampler::Pointer pQuantity2,
+    const std::size_t QuantityComponent2,
+    const StatisticsSampler::Pointer pQuantity3,
+    const std::size_t QuantityComponent3,
+    const StatisticsSampler::Pointer pVariance12,
+    const std::size_t VarianceComponent12,
+    const StatisticsSampler::Pointer pVariance13,
+    const std::size_t VarianceComponent13,
+    const StatisticsSampler::Pointer pVariance23,
+    const std::size_t VarianceComponent23):
+    StatisticsSampler(1),
+    mpQuantity1(pQuantity1),
+    mpQuantity2(pQuantity2),
+    mpQuantity3(pQuantity3),
+    mComponent1(QuantityComponent1),
+    mComponent2(QuantityComponent2),
+    mComponent3(QuantityComponent3),
+    mpVariance12(pVariance12),
+    mpVariance13(pVariance13),
+    mpVariance23(pVariance23),
+    mVarianceComponent12(VarianceComponent12),
+    mVarianceComponent13(VarianceComponent13),
+    mVarianceComponent23(VarianceComponent23)
+{}
+
+void SampleDataPoint(
+    std::vector<double>::iterator& BufferIterator,
+    const StatisticsSampler::IntegrationPointDataView& rCurrentStatistics,
+    const std::vector<double>& rNewMeasurement,
+    const std::size_t NumberOfMeasurements) override
+{
+    const double update_factor_1 = 1.0 / ((NumberOfMeasurements-1)*NumberOfMeasurements);
+    const double update_factor_2 = (NumberOfMeasurements-2)*update_factor_1*update_factor_1;
+
+    const std::size_t value_1_offset = mpQuantity1->GetComponentOffset(mComponent1);
+    const std::size_t value_2_offset = mpQuantity2->GetComponentOffset(mComponent2);
+    const std::size_t value_3_offset = mpQuantity3->GetComponentOffset(mComponent3);
+
+    const std::size_t variance_12_offset = mpVariance12->GetComponentOffset(mVarianceComponent12);
+    const std::size_t variance_13_offset = mpVariance13->GetComponentOffset(mVarianceComponent13);
+    const std::size_t variance_23_offset = mpVariance23->GetComponentOffset(mVarianceComponent23);
+
+    double current_total_1 = *(rCurrentStatistics.begin() + value_1_offset);
+    double new_measurement_1 = rNewMeasurement[value_1_offset];
+    double delta_1 = (NumberOfMeasurements-1)*new_measurement_1 - current_total_1;
+
+    double current_total_2 = *(rCurrentStatistics.begin() + value_2_offset);
+    double new_measurement_2 = rNewMeasurement[value_2_offset];
+    double delta_2 = (NumberOfMeasurements-1)*new_measurement_2 - current_total_2;
+
+    double current_total_3 = *(rCurrentStatistics.begin() + value_3_offset);
+    double new_measurement_3 = rNewMeasurement[value_3_offset];
+    double delta_3 = (NumberOfMeasurements-1)*new_measurement_3 - current_total_3;
+
+    double current_variance_12 = *(rCurrentStatistics.begin() + variance_12_offset);
+    double current_variance_13 = *(rCurrentStatistics.begin() + variance_13_offset);
+    double current_variance_23 = *(rCurrentStatistics.begin() + variance_23_offset);
+
+    double update = update_factor_2 * delta_1 * delta_2 * delta_3;
+    update -= update_factor_1 * current_variance_12 * delta_3;
+    update -= update_factor_1 * current_variance_13 * delta_2;
+    update -= update_factor_1 * current_variance_23 * delta_1;
+
+    (*BufferIterator) = update;
+    ++BufferIterator;
+}
+
+private:
+
+const StatisticsSampler::Pointer mpQuantity1;
+
+const StatisticsSampler::Pointer mpQuantity2;
+
+const StatisticsSampler::Pointer mpQuantity3;
+
+const std::size_t mComponent1;
+
+const std::size_t mComponent2;
+
+const std::size_t mComponent3;
+
+
+const StatisticsSampler::Pointer mpVariance12;
+
+const StatisticsSampler::Pointer mpVariance13;
+
+const StatisticsSampler::Pointer mpVariance23;
+
+const std::size_t mVarianceComponent12;
+
+const std::size_t mVarianceComponent13;
+
+const std::size_t mVarianceComponent23;
+
 
 };
 
