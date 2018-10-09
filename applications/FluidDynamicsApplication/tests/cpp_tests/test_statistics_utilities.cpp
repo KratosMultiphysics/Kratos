@@ -194,6 +194,9 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesVariance, FluidDynamicsApplicationFa
     StatisticsSampler::Pointer reynolds_stresses = Kratos::make_shared<SymmetricVarianceSampler>(average_velocity);
     p_turbulence_statistics->AddHigherOrderStatistic(reynolds_stresses);
 
+    StatisticsSampler::Pointer componentwise_correlation = Kratos::make_shared<ComponentwiseVarianceSampler>(average_velocity,0,average_velocity,2);
+    p_turbulence_statistics->AddHigherOrderStatistic(componentwise_correlation);
+
     p_turbulence_statistics->InitializeStorage(model_part.Elements());
     model_part.GetProcessInfo().SetValue(STATISTICS_CONTAINER,p_turbulence_statistics);
 
@@ -216,14 +219,14 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesVariance, FluidDynamicsApplicationFa
 
     p_turbulence_statistics->SampleIntegrationPointResults(model_part);
 
-    p_turbulence_statistics->PrintToFile(model_part);
+    //p_turbulence_statistics->PrintToFile(model_part);
 
     std::vector<double> expected_output{
-    //  p   u  v  w   pu  pv pw   uu  uv uw   vv vw  ww
-        10.,1.,2.,3., -5.,0.,10., 0.5,0.,-1., 0.,0., 2.,
-        10.,1.,2.,3., -5.,0.,10., 0.5,0.,-1., 0.,0., 2.,
-        10.,1.,2.,3., -5.,0.,10., 0.5,0.,-1., 0.,0., 2.,
-        10.,1.,2.,3., -5.,0.,10., 0.5,0.,-1., 0.,0., 2.};
+    //  p   u  v  w   pu  pv pw   uu  uv uw   vv vw  ww uw (componentwise)
+        10.,1.,2.,3., -5.,0.,10., 0.5,0.,-1., 0.,0., 2.,-1.,
+        10.,1.,2.,3., -5.,0.,10., 0.5,0.,-1., 0.,0., 2.,-1.,
+        10.,1.,2.,3., -5.,0.,10., 0.5,0.,-1., 0.,0., 2.,-1.,
+        10.,1.,2.,3., -5.,0.,10., 0.5,0.,-1., 0.,0., 2.,-1.};
     std::vector<double> obtained_output = p_turbulence_statistics->OutputForTest(model_part.Elements());
 
     std::cout << "Expected size " << expected_output.size() << " obtained size " << obtained_output.size() << std::endl;
@@ -231,7 +234,7 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesVariance, FluidDynamicsApplicationFa
 
     for (unsigned int i = 0; i < expected_output.size(); i++)
     {
-        std::cout << "i: " << i << " expected " << expected_output[i] << " obtained " << obtained_output[i] << std::endl;
+        //std::cout << "i: " << i << " expected " << expected_output[i] << " obtained " << obtained_output[i] << std::endl;
         KRATOS_CHECK_NEAR(expected_output[i],obtained_output[i], 1e-12);
     }
 }

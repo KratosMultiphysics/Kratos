@@ -55,6 +55,8 @@ class StatisticsSampler
 {
 public:
 
+KRATOS_CLASS_POINTER_DEFINITION(StatisticsSampler);
+
 typedef Matrix::iterator1 IntegrationPointDataView;
 typedef Matrix::const_iterator2 IntegrationPointDataViewIterator;
 
@@ -62,8 +64,6 @@ StatisticsSampler(unsigned int NumValues, unsigned int Offset = 0):
     mNumValues(NumValues),
     mOffset(Offset)
 {}
-
-KRATOS_CLASS_POINTER_DEFINITION(StatisticsSampler);
 
 virtual ~StatisticsSampler() {}
 
@@ -92,7 +92,7 @@ virtual unsigned int GetValueOffset() const
     KRATOS_ERROR << "Method not implemented" << std::endl;
 }
 
-virtual unsigned int GetComponentOffset(unsigned int i) const
+virtual unsigned int GetComponentOffset(std::size_t i) const
 {
     KRATOS_DEBUG_ERROR_IF(i >= mNumValues)
     << "Trying to access component index " << i << ", but only "
@@ -101,12 +101,17 @@ virtual unsigned int GetComponentOffset(unsigned int i) const
     return mOffset + i;
 }
 
-virtual unsigned int GetComponentOffset(unsigned int i, unsigned int j) const
+virtual std::size_t GetComponentOffset(std::size_t i, std::size_t j) const
 {
     KRATOS_ERROR << "Method not implemented" << std::endl;
 }
 
-unsigned int GetOffset() const
+virtual std::size_t ComponentIndex(std::size_t i, std::size_t j) const
+{
+    return i*mNumValues + j;
+}
+
+std::size_t GetOffset() const
 {
     return mOffset;
 }
@@ -134,9 +139,9 @@ virtual double Finalize(double Value, std::size_t SampleSize) const
 
 private:
 
-unsigned int mNumValues;
+const std::size_t mNumValues;
 
-unsigned int mOffset;
+std::size_t mOffset;
 
 friend class Serializer;
 
@@ -237,7 +242,6 @@ void SampleDataPoint(
 
 }
 
-
 // Override the Finalize method to implement the unbiased variance (divide by n-1)
 double Finalize(double Value, std::size_t SampleSize) const override
 {
@@ -273,6 +277,18 @@ SymmetricVarianceSampler(const StatisticsSampler::Pointer pQuantity1):
     VarianceSampler(pQuantity1, pQuantity1, ((pQuantity1->GetSize()+1) * pQuantity1->GetSize()) / 2)
 {}
 
+std::size_t ComponentIndex(std::size_t i, std::size_t j) const override
+{
+    if (i <= j)
+    {
+        return i*this->GetSize() - (i*(i+1))/2 + j;
+    }
+    else
+    {
+        return j*this->GetSize() - (j*(j+1))/2 + i;
+    }
+}
+
 void SampleDataPoint(
     std::vector<double>::iterator& BufferIterator,
     const StatisticsSampler::IntegrationPointDataView& rCurrentStatistics,
@@ -294,8 +310,48 @@ void SampleDataPoint(
             ++BufferIterator;
         }
     }
-
 }
+
+};
+
+class ComponentwiseVarianceSampler: public VarianceSampler
+{
+public:
+
+ComponentwiseVarianceSampler(
+    const StatisticsSampler::Pointer pQuantity1,
+    std::size_t ComponentIndex1,
+    const StatisticsSampler::Pointer pQuantity2,
+    std::size_t ComponentIndex2)
+    : VarianceSampler(pQuantity1,pQuantity2,1)
+    , mComponent1(ComponentIndex1)
+    , mComponent2(ComponentIndex2)
+{}
+
+void SampleDataPoint(
+    std::vector<double>::iterator& BufferIterator,
+    const StatisticsSampler::IntegrationPointDataView& rCurrentStatistics,
+    const std::vector<double>& rNewMeasurement,
+    const std::size_t NumberOfMeasurements) override
+{
+    const double update_factor = 1.0 / ((NumberOfMeasurements-1)*NumberOfMeasurements);
+
+    double current_total_i = *(rCurrentStatistics.begin() + GetQuantity1()->GetComponentOffset(mComponent1));
+    double new_measurement_i = rNewMeasurement[GetQuantity1()->GetComponentOffset(mComponent1)];
+    double delta_i = (NumberOfMeasurements-1)*current_total_i - new_measurement_i;
+
+    double current_total_j = *(rCurrentStatistics.begin() + GetQuantity1()->GetComponentOffset(mComponent2));
+    double new_measurement_j = rNewMeasurement[GetQuantity1()->GetComponentOffset(mComponent2)];
+    double delta_j = (NumberOfMeasurements-1)*current_total_j - new_measurement_j;
+    (*BufferIterator) = update_factor * delta_i * delta_j;
+    ++BufferIterator;
+}
+
+private:
+
+std::size_t mComponent1;
+
+std::size_t mComponent2;
 
 };
 
