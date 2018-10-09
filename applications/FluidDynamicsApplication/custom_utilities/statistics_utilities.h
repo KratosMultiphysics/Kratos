@@ -256,9 +256,14 @@ VarianceSampler(const StatisticsSampler::Pointer pQuantity1, const StatisticsSam
     mpQuantity2(pQuantity2)
 {}
 
-StatisticsSampler::Pointer GetQuantity1()
+const StatisticsSampler::Pointer GetQuantity1() const
 {
     return mpQuantity1;
+}
+
+const StatisticsSampler::Pointer GetQuantity2() const
+{
+    return mpQuantity2;
 }
 
 private:
@@ -340,8 +345,8 @@ void SampleDataPoint(
     double new_measurement_i = rNewMeasurement[GetQuantity1()->GetComponentOffset(mComponent1)];
     double delta_i = (NumberOfMeasurements-1)*new_measurement_i - current_total_i;
 
-    double current_total_j = *(rCurrentStatistics.begin() + GetQuantity1()->GetComponentOffset(mComponent2));
-    double new_measurement_j = rNewMeasurement[GetQuantity1()->GetComponentOffset(mComponent2)];
+    double current_total_j = *(rCurrentStatistics.begin() + GetQuantity2()->GetComponentOffset(mComponent2));
+    double new_measurement_j = rNewMeasurement[GetQuantity2()->GetComponentOffset(mComponent2)];
     double delta_j = (NumberOfMeasurements-1)*new_measurement_j - current_total_j;
     (*BufferIterator) = update_factor * delta_i * delta_j;
     ++BufferIterator;
