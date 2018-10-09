@@ -588,6 +588,8 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
         cross_p_ij_tensor = 0.5 * (outer_prod(eigen_vectors_container[i], eigen_vectors_container[j]) +
                                    outer_prod(eigen_vectors_container[j], eigen_vectors_container[i]));
         cross_p_ij_vector = MathUtils<double>::StressTensorToVector(cross_p_ij_tensor);
+        rProjectionOperatorTensor += (h_i + h_j) * (outer_prod(cross_p_ij_vector, cross_p_ij_vector));
+
         h_i = 0.0;
         h_j = 0.0;
     }
