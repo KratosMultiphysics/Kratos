@@ -233,7 +233,7 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesSecondThirdOrder, FluidDynamicsAppli
 
     p_turbulence_statistics->SampleIntegrationPointResults(model_part);
 
-    p_turbulence_statistics->PrintToFile(model_part);
+    //p_turbulence_statistics->PrintToFile(model_part);
 
     std::vector<double> expected_output{
     //  p   u  v  w   pu    pv pw   uu  uv  uw    vv vw  ww  pu(cw) uwp
@@ -248,7 +248,7 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesSecondThirdOrder, FluidDynamicsAppli
 
     for (unsigned int i = 0; i < expected_output.size(); i++)
     {
-        std::cout << "i: " << i << " expected " << expected_output[i] << " obtained " << obtained_output[i] << std::endl;
+        //std::cout << "i: " << i << " expected " << expected_output[i] << " obtained " << obtained_output[i] << std::endl;
         KRATOS_CHECK_NEAR(expected_output[i],obtained_output[i], 1e-12);
     }
 }
