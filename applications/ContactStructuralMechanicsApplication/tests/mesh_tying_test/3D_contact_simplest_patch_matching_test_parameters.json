@@ -40,44 +40,60 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["Tying_Part","Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2"]
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,-0.02],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [],
+        "contact_process_list" :[{
+            "python_module"   : "mesh_tying_process",
+            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "help"                  : "",
+            "process_name"          : "MeshTyingProcess",
+            "Parameters"            : {
+                "model_part_name"             : "Structure",
+                "assume_master_slave"         : {"0":["Parts_Parts_Auto2"]},
+                "mesh_tying_model_part"       : {"0":["Tying_Part"]}
+            }
         }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,-0.02],
-            "interval"        : [0.0,"End"]
+        ],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["DISPLACEMENT_Y"],
+                "input_file_name"      : "mesh_tying_test/3D_contact_simplest_patch_matching_test_results.json",
+                "model_part_name"      : "Tying_Part",
+                "time_frequency"       : 1.0
+            }
         }
-    }],
-    "loads_process_list"       : [],
-    "contact_process_list" :[{
-        "python_module"   : "mesh_tying_process",
-        "kratos_module" : "ContactStructuralMechanicsApplication",
-        "help"                  : "",
-        "process_name"          : "MeshTyingProcess",
-        "Parameters"            : {
-            "model_part_name"             : "Structure",
-            "assume_master_slave"         : {"0":["Parts_Parts_Auto2"]},
-            "mesh_tying_model_part"       : {"0":["Tying_Part"]}
-        }
-    }
-    ],
+        ]
+    },
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -99,20 +115,6 @@
         },
         "point_data_configuration"  : []
     },
-    "json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_Y"],
-            "input_file_name"      : "mesh_tying_test/3D_contact_simplest_patch_matching_test_results.json",
-            "model_part_name"      : "Tying_Part",
-            "time_frequency"       : 1.0
-        }
-    }
-    ],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",

@@ -52,8 +52,8 @@ class ContactStructuralMechanicsTestFactory(KratosUnittest.TestCase):
                     ProjectParameters["output_configuration"]["result_file_configuration"].RemoveValue("nodal_results")
                     ProjectParameters["output_configuration"]["result_file_configuration"].AddValue("nodal_results", new_list)
                 ProjectParameters["solver_settings"]["contact_settings"]["mortar_type"].SetString("ALMContactFrictionlessComponents")
-                for i in range(ProjectParameters["contact_process_list"].size()):
-                    ProjectParameters["contact_process_list"][i]["Parameters"]["contact_type"].SetString("FrictionlessComponents")
+                for i in range(ProjectParameters["processes"]["contact_process_list"].size()):
+                    ProjectParameters["processes"]["contact_process_list"][i]["Parameters"]["contact_type"].SetString("FrictionlessComponents")
 
             # To avoid many prints
             echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()

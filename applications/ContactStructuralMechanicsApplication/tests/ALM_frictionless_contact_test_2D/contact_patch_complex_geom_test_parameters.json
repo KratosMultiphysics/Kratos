@@ -36,74 +36,76 @@
             "solver_type" : "SkylineLUFactorizationSolver"
         }
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,null,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes all the components of a given vector variable",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "SelfWeight2D_Self_weight_Auto1",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "modulus"         : 9.81,
+                "direction"       : [0.0,-1.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "contact_process_list" :[
+        {
+            "python_module" : "alm_contact_process",
+            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "help"          : "This process computes the contact between different surfaces",
+            "process_name"  : "ALMContactProcess",
+            "Parameters"    : {
+                "model_part_name"             : "Structure",
+                "assume_master_slave"         : { "0" : ["Parts_Parts_Auto1"]},
+                "contact_model_part"          : { "0" : ["CONTACT_Contact_Auto1"]},
+                "contact_type"                : "Frictionless"
+            }
         }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,null,0.0],
-            "interval"        : [0.0,"End"]
+        ],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["DISPLACEMENT_Y"],
+                "input_file_name"      : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_test_results.json",
+                "model_part_name"      : "CONTACT_Contact_Auto1",
+                "time_frequency"       : 0.5
+            }
         }
-    }],
-    "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes all the components of a given vector variable",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignVectorByDirectionProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "SelfWeight2D_Self_weight_Auto1",
-            "variable_name"   : "VOLUME_ACCELERATION",
-            "modulus"         : 9.81,
-            "direction"       : [0.0,-1.0,0.0],
-            "interval"        : [0.0,"End"]
-        }
-    }],
-    "contact_process_list" :[
-    {
-        "python_module" : "alm_contact_process",
-        "kratos_module" : "ContactStructuralMechanicsApplication",
-        "help"          : "This process computes the contact between different surfaces",
-        "process_name"  : "ALMContactProcess",
-        "Parameters"    : {
-            "model_part_name"             : "Structure",
-            "assume_master_slave"         : { "0" : ["Parts_Parts_Auto1"]},
-            "contact_model_part"          : { "0" : ["CONTACT_Contact_Auto1"]},
-            "contact_type"                : "Frictionless"
-        }
-    }
-    ],
-    "json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_Y"],
-            "input_file_name"      : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_test_results.json",
-            "model_part_name"      : "CONTACT_Contact_Auto1",
-            "time_frequency"       : 0.5
-        }
-    }
-    ],
+        ]
+    },
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",

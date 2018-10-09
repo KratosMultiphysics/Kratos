@@ -41,42 +41,58 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","DISPLACEMENT_Displacement_Auto3"],
         "rotation_dofs"                      : false
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "Parameters"    : {
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,true],
-            "value"           : [0.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,-0.1],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [],
+        "contact_process_list" :[{
+            "python_module"   : "alm_contact_process",
+            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "help"                  : "",
+            "process_name"          : "ALMContactProcess",
+            "Parameters"            : {
+                "model_part_name"             : "Structure",
+                "contact_type"                : "Frictionless",
+                "assume_master_slave"         : {"0":["Parts_Parts_Auto2"]},
+                "contact_model_part"          : {"0":["DISPLACEMENT_Displacement_Auto3"]}
+            }
         }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "Parameters"    : {
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,true],
-            "value"           : [0.0,0.0,-0.1],
-            "interval"        : [0.0,"End"]
+        ],
+        "list_other_processes"     : [],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["DISPLACEMENT_Z"],
+                "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_triquad_test_results.json",
+                "model_part_name"      : "DISPLACEMENT_Displacement_Auto3",
+                "time_frequency"       : 1.0
+            }
         }
-    }],
-    "loads_process_list"       : [],
-    "contact_process_list" :[{
-        "python_module"   : "alm_contact_process",
-        "kratos_module" : "ContactStructuralMechanicsApplication",
-        "help"                  : "",
-        "process_name"          : "ALMContactProcess",
-        "Parameters"            : {
-            "model_part_name"             : "Structure",
-            "contact_type"                : "Frictionless",
-            "assume_master_slave"         : {"0":["Parts_Parts_Auto2"]},
-            "contact_model_part"          : {"0":["DISPLACEMENT_Displacement_Auto3"]}
-        }
-    }
-    ],
-    "list_other_processes"     : [],
+        ]
+    },
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -98,20 +114,6 @@
         },
         "point_data_configuration"  : []
     },
-    "json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_Z"],
-            "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_triquad_test_results.json",
-            "model_part_name"      : "DISPLACEMENT_Displacement_Auto3",
-            "time_frequency"       : 1.0
-        }
-    }
-    ],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",
