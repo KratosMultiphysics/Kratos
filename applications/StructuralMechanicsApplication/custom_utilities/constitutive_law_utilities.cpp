@@ -33,6 +33,9 @@ void ConstitutiveLawUtilities<6>::CalculateI1Invariant(
         rI1 += rStressVector[i];
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<3>::CalculateI1Invariant(
     const BoundedVectorType& rStressVector,
@@ -65,6 +68,7 @@ void ConstitutiveLawUtilities<3>::CalculateI2Invariant(
 {
     rI2 = rStressVector[0] * rStressVector[1] - std::pow(rStressVector[2], 2);
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -78,6 +82,9 @@ void ConstitutiveLawUtilities<6>::CalculateI3Invariant(
             rStressVector[1] * rStressVector[5] * rStressVector[5] - rStressVector[2] * rStressVector[3] * rStressVector[3] +
             2.0 * rStressVector[3] * rStressVector[4] * rStressVector[5];
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<>
 void ConstitutiveLawUtilities<3>::CalculateI3Invariant(
@@ -111,6 +118,9 @@ void ConstitutiveLawUtilities<6>::CalculateJ2Invariant(
         rJ2 += std::pow(rDeviator[i], 2);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<3>::CalculateJ2Invariant(
     const BoundedVectorType& rStressVector,
@@ -143,6 +153,9 @@ void ConstitutiveLawUtilities<6>::CalculateJ3Invariant(
             rDeviator[5] * (rDeviator[3] * rDeviator[4] - rDeviator[5] * rDeviator[1]);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<3>::CalculateJ3Invariant(
     const BoundedVectorType& rDeviator,
@@ -151,6 +164,7 @@ void ConstitutiveLawUtilities<3>::CalculateJ3Invariant(
 {
     rJ3 = rDeviator[0] * rDeviator[1] - std::pow(rDeviator[2], 2);
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -183,6 +197,9 @@ void ConstitutiveLawUtilities<6>::CalculateSecondVector(
         rSecondVector[i] *= 2.0;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<3>::CalculateSecondVector(
     const BoundedVectorType& rDeviator,
@@ -198,6 +215,7 @@ void ConstitutiveLawUtilities<3>::CalculateSecondVector(
     }
     rSecondVector[3] *= 2.0;
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -221,6 +239,9 @@ void ConstitutiveLawUtilities<6>::CalculateThirdVector(
     rThirdVector[5] = 2.0 * (rDeviator[5] * rDeviator[3] - rDeviator[0] * rDeviator[4]);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<3>::CalculateThirdVector(
     const BoundedVectorType& rDeviator,
@@ -238,6 +259,7 @@ void ConstitutiveLawUtilities<3>::CalculateThirdVector(
     rThirdVector[2] = rDeviator[0] * rDeviator[1] - std::pow(rDeviator[3], 2) + J2thirds;
 	rThirdVector[3] = -2.0 * rDeviator[3] * rDeviator[2];
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -465,6 +487,9 @@ void ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
     array_1d<double, Dimension>& rPrincipalStressVector,
@@ -482,6 +507,7 @@ void ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
         std::sqrt(std::pow(0.5 * (rStressVector[0] - rStressVector[1]), 2)  +
         std::pow(rStressVector[2], 2));
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -595,6 +621,9 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
     const Vector& rStrainVector,
@@ -682,6 +711,9 @@ void ConstitutiveLawUtilities<6>::SpectralDecomposition(
     }
     rStressVectorCompression = rStressVector - rStressVectorTension;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<>
 void ConstitutiveLawUtilities<3>::SpectralDecomposition(
