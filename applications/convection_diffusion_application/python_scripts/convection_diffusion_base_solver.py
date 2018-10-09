@@ -59,7 +59,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
-            "computing_model_part_name" : "thermal_computing_domain",
+            "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{
                 "materials_filename": ""
             },
@@ -77,9 +77,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                 "specific_heat_variable"        : "SPECIFIC_HEAT",
                 "reaction_variable"             : "REACTION_FLUX"
             },
-            "time_stepping" : {
-                "time_step": 1.0
-            },
+            "time_stepping" : { },
             "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
@@ -164,11 +162,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
 
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Construction finished")
 
-    def AddVariables(self, target_model_part=None):
-
-        if target_model_part == None:
-            target_model_part = self.main_model_part
-
+    def AddVariables(self):
         ''' Add nodal solution step variables based on provided CONVECTION_DIFFUSION_SETTINGS
         '''
         convention_diffusion_settings = KratosMultiphysics.ConvectionDiffusionSettings()
@@ -209,41 +203,41 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         if (reaction_variable is not ""):
             convention_diffusion_settings.SetReactionVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable))
             
-        target_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convention_diffusion_settings)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convention_diffusion_settings)
         
-        if target_model_part.ProcessInfo.Has(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS):
+        if self.main_model_part.ProcessInfo.Has(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS):
             if convention_diffusion_settings.IsDefinedDensityVariable():
-                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetDensityVariable())
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetDensityVariable())
             if convention_diffusion_settings.IsDefinedDiffusionVariable():
-                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetDiffusionVariable())
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetDiffusionVariable())
             if convention_diffusion_settings.IsDefinedUnknownVariable():
-                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetUnknownVariable())
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetUnknownVariable())
             if convention_diffusion_settings.IsDefinedVolumeSourceVariable():
-                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetVolumeSourceVariable())
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetVolumeSourceVariable())
             if convention_diffusion_settings.IsDefinedSurfaceSourceVariable():
-                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetSurfaceSourceVariable())
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetSurfaceSourceVariable())
             if convention_diffusion_settings.IsDefinedProjectionVariable():
-                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetProjectionVariable())
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetProjectionVariable())
             if convention_diffusion_settings.IsDefinedConvectionVariable():
-                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetConvectionVariable())
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetConvectionVariable())
             if convention_diffusion_settings.IsDefinedMeshVelocityVariable():
-                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetMeshVelocityVariable())
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetMeshVelocityVariable())
             if convention_diffusion_settings.IsDefinedTransferCoefficientVariable():
-                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetTransferCoefficientVariable())
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetTransferCoefficientVariable())
             if convention_diffusion_settings.IsDefinedVelocityVariable():
-                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetVelocityVariable())
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetVelocityVariable())
             if convention_diffusion_settings.IsDefinedSpecificHeatVariable():
-                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetSpecificHeatVariable())
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetSpecificHeatVariable())
             if convention_diffusion_settings.IsDefinedReactionVariable():
-                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetReactionVariable())
+                self.main_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetReactionVariable())
         else:
-            raise Exception("The provided target_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
+            raise Exception("The provided main_model_part does not have CONVECTION_DIFFUSION_SETTINGS defined.")
         
         # Adding nodal area variable (some solvers use it. TODO: Ask)
-        #target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         # If LaplacianElement is used
         if (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
-            target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Variables ADDED")
 
@@ -394,6 +388,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             
             # We set the properties that are nodal
             self._assign_nodally_properties()
+            
             materials_imported = True
         else:
             materials_imported = False
