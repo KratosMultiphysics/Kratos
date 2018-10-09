@@ -8,17 +8,12 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
-#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
-
 #include "custom_constitutive/non_linear_hencky_plastic_U_P_3D_law.hpp"
-#include "utilities/math_utils.h"
+
 #include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos
@@ -54,7 +49,7 @@ ConstitutiveLaw::Pointer NonLinearHenckyElasticPlasticUP3DLaw::Clone() const
     NonLinearHenckyElasticPlasticUP3DLaw::Pointer p_clone(new NonLinearHenckyElasticPlasticUP3DLaw(*this));
     return p_clone;
 }
- 
+
 NonLinearHenckyElasticPlasticUP3DLaw::~NonLinearHenckyElasticPlasticUP3DLaw()
 {
 }
@@ -68,9 +63,9 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CorrectDomainPressure(Matrix& rStress
     double MeanPressure = 0.0;
     for (unsigned int i = 0; i < 3; ++i)
         MeanPressure += rStressMatrix(i,i);
- 
+
     MeanPressure /=3.0;
-    //if ( fabs(MeanPressure) > 1.0E-4) 
+    //if ( fabs(MeanPressure) > 1.0E-4)
     //   std::cout << " UNCORRECTED PRESSURE " << MeanPressure << std::endl;
 
     for (unsigned int i = 0; i < 3; ++i)
@@ -79,9 +74,9 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CorrectDomainPressure(Matrix& rStress
 
     double Pressure = 0;
     GetDomainPressure( Pressure, rElasticVariables);
-   
+
     for (unsigned int i = 0; i < 3; ++i)
-        rStressMatrix(i,i) += Pressure * rElasticVariables.DeterminantF; 
+        rStressMatrix(i,i) += Pressure * rElasticVariables.DeterminantF;
 
     //std::cout << " THIS DET " << rElasticVariables.DeterminantF << std::endl;
 }
@@ -134,22 +129,22 @@ void NonLinearHenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( 
      double Pressure;
      //GetDomainPressure( Pressure, rElasticVariables);
      GetDomainPressure( Pressure, rElasticVariables);
-     
+
      Pressure *= rElasticVariables.DeterminantF;
 
 
      Matrix DeviatoricTensor = ZeroMatrix(6,6);
      for (unsigned int i = 0; i < 6; i++)
         DeviatoricTensor(i,i) = 1.0;
-     
+
      for (unsigned int i = 0; i < 3; i++) {
         for (unsigned int j = 0; j < 3; j++) {
            DeviatoricTensor(i,j) = -1.0/3.0;
         }
      }
-     
+
      //rElastoPlasticTangentMatrix = prod( DeviatoricTensor, rElastoPlasticTangentMatrix);
-      
+
 
      Matrix FourthOrderIdentity = ZeroMatrix(6,6);
      for (unsigned int i = 0; i<3; ++i)
@@ -244,7 +239,7 @@ void NonLinearHenckyElasticPlasticUP3DLaw::GetLawFeatures(Features& rFeatures)
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
+
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
 
@@ -292,7 +287,7 @@ void NonLinearHenckyElasticPlasticUP3DLaw::SetValue( const Variable<Vector>& rTh
          ThisVector(i) -= MeanStress;
 
       NonLinearHenckyElasticPlastic3DLaw::SetValue( rThisVariable, ThisVector, rCurrentProcessInfo);
-     
+
    }
    else {
       NonLinearHenckyElasticPlastic3DLaw::SetValue( rThisVariable, rValue, rCurrentProcessInfo);
@@ -303,4 +298,3 @@ void NonLinearHenckyElasticPlasticUP3DLaw::SetValue( const Variable<Vector>& rTh
 
 
 } //end namespace kratos
-

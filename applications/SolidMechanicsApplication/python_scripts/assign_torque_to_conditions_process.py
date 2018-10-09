@@ -58,7 +58,7 @@ class AssignModulusAndDirectionToConditionsProcess(BaseProcess.AssignModulusAndD
 
         # set model part
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
+        if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         # set processes

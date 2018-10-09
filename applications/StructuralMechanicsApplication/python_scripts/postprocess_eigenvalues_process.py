@@ -24,7 +24,7 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process):
                 "help"                         :"This process can be used in order to generate a postprocess files for eigenvalues problems. It uses the C++ class PostprocessEigenvaluesProcess",
                 "result_file_name"             : "Structure",
                 "result_file_format_use_ascii" : false,
-                "computing_model_part_name"    : "computing_domain",
+                "computing_model_part_name"    : "Structure.computing_domain",
                 "animation_steps"              :  20,
                 "list_of_result_variables"     : ["DISPLACEMENT"],
                 "label_type"                   : "frequency"

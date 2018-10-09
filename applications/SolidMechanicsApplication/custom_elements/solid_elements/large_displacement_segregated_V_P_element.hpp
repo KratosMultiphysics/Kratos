@@ -266,7 +266,6 @@ protected:
      */
     virtual void SetProcessInformation(const ProcessInfo& rCurrentProcessInfo);
 
-
     /**
      * Calculation and addition of the matrices of the LHS
      */
@@ -288,7 +287,6 @@ protected:
     virtual void CalculateAndAddKpp(MatrixType& rLeftHandSideMatrix,
                                     ElementDataType& rVariables);
 
-
     /**
      * Calculation of the Pressure Vector.
      */
@@ -298,8 +296,7 @@ protected:
     /**
      * Get element size from the dofs
      */
-    unsigned int GetDofsSize() override;
-
+    SizeType GetDofsSize() override;
 
     ///@}
     ///@name Protected  Access
@@ -339,7 +336,6 @@ private:
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
-
 
     ///@name Private Inquiry
     ///@{

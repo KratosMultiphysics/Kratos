@@ -97,8 +97,21 @@ struct cols_impl {
 /** \note Used in bytes() */
 template <class T, class Enable = void>
 struct bytes_impl {
-    static size_t get(const T&) {
+
+    // Use bytes() method when available.
+    template <class U>
+    static auto get_impl(const U &t, int) -> decltype(t.bytes()) {
+        return t.bytes();
+    }
+
+    // Fallback to zero.
+    template <class U>
+    static size_t get_impl(const U&, ...) {
         return 0;
+    }
+
+    static size_t get(const T &t) {
+        return get_impl(t, 0);
     }
 };
 
@@ -227,6 +240,7 @@ template <class T>
 size_t bytes(const T &t) {
     return bytes_impl<T>::get(t);
 }
+
 template <class Matrix>
 typename ptr_data_impl<Matrix>::type
 ptr_data(const Matrix &matrix) {
