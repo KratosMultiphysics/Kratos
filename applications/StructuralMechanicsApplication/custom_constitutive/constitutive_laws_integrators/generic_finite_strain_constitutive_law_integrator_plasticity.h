@@ -185,7 +185,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
         // Some values initialization
         IndexType iteration = 0, max_iter = 100;
         double plastic_consistency_factor_increment;
-        double threshold_indicator = 1.0;
+        double threshold_indicator = rUniaxialStress - rThreshold;
         Matrix aux_plastic_deformation_gradient;
         Vector delta_sigma = ZeroVector(VoigtSize);
         Vector delta_plastic_strain = ZeroVector(VoigtSize);
@@ -200,7 +200,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstituti
         // Backward Euler
         while (iteration <= max_iter) {
             plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
-            noalias(plastic_deformation_gradient_increment) = IdentityMatrix(Dimension, Dimension) + plastic_consistency_factor_increment * MathUtils<double>::StressVectorToTensor<BoundedArrayType, BoundedMatrixType>(rPlasicPotentialDerivative);
+            noalias(plastic_deformation_gradient_increment) = IdentityMatrix(Dimension, Dimension) + plastic_consistency_factor_increment * MathUtils<double>::StrainVectorToTensor<BoundedArrayType, BoundedMatrixType>(rPlasicPotentialDerivative);
 
             // We check that the increment is not a zero matrix
             if (norm_frobenius(plastic_deformation_gradient_increment) < 1.0e-8) {
