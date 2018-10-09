@@ -126,7 +126,7 @@ class NodeSurfaceGeometry3DTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacement_z_at_t, t - t**2)
 
     def testNodeIndexOutOfRange(self):
-        if Kernel.BuildType() in ['Release', 'RelWithDebInfo', 'Custom']:
+        if Kernel.BuildType() not in ['Debug', 'FullDebug']:
             self.skipTest(reason='Index checked only in Debug mode')
 
         with self.assertRaises(Exception):
