@@ -13,7 +13,6 @@ class ApplyVectorConstraintFunctionProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         model_part = Model[settings["model_part_name"].GetString()]
-        variable_name = settings["variable_name"].GetString()
 
         self.components_process_list = []
 
