@@ -983,6 +983,29 @@ public:
     }
 
     /**
+     * @brief This computes a orthonormal basis from a given vector
+     * @param a First resulting vector
+     * @param b Second resulting vector
+     * @param c The input vector
+     */
+    template< class T1, class T2 , class T3>
+    static inline void OrthonormalBasis(const T1& c,T2& a,T3& b ){
+        KRATOS_DEBUG_ERROR_IF_NOT(norm_2(c) < 1.0) << "Input should be a normal vector" << std::endl;
+        a[0] = 1.0 - std::pow(c[0], 2)/(1.0 + c[2]);
+        a[1] = - (c[0] * c[1])/(1.0 + c[2]);
+        a[2] = - c[0];
+        const double norm_a = norm_2(a);
+        KRATOS_DEBUG_ERROR_IF_NOT(norm_a < std::numeric_limits<double>::epsilon()) << "Zero norm of the vector" << std::endl;
+        a /= norm_a;
+        b[0] = - (c[0] * c[1])/(1.0 + c[2]);
+        b[1] = 1.0 - std::pow(c[1], 2)/(1.0 + c[2]);
+        b[2] = -c[1];
+        const double norm_b = norm_2(b);
+        KRATOS_DEBUG_ERROR_IF_NOT(norm_b < std::numeric_limits<double>::epsilon()) << "Zero norm of the vector" << std::endl;
+        b /= norm_b;
+    }
+
+    /**
      * Computes the angle between two vectors in 3D
      * @param v1 First input vector
      * @param v2 Second input vector
