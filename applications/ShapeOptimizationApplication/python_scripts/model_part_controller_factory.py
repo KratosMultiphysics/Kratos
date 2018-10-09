@@ -66,7 +66,7 @@ class ModelPartController:
 
         if mesh_motion_settings["apply_mesh_solver"].GetBool():
             from mesh_controller_with_solver import MeshControllerWithSolver
-            self.mesh_controller = MeshControllerWithSolver(mesh_motion_settings, model, model_part_name)
+            self.mesh_controller = MeshControllerWithSolver(mesh_motion_settings, model)
         else:
             from mesh_controller_basic_updating import MeshControllerBasicUpdating
             self.mesh_controller = MeshControllerBasicUpdating(self.optimization_model_part)

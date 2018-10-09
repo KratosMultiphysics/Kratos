@@ -24,7 +24,7 @@ from mesh_moving_analysis import MeshMovingAnalysis
 # # ==============================================================================
 class MeshControllerWithSolver(MeshController) :
     # --------------------------------------------------------------------------
-    def __init__(self, MeshSolverSettings, model, model_part_name):
+    def __init__(self, MeshSolverSettings, model):
         default_settings = Parameters("""
         {
             "apply_mesh_solver" : true,
@@ -69,7 +69,7 @@ class MeshControllerWithSolver(MeshController) :
         else:
             print("::[MeshControllerWithSolver]::WARNING: using custom problem data for mesh motion.")
 
-        self.OptimizationModelPart = model[model_part_name]
+        self.OptimizationModelPart = model[self.MeshSolverSettings["solver_settings"]["model_part_name"].GetString()]
 
         self._mesh_moving_analysis = MeshMovingAnalysis(model, self.MeshSolverSettings)
 
