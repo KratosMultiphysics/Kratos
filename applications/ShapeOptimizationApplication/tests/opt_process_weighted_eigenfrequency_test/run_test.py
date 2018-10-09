@@ -29,7 +29,7 @@ optimizer.Optimize()
 # Cleaning
 original_directory = os.getcwd()
 output_directory = parameters["optimization_settings"]["output"]["output_directory"].GetString()
-optimization_model_part_name = parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString()
+optimization_model_part_name = parameters["optimization_settings"]["model_settings"]["model_part_name"].GetString()
 kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 kratos_utilities.DeleteDirectoryIfExisting(output_directory)
 kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")

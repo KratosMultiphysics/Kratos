@@ -87,7 +87,7 @@ optimizer.Optimize()
 # =======================================================================================================
 output_directory = parameters["optimization_settings"]["output"]["output_directory"].GetString()
 response_log_filename = parameters["optimization_settings"]["output"]["response_log_filename"].GetString() + ".csv"
-optimization_model_part_name = parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString()
+optimization_model_part_name = parameters["optimization_settings"]["model_settings"]["model_part_name"].GetString()
 
 # Testing
 original_directory = os.getcwd()
