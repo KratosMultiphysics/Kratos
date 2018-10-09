@@ -1,5 +1,35 @@
 {
     "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"           : 3,
+            "model_part_name"       : "3D_Shell",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "3D_Shell"
+                },
+            "design_surface_sub_model_part_name" : "design_surface",
+            "damping" : {
+                "perform_damping" : true,
+                "damping_regions" : [{
+                        "sub_model_part_name"   : "support_edges",
+                        "damp_X"                : false,
+                        "damp_Y"                : true,
+                        "damp_Z"                : true,
+                        "damping_function_type" : "linear",
+                        "damping_radius"        : 3.0
+                    },{
+                        "sub_model_part_name"   : "side_edges",
+                        "damp_X"                : false,
+                        "damp_Y"                : false,
+                        "damp_Z"                : true,
+                        "damping_function_type" : "linear",
+                        "damping_radius"        : 3.0
+                }]
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
         "objectives" : [{
             "identifier" : "eigenfrequency",
             "type"       : "maximization",
@@ -55,9 +85,9 @@
                 "material_import_settings" :{
                     "materials_filename": "materials_2D.json"
                 },
+                "model_part_name" : "3D_Shell",
                 "model_import_settings"              : {
-                    "input_type"     : "use_input_model_part",
-                    "input_filename" : "3D_Shell"
+                    "input_type"     : "use_input_model_part"
                 },
                 "gradient_mode"          : "finite_differencing",
                 "step_size"              : 1e-6,
@@ -67,35 +97,11 @@
         }],
         "design_variables" : {
             "type"                               : "vertex_morphing",
-            "optimization_model_part_name"       : "3D_Shell",
-            "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 5.0,
                 "max_nodes_in_filter_radius" : 10000,
                 "matrix_free_filtering"      : false
-            },
-            "damping" : {
-                "perform_damping" : true,
-                "damping_regions" : [{
-                        "sub_model_part_name"   : "support_edges",
-                        "damp_X"                : false,
-                        "damp_Y"                : true,
-                        "damp_Z"                : true,
-                        "damping_function_type" : "linear",
-                        "damping_radius"        : 3.0
-                    },{
-                        "sub_model_part_name"   : "side_edges",
-                        "damp_X"                : false,
-                        "damp_Y"                : false,
-                        "damp_Z"                : true,
-                        "damping_function_type" : "linear",
-                        "damping_radius"        : 3.0
-                }]
-            },
-            "mesh_motion" : {
-                "apply_mesh_solver" : false
             }
         },
         "optimization_algorithm" : {
