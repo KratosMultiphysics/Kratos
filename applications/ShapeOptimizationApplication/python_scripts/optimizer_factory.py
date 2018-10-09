@@ -36,6 +36,10 @@ def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyze
         "output" : { }
     }""")
 
+    for key in default_settings.keys():
+        if not optimization_settings.Has(key):
+            raise RuntimeError("CreateOptimizer: Compulsory setting '{}' missing in 'optimization_settings'!".format(key))
+
     optimization_settings.ValidateAndAssignDefaults(default_settings)
 
     model_part_controller = model_part_controller_factory.CreateController(optimization_settings["model_settings"], model)

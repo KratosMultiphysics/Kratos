@@ -78,18 +78,18 @@ class MeshControllerWithSolver(MeshController) :
         self._mesh_moving_analysis.Initialize()
 
     # --------------------------------------------------------------------------
-    def UpdateMeshAccordingInputVariable(self, InputVariable, design_surface):
+    def UpdateMeshAccordingInputVariable(self, variable, design_surface):
         print("\n> Starting to update the mesh...")
         startTime = timer.time()
 
         VariableUtils().SetToZero_VectorVar(MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
 
-        print("Apply '{}' as BCs at submodelpart '{}' for mesh motion analysis.".format(InputVariable.Name(), design_surface.Name))
+        print("Apply '{}' as BCs at submodelpart '{}' for mesh motion analysis.".format(variable.Name(), design_surface.Name))
         design_surface_nodes = design_surface.Nodes
         VariableUtils().ApplyFixity(MESH_DISPLACEMENT_X, True, design_surface_nodes)
         VariableUtils().ApplyFixity(MESH_DISPLACEMENT_Y, True, design_surface_nodes)
         VariableUtils().ApplyFixity(MESH_DISPLACEMENT_Z, True, design_surface_nodes)
-        VariableUtils().CopyVectorVar(InputVariable, MESH_DISPLACEMENT, design_surface_nodes)
+        VariableUtils().CopyVectorVar(variable, MESH_DISPLACEMENT, design_surface_nodes)
 
         if self.MeshSolverSettings["boundary_conditions_process_list"].size() == 0:
             print("Using automatically generated surface nodes to apply BCs for mesh motion analysis.")
