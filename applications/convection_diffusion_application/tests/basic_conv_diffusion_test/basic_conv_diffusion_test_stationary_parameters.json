@@ -20,6 +20,20 @@
         "material_import_settings"           : {
             "materials_filename" : "basic_conv_diffusion_test/basic_conv_diffusion_test_materials.json"
         },
+        "convection_diffusion_variables" : {
+            "density_variable"              : "DENSITY",
+            "diffusion_variable"            : "CONDUCTIVITY",
+            "unknown_variable"              : "TEMPERATURE",
+            "volume_source_variable"        : "HEAT_FLUX",
+            "surface_source_variable"       : "FACE_HEAT_FLUX",
+            "projection_variable"           : "PROJECTED_SCALAR1",
+            "convection_variable"           : "CONVECTION_VELOCITY",
+            "mesh_velocity_variable"        : "MESH_VELOCITY",
+            "transfer_coefficient_variable" : "",
+            "velocity_variable"             : "VELOCITY",
+            "specific_heat_variable"        : "SPECIFIC_HEAT",
+            "reaction_variable"             : "REACTION_FLUX"
+        },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
         "solution_relative_tolerance"        : 0.0001,
@@ -30,50 +44,65 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["TEMPERATURE_Temperature_Auto1","Check_Part"]
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_scalar_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "Parameters"    : {
-            "model_part_name" : "TEMPERATURE_Temperature_Auto1",
-            "variable_name"   : "TEMPERATURE",
-            "constrained"     : true,
-            "value"           : 1.0,
-            "interval"        : [0.0,"End"]
-        }
-    }],
-    "fluxes_process_list"      : [],
-    "list_other_processes"     : [],
-    "check_analytic_results_process" : [
-    {
-        "python_module"   : "check_scalar_to_nodes_process",
-        "kratos_module"   : "KratosMultiphysics",
-        "process_name"          : "CheckValueProcess",
-        "Parameters"            : {
-                "model_part_name" : "Check_Part",
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "TEMPERATURE_Temperature_Auto1",
                 "variable_name"   : "TEMPERATURE",
-                "interval"        : [0.0, "End"],
+                "constrained"     : true,
                 "value"           : 1.0,
-                "tolerance_rank"  : 3
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "fluxes_process_list"      : [],
+        "list_other_processes"     : [],
+        "check_analytic_results_process" : [
+        {
+            "python_module"   : "check_scalar_to_nodes_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "process_name"          : "CheckValueProcess",
+            "Parameters"            : {
+                    "model_part_name" : "Check_Part",
+                    "variable_name"   : "TEMPERATURE",
+                    "interval"        : [0.0, "End"],
+                    "value"           : 1.0,
+                    "tolerance_rank"  : 3
+            }
+        }]
+    },
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Thermic.computing_domain",
+                "output_name"            : "basic_conv_diffusion_test",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["TEMPERATURE","REACTION_FLUX","DENSITY","CONDUCTIVITY","SPECIFIC_HEAT"],
+                        "gauss_point_results" : []
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
         }
-    }],
-    "_output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["TEMPERATURE","REACTION_FLUX","DENSITY","CONDUCTIVITY","SPECIFIC_HEAT"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
+        ]
     }
 }
