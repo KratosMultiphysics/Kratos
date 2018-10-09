@@ -179,16 +179,31 @@ class InterfaceSU2():
         return kratos_gradient
 
     # --------------------------------------------------------------------------
-    def ReadNodalValueFromCSVFile(self, filename, collum_with_node_id, collum_to_read, has_file_header):
+    def ReadNodalValuesFromCSVFile(self, filename, collum_with_node_id, collums_to_read, number_of_header_rows):
         values = {}
-        with open(filename, newline='') as csvfile:
-            csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
-            if has_file_header:
-                csvfile.readline()
-            for row in csv_reader:
-                su2_node_id = int(row[collum_with_node_id])
-                kratos_node_id = self.node_id_su2_to_kratos[su2_node_id]
-                values[kratos_node_id] = float(row[collum_to_read])
+
+        if len(collums_to_read) == 1:
+            with open(filename, newline='') as csvfile:
+                csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+                for itr in range(number_of_header_rows):
+                    csvfile.readline()
+                for row in csv_reader:
+                    su2_node_id = int(row[collum_with_node_id])
+                    kratos_node_id = self.node_id_su2_to_kratos[su2_node_id]
+                    values[kratos_node_id] = float(row[collums_to_read[0]])
+        else:
+            with open(filename, newline='') as csvfile:
+                csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+                for itr in range(number_of_header_rows):
+                    csvfile.readline()
+                for row in csv_reader:
+                    su2_node_id = int(row[collum_with_node_id])
+                    kratos_node_id = self.node_id_su2_to_kratos[su2_node_id]
+                    entries = []
+                    for coll_id in collums_to_read:
+                        entries.append(float(row[coll_id]))
+                    values[kratos_node_id] = entries
+
         return values
 
     # --------------------------------------------------------------------------
