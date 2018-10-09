@@ -5301,13 +5301,13 @@ class iter_impl
         {
             case value_t::object:
             {
-//                 assert(m_it.object_iterator != m_object->m_value.object->end());
+                assert(m_it.object_iterator != m_object->m_value.object->end());
                 return m_it.object_iterator->second;
             }
 
             case value_t::array:
             {
-//                 assert(m_it.array_iterator != m_object->m_value.array->end());
+                assert(m_it.array_iterator != m_object->m_value.array->end());
                 return *m_it.array_iterator;
             }
 
