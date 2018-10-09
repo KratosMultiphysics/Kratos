@@ -433,7 +433,7 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix);
 
-    virtual void AddBoundaryIntegral(
+    virtual void AddBoundaryTraction(
         TElementData& rData,
         const Vector& rUnitNormal,
         MatrixType& rLHS,
