@@ -84,6 +84,7 @@ private:
         ///@{
 
         value_iterator mValueIterator;                   /// Our iterator
+        nlohmann::json* mpValue;                         /// Original dataset
         std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
 
         ///@}
@@ -96,7 +97,7 @@ private:
          * @param itValue The iterator to adapt
          * @param pRoot The root Parameter pointer
          */
-        iterator_adaptor(value_iterator itValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpParameters(new Parameters(itValue, pRoot)) {}
+        iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpValue(pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
 
         /**
          * @brief Default constructor (just iterator)
@@ -159,7 +160,8 @@ private:
          */
         Parameters& operator*() const
         {
-            mpParameters->mpValue = &(*mValueIterator);
+            if (mValueIterator != mpValue->end())
+                mpParameters->mpValue = &(*mValueIterator);
             return *mpParameters;
         }
 
@@ -170,7 +172,8 @@ private:
          */
         Parameters* operator->() const
         {
-            mpParameters->mpValue = &(*mValueIterator);
+            if (mValueIterator != mpValue->end())
+                mpParameters->mpValue = &(*mValueIterator);
             return mpParameters.get();
         }
 
@@ -226,6 +229,7 @@ private:
         ///@{
 
         value_iterator mValueIterator;                         /// Our iterator
+        nlohmann::json* mpValue;                               /// Original dataset
         std::unique_ptr<Parameters> mpParameters;              /// The unique pointer to the base Parameter
 
         ///@}
@@ -238,7 +242,7 @@ private:
          * @param itValue The iterator to adapt
          * @param pRoot The root Parameter pointer
          */
-        const_iterator_adaptor(value_iterator itValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpParameters(new Parameters(itValue, pRoot)) {}
+        const_iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpValue(pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
 
         /**
          * @brief Default constructor (just constant iterator)
@@ -259,7 +263,8 @@ private:
         const_iterator_adaptor& operator++()
         {
             mValueIterator++;
-            mpParameters->mpValue = const_cast<nlohmann::json*>( &(*mValueIterator) );
+            if (mValueIterator != mpValue->cend())
+                mpParameters->mpValue = const_cast<nlohmann::json*>( &(*mValueIterator) );
             return *this;
         }
 
@@ -303,7 +308,8 @@ private:
          */
         const Parameters& operator*() const
         {
-            mpParameters->mpValue = const_cast<nlohmann::json*>(&(*mValueIterator));
+            if (mValueIterator != mpValue->cend())
+                mpParameters->mpValue = const_cast<nlohmann::json*>(&(*mValueIterator));
             return *mpParameters;
         }
 
@@ -867,7 +873,7 @@ public:
      */
     iterator begin()
     {
-        return iterator(mpValue->begin(), mpRoot);
+        return iterator(mpValue->begin(), mpValue, mpRoot);
     }
 
     /**
@@ -876,7 +882,7 @@ public:
      */
     iterator end()
     {
-        return iterator(mpValue->end(), mpRoot);
+        return iterator(mpValue->end(), mpValue, mpRoot);
     }
 
     /**
@@ -885,7 +891,7 @@ public:
      */
     const_iterator begin() const
     {
-        return const_iterator(mpValue->cbegin(), mpRoot);
+        return const_iterator(mpValue->cbegin(), mpValue, mpRoot);
     }
 
     /**
@@ -894,7 +900,7 @@ public:
      */
     const_iterator end() const
     {
-        return const_iterator(mpValue->cend(), mpRoot);
+        return const_iterator(mpValue->cend(), mpValue, mpRoot);
     }
 
     /**
@@ -1436,11 +1442,11 @@ private:
      * @param pRoot A shared pointer to a nlohmann::json class
      * @warning Please DO NOT use this constructor. It assumes nlohmann::json and hence it should be considered as an implementation detail
      */
-    Parameters(json_iterator itValue, Kratos::shared_ptr<nlohmann::json> pRoot)
+    Parameters(json_iterator itValue, nlohmann::json* pValue, Kratos::shared_ptr<nlohmann::json> pRoot)
         : mpValue(nullptr),
           mpRoot(pRoot)
     {
-        if (itValue != mpRoot.get()->end())
+        if (itValue != pValue->end())
             mpValue = &(*itValue);
     }
 
@@ -1450,11 +1456,11 @@ private:
      * @param pRoot A shared pointer to a nlohmann::json class
      * @warning Please DO NOT use this constructor. It assumes nlohmann::json and hence it should be considered as an implementation detail
      */
-    Parameters(json_const_iterator itValue, Kratos::shared_ptr<nlohmann::json> pRoot)
+    Parameters(json_const_iterator itValue, nlohmann::json* pValue, Kratos::shared_ptr<nlohmann::json> pRoot)
         : mpValue(nullptr),
           mpRoot(pRoot)
     {
-        if (itValue != mpRoot.get()->cend())
+        if (itValue != pValue->cend())
             mpValue = const_cast<nlohmann::json*>(&(*itValue));
     }
 
