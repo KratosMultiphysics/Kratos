@@ -73,36 +73,34 @@ class MeshControllerWithSolver(MeshController) :
 
         if self.MeshSolverSettings["boundary_conditions_process_list"].size() == 0:
             self.OptimizationModelPart.CreateSubModelPart("auto_surface_nodes")
-            # create custom process
 
-            process_settings = Parameters(
+            auto_process_settings = Parameters(
                 """
                 {
-                    "python_module" : "assign_vector_variable_from_variable_process",
+                    "python_module" : "fix_vector_variable_process",
                     "kratos_module" : "KratosMultiphysics.ShapeOptimizationApplication",
-                    "help"          : "This process fixes the selected components of a given vector variable and assigns the values of another variable",
-                    "process_name"  : "AssignVectorVariableFromVariableProcess",
+                    "help"          : "This process fixes the selected components of a given vector variable without modifying the value of the variable.",
+                    "process_name"  : "FixVectorVariableProcess",
                     "Parameters"    : {
                         "model_part_name"      : \""""+str(self.OptimizationModelPart.Name)+""".auto_surface_nodes",
                         "variable_name"        : "MESH_DISPLACEMENT",
-                        "source_variable_name" : "SHAPE_UPDATE",
                         "constrained"          : [true,true,true]
                     }
                 }
                 """)
 
-            print("Add automatic process to mesh motion solver:")
-            print(process_settings)
-            self.MeshSolverSettings["boundary_conditions_process_list"].Append(process_settings)
-            self.create_auto_surface = True
+            print("Add automatic process to fix the whole surface to mesh motion solver:")
+            print(auto_process_settings)
+            self.MeshSolverSettings["boundary_conditions_process_list"].Append(auto_process_settings)
+            self.has_automatic_boundary_process = True
         else:
-            self.create_auto_surface = False
+            self.has_automatic_boundary_process = False
 
         self._mesh_moving_analysis = MeshMovingAnalysis(model, self.MeshSolverSettings)
 
     # --------------------------------------------------------------------------
     def Initialize(self):
-        if self.create_auto_surface:
+        if self.has_automatic_boundary_process:
             GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes("auto_surface_nodes")
 
         self._mesh_moving_analysis.Initialize()
@@ -112,8 +110,7 @@ class MeshControllerWithSolver(MeshController) :
         print("\n> Starting to update the mesh...")
         startTime = timer.time()
 
-        VariableUtils().SetToZero_VectorVar(MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
-
+        VariableUtils().CopyVectorVar(variable, MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
 
         time_before_mesh_update = self.OptimizationModelPart.ProcessInfo.GetValue(TIME)
 

@@ -13,11 +13,11 @@ import KratosMultiphysics.ShapeOptimizationApplication as ShapeOptimizationAppli
 def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return AssignVectorVariableFromVariableProcess(model, settings["Parameters"])
+    return FixVectorVariableProcess(model, settings["Parameters"])
 
-class AssignVectorVariableFromVariableProcess(KratosMultiphysics.Process):
-    """ This process copies the source variable onto the variable and
-    fixes the constrained components of the variable.
+class FixVectorVariableProcess(KratosMultiphysics.Process):
+    """ This process fixes the selected components of a given vector variable
+    without modifying the value of the variable.
     This works for vector variables only"""
     def __init__(self, model, settings):
         KratosMultiphysics.Process.__init__(self)
@@ -27,7 +27,6 @@ class AssignVectorVariableFromVariableProcess(KratosMultiphysics.Process):
             {
                 "model_part_name"      : "SPECIFY_MODEL_PART_NAME",
                 "variable_name"        : "SPECIFY_VARIABLE_NAME",
-                "source_variable_name" : "SPECIFY_SOURCE_VARIABLE_NAME",
                 "constrained"          : [true,true,true]
             }
             """
@@ -39,13 +38,10 @@ class AssignVectorVariableFromVariableProcess(KratosMultiphysics.Process):
         self.model_part = model[self.settings["model_part_name"].GetString()]
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
-        self.source_variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["source_variable_name"].GetString())
 
         if(type(self.variable) != KratosMultiphysics.Array1DVariable3 and type(self.variable) != KratosMultiphysics.VectorVariable):
-            msg = "Error in AssignVectorVariableFromVariableProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
+            msg = "Error in FixVectorVariableProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
             raise Exception(msg)
-        if type(self.variable) != type(self.source_variable):
-            raise Exception("Error in AssignVectorVariableFromVariableProcess: Variable and source variable do not have the same type!")
 
         self.variable_components_fixed = {}
 
@@ -66,8 +62,6 @@ class AssignVectorVariableFromVariableProcess(KratosMultiphysics.Process):
         for variable, is_fixed in self.variable_components_fixed.items():
             if is_fixed:
                 self.variable_utils.ApplyFixity(variable, is_fixed, self.model_part.Nodes)
-
-        self.variable_utils.CopyVectorVar(self.source_variable, self.variable, self.model_part.Nodes)
 
     def ExecuteFinalizeSolutionStep(self):
         pass
