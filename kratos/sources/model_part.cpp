@@ -1580,7 +1580,7 @@ void ModelPart::PrintData(std::ostream& rOStream) const
     rOStream << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++)
     {
-        rOStream << "    Mesh " << i << " : " << std::endl;
+        rOStream << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, "    ");
     }
     rOStream << std::endl;
@@ -1613,7 +1613,7 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
     rOStream << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++)
     {
-        rOStream << PrefixString << "    Mesh " << i << " : " << std::endl;
+        rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, PrefixString + "    ");
     }
 
