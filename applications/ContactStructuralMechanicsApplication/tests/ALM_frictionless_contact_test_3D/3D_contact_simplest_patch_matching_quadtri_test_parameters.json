@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "3D_contact_simplest_patch_matching_quadtri_test",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -23,6 +22,9 @@
         "contact_settings":
         {
             "mortar_type"                        : "ALMContactFrictionless"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.1
         },
         "block_builder"                      : true,
         "line_search"                        : false,

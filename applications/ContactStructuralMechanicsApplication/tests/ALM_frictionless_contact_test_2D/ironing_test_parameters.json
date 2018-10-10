@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "ironing_test",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.0025,
         "start_time"      : 0.0,
         "end_time"        : 20.0,
         "echo_level"      : 0
@@ -24,6 +23,9 @@
         {
             "mortar_type"                    : "ALMContactFrictionless",
             "ensure_contact"                 : true
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.0025
         },
         "block_builder"                      : false,
         "line_search"                        : false,

@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "taylor_patch_dynamic_test",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.11,
         "start_time"      : 0.0,
         "end_time"        : 20.0,
         "echo_level"      : 0
@@ -28,6 +27,9 @@
         "contact_settings":
         {
             "mortar_type"                    : "ALMContactFrictionless"
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.11
         },
         "block_builder"                      : true,
         "line_search"                        : false,

@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "3D_contact_simplest_patch_matching_test",
 		"parallel_type"   : "OpenMP",
-        "time_step"       : 0.5,
         "start_time"      : 0.0,
         "end_time"        : 0.99,
         "echo_level"      : 0
@@ -26,6 +25,9 @@
             "adaptative_strategy"            : false,
             "split_factor"                   : 11.0,
             "max_number_splits"              : 1
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.5
         },
         "block_builder"                      : false,
         "line_search"                        : false,

@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "pure_friction_test",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.01,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -19,6 +18,9 @@
         },
         "material_import_settings"           : {
             "materials_filename" : "ALM_frictional_contact_test_2D/pure_friction_test_materials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.01
         },
         "line_search"                        : false,
         "convergence_criterion"              : "contact_residual_criterion",

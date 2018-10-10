@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "hyper_simple_slope_patch_test",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -24,6 +23,9 @@
         "contact_settings":
         {
             "mortar_type"                    : "ALMContactFrictionless"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.1
         },
         "block_builder"                      : false,
         "clear_storage"                      : true,

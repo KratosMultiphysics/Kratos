@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "mesh_moving_notmatching_test",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.15,
         "start_time"      : 0.0,
         "end_time"        : 17.99,
         "echo_level"      : 0
@@ -23,6 +22,9 @@
         "contact_settings":
         {
             "mortar_type"                    : "ALMContactFrictionless"
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.15
         },
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
