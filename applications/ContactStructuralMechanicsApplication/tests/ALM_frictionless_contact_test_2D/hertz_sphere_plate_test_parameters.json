@@ -1,8 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "hertz_sphere_plate_test",
-         "model_part_name" : "Structure",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
         "time_step"       : 1.1,
         "start_time"      : 0.0,
@@ -10,9 +8,11 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
+    "model_part_name" : "Structure",
+        "domain_size"     : 2,
         "solver_type"                        : "Static",
         "echo_level"                         : 1,
-        
+
         "analysis_type"                      : "non_linear",
       "model_import_settings"              : {
             "input_type"     : "mdpa",

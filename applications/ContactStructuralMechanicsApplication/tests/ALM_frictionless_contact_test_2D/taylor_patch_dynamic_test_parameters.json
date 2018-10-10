@@ -1,8 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "taylor_patch_dynamic_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
         "time_step"       : 0.11,
         "start_time"      : 0.0,
@@ -10,8 +8,10 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
+        "model_part_name" : "Structure",
+        "domain_size"     : 2,
         "solver_type"                        : "Dynamic",
-        "echo_level"                         : 0,        
+        "echo_level"                         : 0,
         "time_integration_method"            : "implicit",
         "scheme_type"		             : "bossak",
         "damp_factor_m"	                     : -0.1,

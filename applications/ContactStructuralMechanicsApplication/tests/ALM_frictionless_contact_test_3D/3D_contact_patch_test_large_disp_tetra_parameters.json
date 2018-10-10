@@ -1,8 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "3D_contact_patch_test_large_disp_tetra",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
         "time_step"       : 0.05,
         "start_time"      : 0.0,
@@ -10,8 +8,10 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
+    "model_part_name" : "Structure",
+        "domain_size"     : 3,
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,        
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
