@@ -33,6 +33,8 @@
 #include "containers/weak_pointer_vector.h"
 #include "containers/periodic_variables_container.h"
 #include "utilities/table_stream_utility.h"
+#include "utilities/function_fwd.h"
+#include "utilities/indirect_scalar_fwd.h"
 
 #undef  KRATOS_EXPORT_MACRO
 #define KRATOS_EXPORT_MACRO KRATOS_API
@@ -180,6 +182,12 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, CHARACTERISTIC_LENGTH_MULTIPLIER )
 
     //AdjointFluidApplication
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_VECTOR_1 )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_VECTOR_2 )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_VECTOR_3 )
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_ADJOINT_VECTOR_1 )
+    KRATOS_DEFINE_VARIABLE(double, ADJOINT_SCALAR_1 )
+    KRATOS_DEFINE_VARIABLE(double, SCALAR_SENSITIVITY )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_VELOCITY )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( ADJOINT_ACCELERATION )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( AUX_ADJOINT_ACCELERATION )
@@ -188,6 +196,12 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double, NORMAL_SENSITIVITY )
     KRATOS_DEFINE_VARIABLE(double, NUMBER_OF_NEIGHBOUR_ELEMENTS )
     KRATOS_DEFINE_VARIABLE(bool, UPDATE_SENSITIVITIES )
+    KRATOS_DEFINE_VARIABLE(Function<void(std::size_t, std::vector<IndirectScalar<double>>&, std::size_t)>, GetFirstDerivativesIndirectVector)
+    KRATOS_DEFINE_VARIABLE(Function<void(std::size_t, std::vector<IndirectScalar<double>>&, std::size_t)>, GetSecondDerivativesIndirectVector)
+    KRATOS_DEFINE_VARIABLE(Function<void(std::size_t, std::vector<IndirectScalar<double>>&, std::size_t)>, GetAuxAdjointIndirectVector)
+    KRATOS_DEFINE_VARIABLE(Function<void(std::vector<VariableData const*>&)>, GetFirstDerivativesVariables)
+    KRATOS_DEFINE_VARIABLE(Function<void(std::vector<VariableData const*>&)>, GetSecondDerivativesVariables)
+    KRATOS_DEFINE_VARIABLE(Function<void(std::vector<VariableData const*>&)>, GetAuxAdjointVariables)
 
     // For MeshingApplication
     KRATOS_DEFINE_VARIABLE( double, NODAL_ERROR )
