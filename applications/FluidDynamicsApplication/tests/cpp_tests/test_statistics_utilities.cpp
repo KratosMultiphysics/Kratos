@@ -19,6 +19,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/statistics_record.h"
 #include "custom_utilities/statistics_data.h"
+#include "custom_utilities/statistics_utilities.h"
 
 namespace Kratos {
 namespace Testing  {
@@ -71,74 +72,6 @@ void TestStatisticsUtilitiesInitializeModelPart(
     }
 }
 
-class MakeSamplerAtLocalCoordinate {
-public:
-    static std::function<double(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> ValueGetter(Variable<double>& rVariable) {
-        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> double {
-            KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeFunctions.size()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
-            double value = 0.0;
-            for (unsigned int i =  0; i < rGeometry.size(); i++) {
-                value += rGeometry[i].FastGetSolutionStepValue(rVariable) * rShapeFunctions[i];
-            }
-            return value;
-        };
-    }
-
-
-    static std::function< array_1d<double,3>(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > ValueGetter(Variable<array_1d<double,3>>& rVariable) {
-        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> array_1d<double,3> {
-            KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeFunctions.size()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
-            array_1d<double,3> value = ZeroVector(3);
-            for (unsigned int i =  0; i < rGeometry.size(); i++) {
-                value += rGeometry[i].FastGetSolutionStepValue(rVariable) * rShapeFunctions[i];
-            }
-            return value;
-        };
-    }
-
-    static std::function< Matrix(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > ValueGetter(Variable<Matrix>& rVariable) {
-        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> Matrix {
-            KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeFunctions.size()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
-            Matrix value = ZeroMatrix(3,3);
-            for (unsigned int i =  0; i < rGeometry.size(); i++) {
-                value += rGeometry[i].FastGetSolutionStepValue(rVariable) * rShapeFunctions[i];
-            }
-            return value;
-        };
-    }
-
-
-    static std::function< array_1d<double,3>(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > GradientGetter(Variable<double>& rVariable) {
-        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> array_1d<double,3> {
-            KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeDerivatives.size1()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
-            array_1d<double,3> gradient = ZeroVector(3);
-            for (unsigned int n =  0; n < rGeometry.size(); n++) {
-                const auto& value = rGeometry[n].FastGetSolutionStepValue(rVariable);
-                for (unsigned int i = 0; i < rShapeDerivatives.size2(); i++)
-                    gradient[i] += value * rShapeDerivatives(n,i);
-            }
-            return gradient;
-        };
-    }
-
-
-    static std::function< Matrix(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > GradientGetter(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, Variable<array_1d<double,3>>& rVariable) {
-        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> Matrix {
-            KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeDerivatives.size1()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
-            Matrix gradient = ZeroMatrix(3,3);
-            for (unsigned int n =  0; n < rGeometry.size(); n++) {
-                const auto& value = rGeometry[n].FastGetSolutionStepValue(rVariable);
-                for (unsigned int i = 0; i < rShapeDerivatives.size2(); i++)
-                {
-                    for (unsigned int j = 0; j < rShapeDerivatives.size2(); j++)
-                        gradient(i,j) += value[i] * rShapeDerivatives(n,j); //dui/dxj
-                }
-            }
-            return gradient;
-        };
-    }
-};
-
 } // namespace internals
 
 KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastSuite) {
@@ -146,10 +79,10 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
     Internals::TestStatisticsUtilitiesInitializeModelPart(model_part, 0.1 ,2);
 
     StatisticsRecord::Pointer p_turbulence_statistics = Kratos::make_shared<StatisticsRecord>();
-    auto average_pressure_getter = Internals::MakeSamplerAtLocalCoordinate::ValueGetter(PRESSURE);
+    auto average_pressure_getter = Kratos::Internals::MakeSamplerAtLocalCoordinate::ValueGetter(PRESSURE);
     StatisticsSampler::Pointer average_pressure = Kratos::make_shared<ScalarAverageSampler>(average_pressure_getter,std::string("p"));
     p_turbulence_statistics->AddResult(average_pressure);
-    auto average_velocity_getter = Internals::MakeSamplerAtLocalCoordinate::ValueGetter(VELOCITY);
+    auto average_velocity_getter = Kratos::Internals::MakeSamplerAtLocalCoordinate::ValueGetter(VELOCITY);
     std::vector<std::string> velocity_tags;
     velocity_tags.push_back(std::string("u"));
     velocity_tags.push_back(std::string("v"));
@@ -183,10 +116,10 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesSecondThirdOrder, FluidDynamicsAppli
     Internals::TestStatisticsUtilitiesInitializeModelPart(model_part, 0.1 ,2);
 
     StatisticsRecord::Pointer p_turbulence_statistics = Kratos::make_shared<StatisticsRecord>();
-    auto average_pressure_getter = Internals::MakeSamplerAtLocalCoordinate::ValueGetter(PRESSURE);
+    auto average_pressure_getter = Kratos::Internals::MakeSamplerAtLocalCoordinate::ValueGetter(PRESSURE);
     StatisticsSampler::Pointer average_pressure = Kratos::make_shared<ScalarAverageSampler>(average_pressure_getter,std::string("p"));
     p_turbulence_statistics->AddResult(average_pressure);
-    auto average_velocity_getter = Internals::MakeSamplerAtLocalCoordinate::ValueGetter(VELOCITY);
+    auto average_velocity_getter = Kratos::Internals::MakeSamplerAtLocalCoordinate::ValueGetter(VELOCITY);
     std::vector<std::string> velocity_tags;
     velocity_tags.push_back(std::string("u"));
     velocity_tags.push_back(std::string("v"));
