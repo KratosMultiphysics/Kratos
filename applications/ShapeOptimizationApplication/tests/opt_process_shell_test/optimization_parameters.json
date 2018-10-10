@@ -19,7 +19,7 @@
             },
             "design_surface_sub_model_part_name" : "design_surface",
             "damping" : {
-                "perform_damping" : true,
+                "apply_damping" : true,
                 "damping_regions" : [{
                         "sub_model_part_name"   : "support",
                         "damp_X"                : true,

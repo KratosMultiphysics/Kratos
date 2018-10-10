@@ -35,7 +35,7 @@ class ModelPartController:
             },
             "design_surface_sub_model_part_name" : "DESIGN_SURFACE_NAME",
             "damping" : {
-                "perform_damping" : false,
+                "apply_damping"   : false,
                 "damping_regions" : []
             },
             "mesh_motion" : {
@@ -59,9 +59,6 @@ class ModelPartController:
 
         self.optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.model_settings["domain_size"].GetInt())
 
-        self._design_surface = None
-        self._damping_utility = None
-
         mesh_motion_settings = self.model_settings["mesh_motion"]
 
         if mesh_motion_settings["apply_mesh_solver"].GetBool():
@@ -70,6 +67,9 @@ class ModelPartController:
         else:
             from mesh_controller_basic_updating import MeshControllerBasicUpdating
             self.mesh_controller = MeshControllerBasicUpdating(self.optimization_model_part)
+
+        self._design_surface = None
+        self._damping_utility = None
 
     # --------------------------------------------------------------------------
     def ImportOptimizationModelPart(self):
@@ -115,19 +115,10 @@ class ModelPartController:
             self.__IdentifyDesignSurface()
         return self._design_surface
 
-
     # --------------------------------------------------------------------------
     def DampNodalVariable(self, variable):
-        if self.model_settings["damping"]["perform_damping"].GetBool():
+        if self.model_settings["damping"]["apply_damping"].GetBool():
             self.__GetDampingUtility().DampNodalVariable(variable)
-
-    # --------------------------------------------------------------------------
-    def __GetDampingUtility(self):
-        if self._damping_utility == None:
-            self._damping_utility = DampingUtilities(self.GetDesignSurface(),
-                                                    self.__IdentifyDampingRegions(),
-                                                    self.model_settings["damping"])
-        return self._damping_utility
 
     # --------------------------------------------------------------------------
     def __IdentifyDesignSurface(self):
@@ -139,10 +130,16 @@ class ModelPartController:
             raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)
 
     # --------------------------------------------------------------------------
+    def __GetDampingUtility(self):
+        if self._damping_utility == None:
+            self._damping_utility = DampingUtilities(self.GetDesignSurface(), self.__IdentifyDampingRegions(), self.model_settings["damping"])
+        return self._damping_utility
+
+    # --------------------------------------------------------------------------
     def __IdentifyDampingRegions(self):
         print("> The following damping regions are defined: \n")
         damping_regions = {}
-        if self.model_settings["damping"]["perform_damping"].GetBool():
+        if self.model_settings["damping"]["apply_damping"].GetBool():
             if self.model_settings["damping"].Has("damping_regions"):
                 for regionNumber in range(self.model_settings["damping"]["damping_regions"].size()):
                     regionName = self.model_settings["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
