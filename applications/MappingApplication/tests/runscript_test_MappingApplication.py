@@ -2,7 +2,7 @@
 # This script is intended to test the MappingApplication in parallel with
 # several numbers of cores, since at the time of this work there is no parallel
 # testing in Kratos yet
-# usage: "python3.5 runscript_test_MappingApplication.py"
+# usage: "python3 runscript_test_MappingApplication.py"
 
 import os, sys
 from time import *
@@ -60,13 +60,13 @@ print("OMP thread set to 1")
 
 # serial execution
 WriteInfo(kratos_output_file, tests_output_file, "w", "Serial Execution")
-system_cmd = "python3.5 " + input_file + " >> " + kratos_output_file + " 2>> " + tests_output_file
+system_cmd = "python3 " + input_file + " >> " + kratos_output_file + " 2>> " + tests_output_file
 os.system(system_cmd)
 
 # parallel executions
 for num_processors in list_processors:
     WriteInfo(kratos_output_file, tests_output_file, "a", "Parallel Execution; " + str(num_processors) + " processors")
-    system_cmd = "mpiexec -np " + str(num_processors) + " python3.5 " + input_file + " >> " + kratos_output_file + " 2>> " + tests_output_file
+    system_cmd = "mpiexec -np " + str(num_processors) + " python3 " + input_file + " >> " + kratos_output_file + " 2>> " + tests_output_file
     os.system(system_cmd)
 
 tests_success = True
