@@ -87,7 +87,7 @@ class ModelPartController:
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable(self, InputVariable):
-        self.mesh_controller.UpdateMeshAccordingInputVariable(InputVariable, self.GetDesignSurface())
+        self.mesh_controller.UpdateMeshAccordingInputVariable(InputVariable)
 
     # --------------------------------------------------------------------------
     def SetMeshToReferenceMesh(self):

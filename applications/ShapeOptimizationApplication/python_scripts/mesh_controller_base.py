@@ -18,7 +18,7 @@ class MeshController:
         pass
 
     # --------------------------------------------------------------------------
-    def UpdateMeshAccordingInputVariable(self, variable, design_surface):
+    def UpdateMeshAccordingInputVariable(self, variable):
         raise NotImplementedError("Mesh controller base class is called. Please check your implementation of the function >> UpdateMeshAccordingInputVariable << .")
 
 # ==============================================================================

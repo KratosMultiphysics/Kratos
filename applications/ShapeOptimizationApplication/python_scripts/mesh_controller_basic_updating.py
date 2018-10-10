@@ -25,7 +25,7 @@ class MeshControllerBasicUpdating(MeshController):
         self.OptimizationModelPart = OptimizationModelPart
 
     # --------------------------------------------------------------------------
-    def UpdateMeshAccordingInputVariable(self, variable, design_surface):
+    def UpdateMeshAccordingInputVariable(self, variable):
         print("\n> Starting to update the mesh")
         startTime = timer.time()
         MeshControllerUtilities(self.OptimizationModelPart).UpdateMeshAccordingInputVariable(variable)
