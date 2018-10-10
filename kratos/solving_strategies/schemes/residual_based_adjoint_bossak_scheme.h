@@ -18,6 +18,7 @@
 #include <vector>
 #include <string>
 #include <unordered_set>
+#include <functional>
 
 // External includes
 
@@ -27,9 +28,9 @@
 #include "includes/kratos_parameters.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "response_functions/adjoint_response_function.h"
-#include "utilities/function.h"
-#include "utilities/indirect_scalar.h"
 #include "utilities/variable_utils.h"
+#include "utilities/indirect_scalar.h"
+#include "utilities/adjoint_extensions.h"
 
 namespace Kratos
 {
@@ -317,21 +318,19 @@ private:
         }
     };
 
-    template <typename TContainerType>
-    static std::vector<const VariableData*> ForAll(
-        const TContainerType& rElements,
-        const Variable<Function<void(std::vector<VariableData const*>&)>>& rFunc)
+    static std::vector<const VariableData*> GetVariables(
+        const ModelPart::ElementsContainerType& rElements,
+        std::function<void(const AdjointExtensions&, std::vector<const VariableData*>&)> FGet)
     {
         KRATOS_TRY;
-        const int number_of_elements = rElements.size();
         const int num_threads = OpenMPUtils::GetNumThreads();
         std::vector<const VariableData*> var_vec;
         std::vector<std::unordered_set<const VariableData*, Hash, Pred>> var_sets(num_threads);
 #pragma omp parallel for private(var_vec)
-        for (int i = 0; i < number_of_elements; ++i)
+        for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
         {
             auto& r_element = *(rElements.begin() + i);
-            r_element.GetValue(rFunc)(var_vec);
+            FGet(*r_element.GetValue(ADJOINT_EXTENSIONS), var_vec);
             const int k = OpenMPUtils::ThisThread();
             var_sets[k].insert(var_vec.begin(), var_vec.end());
         }
@@ -501,17 +500,15 @@ private:
         const auto& r_geometry = rCurrentElement.GetGeometry();
         const auto num_nodes = r_geometry.PointsNumber();
         const auto k = OpenMPUtils::ThisThread();
+        auto& r_extensions = *rCurrentElement.GetValue(ADJOINT_EXTENSIONS);
 
         unsigned int local_index = 0;
         for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
         {
             auto& r_node = r_geometry[i_node];
-            rCurrentElement.GetValue(GetFirstDerivativesIndirectVector)(
-                i_node, mAdjointIndirectVector2[k], 1);
-            rCurrentElement.GetValue(GetSecondDerivativesIndirectVector)(
-                i_node, mAdjointIndirectVector3[k], 1);
-            rCurrentElement.GetValue(GetAuxAdjointIndirectVector)(
-                i_node, mAuxAdjointIndirectVector1[k], 1);
+            r_extensions.GetFirstDerivativesVector(i_node, mAdjointIndirectVector2[k], 1);
+            r_extensions.GetSecondDerivativesVector(i_node, mAdjointIndirectVector3[k], 1);
+            r_extensions.GetAuxiliaryVector(i_node, mAuxAdjointIndirectVector1[k], 1);
             const double weight = 1.0 / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
             for (unsigned int d = 0; d < mAdjointIndirectVector2[k].size(); d++)
@@ -578,9 +575,16 @@ private:
     void UpdateTimeSchemeAdjoints(ModelPart& rModelPart)
     {
         KRATOS_TRY;
-        auto lambda2_vars = ForAll(rModelPart.Elements(), GetFirstDerivativesVariables);
-        auto lambda3_vars =
-            ForAll(rModelPart.Elements(), GetSecondDerivativesVariables);
+        auto lambda2_vars = GetVariables(
+            rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
+                                      std::vector<const VariableData*>& rVec) {
+                rExtensions.GetFirstDerivativesVariables(rVec);
+            });
+        auto lambda3_vars = GetVariables(
+            rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
+                                      std::vector<const VariableData*>& rVec) {
+                return rExtensions.GetSecondDerivativesVariables(rVec);
+            });
         SetToZero_AdjointVars(lambda2_vars, rModelPart.Nodes());
         SetToZero_AdjointVars(lambda3_vars, rModelPart.Nodes());
         auto& r_response_function = *(this->mpResponseFunction);
@@ -620,22 +624,19 @@ private:
                 adjoint3_aux.resize(mSecondDerivsResponseGradient[k].size(), false);
             noalias(adjoint3_aux) = -mSecondDerivsResponseGradient[k] -
                                     prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]);
-
+            auto& r_extensions = *r_element.GetValue(ADJOINT_EXTENSIONS);
             // Assemble the contributions to the corresponding nodal unknowns.
             unsigned int local_index = 0;
             Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
             for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
             {
-                r_element.GetValue(GetFirstDerivativesIndirectVector)(
+                r_extensions.GetFirstDerivativesVector(
                     i_node, mAdjointIndirectVector2[k], 0);
-                r_element.GetValue(GetSecondDerivativesIndirectVector)(
+                r_extensions.GetSecondDerivativesVector(
                     i_node, mAdjointIndirectVector3[k], 0);
-                r_element.GetValue(GetFirstDerivativesIndirectVector)(
-                    i_node, adjoint2_old, 1);
-                r_element.GetValue(GetSecondDerivativesIndirectVector)(
-                    i_node, adjoint3_old, 1);
-                r_element.GetValue(GetAuxAdjointIndirectVector)(
-                    i_node, mAuxAdjointIndirectVector1[k], 1);
+                r_extensions.GetFirstDerivativesVector(i_node, adjoint2_old, 1);
+                r_extensions.GetSecondDerivativesVector(i_node, adjoint3_old, 1);
+                r_extensions.GetAuxiliaryVector(i_node, mAuxAdjointIndirectVector1[k], 1);
                 Node<3>& r_node = r_geometry[i_node];
                 const double weight = 1.0 / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
                 r_node.SetLock();
@@ -664,7 +665,11 @@ private:
     void UpdateAuxiliaryVariable(ModelPart& rModelPart)
     {
         KRATOS_TRY;
-        auto aux_vars = ForAll(rModelPart.Elements(), GetAuxAdjointVariables);
+        auto aux_vars = GetVariables(
+            rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
+                                      std::vector<const VariableData*>& rOut) {
+                return rExtensions.GetAuxiliaryVariables(rOut);
+            });
         SetToZero_AdjointVars(aux_vars, rModelPart.Nodes());
         auto& r_response_function = *(this->mpResponseFunction);
 
@@ -691,15 +696,14 @@ private:
             noalias(aux_adjoint_vector) =
                 -prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]) -
                 mSecondDerivsResponseGradient[k];
-
+            auto& r_extensions = *r_element.GetValue(ADJOINT_EXTENSIONS);
             // Assemble the contributions to the corresponding nodal unknowns.
             unsigned int local_index = 0;
             Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
             for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
             {
                 Node<3>& r_node = r_geometry[i_node];
-                r_element.GetValue(GetAuxAdjointIndirectVector)(
-                    i_node, mAuxAdjointIndirectVector1[k], 0);
+                r_extensions.GetAuxiliaryVector(i_node, mAuxAdjointIndirectVector1[k], 0);
 
                 r_node.SetLock();
                 for (unsigned int d = 0; d < mAuxAdjointIndirectVector1[k].size(); ++d)

@@ -16,10 +16,10 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
-#include "utilities/function.h"
 #include "utilities/indirect_scalar.h"
 #include "response_functions/adjoint_response_function.h"
 #include "utilities/sensitivity_builder.h"
+#include "utilities/adjoint_extensions.h"
 
 
 namespace Kratos
@@ -253,65 +253,75 @@ private:
 
 class AdjointElement : public Element
 {
-    struct GetFirstDerivativesVectorExtension
+    class ThisExtensions : public AdjointExtensions
     {
         Element* mpElement;
-        void operator()(std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+
+    public:
+        ThisExtensions(Element* pElement) : mpElement{pElement}
+        {
+        }
+
+        void GetFirstDerivativesVector(std::size_t NodeId,
+                                       std::vector<IndirectScalar<double>>& rVector,
+                                       std::size_t Step) override
         {
             auto& r_node = mpElement->GetGeometry()[NodeId];
-            rVector.resize(1);
+            if (rVector.size() != 1)
+            {
+                rVector.resize(1);
+            }
             rVector[0] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_2_X, Step);
         }
-    };
 
-    struct GetSecondDerivativesVectorExtension
-    {
-        Element* mpElement;
-        void operator()(std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+        void GetSecondDerivativesVector(std::size_t NodeId,
+                                        std::vector<IndirectScalar<double>>& rVector,
+                                        std::size_t Step) override
         {
             auto& r_node = mpElement->GetGeometry()[NodeId];
-            rVector.resize(1);
+            if (rVector.size() != 1)
+            {
+                rVector.resize(1);
+            }
             rVector[0] = MakeIndirectScalar(r_node, ADJOINT_VECTOR_3_X, Step);
         }
-    };
 
-    struct GetAuxAdjointVectorExtension
-    {
-        Element* mpElement;
-        void operator()(std::size_t NodeId, std::vector<IndirectScalar<double>>& rVector, std::size_t Step)
+        void GetAuxiliaryVector(std::size_t NodeId,
+                                std::vector<IndirectScalar<double>>& rVector,
+                                std::size_t Step) override
         {
             auto& r_node = mpElement->GetGeometry()[NodeId];
-            rVector.resize(1);
+            if (rVector.size() != 1)
+            {
+                rVector.resize(1);
+            }
             rVector[0] = MakeIndirectScalar(r_node, AUX_ADJOINT_VECTOR_1_X, Step);
         }
-    };
 
-    struct GetFirstDerivativesVariablesExtension
-    {
-        Element* mpElement;
-        void operator()(std::vector<VariableData const*>& rVariables)
+        void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override
         {
-            rVariables.resize(1);
+            if (rVariables.size() != 1)
+            {
+                rVariables.resize(1);
+            }
             rVariables[0] = &ADJOINT_VECTOR_2;
         }
-    };
-    
-    struct GetSecondDerivativesVariablesExtension
-    {
-        Element* mpElement;
-        void operator()(std::vector<VariableData const*>& rVariables)
+
+        void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override
         {
-            rVariables.resize(1);
+            if (rVariables.size() != 1)
+            {
+                rVariables.resize(1);
+            }
             rVariables[0] = &ADJOINT_VECTOR_3;
         }
-    };
-    
-    struct GetAuxAdjointVariablesExtension
-    {
-        Element* mpElement;
-        void operator()(std::vector<VariableData const*>& rVariables)
+
+        void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override
         {
-            rVariables.resize(1);
+            if (rVariables.size() != 1)
+            {
+                rVariables.resize(1);
+            }
             rVariables[0] = &AUX_ADJOINT_VECTOR_1;
         }
     };
@@ -330,12 +340,7 @@ public:
     AdjointElement(const NodesArrayType& ThisNodes)
         : Element(0, ThisNodes), mPrimalElement(ThisNodes)
     {
-        SetValue(GetFirstDerivativesIndirectVector, GetFirstDerivativesVectorExtension{this});
-        SetValue(GetSecondDerivativesIndirectVector, GetSecondDerivativesVectorExtension{this});
-        SetValue(GetAuxAdjointIndirectVector, GetAuxAdjointVectorExtension{this});
-        SetValue(GetFirstDerivativesVariables, GetFirstDerivativesVariablesExtension{this});
-        SetValue(GetSecondDerivativesVariables, GetSecondDerivativesVariablesExtension{this});
-        SetValue(GetAuxAdjointVariables, GetAuxAdjointVariablesExtension{this});
+        SetValue(ADJOINT_EXTENSIONS, Kratos::make_shared<ThisExtensions>(this));
     }
 
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override
