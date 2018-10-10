@@ -26,7 +26,7 @@ class ComputeDragProcess(KratosMultiphysics.Process):
         Auxiliary class to output total flow forces over obstacles
         in fluid dynamics problems for a body fitted model part.
         """
-        super(ComputeDragProcess,self).__init__()
+        KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
             {
