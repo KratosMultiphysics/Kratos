@@ -727,6 +727,22 @@ void AddModelPartToPython(pybind11::module& m)
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
     class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")
+        .def(init([](const std::string& name) { 
+                    std::cout << "************************************************************" << std::endl;
+                    std::cout << "************************************************************" << std::endl;
+                    std::cout << "************************************************************" << std::endl;
+                    std::cout << "USING OLD DEPRECATED CONSTRUCTOR OF MODELPART" << std::endl;
+                    std::cout << "THIS WILL BE REMOVED ON NOV 1 2018" << std::endl;
+                    std::cout << "the call to ModelPart(" << name << " ) " << std::endl;
+                    std::cout << "should be substituted by current_model.CreateModelPart(" << name << ") " << std::endl;
+                    std::cout << "************************************************************" << std::endl;
+                    std::cout << "************************************************************" << std::endl;
+                    std::cout << "************************************************************" << std::endl;
+                    static Model static_model; //NOT NICE! to be removed!!
+                    return std::make_shared<ModelPart>(name, static_model);
+                }
+            )
+        ) //TODO: REMOVE! THIS IS JUST UNTIL NOV 1 2018
         .def_property("Name", GetModelPartName, SetModelPartName)
         //  .def_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
         .def_property("ProcessInfo", pointer_to_get_process_info, pointer_to_set_process_info)
