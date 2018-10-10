@@ -22,8 +22,9 @@ class Solution:
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
-    def __init__(self, algorithm = None, varying_parameters = Parameters("{}")):
+    def __init__(self, model, algorithm = None, varying_parameters = Parameters("{}")):
 
+        self.model = model
         if algorithm == None:
             import swimming_DEM_algorithm
             self.alg = swimming_DEM_algorithm.Algorithm(varying_parameters)
@@ -34,4 +35,5 @@ class Solution:
         return self.alg.Run()
 
 if __name__=="__main__":
-    Solution().Run()
+    model = Model()
+    Solution(model).Run()

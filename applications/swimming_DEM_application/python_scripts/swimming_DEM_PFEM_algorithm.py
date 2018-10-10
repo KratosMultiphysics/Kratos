@@ -48,7 +48,7 @@ class Algorithm(BaseAlgorithm):
         self.all_model_parts.Add(self.fluid_model_part, "FluidPart")
 
         # defining a model part for the mixed part
-        self.all_model_parts.Add(ModelPart("MixedPart"))
+        self.all_model_parts.Add(self.model.CreateModelPart("MixedPart"))
 
         self.mixed_model_part = self.all_model_parts.Get('MixedPart')
 
