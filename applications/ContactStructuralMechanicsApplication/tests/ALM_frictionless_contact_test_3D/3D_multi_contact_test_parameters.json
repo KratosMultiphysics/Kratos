@@ -41,82 +41,107 @@
         "processes_sub_model_part_list"      : ["Parts_Lower","Parts_Middle","Parts_Upper","DISPLACEMENT_Imposed","DISPLACEMENT_Fix","DISPLACEMENT_Control","GENERIC_TopMiddle","GENERIC_BottomMiddle","GENERIC_TopLower","GENERIC_BottomUpper"],
         "rotation_dofs"                      : false
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "Parameters"    : {
-            "model_part_name" : "DISPLACEMENT_Imposed",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,true],
-            "value"           : [0.0,0.0,-0.001],
-            "interval"        : [0.0,"End"]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "DISPLACEMENT_Imposed",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,-0.001],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "DISPLACEMENT_Fix",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "DISPLACEMENT_Control",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,false],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [],
+        "contact_process_list" :[{
+            "python_module" : "alm_contact_process",
+            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "help"          : "This process computes the contact between different surfaces",
+            "process_name"  : "ALMContactProcess",
+            "Parameters"            : {
+                "model_part_name"             : "Structure",
+                "assume_master_slave"         : {
+                                                "0" : ["GENERIC_TopMiddle"],
+                                                "1" : ["GENERIC_BottomMiddle"]
+                },
+                "contact_model_part"          : {
+                                                "0" : ["GENERIC_TopMiddle","GENERIC_BottomUpper"],
+                                                "1" : ["GENERIC_BottomMiddle","GENERIC_TopLower"]
+                },
+                "contact_type"                : "Frictionless"
+            }
+        }],
+        "list_other_processes" : [{
+            "python_module"  :"sprism_process",
+            "kratos_module":"StructuralMechanicsApplication",
+            "help"                 : "",
+            "process_name"         : "SPRISMProcess",
+            "Parameters":{
+                "model_part_name"  : "Parts_Middle"
+            }
+        },{
+            "python_module"  :"sprism_process",
+            "kratos_module":"StructuralMechanicsApplication",
+            "help"                 : "",
+            "process_name"         : "SPRISMProcess",
+            "Parameters":{
+                "model_part_name"  : "Parts_Upper"
+            }
+        },{
+            "python_module"  :"sprism_process",
+            "kratos_module":"StructuralMechanicsApplication",
+            "help"                 : "",
+            "process_name"         : "SPRISMProcess",
+            "Parameters":{
+                "model_part_name"  : "Parts_Lower"
+            }
+        }],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["DISPLACEMENT_Z"],
+                "input_file_name"      : "ALM_frictionless_contact_test_3D/3d_multi_contact_test_results.json",
+                "model_part_name"      : "Parts_Middle",
+                "time_frequency"       : 0.1
+            }
         }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "Parameters"    : {
-            "model_part_name" : "DISPLACEMENT_Fix",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,true],
-            "value"           : [0.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
-        }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "Parameters"    : {
-            "model_part_name" : "DISPLACEMENT_Control",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,false],
-            "value"           : [0.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
-        }
-    }],
-    "loads_process_list"       : [],
-    "contact_process_list" :[{
-        "python_module" : "alm_contact_process",
-        "kratos_module" : "ContactStructuralMechanicsApplication",
-        "help"          : "This process computes the contact between different surfaces",
-        "process_name"  : "ALMContactProcess",
-        "Parameters"            : {
-            "model_part_name"             : "Structure",
-            "assume_master_slave"         : {
-                                              "0" : ["GENERIC_TopMiddle"],
-                                              "1" : ["GENERIC_BottomMiddle"]
-            },
-            "contact_model_part"          : {
-                                              "0" : ["GENERIC_TopMiddle","GENERIC_BottomUpper"],
-                                              "1" : ["GENERIC_BottomMiddle","GENERIC_TopLower"]
-            },
-            "contact_type"                : "Frictionless"
-        }
-    }],
-    "list_other_processes" : [{
-        "python_module"  :"sprism_process",
-        "kratos_module":"StructuralMechanicsApplication",
-        "help"                 : "",
-        "process_name"         : "SPRISMProcess",
-        "Parameters":{
-            "model_part_name"  : "Parts_Middle"
-        }
-    },{
-        "python_module"  :"sprism_process",
-        "kratos_module":"StructuralMechanicsApplication",
-        "help"                 : "",
-        "process_name"         : "SPRISMProcess",
-        "Parameters":{
-            "model_part_name"  : "Parts_Upper"
-        }
-    },{
-        "python_module"  :"sprism_process",
-        "kratos_module":"StructuralMechanicsApplication",
-        "help"                 : "",
-        "process_name"         : "SPRISMProcess",
-        "Parameters":{
-            "model_part_name"  : "Parts_Lower"
-        }
-    }],
-    "_output_configuration"     : {
+        ]
+    },
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "test_solution",
+                "postprocess_parameters" : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -136,22 +161,8 @@
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },
-        "point_data_configuration"  : []
+        "point_data_configuration"  : []}}}]
     },
-    "json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_Z"],
-            "input_file_name"      : "ALM_frictionless_contact_test_3D/3d_multi_contact_test_results.json",
-            "model_part_name"      : "Parts_Middle",
-            "time_frequency"       : 0.1
-        }
-    }
-    ],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",
