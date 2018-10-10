@@ -30,8 +30,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     model_part.SetBufferSize(3);
 
     // Variables addition
-    model_part.AddNodalSolutionStepVariable(DENSITY); // TODO: To be removed once the element migration is finally finished
-    model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY); // TODO: To be removed once the element migration is finally finished
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     model_part.AddNodalSolutionStepVariable(DYNAMIC_TAU);
     model_part.AddNodalSolutionStepVariable(SOUND_VELOCITY);
@@ -94,8 +92,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     Element::Pointer p_element = model_part.pGetElement(1);
 
     for(unsigned int i=0; i<3; i++){
-        p_element->GetGeometry()[i].FastGetSolutionStepValue(DENSITY) = p_properties->GetValue(DENSITY); // TODO: To be removed once the element migration is finally finished
-        p_element->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = p_properties->GetValue(DYNAMIC_VISCOSITY); // TODO: To be removed once the element migration is finally finished
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
