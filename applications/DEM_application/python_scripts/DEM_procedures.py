@@ -50,8 +50,8 @@ class MdpaCreator(object):
             os.makedirs(str(self.post_mdpas))
 
     def WriteMdpa(self, model_part):
-        absolute_path_to_file = os.path.join(self.post_mdpas, str(self.DEM_parameters["problem_name"].GetString()) + '_post_' + str(time) + '.mdpa')
         time = model_part.ProcessInfo.GetValue(TIME)
+        absolute_path_to_file = os.path.join(self.post_mdpas, str(self.DEM_parameters["problem_name"].GetString()) + '_post_' + str(time) + '.mdpa')
         mdpa = open(absolute_path_to_file, 'w')
         mdpa.write('Begin ModelPartData' + '\n')
         mdpa.write('//  VARIABLE_NAME value')
