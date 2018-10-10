@@ -128,18 +128,13 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ExtractBoundaryNodes( std::string const& NewSubModelPartName )
+    void ExtractBoundaryNodes( std::string const& BoundarySubModelPartName )
     {
     	KRATOS_TRY;
 
-    	if(mrModelPart.HasSubModelPart(NewSubModelPartName))
-    	{
-    		std::cout << "> Specified name for sub-model part already defined. Skipping extraction of surface nodes!" << std::endl;
-    		return;
-    	}
+        ModelPart& boundary_model_part = mrModelPart.GetSubModelPart(BoundarySubModelPartName);
 
-    	// Create new sub-model part within the given main model part that shall list all surface nodes
-    	mrModelPart.CreateSubModelPart(NewSubModelPartName);
+        KRATOS_ERROR_IF(boundary_model_part.Nodes().size() != 0) << "ExtractBoundaryNodes: The boundary model part already has nodes!" << std::endl;
 
     	// Some type-definitions
         typedef std::unordered_map<vector<unsigned int>, unsigned int, KeyHasherRange<vector<unsigned int>>, KeyComparorRange<vector<unsigned int>> > hashmap;
@@ -190,7 +185,7 @@ public:
     	}
 
     	// Add nodes and remove double entries
-    	mrModelPart.GetSubModelPart(NewSubModelPartName).AddNodes(temp_boundary_node_ids);
+    	boundary_model_part.AddNodes(temp_boundary_node_ids);
 
     	KRATOS_CATCH("");
     }
