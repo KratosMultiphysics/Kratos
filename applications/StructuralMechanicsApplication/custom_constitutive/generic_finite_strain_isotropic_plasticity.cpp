@@ -204,14 +204,15 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         Vector plastic_strain;
         Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
 
+        // We backup the deformation gradient
+        const double det_deformation_gradient_backup = rValues.GetDeterminantF();
+        const Matrix& deformation_gradient_backup = rValues.GetDeformationGradientF();
+
+        // We compute the predicted stress vector
         BoundedArrayType predictive_stress_vector;
         if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
             predictive_stress_vector = rValues.GetStressVector();
         } else {
-            // We backup the deformation gradient
-            const double det_deformation_gradient_backup = rValues.GetDeterminantF();
-            const Matrix deformation_gradient_backup = rValues.GetDeformationGradientF();
-
             // We compute the elastic deformation gradient  Fe = plastic_indicator * inv(Fp)
             Matrix inverse_F_p ( Dimension, Dimension );
             double aux_det_Fp = 0;
