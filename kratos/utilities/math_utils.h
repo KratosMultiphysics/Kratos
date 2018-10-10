@@ -1250,32 +1250,32 @@ public:
 
         if (rStressVector.size()==3) {
             stress_tensor.resize(2,2,false);
-            stress_tensor(0,0) = rStressVector(0);
-            stress_tensor(0,1) = rStressVector(2);
-            stress_tensor(1,0) = rStressVector(2);
-            stress_tensor(1,1) = rStressVector(1);
+            stress_tensor(0,0) = rStressVector[0];
+            stress_tensor(0,1) = rStressVector[2];
+            stress_tensor(1,0) = rStressVector[2];
+            stress_tensor(1,1) = rStressVector[1];
         } else if (rStressVector.size()==4) {
             stress_tensor.resize(3,3,false);
-            stress_tensor(0,0) = rStressVector(0);
-            stress_tensor(0,1) = rStressVector(3);
+            stress_tensor(0,0) = rStressVector[0];
+            stress_tensor(0,1) = rStressVector[3];
             stress_tensor(0,2) = 0.0;
-            stress_tensor(1,0) = rStressVector(3);
-            stress_tensor(1,1) = rStressVector(1);
+            stress_tensor(1,0) = rStressVector[3];
+            stress_tensor(1,1) = rStressVector[1];
             stress_tensor(1,2) = 0.0;
             stress_tensor(2,0) = 0.0;
             stress_tensor(2,1) = 0.0;
-            stress_tensor(2,2) = rStressVector(2);
+            stress_tensor(2,2) = rStressVector[2];
         } else if (rStressVector.size()==6) {
             stress_tensor.resize(3,3,false);
-            stress_tensor(0,0) = rStressVector(0);
-            stress_tensor(0,1) = rStressVector(3);
-            stress_tensor(0,2) = rStressVector(5);
-            stress_tensor(1,0) = rStressVector(3);
-            stress_tensor(1,1) = rStressVector(1);
-            stress_tensor(1,2) = rStressVector(4);
-            stress_tensor(2,0) = rStressVector(5);
-            stress_tensor(2,1) = rStressVector(4);
-            stress_tensor(2,2) = rStressVector(2);
+            stress_tensor(0,0) = rStressVector[0];
+            stress_tensor(0,1) = rStressVector[3];
+            stress_tensor(0,2) = rStressVector[5];
+            stress_tensor(1,0) = rStressVector[3];
+            stress_tensor(1,1) = rStressVector[1];
+            stress_tensor(1,2) = rStressVector[4];
+            stress_tensor(2,0) = rStressVector[5];
+            stress_tensor(2,1) = rStressVector[4];
+            stress_tensor(2,2) = rStressVector[2];
         }
 
         return stress_tensor;
@@ -1372,32 +1372,32 @@ public:
 
         if (rStrainVector.size()==3) {
             strain_tensor.resize(2,2, false);
-            strain_tensor(0,0) = rStrainVector(0);
-            strain_tensor(0,1) = 0.5*rStrainVector(2);
-            strain_tensor(1,0) = 0.5*rStrainVector(2);
-            strain_tensor(1,1) = rStrainVector(1);
+            strain_tensor(0,0) = rStrainVector[0];
+            strain_tensor(0,1) = 0.5*rStrainVector[2];
+            strain_tensor(1,0) = 0.5*rStrainVector[2];
+            strain_tensor(1,1) = rStrainVector[1];
         } else if (rStrainVector.size()==4) {
             strain_tensor.resize(3,3, false);
-            strain_tensor(0,0) = rStrainVector(0);
-            strain_tensor(0,1) = 0.5*rStrainVector(3);
+            strain_tensor(0,0) = rStrainVector[0];
+            strain_tensor(0,1) = 0.5*rStrainVector[3];
             strain_tensor(0,2) = 0;
-            strain_tensor(1,0) = 0.5*rStrainVector(3);
-            strain_tensor(1,1) = rStrainVector(1);
+            strain_tensor(1,0) = 0.5*rStrainVector[3];
+            strain_tensor(1,1) = rStrainVector[1];
             strain_tensor(1,2) = 0;
             strain_tensor(2,0) = 0;
             strain_tensor(2,1) = 0;
-            strain_tensor(2,2) = rStrainVector(2);
+            strain_tensor(2,2) = rStrainVector[2];
         } else if (rStrainVector.size()==6) {
             strain_tensor.resize(3,3, false);
-            strain_tensor(0,0) = rStrainVector(0);
-            strain_tensor(0,1) = 0.5*rStrainVector(3);
-            strain_tensor(0,2) = 0.5*rStrainVector(5);
-            strain_tensor(1,0) = 0.5*rStrainVector(3);
-            strain_tensor(1,1) = rStrainVector(1);
-            strain_tensor(1,2) = 0.5*rStrainVector(4);
-            strain_tensor(2,0) = 0.5*rStrainVector(5);
-            strain_tensor(2,1) = 0.5*rStrainVector(4);
-            strain_tensor(2,2) = rStrainVector(2);
+            strain_tensor(0,0) = rStrainVector[0];
+            strain_tensor(0,1) = 0.5*rStrainVector[3];
+            strain_tensor(0,2) = 0.5*rStrainVector[5];
+            strain_tensor(1,0) = 0.5*rStrainVector[3];
+            strain_tensor(1,1) = rStrainVector[1];
+            strain_tensor(1,2) = 0.5*rStrainVector[4];
+            strain_tensor(2,0) = 0.5*rStrainVector[5];
+            strain_tensor(2,1) = 0.5*rStrainVector[4];
+            strain_tensor(2,2) = rStrainVector[2];
         }
 
         return strain_tensor;
