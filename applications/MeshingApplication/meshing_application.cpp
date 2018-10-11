@@ -10,7 +10,7 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -30,18 +30,12 @@ namespace Kratos {
 
 typedef array_1d<double, 3> Vector3;
 
-//KRATOS_CREATE_VARIABLE( double, WEIGHT_FATHER_NODES )
-//KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
-//KRATOS_CREATE_VARIABLE(double, COUNTER) //already put on variables.cpp (warning was appearing on Windows)
-KRATOS_CREATE_VARIABLE(double, AVERAGE_NODAL_ERROR);  // The average nodal error
-KRATOS_CREATE_VARIABLE(
-    double, ANISOTROPIC_RATIO);  // The anisotropic aspect ratio
-KRATOS_CREATE_VARIABLE(Vector3,
-    AUXILIAR_GRADIENT);  // An auxiliar gradient needed to compute the metric
-KRATOS_CREATE_VARIABLE(Vector,
-    AUXILIAR_HESSIAN);  // An auxiliar hessian needed to compute the metric
-KRATOS_CREATE_VARIABLE(Vector,
-    MMG_METRIC);  // The condensed metric used to remesh with MMG utility
+KRATOS_CREATE_VARIABLE(double, AVERAGE_NODAL_ERROR);                          // The average nodal error
+KRATOS_CREATE_VARIABLE(double, ANISOTROPIC_RATIO);                            // The anisotropic aspect ratio
+KRATOS_CREATE_VARIABLE(Vector3, AUXILIAR_GRADIENT);                           // An auxiliar gradient needed to compute the metric
+KRATOS_CREATE_VARIABLE(Vector, AUXILIAR_HESSIAN);                             // An auxiliar hessian needed to compute the metric
+KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_2D); // A 2D metric vector
+KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_3D); // A 3D metric vector
 
 KRATOS_CREATE_VARIABLE(int, NUMBER_OF_DIVISIONS)   
 KRATOS_CREATE_VARIABLE(int, SUBSCALE_INDEX)
@@ -55,29 +49,21 @@ KRATOS_CREATE_VARIABLE(double, CONTACT_ANGLE)
 
 KratosMeshingApplication::KratosMeshingApplication()
     : KratosApplication("MeshingApplication"),
-      mTestElement2D(
-          0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(
-                 Element::GeometryType::PointsArrayType(3)))),
-      mTestElement3D(
-          0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(
-                 Element::GeometryType::PointsArrayType(4)))) {}
+      mTestElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mTestElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))) {}
 
 void KratosMeshingApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    std::cout << "Initializing Kratos MeshingApplication... " << std::endl;
+    KRATOS_INFO("") << "Initializing Kratos MeshingApplication... " << std::endl;
 
-    //KRATOS_REGISTER_VARIABLE(COUNTER); //already put on variables.cpp (warning was appearing on Windows)
-    KRATOS_REGISTER_VARIABLE(AVERAGE_NODAL_ERROR);  // The average nodal error
-    KRATOS_REGISTER_VARIABLE(
-        ANISOTROPIC_RATIO);  // The anisotropic aspect ratio
-    KRATOS_REGISTER_VARIABLE(
-        AUXILIAR_GRADIENT);  // An auxiliar gradient needed to compute the metric
-    KRATOS_REGISTER_VARIABLE(
-        AUXILIAR_HESSIAN);  // An auxiliar hessian needed to compute the metric
-    KRATOS_REGISTER_VARIABLE(
-        MMG_METRIC);  // The condensed metric used to remesh with MMG utility
-    
+    KRATOS_REGISTER_VARIABLE(AVERAGE_NODAL_ERROR);                                  // The average nodal error
+    KRATOS_REGISTER_VARIABLE(ANISOTROPIC_RATIO);                                    // The anisotropic aspect ratio
+    KRATOS_REGISTER_VARIABLE(AUXILIAR_GRADIENT);                                    // An auxiliar gradient needed to compute the metric
+    KRATOS_REGISTER_VARIABLE(AUXILIAR_HESSIAN);                                     // An auxiliar hessian needed to compute the metric
+    KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_2D); // A 2D metric vector
+    KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_3D); // A 3D metric vector
+
     KRATOS_REGISTER_VARIABLE(NUMBER_OF_DIVISIONS)
     KRATOS_REGISTER_VARIABLE(SUBSCALE_INDEX)
     KRATOS_REGISTER_VARIABLE(FATHER_ELEMENT)
@@ -91,7 +77,6 @@ void KratosMeshingApplication::Register() {
 
     KRATOS_REGISTER_ELEMENT("TestElement2D", mTestElement2D);
     KRATOS_REGISTER_ELEMENT("TestElement3D", mTestElement3D);
-    //KRATOS_REGISTER_VARIABLE( WEIGHT_FATHER_NODES )
 }
 
 }  // namespace Kratos.

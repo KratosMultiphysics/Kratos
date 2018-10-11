@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -10,7 +10,7 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED )
@@ -25,9 +25,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-
 #include "includes/variables.h"
-#include "includes/legacy_structural_app_vars.h" //TODO: must be removed eventually
 #include "includes/condition.h"
 #include "includes/element.h"
 
@@ -38,15 +36,15 @@ namespace Kratos
 ///@{
 
 typedef array_1d<double,3> Vector3;
-    
+
 // Variables definition
-//KRATOS_DEFINE_VARIABLE(double, WEIGHT_FATHER_NODES ) // Moved to variables.h so trilinos application can use it too
-// KRATOS_DEFINE_VARIABLE(double, COUNTER)              // Already put on variables.h (warning was appearing on Windows)
-KRATOS_DEFINE_VARIABLE(double, AVERAGE_NODAL_ERROR);   // The average nodal error
-KRATOS_DEFINE_VARIABLE(double, ANISOTROPIC_RATIO);     // The anisotropic aspect ratio
-KRATOS_DEFINE_VARIABLE(Vector3, AUXILIAR_GRADIENT);    // An auxiliar gradient needed to compute the metric
-KRATOS_DEFINE_VARIABLE(Vector,  AUXILIAR_HESSIAN);     // An auxiliar hessian needed to compute the metric
-KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);           // The condensed metric used to remesh with MMG utility
+KRATOS_DEFINE_VARIABLE(double, AVERAGE_NODAL_ERROR);                          // The average nodal error
+KRATOS_DEFINE_VARIABLE(double, ANISOTROPIC_RATIO);                            // The anisotropic aspect ratio
+KRATOS_DEFINE_VARIABLE(Vector3, AUXILIAR_GRADIENT);                           // An auxiliar gradient needed to compute the metric
+KRATOS_DEFINE_VARIABLE(Vector,  AUXILIAR_HESSIAN);                            // An auxiliar hessian needed to compute the metric
+KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_2D); // A 2D metric vector
+KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_3D); // A 3D metric vector
+
 KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_DIVISIONS);      // The number of divisions for the multi scale refining
 KRATOS_DEFINE_VARIABLE(int, SUBSCALE_INDEX)
 KRATOS_DEFINE_VARIABLE(Element::Pointer, FATHER_ELEMENT)
@@ -260,6 +258,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED  defined
 
 

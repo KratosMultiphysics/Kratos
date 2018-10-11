@@ -21,6 +21,7 @@
 
 // Integrator
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
+
 // Yield surfaces
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
@@ -29,14 +30,16 @@
 #include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
+
 // Plastic potentials
 #include "custom_constitutive/plastic_potentials/generic_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+
 // Constitutive law
-#include "custom_constitutive/generic_small_strain_isotropic_plasticity_3d.h"
+#include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -48,14 +51,14 @@ namespace Testing
 typedef Node<3> NodeType;
 
 /**
-    * Check the correct calculation of the integrated stress with the CL's
-    */
+* Check the correct calculation of the integrated stress with the CL's
+*/
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticity, KratosStructuralMechanicsFastSuite)
 {
-    typedef GenericSmallStrainIsotropicPlasticity3D<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential>>> MC;
-    typedef GenericSmallStrainIsotropicPlasticity3D<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential>>> VM;
-    typedef GenericSmallStrainIsotropicPlasticity3D<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential>>> DP;
-    typedef GenericSmallStrainIsotropicPlasticity3D<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential>>> T;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> VM;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>> DP;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>> T;
 
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
@@ -128,12 +131,16 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticity, KratosStruct
     TestT = cl_parameters.GetStressVector();
 
     //Check the results
-    for (int comp = 0; comp < 3; comp++)
-    {
-        KRATOS_CHECK_NEAR(MCres[comp], TestMC[comp], 0.0001e6);
-        KRATOS_CHECK_NEAR(VMres[comp], TestVM[comp], 0.0001e6);
-        KRATOS_CHECK_NEAR(DPres[comp], TestDP[comp], 0.0001e6);
-        KRATOS_CHECK_NEAR(Tres[comp], TestT[comp], 0.0001e6);
+    const double tolerance = 1.0e-4;
+    for (std::size_t comp = 0; comp < 6; ++comp){
+        KRATOS_CHECK(!std::isnan(TestMC[comp]));
+        KRATOS_CHECK_LESS_EQUAL(std::abs((MCres[comp] - TestMC[comp])/MCres[comp]), tolerance);
+        KRATOS_CHECK(!std::isnan(VMres[comp]));
+        KRATOS_CHECK_LESS_EQUAL(std::abs((VMres[comp] - TestVM[comp])/VMres[comp]), tolerance);
+        KRATOS_CHECK(!std::isnan(DPres[comp]));
+        KRATOS_CHECK_LESS_EQUAL(std::abs((DPres[comp] - TestDP[comp])/DPres[comp]), tolerance);
+        KRATOS_CHECK(!std::isnan(TestT[comp]));
+        KRATOS_CHECK_LESS_EQUAL(std::abs((Tres[comp] - TestT[comp])/Tres[comp]), tolerance);
     }
 }
 } // namespace Testing

@@ -50,7 +50,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class NonAssociativeExplicitPlasticFlowRule
+  class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) NonAssociativeExplicitPlasticFlowRule
 	  :public FlowRule
   {
   public:

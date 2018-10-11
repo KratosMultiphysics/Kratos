@@ -9,9 +9,11 @@
 //
 //  Main authors:    Bodhinanda Chandra
 //
+
+
 // System includes
 #include <iostream>
-#include<cmath>
+#include <cmath>
 
 // External includes
 #include "includes/ublas_interface.h"
@@ -84,19 +86,19 @@ bool MCStrainSofteningPlasticFlowRule::UpdateInternalVariables( RadialReturnVari
 void MCStrainSofteningPlasticFlowRule::UpdateMaterialParameters()
 {
     // Calculate hardening for each parameters: cohesion, frictionangle, and dilatancyangle
-    double Hardening = 0.0;
+    double hardening;
 
-    Hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(Hardening, mInternalVariables.AccumulatedPlasticDeviatoricStrain, COHESION);
-    Hardening = Hardening * mInternalVariables.DeltaPlasticDeviatoricStrain;
-    mMaterialParameters.Cohesion += Hardening;
+    hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(hardening, mInternalVariables.AccumulatedPlasticDeviatoricStrain, COHESION);
+    hardening = hardening * mInternalVariables.DeltaPlasticDeviatoricStrain;
+    mMaterialParameters.Cohesion += hardening;
 
-    Hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(Hardening, mInternalVariables.AccumulatedPlasticDeviatoricStrain, INTERNAL_FRICTION_ANGLE);
-    Hardening = Hardening * mInternalVariables.DeltaPlasticDeviatoricStrain;
-    mMaterialParameters.FrictionAngle += Hardening;
+    hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(hardening, mInternalVariables.AccumulatedPlasticDeviatoricStrain, INTERNAL_FRICTION_ANGLE);
+    hardening = hardening * mInternalVariables.DeltaPlasticDeviatoricStrain;
+    mMaterialParameters.FrictionAngle += hardening;
 
-    Hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(Hardening, mInternalVariables.AccumulatedPlasticDeviatoricStrain, INTERNAL_DILATANCY_ANGLE);
-    Hardening = Hardening * mInternalVariables.DeltaPlasticDeviatoricStrain;
-    mMaterialParameters.DilatancyAngle += Hardening;
+    hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(hardening, mInternalVariables.AccumulatedPlasticDeviatoricStrain, INTERNAL_DILATANCY_ANGLE);
+    hardening = hardening * mInternalVariables.DeltaPlasticDeviatoricStrain;
+    mMaterialParameters.DilatancyAngle += hardening;
 }
 
 
