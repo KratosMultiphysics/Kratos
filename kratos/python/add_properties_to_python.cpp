@@ -60,11 +60,11 @@ void SetArrayValue(
 {
     if(Data.size() != 3)
         KRATOS_ERROR << "attempting to construct an array<double,3> by passing a list with wrong size. Input size is " << Data.size() << std::endl;
-    
+
     array_1d<double,3> tmp;
     for(unsigned int i=0;i<3; ++i)
         tmp[i] = Data[i];
-    
+
     el.SetValue(rVar,tmp);
 }
 
@@ -76,7 +76,7 @@ void SetVectorValue(
     Vector tmp(Data.size());
     for(unsigned int i=0;i<tmp.size(); ++i)
         tmp[i] = Data[i];
-    
+
     el.SetValue(rVar,tmp);
 }
 
@@ -176,10 +176,10 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , Variable<double> >)
     .def("SetTable", SetTableHelperFunction1< Properties, Variable<double>, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
     .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
-	.def("__repr__", &Properties::Info) //self_ns::str(self))
     .def("HasVariables", &Properties::HasVariables)
     .def("HasTables", &Properties::HasTables)
     .def("IsEmpty", &Properties::IsEmpty)
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Properties))
     ;
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
