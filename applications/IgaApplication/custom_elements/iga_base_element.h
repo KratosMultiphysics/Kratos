@@ -115,7 +115,8 @@ public:
         return buffer.str();
     }
 
-    void PrintData(std::ostream& rOStream) const
+    void PrintData(
+        std::ostream& rOStream) const
     {
         pGetGeometry()->PrintData(rOStream);
     }
@@ -126,29 +127,29 @@ protected:
     void inline SetElementDof(
         DofsVectorType& rElementalDofList,
         const std::size_t NodeIndex,
-        const std::size_t DofIndex,
-        const TVariable& variable)
+        const std::size_t DofTypeIndex,
+        const TVariable& Variable)
     {
         Node<3>& node = GetGeometry()[NodeIndex];
 
-        rElementalDofList[NodeIndex * DofsPerNode() + DofIndex] =
-            node.pGetDof(variable);
+        rElementalDofList[NodeIndex * DofsPerNode() + DofTypeIndex] =
+            node.pGetDof(Variable);
     }
 
     template <typename TVariable>
     void inline SetElementEquationId(
         EquationIdVectorType& rResult,
         const std::size_t NodeIndex,
-        const std::size_t DofIndex,
-        const TVariable& variable)
+        const std::size_t DofTypeIndex,
+        const TVariable& Variable)
     {
         Node<3>& node = GetGeometry()[NodeIndex];
 
-        rResult[NodeIndex * DofsPerNode() + DofIndex] =
-            node.GetDof(variable).EquationId();
+        rResult[NodeIndex * DofsPerNode() + DofTypeIndex] =
+            node.GetDof(Variable).EquationId();
     }
 
-    static inline std::size_t GetDofType(
+    static inline std::size_t GetDofTypeIndex(
         std::size_t DofIndex)
     {
         return DofIndex % DofsPerNode();

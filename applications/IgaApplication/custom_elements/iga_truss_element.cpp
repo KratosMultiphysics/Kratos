@@ -130,7 +130,7 @@ void IgaTrussElement::CalculateAll(
         reference_aa;
 
     for (std::size_t r = 0; r < NumberOfDofs(); r++) {
-        const std::size_t dof_type_r = GetDofType(r);
+        const std::size_t dof_type_r = GetDofTypeIndex(r);
         const std::size_t shape_index_r = GetShapeIndex(r);
 
         const double epsilon_var_r = actual_base_vector[dof_type_r] *
@@ -138,7 +138,7 @@ void IgaTrussElement::CalculateAll(
 
         if (ComputeLeftHandSide) {
             for (std::size_t s = 0; s < NumberOfDofs(); s++) {
-                const std::size_t dof_type_s = GetDofType(s);
+                const std::size_t dof_type_s = GetDofTypeIndex(s);
                 const std::size_t shape_index_s = GetShapeIndex(s);
 
                 const double epsilon_var_s =
