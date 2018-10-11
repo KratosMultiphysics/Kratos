@@ -44,61 +44,77 @@
                                                 "DISPLACEMENT_bc_press", "Parts_parts_die",		"Parts_parts_slab"],
         "rotation_dofs"                      : false
     },
-    "constraints_process_list" : [{
-        "python_module"   : "assign_vector_variable_to_conditions_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "AssignVectorVariableToConditionProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_bc_fix",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,true],
-            "value"           : [0.0,0.0,0.0]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module"   : "assign_vector_variable_to_conditions_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorVariableToConditionProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_bc_fix",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module"   : "assign_vector_variable_to_conditions_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorVariableToConditionProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_bc_rolling_support",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module"   : "impose_vector_value_by_components_over_time_process",
+            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "process_name"          : "ImposeVectorValueByComponentsOverTimeProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_bc_press",
+                "variable_name"   : "DISPLACEMENT",
+                "step_type"       : "smooth",
+                "vectors"         : [ [ 0.0, 0.0, 0.0],
+                                    [ 0.0,-0.5, 0.0],
+                                    [10.0,-0.5, 0.0]
+                                                    ],
+                "intervals"       : [ 0.0,1.0,15.0]
+            }
+        }],
+        "loads_process_list"       : [],
+        "contact_process_list" :[
+        {
+            "python_module"   : "alm_contact_process",
+            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "help"                  : "",
+            "process_name"          : "ALMContactProcess",
+            "Parameters"            : {
+                "model_part_name"             : "Structure",
+                "assume_master_slave"         : { "0" : ["Parts_parts_die"]},
+                "contact_model_part"          : { "0" : ["Contact_Part"]},
+                "contact_type"                : "Frictionless"
+            }
         }
-    },{
-        "python_module"   : "assign_vector_variable_to_conditions_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "AssignVectorVariableToConditionProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_bc_rolling_support",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [false,true,true],
-            "value"           : [0.0,0.0,0.0]
+        ],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+                "input_file_name"      : "ALM_frictionless_contact_test_2D/ironing_die_test_results.json",
+                "model_part_name"      : "Contact_Part",
+                "time_frequency"       : 1.00
+            }
         }
-    },{
-        "python_module"   : "impose_vector_value_by_components_over_time_process",
-        "kratos_module" : "ContactStructuralMechanicsApplication",
-        "process_name"          : "ImposeVectorValueByComponentsOverTimeProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_bc_press",
-            "variable_name"   : "DISPLACEMENT",
-            "step_type"       : "smooth",
-            "vectors"         : [ [ 0.0, 0.0, 0.0],
-                                  [ 0.0,-0.5, 0.0],
-                                  [10.0,-0.5, 0.0]
-            					],
-            "intervals"       : [ 0.0,1.0,15.0]
-        }
-    }],
-    "loads_process_list"       : [],
-    "contact_process_list" :[
-    {
-        "python_module"   : "alm_contact_process",
-        "kratos_module"   : "ContactStructuralMechanicsApplication",
-        "help"                  : "",
-        "process_name"          : "ALMContactProcess",
-        "Parameters"            : {
-            "model_part_name"             : "Structure",
-            "assume_master_slave"         : { "0" : ["Parts_parts_die"]},
-            "contact_model_part"          : { "0" : ["Contact_Part"]},
-            "contact_type"                : "Frictionless"
-        }
-    }
-    ],
+        ]
+    },
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -118,22 +134,8 @@
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },
-        "point_data_configuration"  : []
+        "point_data_configuration"  : []}}}]
     },
-    "_json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "ALM_frictionless_contact_test_2D/ironing_die_test_results.json",
-            "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 1.00
-        }
-    }
-    ],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",

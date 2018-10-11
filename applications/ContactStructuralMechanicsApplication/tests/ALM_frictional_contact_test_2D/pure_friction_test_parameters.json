@@ -35,71 +35,73 @@
         },
         "rotation_dofs"                      : false
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [false,true,true],
-            "value"           : [0.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
-        }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,false,true],
-            "value"           : [0.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
-        }
-    }],
-    "contact_process_list"     : [{
-        "python_module" : "alm_contact_process",
-        "kratos_module" : "ContactStructuralMechanicsApplication",
-        "help"          : "This process computes the contact between different surfaces",
-        "process_name"  : "ALMContactProcess",
-        "Parameters"    : {
-            "model_part_name"             : "Structure",
-            "assume_master_slave"         : { "0" : ["Parts_Parts_Auto2"]},
-            "contact_model_part"          : { "0" : ["CONTACT_Contact_Auto1"]},
-            "contact_type"                : "Frictional"
-        }
-    }],
-    "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process sets a vector variable value over a condition according to a given modulus an direction",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignVectorByDirectionToConditionProcess",
-        "Parameters"    : {
-            "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
-            "variable_name"   : "LINE_LOAD",
-            "modulus"         : "2000000.0*t",
-            "direction"       : [0.0,-1.0,0.0],
-            "interval"        : [0.0,"End"]
-        }
-    }],
-    "list_other_processes"     : [],
-    "json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
-            "input_file_name"     : "ALM_frictional_contact_test_2D/pure_friction_test_results.json",
-            "model_part_name"      : "CONTACT_Contact_Auto1",
-            "time_frequency"       : 1.0
-        }
-    }],
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "contact_process_list"     : [{
+            "python_module" : "alm_contact_process",
+            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "help"          : "This process computes the contact between different surfaces",
+            "process_name"  : "ALMContactProcess",
+            "Parameters"    : {
+                "model_part_name"             : "Structure",
+                "assume_master_slave"         : { "0" : ["Parts_Parts_Auto2"]},
+                "contact_model_part"          : { "0" : ["CONTACT_Contact_Auto1"]},
+                "contact_type"                : "Frictional"
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process sets a vector variable value over a condition according to a given modulus an direction",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionToConditionProcess",
+            "Parameters"    : {
+                "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
+                "variable_name"   : "LINE_LOAD",
+                "modulus"         : "2000000.0*t",
+                "direction"       : [0.0,-1.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes"     : [],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
+                "input_file_name"     : "ALM_frictional_contact_test_2D/pure_friction_test_results.json",
+                "model_part_name"      : "CONTACT_Contact_Auto1",
+                "time_frequency"       : 1.0
+            }
+        }]
+    },
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",
@@ -113,7 +115,16 @@
             "time_frequency"       : 1.00
         }
     }],
-    "_output_configuration"     : {
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "test_solution",
+                "postprocess_parameters" : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -133,6 +144,6 @@
             "nodal_flags_results": ["ACTIVE","SLAVE","SLIP"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },
-        "point_data_configuration"  : []
+        "point_data_configuration"  : []}}}]
     }
 }

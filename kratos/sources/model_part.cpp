@@ -28,6 +28,25 @@ namespace Kratos
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
+ModelPart::ModelPart(std::string const& NewName, Model& rOwnerModel)
+    : DataValueContainer()
+    , Flags()
+    , mBufferSize(1)
+    , mpProcessInfo(new ProcessInfo())
+    , mIndices(1, 0)
+    , mpVariablesList(new VariablesList())
+    , mpCommunicator(new Communicator)
+    , mpParentModelPart(NULL)
+    , mSubModelParts()
+    , mrOwnerModel(rOwnerModel)
+{
+    KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
+    mName = NewName;
+    MeshType mesh;
+    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+    mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
+}
+
 /// Default constructor.
 ModelPart::ModelPart(VariablesList* pVariablesList, Model& rOwnerModel)
     : DataValueContainer()
@@ -1561,7 +1580,7 @@ void ModelPart::PrintData(std::ostream& rOStream) const
     rOStream << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++)
     {
-        rOStream << "    Mesh " << i << " : " << std::endl;
+        rOStream << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, "    ");
     }
     rOStream << std::endl;
@@ -1594,7 +1613,7 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
     rOStream << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++)
     {
-        rOStream << PrefixString << "    Mesh " << i << " : " << std::endl;
+        rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, PrefixString + "    ");
     }
 

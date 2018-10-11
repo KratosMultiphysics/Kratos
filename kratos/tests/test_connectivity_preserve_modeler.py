@@ -1,4 +1,4 @@
-from __future__ import print_function, absolute_import, division
+﻿from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
@@ -150,20 +150,7 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertTrue(model_part2.HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
         self.assertTrue(model_part2.HasNodalSolutionStepVariable(KratosMultiphysics.VELOCITY))
 
-    def test_with_submodelpart(self):
-        model_part1 = KratosMultiphysics.ModelPart("mp1")
-        sub_model_part1 = model_part1.CreateSubModelPart("smp1")
 
-        model_part2 = KratosMultiphysics.ModelPart("mp2")
-        sub_model_part2 = model_part2.CreateSubModelPart("smp2")
-
-        modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-
-        with self.assertRaisesRegex(RuntimeError, "Error: ConnectivityPreserveModeler expects to work on root modelparts. This is not the case for the ORIGIN model part named: smp1"):
-            modeler.GenerateModelPart(sub_model_part1, model_part2, "Element2D3N", "Condition2D2N")
-
-        with self.assertRaisesRegex(RuntimeError, "Error: ConnectivityPreserveModeler expects to work on root modelparts. This is not the case for the DESTINATION model part named: smp2"):
-            modeler.GenerateModelPart(model_part1, sub_model_part2, "Element2D3N", "Condition2D2N")
 
 
 
