@@ -267,7 +267,27 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_BasicTests, KratosMappingApp
         "NearestElementLocalSystem based on Node #8 at Coodinates 1 | 2.5 | -5 in rank 23");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem, KratosMappingApplicationSerialTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem_Line, KratosMappingApplicationSerialTestSuite)
+{
+    KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem_Triangle, KratosMappingApplicationSerialTestSuite)
+{
+    KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem_Quad, KratosMappingApplicationSerialTestSuite)
+{
+    KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem_Tetra, KratosMappingApplicationSerialTestSuite)
+{
+    KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NearestElementLocalSystem_ComputeLocalSystem_Hexa, KratosMappingApplicationSerialTestSuite)
 {
     KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
 }
