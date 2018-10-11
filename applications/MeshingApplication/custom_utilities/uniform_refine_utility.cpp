@@ -230,28 +230,8 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
             conditions_to_refine.push_back(*i_condition.base());
     }
 
-    // Loop the origin elements to create the middle nodes
-    ElementsArrayType::iterator elements_begin = elements_to_refine.begin();
-    for (int i = 0; i < static_cast<int>(elements_to_refine.size()); i++)
-    {
-        // Get the element iterator
-        auto i_element = elements_begin + i;
-
-        // Get the refinement level of the origin element
-        int step_divisions_level = rDivision + 1;
-
-        // Get the geometry
-        Geometry<NodeType>& geom = i_element->GetGeometry();
-
-        // Loop the edges of the father element and get the nodes
-        for (auto edge : geom.Edges())
-            NodeType::Pointer new_node = GetNodeInEdge(edge, step_divisions_level);
-
-        if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
-            NodeType::Pointer new_node = GetNodeInFace( geom, step_divisions_level );
-    }
-
     // Create the elements
+    ElementsArrayType::iterator elements_begin = elements_to_refine.begin();
     for (int i = 0; i < static_cast<int>(elements_to_refine.size()); i++)
     {
         // Get the element iterator
