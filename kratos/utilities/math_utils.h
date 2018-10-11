@@ -991,7 +991,7 @@ public:
      */
     template< class T1, class T2 , class T3>
     static inline void OrthonormalBasis(const T1& c,T2& a,T3& b ){
-        KRATOS_DEBUG_ERROR_IF_NOT(norm_2(c) < 1.0) << "Input should be a normal vector" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(norm_2(c) < (1.0 - 1.0e-6) || norm_2(c) > (1.0 + 1.0e-6)) << "Input should be a normal vector" << std::endl;
         a[0] = 1.0 - std::pow(c[0], 2)/(1.0 + c[2]);
         a[1] = - (c[0] * c[1])/(1.0 + c[2]);
         a[2] = - c[0];
