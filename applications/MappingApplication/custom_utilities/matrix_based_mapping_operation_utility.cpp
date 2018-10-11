@@ -14,6 +14,7 @@
 //  Framework for Non-Matching Grid Mapping"
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
@@ -53,18 +54,72 @@ void InitializeVector(UtilityType::TSystemVectorUniquePointerType& rpVector,
     }
 }
 
-void ConstructMatrixStructure(UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems,
-                              UtilityType::TSystemMatrixType& rMdo)
+void ConstructMatrixStructure(UtilityType::TSystemMatrixUniquePointerType& rpMdo,
+                              UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems,
+                              const SizeType NumNodesOrigin,
+                              const SizeType NumNodesDestination)
 {
-    // A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
+    // one set for each row storing the corresponding col-IDs
+    std::vector<std::unordered_set<IndexType> > indices(NumNodesDestination);
+
+    // preallocate memory for the column indices
+    for (IndexType i=0; i<NumNodesDestination; ++i) {
+        // TODO I guess this can be optimized...
+        // this highly depends on the used mapper
+        indices[i].reserve(3);
+    }
+
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
 
+    // Looping the local-systems to get the entries for the matrix
     // TODO omp
     for (/*const*/auto& r_local_sys : rMapperLocalSystems) { // TODO I think this can be const bcs it is the ptr
         r_local_sys->EquationIdVectors(origin_ids, destination_ids);
-
+        for (const auto dest_idx : destination_ids) {
+            indices[dest_idx].insert(origin_ids.begin(), origin_ids.end());
+        }
     }
+
+    // computing the number of non-zero entries
+    SizeType num_non_zero_entries = 0;
+    for (const auto& r_row_indices : indices) { // looping the indices per row
+        num_non_zero_entries += r_row_indices.size(); // adding the number of col-indices
+    }
+
+    auto p_Mdo = Kratos::make_unique<UtilityType::TSystemMatrixType>(
+        NumNodesDestination,
+        NumNodesOrigin,
+        num_non_zero_entries);
+
+    double* p_matrix_values = p_Mdo->value_data().begin();
+    IndexType* p_matrix_row_indices = p_Mdo->index1_data().begin();
+    IndexType* p_matrix_col_indices = p_Mdo->index2_data().begin();
+
+    // filling the index1 vector - do NOT make parallel!
+    p_matrix_row_indices[0] = 0;
+    for (IndexType i=0; i<NumNodesDestination; ++i) {
+        p_matrix_row_indices[i+1] = p_matrix_row_indices[i] + indices[i].size();
+    }
+
+    for (IndexType i=0; i<NumNodesDestination; ++i) {
+        const IndexType row_begin = p_matrix_row_indices[i];
+        const IndexType row_end = p_matrix_row_indices[i+1];
+        IndexType j = row_begin;
+        for (const auto index : indices[i]) {
+            p_matrix_col_indices[j] = index;
+            p_matrix_values[j] = 0.0;
+            ++j;
+        }
+
+        indices[i].clear(); //deallocating the memory // TODO necessary?
+
+        std::sort(&p_matrix_col_indices[row_begin], &p_matrix_col_indices[row_end]);
+    }
+
+    p_Mdo->set_filled(indices.size()+1, num_non_zero_entries);
+
+    rpMdo.swap(p_Mdo);
 }
 
 template< class TVarType >
@@ -133,24 +188,18 @@ void UtilityType::BuildMappingSystem(
 
     // Initialize the Matrix
     // This has to be done always since the Graph has changed if the Interface is updated!
-    const SizeType num_non_zeros = 100; // TODO this should be computed
-
-    // ConstructMatrixStructure(rpMdo, rMapperLocalSystems);
-
-    TSystemMatrixUniquePointerType p_Mdo = Kratos::make_unique<TSystemMatrixType>(
-        num_nodes_destination, num_nodes_origin, num_non_zeros);
-    rpMdo.swap(p_Mdo);
-
-    // TODO do I also have to set to zero the contents?
-    // SparseSpaceType::SetToZero(*rpMdo);
+    ConstructMatrixStructure(rpMdo, rMapperLocalSystems,
+                             num_nodes_origin, num_nodes_destination);
 
     MatrixType local_mapping_matrix;
 
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
 
-    for (auto& r_local_sys : rMapperLocalSystems) {// TODO omp
+    for (auto& r_local_sys : rMapperLocalSystems) { // TODO omp
+
         r_local_sys->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
+
         KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size1() != destination_ids.size())
             << "DestinationID vector size mismatch" << std::endl;
         KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size2() != origin_ids.size())
@@ -159,6 +208,7 @@ void UtilityType::BuildMappingSystem(
         // Insert the mapping weights from the local_systems into the mapping matrix
         for (IndexType i=0; i<destination_ids.size(); ++i) {
             for (IndexType j=0; j<origin_ids.size(); ++j) {
+                // #pragma omp atomic
                 (*rpMdo)(destination_ids[i], origin_ids[j]) += local_mapping_matrix(i,j);
             }
         }
