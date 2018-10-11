@@ -8,9 +8,9 @@ KratosMultiphysics.CheckForPreviousImport()
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return MultiscaleProcess(Model, settings["Parameters"])
+    return MultiscaleRefiningProcess(Model, settings["Parameters"])
 
-class MultiscaleProcess(KratosMultiphysics.Process):
+class MultiscaleRefiningProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
 
         ## Settings string in json format
@@ -44,6 +44,9 @@ class MultiscaleProcess(KratosMultiphysics.Process):
         self.coarse_model_part_name = self.settings['main_model_part_name'].GetString()
         if (self.current_subscale > 0):
             self.coarse_model_part_name += '_' + str(self.current_subscale)
+        
+        # Get the coarse model part
+        self.coarse_model_part = self.model[self.coarse_model_part_name]
 
         # Get the visualization model part
         if (self.current_subscale == 0):
@@ -51,37 +54,18 @@ class MultiscaleProcess(KratosMultiphysics.Process):
         else:
             self.visualization_model_part = self.model[self.settings['visualization_model_part_name'].GetString()]
 
-        # Initialize the refined model part and the subscales process
+        # Initialize the refined model part
         if (self.current_subscale < self.maximum_number_of_subscales):
             self._InitializeRefinedModelPart()
 
-    def _InitializeVisualizationModelPart(self):
-        visualization_model_part_name = self.settings['visualization_model_part_name'].GetString()
-        coarse_model_part = self.model[self.coarse_model_part_name]
-        self.visualization_model_part = KratosMultiphysics.ModelPart(visualization_model_part_name)
-        self.model.AddModelPart(self.visualization_model_part)
-        buffer_size = coarse_model_part.GetBufferSize()
-        self.visualization_model_part.SetBufferSize(buffer_size)
-        self.visualization_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        MeshingApplication.MultiScaleRefiningProcess.InitializeNewModelPart(coarse_model_part, self.visualization_model_part)
-
-    def _InitializeRefinedModelPart(self):
-        self.refined_model_part_name = self.settings['main_model_part_name'].GetString() + '_' + str(self.current_subscale + 1)
-        coarse_model_part = self.model[self.coarse_model_part_name]
-        self.refined_model_part = KratosMultiphysics.ModelPart(self.refined_model_part_name)
-        self.model.AddModelPart(self.refined_model_part)
-        buffer_size = coarse_model_part.GetBufferSize()
-        self.refined_model_part.SetBufferSize(buffer_size)
-        self.refined_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        MeshingApplication.MultiScaleRefiningProcess.InitializeNewModelPart(coarse_model_part, self.refined_model_part)
-
+    def ExecuteInitialize(self):
         # Create the new subscale process
         self.subscales_utility = MeshingApplication.MultiScaleRefiningProcess(
-            coarse_model_part,
+            self.coarse_model_part,
             self.refined_model_part,
             self.visualization_model_part,
             self.settings["advanced_configuration"])
-        
+
         if self.echo_level > 0:
             print('The multiscale process is initialized')
 
@@ -89,17 +73,54 @@ class MultiscaleProcess(KratosMultiphysics.Process):
             print(self.model[self.coarse_model_part_name])
             print(self.model[self.refined_model_part_name])
 
-    def ExecuteRefinement(self):
-        self.subscales_utility.ExecuteRefinement()
+    def ExecuteBeforeSolutionLoop(self):
+        pass
 
-    def ExecuteCoarsening(self):
-        self.subscales_utility.ExecuteCoarsening()
+    def ExecuteInitializeSolutionStep(self):
+        self._ExecuteRefinement()
+
+    def ExecuteFinalizeSolutionStep(self):
+        self._ExecuteCoarsening()
+
+    def ExecuteBeforeOutputStep(self):
+        pass
+
+    def ExecuteAfterOutputStep(self):
+        pass
+
+    def ExecuteFinalize(self):
+        pass
+
+    def Clear(self):
+        pass
 
     def GetCoarseModelPart(self):
-        return self.subscales_utility.GetCoarseModelPart()
-    
+        return self.coarse_model_part
+
     def GetRefinedModelPart(self):
-        return self.subscales_utility.GetRefinedModelPart()
+        return self.refined_model_part
 
     def GetVisualizationModelPart(self):
-        return self.subscales_utility.GetVisualizationModelPart()
+        return self.visualization_model_part
+
+    def _InitializeVisualizationModelPart(self):
+        visualization_model_part_name = self.settings['visualization_model_part_name'].GetString()
+        self.visualization_model_part = KratosMultiphysics.ModelPart(visualization_model_part_name)
+        self.model.AddModelPart(self.visualization_model_part)
+        buffer_size = self.coarse_model_part.GetBufferSize()
+        self.visualization_model_part.SetBufferSize(buffer_size)
+        MeshingApplication.MultiScaleRefiningProcess.InitializeNewModelPart(self.coarse_model_part, self.visualization_model_part)
+
+    def _InitializeRefinedModelPart(self):
+        self.refined_model_part_name = self.settings['main_model_part_name'].GetString() + '_' + str(self.current_subscale + 1)
+        self.refined_model_part = KratosMultiphysics.ModelPart(self.refined_model_part_name)
+        self.model.AddModelPart(self.refined_model_part)
+        buffer_size = self.coarse_model_part.GetBufferSize()
+        self.refined_model_part.SetBufferSize(buffer_size)
+        MeshingApplication.MultiScaleRefiningProcess.InitializeNewModelPart(self.coarse_model_part, self.refined_model_part)
+
+    def _ExecuteRefinement(self):
+        self.subscales_utility.ExecuteRefinement()
+
+    def _ExecuteCoarsening(self):
+        self.subscales_utility.ExecuteCoarsening()
