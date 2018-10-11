@@ -53,9 +53,9 @@ class Solution(object):
     def GetMainPath(self):
         return os.getcwd()
 
-    def __init__(self):
+    def __init__(self, model):
 
-        self.model = Model()
+        self.model = model
         self.main_path = self.GetMainPath()
         self.LoadParametersFile()
         self.solver_strategy = self.SetSolverStrategy()
@@ -590,4 +590,5 @@ class Solution(object):
 
 
 if __name__ == "__main__":
-    Solution().Run()
+    model = Model()
+    Solution(model).Run()
