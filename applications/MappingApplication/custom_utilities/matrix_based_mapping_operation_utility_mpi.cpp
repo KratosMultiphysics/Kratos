@@ -60,8 +60,8 @@ void ConstructRowColIdVectors(UtilityType::MapperLocalSystemPointerVector& rMapp
     rColEquationIdsVector.erase( std::unique( rColEquationIdsVector.begin(), rColEquationIdsVector.end() ), rColEquationIdsVector.end() );
 }
 
-void FillMatrixGraph(Epetra_FECrsGraph& rGraph,
-                     UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems)
+void ConstructMatrixStructure(Epetra_FECrsGraph& rGraph,
+                              UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems)
 {
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
@@ -214,7 +214,7 @@ void UtilityType::BuildMappingSystem(
                                    epetra_col_map,
                                    num_indices_per_row);
 
-    FillMatrixGraph(epetra_graph, rMapperLocalSystems);
+    ConstructMatrixStructure(epetra_graph, rMapperLocalSystems);
 
     // range- and domain-map have to be passed since the matrix is rectangular
     int ierr = epetra_graph.GlobalAssemble(epetra_domain_map, epetra_range_map); // TODO check if it should call "FillComplete"

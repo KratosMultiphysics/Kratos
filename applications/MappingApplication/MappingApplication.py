@@ -19,16 +19,19 @@ TODO:
     - Nearest Element tests
     - Test for Serialization
     - Test for local-search?
+    - Unify (serial and MPI) and add test for Graph-indices-construction (... if it makes sense...?)
     - Serial: Construct Matrix Structure
     - Finish new tests => requires first implementation in core
     - Cleanup & remove old tests
     - Cleanup how the MapperParams are used
     - Cleanup how the AssemblyUtility is used (in Mapper-BaseClass)
     - Further cleanup Trilinos and try some things (read up on opt-stuff)
+    - use std::unordered_set for row & column indices-vectors
     - For Trilinos: What happens if a rank does not have local nodes???
     - Function-Documentation
     - Delete copy and assignment-constructors
     - use explicit
     - testing => do some logical tests with CONSERVATIVE
     - MapperFlags: Check that they are used correctly and all of them are used in tests (CONSERVATIVE & USE_TRANSPOSE)
+    - in search: use last_iteration...?
 '''
