@@ -728,6 +728,7 @@ class TestModelPart(KratosUnittest.TestCase):
 
         self.assertFalse(ss1 in model_part.MasterSlaveConstraints)
 
+    @KratosUnittest.expectedFailure
     def test_no_constructor(self):
         with self.assertRaisesRegex(TypeError, "Kratos.ModelPart: No constructor defined!"):
             ModelPart()
