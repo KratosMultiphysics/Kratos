@@ -74,6 +74,8 @@ public:
 
     typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
 
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -276,7 +278,7 @@ public:
     static inline BoundedMatrix<TDataType, TDim, TDim> InvertMatrix(
             const BoundedMatrix<TDataType, TDim, TDim>& InputMatrix,
             TDataType& InputMatrixDet,
-            const TDataType Tolerance = std::numeric_limits<double>::epsilon()
+            const TDataType Tolerance = ZeroTolerance
             )
     {
         BoundedMatrix<TDataType, TDim, TDim> InvertedMatrix;
@@ -418,7 +420,7 @@ public:
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
         double determinant = lu_factorization.determinant();
-        KRATOS_ERROR_IF(std::abs(determinant) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << A << std::endl;
+        KRATOS_ERROR_IF(std::abs(determinant) <= ZeroTolerance) << "::WARNING: Matrix is singular: " << A << std::endl;
         rX = lu_factorization.solve(rB);
 #else
         const SizeType size1 = A.size1();
@@ -469,7 +471,7 @@ public:
             Matrix temp(InputMatrix);
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
             InputMatrixDet = lu_factorization.determinant();
-            KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
+            KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= ZeroTolerance) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
             InvertedMatrix = lu_factorization.inverse();
 #else
 
@@ -976,7 +978,7 @@ public:
         CrossProduct(c,a,b);
         const double norm = norm_2(c);
 #ifdef KRATOS_DEBUG
-        if(norm < 1000.0*std::numeric_limits<double>::epsilon())
+        if(norm < 1000.0*ZeroTolerance)
             KRATOS_ERROR << "norm is 0 when making the UnitCrossProduct of the vectors " << a << " and " << b << std::endl;
 #endif
         c/=norm;
@@ -984,26 +986,35 @@ public:
 
     /**
      * @brief This computes a orthonormal basis from a given vector
+     * @param c The input vector
      * @param a First resulting vector
      * @param b Second resulting vector
-     * @param c The input vector
      * @note Orthonormal basis taken from: http://orbit.dtu.dk/files/126824972/onb_frisvad_jgt2012_v2.pdf
      */
     template< class T1, class T2 , class T3>
     static inline void OrthonormalBasis(const T1& c,T2& a,T3& b ){
         KRATOS_DEBUG_ERROR_IF_NOT(norm_2(c) < (1.0 - 1.0e-6) || norm_2(c) > (1.0 + 1.0e-6)) << "Input should be a normal vector" << std::endl;
-        a[0] = 1.0 - std::pow(c[0], 2)/(1.0 + c[2]);
-        a[1] = - (c[0] * c[1])/(1.0 + c[2]);
-        a[2] = - c[0];
-        const double norm_a = norm_2(a);
-        KRATOS_DEBUG_ERROR_IF_NOT(norm_a < std::numeric_limits<double>::epsilon()) << "Zero norm of the vector" << std::endl;
-        a /= norm_a;
-        b[0] = - (c[0] * c[1])/(1.0 + c[2]);
-        b[1] = 1.0 - std::pow(c[1], 2)/(1.0 + c[2]);
-        b[2] = -c[1];
-        const double norm_b = norm_2(b);
-        KRATOS_DEBUG_ERROR_IF_NOT(norm_b < std::numeric_limits<double>::epsilon()) << "Zero norm of the vector" << std::endl;
-        b /= norm_b;
+        if ((c[2] + 1.0) > ZeroTolerance) {
+            a[0] = 1.0 - std::pow(c[0], 2)/(1.0 + c[2]);
+            a[1] = - (c[0] * c[1])/(1.0 + c[2]);
+            a[2] = - c[0];
+            const double norm_a = norm_2(a);
+            KRATOS_DEBUG_ERROR_IF_NOT(norm_a < ZeroTolerance) << "Zero norm of the vector" << std::endl;
+            a /= norm_a;
+            b[0] = - (c[0] * c[1])/(1.0 + c[2]);
+            b[1] = 1.0 - std::pow(c[1], 2)/(1.0 + c[2]);
+            b[2] = -c[1];
+            const double norm_b = norm_2(b);
+            KRATOS_DEBUG_ERROR_IF_NOT(norm_b < ZeroTolerance) << "Zero norm of the vector" << std::endl;
+            b /= norm_b;
+        } else { // In case that the vector is in negative Z direction
+            a[0] = 1.0;
+            a[1] = 0.0;
+            a[2] = 0.0;
+            b[0] = 0.0;
+            b[1] = -1.0;
+            b[2] = 0.0;
+        }
     }
 
     /**
