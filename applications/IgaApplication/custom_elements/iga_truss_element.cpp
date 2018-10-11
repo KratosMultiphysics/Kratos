@@ -59,9 +59,9 @@ void IgaTrussElement::EquationIdVector(
     rResult.resize(NumberOfDofs());
 
     for (std::size_t i = 0; i < NumberOfNodes(); i++) {
-        SetEquationId(rResult, i, 0, DISPLACEMENT_X);
-        SetEquationId(rResult, i, 1, DISPLACEMENT_Y);
-        SetEquationId(rResult, i, 2, DISPLACEMENT_Z);
+        SetElementEquationId(rResult, i, 0, DISPLACEMENT_X);
+        SetElementEquationId(rResult, i, 1, DISPLACEMENT_Y);
+        SetElementEquationId(rResult, i, 2, DISPLACEMENT_Z);
     }
 
     KRATOS_CATCH("")

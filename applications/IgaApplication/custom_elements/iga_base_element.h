@@ -136,7 +136,7 @@ protected:
     }
 
     template <typename TVariable>
-    void inline SetEquationId(
+    void inline SetElementEquationId(
         EquationIdVectorType& rResult,
         const std::size_t NodeIndex,
         const std::size_t DofIndex,
