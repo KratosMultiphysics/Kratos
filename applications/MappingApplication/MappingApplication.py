@@ -20,13 +20,13 @@ TODO:
     - Test for Serialization
     - Test for local-search?
     - Unify (serial and MPI) and add test for Graph-indices-construction (... if it makes sense...?)
-    - Serial: Construct Matrix Structure
+    - Serial: Construct Matrix Structure (only cleaning and finishing up)
     - Finish new tests => requires first implementation in core
     - Cleanup & remove old tests
     - Cleanup how the MapperParams are used
     - Cleanup how the AssemblyUtility is used (in Mapper-BaseClass)
     - Further cleanup Trilinos and try some things (read up on opt-stuff)
-    - use std::unordered_set for row & column indices-vectors
+    - use std::unordered_set for row & column indices-vectors in trilinos => does the map need sorted indices?
     - For Trilinos: What happens if a rank does not have local nodes???
     - Function-Documentation
     - Delete copy and assignment-constructors
