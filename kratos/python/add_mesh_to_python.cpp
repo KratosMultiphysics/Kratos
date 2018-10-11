@@ -637,6 +637,12 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< bool > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< bool > >)
 
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< std::string > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< std::string > >)
+    .def("Has", HasHelperFunction< Condition, Variable< std::string > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< std::string > >)
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< std::string > >)
+
     .def("GetNode", GetNodeFromCondition )
     .def("GetNodes", GetNodesFromCondition )
 
