@@ -7,8 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Michael Andre, https://github.com/msandre
-//                   Jordi Cotela, https://github.com/jcotela
+//  Main authors:    
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_ADJOINT_BOSSAK_SCHEME_H_INCLUDED)
@@ -226,6 +225,7 @@ public:
                                                 ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
+        // NOT TESTED !!!
         pCurrentCondition->CalculateLocalSystem(
             rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
         KRATOS_CATCH("");
@@ -294,22 +294,6 @@ protected:
     ///@}
 
 private:
-    struct Hash
-    {
-        std::size_t operator()(const VariableData* const& p) const
-        {
-            return p->Key();
-        }
-    };
-
-    struct Pred
-    {
-        bool operator()(const VariableData* const l, const VariableData* const r) const
-        {
-            return *l == *r;
-        }
-    };
-
     struct BossakConstants
     {
         double Alpha;
@@ -325,124 +309,6 @@ private:
         double C7;
     };
 
-    static BossakConstants CalculateBossakConstants(double Alpha, double DeltaTime)
-    {
-        BossakConstants bc;
-        bc.Alpha = Alpha;
-        bc.Beta = 0.25 * (1.0 - bc.Alpha) * (1.0 - bc.Alpha);
-        bc.Gamma = 0.5 - bc.Alpha;
-        bc.C0 = 1.0 - bc.Gamma / bc.Beta;
-        bc.C1 = -1.0 / (bc.Beta * DeltaTime);
-        bc.C2 = (1.0 - 0.5 * bc.Gamma / bc.Beta) * DeltaTime;
-        bc.C3 = (1.0 - 0.5 / bc.Beta);
-        bc.C4 = (bc.Beta - bc.Gamma * (bc.Gamma + 0.5)) / (DeltaTime * bc.Beta * bc.Beta);
-        bc.C5 = -1.0 * (bc.Gamma + 0.5) / (DeltaTime * DeltaTime * bc.Beta * bc.Beta);
-        bc.C6 = bc.Gamma / (bc.Beta * DeltaTime);
-        bc.C7 = 1.0 / (DeltaTime * DeltaTime * bc.Beta);
-        return bc;
-    }
-
-    static double GetTimeStep(const ProcessInfo& rCurrentProcessInfo)
-    {
-        const ProcessInfo& r_last_process_info =
-            rCurrentProcessInfo.GetPreviousSolutionStepInfo(1);
-
-        // Note: solution is backwards in time, but we still want a positive
-        // time step
-        // (it is the time step in the "forward" Bossak scheme).
-        double time_step =
-            r_last_process_info.GetValue(TIME) - rCurrentProcessInfo.GetValue(TIME);
-        KRATOS_ERROR_IF(time_step <= 0.0)
-            << "Backwards in time solution is not decreasing time from last "
-               "step."
-            << std::endl;
-        return time_step;
-    }
-
-    // Gathers variables needed for assembly.
-    static std::vector<const VariableData*> GatherVariables(
-        const ModelPart::ElementsContainerType& rElements,
-        std::function<void(const AdjointExtensions&, std::vector<const VariableData*>&)> GetLocalVars)
-    {
-        KRATOS_TRY;
-        const int num_threads = OpenMPUtils::GetNumThreads();
-        std::vector<const VariableData*> local_vars;
-        std::vector<std::unordered_set<const VariableData*, Hash, Pred>> thread_vars(num_threads);
-#pragma omp parallel for private(local_vars)
-        for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
-        {
-            auto& r_element = *(rElements.begin() + i);
-            GetLocalVars(*r_element.GetValue(ADJOINT_EXTENSIONS), local_vars);
-            const int k = OpenMPUtils::ThisThread();
-            thread_vars[k].insert(local_vars.begin(), local_vars.end());
-        }
-        std::unordered_set<const VariableData*, Hash, Pred> all_vars;
-        for (int i = 0; i < num_threads; ++i)
-        {
-            all_vars.insert(thread_vars[i].begin(), thread_vars[i].end());
-        }
-        return std::vector<const VariableData*>{all_vars.begin(), all_vars.end()};
-        KRATOS_CATCH("");
-    }
-
-    static void SetToZero_AdjointVars(const std::vector<const VariableData*>& rVariables,
-                                      ModelPart::NodesContainerType& rNodes)
-    {
-        KRATOS_TRY;
-        for (auto p_variable_data : rVariables)
-        {
-            if (KratosComponents<Variable<array_1d<double, 3>>>::Has(
-                    p_variable_data->Name()))
-            {
-                const auto& r_variable =
-                    KratosComponents<Variable<array_1d<double, 3>>>::Get(
-                        p_variable_data->Name());
-                VariableUtils().SetToZero_VectorVar(r_variable, rNodes);
-            }
-            else if (KratosComponents<Variable<double>>::Has(p_variable_data->Name()))
-            {
-                const auto& r_variable =
-                    KratosComponents<Variable<double>>::Get(p_variable_data->Name());
-                VariableUtils().SetToZero_ScalarVar(r_variable, rNodes);
-            }
-            else
-            {
-                KRATOS_ERROR << "Variable \"" << p_variable_data->Name()
-                             << "\" not found!\n";
-            }
-        }
-        KRATOS_CATCH("");
-    }
-
-    static void Assemble_AdjointVars(const std::vector<const VariableData*>& rVariables,
-                                     Communicator& rComm)
-    {
-        KRATOS_TRY;
-        for (auto p_variable_data : rVariables)
-        {
-            if (KratosComponents<Variable<array_1d<double, 3>>>::Has(
-                    p_variable_data->Name()))
-            {
-                const auto& r_variable =
-                    KratosComponents<Variable<array_1d<double, 3>>>::Get(
-                        p_variable_data->Name());
-                rComm.AssembleCurrentData(r_variable);
-            }
-            else if (KratosComponents<Variable<double>>::Has(p_variable_data->Name()))
-            {
-                const auto& r_variable =
-                    KratosComponents<Variable<double>>::Get(p_variable_data->Name());
-                rComm.AssembleCurrentData(r_variable);
-            }
-            else
-            {
-                KRATOS_ERROR << "Variable \"" << p_variable_data->Name()
-                             << "\" not found!\n";
-            }
-        }
-        KRATOS_CATCH("");
-    }
-
     ///@name Static Member Variables
     ///@{
 
@@ -450,8 +316,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    AdjointResponseFunction::Pointer mpResponseFunction;
     BossakConstants mBossak;
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
+        TSparseSpace::CreateDofUpdater();
+    AdjointResponseFunction::Pointer mpResponseFunction;
 
     std::vector<LocalSystemMatrixType> mLeftHandSide;
     std::vector<LocalSystemVectorType> mResponseGradient;
@@ -463,9 +331,6 @@ private:
     std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector2;
     std::vector<std::vector<IndirectScalar<double>>> mAdjointIndirectVector3;
     std::vector<std::vector<IndirectScalar<double>>> mAuxAdjointIndirectVector1;
-
-    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater =
-        TSparseSpace::CreateDofUpdater();
 
     ///@}
     ///@name Private Operators
@@ -613,14 +478,13 @@ private:
             });
         SetToZero_AdjointVars(lambda2_vars, rModelPart.Nodes());
         SetToZero_AdjointVars(lambda3_vars, rModelPart.Nodes());
-        auto& r_response_function = *(this->mpResponseFunction);
 
         const int number_of_elements = rModelPart.NumberOfElements();
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         Vector adjoint2_aux, adjoint3_aux;
         std::vector<IndirectScalar<double>> adjoint2_old, adjoint3_old;
 #pragma omp parallel for private(adjoint2_aux, adjoint3_aux, adjoint2_old, adjoint3_old)
-        for (int i = 0; i < number_of_elements; i++)
+        for (int i = 0; i < number_of_elements; ++i)
         {
             Element& r_element = *(rModelPart.ElementsBegin() + i);
             const int k = OpenMPUtils::ThisThread();
@@ -629,12 +493,12 @@ private:
             this->CheckAndResizeThreadStorage(mAdjointValuesVector[k].size());
 
             r_element.CalculateFirstDerivativesLHS(mFirstDerivsLHS[k], r_process_info);
-            r_response_function.CalculateFirstDerivativesGradient(
+            this->mpResponseFunction->CalculateFirstDerivativesGradient(
                 r_element, mFirstDerivsLHS[k], mFirstDerivsResponseGradient[k], r_process_info);
 
             r_element.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], r_process_info);
             mSecondDerivsLHS[k] *= (1.0 - mBossak.Alpha);
-            r_response_function.CalculateSecondDerivativesGradient(
+            this->mpResponseFunction->CalculateSecondDerivativesGradient(
                 r_element, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], r_process_info);
 
             if (adjoint2_aux.size() != mFirstDerivsResponseGradient[k].size())
@@ -692,14 +556,13 @@ private:
                 return rExtensions.GetAuxiliaryVariables(rOut);
             });
         SetToZero_AdjointVars(aux_vars, rModelPart.Nodes());
-        auto& r_response_function = *(this->mpResponseFunction);
 
         // Loop over elements to assemble the remaining terms
         const int number_of_elements = rModelPart.NumberOfElements();
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         Vector aux_adjoint_vector;
 #pragma omp parallel for private(aux_adjoint_vector)
-        for (int i = 0; i < number_of_elements; i++)
+        for (int i = 0; i < number_of_elements; ++i)
         {
             Element& r_element = *(rModelPart.ElementsBegin() + i);
             const int k = OpenMPUtils::ThisThread();
@@ -709,7 +572,7 @@ private:
 
             r_element.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], r_process_info);
             mSecondDerivsLHS[k] *= mBossak.Alpha;
-            r_response_function.CalculateSecondDerivativesGradient(
+            this->mpResponseFunction->CalculateSecondDerivativesGradient(
                 r_element, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], r_process_info);
 
             if (aux_adjoint_vector.size() != mSecondDerivsLHS[k].size1())
@@ -774,6 +637,140 @@ private:
         {
             mSecondDerivsResponseGradient[k].resize(SystemSize, false);
         }
+    }
+
+    static BossakConstants CalculateBossakConstants(double Alpha, double DeltaTime)
+    {
+        BossakConstants bc;
+        bc.Alpha = Alpha;
+        bc.Beta = 0.25 * (1.0 - bc.Alpha) * (1.0 - bc.Alpha);
+        bc.Gamma = 0.5 - bc.Alpha;
+        bc.C0 = 1.0 - bc.Gamma / bc.Beta;
+        bc.C1 = -1.0 / (bc.Beta * DeltaTime);
+        bc.C2 = (1.0 - 0.5 * bc.Gamma / bc.Beta) * DeltaTime;
+        bc.C3 = (1.0 - 0.5 / bc.Beta);
+        bc.C4 = (bc.Beta - bc.Gamma * (bc.Gamma + 0.5)) / (DeltaTime * bc.Beta * bc.Beta);
+        bc.C5 = -1.0 * (bc.Gamma + 0.5) / (DeltaTime * DeltaTime * bc.Beta * bc.Beta);
+        bc.C6 = bc.Gamma / (bc.Beta * DeltaTime);
+        bc.C7 = 1.0 / (DeltaTime * DeltaTime * bc.Beta);
+        return bc;
+    }
+
+    static double GetTimeStep(const ProcessInfo& rCurrentProcessInfo)
+    {
+        const ProcessInfo& r_last_process_info =
+            rCurrentProcessInfo.GetPreviousSolutionStepInfo(1);
+
+        // Note: solution is backwards in time, but we still want a positive
+        // time step
+        // (it is the time step in the "forward" Bossak scheme).
+        double time_step =
+            r_last_process_info.GetValue(TIME) - rCurrentProcessInfo.GetValue(TIME);
+        KRATOS_ERROR_IF(time_step <= 0.0)
+            << "Backwards in time solution is not decreasing time from last "
+               "step."
+            << std::endl;
+        return time_step;
+    }
+
+    struct Hash
+    {
+        std::size_t operator()(const VariableData* const& p) const
+        {
+            return p->Key();
+        }
+    };
+
+    struct Pred
+    {
+        bool operator()(const VariableData* const l, const VariableData* const r) const
+        {
+            return *l == *r;
+        }
+    };
+
+    // Gathers variables needed for assembly.
+    static std::vector<const VariableData*> GatherVariables(
+        const ModelPart::ElementsContainerType& rElements,
+        std::function<void(const AdjointExtensions&, std::vector<const VariableData*>&)> GetLocalVars)
+    {
+        KRATOS_TRY;
+        const int num_threads = OpenMPUtils::GetNumThreads();
+        std::vector<const VariableData*> local_vars;
+        std::vector<std::unordered_set<const VariableData*, Hash, Pred>> thread_vars(num_threads);
+#pragma omp parallel for private(local_vars)
+        for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
+        {
+            auto& r_element = *(rElements.begin() + i);
+            GetLocalVars(*r_element.GetValue(ADJOINT_EXTENSIONS), local_vars);
+            const int k = OpenMPUtils::ThisThread();
+            thread_vars[k].insert(local_vars.begin(), local_vars.end());
+        }
+        std::unordered_set<const VariableData*, Hash, Pred> all_vars;
+        for (int i = 0; i < num_threads; ++i)
+        {
+            all_vars.insert(thread_vars[i].begin(), thread_vars[i].end());
+        }
+        return std::vector<const VariableData*>{all_vars.begin(), all_vars.end()};
+        KRATOS_CATCH("");
+    }
+
+    static void SetToZero_AdjointVars(const std::vector<const VariableData*>& rVariables,
+                                      ModelPart::NodesContainerType& rNodes)
+    {
+        KRATOS_TRY;
+        for (auto p_variable_data : rVariables)
+        {
+            if (KratosComponents<Variable<array_1d<double, 3>>>::Has(
+                    p_variable_data->Name()))
+            {
+                const auto& r_variable =
+                    KratosComponents<Variable<array_1d<double, 3>>>::Get(
+                        p_variable_data->Name());
+                VariableUtils().SetToZero_VectorVar(r_variable, rNodes);
+            }
+            else if (KratosComponents<Variable<double>>::Has(p_variable_data->Name()))
+            {
+                const auto& r_variable =
+                    KratosComponents<Variable<double>>::Get(p_variable_data->Name());
+                VariableUtils().SetToZero_ScalarVar(r_variable, rNodes);
+            }
+            else
+            {
+                KRATOS_ERROR << "Variable \"" << p_variable_data->Name()
+                             << "\" not found!\n";
+            }
+        }
+        KRATOS_CATCH("");
+    }
+
+    static void Assemble_AdjointVars(const std::vector<const VariableData*>& rVariables,
+                                     Communicator& rComm)
+    {
+        KRATOS_TRY;
+        for (auto p_variable_data : rVariables)
+        {
+            if (KratosComponents<Variable<array_1d<double, 3>>>::Has(
+                    p_variable_data->Name()))
+            {
+                const auto& r_variable =
+                    KratosComponents<Variable<array_1d<double, 3>>>::Get(
+                        p_variable_data->Name());
+                rComm.AssembleCurrentData(r_variable);
+            }
+            else if (KratosComponents<Variable<double>>::Has(p_variable_data->Name()))
+            {
+                const auto& r_variable =
+                    KratosComponents<Variable<double>>::Get(p_variable_data->Name());
+                rComm.AssembleCurrentData(r_variable);
+            }
+            else
+            {
+                KRATOS_ERROR << "Variable \"" << p_variable_data->Name()
+                             << "\" not found!\n";
+            }
+        }
+        KRATOS_CATCH("");
     }
 
     ///@}
