@@ -155,7 +155,7 @@ namespace Kratos {
             const size_t number_of_fem_nodes = mrFemModelPart.Nodes().size();
             mFlexFemPositions->resize(number_of_fem_nodes);
             const size_t number_of_fem_conditions = mrFemModelPart.Conditions().size();
-            mFlexFemConnectivities->resize(3*number_of_fem_conditions);
+            mFlexFemConnectivities->resize(3 * number_of_fem_conditions);
             std::map<int,int> id2index;
             array_1d<double, 3> min, max;
             max[0] = max[1] = max[2] = -std::numeric_limits<double>::max();
@@ -270,7 +270,7 @@ namespace Kratos {
             } else {
                 const double& radius_i = node_it->FastGetSolutionStepValue(RADIUS);
                 if (std::abs(radius_i - reference_radius) > tolerance) {
-                    KRATOS_ERROR<<"The radii of the particles are not equal! Nvidia Flex only works with particles of the same size! "<<radius_i<<" is different from "<<reference_radius<<std::endl;
+                    KRATOS_ERROR << "The radii of the particles are not equal! Nvidia Flex only works with particles of the same size! "<<radius_i<<" is different from "<<reference_radius<<std::endl;
                 }
             }
         }
@@ -288,12 +288,12 @@ namespace Kratos {
         mFlexParameters.anisotropyMax = 2.0f;
         mFlexParameters.smoothing = 0.0f;
 
-        mFlexParameters.dissipation = 0.0f; //2.0f; //0.0f;
-        mFlexParameters.damping = 0.0f; //1.0f; //0.0f;
+        mFlexParameters.dissipation = 0.0f; //0.5f; //OK //0.0f;
+        mFlexParameters.damping = 0.0f; //OK //0.0f;
         mFlexParameters.particleCollisionMargin = mFlexParameters.radius * 0.05f; //0.5f; //0.05f;
         mFlexParameters.collisionDistance = mFlexParameters.radius * 0.5f;
         mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance * 0.05f; //1.0f; // * 0.05f;
-        mFlexParameters.sleepThreshold = 0.0f; //0.005f; //0.0f;
+        mFlexParameters.sleepThreshold = 0.001f; //0.005f //OK? //0.0f;
         mFlexParameters.shockPropagation = 0.0f;
 
         mFlexParameters.maxSpeed = 100.0f; //FLT_MAX;
@@ -302,11 +302,11 @@ namespace Kratos {
         mFlexParameters.relaxationMode = eNvFlexRelaxationLocal;
         mFlexParameters.relaxationFactor = 1.0f;
         mFlexParameters.solidPressure = 0.0f; //1.0f;
-        mFlexParameters.adhesion = 0.1f; //0.1f; // This adhesion value works OK for spheres of diameter 0.01m
+        mFlexParameters.adhesion = 0.0f; //0.1f; // This adhesion value works OK for spheres of diameter 0.01m
         mFlexParameters.cohesion = 0.0f; //0.025f; //0.0f; //0.025f;
         mFlexParameters.surfaceTension = 0.0f;
         mFlexParameters.vorticityConfinement = 0.0f;
-        mFlexParameters.buoyancy = 0.0f; //1.0f;
+        mFlexParameters.buoyancy = 1.0f; //1.0f;
         mFlexParameters.diffuseThreshold = 0.0f; //1000.0f;
         mFlexParameters.diffuseBuoyancy = 0.0f;
         mFlexParameters.diffuseDrag = 0.0f;
@@ -383,7 +383,8 @@ namespace Kratos {
     void FlexWrapper::SetGravity() {
 
         static bool called_for_the_first_time = true;
-        static float current_reference_time = mrSpheresModelPart.GetProcessInfo()[TIME];
+        static float current_reference_time_for_almost_motionless_states = mrSpheresModelPart.GetProcessInfo()[TIME];
+        static float current_reference_time_for_gravity_changes          = mrSpheresModelPart.GetProcessInfo()[TIME];
         std::string gravities_filename = "TimeAngle.csv";
         
 	/*std::ifstream exists_the_file(gravities_filename);
@@ -407,17 +408,24 @@ namespace Kratos {
         static std::ifstream input_file(gravities_filename);
         std::string line;
         static size_t gravity_number = 0;
-        float elapsed_time = mrSpheresModelPart.GetProcessInfo()[TIME] - current_reference_time;
-        // Minimum time span to wait between gravity shifts to ensure that the powder realocates
-        const float delta_security_time = 100.5f;
+        float elapsed_time_between_almost_motionless_states = mrSpheresModelPart.GetProcessInfo()[TIME] - current_reference_time_for_almost_motionless_states;
+        float elapsed_time_between_gravity_changes          = mrSpheresModelPart.GetProcessInfo()[TIME] - current_reference_time_for_gravity_changes;
+        // Minimum time span to wait between gravity shifts to ensure that the powder reallocates
+        const float minimum_delta_time_between_gravity_changes = 0.5f; //1000.5f;
+        const float maximum_delta_time_between_gravity_changes = 15.0f;
         const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
         // We choose the maximum velocity admissible in order to change the gravity vector
-        const float maximum_squared_velocity_module = 0.05f * 0.05f; // squares will be compared
+        const float maximum_squared_velocity_module = 0.001f * 0.001f; //0.005f * 0.005f; // squares will be compared
         mTimeToChangeGravityValue = true;
         float node_i_squared_velocity_module = 0.0f;
         NvFlexGetVelocities(mFlexSolver, mFlexVelocities->buffer, &mFlexCopyDescriptor);
         mFlexVelocities->map();
-        // There are 113 different gravities in TimeAngle.csv
+        // There is a different number of gravities in TimeAngle.csv for each of the 5 cases
+        // cube3: 113
+        // maze2: 179
+        // maze3: 197
+        // maze4:   3
+        // maze5:   3
         const size_t total_number_of_gravities = 113;
 
         for (size_t i = 0; i < number_of_nodes; i++) {
@@ -426,19 +434,22 @@ namespace Kratos {
             float velocity_y = (*mFlexVelocities)[i][1];
             float velocity_z = (*mFlexVelocities)[i][2];
 
-            node_i_squared_velocity_module = velocity_x * velocity_x + velocity_y * velocity_y + velocity_z * velocity_z;
+            node_i_squared_velocity_module += velocity_x * velocity_x + velocity_y * velocity_y + velocity_z * velocity_z;
+        }
+        
+        if (number_of_nodes) node_i_squared_velocity_module /= number_of_nodes;
+        
+        if (node_i_squared_velocity_module > maximum_squared_velocity_module) {
 
-            if (node_i_squared_velocity_module > maximum_squared_velocity_module) {
-
-                mTimeToChangeGravityValue = false;
-                //current_reference_time = mrSpheresModelPart.GetProcessInfo()[TIME];
-                break;
-            }
+            mTimeToChangeGravityValue = false;
+            current_reference_time_for_almost_motionless_states = mrSpheresModelPart.GetProcessInfo()[TIME];
         }
 
         mFlexVelocities->unmap();
+        
+        if (elapsed_time_between_gravity_changes > maximum_delta_time_between_gravity_changes) mTimeToChangeGravityValue = true;
 
-        if ((called_for_the_first_time) or (mTimeToChangeGravityValue and (elapsed_time > delta_security_time))) {
+        if ((called_for_the_first_time) or (mTimeToChangeGravityValue and (elapsed_time_between_almost_motionless_states > minimum_delta_time_between_gravity_changes))) {
 
             if (gravity_number > total_number_of_gravities) {
             
@@ -463,7 +474,9 @@ namespace Kratos {
             mFlexParameters.gravity[2] = 9.81 * gravity_z;
 
             mTimeToChangeGravityValue = called_for_the_first_time = false;
-            current_reference_time = mrSpheresModelPart.GetProcessInfo()[TIME];
+            
+            current_reference_time_for_almost_motionless_states = mrSpheresModelPart.GetProcessInfo()[TIME];
+            current_reference_time_for_gravity_changes          = mrSpheresModelPart.GetProcessInfo()[TIME];
 
             NvFlexSetParams(mFlexSolver, &mFlexParameters);
             

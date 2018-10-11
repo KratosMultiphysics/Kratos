@@ -526,20 +526,28 @@ class SphericElementGlobalPhysicsCalculator
       void SetGravity(ModelPart& r_model_part) {
 
         static bool called_for_the_first_time = true;
-        static double current_reference_time = r_model_part.GetProcessInfo()[TIME];
+        static double current_reference_time_for_almost_motionless_states = r_model_part.GetProcessInfo()[TIME];
+        static double current_reference_time_for_gravity_changes          = r_model_part.GetProcessInfo()[TIME];
         std::string gravities_filename = "TimeAngle.csv";
 
         static std::ifstream input_file(gravities_filename);
         std::string line;
         static size_t gravity_number = 0;
-        double elapsed_time = r_model_part.GetProcessInfo()[TIME] - current_reference_time;
-        // Minimum time span to wait between gravity shifts to ensure that the powder realocates
-        const double delta_security_time = 100.5;
+        double elapsed_time_between_almost_motionless_states = r_model_part.GetProcessInfo()[TIME] - current_reference_time_for_almost_motionless_states;
+        double elapsed_time_between_gravity_changes          = r_model_part.GetProcessInfo()[TIME] - current_reference_time_for_gravity_changes;
+        // Minimum time span to wait between gravity shifts to ensure that the powder reallocates
+        const double minimum_delta_time_between_gravity_changes = 0.5; //1000.5;
+        const double maximum_delta_time_between_gravity_changes = 15.0;
         // We choose the maximum velocity admissible in order to change the gravity vector
-        const double maximum_squared_velocity_module = 0.05 * 0.05; // squares will be compared
+        const double maximum_squared_velocity_module = 0.001 * 0.001; // squares will be compared
         static bool is_time_to_change_gravity_value = true;
         double node_i_squared_velocity_module = 0.0;
-        // There are 113 different gravities in TimeAngle.csv
+        // There is a different number of gravities in TimeAngle.csv for each of the 5 cases
+        // cube3: 113
+        // maze2: 179
+        // maze3: 197
+        // maze4:   3
+        // maze5:   3
         const size_t total_number_of_gravities = 113;
         
         if (!called_for_the_first_time) is_time_to_change_gravity_value = true;
@@ -548,22 +556,27 @@ class SphericElementGlobalPhysicsCalculator
 
         ElementsArrayType::iterator it_begin = pElements.ptr_begin();
         ElementsArrayType::iterator it_end = pElements.ptr_end();
+        
+        int number_of_particles = 0;
 
         for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
                    
             array_1d<double, 3> velocity = (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-
-            node_i_squared_velocity_module = velocity[0] * velocity[0] + velocity[1] * velocity[1] + velocity[2] * velocity[2];
-
-            if (node_i_squared_velocity_module > maximum_squared_velocity_module) {
-
-                is_time_to_change_gravity_value = false;
-                current_reference_time = r_model_part.GetProcessInfo()[TIME];
-                break;
-            }                
+            node_i_squared_velocity_module += velocity[0] * velocity[0] + velocity[1] * velocity[1] + velocity[2] * velocity[2];
+            number_of_particles++;
         }
+        
+        if (number_of_particles) node_i_squared_velocity_module /= number_of_particles;
+        
+        if (node_i_squared_velocity_module > maximum_squared_velocity_module) {
 
-        if ((called_for_the_first_time) or (is_time_to_change_gravity_value and (elapsed_time > delta_security_time))) {
+            is_time_to_change_gravity_value = false;
+            current_reference_time_for_almost_motionless_states = r_model_part.GetProcessInfo()[TIME];
+        }
+        
+        if (elapsed_time_between_gravity_changes > maximum_delta_time_between_gravity_changes) is_time_to_change_gravity_value = true;
+        
+        if ((called_for_the_first_time) or (is_time_to_change_gravity_value and (elapsed_time_between_almost_motionless_states > minimum_delta_time_between_gravity_changes))) {
 
             if (gravity_number > total_number_of_gravities) {
             
@@ -590,7 +603,8 @@ class SphericElementGlobalPhysicsCalculator
             gravity[2] = 9.81 * gravity_z;
 
             is_time_to_change_gravity_value = called_for_the_first_time = false;
-            current_reference_time = r_model_part.GetProcessInfo()[TIME];
+            current_reference_time_for_almost_motionless_states = r_model_part.GetProcessInfo()[TIME];
+            current_reference_time_for_gravity_changes          = r_model_part.GetProcessInfo()[TIME];
             
             ++gravity_number;
             
