@@ -26,9 +26,9 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
 {
-    ModelPart model_part("Main");
+    Model model;
     unsigned int buffer_size = 2;
-    model_part.SetBufferSize(buffer_size);
+    ModelPart& model_part = model.CreateModelPart("Main",buffer_size);
 
     // Variables addition
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);

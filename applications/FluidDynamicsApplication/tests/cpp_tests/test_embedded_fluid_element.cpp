@@ -26,8 +26,8 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite)
 {
-    ModelPart model_part("Main");
-    model_part.SetBufferSize(3);
+    Model model;
+    ModelPart& model_part = model.CreateModelPart("Main",2);
 
     // Variables addition
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
