@@ -123,7 +123,7 @@ public:
 protected:
 
     template <typename TVariable>
-    void inline SetDof(
+    void inline SetElementDof(
         DofsVectorType& rElementalDofList,
         const std::size_t NodeIndex,
         const std::size_t DofIndex,
