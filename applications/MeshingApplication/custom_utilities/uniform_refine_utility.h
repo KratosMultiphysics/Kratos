@@ -100,11 +100,12 @@ public:
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
     /**
-     * Map types to locate nodes in the mesh
+     * Key and map types to locate nodes in the mesh
      */
-    typedef std::pair<IndexType, IndexType> NodeinEdgeKeyType;
-    typedef std::map<NodeinEdgeKeyType, IndexType> NodesInEdgeMapType;
-    typedef std::unordered_map<std::array<IndexType, 4>, IndexType, KeyHasherRange<std::array<IndexType, 4>>, KeyComparorRange<std::array<IndexType, 4>>> NodesInFaceMapType;
+    typedef std::pair<IndexType, IndexType> EdgeKeyType;
+    typedef std::array<IndexType, 4> FaceKeyType;
+    typedef std::map<EdgeKeyType, IndexType> NodesInEdgeMapType;
+    typedef std::unordered_map<FaceKeyType, IndexType, KeyHasherRange<FaceKeyType>, KeyComparorRange<FaceKeyType>> NodesInFaceMapType;
 
     /// Pointer definition of UniformRefineUtility
     KRATOS_CLASS_POINTER_DEFINITION(UniformRefineUtility);
@@ -275,7 +276,7 @@ private:
     typename NodeType::Pointer CreateNodeInEdge(
         const EdgeType& rEdge,
         const int& rNumberOfDivisions,
-        const NodeinEdgeKeyType& rNodeKey);
+        const EdgeKeyType& rNodeKey);
 
     /**
      * @brief GetNodeInEdge gets the middle node on an edge and return a pointer to it
@@ -290,14 +291,17 @@ private:
      * @param rFace The face containing the father nodes
      * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
      */
-    typename NodeType::Pointer CreateNodeInFace(const FaceType& rFace, const int& rNumberOfDivisions);
+    typename NodeType::Pointer CreateNodeInFace(
+        const FaceType& rFace,
+        const int& rNumberOfDivisions,
+        const FaceKeyType& rNodeKey);
 
     /**
      * @brief GetNodeInFace gets the node inside a face
      * @detail If the middle node does not exist, create a new one and returns a pointer to it
      * @param rFace The face containing the father nodes 
      */
-    typename NodeType::Pointer GetNodeInFace(const FaceType& rFace);
+    typename NodeType::Pointer GetNodeInFace(const FaceType& rFace, const int& rNumberOfDivisions);
 
     /**
      * @brief CalculateNodalStepData calculates the nodal data as the mean of the father nodes
