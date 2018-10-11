@@ -2,17 +2,16 @@
 {
     "problem_data"             : {
         "problem_name"    : "contact_patch_complex_geom_slope_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
+    "model_part_name" : "Structure",
+        "domain_size"     : 2,
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,        
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
@@ -25,6 +24,9 @@
         {
             "mortar_type"                    : "ALMContactFrictionless",
             "ensure_contact"                 : true
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.1
         },
         "block_builder"                      : true,
         "line_search"                        : false,

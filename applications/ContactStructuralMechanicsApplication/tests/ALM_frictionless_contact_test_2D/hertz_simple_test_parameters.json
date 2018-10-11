@@ -1,15 +1,14 @@
 {
     "problem_data"             : {
         "problem_name"    : "hertz_simple_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.01,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
+    "model_part_name" : "Structure",
+        "domain_size"     : 2,
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
@@ -23,6 +22,9 @@
         "contact_settings":
         {
             "mortar_type"                    : "ALMContactFrictionless"
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.01
         },
         "block_builder"                      : true,
         "line_search"                        : false,
@@ -189,4 +191,4 @@
         "incremental_load"         : false,
         "incremental_displacement" : false
     }
-} 
+}
