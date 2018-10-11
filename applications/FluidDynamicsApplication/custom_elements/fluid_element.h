@@ -434,7 +434,7 @@ protected:
         MatrixType& rMassMatrix);
 
     /**
-     * @brief Adds the boundary traction component
+     * @brief Adds the boundary traction component along a cut plane for embedded formulations.
      * This method adds the boundary traction component to the LHS and RHS arrays.
      * Such boundary integral must be implemented in all the fluid dynamics elements
      * deriving from this one in accordance to the formulation used. This method is
@@ -442,7 +442,7 @@ protected:
      * tractions on the elemental cuts to enforce equilibrium. This means that what we 
      * call external traction is nothing but minus the base formulation boundary term.
      * @param rData Element data structure
-     * @param rUnitNormal Outwards unit normal vector
+     * @param rUnitNormal Outwards unit normal vector for the cut plane
      * @param rLHS Reference to the Left Hand Side matrix
      * @param rRHS Reference to the Right Hand Side vector
      */
