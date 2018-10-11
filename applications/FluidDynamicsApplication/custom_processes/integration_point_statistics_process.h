@@ -89,11 +89,11 @@ void ExecuteInitialize() override
 {
     KRATOS_TRY;
 
-    // Validate parameters
-    const Kratos::Parameters default_parameters = Kratos::Parameters();
+    // Create a new container for statistics
+    StatisticsRecord::Pointer p_turbulence_statistics = Kratos::make_shared<StatisticsRecord>();
 
     // Build statistics records
-    StatisticsRecord::Pointer p_turbulence_statistics = Kratos::make_shared<StatisticsRecord>();
+    std::map< std::string, StatisticsRecord::Pointer > recorded_quantities;
 
     // Initialize STATISTICS_CONTAINER in ProcessInfo
     p_turbulence_statistics->InitializeStorage(mrModelPart.Elements());
@@ -167,10 +167,43 @@ protected:
 ///@name Protected Operations
 ///@{
 
+void CreateStatisticsFromInput()
+{
+    // Validate parameters
+    Kratos::Parameters default_parameters = Kratos::Parameters(R"({
+        "statistics" : [],
+        "output_file_name": "statistics.csv"
+    })");
+
+    mParameters.ValidateAndAssignDefaults(default_parameters);
+
+    std::map< std::string, StatisticsSampler::Pointer > created_statistics;
+
+    for (unsigned int i = 0; i < mParameters["statistics"].size(); i++)
+    {
+        Kratos::Parameters settings = mParameters["statistics"][i];
+        KRATOS_ERROR_IF_NOT( settings.Has("type") && settings["type"].IsString() )
+        << "Element " << i << " in the list of statistics passed to IntegrationPointStatitsticsProcess"
+        << " has no \"type\" (string) attribute defined." << std::endl;
+
+        std::string statistic_type = settings["type"].GetString();
+
+        if ( statistic_type == "average" )
+        {
+            CreateAverageSampler(settings);
+        }
+        else
+        {
+            KRATOS_ERROR << "Unknown string \"" << statistic_type << " passed as \"type\" argument in statistics definition." << std::endl;
+        }
+    }
+
+}
+
 StatisticsSampler::Pointer CreateAverageSampler(Kratos::Parameters Parameters) const
 {
     Kratos::Parameters default_parameters(R"({
-        "statistic" : "average",
+        "type" : "average",
         "variable": "",
         "type": "value"
     })");
@@ -178,7 +211,7 @@ StatisticsSampler::Pointer CreateAverageSampler(Kratos::Parameters Parameters) c
     Parameters.ValidateAndAssignDefaults(default_parameters);
     std::string variable_name = Parameters["variable"].GetString();
     std::string type = Parameters["type"].GetString();
-    KRATOS_ERROR_IF(type.compare("value") != 0) << "Trying to define an average statistic of unsupported type " << type << "." << std::endl;
+    KRATOS_ERROR_IF_NOT(type == "value") << "Trying to define an average statistic of unsupported type " << type << "." << std::endl;
 
     if (KratosComponents<Variable<double>>::Has(variable_name))
     {
@@ -209,7 +242,7 @@ StatisticsSampler::Pointer CreateAverageSampler(Kratos::Parameters Parameters) c
 StatisticsSampler::Pointer CreateVarianceSampler(Kratos::Parameters Parameters) const
 {
     Kratos::Parameters default_parameters(R"({
-        "statistic" : "",
+        "type" : "",
         "variable": "",
         "type": "value"
     })");
