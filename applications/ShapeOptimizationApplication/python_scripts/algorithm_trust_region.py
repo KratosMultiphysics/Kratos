@@ -58,7 +58,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.mapper = mapper_factory.CreateMapper(self.design_surface, optimization_settings["design_variables"]["filter"])
         self.data_logger = data_logger_factory.CreateDataLogger(model_part_controller, communicator, optimization_settings)
 
-        self.geometry_utilities = GeometryUtilities(self.design_surface)
         self.optimization_utilities = OptimizationUtilities(self.design_surface, optimization_settings)
 
     # --------------------------------------------------------------------------
@@ -146,11 +145,11 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     def __PostProcessGradientsObtainedFromAnalysis(self):
         # Compute surface normals if required
         if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
-            self.geometry_utilities.ComputeUnitSurfaceNormals()
+            self.model_part_controller.ComputeUnitSurfaceNormals()
         else:
             for itr in range(self.constraints.size()):
                 if self.constraints[itr]["project_gradient_on_surface_normals"]:
-                    self.geometry_utilities.ComputeUnitSurfaceNormals()
+                    self.model_part_controller.ComputeUnitSurfaceNormals()
 
         # Process objective gradients
         obj = self.objectives[0]
@@ -163,7 +162,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         # Projection on surface normals
         if obj["project_gradient_on_surface_normals"].GetBool():
-            self.geometry_utilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
+            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
 
         # Damping
         self.model_part_controller.DampNodalVariable(nodal_variable)
@@ -188,7 +187,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             # Projection on surface normals
             if con["project_gradient_on_surface_normals"].GetBool():
-                self.geometry_utilities.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
+                self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(nodal_variable)
 
             # Damping
             self.model_part_controller.DampNodalVariable(nodal_variable)

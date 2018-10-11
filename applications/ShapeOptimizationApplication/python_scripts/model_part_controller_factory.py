@@ -121,6 +121,14 @@ class ModelPartController:
             self.__GetDampingUtility().DampNodalVariable(variable)
 
     # --------------------------------------------------------------------------
+    def ComputeUnitSurfaceNormals(self):
+        GeometryUtilities(self.GetDesignSurface()).ComputeUnitSurfaceNormals()
+
+    # --------------------------------------------------------------------------
+    def ProjectNodalVariableOnUnitSurfaceNormals(self, variable):
+        GeometryUtilities(self.GetDesignSurface()).ProjectNodalVariableOnUnitSurfaceNormals(variable)
+
+    # --------------------------------------------------------------------------
     def __IdentifyDesignSurface(self):
         nameOfDesignSurface = self.model_settings["design_surface_sub_model_part_name"].GetString()
         if self.optimization_model_part.HasSubModelPart(nameOfDesignSurface):
