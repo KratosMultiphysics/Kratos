@@ -255,7 +255,7 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
 
         // Loop the edges of the father element and get the nodes
         for (auto edge : geom.Edges())
-            NodeType::Pointer new_node = CreateNodeInEdge(edge, step_divisions_level);
+            NodeType::Pointer new_node = GetNodeInEdge(edge, step_divisions_level);
 
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
             NodeType::Pointer new_node = CreateNodeInFace( geom, step_divisions_level );
@@ -280,7 +280,7 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
             int i_edge = 0;
             std::vector<NodeType::Pointer> middle_nodes(3);
             for (auto edge : geom.Edges())
-                middle_nodes[i_edge++] = GetNodeInEdge(edge);
+                middle_nodes[i_edge++] = GetNodeInEdge(edge, step_divisions_level);
             AddNodesToSubModelParts(middle_nodes, mElemColorMap[id]);
 
             // Create the sub elements
@@ -297,7 +297,7 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
             int i_edge = 0;
             std::vector<NodeType::Pointer> middle_nodes(5);
             for (auto edge : geom.Edges())
-                middle_nodes[i_edge++] = GetNodeInEdge(edge);
+                middle_nodes[i_edge++] = GetNodeInEdge(edge, step_divisions_level);
             middle_nodes[4] = GetNodeInFace( geom );
             AddNodesToSubModelParts(middle_nodes, mElemColorMap[id]);
 
@@ -334,7 +334,7 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
 
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
         {
-            NodeType::Pointer middle_node = GetNodeInEdge(geom);
+            NodeType::Pointer middle_node = GetNodeInEdge(geom, step_divisions_level);
             AddNodeToSubModelParts(middle_node, mCondColorMap[id]);
 
             // Create the sub conditions
@@ -363,54 +363,46 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
 template <unsigned int TDim>
 typename NodeType::Pointer UniformRefineUtility<TDim>::CreateNodeInEdge(
     const EdgeType& rEdge,
-    const int& rNumberOfDivisions
+    const int& rNumberOfDivisions,
+    const NodeinEdgeKeyType& rNodeKey
     )
 {
     // Initialize the output
     NodeType::Pointer middle_node;
 
-    // Get the middle node key
-    std::pair<IndexType, IndexType> node_key;
-    node_key = std::minmax(rEdge(0)->Id(), rEdge(1)->Id());
+    // Create the new node
+    const double new_x = 0.5*rEdge(0)->X() + 0.5*rEdge(1)->X();
+    const double new_y = 0.5*rEdge(0)->Y() + 0.5*rEdge(1)->Y();
+    const double new_z = 0.5*rEdge(0)->Z() + 0.5*rEdge(1)->Z();
+    middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
 
-    // Check if the node is not yet created
-    auto search = mNodesMap.find(node_key);
-    if (search == mNodesMap.end() )
-    {
-        // Create the new node
-        const double new_x = 0.5*rEdge(0)->X() + 0.5*rEdge(1)->X();
-        const double new_y = 0.5*rEdge(0)->Y() + 0.5*rEdge(1)->Y();
-        const double new_z = 0.5*rEdge(0)->Z() + 0.5*rEdge(1)->Z();
-        middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
+    // Store the node key in the map
+    mNodesMap[rNodeKey] = middle_node->Id();
 
-        // Store the node key in the map
-        mNodesMap[node_key] = middle_node->Id();
+    // interpolate the variables
+    CalculateNodalStepData(middle_node, rEdge(0), rEdge(1));
 
-        // interpolate the variables
-        CalculateNodalStepData(middle_node, rEdge(0), rEdge(1));
+    // Set the number of divisions level
+    int& this_node_level = middle_node->GetValue(NUMBER_OF_DIVISIONS);
+    this_node_level = rNumberOfDivisions;
 
-        // Set the number of divisions level
-        int& this_node_level = middle_node->GetValue(NUMBER_OF_DIVISIONS);
-        this_node_level = rNumberOfDivisions;
+    // Set the appropriate flags
+    middle_node->Set(NEW_ENTITY, true);
 
-        // Set the appropriate flags
-        middle_node->Set(NEW_ENTITY, true);
+    // Set the DoF's
+    for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+        middle_node->pAddDof(*it_dof);
 
-        // Set the DoF's
-        for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
-            middle_node->pAddDof(*it_dof);
-    }
-    else
-    {
-        middle_node = mrModelPart.Nodes()(search->second);
-    }
     return middle_node;
 }
 
 
 /// Get the middle node on an edge
 template <unsigned int TDim>
-typename NodeType::Pointer UniformRefineUtility<TDim>::GetNodeInEdge(const EdgeType& rEdge)
+typename NodeType::Pointer UniformRefineUtility<TDim>::GetNodeInEdge(
+    const EdgeType& rEdge,
+    const int& rNumberOfDivisions
+    )
 {
     // Initialize the output
     NodeType::Pointer middle_node;
@@ -427,7 +419,7 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::GetNodeInEdge(const EdgeT
     }
     else
     {
-        KRATOS_WARNING("UniformRefineProcess") << "Middle node not found in edge" << rEdge << std::endl;
+        middle_node = CreateNodeInEdge(rEdge, rNumberOfDivisions, node_key);
     }
 
     return middle_node;

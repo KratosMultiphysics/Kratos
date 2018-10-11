@@ -95,7 +95,8 @@ public:
     /**
      * Map types to locate nodes in the mesh
      */
-    typedef std::map<std::pair<IndexType, IndexType>, IndexType> NodesInEdgeMapType;
+    typedef std::pair<IndexType, IndexType> NodeinEdgeKeyType;
+    typedef std::map<NodeinEdgeKeyType, IndexType> NodesInEdgeMapType;
     typedef std::unordered_map<std::array<IndexType, 4>, IndexType, KeyHasherRange<std::array<IndexType, 4>>, KeyComparorRange<std::array<IndexType, 4>>> NodesInFaceMapType;
 
     /// Pointer definition of UniformRefineUtility
@@ -264,14 +265,17 @@ private:
      * @param rEdge The edge containing the two father nodes
      * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
      */
-    typename NodeType::Pointer CreateNodeInEdge(const EdgeType& rEdge, const int& rNumberOfDivisions);
+    typename NodeType::Pointer CreateNodeInEdge(
+        const EdgeType& rEdge,
+        const int& rNumberOfDivisions,
+        const NodeinEdgeKeyType& rNodeKey);
 
     /**
      * @brief GetNodeInEdge gets the middle node on an edge and return a pointer to it
      * @detail CreateNodeInEdge should be executed before to ensure the node existance
      * @param rEdge The edge containing the two father nodes
      */
-    typename NodeType::Pointer GetNodeInEdge(const EdgeType& rEdge);
+    typename NodeType::Pointer GetNodeInEdge(const EdgeType& rEdge, const int& rNumberOfDivisions);
 
     /**
      * @brief CreateNodeInFace creates a node at the middle point of a face
