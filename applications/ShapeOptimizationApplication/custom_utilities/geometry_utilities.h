@@ -128,13 +128,13 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ExtractBoundaryNodes( std::string const& BoundarySubModelPartName )
+    void ExtractBoundaryNodes( std::string const& rBoundarySubModelPartName )
     {
     	KRATOS_TRY;
 
-        ModelPart& boundary_model_part = mrModelPart.GetSubModelPart(BoundarySubModelPartName);
+        ModelPart& r_boundary_model_part = mrModelPart.GetSubModelPart(rBoundarySubModelPartName);
 
-        KRATOS_ERROR_IF(boundary_model_part.Nodes().size() != 0) << "ExtractBoundaryNodes: The boundary model part already has nodes!" << std::endl;
+        KRATOS_ERROR_IF(r_boundary_model_part.Nodes().size() != 0) << "ExtractBoundaryNodes: The boundary model part already has nodes!" << std::endl;
 
     	// Some type-definitions
         typedef std::unordered_map<vector<unsigned int>, unsigned int, KeyHasherRange<vector<unsigned int>>, KeyComparorRange<vector<unsigned int>> > hashmap;
@@ -185,7 +185,7 @@ public:
     	}
 
     	// Add nodes and remove double entries
-    	boundary_model_part.AddNodes(temp_boundary_node_ids);
+    	r_boundary_model_part.AddNodes(temp_boundary_node_ids);
 
     	KRATOS_CATCH("");
     }

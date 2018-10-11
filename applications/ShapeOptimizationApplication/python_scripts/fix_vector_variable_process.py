@@ -6,12 +6,8 @@ import KratosMultiphysics
 # Check that applications were imported in the main script
 KratosMultiphysics.CheckRegisteredApplications("ShapeOptimizationApplication")
 
-# Import applications
-import KratosMultiphysics.ShapeOptimizationApplication as ShapeOptimizationApplication
-
-
 def Factory(settings, model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return FixVectorVariableProcess(model, settings["Parameters"])
 
@@ -39,8 +35,8 @@ class FixVectorVariableProcess(KratosMultiphysics.Process):
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
 
-        if(type(self.variable) != KratosMultiphysics.Array1DVariable3 and type(self.variable) != KratosMultiphysics.VectorVariable):
-            msg = "Error in FixVectorVariableProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
+        if not isinstance(self.variable, KratosMultiphysics.Array1DVariable3) and not isinstance(self.variable, KratosMultiphysics.VectorVariable):
+            msg = "Error in FixVectorVariableProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect. Must be a vector or array3"
             raise Exception(msg)
 
         self.variable_components_fixed = {}
