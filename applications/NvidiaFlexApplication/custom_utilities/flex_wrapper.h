@@ -7,13 +7,13 @@
 #include "includes/variables.h"
 #include "../../DEM_application/custom_utilities/create_and_destroy.h"
 
-#include "custom_external_libraries/NvFlex.h"
-#include "custom_external_libraries/NvFlexExt.h"
-#include "custom_external_libraries/NvFlexDevice.h"
+#include "NvFlex.h"
+#include "NvFlexExt.h"
+#include "NvFlexDevice.h"
 #define CUDA_CALLABLE
-#include "custom_external_libraries/vec3.h"
-#include "custom_external_libraries/vec4.h"
-#include "custom_external_libraries/quat.h"
+#include "vec3.h"
+#include "vec4.h"
+#include "quat.h"
 
 namespace Kratos {
 
