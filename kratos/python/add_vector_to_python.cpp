@@ -114,23 +114,24 @@ namespace Python
                 tmp[i] = value;
             return tmp;
         }));
-        binder.def(init( [&Name](const Vector& input){
+        binder.def(init( [](const Vector& input){
             KRATOS_ERROR_IF(input.size() != TSize)
-            << "Expected size should be " << TSize <<" when constructing an " << Name
-            << ". Provided input size is: " << input.size() << "." << std::endl;
+            << "Attempting to initialize an array_1d<double," << TSize << "> from a Vector of size "
+            << input.size() << ". Input should have size " << TSize <<"." << std::endl;
 
             array_1d<double,TSize> tmp(input);
             return tmp;
         }));
         binder.def(init<array_1d<double,TSize>>());
-        binder.def(init( [&Name](const list& input){
+        binder.def(init( [](const list& input){
             KRATOS_ERROR_IF(input.size() != TSize)
-            << "Expected size should be " << TSize <<" when constructing an " << Name
-            << ". Provided input size is: " << input.size() << "." << std::endl;
+            << "Attempting to initialize an array_1d<double," << TSize << "> from a Python list of size "
+            << input.size() << ". Input should have size " << TSize <<"." << std::endl;
 
             array_1d<double,TSize> tmp;
-            for(std::size_t i=0; i<TSize; ++i)
+            for(std::size_t i=0; i<TSize; ++i) {
                 tmp[i] = cast<double>(input[i]);
+            }
             return tmp;
         }));
 
