@@ -78,7 +78,7 @@ class MeshControllerWithSolver(MeshController) :
                 """
                 {
                     "python_module" : "fix_vector_variable_process",
-                    "kratos_module" : "KratosMultiphysics.ShapeOptimizationApplication",
+                    "kratos_module" : "KratosMultiphysics",
                     "help"          : "This process fixes the selected components of a given vector variable without modifying the value of the variable.",
                     "process_name"  : "FixVectorVariableProcess",
                     "Parameters"    : {
