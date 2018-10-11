@@ -204,45 +204,44 @@ void UniformRefineUtility<TDim>::RemoveRefinedEntities(Flags ThisFlag)
 template< unsigned int TDim>
 void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
 {
-    // Initialize the entities Id lists
-    std::vector<IndexType> elements_id;
-    std::vector<IndexType> conditions_id;
+    // Initialize the auxiliary arrays for the elements and conditions to refine
+    ElementsArrayType elements_to_refine;
+    ConditionsArrayType conditions_to_refine;
 
-    // Get the elements id
-    const IndexType n_elements = mrModelPart.Elements().size();
-    for (IndexType i = 0; i < n_elements; i++)
+    // Fill the auxiliary array with the elements to refine
+    auto all_elem_begin = mrModelPart.ElementsBegin();
+    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++)
     {
-        ModelPart::ElementsContainerType::iterator ielement = mrModelPart.ElementsBegin() + i;
+        auto i_element = all_elem_begin + i;
 
         // Check the divisions level of the origin elements
-        int step_divisions_level = ielement->GetValue(NUMBER_OF_DIVISIONS);
-        if (step_divisions_level == rDivision)
-            elements_id.push_back(ielement->Id());
+        if (i_element->GetValue(NUMBER_OF_DIVISIONS) == rDivision)
+            elements_to_refine.push_back(*i_element.base());
     }
 
-    // Get the conditions id
-    const IndexType n_conditions = mrModelPart.Conditions().size();
-    for (IndexType i = 0; i < n_conditions; i++)
+    // Fill the auxiliary array with the conditions to refine
+    auto all_cond_begin = mrModelPart.ConditionsBegin();
+    for (int i = 0; i < static_cast<int>(mrModelPart.Conditions().size()); i++)
     {
-        ModelPart::ConditionsContainerType::iterator icondition = mrModelPart.ConditionsBegin() + i;
+        auto i_condition = all_cond_begin + i;
 
         // Check the refinement level of the origin conditions
-        int step_divisions_level = icondition->GetValue(NUMBER_OF_DIVISIONS);
-        if (step_divisions_level == rDivision)
-            conditions_id.push_back(icondition->Id());
+        if (i_condition->GetValue(NUMBER_OF_DIVISIONS) == rDivision)
+            conditions_to_refine.push_back(*i_condition.base());
     }
 
     // Loop the origin elements to create the middle nodes
-    for (auto id : elements_id)
+    ElementsArrayType::iterator elements_begin = elements_to_refine.begin();
+    for (int i = 0; i < static_cast<int>(elements_to_refine.size()); i++)
     {
-        // Get the element
-        Element::Pointer p_element = mrModelPart.Elements()(id);
+        // Get the element iterator
+        auto i_element = elements_begin + i;
 
         // Get the refinement level of the origin element
         int step_divisions_level = rDivision + 1;
 
         // Get the geometry
-        Geometry<NodeType>& geom = p_element->GetGeometry();
+        Geometry<NodeType>& geom = i_element->GetGeometry();
 
         // Loop the edges of the father element and get the nodes
         for (auto edge : geom.Edges())
@@ -252,18 +251,17 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
             NodeType::Pointer new_node = CreateNodeInFace( geom, step_divisions_level );
     }
 
-    // TODO: add OMP
     // Create the elements
-    for (auto id : elements_id)
+    for (int i = 0; i < static_cast<int>(elements_to_refine.size()); i++)
     {
-        // Get the element
-        Element::Pointer p_element = mrModelPart.Elements()(id);
+        // Get the element iterator
+        auto i_element = elements_begin + i;
 
         // Get the refinement level of the origin element
         int step_divisions_level = rDivision + 1;
 
         // Get the geometry
-        Geometry<NodeType>& geom = p_element->GetGeometry();
+        Geometry<NodeType>& geom = i_element->GetGeometry();
 
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
         {
@@ -272,14 +270,14 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
             std::vector<NodeType::Pointer> middle_nodes(3);
             for (auto edge : geom.Edges())
                 middle_nodes[i_edge++] = GetNodeInEdge(edge, step_divisions_level);
-            AddNodesToSubModelParts(middle_nodes, mElemColorMap[id]);
+            AddNodesToSubModelParts(middle_nodes, mElemColorMap[i_element->Id()]);
 
             // Create the sub elements
             PointerVector<NodeType> sub_element_nodes(3);
             for (int position = 0; position < 4; position++)
             {
                 sub_element_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
-                CreateElement(p_element, sub_element_nodes, step_divisions_level);
+                CreateElement(i_element, sub_element_nodes, step_divisions_level);
             }
         }
         else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
@@ -290,14 +288,14 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
             for (auto edge : geom.Edges())
                 middle_nodes[i_edge++] = GetNodeInEdge(edge, step_divisions_level);
             middle_nodes[4] = GetNodeInFace( geom );
-            AddNodesToSubModelParts(middle_nodes, mElemColorMap[id]);
+            AddNodesToSubModelParts(middle_nodes, mElemColorMap[i_element->Id()]);
 
             // Create the sub elements
             PointerVector<NodeType> sub_element_nodes(4);
             for (int position = 0; position < 4; position++)
             {
                 sub_element_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
-                CreateElement(p_element, sub_element_nodes, step_divisions_level);
+                CreateElement(i_element, sub_element_nodes, step_divisions_level);
             }
         }
         else
@@ -306,34 +304,35 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
         }
 
         // Once we have created all the sub elements, the origin element must be deleted
-        p_element->Set(TO_ERASE, true);
+        i_element->Set(TO_ERASE, true);
     }
 
     mrModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
     // Loop the origin conditions
-    for (auto id : conditions_id)
+    ConditionsArrayType::iterator conditions_begin = conditions_to_refine.begin();
+    for (int i = 0; i < static_cast<int>(conditions_to_refine.size()); i++)
     {
-        // Get the condition
-        Condition::Pointer p_condition = mrModelPart.Conditions()(id);
+        // Get the condition iterator
+        auto i_condition = conditions_begin + i;
 
         // Get the refinement level of the origin condition
         int step_divisions_level = rDivision + 1;
 
         // Get the geometry
-        Geometry<NodeType>& geom = p_condition->GetGeometry();
+        Geometry<NodeType>& geom = i_condition->GetGeometry();
 
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
         {
             NodeType::Pointer middle_node = GetNodeInEdge(geom, step_divisions_level);
-            AddNodeToSubModelParts(middle_node, mCondColorMap[id]);
+            AddNodeToSubModelParts(middle_node, mCondColorMap[i_condition->Id()]);
 
             // Create the sub conditions
             PointerVector<NodeType> sub_condition_nodes(2);
             for (int position = 0; position < 2; position++)
             {
                 sub_condition_nodes = GetSubLineNodes(position, geom, middle_node);
-                CreateCondition(p_condition, sub_condition_nodes, step_divisions_level);
+                CreateCondition(i_condition, sub_condition_nodes, step_divisions_level);
             }
         }
         else
@@ -342,7 +341,7 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
         }
 
         // Once we have created all the sub conditions, the origin conditions must be deleted
-        p_condition->Set(TO_ERASE, true);
+        i_condition->Set(TO_ERASE, true);
     }
 
     mrModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
@@ -606,7 +605,7 @@ void UniformRefineUtility<TDim>::AddOtherFatherNodes(
 /// Create a sub element
 template<unsigned int TDim>
 void UniformRefineUtility<TDim>::CreateElement(
-    Element::Pointer pOriginElement,
+    ElementsArrayType::iterator pOriginElement,
     PointerVector<NodeType>& rThisNodes,
     const int& rNumberOfDivisions
     )
@@ -644,7 +643,7 @@ void UniformRefineUtility<TDim>::CreateElement(
 /// Create a sub condition
 template<unsigned int TDim>
 void UniformRefineUtility<TDim>::CreateCondition(
-    Condition::Pointer pOriginCondition,
+    ConditionsArrayType::iterator pOriginCondition,
     PointerVector<NodeType>& rThisNodes,
     const int& rNumberOfDivisions
     )

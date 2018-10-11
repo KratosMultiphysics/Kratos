@@ -93,6 +93,13 @@ public:
     typedef std::size_t IndexType;
 
     /**
+     * Nodes, elements and conditions containers definition
+     */
+    typedef ModelPart::NodesContainerType NodesArrayType;
+    typedef ModelPart::ElementsContainerType ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+
+    /**
      * Map types to locate nodes in the mesh
      */
     typedef std::pair<IndexType, IndexType> NodeinEdgeKeyType;
@@ -343,7 +350,7 @@ private:
      * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
      */
     void CreateElement(
-        Element::Pointer pOriginElement,
+        ElementsArrayType::iterator pOriginElement,
         PointerVector<NodeType>& rThisNodes,
         const int& rNumberOfDivisions
         );
@@ -355,7 +362,7 @@ private:
      * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
      */
     void CreateCondition(
-        Condition::Pointer pOriginCondition,
+        ConditionsArrayType::iterator pOriginCondition,
         PointerVector<NodeType>& rThisNodes,
         const int& rNumberOfDivisions
         );
