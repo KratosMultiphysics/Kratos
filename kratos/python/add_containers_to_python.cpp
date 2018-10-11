@@ -149,11 +149,6 @@ void  AddContainersToPython(pybind11::module& m)
     .def( "__repr__", &VariableData::Info )
     ;
 
-    /*class_<Variable<std::string>, VariableData>(m, "StringVariable" )
-    .def(init<const std::string&>())
-    .def( "__repr__", &Variable<std::string>::Info )
-    ;*/
-
     class_<Variable<std::string>, VariableData>(m, "StringVariable" )
     .def(init<>( [](const std::string& name)
         {
