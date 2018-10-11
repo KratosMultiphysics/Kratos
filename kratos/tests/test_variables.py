@@ -42,7 +42,7 @@ class TestVariables(KratosUnittest.TestCase):
     def test_CreateDuplicateVariableComponentFail(self):
         NEW_VARIABLE_TWO = KratosMultiphysics.Array1DVariable3("NEW_VARIABLE_TWO")
         NEW_VARIABLE_TWO_X = KratosMultiphysics.Array1DComponentVariable("NEW_VARIABLE_TWO_X", "NEW_VARIABLE_TWO", 1)
-        NEW_VARIABLE_TWO_Y = KratosMultiphysics.Array1DComponentVariable("NEW_VARIABLE_TWO_X", "NEW_VARIABLE_TWO", 1)
+        NEW_VARIABLE_TWO_X = KratosMultiphysics.Array1DComponentVariable("NEW_VARIABLE_TWO_X", "NEW_VARIABLE_TWO", 1)
 
 
 if __name__ == '__main__':
