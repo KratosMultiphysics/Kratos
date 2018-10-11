@@ -262,7 +262,7 @@ public:
      * @brief It is called to initialize the constraint
      * @details If the constraint needs to perform any operation before any calculation is done
      */
-    virtual void Initialize()
+    virtual void Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -270,7 +270,7 @@ public:
      * @brief It is called to finalize the constraint
      * @details If the constraint needs to perform any operation before any calculation is done
      */
-    virtual void Finalize()
+    virtual void Finalize(const ProcessInfo& rCurrentProcessInfo)
     {
         this->Clear();
     }
@@ -278,33 +278,33 @@ public:
     /**
      * @brief This is called in the beginning of each solution step
      */
-    virtual void InitializeSolutionStep()
+    virtual void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     /**
      * @brief This is called for non-linear analysis at the beginning of the iteration process
      */
-    virtual void InitializeNonLinearIteration()
+    virtual void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     /**
      * @brief This is called for non-linear analysis at the end of the iteration process
      */
-    virtual void FinalizeNonLinearIteration()
+    virtual void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     /**
      * @brief This is called at the end of each solution step
      */
-    virtual void FinalizeSolutionStep()
+    virtual void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     /**
-     * @brief Determines the constrant's slvae and master list of DOFs
+     * @brief Determines the constrant's slave and master list of DOFs
      * @param rSlaveDofList The list of slave DOFs
      * @param rMasterDofList The list of slave DOFs
      * @param rCurrentProcessInfo The current process info instance
@@ -312,8 +312,8 @@ public:
     virtual void GetDofList(
         DofPointerVectorType& rSlaveDofList,
         DofPointerVectorType& rMasterDofList,
-        ProcessInfo& rCurrentProcessInfo
-        )
+        const ProcessInfo& rCurrentProcessInfo
+        ) const
     {
         KRATOS_ERROR << "Create not implemented in MasterSlaveConstraintBaseClass" << std::endl;
     }
@@ -327,8 +327,8 @@ public:
     virtual void EquationIdVector(
         EquationIdVectorType& rSlaveEquationIds,
         EquationIdVectorType& rMasterEquationIds,
-        ProcessInfo& rCurrentProcessInfo
-        )
+        const ProcessInfo& rCurrentProcessInfo
+        ) const
     {
         if (rSlaveEquationIds.size() != 0)
             rSlaveEquationIds.resize(0);
@@ -347,7 +347,7 @@ public:
     virtual void CalculateLocalSystem(
         MatrixType& rTransformationMatrix,
         VectorType& rConstantVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
         if (rTransformationMatrix.size1() != 0) {
@@ -357,6 +357,25 @@ public:
         if (rConstantVector.size() != 0) {
             rConstantVector.resize(0, false);
         }
+    }
+
+    /**
+     * @brief This method provides the place to perform checks on the completeness of the input
+     * and the compatibility with the problem options
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input or that no common error is found.
+     * @param rCurrentProcessInfo
+     * @note This method is: MANDATORY
+     */
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF( this->Id() < 1 ) << "MasterSlaveConstraint found with Id " << this->Id() << std::endl;
+
+        return 0;
+
+        KRATOS_CATCH("")
     }
 
     ///@}

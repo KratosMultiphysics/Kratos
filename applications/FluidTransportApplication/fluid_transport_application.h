@@ -27,6 +27,8 @@
 #include "fluid_transport_application_variables.h"
 
 #include "custom_elements/steady_convection_diffusion_FIC_element.hpp"
+#include "custom_elements/transient_convection_diffusion_FIC_element.hpp"
+#include "custom_elements/transient_convection_diffusion_FIC_explicit_element.hpp"
 
 
 namespace Kratos
@@ -185,10 +187,21 @@ private:
 	///@}
 	///@name Member Variables
 	///@{
+
 	const SteadyConvectionDiffusionFICElement<2,3> mSteadyConvectionDiffusionFICElement2D3N;
 	const SteadyConvectionDiffusionFICElement<2,4> mSteadyConvectionDiffusionFICElement2D4N;
 	const SteadyConvectionDiffusionFICElement<3,4> mSteadyConvectionDiffusionFICElement3D4N;
 	const SteadyConvectionDiffusionFICElement<3,8> mSteadyConvectionDiffusionFICElement3D8N;
+
+	const TransientConvectionDiffusionFICElement<2,3> mTransientConvectionDiffusionFICElement2D3N;
+	const TransientConvectionDiffusionFICElement<2,4> mTransientConvectionDiffusionFICElement2D4N;
+	const TransientConvectionDiffusionFICElement<3,4> mTransientConvectionDiffusionFICElement3D4N;
+	const TransientConvectionDiffusionFICElement<3,8> mTransientConvectionDiffusionFICElement3D8N;
+
+	const TransientConvectionDiffusionFICExplicitElement<2,3> mTransientConvectionDiffusionFICExplicitElement2D3N;
+	const TransientConvectionDiffusionFICExplicitElement<2,4> mTransientConvectionDiffusionFICExplicitElement2D4N;
+	const TransientConvectionDiffusionFICExplicitElement<3,4> mTransientConvectionDiffusionFICExplicitElement3D4N;
+	const TransientConvectionDiffusionFICExplicitElement<3,8> mTransientConvectionDiffusionFICExplicitElement3D8N;
 
 	// const Elem2D   mElem2D;
 	// const Elem3D   mElem3D;
