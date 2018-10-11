@@ -15,6 +15,7 @@
             "materials_filename"   : "StructuralMaterials.json"
         },
         "model_part_name"          : "rectangular_plate_structure",
+        "domain_size"              : 3,
         "model_import_settings"    : {
             "input_type"           : "mdpa",
             "input_filename"       : "rectangular_plate_structure"
