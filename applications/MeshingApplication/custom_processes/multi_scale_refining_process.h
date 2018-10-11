@@ -197,20 +197,19 @@ public:
             auto refined_node = refined_begin + i;
             WeakPointerVector<NodeType>& father_nodes = refined_node->GetValue(FATHER_NODES);
             IndexType number_of_father_nodes = father_nodes.size();
-            std::vector<double> weight(number_of_father_nodes);
-            ComputeWeights(refined_node->Coordinates(), father_nodes, weight);
+            std::vector<double> weights = refined_node->GetValue(FATHER_NODES_WEIGHTS);
 
             // Transfer the data
             auto& value = refined_node->FastGetSolutionStepValue(rVariable);
-            value = weight[0] * rSubstepFraction * father_nodes[0].FastGetSolutionStepValue(rVariable);
-            value += weight[0] * (1-rSubstepFraction) * father_nodes[0].FastGetSolutionStepValue(rVariable, 1);
+            value = weights[0] * rSubstepFraction * father_nodes[0].FastGetSolutionStepValue(rVariable);
+            value += weights[0] * (1-rSubstepFraction) * father_nodes[0].FastGetSolutionStepValue(rVariable, 1);
 
             if (number_of_father_nodes > 1)
             {
                 for (IndexType j = 1; j < number_of_father_nodes; j++)
                 {
-                    value += weight[j] * rSubstepFraction * father_nodes[j].FastGetSolutionStepValue(rVariable);
-                    value += weight[j] * (1-rSubstepFraction) * father_nodes[j].FastGetSolutionStepValue(rVariable, 1);
+                    value += weights[j] * rSubstepFraction * father_nodes[j].FastGetSolutionStepValue(rVariable);
+                    value += weights[j] * (1-rSubstepFraction) * father_nodes[j].FastGetSolutionStepValue(rVariable, 1);
                 }
             }
         }
@@ -531,19 +530,6 @@ public:
      * the maximum id's
      */
     void GetLastId(IndexType& rNodesId, IndexType& rElemsId, IndexType& rCondsId);
-
-    /**
-     * @brief Auxiliary method to get the weights of a node from the father nodes
-     * @see TransferSubstepToRefinedInterface
-     * @param rPoint
-     * @param rFatherNodes
-     * @param rWeights
-     */
-    void ComputeWeights(
-        const array_1d<double, 3>& rPoint,
-        const WeakPointerVector<NodeType>& rFatherNodes,
-        std::vector<double>& rWeights
-    );
 
     ///@}
     ///@name Private Operations

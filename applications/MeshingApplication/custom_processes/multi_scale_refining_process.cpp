@@ -430,6 +430,8 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
                 new_node->Set(TO_REFINE, false);
                 new_node->GetValue(FATHER_NODES).resize(0);
                 new_node->GetValue(FATHER_NODES).push_back( NodeType::WeakPointer(*coarse_node.base()) );
+                new_node->GetValue(FATHER_NODES_WEIGHTS).resize(0);
+                new_node->GetValue(FATHER_NODES_WEIGHTS).push_back(1.0);
                 coarse_node->Set(MeshingFlags::REFINED, true);
             }
         }
@@ -843,37 +845,6 @@ void MultiScaleRefiningProcess::TransferLastStepToCoarseModelPart()
             for (IndexType j = 0; j < mStepDataSize; j++)
                 dest_data[j] = src_data[j];
         }
-    }
-}
-
-
-void MultiScaleRefiningProcess::ComputeWeights(
-    const array_1d<double, 3>& rPoint,
-    const WeakPointerVector<NodeType>& rFatherNodes,
-    std::vector<double>& rWeights
-)
-{
-    // Initialize the output
-    IndexType number_of_father_nodes = rFatherNodes.size();
-    if (rWeights.size() != number_of_father_nodes)
-        rWeights.resize(number_of_father_nodes);
-
-    if (number_of_father_nodes == 1)
-    {
-        rWeights[0] = 1;
-    }
-    else
-    {
-        // Computing the distances
-        for (IndexType j = 0; j < number_of_father_nodes; j++)
-        {
-            array_1d<double, 3> a = rPoint - rFatherNodes[j].Coordinates();
-            rWeights[j] = norm_2(a);
-        }
-        // Get the nodal weights
-        double total_weight = std::accumulate(rWeights.begin(), rWeights.end(), 0.0);
-        for (IndexType j = 0; j < number_of_father_nodes; j++)
-            rWeights[j] /= total_weight;
     }
 }
 

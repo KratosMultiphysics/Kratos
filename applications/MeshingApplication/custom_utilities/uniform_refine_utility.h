@@ -330,7 +330,10 @@ private:
      */
     void AddOtherFatherNodes(
         WeakPointerVector<NodeType>& rThisFatherNodes,
-        WeakPointerVector<NodeType>& rOtherFatherNodes
+        std::vector<double>& rThisFatherWeights,
+        WeakPointerVector<NodeType>& rOtherFatherNodes,
+        const std::vector<double>& rOtherFatherWeights,
+        const double& rWeight = 0.5
         );
 
     /**

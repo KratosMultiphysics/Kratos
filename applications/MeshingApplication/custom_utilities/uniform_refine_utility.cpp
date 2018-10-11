@@ -103,15 +103,6 @@ void UniformRefineUtility<TDim>::PrintData(std::ostream& rOStream) const {
 template< unsigned int TDim>
 void UniformRefineUtility<TDim>::Refine(int& rFinalRefinementLevel)
 {
-    // KRATOS_INFO("UniformrefineUtility") << "The current nodes map has " << mNodesMap.size() << " items" << std::endl;
-    // for (auto it : mNodesMap)
-    // {
-    //     std::string nodes_map;
-    //     nodes_map = "[ " + std::to_string(it.first.first) + " , " + std::to_string(it.first.second) + " ] ";
-    //     nodes_map += std::to_string(it.second);
-    //     KRATOS_WATCH(nodes_map)
-    // }
-
     if (mrModelPart.Nodes().size() == 0)
         KRATOS_WARNING("UniformrefineUtility") << "Attempting to refine an empty model part" << std::endl;
     else
@@ -523,7 +514,13 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
     WeakPointerVector<NodeType>& r_new_father_nodes = pNewNode->GetValue(FATHER_NODES);
     r_new_father_nodes.clear();
     r_new_father_nodes = pNode0->GetValue(FATHER_NODES);
-    AddOtherFatherNodes(r_new_father_nodes, pNode1->GetValue(FATHER_NODES));
+
+    std::vector<double>& r_new_father_nodes_weights = pNewNode->GetValue(FATHER_NODES_WEIGHTS);
+    r_new_father_nodes_weights.clear();
+    r_new_father_nodes_weights = pNode0->GetValue(FATHER_NODES_WEIGHTS);
+
+    AddOtherFatherNodes(r_new_father_nodes, r_new_father_nodes_weights,
+        pNode1->GetValue(FATHER_NODES), pNode1->GetValue(FATHER_NODES_WEIGHTS));
 }
 
 
@@ -554,9 +551,17 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
     WeakPointerVector<NodeType>& r_new_father_nodes = pNewNode->GetValue(FATHER_NODES);
     r_new_father_nodes.clear();
     r_new_father_nodes = pNode0->GetValue(FATHER_NODES);
-    AddOtherFatherNodes(r_new_father_nodes, pNode1->GetValue(FATHER_NODES));
-    AddOtherFatherNodes(r_new_father_nodes, pNode2->GetValue(FATHER_NODES));
-    AddOtherFatherNodes(r_new_father_nodes, pNode3->GetValue(FATHER_NODES));
+
+    std::vector<double>& r_new_father_nodes_weights = pNewNode->GetValue(FATHER_NODES_WEIGHTS);
+    r_new_father_nodes_weights.clear();
+    r_new_father_nodes_weights = pNode0->GetValue(FATHER_NODES_WEIGHTS);
+
+    AddOtherFatherNodes(r_new_father_nodes, r_new_father_nodes_weights,
+        pNode1->GetValue(FATHER_NODES), pNode1->GetValue(FATHER_NODES_WEIGHTS), 0.5);
+    AddOtherFatherNodes(r_new_father_nodes, r_new_father_nodes_weights,
+        pNode1->GetValue(FATHER_NODES), pNode2->GetValue(FATHER_NODES_WEIGHTS), 1/3);
+    AddOtherFatherNodes(r_new_father_nodes, r_new_father_nodes_weights,
+        pNode1->GetValue(FATHER_NODES), pNode3->GetValue(FATHER_NODES_WEIGHTS), 0.25);
 }
 
 
@@ -564,19 +569,36 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
 template<unsigned int TDim>
 void UniformRefineUtility<TDim>::AddOtherFatherNodes(
     WeakPointerVector<NodeType>& rThisFatherNodes,
-    WeakPointerVector<NodeType>& rOtherFatherNodes
+    std::vector<double>& rThisFatherWeights,
+    WeakPointerVector<NodeType>& rOtherFatherNodes,
+    const std::vector<double>& rOtherFatherWeights,
+    const double& rWeight
 )
 {
-    for (auto other = rOtherFatherNodes.begin(); other != rOtherFatherNodes.end(); other++)
+    for (auto& weight : rThisFatherWeights)
+        weight *= (1-rWeight);
+
+    WeakPointerVector<NodeType>::iterator other_nodes_begin = rOtherFatherNodes.begin();
+    for (IndexType o = 0; o < rOtherFatherNodes.size(); o++)
     {
-        bool other_is_found = false;
-        for (auto father = rThisFatherNodes.begin(); father != rThisFatherNodes.end(); father++)
+        auto other_node = other_nodes_begin + o;
+        bool other_not_found = true;
+
+        WeakPointerVector<NodeType>::iterator this_nodes_begin = rThisFatherNodes.begin();
+        for (IndexType t = 0; (t < rThisFatherNodes.size()) && (other_not_found); t++)
         {
-            if (other->Id() == father->Id())
-                other_is_found = true;
+            auto this_node = this_nodes_begin + t;
+            if (other_node->Id() == this_node->Id())
+            {
+                rThisFatherWeights[t] = rOtherFatherWeights[o] * rWeight;
+                other_not_found = false;
+            }
         }
-        if (!other_is_found)
-            rThisFatherNodes.push_back(*(other.base()));
+        if (other_not_found)
+        {
+            rThisFatherNodes.push_back(*other_node.base());
+            rThisFatherWeights.push_back(rOtherFatherWeights[o] * rWeight);
+        }
     }
 }
 
