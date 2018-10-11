@@ -39,6 +39,10 @@ namespace Kratos
 
 /// A scheme for dynamic adjoint equations, using Bossak time integration.
 /**
+ * It can be used for either first- or second-order time derivatives. Elements
+ * and conditions must provide a specialization of AdjointExtensions via their
+ * data value container, which allows the scheme to operate independently of 
+ * the variable arrangements in the element or condition.
  */
 template <class TSparseSpace, class TDenseSpace>
 class ResidualBasedAdjointBossakScheme : public Scheme<TSparseSpace, TDenseSpace>
@@ -74,9 +78,7 @@ public:
             "alpha_bossak": -0.3
         })");
         Settings.ValidateAndAssignDefaults(default_parameters);
-        mAlphaBossak = Settings["alpha_bossak"].GetDouble();
-        mBetaNewmark = 0.25 * (1.0 - mAlphaBossak) * (1.0 - mAlphaBossak);
-        mGammaNewmark = 0.5 - mAlphaBossak;
+        mBossak.Alpha = Settings["alpha_bossak"].GetDouble();
     }
 
     /// Destructor.
@@ -125,22 +127,8 @@ public:
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
-        // Get current time step.
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        const ProcessInfo& r_last_process_info =
-            r_current_process_info.GetPreviousSolutionStepInfo(1);
-
-        // Note: solution is backwards in time, but we still want a positive
-        // time step
-        // (it is the time step in the "forward" Bossak scheme).
-        mTimeStep = r_last_process_info.GetValue(TIME) -
-                    r_current_process_info.GetValue(TIME);
-        KRATOS_ERROR_IF(mTimeStep <= 0.0)
-            << "Backwards in time solution is not decreasing time from last "
-               "step."
-            << std::endl;
-
-        mInverseDt = 1.0 / mTimeStep;
+        const auto& r_current_process_info = rModelPart.GetProcessInfo();
+        mBossak = CalculateBossakConstants(mBossak.Alpha, GetTimeStep(r_current_process_info));
 
         this->CalculateNodeNeighbourCount(rModelPart);
 
@@ -249,6 +237,10 @@ public:
                                               ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
+        LocalSystemVectorType RHS_Contribution;
+        Condition_CalculateSystemContributions(pCurrentCondition,
+                                               rLHS_Contribution, RHS_Contribution,
+                                               rEquationId, rCurrentProcessInfo);
         KRATOS_CATCH("");
     }
 
@@ -318,29 +310,78 @@ private:
         }
     };
 
-    static std::vector<const VariableData*> GetVariables(
+    struct BossakConstants
+    {
+        double Alpha;
+        double Beta;
+        double Gamma;
+        double C0;
+        double C1;
+        double C2;
+        double C3;
+        double C4;
+        double C5;
+        double C6;
+        double C7;
+    };
+
+    static BossakConstants CalculateBossakConstants(double Alpha, double DeltaTime)
+    {
+        BossakConstants bc;
+        bc.Alpha = Alpha;
+        bc.Beta = 0.25 * (1.0 - bc.Alpha) * (1.0 - bc.Alpha);
+        bc.Gamma = 0.5 - bc.Alpha;
+        bc.C0 = 1.0 - bc.Gamma / bc.Beta;
+        bc.C1 = -1.0 / (bc.Beta * DeltaTime);
+        bc.C2 = (1.0 - 0.5 * bc.Gamma / bc.Beta) * DeltaTime;
+        bc.C3 = (1.0 - 0.5 / bc.Beta);
+        bc.C4 = (bc.Beta - bc.Gamma * (bc.Gamma + 0.5)) / (DeltaTime * bc.Beta * bc.Beta);
+        bc.C5 = -1.0 * (bc.Gamma + 0.5) / (DeltaTime * DeltaTime * bc.Beta * bc.Beta);
+        bc.C6 = bc.Gamma / (bc.Beta * DeltaTime);
+        bc.C7 = 1.0 / (DeltaTime * DeltaTime * bc.Beta);
+        return bc;
+    }
+
+    static double GetTimeStep(const ProcessInfo& rCurrentProcessInfo)
+    {
+        const ProcessInfo& r_last_process_info =
+            rCurrentProcessInfo.GetPreviousSolutionStepInfo(1);
+
+        // Note: solution is backwards in time, but we still want a positive
+        // time step
+        // (it is the time step in the "forward" Bossak scheme).
+        double time_step =
+            r_last_process_info.GetValue(TIME) - rCurrentProcessInfo.GetValue(TIME);
+        KRATOS_ERROR_IF(time_step <= 0.0)
+            << "Backwards in time solution is not decreasing time from last "
+               "step."
+            << std::endl;
+        return time_step;
+    }
+
+    // Gathers variables needed for assembly.
+    static std::vector<const VariableData*> GatherVariables(
         const ModelPart::ElementsContainerType& rElements,
-        std::function<void(const AdjointExtensions&, std::vector<const VariableData*>&)> FGet)
+        std::function<void(const AdjointExtensions&, std::vector<const VariableData*>&)> GetLocalVars)
     {
         KRATOS_TRY;
         const int num_threads = OpenMPUtils::GetNumThreads();
-        std::vector<const VariableData*> var_vec;
-        std::vector<std::unordered_set<const VariableData*, Hash, Pred>> var_sets(num_threads);
-#pragma omp parallel for private(var_vec)
+        std::vector<const VariableData*> local_vars;
+        std::vector<std::unordered_set<const VariableData*, Hash, Pred>> thread_vars(num_threads);
+#pragma omp parallel for private(local_vars)
         for (int i = 0; i < static_cast<int>(rElements.size()); ++i)
         {
             auto& r_element = *(rElements.begin() + i);
-            FGet(*r_element.GetValue(ADJOINT_EXTENSIONS), var_vec);
+            GetLocalVars(*r_element.GetValue(ADJOINT_EXTENSIONS), local_vars);
             const int k = OpenMPUtils::ThisThread();
-            var_sets[k].insert(var_vec.begin(), var_vec.end());
+            thread_vars[k].insert(local_vars.begin(), local_vars.end());
         }
-        std::unordered_set<const VariableData*, Hash, Pred> total_var_set;
+        std::unordered_set<const VariableData*, Hash, Pred> all_vars;
         for (int i = 0; i < num_threads; ++i)
         {
-            total_var_set.insert(var_sets[i].begin(), var_sets[i].end());
+            all_vars.insert(thread_vars[i].begin(), thread_vars[i].end());
         }
-        return std::vector<const VariableData*>{total_var_set.begin(),
-                                                total_var_set.end()};
+        return std::vector<const VariableData*>{all_vars.begin(), all_vars.end()};
         KRATOS_CATCH("");
     }
 
@@ -410,11 +451,7 @@ private:
     ///@{
 
     AdjointResponseFunction::Pointer mpResponseFunction;
-    double mAlphaBossak;
-    double mBetaNewmark;
-    double mGammaNewmark;
-    double mTimeStep;
-    double mInverseDt;
+    BossakConstants mBossak;
 
     std::vector<LocalSystemMatrixType> mLeftHandSide;
     std::vector<LocalSystemVectorType> mResponseGradient;
@@ -457,14 +494,13 @@ private:
                                                ProcessInfo& rCurrentProcessInfo)
     {
         int k = OpenMPUtils::ThisThread();
-        const double first_deriv_coeff = mGammaNewmark / (mBetaNewmark * mTimeStep);
         rCurrentElement.CalculateFirstDerivativesLHS(mFirstDerivsLHS[k], rCurrentProcessInfo);
         mpResponseFunction->CalculateFirstDerivativesGradient(
             rCurrentElement, mFirstDerivsLHS[k],
             mFirstDerivsResponseGradient[k], rCurrentProcessInfo);
-        noalias(rLHS_Contribution) += first_deriv_coeff * mFirstDerivsLHS[k];
+        noalias(rLHS_Contribution) += mBossak.C6 * mFirstDerivsLHS[k];
         noalias(rRHS_Contribution) -=
-            first_deriv_coeff * mFirstDerivsResponseGradient[k];
+            mBossak.C6 * mFirstDerivsResponseGradient[k];
     }
 
     void CalculateSecondDerivativeContributions(Element& rCurrentElement,
@@ -474,15 +510,14 @@ private:
     {
         int k = OpenMPUtils::ThisThread();
         auto& r_response_function = *(this->mpResponseFunction);
-        const double second_deriv_coeff = mInverseDt * mInverseDt / mBetaNewmark;
         rCurrentElement.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], rCurrentProcessInfo);
-        mSecondDerivsLHS[k] *= (1.0 - mAlphaBossak);
+        mSecondDerivsLHS[k] *= (1.0 - mBossak.Alpha);
         r_response_function.CalculateSecondDerivativesGradient(
             rCurrentElement, mSecondDerivsLHS[k],
             mSecondDerivsResponseGradient[k], rCurrentProcessInfo);
-        noalias(rLHS_Contribution) += second_deriv_coeff * mSecondDerivsLHS[k];
+        noalias(rLHS_Contribution) += mBossak.C7 * mSecondDerivsLHS[k];
         noalias(rRHS_Contribution) -=
-            second_deriv_coeff * mSecondDerivsResponseGradient[k];
+            mBossak.C7 * mSecondDerivsResponseGradient[k];
     }
 
     void CalculatePreviousTimeStepContributions(Element& rCurrentElement,
@@ -490,20 +525,12 @@ private:
                                                 LocalSystemVectorType& rRHS_Contribution,
                                                 ProcessInfo& rCurrentProcessInfo)
     {
-        const double old_adjoint_velocity_coeff =
-            mInverseDt * (mBetaNewmark - mGammaNewmark * (mGammaNewmark + 0.5)) /
-            (mBetaNewmark * mBetaNewmark);
-        const double old_adjoint_acceleration_coeff =
-            -1.0 * (mInverseDt * mInverseDt) * (mGammaNewmark + 0.5) /
-            (mBetaNewmark * mBetaNewmark);
-        const double second_deriv_coeff = mInverseDt * mInverseDt / mBetaNewmark;
         const auto& r_geometry = rCurrentElement.GetGeometry();
-        const auto num_nodes = r_geometry.PointsNumber();
         const auto k = OpenMPUtils::ThisThread();
         auto& r_extensions = *rCurrentElement.GetValue(ADJOINT_EXTENSIONS);
 
-        unsigned int local_index = 0;
-        for (unsigned int i_node = 0; i_node < num_nodes; ++i_node)
+        unsigned local_index = 0;
+        for (unsigned i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
         {
             auto& r_node = r_geometry[i_node];
             r_extensions.GetFirstDerivativesVector(i_node, mAdjointIndirectVector2[k], 1);
@@ -511,14 +538,13 @@ private:
             r_extensions.GetAuxiliaryVector(i_node, mAuxAdjointIndirectVector1[k], 1);
             const double weight = 1.0 / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
-            for (unsigned int d = 0; d < mAdjointIndirectVector2[k].size(); d++)
+            for (unsigned d = 0; d < mAdjointIndirectVector2[k].size(); ++d)
             {
                 rRHS_Contribution[local_index] +=
-                    weight * second_deriv_coeff * mAuxAdjointIndirectVector1[k][d];
-                rRHS_Contribution[local_index] += weight * old_adjoint_velocity_coeff *
-                                                  mAdjointIndirectVector2[k][d];
-                rRHS_Contribution[local_index] += weight * old_adjoint_acceleration_coeff *
-                                                  mAdjointIndirectVector3[k][d];
+                    weight *
+                    (mBossak.C7 * mAuxAdjointIndirectVector1[k][d] +
+                     mBossak.C4 * mAdjointIndirectVector2[k][d] +
+                     mBossak.C5 * mAdjointIndirectVector3[k][d]);
                 ++local_index;
             }
         }
@@ -548,7 +574,7 @@ private:
         // Calculate number of neighbour elements for each node.
         const int num_nodes = rModelPart.NumberOfNodes();
 #pragma omp parallel for
-        for (int i = 0; i < num_nodes; i++)
+        for (int i = 0; i < num_nodes; ++i)
         {
             Node<3>& r_node = *(rModelPart.Nodes().begin() + i);
             r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS, 0.0);
@@ -556,11 +582,11 @@ private:
 
         const int num_elements = rModelPart.NumberOfElements();
 #pragma omp parallel for
-        for (int i = 0; i < num_elements; i++)
+        for (int i = 0; i < num_elements; ++i)
         {
             Element& r_element = *(rModelPart.Elements().begin() + i);
             Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-            for (unsigned int j = 0; j < r_geometry.PointsNumber(); j++)
+            for (unsigned j = 0; j < r_geometry.PointsNumber(); ++j)
             {
                 double& r_num_neighbour =
                     r_geometry[j].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
@@ -575,12 +601,12 @@ private:
     void UpdateTimeSchemeAdjoints(ModelPart& rModelPart)
     {
         KRATOS_TRY;
-        auto lambda2_vars = GetVariables(
+        auto lambda2_vars = GatherVariables(
             rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
                                       std::vector<const VariableData*>& rVec) {
                 rExtensions.GetFirstDerivativesVariables(rVec);
             });
-        auto lambda3_vars = GetVariables(
+        auto lambda3_vars = GatherVariables(
             rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
                                       std::vector<const VariableData*>& rVec) {
                 return rExtensions.GetSecondDerivativesVariables(rVec);
@@ -588,11 +614,6 @@ private:
         SetToZero_AdjointVars(lambda2_vars, rModelPart.Nodes());
         SetToZero_AdjointVars(lambda3_vars, rModelPart.Nodes());
         auto& r_response_function = *(this->mpResponseFunction);
-
-        const double a22 = 1.0 - mGammaNewmark / mBetaNewmark;
-        const double a23 = -1.0 / (mBetaNewmark * mTimeStep);
-        const double a32 = (1.0 - 0.5 * mGammaNewmark / mBetaNewmark) * mTimeStep;
-        const double a33 = (1.0 - 0.5 / mBetaNewmark);
 
         const int number_of_elements = rModelPart.NumberOfElements();
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -612,7 +633,7 @@ private:
                 r_element, mFirstDerivsLHS[k], mFirstDerivsResponseGradient[k], r_process_info);
 
             r_element.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], r_process_info);
-            mSecondDerivsLHS[k] *= (1.0 - mAlphaBossak);
+            mSecondDerivsLHS[k] *= (1.0 - mBossak.Alpha);
             r_response_function.CalculateSecondDerivativesGradient(
                 r_element, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], r_process_info);
 
@@ -626,9 +647,9 @@ private:
                                     prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]);
             auto& r_extensions = *r_element.GetValue(ADJOINT_EXTENSIONS);
             // Assemble the contributions to the corresponding nodal unknowns.
-            unsigned int local_index = 0;
+            unsigned local_index = 0;
             Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-            for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
+            for (unsigned i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
             {
                 r_extensions.GetFirstDerivativesVector(
                     i_node, mAdjointIndirectVector2[k], 0);
@@ -640,14 +661,14 @@ private:
                 Node<3>& r_node = r_geometry[i_node];
                 const double weight = 1.0 / r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
                 r_node.SetLock();
-                for (unsigned int d = 0; d < mAdjointIndirectVector2[k].size(); ++d)
+                for (unsigned d = 0; d < mAdjointIndirectVector2[k].size(); ++d)
                 {
                     mAdjointIndirectVector2[k][d] += adjoint2_aux[local_index];
-                    mAdjointIndirectVector2[k][d] += a22 * weight * adjoint2_old[d];
-                    mAdjointIndirectVector2[k][d] += a23 * weight * adjoint3_old[d];
+                    mAdjointIndirectVector2[k][d] += mBossak.C0 * weight * adjoint2_old[d];
+                    mAdjointIndirectVector2[k][d] += mBossak.C1 * weight * adjoint3_old[d];
                     mAdjointIndirectVector3[k][d] += adjoint3_aux[local_index];
-                    mAdjointIndirectVector3[k][d] += a32 * weight * adjoint2_old[d];
-                    mAdjointIndirectVector3[k][d] += a33 * weight * adjoint3_old[d];
+                    mAdjointIndirectVector3[k][d] += mBossak.C2 * weight * adjoint2_old[d];
+                    mAdjointIndirectVector3[k][d] += mBossak.C3 * weight * adjoint3_old[d];
                     mAdjointIndirectVector3[k][d] +=
                         weight * mAuxAdjointIndirectVector1[k][d];
                     ++local_index;
@@ -665,7 +686,7 @@ private:
     void UpdateAuxiliaryVariable(ModelPart& rModelPart)
     {
         KRATOS_TRY;
-        auto aux_vars = GetVariables(
+        auto aux_vars = GatherVariables(
             rModelPart.Elements(), [](const AdjointExtensions& rExtensions,
                                       std::vector<const VariableData*>& rOut) {
                 return rExtensions.GetAuxiliaryVariables(rOut);
@@ -687,7 +708,7 @@ private:
             this->CheckAndResizeThreadStorage(mAdjointValuesVector[k].size());
 
             r_element.CalculateSecondDerivativesLHS(mSecondDerivsLHS[k], r_process_info);
-            mSecondDerivsLHS[k] *= mAlphaBossak;
+            mSecondDerivsLHS[k] *= mBossak.Alpha;
             r_response_function.CalculateSecondDerivativesGradient(
                 r_element, mSecondDerivsLHS[k], mSecondDerivsResponseGradient[k], r_process_info);
 
@@ -698,15 +719,15 @@ private:
                 mSecondDerivsResponseGradient[k];
             auto& r_extensions = *r_element.GetValue(ADJOINT_EXTENSIONS);
             // Assemble the contributions to the corresponding nodal unknowns.
-            unsigned int local_index = 0;
+            unsigned local_index = 0;
             Geometry<Node<3>>& r_geometry = r_element.GetGeometry();
-            for (unsigned int i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
+            for (unsigned i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)
             {
                 Node<3>& r_node = r_geometry[i_node];
                 r_extensions.GetAuxiliaryVector(i_node, mAuxAdjointIndirectVector1[k], 0);
 
                 r_node.SetLock();
-                for (unsigned int d = 0; d < mAuxAdjointIndirectVector1[k].size(); ++d)
+                for (unsigned d = 0; d < mAuxAdjointIndirectVector1[k].size(); ++d)
                 {
                     mAuxAdjointIndirectVector1[k][d] += aux_adjoint_vector[local_index];
                     ++local_index;
@@ -720,7 +741,7 @@ private:
         KRATOS_CATCH("");
     }
 
-    void CheckAndResizeThreadStorage(unsigned int SystemSize)
+    void CheckAndResizeThreadStorage(unsigned SystemSize)
     {
         const int k = OpenMPUtils::ThisThread();
 
