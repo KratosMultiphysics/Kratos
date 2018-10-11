@@ -158,6 +158,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
         {
             Variable<std::string> var(name);
+            AddKratosComponent(var.Name(), name);
+            KratosComponents<VariableData>::Add(var.Name(), var);
             KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
             return var;
         } ))
@@ -168,6 +170,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
     {
         Variable<bool> var(name);
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -178,6 +182,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
     {
         Variable<int> var(name);
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -188,6 +194,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
     {
         Variable<DenseVector<int> > var(name);
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -198,6 +206,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
     {
         Variable<double> var(name);
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -208,6 +218,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
     {
         Variable<Vector> var(name);
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -218,6 +230,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
     {
         Variable<array_1d<double, 3> > var(name);
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -228,6 +242,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
     {
         Variable<array_1d<double, 4> > var(name);
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -238,6 +254,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
     {
         Variable<array_1d<double, 6> > var(name);
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -248,6 +266,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
     {
         Variable<array_1d<double, 9> > var(name);
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -258,6 +278,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
     {
         Variable<DenseMatrix<double> > var(name);
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -268,6 +290,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
     {
         Variable<ConstitutiveLaw::Pointer> var(name);
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -278,6 +302,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
     {
         Variable<ConvectionDiffusionSettings::Pointer >  var(name);
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -288,6 +314,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def(init<>( [](const std::string& name)
     {
         Variable<RadiationSettings::Pointer >  var(name);
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -303,6 +331,8 @@ void  AddContainersToPython(pybind11::module& m)
     {
         VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >  var(name, source_name, component_index,
                                                                                 Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >(source_name, component_index));
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable component : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -315,6 +345,8 @@ void  AddContainersToPython(pybind11::module& m)
     {
         VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >  var(name, source_name, component_index,
                                                                                 Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 4> >(source_name, component_index));
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable component : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -327,6 +359,8 @@ void  AddContainersToPython(pybind11::module& m)
     {
         VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >  var(name, source_name, component_index,
                                                                                 Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 6> >(source_name, component_index));
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable component : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
@@ -339,6 +373,8 @@ void  AddContainersToPython(pybind11::module& m)
     {
         VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >  var(name, source_name, component_index,
                                                                                 Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 9> >(source_name, component_index));
+        AddKratosComponent(var.Name(), name);
+        KratosComponents<VariableData>::Add(var.Name(), var);
         KRATOS_ERROR_IF(KratosComponents<VariableData>::Has(name)) <<"The variable component : "<<name<<" already exists."<<std::endl;
         return var;
     } ))
