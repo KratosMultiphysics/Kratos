@@ -231,14 +231,14 @@ void ConnectivityPreserveModeler::DuplicateSubModelParts(
     {
         if( ! rDestinationModelPart.HasSubModelPart(i_part->Name()))
             rDestinationModelPart.CreateSubModelPart(i_part->Name());
-            
+
         ModelPart& destination_part = rDestinationModelPart.GetSubModelPart(i_part->Name());
 
         destination_part.AddNodes(i_part->NodesBegin(), i_part->NodesEnd());
 
         std::vector<ModelPart::IndexType> ids;
         ids.reserve(i_part->Elements().size());
-        
+
         //adding by index
         for(auto it=i_part->ElementsBegin(); it!=i_part->ElementsEnd(); ++it)
             ids.push_back(it->Id());

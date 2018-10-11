@@ -882,8 +882,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1, return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2, return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint3, return_value_policy::reference_internal)
-
-        .def("__repr__", [](const ModelPart& self) -> const std::string { std::stringstream ss;  ss << self; return ss.str(); })
+        .def("__str__", KRATOS_DEF_PYTHON_STR(ModelPart))
         ;
 }
 

@@ -140,9 +140,8 @@ public:
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
-
         const double yield_tension = r_material_properties.Has(YIELD_STRESS) ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        rThreshold = std::abs(yield_tension);
+		rThreshold = std::abs(yield_tension);
     }
 
     /**
@@ -252,6 +251,25 @@ public:
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
 
         return TPlasticPotentialType::Check(rMaterialProperties);
+    }
+
+	/**
+     * @brief This method returns true if the yield
+	 * surfacecompares with the tension tield stress
+     */
+    static bool IsWorkingWithTensionThreshold()
+    {
+        return true;
+    }
+
+	/**
+     * @brief This method returns the scaling factor of the
+     * yield surface
+	 * surfacecompares with the tension tield stress
+     */
+    static double GetScaleFactorTension(const Properties& rMaterialProperties)
+    {
+        return 1.0;
     }
 
     ///@}

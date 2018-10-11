@@ -298,7 +298,7 @@ protected:
         }
 
         rDofNum = dof_num;
-        rResidualSolutionNorm = residual_solution_norm;
+        rResidualSolutionNorm = std::sqrt(residual_solution_norm);
     }
 
     ///@}

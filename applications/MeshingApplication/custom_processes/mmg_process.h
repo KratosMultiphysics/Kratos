@@ -71,6 +71,16 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
+    /**
+     * @brief This enum defines the type of MMG libray used
+     */
+    enum class MMGLibray
+    {
+        MMG2D = 0,
+        MMG3D = 1,
+        MMGS  = 2
+    };
+
 ///@}
 ///@name  Functions
 ///@{
@@ -87,7 +97,7 @@ namespace Kratos
  * The remesher keeps the previous submodelparts and interpolates the nodal values between the old and new mesh
  * @author Vicente Mataix Ferrandiz
  */
-template<SizeType TDim>
+template<MMGLibray TMMGLibray>
 class MmgProcess
     : public Process
 {
@@ -132,13 +142,16 @@ public:
     typedef MeshType::ElementConstantIterator           ElementConstantIterator;
 
     /// Conditions array size
-    static constexpr SizeType ConditionsArraySize = (TDim == 2) ? 1 : 2;
+    static constexpr SizeType Dimension = (TMMGLibray == MMGLibray::MMG2D) ? 2 : 3;
+
+    /// Conditions array size
+    static constexpr SizeType ConditionsArraySize = (Dimension == 2) ? 1 : 2;
 
     /// Elements array size
-    static constexpr SizeType ElementsArraySize = (TDim == 2) ? 1 : 2;
+    static constexpr SizeType ElementsArraySize = (Dimension == 2) ? 1 : 2;
 
     /// The type of array considered for the tensor
-    typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
+    typedef typename std::conditional<Dimension == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
 
     /// Double vector
     typedef std::vector<double> DoubleVectorType;
@@ -670,7 +683,7 @@ private:
      * @param Metric This array contains the components of the metric vector
      */
     void SetMetricVector(
-        const array_1d<double, TDim>& Metric,
+        const array_1d<double, Dimension>& Metric,
         const IndexType NodeId
         );
 
@@ -733,14 +746,14 @@ private:
 ///@{
 
 /// input stream function
-template<SizeType TDim>
+template<MMGLibray TMMGLibray>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  MmgProcess<TDim>& rThis);
+                                  MmgProcess<TMMGLibray>& rThis);
 
 /// output stream function
-template<SizeType TDim>
+template<MMGLibray TMMGLibray>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const MmgProcess<TDim>& rThis)
+                                  const MmgProcess<TMMGLibray>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

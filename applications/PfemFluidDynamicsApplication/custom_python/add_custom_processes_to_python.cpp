@@ -9,12 +9,13 @@
 
 // External includes
 
-// Project includes
-#include "includes/node.h"
-#include "processes/process.h"
 
 //Application includes
 #include "custom_python/add_custom_processes_to_python.h"
+
+// Project includes
+#include "includes/node.h"
+#include "processes/process.h"
 
 //PreMeshing processes
 #include "includes/model_part.h"
@@ -111,7 +112,7 @@ namespace Kratos
      class_<BuildMeshBoundaryForFluidsProcess, BuildMeshBoundaryForFluidsProcess::Pointer, MesherProcess>
 	(m, "BuildMeshBoundaryForFluids")
 	.def(init<ModelPart&, MesherUtilities::MeshingParameters&, int>());
-     
+
      class_<BuildModelPartBoundaryForFluidsProcess, BuildModelPartBoundaryForFluidsProcess::Pointer, MesherProcess>
 	(m, "BuildModelPartBoundaryForFluids")
        .def(init<ModelPart&, std::string, int>())
