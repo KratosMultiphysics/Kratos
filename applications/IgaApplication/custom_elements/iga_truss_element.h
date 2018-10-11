@@ -63,9 +63,9 @@ public:
     void PrintInfo(std::ostream& rOStream) const override;
 
 private:
-    Vector3D mReferenceBaseVector;
+    Vector3 mReferenceBaseVector;
 
-    Vector3D GetActualBaseVector() const;
+    Vector3 GetActualBaseVector() const;
 };
 
 } // namespace Kratos

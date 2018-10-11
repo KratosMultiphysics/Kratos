@@ -72,11 +72,11 @@ void IgaTrussElement::Initialize()
     mReferenceBaseVector = GetActualBaseVector();
 }
 
-IgaTrussElement::Vector3D IgaTrussElement::GetActualBaseVector() const
+IgaTrussElement::Vector3 IgaTrussElement::GetActualBaseVector() const
 {
     const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
-    Vector3D actual_base_vector = ZeroVector(3);
+    Vector3 actual_base_vector = ZeroVector(3);
 
     for (std::size_t i = 0; i < NumberOfNodes(); i++)
     {
@@ -112,7 +112,7 @@ void IgaTrussElement::CalculateAll(
 
     // compute base vectors
 
-    const Vector3D actual_base_vector = GetActualBaseVector();
+    const Vector3 actual_base_vector = GetActualBaseVector();
 
     const double reference_a = norm_2(mReferenceBaseVector);
     const double actual_a = norm_2(actual_base_vector);

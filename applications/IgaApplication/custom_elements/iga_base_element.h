@@ -29,7 +29,7 @@ class IgaBaseElement
 public:
     using IgaBaseElementType = IgaBaseElement<TDofsPerNode>;
 
-    using Vector3D = BoundedVector<double, 3>;
+    using Vector3 = BoundedVector<double, 3>;
 
     using Element::Element;
 
