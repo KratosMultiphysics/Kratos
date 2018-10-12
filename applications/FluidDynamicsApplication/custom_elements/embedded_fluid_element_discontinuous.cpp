@@ -122,7 +122,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
             const size_t gauss_pt_index = g + volume_gauss_points;
             data.UpdateGeometryValues(gauss_pt_index, data.PositiveInterfaceWeights[g], row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
             this->CalculateMaterialResponse(data);
-            this->AddBoundaryIntegral(data, data.PositiveInterfaceUnitNormals[g], aux_LHS, aux_RHS);
+            this-> AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g], aux_LHS, aux_RHS);
         }
 
         // Add the base element boundary contribution on the negative interface
@@ -131,7 +131,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
             const size_t gauss_pt_index = g + volume_gauss_points + number_of_positive_interface_gauss_points;
             data.UpdateGeometryValues(gauss_pt_index, data.NegativeInterfaceWeights[g], row(data.NegativeInterfaceN, g), data.NegativeInterfaceDNDX[g]);
             this->CalculateMaterialResponse(data);
-            this->AddBoundaryIntegral(data, data.NegativeInterfaceUnitNormals[g], aux_LHS, aux_RHS);
+            this-> AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], aux_LHS, aux_RHS);
         }
 
         // Recall to swap the boundary term signs because of the interface equilibrium (Neumann) imposition
