@@ -11,13 +11,6 @@ class TestVariables(KratosUnittest.TestCase):
         self.assertEqual(component_variable.GetSourceVariable(), source_variable)
         self.assertNotEqual(component_variable.GetSourceVariable(), false_source_variable)
 
-    def test_VariableComponentConstructor(self):
-        NEW_VARIABLE = KratosMultiphysics.Array1DVariable3("NEW_VARIABLE")
-
-        NEW_VARIABLE_X = KratosMultiphysics.Array1DComponentVariable("NEW_VARIABLE_X", "NEW_VARIABLE", 1)
-        NEW_VARIABLE_Y = KratosMultiphysics.Array1DComponentVariable("NEW_VARIABLE_Y", "NEW_VARIABLE", 2)
-        NEW_VARIABLE_Z = KratosMultiphysics.Array1DComponentVariable("NEW_VARIABLE_Z", "NEW_VARIABLE", 3)
-
     def test_CreateVariable(self):
         NEW_STRING_VARIABLE = KratosMultiphysics.StringVariable("NEW_STRING_VARIABLE")
 
@@ -33,6 +26,9 @@ class TestVariables(KratosUnittest.TestCase):
 
         NEW_Q_VARIABLE = KratosMultiphysics.DoubleQuaternionVariable("NEW_Q_VARIABLE")
 
+        NEW_VARIABLE = KratosMultiphysics.Array1DVariable3("NEW_VARIABLE")
+
+
     @KratosUnittest.expectedFailure
     def test_CreateDuplicateVariableFail(self):
         NEW_STRING_VARIABLE_TWO = KratosMultiphysics.StringVariable("NEW_STRING_VARIABLE_TWO")
@@ -42,7 +38,7 @@ class TestVariables(KratosUnittest.TestCase):
     def test_CreateDuplicateVariableComponentFail(self):
         NEW_VARIABLE_TWO = KratosMultiphysics.Array1DVariable3("NEW_VARIABLE_TWO")
         NEW_VARIABLE_TWO_X = KratosMultiphysics.Array1DComponentVariable("NEW_VARIABLE_TWO_X", "NEW_VARIABLE_TWO", 1)
-        NEW_VARIABLE_TWO_X = KratosMultiphysics.Array1DComponentVariable("NEW_VARIABLE_TWO_X", "NEW_VARIABLE_TWO", 1)
+
 
 
 if __name__ == '__main__':
