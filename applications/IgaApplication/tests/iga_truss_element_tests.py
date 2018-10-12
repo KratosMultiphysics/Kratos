@@ -10,7 +10,7 @@ def GetFilePath(fileName):
     return os.path.dirname(__file__) + "/" + fileName
 
 
-class TrussDiscreteElementTest(KratosUnittest.TestCase):
+class IgaTrussElementTests(KratosUnittest.TestCase):
 
     def solve(create_geometry):
         model_part = ModelPart('Model')
@@ -46,7 +46,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
             node_indices = [curve.Node(j).Id for j in
                 range(shapes.FirstNonzeroPole, shapes.LastNonzeroPole + 1)]
 
-            element = model_part.CreateNewElement('TrussDiscreteElement', i + 1,
+            element = model_part.CreateNewElement('IgaTrussElement', i + 1,
                 node_indices, truss_properties)
 
             n_0 = Vector(shapes.NumberOfNonzeroPoles)
@@ -142,7 +142,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
             return node_1, node_2, curve
 
-        node_1, node_2, _ = TrussDiscreteElementTest.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTests.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
@@ -170,7 +170,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
             return node_1, node_2, curve
 
-        node_1, node_2, _ = TrussDiscreteElementTest.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTests.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
@@ -202,7 +202,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
             return node_1, node_3, curve
 
-        node_1, node_2, _ = TrussDiscreteElementTest.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTests.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
@@ -234,7 +234,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
             return node_1, node_3, curve
 
-        node_1, node_2, _ = TrussDiscreteElementTest.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTests.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
@@ -267,7 +267,7 @@ class TrussDiscreteElementTest(KratosUnittest.TestCase):
 
             return node_1, node_3, curve
 
-        node_1, node_2, _ = TrussDiscreteElementTest.solve(create_geometry)
+        node_1, node_2, _ = IgaTrussElementTests.solve(create_geometry)
 
         self.assertAlmostEqual(node_1.X, 0.0               )
         self.assertAlmostEqual(node_1.Y, 0.0               )
