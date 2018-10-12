@@ -14,6 +14,7 @@
 // Project includes
 #include "custom_laws/small_strain_laws/small_strain_3D_law.hpp"
 #include "custom_utilities/constitutive_model_utilities.hpp"
+#include "custom_utilities/properties_layout.hpp"
 
 namespace Kratos
 {
@@ -120,6 +121,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
+    PropertiesLayout::Pointer Properties = rProperties[PROPERTIES_LAYOUT].Clone();
+    Properties.Configure(rValues.GetMaterialProperties(),rValues.GetElementGeometry(),rValues.GetShapeFunctionsValues());             
     rModelValues.SetOptions(rValues.GetOptions());
     rModelValues.SetMaterialProperties(rValues.GetMaterialProperties());
     rModelValues.SetProcessInfo(rValues.GetProcessInfo());
