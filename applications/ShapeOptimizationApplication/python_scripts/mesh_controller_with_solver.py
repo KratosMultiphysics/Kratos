@@ -32,8 +32,7 @@ class MeshControllerWithSolver(MeshController) :
                 "solver_type" : "mesh_solver_structural_similarity",
                 "model_part_name"       : "",
                 "model_import_settings"              : {
-                    "input_type"     : "use_input_model_part",
-                    "input_filename"  : "DUMMY_FILENAME"
+                    "input_type"     : "use_input_model_part"
                 },
                 "time_stepping" : {
                     "time_step"       : 1.0
