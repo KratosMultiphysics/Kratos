@@ -26,7 +26,7 @@
 namespace Kratos
 {
 
-KratosChimeraApplication::KratosChimeraApplication():KratosApplication("StructuralMechanicsApplication"),
+KratosChimeraApplication::KratosChimeraApplication():KratosApplication("ChimeraApplication"),
     mSkSyFluidElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mSkSyFluidElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mSkSyFluidCondition2D2N(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType(2) ) ) ),
