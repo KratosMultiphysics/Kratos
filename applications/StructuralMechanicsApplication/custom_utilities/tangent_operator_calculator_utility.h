@@ -92,10 +92,13 @@ public:
      * @brief Main method that computes the tangent tensor
      * @param rValues The properties of the CL
      * @param pConstitutiveLaw Pointer to the CL
+     * @param rStressMeasure The stress measure of the law
      */
     static void CalculateTangentTensor(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw *pConstitutiveLaw)
+        ConstitutiveLaw *pConstitutiveLaw,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        )
     {
         // Converged values to be storaged
         const Vector& strain_vector_gp = rValues.GetStrainVector();
@@ -119,7 +122,7 @@ public:
             PerturbateStrainVector(perturbed_strain, strain_vector_gp, pertubation, i_component);
 
             // We continue with the calculations
-            IntegratePerturbedStrain(rValues, pConstitutiveLaw);
+            IntegratePerturbedStrain(rValues, pConstitutiveLaw, rStressMeasure);
 
             Vector& perturbed_integrated_stress = rValues.GetStressVector(); // now integrated
             const Vector& delta_stress = perturbed_integrated_stress - stress_vector_gp;
@@ -179,16 +182,24 @@ public:
      * @brief This method integrates the pertubated strain
      * @param rValues The properties of the CL
      * @param pConstitutiveLaw Pointer to the CL
+     * @param rStressMeasure The stress measure of the law
      */
     static void IntegratePerturbedStrain(
         ConstitutiveLaw::Parameters& rValues,
-        ConstitutiveLaw *pConstitutiveLaw)
+        ConstitutiveLaw *pConstitutiveLaw,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        )
     {
         Flags& cl_options = rValues.GetOptions();
+
         // In order to avoid recursivity...
+        const bool back_flag = cl_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-        pConstitutiveLaw->CalculateMaterialResponseCauchy(rValues);
+        pConstitutiveLaw->CalculateMaterialResponse(rValues, rStressMeasure);
+
+        // We set back
+        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, back_flag);
     }
 
     /**
