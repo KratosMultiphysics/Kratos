@@ -20,7 +20,7 @@ def GetFilePath(fileName):
     return os.path.dirname(__file__) + "/" + fileName
 
 
-class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
+class ShellKLDiscreteElementTests(KratosUnittest.TestCase):
 
     def solve_cantilever(create_geometry):
         model_part = ModelPart('Model')
@@ -207,7 +207,7 @@ class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
 
             return surface
 
-        surface = ShellKLDiscreteElementTest.solve_cantilever(create_geometry)
+        surface = ShellKLDiscreteElementTests.solve_cantilever(create_geometry)
 
         for i in range(surface.NumberOfPolesU):
             for j in range(surface.NumberOfPolesV):
@@ -271,7 +271,7 @@ class ShellKLDiscreteElementTest(KratosUnittest.TestCase):
 
             return surface
 
-        surface = ShellKLDiscreteElementTest.solve_cantilever(create_geometry)
+        surface = ShellKLDiscreteElementTests.solve_cantilever(create_geometry)
 
         for i in range(surface.NumberOfPolesU):
             for j in range(surface.NumberOfPolesV):
