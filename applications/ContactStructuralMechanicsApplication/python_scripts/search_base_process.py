@@ -39,6 +39,7 @@ class SearchBaseProcess(KM.Process):
         Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
+        KM.Process.__init__(self)
 
         # NOTE: Due to recursive check "search_model_part" and "assume_master_slave" requires to pre-define configurations, if more that 10 pairs of contact are required, just add. I assume nobody needs that much
         # Settings string in json format

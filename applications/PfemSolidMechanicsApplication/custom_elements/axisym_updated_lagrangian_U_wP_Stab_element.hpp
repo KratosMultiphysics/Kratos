@@ -41,7 +41,7 @@ namespace Kratos
     * This works for arbitrary geometries in 3D and 2D (base class)
     */
 
-   class AxisymUpdatedLagrangianUwPStabElement
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) AxisymUpdatedLagrangianUwPStabElement
       : public AxisymUpdatedLagrangianUwPElement
    {
       public:

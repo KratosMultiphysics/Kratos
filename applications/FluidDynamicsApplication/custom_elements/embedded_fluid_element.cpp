@@ -101,7 +101,7 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
 
             this->CalculateMaterialResponse(data);
 
-            this->AddBoundaryIntegral(data, data.PositiveInterfaceUnitNormals[g],
+            this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g],
                 rLeftHandSideMatrix, rRightHandSideVector);
         }
 

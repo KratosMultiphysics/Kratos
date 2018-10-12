@@ -23,7 +23,7 @@ class ComputeEmbeddedDragProcess(ComputeDragProcess):
     """
     def _GetFileHeader(self):
         header  = '# Embedded drag for model part ' + self.params["model_part_name"].GetString() + '\n'
-        header += '# Time Fx Fy Fz \n'
+        header += '# Time Fx Fy Fz\n'
         return header
 
     def _PrintToScreen(self, result_msg):
