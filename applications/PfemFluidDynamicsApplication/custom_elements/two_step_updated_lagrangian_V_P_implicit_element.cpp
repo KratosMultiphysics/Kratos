@@ -76,9 +76,9 @@ namespace Kratos {
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != LocalSize )
-      rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+      rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(LocalSize,LocalSize);
+    rLeftHandSideMatrix = ZeroMatrix(LocalSize, LocalSize);
 
     if( rRightHandSideVector.size() != LocalSize )
       rRightHandSideVector.resize(LocalSize);
