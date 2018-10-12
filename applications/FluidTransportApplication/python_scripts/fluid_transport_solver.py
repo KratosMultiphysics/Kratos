@@ -12,14 +12,13 @@ KratosMultiphysics.CheckForPreviousImport()
 
 def CreateSolver(main_model_part, custom_settings):
 
-    return FluidTransportSteadySolver(main_model_part, custom_settings)
+    return FluidTransportSolver(main_model_part, custom_settings)
 
 
-class FluidTransportSteadySolver(object):
+class FluidTransportSolver(object):
 
     def __init__(self, main_model_part, custom_settings):
 
-        #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
         self.min_buffer_size = 2
@@ -33,7 +32,7 @@ class FluidTransportSteadySolver(object):
                 "input_filename": "unknown_name",
                 "input_file_label": 0
             },
-            "buffer_size": 2,
+            "buffer_size":                        2,
             "echo_level":                         0,
             "clear_storage":                      false,
             "compute_reactions":                  false,
@@ -41,6 +40,8 @@ class FluidTransportSteadySolver(object):
             "reform_dofs_at_each_step":           false,
             "block_builder":                      true,
             "solution_type":                      "Steady",
+            "scheme_type":                        "Implicit",
+            "newmark_theta":                      0.5,
             "strategy_type":                      "Linear",
             "convergence_criterion":              "And_criterion",
             "displacement_relative_tolerance":    1.0E-4,
@@ -72,14 +73,22 @@ class FluidTransportSteadySolver(object):
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        print("Construction of FluidTransportSteadySolver finished")
+        print("Construction of FluidTransportSolver finished")
 
     def AddVariables(self):
 
         ## ConvectionDiffusionSettings
         thermal_settings = KratosMultiphysics.ConvectionDiffusionSettings()
+        thermal_settings.SetReactionVariable(KratosMultiphysics.ABSORPTION_COEFFICIENT)
         thermal_settings.SetDiffusionVariable(KratosMultiphysics.CONDUCTIVITY)
-        thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
+
+        if(self.settings["solution_type"].GetString() == "Steady"):
+            thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
+        elif(self.settings["scheme_type"].GetString() == "Implicit"):
+            thermal_settings.SetUnknownVariable(KratosFluidTransport.PHI_THETA)
+        else:
+            thermal_settings.SetUnknownVariable(KratosMultiphysics.TEMPERATURE)
+
         thermal_settings.SetSpecificHeatVariable(KratosMultiphysics.SPECIFIC_HEAT)
         thermal_settings.SetDensityVariable(KratosMultiphysics.DENSITY)
         thermal_settings.SetVolumeSourceVariable(KratosMultiphysics.HEAT_FLUX)
@@ -90,18 +99,15 @@ class FluidTransportSteadySolver(object):
 
         ## Convection Variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
         # Add thermal variables
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONDUCTIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_FLUX)
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SPECIFIC_HEAT)
-        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluidTransport.PHI_THETA) # Phi variable refering to the n+theta step
 
         print("Variables correctly added")
 
@@ -117,7 +123,13 @@ class FluidTransportSteadySolver(object):
             #node.AddDof(KratosMultiphysics.VELOCITY_Z,KratosMultiphysics.REACTION_Z)
 
             ## Thermal dofs
-            node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION_FLUX)
+
+            if(self.settings["solution_type"].GetString() == "Steady"):
+                node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION_FLUX)
+            elif(self.settings["scheme_type"].GetString() == "Implicit"):
+                node.AddDof(KratosFluidTransport.PHI_THETA, KratosMultiphysics.REACTION_FLUX)
+            else:
+                node.AddDof(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.REACTION_FLUX)
 
         print("DOFs correctly added")
 
@@ -139,6 +151,7 @@ class FluidTransportSteadySolver(object):
     def Initialize(self):
 
         # Set ProcessInfo variables
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, 1)
 
         # Get the computing model parts
         self.computing_model_part = self.GetComputingModelPart()
@@ -147,7 +160,7 @@ class FluidTransportSteadySolver(object):
         builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
 
         # Solution scheme creation
-        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        scheme = self._ConstructScheme(self.settings["solution_type"].GetString())
 
         # Solver creation
         self.Solver = self._ConstructSolver(builder_and_solver,
@@ -160,7 +173,11 @@ class FluidTransportSteadySolver(object):
         # Check if everything is assigned correctly
         self.Solver.Check()
 
-        print ("Initialization FluidTransportSteadySolver finished")
+        self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
+        # KratosMultiphysics.BodyNormalCalculationUtils().CalculateBodyNormals(self.main_model_part, self.domain_size)
+
+        print ("Initialization FluidTransportSolver finished")
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.computing_model_part_name)
@@ -241,6 +258,20 @@ class FluidTransportSteadySolver(object):
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
         return builder_and_solver
+
+    def _ConstructScheme(self, solution_type):
+
+        # Creating the builder and solver
+        if(solution_type == "Steady"):
+            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        elif(self.settings["scheme_type"].GetString() == "Implicit"):
+            theta = self.settings["newmark_theta"].GetDouble()
+            scheme = KratosFluidTransport.GeneralizedNewmarkGN11Scheme(theta)
+        else:
+            theta = 1.0
+            scheme = KratosFluidTransport.ExplicitForwardEulerScheme(theta)
+
+        return scheme
 
     def _ConstructSolver(self, builder_and_solver, scheme, strategy_type):
 

@@ -1209,6 +1209,177 @@ class TestProcesses(KratosUnittest.TestCase):
 
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
+    def test_fix_processes(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(DENSITY)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        #reset all data
+        for node in model_part.Nodes:
+            node.Free(DISPLACEMENT_X)
+            node.Free(DISPLACEMENT_Y)
+            node.Free(DISPLACEMENT_Z)
+            node.Free(VELOCITY_X)
+            node.Free(VELOCITY_Y)
+            node.Free(VELOCITY_Z)
+            node.SetSolutionStepValue(DENSITY,0,0.0)
+            node.SetSolutionStepValue(VISCOSITY,0,0.0)
+            node.SetSolutionStepValue(DISPLACEMENT_X,0,0.0)
+            node.SetSolutionStepValue(DISPLACEMENT_Y,0,0.0)
+            node.SetSolutionStepValue(DISPLACEMENT_Z,0,0.0)
+            node.SetSolutionStepValue(VELOCITY_X,0,0.0)
+            node.SetSolutionStepValue(VELOCITY_Y,0,0.0)
+            node.SetSolutionStepValue(VELOCITY_Z,0,0.0)
+
+        settings = Parameters(
+            """
+            {
+                "process_list" : [
+                    {
+                        "python_module" : "fix_scalar_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "FixScalarVariableProcess",
+                        "Parameters"    : {
+                            "model_part_name" : "Main",
+                            "variable_name"   : "VISCOSITY",
+                            "interval"        : [1.0, 2.0],
+                            "constrained"     : true
+                        }
+                    },
+                    {
+                        "python_module" : "fix_scalar_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "FixScalarVariableProcess",
+                        "Parameters"    : {
+                            "model_part_name" : "Main",
+                            "variable_name"   : "DENSITY",
+                            "interval"        : [3.0, 1e30]
+                        }
+                    },
+                    {
+                        "python_module" : "fix_scalar_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "FixScalarVariableProcess",
+                        "Parameters"    : {
+                            "model_part_name" : "Main",
+                            "variable_name"   : "DISPLACEMENT_X",
+                            "constrained"     : true
+                        }
+                    },
+                    {
+                        "python_module" : "fix_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "FixVectorVariableProcess",
+                        "Parameters"    : {
+                            "model_part_name" : "Main",
+                            "variable_name"   : "DISPLACEMENT"
+                        }
+                    },
+                    {
+                        "python_module"   : "fix_vector_variable_process",
+                        "kratos_module"   : "KratosMultiphysics",
+                        "process_name"    : "FixVectorVariableProcess",
+                        "Parameters"      : {
+                            "model_part_name" : "Main",
+                            "variable_name"   : "VELOCITY",
+                            "constrained"     : [false, true, true]
+                        }
+                    }
+                ]
+                }
+            """
+            )
+
+        Model = {"Main":model_part}
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+
+        for node in model_part.Nodes:
+            self.assertFalse(node.IsFixed(DISPLACEMENT_X))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Z))
+
+        ############################################################
+        ##time = 1 - all active except DENSITY
+        model_part.CloneTimeStep(1.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        ##verify the result
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_X), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(DENSITY), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(VISCOSITY), 0.0)
+            self.assertFalse(node.IsFixed(DENSITY))
+            self.assertTrue(node.IsFixed(VISCOSITY))
+            self.assertTrue(node.IsFixed(DISPLACEMENT_X))
+            self.assertTrue(node.IsFixed(DISPLACEMENT_Y))
+            self.assertTrue(node.IsFixed(DISPLACEMENT_Z))
+            self.assertFalse(node.IsFixed(VELOCITY_X))
+            self.assertTrue(node.IsFixed(VELOCITY_Y))
+            self.assertTrue(node.IsFixed(VELOCITY_Z))
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+        ##verify the result
+        for node in model_part.Nodes:
+            self.assertFalse(node.IsFixed(DENSITY))
+            self.assertFalse(node.IsFixed(VISCOSITY))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_X))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Z))
+            self.assertFalse(node.IsFixed(VELOCITY_X))
+            self.assertFalse(node.IsFixed(VELOCITY_Y))
+            self.assertFalse(node.IsFixed(VELOCITY_Z))
+
+        ############################################################
+        ##time = 3 - all active except VISCOSITY
+        model_part.CloneTimeStep(3.0)
+
+        for node in model_part.Nodes:
+            self.assertFalse(node.IsFixed(VELOCITY_X))
+            self.assertFalse(node.IsFixed(VELOCITY_Y))
+            self.assertFalse(node.IsFixed(VELOCITY_Z))
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        ##verify the result
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_X), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(DENSITY), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(VISCOSITY), 0.0)
+            self.assertTrue(node.IsFixed(DENSITY))
+            self.assertFalse(node.IsFixed(VISCOSITY))
+            self.assertTrue(node.IsFixed(DISPLACEMENT_X))
+            self.assertTrue(node.IsFixed(DISPLACEMENT_Y))
+            self.assertTrue(node.IsFixed(DISPLACEMENT_Z))
+            self.assertFalse(node.IsFixed(VELOCITY_X))
+            self.assertTrue(node.IsFixed(VELOCITY_Y))
+            self.assertTrue(node.IsFixed(VELOCITY_Z))
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+        ##verify the result
+        for node in model_part.Nodes:
+            self.assertFalse(node.IsFixed(DENSITY))
+            self.assertFalse(node.IsFixed(VISCOSITY))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_X))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Z))
+            self.assertFalse(node.IsFixed(VELOCITY_X))
+            self.assertFalse(node.IsFixed(VELOCITY_Y))
+            self.assertFalse(node.IsFixed(VELOCITY_Z))
 
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[TIME]
