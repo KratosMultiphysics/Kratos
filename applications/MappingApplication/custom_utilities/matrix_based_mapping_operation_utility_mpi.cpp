@@ -206,7 +206,7 @@ void UtilityType::BuildMappingSystem(
 
     // ***** Creating the graph for the MappingMatrix *****
     // explanation in here: https://trilinos.org/docs/dev/packages/epetra/doc/html/classEpetra__CrsGraph.html
-    const int num_indices_per_row = 5; // TODO this is to be tested => set to zero maybe ...
+    const int num_indices_per_row = 5; // TODO this is to be tested => set to zero maybe ... => also applicable for the serial version
 
     // Performance optimization see https://trilinos.org/docs/dev/packages/epetra/doc/html/classEpetra__CrsGraph.html
     Epetra_FECrsGraph epetra_graph(Epetra_DataAccess::Copy,

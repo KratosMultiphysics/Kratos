@@ -65,7 +65,7 @@ void ConstructMatrixStructure(UtilityType::TSystemMatrixUniquePointerType& rpMdo
     // preallocate memory for the column indices
     for (IndexType i=0; i<NumNodesDestination; ++i) {
         // TODO I guess this can be optimized...
-        // this highly depends on the used mapper
+        // this highly depends on the used mapper => same goes for the Graph in Trilinos
         indices[i].reserve(3);
     }
 
