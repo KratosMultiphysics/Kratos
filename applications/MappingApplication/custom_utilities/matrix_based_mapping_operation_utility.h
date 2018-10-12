@@ -22,6 +22,7 @@
 
 // Project includes
 #include "mapping_operation_utility.h"
+#include "mapper_utilities.h"
 
 
 namespace Kratos
@@ -137,7 +138,10 @@ class MatrixBasedMappingOperationUtility
         const DoubleVariableType& rOriginVariable,
         const DoubleVariableType& rDestinationVariable,
         const Kratos::Flags MappingOptions,
-        const bool UseTranspose) const override;
+        const bool UseTranspose) const override
+    {
+        ExecuteMapping(rMdo, rQo, rQd, UseTranspose);
+    }
 
     // The "Solve" function
     void ExecuteMappingStep(
@@ -149,7 +153,10 @@ class MatrixBasedMappingOperationUtility
         const ComponentVariableType& rOriginVariable,
         const ComponentVariableType& rDestinationVariable,
         const Kratos::Flags MappingOptions,
-        const bool UseTranspose) const override;
+        const bool UseTranspose) const override
+    {
+        ExecuteMapping(rMdo, rQo, rQd, UseTranspose);
+    }
 
     // The "Solve" function
     void FinalizeMappingStep(
@@ -229,6 +236,59 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    template< class TVectorType, class TVarType >
+    void TInitializeMappingStep(
+        TVectorType& rQo,
+        TVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const TVarType& rOriginVariable,
+        const TVarType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const
+    {
+        if (UseTranspose) {
+            MapperUtilities::UpdateSystemVectorFromModelPart(
+                rQd,
+                rModelPartDestination,
+                rDestinationVariable,
+                MappingOptions);
+        }
+        else {
+            MapperUtilities::UpdateSystemVectorFromModelPart(
+                rQo,
+                rModelPartOrigin,
+                rOriginVariable,
+                MappingOptions);
+        }
+    }
+
+    template< class TVectorType, class TVarType >
+    void TFinalizeMappingStep(
+        TVectorType& rQo,
+        TVectorType& rQd,
+        ModelPart& rModelPartOrigin,
+        ModelPart& rModelPartDestination,
+        const TVarType& rOriginVariable,
+        const TVarType& rDestinationVariable,
+        const Kratos::Flags MappingOptions,
+        const bool UseTranspose) const
+    {
+        if (UseTranspose) {
+            MapperUtilities::UpdateModelPartFromSystemVector(
+                rQo,
+                rModelPartOrigin,
+                rOriginVariable,
+                MappingOptions);
+        }
+        else {
+            MapperUtilities::UpdateModelPartFromSystemVector(
+                rQd,
+                rModelPartDestination,
+                rDestinationVariable,
+                MappingOptions);
+        }
+    }
 
     ///@}
     ///@name Protected  Access
@@ -266,6 +326,18 @@ private:
     ///@name Private Operations
     ///@{
 
+    void ExecuteMapping(TSystemMatrixType& rMdo,
+                        TSystemVectorType& rQo,
+                        TSystemVectorType& rQd,
+                        const bool UseTranspose) const
+    {
+        if (UseTranspose) {
+            TSparseSpace::TransposeMult(rMdo, rQd, rQo); // rQo = rMdo^T * rQo
+        }
+        else {
+            TSparseSpace::Mult(rMdo, rQo, rQd); // rQd = rMdo * rQo
+        }
+    }
 
     ///@}
     ///@name Private  Access

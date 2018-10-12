@@ -88,8 +88,9 @@ class MappingOperationUtility
     {
         // Note that no validation is done here,
         // this is supposed to be done in the derived classes
-        if (Settings.Has("echo_level"))
+        if (Settings.Has("echo_level")){
             mEchoLevel = Settings["echo_level"].GetInt();
+        }
     }
 
     /// Destructor.
