@@ -202,7 +202,16 @@ void  AddContainersToPython(pybind11::module& m)
     ;
 
     class_<Variable<array_1d<double, 3> >,VariableData>(m, "Array1DVariable3")
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<array_1d<double, 3> >>(name);} ))
+    .def(init<>( [](const std::string& name)
+                 {
+                    auto var_x = CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >>
+                                    (name+"_X", name, 1);
+                    auto var_y = CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >>
+                                    (name+"_Y", name, 1);
+                    auto var_z = CreateVariableComponent<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >, Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >>
+                                    (name+"_Z", name, 1);
+                    return CreateVariable<Variable<array_1d<double, 3> >>(name);
+                 } ))
     .def( "__repr__", &Variable<array_1d<double, 3> >::Info )
     ;
 
