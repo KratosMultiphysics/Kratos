@@ -1,0 +1,23 @@
+{
+    "properties" : [{
+        "model_part_name" : "Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "HenckyBorjaCamClayPlasticPlaneStrain2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"                : 1.0,
+                "DENSITY"                  : 2200.0,
+                "PRE_CONSOLIDATION_STRESS" : -90000.0,
+                "OVER_CONSOLIDATION_RATIO" : 1.0,
+                "SWELLING_SLOPE"           : 0.018,
+                "NORMAL_COMPRESSION_SLOPE" : 0.13,
+                "CRITICAL_STATE_LINE"      : 1.05,
+                "INITIAL_SHEAR_MODULUS"    : 5400000.0,
+                "ALPHA_SHEAR"              : 0.0
+            },
+            "Tables"           : {}
+        }
+    }]
+}
