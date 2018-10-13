@@ -20,9 +20,9 @@
 #endif // KRATOS_USE_AMATRIX
 
 // Project includes
-#include "includes/model_part.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "processes/process.h"
+#include "includes/model_part.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
