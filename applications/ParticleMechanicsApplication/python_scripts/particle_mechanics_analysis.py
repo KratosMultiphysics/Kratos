@@ -67,36 +67,6 @@ class ParticleMechanicsAnalysis(AnalysisStage):
 
         super(ParticleMechanicsAnalysis, self).__init__(model, project_parameters)
 
-    def Initialize(self):
-        """This function initializes the AnalysisStage
-        Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
-        """
-        self._GetSolver().ImportModelPart()
-        self._GetSolver().AddDofs()
-
-        self.ModifyInitialProperties()
-        self.ModifyInitialGeometry()
-
-        ## here we initialize user-provided processes
-        for process in self._GetListOfProcesses():
-            process.ExecuteInitialize()
-
-        self._GetSolver().Initialize()
-
-        self.ModifyAfterSolverInitialize()
-
-        for process in self._GetListOfProcesses():
-            process.ExecuteBeforeSolutionLoop()
-
-        ## Stepping and time settings
-        self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
-
-        if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            self.time = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
-        else:
-            self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
-
-
     #### Internal functions ####
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
