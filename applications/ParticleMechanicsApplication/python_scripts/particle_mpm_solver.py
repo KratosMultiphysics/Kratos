@@ -134,7 +134,7 @@ class ParticleMPMSolver(object):
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         if self._is_printing_rank():
-            KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver", "Solver is constructed correctly.")
+            KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ", "Solver is constructed correctly.")
 
 
     ### Solver public functions
@@ -144,7 +144,7 @@ class ParticleMPMSolver(object):
         self._add_variables_to_model_part(self.model_part2)
 
         if self._is_printing_rank():
-            KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","Variables are added.")
+            KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","Variables are added.")
  
     def ImportModelPart(self):
         # Read model part
@@ -157,7 +157,12 @@ class ParticleMPMSolver(object):
         self._execute_check_and_prepare()
 
         if self._is_printing_rank():
-            KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","Models are imported.")
+            KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","Models are imported.")
+
+    def PrepareModelPart(self):
+        if self._is_printing_rank():
+            KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ", "ModelPart prepared for Solver.")
+
 
     def AddDofs(self):
         # Add dofs to different model parts
@@ -165,7 +170,7 @@ class ParticleMPMSolver(object):
         self._add_dofs_to_model_part(self.model_part2)
         
         if self._is_printing_rank():
-            KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","DOFs are added.")
+            KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","DOFs are added.")
 
     def Initialize(self):
         #TODO: implement solver_settings and change the input of the constructor in MPM_strategy.h
@@ -247,7 +252,7 @@ class ParticleMPMSolver(object):
         self._check()
       
         if self._is_printing_rank():
-            KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","Solver is initialized correctly.")
+            KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","Solver is initialized correctly.")
 
     def Solve(self):
         (self.solver).Solve()
@@ -340,10 +345,10 @@ class ParticleMPMSolver(object):
         materials_imported = self._import_constitutive_laws()
         if materials_imported:
             if self._is_printing_rank():
-                KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","Constitutive law was successfully imported.")
+                KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","Constitutive law was successfully imported.")
         else:
             if self._is_printing_rank():
-                KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","Constitutive law was not imported.")
+                KratosMultiphysics.Logger.PrintInfo("::[ParticleMPMSolver]:: ","Constitutive law was not imported.")
 
         # Clone property of model_part2 to model_part3
         self.model_part3.Properties = self.model_part2.Properties
