@@ -10,17 +10,42 @@ import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-def CreateSolver(grid_model_part, initial_material_model_part, material_model_part, custom_settings):
-    return ParticleMPMSolver(grid_model_part, initial_material_model_part, material_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+
+    domain_size = custom_settings["domain_size"].GetInt()
+
+    ### In MPM three model parts are needed
+    ## Material model part definition
+    material_model_part_name = custom_settings["model_part_name"].GetString()
+    material_model_part = KratosMultiphysics.ModelPart(material_model_part_name) # Equivalent to model_part3 in the old format
+    material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+    ## Initial material model part definition
+    initial_material_model_part_name = "Initial_" + material_model_part_name
+    initial_material_model_part = KratosMultiphysics.ModelPart(initial_material_model_part_name) #Equivalent to model_part2 in the old format
+    initial_material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+    ## Grid model part definition
+    grid_model_part = KratosMultiphysics.ModelPart("Background_Grid") #Equivalent to model_part1 in the old format
+    grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+    ## Adding into one model
+    model.AddModelPart(grid_model_part)
+    model.AddModelPart(initial_material_model_part)
+    model.AddModelPart(material_model_part)
+
+    return ParticleMPMSolver(model, custom_settings)
 
 class ParticleMPMSolver(object):
 
     ### Solver constructor
-    def __init__(self, grid_model_part, initial_material_model_part, material_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
+
         # Default settings
-        self.model_part1 = grid_model_part              #grid_model_part
-        self.model_part2 = initial_material_model_part  #initial_model_part
-        self.model_part3 = material_model_part          #mpm_model_part
+        material_model_part_name = custom_settings["model_part_name"].GetString()
+        self.model_part1 = model.GetModelPart("Background_Grid")                        #grid_model_part
+        self.model_part2 = model.GetModelPart("Initial_" + material_model_part_name)    #initial_model_part
+        self.model_part3 = model.GetModelPart(material_model_part_name)                 #mpm_model_part
         self.min_buffer_size = 3
 
         # There is only a single rank in OpenMP, we always print
@@ -29,6 +54,11 @@ class ParticleMPMSolver(object):
         # Default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "model_part_name" : "MPM_Material",
+            "domain_size"     : 2,
+            "time_stepping" : {
+                "time_step"       : 0.0005
+            },
             "solver_type"                        : "StaticSolver",
             "echo_level"                         : 0,
             "time_integration_method"            : "Implicit",
@@ -128,7 +158,7 @@ class ParticleMPMSolver(object):
 
         if self._is_printing_rank():
             KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","Models are imported.")
- 
+
     def AddDofs(self):
         # Add dofs to different model parts
         self._add_dofs_to_model_part(self.model_part1)
