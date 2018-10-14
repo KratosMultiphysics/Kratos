@@ -3,24 +3,54 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
+# Check that KratosMultiphysics was imported in the main script
+KratosMultiphysics.CheckForPreviousImport()
+KratosMultiphysics.CheckRegisteredApplications("ParticleMechanicsApplication")
+
 # Import applications and dependencies
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+# Importing the base class
+from python_solver import PythonSolver
 
-def CreateSolver(grid_model_part, initial_material_model_part, material_model_part, custom_settings):
-    return ParticleMPMSolver(grid_model_part, initial_material_model_part, material_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
 
-class ParticleMPMSolver(object):
+    domain_size = custom_settings["domain_size"].GetInt()
+
+    ### In MPM three model parts are needed
+    ## Material model part definition
+    material_model_part_name = custom_settings["model_part_name"].GetString()
+    material_model_part = KratosMultiphysics.ModelPart(material_model_part_name) # Equivalent to model_part3 in the old format
+    material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+    ## Initial material model part definition
+    initial_material_model_part_name = "Initial_" + material_model_part_name
+    initial_material_model_part = KratosMultiphysics.ModelPart(initial_material_model_part_name) #Equivalent to model_part2 in the old format
+    initial_material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+    ## Grid model part definition
+    grid_model_part = KratosMultiphysics.ModelPart("Background_Grid") #Equivalent to model_part1 in the old format
+    grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+    ## Adding into one model
+    model.AddModelPart(grid_model_part)
+    model.AddModelPart(initial_material_model_part)
+    model.AddModelPart(material_model_part)
+
+    return ParticleMPMSolver(model, custom_settings)
+
+class ParticleMPMSolver(PythonSolver):
 
     ### Solver constructor
-    def __init__(self, grid_model_part, initial_material_model_part, material_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
+        super(ParticleMPMSolver, self).__init__(model, custom_settings)
+
         # Default settings
-        self.model_part1 = grid_model_part              #grid_model_part
-        self.model_part2 = initial_material_model_part  #initial_model_part
-        self.model_part3 = material_model_part          #mpm_model_part
+        material_model_part_name = custom_settings["model_part_name"].GetString()
+        self.model_part1 = self.model.GetModelPart("Background_Grid")                        #grid_model_part
+        self.model_part2 = self.model.GetModelPart("Initial_" + material_model_part_name)    #initial_model_part
+        self.model_part3 = self.model.GetModelPart(material_model_part_name)                 #mpm_model_part
         self.min_buffer_size = 3
 
         # There is only a single rank in OpenMP, we always print
@@ -29,6 +59,11 @@ class ParticleMPMSolver(object):
         # Default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "model_part_name" : "MPM_Material",
+            "domain_size"     : 2,
+            "time_stepping" : {
+                "time_step"       : 0.0005
+            },
             "solver_type"                        : "StaticSolver",
             "echo_level"                         : 0,
             "time_integration_method"            : "Implicit",
@@ -92,7 +127,6 @@ class ParticleMPMSolver(object):
         }""")
 
         # Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         # Construct the linear solvers
@@ -103,8 +137,7 @@ class ParticleMPMSolver(object):
             self.block_builder = False
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        if self._is_printing_rank():
-            KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver", "Solver is constructed correctly.")
+        self.print_on_rank_zero("::[ParticleMPMSolver]:: ", "Solver is constructed correctly.")
 
 
     ### Solver public functions
@@ -113,8 +146,7 @@ class ParticleMPMSolver(object):
         self._add_variables_to_model_part(self.model_part1)
         self._add_variables_to_model_part(self.model_part2)
 
-        if self._is_printing_rank():
-            KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","Variables are added.")
+        self.print_on_rank_zero("::[ParticleMPMSolver]:: ", "Variables are added.")
  
     def ImportModelPart(self):
         # Read model part
@@ -126,16 +158,18 @@ class ParticleMPMSolver(object):
         # Executes the check and prepare model process
         self._execute_check_and_prepare()
 
-        if self._is_printing_rank():
-            KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","Models are imported.")
- 
+        self.print_on_rank_zero("::[ParticleMPMSolver]:: ","Models are imported.")
+
+    def PrepareModelPart(self):
+        self.print_on_rank_zero("::[ParticleMPMSolver]:: ", "ModelPart prepared for Solver.")
+
+
     def AddDofs(self):
         # Add dofs to different model parts
         self._add_dofs_to_model_part(self.model_part1)
         self._add_dofs_to_model_part(self.model_part2)
         
-        if self._is_printing_rank():
-            KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","DOFs are added.")
+        self.print_on_rank_zero("::[ParticleMPMSolver]:: ","DOFs are added.")
 
     def Initialize(self):
         #TODO: implement solver_settings and change the input of the constructor in MPM_strategy.h
@@ -174,10 +208,7 @@ class ParticleMPMSolver(object):
             elif(self.settings["time_step_prediction_level"].GetString()== "RefreshEveryTimeStep"):
                 value = 2
             self.time_step_prediction_level = value
-
-        # Set definition of the echo level
-        self.echo_level = self.settings["echo_level"].GetInt()
-        
+      
         # Set default solver_settings parameters
         self.geometry_element   = self.settings["geometry_element"].GetString()
         self.number_particle    = self.settings["particle_per_element"].GetInt()
@@ -216,13 +247,16 @@ class ParticleMPMSolver(object):
         # Check if everything is assigned correctly
         self._check()
       
-        if self._is_printing_rank():
-            KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","Solver is initialized correctly.")
+        self.print_on_rank_zero("::[ParticleMPMSolver]:: ","Solver is initialized correctly.")
 
-    def Solve(self):
+    def SolveSolutionStep(self):
         (self.solver).Solve()
 
-
+    def Solve(self):
+        warn_message  = 'Using "Solve" is deprecated and will be removed in the future!\n'
+        warn_message += 'Use the "SolveSolutionStep" instead'
+        self.print_warning_on_rank_zero("::[ParticleMPMSolver]:: ", warn_message)
+        (self.solver).Solve()
 
     ### Solver private functions
     def _add_variables_to_model_part(self, model_part):
@@ -309,11 +343,9 @@ class ParticleMPMSolver(object):
          # Read material property
         materials_imported = self._import_constitutive_laws()
         if materials_imported:
-            if self._is_printing_rank():
-                KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","Constitutive law was successfully imported.")
+            self.print_on_rank_zero("::[ParticleMPMSolver]:: ","Constitutive law was successfully imported.")
         else:
-            if self._is_printing_rank():
-                KratosMultiphysics.Logger.PrintInfo("ParticleMPMSolver","Constitutive law was not imported.")
+            self.print_warning_on_rank_zero("::[ParticleMPMSolver]:: ","Constitutive law was not imported.")
 
         # Clone property of model_part2 to model_part3
         self.model_part3.Properties = self.model_part2.Properties

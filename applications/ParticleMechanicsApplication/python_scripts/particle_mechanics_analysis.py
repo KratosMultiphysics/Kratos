@@ -18,9 +18,8 @@ from analysis_stage import AnalysisStage
 class ParticleMechanicsAnalysis(AnalysisStage):
     """
     This class is the main-script of the ParticleMechanicsApplication put in a class
-
-    It can be imported and used as "black-box"
     """
+
     def __init__(self, model, project_parameters):
         # Making sure that older cases still work by properly initializing the parameters
         solver_settings = project_parameters["solver_settings"]
