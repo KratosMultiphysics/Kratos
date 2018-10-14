@@ -1,8 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
 //
 
 // Application includes
@@ -86,8 +91,6 @@ void BilinearCohesive2DLaw::ComputeConstitutiveMatrixLoading(Matrix& rConstituti
 void BilinearCohesive2DLaw::ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
                                                                             const double& YieldStress,const double& DamageThreshold,const double& CriticalDisplacement)
 {
-    //TODO: revisar
-
     rConstitutiveMatrix(0,0) = YieldStress/((1.0-DamageThreshold)*CriticalDisplacement) * ( (1.0-mStateVariable)/mStateVariable-
                                 StrainVector[0]*StrainVector[0]/(CriticalDisplacement*CriticalDisplacement*mStateVariable*mStateVariable*mStateVariable) );
     rConstitutiveMatrix(1,1) = YoungModulus/(DamageThreshold*CriticalDisplacement);
@@ -129,8 +132,6 @@ void BilinearCohesive2DLaw::ComputeConstitutiveMatrixUnloading(Matrix& rConstitu
 void BilinearCohesive2DLaw::ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
                                                                             const double& YieldStress,const double& DamageThreshold,const double& CriticalDisplacement)
 {
-    //TODO: revisar
-
     rConstitutiveMatrix(0,0) = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold);
     rConstitutiveMatrix(1,1) = YoungModulus/(DamageThreshold*CriticalDisplacement);
 
@@ -148,54 +149,6 @@ void BilinearCohesive2DLaw::ComputeConstitutiveMatrixContactUnloading(Matrix& rC
     }
 
     rConstitutiveMatrix(1,0) = 0.0;
-
-    // double sigman = -1.0*YoungModulus*std::exp(-StrainVector[1]);
-
-    // double sigmat = YoungModulus*StrainVector[0];
-
-    // double Tauc = std::abs(sigman)*FrictionCoefficient;
-    // double Taum = (1.0-mStateVariable)*YieldStress/std::sqrt(3.0); // n=(1.0-mStateVariable)
-
-    // // ShearStrength = min(Tauc,Taum)
-    // double ShearStrength = Tauc;
-    // if (Taum < ShearStrength)
-    // {
-    //     ShearStrength = Taum;
-    // }
-
-    // double TangentialStress = std::abs(sigmat);
-
-    // if(TangentialStress >= ShearStrength)
-    // {
-    //     rConstitutiveMatrix(0,0) = 0.0;
-
-    //     if(StrainVector[0] > 1.0e-20)
-    //     {
-    //         rConstitutiveMatrix(0,1) = -YoungModulus*std::exp(-StrainVector[1]);
-    //     }
-    //     else if(StrainVector[0] < -1.0e-20)
-    //     {
-    //         rConstitutiveMatrix(0,1) = YoungModulus*std::exp(-StrainVector[1]);
-    //     }
-    //     else
-    //     {
-    //         rConstitutiveMatrix(0,1) = 0.0;
-    //     }
-    // }
-    // else
-    // {
-    //     rConstitutiveMatrix(0,0) = YoungModulus;
-    //     rConstitutiveMatrix(0,1) = 0.0;
-    // }
-
-    // rConstitutiveMatrix(0,0) = 0.5*YoungModulus;
-    // rConstitutiveMatrix(0,1) = 0.0;
-
-    // rConstitutiveMatrix(1,1) = 0.5*YoungModulus*std::exp(-StrainVector[1]);
-
-    // rConstitutiveMatrix(1,0) = 0.0;
-
-// KRATOS_WATCH(rConstitutiveMatrix)
 }
 
 //----------------------------------------------------------------------------------------
@@ -212,8 +165,6 @@ void BilinearCohesive2DLaw::ComputeStressVector(Vector& rStressVector,const Vect
 void BilinearCohesive2DLaw::ComputeStressVectorContact(Vector& rStressVector,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
                                                             const double& YieldStress,const double& DamageThreshold,const double& CriticalDisplacement)
 {
-    //TODO: revisar
-
     // Note: StrainVector[1] < 0.0
     rStressVector[1] = YoungModulus/(DamageThreshold*CriticalDisplacement)*StrainVector[1];
 
@@ -230,8 +181,7 @@ void BilinearCohesive2DLaw::ComputeStressVectorContact(Vector& rStressVector,con
         rStressVector[0] = 0.0;
     }
 
-    rStressVector[0] = 0.0;
-    rStressVector[1] = 0.0;
+    //TODO
 
     // rStressVector[1] = -0.5*YoungModulus*std::exp(-StrainVector[1]); // Kn = 0.5E
 

@@ -1027,7 +1027,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType& r
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //TODO: Modify displacement of affected nodes and set sigma_n to zero
-        this->ApplyContactDirichletConditions(ConstitutiveParameters,Variables.StrainVector[TDim-1],Variables.RotationMatrix,GPoint);
+        //this->ApplyContactDirichletConditions(ConstitutiveParameters,Variables.StrainVector[TDim-1],Variables.RotationMatrix,GPoint);
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient, detJContainer[GPoint], integration_points[GPoint].Weight() );
@@ -1482,55 +1482,54 @@ void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients(TMatr
 }
 
 //----------------------------------------------------------------------------------------
+//TODO
+// template< unsigned int TDim, unsigned int TNumNodes >
+// void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::ApplyContactDirichletConditions(ConstitutiveLaw::Parameters& rConstitutiveParameters,
+//                                                                                     const double& NormalRelDisp,
+//                                                                                     const BoundedMatrix<double,TDim,TDim>& RotationMatrix,
+//                                                                                     const unsigned int& GPoint)
+// {
+//     if( rConstitutiveParameters.GetOptions().IsNot(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // Contact between interfaces
+//     {
+//         array_1d<double,TDim> LocalRelDispVector;
+//         LocalRelDispVector[0] = 0.0;
+//         LocalRelDispVector[TDim-1] = -NormalRelDisp;
 
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::ApplyContactDirichletConditions(ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                                                                    const double& NormalRelDisp,
-                                                                                    const BoundedMatrix<double,TDim,TDim>& RotationMatrix,
-                                                                                    const unsigned int& GPoint)
-{
-    if( rConstitutiveParameters.GetOptions().IsNot(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // Contact between interfaces
-    {
-        array_1d<double,TDim> LocalRelDispVector;
-        LocalRelDispVector[0] = 0.0;
-        LocalRelDispVector[TDim-1] = -NormalRelDisp;
+//         array_1d<double,TDim> RelDispVector;
+//         noalias(RelDispVector) = prod(trans(RotationMatrix),LocalRelDispVector);
 
-        array_1d<double,TDim> RelDispVector;
-        noalias(RelDispVector) = prod(trans(RotationMatrix),LocalRelDispVector);
+//         //TODO: this is for 4 noded quadrilateral elements (it must be specialized for any geometry)
+//         GeometryType& rGeom = this->GetGeometry();
 
-        //TODO: this is for 4 noded quadrilateral elements (it must be specialized for any geometry)
-        GeometryType& rGeom = this->GetGeometry();
+//         if(GPoint==0)
+//         {
+//             rGeom[0].SetLock();
+//             rGeom[0].FastGetSolutionStepValue(DISPLACEMENT_X) += RelDispVector[0];
+//             rGeom[0].FastGetSolutionStepValue(DISPLACEMENT_Y) += RelDispVector[1];
+//             rGeom[0].UnSetLock();
 
-        if(GPoint==0)
-        {
-            rGeom[0].SetLock();
-            rGeom[0].FastGetSolutionStepValue(DISPLACEMENT_X) += RelDispVector[0];
-            rGeom[0].FastGetSolutionStepValue(DISPLACEMENT_Y) += RelDispVector[1];
-            rGeom[0].UnSetLock();
+//             rGeom[3].SetLock();
+//             rGeom[3].FastGetSolutionStepValue(DISPLACEMENT_X) += RelDispVector[0];
+//             rGeom[3].FastGetSolutionStepValue(DISPLACEMENT_Y) += RelDispVector[1];
+//             rGeom[3].UnSetLock();
+//         }
+//         else
+//         {
+//             rGeom[1].SetLock();
+//             rGeom[1].FastGetSolutionStepValue(DISPLACEMENT_X) += RelDispVector[0];
+//             rGeom[1].FastGetSolutionStepValue(DISPLACEMENT_Y) += RelDispVector[1];
+//             rGeom[1].UnSetLock();
 
-            rGeom[3].SetLock();
-            rGeom[3].FastGetSolutionStepValue(DISPLACEMENT_X) += RelDispVector[0];
-            rGeom[3].FastGetSolutionStepValue(DISPLACEMENT_Y) += RelDispVector[1];
-            rGeom[3].UnSetLock();
-        }
-        else
-        {
-            rGeom[1].SetLock();
-            rGeom[1].FastGetSolutionStepValue(DISPLACEMENT_X) += RelDispVector[0];
-            rGeom[1].FastGetSolutionStepValue(DISPLACEMENT_Y) += RelDispVector[1];
-            rGeom[1].UnSetLock();
+//             rGeom[2].SetLock();
+//             rGeom[2].FastGetSolutionStepValue(DISPLACEMENT_X) += RelDispVector[0];
+//             rGeom[2].FastGetSolutionStepValue(DISPLACEMENT_Y) += RelDispVector[1];
+//             rGeom[2].UnSetLock();
+//         }
 
-            rGeom[2].SetLock();
-            rGeom[2].FastGetSolutionStepValue(DISPLACEMENT_X) += RelDispVector[0];
-            rGeom[2].FastGetSolutionStepValue(DISPLACEMENT_Y) += RelDispVector[1];
-            rGeom[2].UnSetLock();
-        }
-        //TODO
-
-        // Vector& rStressVector = rConstitutiveParameters.GetStressVector();
-        // rStressVector[1] = 0.0;
-    }
-}
+//         Vector& rStressVector = rConstitutiveParameters.GetStressVector();
+//         rStressVector[1] = 0.0;
+//     }
+// }
 
 //----------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------

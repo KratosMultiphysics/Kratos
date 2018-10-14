@@ -11,12 +11,12 @@
 //
 
 // Application includes
-#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
+#include "custom_constitutive/exponential_cohesive_3D_law.hpp"
 
 namespace Kratos
 {
 
-void BilinearCohesive3DLaw::GetLawFeatures(Features& rFeatures)
+void ExponentialCohesive3DLaw::GetLawFeatures(Features& rFeatures)
 {
     //Set the type of law
 	rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
@@ -36,7 +36,7 @@ void BilinearCohesive3DLaw::GetLawFeatures(Features& rFeatures)
 
 //----------------------------------------------------------------------------------------
 
-int BilinearCohesive3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
+int ExponentialCohesive3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
 {
     // Verify ProcessInfo variables
     if ( IS_CONVERGED.Key() == 0 )
@@ -60,14 +60,14 @@ int BilinearCohesive3DLaw::Check(const Properties& rMaterialProperties,const Geo
 
 //----------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
+void ExponentialCohesive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
 {
     mStateVariable = rMaterialProperties[DAMAGE_THRESHOLD];
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
+void ExponentialCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
     //Check
     rValues.CheckAllParameters();
@@ -184,7 +184,7 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
 
 //----------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
+void ExponentialCohesive3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
 {
     if(rValues.GetProcessInfo()[IS_CONVERGED]==true) //Convergence is achieved. Save equilibrium state variable
     {
@@ -217,7 +217,7 @@ void BilinearCohesive3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-double& BilinearCohesive3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
+double& ExponentialCohesive3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
     if( rThisVariable == DAMAGE_VARIABLE || rThisVariable == STATE_VARIABLE )
     {
@@ -229,7 +229,7 @@ double& BilinearCohesive3DLaw::GetValue( const Variable<double>& rThisVariable, 
 
 //----------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+void ExponentialCohesive3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
                                         const ProcessInfo& rCurrentProcessInfo )
 {
     if (rThisVariable == STATE_VARIABLE)
@@ -240,21 +240,21 @@ void BilinearCohesive3DLaw::SetValue( const Variable<double>& rThisVariable, con
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::ComputeEquivalentStrain(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement)
+void ExponentialCohesive3DLaw::ComputeEquivalentStrain(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement)
 {
     rEquivalentStrain = sqrt(StrainVector[0]*StrainVector[0]+StrainVector[1]*StrainVector[1]+StrainVector[2]*StrainVector[2])/CriticalDisplacement;
 }
 
 //----------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::ComputeEquivalentStrainContact(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement)
+void ExponentialCohesive3DLaw::ComputeEquivalentStrainContact(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement)
 {
     rEquivalentStrain = sqrt(StrainVector[0]*StrainVector[0]+StrainVector[1]*StrainVector[1])/CriticalDisplacement;
 }
 
 //----------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YieldStress,
+void ExponentialCohesive3DLaw::ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YieldStress,
                                                                         const double& DamageThreshold,const double& CriticalDisplacement)
 {
     rConstitutiveMatrix(0,0) = YieldStress/((1.0-DamageThreshold)*CriticalDisplacement) * ( (1.0-mStateVariable)/mStateVariable-
@@ -277,7 +277,7 @@ void BilinearCohesive3DLaw::ComputeConstitutiveMatrixLoading(Matrix& rConstituti
 
 //----------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
+void ExponentialCohesive3DLaw::ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
                                                                             const double& YieldStress,const double& DamageThreshold,const double& CriticalDisplacement)
 {
     rConstitutiveMatrix(0,0) = YieldStress/((1.0-DamageThreshold)*CriticalDisplacement) * ( (1.0-mStateVariable)/mStateVariable-
@@ -327,7 +327,7 @@ void BilinearCohesive3DLaw::ComputeConstitutiveMatrixContactLoading(Matrix& rCon
 
 //----------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,const double& YieldStress,
+void ExponentialCohesive3DLaw::ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,const double& YieldStress,
                                                                         const double& DamageThreshold,const double& CriticalDisplacement)
 {
     rConstitutiveMatrix(0,0) = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold);
@@ -344,7 +344,7 @@ void BilinearCohesive3DLaw::ComputeConstitutiveMatrixUnloading(Matrix& rConstitu
 
 //----------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
+void ExponentialCohesive3DLaw::ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
                                                                             const double& YieldStress,const double& DamageThreshold,const double& CriticalDisplacement)
 {
     rConstitutiveMatrix(0,0) = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold);
@@ -383,7 +383,7 @@ void BilinearCohesive3DLaw::ComputeConstitutiveMatrixContactUnloading(Matrix& rC
 
 //----------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::ComputeStressVector(Vector& rStressVector,const Vector& StrainVector,const double& YieldStress,
+void ExponentialCohesive3DLaw::ComputeStressVector(Vector& rStressVector,const Vector& StrainVector,const double& YieldStress,
                                                         const double& DamageThreshold,const double& CriticalDisplacement)
 {
     rStressVector[0] = YieldStress/(CriticalDisplacement*mStateVariable)*(1.0-mStateVariable)/(1.0-DamageThreshold) * StrainVector[0];
@@ -393,7 +393,7 @@ void BilinearCohesive3DLaw::ComputeStressVector(Vector& rStressVector,const Vect
 
 //----------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::ComputeStressVectorContact(Vector& rStressVector,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
+void ExponentialCohesive3DLaw::ComputeStressVectorContact(Vector& rStressVector,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
                                                             const double& YieldStress,const double& DamageThreshold,const double& CriticalDisplacement)
 {
     // Note: StrainVector[2] < 0.0
