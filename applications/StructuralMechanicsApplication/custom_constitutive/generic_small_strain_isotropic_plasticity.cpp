@@ -413,7 +413,7 @@ Matrix& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Calculat
         Matrix constitutive_matrix;
         this->CalculateElasticMatrix(constitutive_matrix, rParameterValues);
 
-        array_1d<double,6> tmp = prod(constitutive_matrix, strain_vector - mPlasticStrain);
+        array_1d<double,VoigtSize> tmp = prod(constitutive_matrix, strain_vector - mPlasticStrain);
         rValue = MathUtils<double>::StressVectorToTensor(tmp);
         return rValue;
     } else if (this->Has(rThisVariable)) {
