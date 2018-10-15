@@ -58,8 +58,7 @@
                     },
                     "compute_reactions"     : false
                 },
-                "boundary_conditions_process_list" : [
-                ]
+                "boundary_conditions_process_list" : []
             }
         },
         "objectives" : [{
@@ -67,10 +66,10 @@
             "type"       : "minimization",
             "use_kratos" : true,
             "kratos_response_settings":{
-                "response_type"          : "mass",
-                "model_part_name"    : "3D_Hook",
-                "model_import_settings"              : {
-                    "input_type"     : "use_input_model_part"
+                "response_type"         : "mass",
+                "model_part_name"       : "3D_Hook",
+                "model_import_settings" : {
+                    "input_type" : "use_input_model_part"
                 },
                 "material_import_settings" :{
                     "materials_filename": "materials_3D.json"
