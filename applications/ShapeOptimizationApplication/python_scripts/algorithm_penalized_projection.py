@@ -142,8 +142,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         if self.only_con["project_gradient_on_surface_normals"].GetBool():
             self.ModelPartController.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
 
-        self.ModelPartController.DampNodalVariable(DF1DX)
-        self.ModelPartController.DampNodalVariable(DC1DX)
+        self.ModelPartController.DampNodalVariableIfSpecified(DF1DX)
+        self.ModelPartController.DampNodalVariableIfSpecified(DC1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
@@ -157,7 +157,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.OptimizationUtilities.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
 
-        self.ModelPartController.DampNodalVariable(SHAPE_UPDATE)
+        self.ModelPartController.DampNodalVariableIfSpecified(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):

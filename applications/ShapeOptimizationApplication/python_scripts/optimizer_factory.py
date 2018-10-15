@@ -38,7 +38,7 @@ def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyze
 
     for key in default_settings.keys():
         if not optimization_settings.Has(key):
-            raise RuntimeError("CreateOptimizer: Compulsory setting '{}' missing in 'optimization_settings'!".format(key))
+            raise RuntimeError("CreateOptimizer: Required setting '{}' missing in 'optimization_settings'!".format(key))
 
     optimization_settings.ValidateAndAssignDefaults(default_settings)
 

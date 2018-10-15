@@ -116,7 +116,7 @@ class ModelPartController:
         return self._design_surface
 
     # --------------------------------------------------------------------------
-    def DampNodalVariable(self, variable):
+    def DampNodalVariableIfSpecified(self, variable):
         if self.model_settings["damping"]["apply_damping"].GetBool():
             self.__GetDampingUtility().DampNodalVariable(variable)
 
