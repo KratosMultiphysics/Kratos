@@ -84,7 +84,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
     void (LinearSolverType::*pointer_to_solve_eigen)(LinearSolverType::SparseMatrixType& rK, LinearSolverType::SparseMatrixType& rM,LinearSolverType::DenseVectorType& Eigenvalues, LinearSolverType::DenseMatrixType& Eigenvectors) = &LinearSolverType::Solve;
     bool (ComplexLinearSolverType::*pointer_to_complex_solve)(ComplexLinearSolverType::SparseMatrixType& rA, ComplexLinearSolverType::VectorType& rX, ComplexLinearSolverType::VectorType& rB) = &ComplexLinearSolverType::Solve;
-    
+
     using namespace pybind11;
 
     //****************************************************************************************************
@@ -94,25 +94,25 @@ void  AddLinearSolversToPython(pybind11::module& m)
 
     class_<PreconditionerType, PreconditionerType::Pointer>(m,"Preconditioner")
     .def( init< >() )
-    .def("__repr__", &PreconditionerType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(PreconditionerType)
     ;
 
     typedef DiagonalPreconditioner<SpaceType,  LocalSpaceType> DiagonalPreconditionerType;
     class_<DiagonalPreconditionerType, DiagonalPreconditionerType::Pointer, PreconditionerType>(m,"DiagonalPreconditioner")
     .def( init< >() )
-    .def("__repr__", &DiagonalPreconditionerType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(DiagonalPreconditionerType)
     ;
 
     typedef ILUPreconditioner<SpaceType,  LocalSpaceType> ILUPreconditionerType;
     class_<ILUPreconditionerType, ILUPreconditionerType::Pointer, PreconditionerType>(m,"ILUPreconditioner")
     .def( init< >() )
-    .def("__repr__", &ILUPreconditionerType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(ILUPreconditionerType)
     ;
 
     typedef ILU0Preconditioner<SpaceType,  LocalSpaceType> ILU0PreconditionerType;
     class_<ILU0PreconditionerType, ILU0PreconditionerType::Pointer, PreconditionerType>(m,"ILU0Preconditioner")
     .def( init< >() )
-    .def("__repr__", &ILU0PreconditionerType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(ILU0PreconditionerType)
     ;
 
     //****************************************************************************************************
@@ -124,7 +124,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("Solve",pointer_to_solve)
     .def("Solve",pointer_to_solve_eigen)
     .def("Clear",&LinearSolverType::Clear)
-    .def("__repr__", &LinearSolverType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(LinearSolverType)
     ;
 
     class_<ComplexLinearSolverType, ComplexLinearSolverType::Pointer>(m,"ComplexLinearSolver")
@@ -132,12 +132,12 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("Initialize",&ComplexLinearSolverType::Initialize)
     .def("Solve",pointer_to_complex_solve)
     .def("Clear",&ComplexLinearSolverType::Clear)
-    .def("__repr__", &ComplexLinearSolverType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(ComplexLinearSolverType)
     ;
 
     class_<IterativeSolverType, IterativeSolverType::Pointer, LinearSolverType>(m,"IterativeSolver")
     .def( init< >() )
-    .def("__repr__", &IterativeSolverType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(IterativeSolverType)
     ;
 
     class_<CGSolverType, CGSolverType::Pointer,IterativeSolverType>(m,"CGSolver")
@@ -145,13 +145,13 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(init<double, unsigned int>())
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
     .def(init<Parameters,  PreconditionerType::Pointer>())
-    .def("__repr__", &CGSolverType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(CGSolverType)
     ;
 
     class_<BICGSTABSolverType, BICGSTABSolverType::Pointer,IterativeSolverType>(m,"BICGSTABSolver")
     .def(init<double>())
     .def(init<double, unsigned int>())
-    .def("__repr__", &BICGSTABSolverType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(BICGSTABSolverType)
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
     .def(init<Parameters,  PreconditionerType::Pointer>())
     .def("SetTolerance",&BICGSTABSolverType::SetTolerance)
@@ -160,7 +160,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     class_<TFQMRSolverType, TFQMRSolverType::Pointer,IterativeSolverType>(m,"TFQMRSolver")
     .def(init<double>())
     .def(init<double, unsigned int>())
-    .def("__repr__", &TFQMRSolverType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(TFQMRSolverType)
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
     .def(init<Parameters,  PreconditionerType::Pointer>())
     ;
@@ -190,7 +190,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
 
     class_<ReordererType, ReordererType::Pointer>(m,"Reorderer")
     .def( init< >() )
-    .def("__repr__", &ReordererType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(ReordererType)
     .def( "Initialize",&ReordererType::Initialize)
     .def( "Reorder",&ReordererType::Reorder)
     .def( "InverseReorder",&ReordererType::InverseReorder)
@@ -199,25 +199,25 @@ void  AddLinearSolversToPython(pybind11::module& m)
     class_<DirectSolverType, DirectSolverType::Pointer, LinearSolverType>(m,"DirectSolver")
     .def( init< >() )
     .def(init<Parameters>())
-    .def("__repr__", &DirectSolverType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(DirectSolverType)
     ;
 
     class_<ComplexDirectSolverType, ComplexDirectSolverType::Pointer, ComplexLinearSolverType>(m,"ComplexDirectSolver")
     .def( init< >() )
     .def(init<Parameters>())
-    .def("__repr__", &ComplexDirectSolverType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(ComplexDirectSolverType)
     ;
 
     class_<SkylineLUFactorizationSolverType, SkylineLUFactorizationSolverType::Pointer, DirectSolverType>(m,"SkylineLUFactorizationSolver")
     .def(init< >())
     .def(init<Parameters>())
-    .def("__repr__", &SkylineLUFactorizationSolverType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(SkylineLUFactorizationSolverType)
     ;
 
     class_<ComplexSkylineLUSolverType, typename ComplexSkylineLUSolverType::Pointer, ComplexDirectSolverType>(m,"ComplexSkylineLUSolver")
     .def(init< >())
     .def(init<Parameters&>())
-    .def("__repr__", &ComplexSkylineLUSolverType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(ComplexSkylineLUSolverType)
     ;
 
     class_<DeflatedCGSolverType, DeflatedCGSolverType::Pointer,IterativeSolverType>(m,"DeflatedCGSolver")
@@ -227,18 +227,18 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(init<Parameters>())
 // 		  .def(init<double, unsigned int,  PreconditionerType::Pointer, ModelPart*>())
     //.def("",&LinearSolverType::)
-    .def("__repr__", &DeflatedCGSolverType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(DeflatedCGSolverType)
     ;
 
     class_<MixedUPLinearSolverType, MixedUPLinearSolverType::Pointer,IterativeSolverType>(m,"MixedUPLinearSolver")
     .def(init<LinearSolverType::Pointer, LinearSolverType::Pointer ,double, unsigned int, unsigned int >())
     .def(init<Parameters,LinearSolverType::Pointer, LinearSolverType::Pointer >())
-    .def("__repr__", &MixedUPLinearSolverType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(MixedUPLinearSolverType)
     ;
 
     class_<DeflatedGMRESSolverType, DeflatedGMRESSolverType::Pointer,IterativeSolverType>(m,"DeflatedGMRESSolver")
     .def(init<LinearSolverType::Pointer ,double, unsigned int, unsigned int, unsigned int >())
-    .def("__repr__", &DeflatedGMRESSolverType::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(DeflatedGMRESSolverType)
     ;
 
 }
