@@ -152,15 +152,15 @@ class ParticleMPMSolver(PythonSolver):
         # Read model part
         self._model_part_reading()
 
+        self.print_on_rank_zero("::[ParticleMPMSolver]:: ","Models are imported.")
+
+    def PrepareModelPart(self):
         # Set buffer size
         self._set_buffer_size()
 
         # Executes the check and prepare model process
         self._execute_check_and_prepare()
 
-        self.print_on_rank_zero("::[ParticleMPMSolver]:: ","Models are imported.")
-
-    def PrepareModelPart(self):
         self.print_on_rank_zero("::[ParticleMPMSolver]:: ", "ModelPart prepared for Solver.")
 
 
