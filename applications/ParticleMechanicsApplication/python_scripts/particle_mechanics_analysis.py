@@ -72,8 +72,8 @@ class ParticleMechanicsAnalysis(AnalysisStage):
         import time
         while self.time < self.end_time:
             ## Timer Start
-            start_solve_time = time.time() 
-            
+            start_solve_time = time.time()
+
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
