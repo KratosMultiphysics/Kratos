@@ -18,44 +18,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "custom_utilities/properties_extensions.hpp"
-
-// #if !defined(PROPERTIES_EXTENSIONS_H_INCLUDED)
-// #define PROPERTIES_EXTENSIONS_H_INCLUDED
-
-// #if !defined(DECLARE_ADD_THIS_TYPE_TO_PROPERTIES)
-// #define DECLARE_ADD_THIS_TYPE_TO_PROPERTIES                             \
-//   template<class TVariable>                                             \
-//   static void AddToProperties(TVariable const& rV, typename TVariable::Type const& rValue, Properties::Pointer& p) \
-//   {                                                                     \
-//     p->SetValue(rV, rValue);                                            \
-//   }
-
-// #define DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON(TClassName)          \
-//   .def_static("AddToProperties", &TClassName::AddToProperties< Variable< TClassName > >)
-
-// #define DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON_AS_POINTER(TClassName) \
-//   .def_static("AddToProperties", &TClassName::AddToProperties< Variable< TClassName::Pointer > >)
-// #endif
-
-// #if !defined(DECLARE_GET_THIS_TYPE_FROM_PROPERTIES)
-// #define DECLARE_GET_THIS_TYPE_FROM_PROPERTIES                           \
-//   template<class TVariable>                                             \
-//   static typename TVariable::Type GetFromProperties(TVariable const& rV, Properties::Pointer& p) \
-//   {                                                                     \
-//     return p->GetValue(rV);                                             \
-//   }
-
-// #define DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON(TClassName)        \
-//   .def_static("GetFromProperties", &TClassName::GetFromProperties< Variable< TClassName > >)
-
-// #define DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON_AS_POINTER(TClassName) \
-//   .def_static("GetFromProperties", &TClassName::GetFromProperties< Variable< TClassName::Pointer > >)
-// #endif
-
-
-// #endif // PROPERTIES_EXTENSIONS_H_INCLUDED
-
 
 namespace Kratos
 {
@@ -79,7 +41,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// TableKeyVariables 
+/// TableKeyVariables
 /**
    Configures the variables set in the tables of the properties
 */
@@ -100,9 +62,9 @@ class TableKeyVariables
   typedef Variable<TArgumentType> XVariableType;
 
   typedef Variable<TResultType> YVariableType;
-  
-  typedef std::pair<XVariableType*, YVariableType*> TableVariablesType;
-  
+
+  typedef std::pair<const XVariableType*, const YVariableType*> TableVariablesType;
+
   typedef std::vector<TableVariablesType> TableVariablesContainerType;
 
   ///@}
@@ -123,7 +85,7 @@ class TableKeyVariables
   {
     return Kratos::make_shared< TableKeyVariables >(*this);
   }
-  
+
   /// Destructor.
   ~TableKeyVariables() {}
 
@@ -134,23 +96,31 @@ class TableKeyVariables
   ///@}
   ///@name Operations
   ///@{
-  
-  void SetTable(const XVariableType& XVariable, const YVariableType& YVariable)
+
+  void RegisterTable(const XVariableType& rXVariable, const YVariableType& rYVariable)
   {
-    mKeys.push_back(Key(XVariable.Key(), YVariable.Key()));
-    mData.push_back(TableVariablesType(&XVariable,&YVariable));
+    mKeys.push_back(Key(rXVariable.Key(), rYVariable.Key()));
+    mData.push_back(TableVariablesType(&rXVariable,&rYVariable));
   }
 
-  XVariableType& GetXVariable(std::size_t rTableKey)
+  const XVariableType& GetXVariable(int64_t rTableKey) const
   {
-    return *(mData[rTableKey].first);
+    std::size_t i;
+    for(i=0; i<mKeys.size(); ++i)
+      if(mKeys[i]==rTableKey)
+        break;
+    return *(mData[i].first);
   }
-  
-  YVariableType& GetYVariable(std::size_t rTableKey)
+
+  const YVariableType& GetYVariable(int64_t rTableKey) const
   {
-    return *(mData[rTableKey].second);
+    std::size_t i;
+    for(i=0; i<mKeys.size(); ++i)
+      if(mKeys[i]==rTableKey)
+        break;
+    return *(mData[i].second);
   }
-  
+
   ///@}
   ///@name Access
   ///@{
@@ -225,10 +195,10 @@ class TableKeyVariables
   ///@name Member Variables
   ///@{
 
-  std::vector<std::size_t> mKeys;
+  std::vector<int64_t> mKeys;
 
   TableVariablesContainerType mData;
-   
+
   ///@}
   ///@name Private Operators
   ///@{
@@ -245,7 +215,7 @@ class TableKeyVariables
     result_key |= YKey; // I know that the key is less than 2^32 so I don't need zeroing the upper part
     return result_key;
   }
-  
+
   ///@}
   ///@name Serialization
   ///@{
@@ -277,13 +247,8 @@ class TableKeyVariables
   ///@}
   ///@name Un accessible methods
   ///@{
-  
+
   ///@}
-
- public:
-
-  DECLARE_ADD_THIS_TYPE_TO_PROPERTIES
-  DECLARE_GET_THIS_TYPE_FROM_PROPERTIES
 
 }; // Class TableKeyVariables
 

@@ -64,6 +64,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_PYTHON_INTERFACE
         # Custom python
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/constitutive_models_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )
 
 add_library(KratosConstitutiveModelsCore SHARED ${KRATOS_CONSTITUTIVE_MODELS_APPLICATION_CORE})

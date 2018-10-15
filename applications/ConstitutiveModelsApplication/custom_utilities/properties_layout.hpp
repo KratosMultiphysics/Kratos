@@ -19,7 +19,7 @@
 #include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "custom_utilities/table_key_variables.hpp"
-
+#include "custom_utilities/properties_extensions.hpp"
 
 namespace Kratos
 {
@@ -43,7 +43,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// PropertiesLayout 
+/// PropertiesLayout
 /**
    Configures the propeties data and supplies it propertly according to problem configuration
 */
@@ -75,7 +75,7 @@ class PropertiesLayout
   typedef std::unordered_map<std::size_t, TableType> TablesContainerType;
 
   typedef std::pair<std::size_t, double>  VariableKeyArgumentsType;
-  
+
   typedef std::pair<std::size_t, VariableKeyArgumentsType> ScalarTableArgumentsType;
 
   typedef std::vector<ScalarTableArgumentsType> ScalarTableArgumentsContainerType;
@@ -95,6 +95,7 @@ class PropertiesLayout
   PropertiesLayout(const PropertiesLayout& rOther)
       :mpData(rOther.mpData)
       ,mpTables(rOther.mpTables)
+      ,mTableVariables(rOther.mTableVariables)
       ,mTableArguments(rOther.mTableArguments)
   {}
 
@@ -103,7 +104,7 @@ class PropertiesLayout
   {
     return Kratos::make_shared< PropertiesLayout >(*this);
   }
-  
+
   /// Destructor.
   ~PropertiesLayout() {}
 
@@ -112,47 +113,52 @@ class PropertiesLayout
   ///@{
 
   /// Assignment operator.
-  template<class TVariableType>
-  typename TVariableType::Type& operator()(const TVariableType& rV)
+  PropertiesLayout& operator=(PropertiesLayout const& rOther)
   {
-    return GetValue(rV);
-  }
+    mpData = rOther.mpData;
+    mpTables = rOther.mpTables;
+    mTableVariables = rOther.mTableVariables;
+    mTableArguments = rOther.mTableArguments;
 
-  template<class TVariableType>
-  typename TVariableType::Type const& operator()(const TVariableType& rV) const
-  {
-    return GetValue(rV);
-  }
-
-  template<class TVariableType>
-  typename TVariableType::Type& operator[](const TVariableType& rV)
-  {
-    return GetValue(rV);
-  }
-
-  template<class TVariableType>
-  typename TVariableType::Type const& operator[](const TVariableType& rV) const
-  {
-    return GetValue(rV);
+    return *this;
   }
 
   ///@}
   ///@name Operations
   ///@{
 
+  void RegisterTable(const Variable<double>& rXVariable, const Variable<double>& rYVariable)
+  {
+    mTableVariables.RegisterTable(rXVariable,rYVariable);
+  }
+
   void Configure(const Properties& rProperties, const GeometryType& rGeometry, const Vector& rShapeFunctions);
-  
- 
+
+
   template<class TVariableType>
-  typename TVariableType::Type const& GetValue(const TVariableType& rV) const
+  void GetValue(const TVariableType& rVariable, typename TVariableType::Type& rValue) const
   {
     typename ScalarTableArgumentsContainerType::const_iterator i;
 
-    if((i = std::find_if(mTableArguments.begin(), mTableArguments.end(), VariableKeyCheck(rV.Key()))) != mTableArguments.end())
+    if((i = std::find_if(mTableArguments.begin(), mTableArguments.end(), VariableKeyCheck(rVariable.Key()))) != mTableArguments.end())
     {
-      return *static_cast<const typename TVariableType::Type*>(mpTables->at((i->first))[(i->second).second]);
+      rValue = static_cast<const typename TVariableType::Type>(mpTables->at((i->first))[(i->second).second]);
     }
-    return mpData->GetValue(rV);
+    else
+      rValue = mpData->GetValue(rVariable);
+  }
+
+  template<class TVariableType>
+  void GetValue(const TVariableType& rVariable, typename TVariableType::Type& rValue)
+  {
+    typename ScalarTableArgumentsContainerType::const_iterator i;
+
+    if((i = std::find_if(mTableArguments.begin(), mTableArguments.end(), VariableKeyCheck(rVariable.Key()))) != mTableArguments.end())
+    {
+      rValue = static_cast<const typename TVariableType::Type>(mpTables->at((i->first))[(i->second).second]);
+    }
+    else
+      rValue = mpData->GetValue(rVariable);
   }
 
   bool HasVariables() const
@@ -251,9 +257,11 @@ class PropertiesLayout
 
   const TablesContainerType* mpTables;
 
+  TableKeyVariables<double,double>  mTableVariables;
+
   ScalarTableArgumentsContainerType mTableArguments; // all table variable Keys and table arguments considered as "double" type
 
-  
+
   ///@}
   ///@name Private Operators
   ///@{
@@ -272,7 +280,7 @@ class PropertiesLayout
       return I.first == mI;
     }
   };
-  
+
   ///@}
   ///@name Serialization
   ///@{
@@ -281,12 +289,14 @@ class PropertiesLayout
 
   void save(Serializer& rSerializer) const
   {
-    rSerializer.save("mTableKeysVariableArguments", mTableArguments);
+    rSerializer.save("mTableVariables", mTableVariables);
+    rSerializer.save("mTableArguments", mTableArguments);
   }
 
   void load(Serializer& rSerializer)
   {
-    rSerializer.load("mTableKeysVariableArguments", mTableArguments);
+    rSerializer.load("mTableVariables", mTableVariables);
+    rSerializer.load("mTableArguments", mTableArguments);
   }
 
   ///@}
@@ -302,7 +312,7 @@ class PropertiesLayout
   ///@}
   ///@name Un accessible methods
   ///@{
-  
+
   ///@}
 
  public:

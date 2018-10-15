@@ -155,15 +155,15 @@ namespace Kratos
   //************* COMPUTING  METHODS
   //************************************************************************************
   //************************************************************************************
-  void StrainRate3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
+  void StrainRate3DLaw::InitializeMaterial( const Properties& rProperties,
 					     const GeometryType& rElementGeometry,
 					     const Vector& rShapeFunctionsValues )
   {
     KRATOS_TRY
 
-    ConstitutiveLaw::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
+    ConstitutiveLaw::InitializeMaterial(rProperties,rElementGeometry,rShapeFunctionsValues);
 
-    mpModel->InitializeMaterial(rMaterialProperties);
+    mpModel->InitializeMaterial(rProperties);
 
     KRATOS_CATCH(" ")
   }
@@ -175,8 +175,15 @@ namespace Kratos
   {
     KRATOS_TRY
 
+    if(rValues.GetMaterialProperties().Has(PROPERTIES_LAYOUT))
+    {
+      PropertiesLayout::Pointer pPropertiesLayout = rValues.GetMaterialProperties()[PROPERTIES_LAYOUT].Clone();
+      pPropertiesLayout->Configure(rValues.GetMaterialProperties(),rValues.GetElementGeometry(),rValues.GetShapeFunctionsValues());
+      rModelValues.SetPropertiesLayout(pPropertiesLayout);
+    }
+
     rModelValues.SetOptions(rValues.GetOptions());
-    rModelValues.SetMaterialProperties(rValues.GetMaterialProperties());
+    rModelValues.SetProperties(rValues.GetMaterialProperties());
     rModelValues.SetProcessInfo(rValues.GetProcessInfo());
     rModelValues.SetVoigtSize(this->GetStrainSize());
     rModelValues.SetVoigtIndexTensor(this->GetVoigtIndexTensor());
@@ -459,14 +466,14 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  int StrainRate3DLaw::Check(const Properties& rMaterialProperties,
+  int StrainRate3DLaw::Check(const Properties& rProperties,
 			       const GeometryType& rElementGeometry,
 			       const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
 
-    mpModel->Check(rMaterialProperties,rCurrentProcessInfo);
+    mpModel->Check(rProperties,rCurrentProcessInfo);
 
     return 0;
 

@@ -224,7 +224,7 @@ namespace Kratos
       int npt = 0; // integration point number
 
       // A. Create Properties vector
-      const Properties & rMaterialProperties = rModelData.GetMaterialProperties();
+      const Properties & rMaterialProperties = rModelData.GetProperties();
       int number_properties;
       double* pPropertiesVector;
       this->CreateConstitutiveParametersVector( pPropertiesVector, number_properties, rMaterialProperties);

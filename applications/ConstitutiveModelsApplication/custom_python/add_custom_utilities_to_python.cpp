@@ -28,29 +28,18 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
   using namespace pybind11;
 
-  typedef TableKeyVariables<double,double>                TableKeyScalarVariablesType;
+  typedef TableKeyVariables<double,double>  TableKeyScalarVariablesType;
 
-  class_<PropertiesLayout, PropertiesLayout::Pointer >(m,"PropertiesLayout")
+  class_<PropertiesLayout, PropertiesLayout::Pointer>(m,"PropertiesLayout")
       .def(init<>())
-      .def(init<>(Properties&))
       .def("Clone", &PropertiesLayout::Clone)
-      .def("__repr__", &PropertiesLayout::Info )
-      DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON_AS_POINTER(PropertiesLayout)
-      DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON_AS_POINTER(PropertiesLayout)
+      .def("RegisterTable", &PropertiesLayout::RegisterTable)
+      .def("__repr__", &PropertiesLayout::Info)
+      DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON(PropertiesLayout)
+      DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON(PropertiesLayout)
       ;
 
-  class_<Variable<PropertiesLayout::Pointer>, VariableData>(m,"PropertiesLayoutVariable")
-      ;
-  
-  class_<TableKeyScalarVariablesType, TableKeyScalarVariablesType::Pointer >(m,"TableKeyScalarVariables")
-      .def(init<>())
-      .def("Clone", &TableKeyScalarVariablesType::Clone)
-      .def("__repr__", &TableKeyScalarVariablesType::Info )
-      DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON_AS_POINTER(TableKeyScalarVariablesType)
-      DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON_AS_POINTER(TableKeyScalarVariablesType)
-      ;
-
-  class_<Variable<TableKeyScalarVariablesType::Pointer>, VariableData>(m,"TableKeyScalarVariablesVariable")
+  class_<Variable<PropertiesLayout>, VariableData>(m,"PropertiesLayoutVariable")
       ;
 
 }
@@ -58,4 +47,3 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 }  // namespace Python.
 
 } // Namespace Kratos
-

@@ -24,15 +24,15 @@ void PropertiesLayout::Configure(const Properties& rProperties, const GeometryTy
 {
   mpData = &(rProperties.Data());
   mpTables = &(rProperties.Tables());
-   
-  const TableKeyVariables<double,double>::Pointer& ScalarVariables = mpData->GetValue(TABLES_SCALAR_VARIABLES);
-    
+
   for(auto it = mpTables->begin(); it != mpTables->end(); ++it)
   {
     double Variable = 0.0;
     for(std::size_t j=1; j<rShapeFunctions.size(); ++j)
-      Variable = rShapeFunctions[j] * rGeometry[j].FastGetSolutionStepValue(ScalarVariables->GetXVariable(std::size_t(it->first)));
-    mTableArguments.push_back(ScalarTableArgumentsType(it->first, VariableKeyArgumentsType(ScalarVariables->GetYVariable(std::size_t(it->first)).Key(), Variable)));
+    {
+      Variable += rShapeFunctions[j] * rGeometry[j].FastGetSolutionStepValue(mTableVariables.GetXVariable(it->first));
+    }
+    mTableArguments.push_back(ScalarTableArgumentsType(it->first, VariableKeyArgumentsType(mTableVariables.GetYVariable(it->first).Key(), Variable)));
   }
 }
 

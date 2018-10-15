@@ -384,14 +384,15 @@ namespace Kratos
     private:
 
       const Flags*                 mpOptions;
-
-      const Properties*            mpMaterialProperties;
+      const Properties*            mpProperties;
       const ProcessInfo*           mpProcessInfo;
 
       SizeType                     mVoigtSize;
       VoigtIndexType               mIndexVoigtTensor;
 
       ConstitutiveLawData          mConstitutiveLawData;
+
+      PropertiesLayout::Pointer    mpPropertiesLayout;
 
     public:
 
@@ -404,11 +405,13 @@ namespace Kratos
       VariableValueData            InternalVariable;       //internal variable to compute and return
 
       //Set Data Pointers
-      void SetOptions                      (const Flags&  rOptions)                 {mpOptions = &rOptions;};
-      void SetMaterialProperties           (const Properties&  rMaterialProperties) {mpMaterialProperties = &rMaterialProperties;};
-      void SetProcessInfo                  (const ProcessInfo& rProcessInfo)        {mpProcessInfo = &rProcessInfo;};
-      void SetVoigtSize                    (const SizeType& rVoigtSize)             {mVoigtSize = rVoigtSize;};
-      void SetVoigtIndexTensor             (VoigtIndexType rIndexVoigtTensor)       {mIndexVoigtTensor = rIndexVoigtTensor;};
+      void SetOptions                      (const Flags&  rOptions)                     {mpOptions = &rOptions;};
+      void SetProperties                   (const Properties& rProperties)              {mpProperties = &rProperties;};
+      void SetPropertiesLayout             (PropertiesLayout::Pointer pPropertiesLayout) {mpPropertiesLayout = pPropertiesLayout;};
+
+      void SetProcessInfo                  (const ProcessInfo& rProcessInfo)            {mpProcessInfo = &rProcessInfo;};
+      void SetVoigtSize                    (const SizeType& rVoigtSize)                 {mVoigtSize = rVoigtSize;};
+      void SetVoigtIndexTensor             (VoigtIndexType rIndexVoigtTensor)           {mIndexVoigtTensor = rIndexVoigtTensor;};
 
       void SetIntVariableData              (const Variable<int>& rVariable, int& rValue) {InternalVariable.SetIntVariableValue(rVariable,rValue);};
       void SetDoubleVariableData           (const Variable<double>& rVariable, double& rValue) {InternalVariable.SetDoubleVariableValue(rVariable,rValue);};
@@ -420,9 +423,15 @@ namespace Kratos
       void  SetStressMeasure               (StressMeasureType Measure)              {mConstitutiveLawData.StressMeasure = Measure;};
       void  SetStrainMeasure               (StrainMeasureType Measure)              {mConstitutiveLawData.StrainMeasure = Measure;};
 
+      //Has Data Pointers
+      bool  HasPropertiesLayout            () const {return (!mpPropertiesLayout) ? false : true;};
+
       //Get Data Pointers
       const Flags&          GetOptions                     () const {return *mpOptions;};
-      const Properties&     GetMaterialProperties          () const {return *mpMaterialProperties;};
+      const Properties&     GetProperties                  () const {return *mpProperties;};
+
+      const PropertiesLayout& GetPropertiesLayout          () const {return *mpPropertiesLayout.get();};
+
       const ProcessInfo&    GetProcessInfo                 () const {return *mpProcessInfo;};
       const SizeType&       GetVoigtSize                   () const {return  mVoigtSize;};
       const VoigtIndexType& GetVoigtIndexTensor            () const {return  mIndexVoigtTensor;};
@@ -505,8 +514,7 @@ namespace Kratos
       KRATOS_TRY
 
       //material properties
-      const Properties& rProperties = rValues.GetMaterialProperties();
-      ConstitutiveLawData& rConstitutiveLawData = rValues.rConstitutiveLawData();
+      const Properties& rProperties = rValues.GetProperties();
 
       //if previously computed LameMu / LameLambda / BulkModulus
       // rValues.MaterialParameters.LameMu      = rProperties[LAME_MU];
@@ -520,20 +528,32 @@ namespace Kratos
 
       // temperature dependent parameters:
 
-      if( rProperties.HasTable(TEMPERATURE,YOUNG_MODULUS) ){
-	const Table<double>& YoungModulusTable = rProperties.GetTable(TEMPERATURE,YOUNG_MODULUS);
-	rValues.MaterialParameters.YoungModulus = YoungModulusTable[rConstitutiveLawData.Temperature];
-      }
-      else{
-	rValues.MaterialParameters.YoungModulus = rProperties[YOUNG_MODULUS];
-      }
+      if( rValues.HasPropertiesLayout() )
+      {
+        const PropertiesLayout& rPropertiesLayout = rValues.GetPropertiesLayout();
 
-      if( rProperties.HasTable(TEMPERATURE,POISSON_RATIO) ){
-	const Table<double>& PoissonCoefficientTable = rProperties.GetTable(TEMPERATURE,POISSON_RATIO);
-	rValues.MaterialParameters.PoissonCoefficient = PoissonCoefficientTable[rConstitutiveLawData.Temperature];
+        rPropertiesLayout.GetValue(YOUNG_MODULUS, rValues.MaterialParameters.YoungModulus);
+        rPropertiesLayout.GetValue(POISSON_RATIO, rValues.MaterialParameters.PoissonCoefficient);
       }
       else{
-	rValues.MaterialParameters.PoissonCoefficient = rProperties[POISSON_RATIO];
+
+        ConstitutiveLawData& rConstitutiveLawData = rValues.rConstitutiveLawData();
+        if( rProperties.HasTable(TEMPERATURE,YOUNG_MODULUS) ){
+          const Table<double>& YoungModulusTable = rProperties.GetTable(TEMPERATURE,YOUNG_MODULUS);
+          rValues.MaterialParameters.YoungModulus = YoungModulusTable[rConstitutiveLawData.Temperature];
+        }
+        else{
+          rValues.MaterialParameters.YoungModulus = rProperties[YOUNG_MODULUS];
+        }
+
+        if( rProperties.HasTable(TEMPERATURE,POISSON_RATIO) ){
+          const Table<double>& PoissonCoefficientTable = rProperties.GetTable(TEMPERATURE,POISSON_RATIO);
+          rValues.MaterialParameters.PoissonCoefficient = PoissonCoefficientTable[rConstitutiveLawData.Temperature];
+        }
+        else{
+          rValues.MaterialParameters.PoissonCoefficient = rProperties[POISSON_RATIO];
+        }
+
       }
 
       rValues.MaterialParameters.LameMu        = rValues.MaterialParameters.YoungModulus/(2.0*(1.0+rValues.MaterialParameters.PoissonCoefficient));

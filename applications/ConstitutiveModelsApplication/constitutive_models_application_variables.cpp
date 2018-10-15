@@ -12,12 +12,9 @@
 namespace Kratos
 {
 
-  typedef PropertiesLayout::Pointer  PropertiesLayoutPointerType;
-  typedef typename TableKeyVariables<double,double>::Pointer  TableKeyVariablesPointerType;
-
   //specific constitutive models variables must be CREATED here
   KRATOS_CREATE_VARIABLE(std::string, TEMPERATURE_VARIABLE)
   KRATOS_CREATE_VARIABLE(std::string, PRESSURE_VARIABLE)
-  KRATOS_CREATE_VARIABLE(TableKeyVariablesPointerType, TABLES_SCALAR_VARIABLES)
-  KRATOS_CREATE_VARIABLE(PropertiesLayoutPointerType, PROPERTIES_LAYOUT)
+
+  KRATOS_CREATE_VARIABLE(PropertiesLayout, PROPERTIES_LAYOUT)
 }

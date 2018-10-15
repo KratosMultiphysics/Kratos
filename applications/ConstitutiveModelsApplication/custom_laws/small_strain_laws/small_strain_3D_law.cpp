@@ -101,15 +101,15 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void SmallStrain3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
+  void SmallStrain3DLaw::InitializeMaterial( const Properties& rProperties,
 					     const GeometryType& rElementGeometry,
 					     const Vector& rShapeFunctionsValues )
   {
     KRATOS_TRY
 
-    ConstitutiveLaw::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
+    ConstitutiveLaw::InitializeMaterial(rProperties,rElementGeometry,rShapeFunctionsValues);
 
-    mpModel->InitializeMaterial(rMaterialProperties);
+    mpModel->InitializeMaterial(rProperties);
 
     KRATOS_CATCH(" ")
   }
@@ -121,10 +121,15 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    PropertiesLayout::Pointer Properties = rValues.GetMaterialProperties()[PROPERTIES_LAYOUT]->Clone();
-    Properties->Configure(rValues.GetMaterialProperties(),rValues.GetElementGeometry(),rValues.GetShapeFunctionsValues());             
+    if(rValues.GetMaterialProperties().Has(PROPERTIES_LAYOUT))
+    {
+      PropertiesLayout::Pointer pPropertiesLayout = rValues.GetMaterialProperties()[PROPERTIES_LAYOUT].Clone();
+      pPropertiesLayout->Configure(rValues.GetMaterialProperties(),rValues.GetElementGeometry(),rValues.GetShapeFunctionsValues());
+      rModelValues.SetPropertiesLayout(pPropertiesLayout);
+    }
+
     rModelValues.SetOptions(rValues.GetOptions());
-    rModelValues.SetMaterialProperties(rValues.GetMaterialProperties());
+    rModelValues.SetProperties(rValues.GetMaterialProperties());
     rModelValues.SetProcessInfo(rValues.GetProcessInfo());
     rModelValues.SetVoigtSize(this->GetStrainSize());
     rModelValues.SetVoigtIndexTensor(this->GetVoigtIndexTensor());
@@ -235,7 +240,7 @@ namespace Kratos
     // std::cout<<" StressVector "<<rValues.GetStressVector()<<std::endl;
 
     //-----------------------------//
-    // const Properties& rMaterialProperties  = rValues.GetMaterialProperties();
+    // const Properties& rProperties  = rValues.GetMaterialProperties();
 
     // Vector& rStrainVector                  = rValues.GetStrainVector();
     // Vector& rStressVector                  = rValues.GetStressVector();
@@ -247,7 +252,7 @@ namespace Kratos
 
     //   Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 
-    //   this->CalculateConstitutiveMatrix( rConstitutiveMatrix, rMaterialProperties);
+    //   this->CalculateConstitutiveMatrix( rConstitutiveMatrix, rProperties);
 
     //   this->CalculateStress( rStrainVector, rConstitutiveMatrix, rStressVector );
 
@@ -255,7 +260,7 @@ namespace Kratos
     // else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
     //   Matrix& rConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
-    //   this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rMaterialProperties);
+    //   this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rProperties);
 
     // }
     //-----------------------------//
@@ -368,13 +373,13 @@ namespace Kratos
 
 
   void SmallStrain3DLaw::CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-						     const Properties& rMaterialProperties)
+						     const Properties& rProperties)
   {
     KRATOS_TRY
 
     // Lame constants
-    const double& rYoungModulus          = rMaterialProperties[YOUNG_MODULUS];
-    const double& rPoissonCoefficient    = rMaterialProperties[POISSON_RATIO];
+    const double& rYoungModulus          = rProperties[YOUNG_MODULUS];
+    const double& rPoissonCoefficient    = rProperties[POISSON_RATIO];
 
 
     // 3D linear elastic constitutive matrix
