@@ -62,8 +62,11 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
 
 
         #read table
-        self.tables  = self.settings["tables"]
+        self.tables = self.settings["tables"]
+        properties_layout = KratosMaterials.PropertiesLayout()
+        number_of_tables = 0
         for key, table in self.tables.items():
+            number_of_tables += 1
             table_name = key
             print(" table",key)
             if table.Has("table_file_name"):
@@ -81,6 +84,7 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
                     for line in reader:
                         new_table.AddRow(float(line[input_variable_name]), float(line[output_variable_name]))
                     self.properties.SetTable(input_variable,output_variable,new_table)
+                    properties_layout.RegisterTable(input_variable,output_variable)
             else:
                 input_variable  = self._GetItemFromModule(table["input_variable"].GetString())
                 output_variable = self._GetItemFromModule(table["output_variable"].GetString())
@@ -88,6 +92,11 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
                 for i in range(0, table["data"].size() ):
                     new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
                 self.properties.SetTable(input_variable,output_variable,new_table)
+                properties_layout.RegisterTable(input_variable,output_variable)
+
+        #set properties layout and table keys and arguments
+        if number_of_tables > 0:
+            properties_layout.AddToProperties(KratosMaterials.PROPERTIES_LAYOUT, properties_layout, self.properties)
 
         #create constitutive law
         self.material_law = self._GetLawFromModule(self.settings["constitutive_law"]["name"].GetString())

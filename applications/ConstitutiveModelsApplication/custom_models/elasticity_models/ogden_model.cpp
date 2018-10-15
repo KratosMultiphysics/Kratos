@@ -764,7 +764,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  int OgdenModel::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
+  int OgdenModel::Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 

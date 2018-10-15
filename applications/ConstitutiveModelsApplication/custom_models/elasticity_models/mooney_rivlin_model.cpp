@@ -944,7 +944,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  int MooneyRivlinModel::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
+  int MooneyRivlinModel::Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
