@@ -1372,6 +1372,7 @@ public:
 
         if (rStrainVector.size()==3) {
             strain_tensor.resize(2,2, false);
+
             strain_tensor(0,0) = rStrainVector[0];
             strain_tensor(0,1) = 0.5*rStrainVector[2];
             strain_tensor(1,0) = 0.5*rStrainVector[2];
@@ -1398,6 +1399,8 @@ public:
             strain_tensor(2,0) = 0.5*rStrainVector[5];
             strain_tensor(2,1) = 0.5*rStrainVector[4];
             strain_tensor(2,2) = rStrainVector[2];
+
+
         }
 
         return strain_tensor;
