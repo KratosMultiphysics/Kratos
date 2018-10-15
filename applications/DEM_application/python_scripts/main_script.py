@@ -508,7 +508,7 @@ class Solution(object):
         self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess(self.time))
 
     def FinalizeTimeStep(self, time):
-        self.BreakSolutionStepsLoop()
+        pass
 
     def BreakSolutionStepsLoop(self):
         return False
