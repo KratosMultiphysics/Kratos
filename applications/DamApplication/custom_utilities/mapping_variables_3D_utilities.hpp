@@ -61,20 +61,20 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void MappingThermalModelParts (ModelPart& rModelPartOld, ModelPart& rModelPartNew)
+    void MappingThermalModelParts (ModelPart& rModelPartOld, ModelPart& rModelPartNew, bool add_temperature, bool add_reference_temperature)
     {
         // Define necessary variables
         UtilityVariables AuxVariables;
         this->InitializeMapping(AuxVariables,rModelPartNew);
-        this->NodalThermalVariablesMapping(AuxVariables,rModelPartOld,rModelPartNew);
+        this->NodalThermalVariablesMapping(AuxVariables,rModelPartOld,rModelPartNew,add_temperature,add_reference_temperature);
     }
 
-    void MappingMechanicalModelParts (ModelPart& rModelPartOld, ModelPart& rModelPartNew)
+    void MappingMechanicalModelParts (ModelPart& rModelPartOld, ModelPart& rModelPartNew, bool add_displacement, bool add_stress)
     {
         // Define necessary variables
         UtilityVariables AuxVariables;
         this->InitializeMapping(AuxVariables,rModelPartNew);
-        this->NodalMechanicalVariablesMapping(AuxVariables,rModelPartOld,rModelPartNew);
+        this->NodalMechanicalVariablesMapping(AuxVariables,rModelPartOld,rModelPartNew,add_displacement,add_stress);
     }
 
 protected:
@@ -97,7 +97,9 @@ protected:
     void NodalThermalVariablesMapping(
         const UtilityVariables& AuxVariables,
         ModelPart& rModelPartOld,
-        ModelPart& rModelPartNew)
+        ModelPart& rModelPartNew,
+        bool add_temperature,
+        bool add_reference_temperature)
     {
         // Define ElementOld Cell matrix
         std::vector< std::vector< std::vector< std::vector<Element::Pointer> > > > ElementOldCellMatrix;
@@ -244,24 +246,32 @@ protected:
             pElementOld->GetGeometry().ShapeFunctionsValues(ShapeFunctionsValuesVector,LocalCoordinates);
 
             // Interpolation of nodal variables
-            for(int j = 0; j < PointsNumber; j++)
+            if (add_temperature)
             {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(TEMPERATURE);
+                for(int j = 0; j < PointsNumber; j++)
+                {
+                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(TEMPERATURE);
+                }
+                itNodeNew->FastGetSolutionStepValue(TEMPERATURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
             }
-            itNodeNew->FastGetSolutionStepValue(TEMPERATURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
 
-            for(int j = 0; j < PointsNumber; j++)
+            if (add_reference_temperature)
             {
-                NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
+                for(int j = 0; j < PointsNumber; j++)
+                {
+                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE);
+                }
+                itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
             }
-            itNodeNew->FastGetSolutionStepValue(NODAL_REFERENCE_TEMPERATURE) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
         }
     }
 
     void NodalMechanicalVariablesMapping(
         const UtilityVariables& AuxVariables,
         ModelPart& rModelPartOld,
-        ModelPart& rModelPartNew)
+        ModelPart& rModelPartNew,
+        bool add_displacement,
+        bool add_stress)
     {
         // Define ElementOld Cell matrix
         std::vector< std::vector< std::vector< std::vector<Element::Pointer> > > > ElementOldCellMatrix;
@@ -403,23 +413,44 @@ protected:
             pElementOld->GetGeometry().ShapeFunctionsValues(ShapeFunctionsValuesVector,LocalCoordinates);
 
             // Interpolation of nodal variables
-
-            Matrix NodalStress = ZeroMatrix(3,3);
-
-            for(int k = 0; k < 3; k++)
+            if (add_displacement)
             {
-                for(int l = 0; l < 3; l++)
+                for(int j = 0; j < PointsNumber; j++)
                 {
-                    for(int j = 0; j < PointsNumber; j++)
-                    {
-                        NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(k,l);
-                    }
-                    NodalStress(k,l) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DISPLACEMENT_X);
                 }
+                itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_X) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                for(int j = 0; j < PointsNumber; j++)
+                {
+                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DISPLACEMENT_Y);
+                }
+                itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Y) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                for(int j = 0; j < PointsNumber; j++)
+                {
+                    NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(DISPLACEMENT_Z);
+                }
+                itNodeNew->FastGetSolutionStepValue(DISPLACEMENT_Z) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
             }
 
-            itNodeNew->FastGetSolutionStepValue(INITIAL_NODAL_CAUCHY_STRESS_TENSOR) = NodalStress;
-            itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) = NodalStress;
+            if (add_stress)
+            {
+                Matrix NodalStress = ZeroMatrix(3,3);
+
+                for(int k = 0; k < 3; k++)
+                {
+                    for(int l = 0; l < 3; l++)
+                    {
+                        for(int j = 0; j < PointsNumber; j++)
+                        {
+                            NodalVariableVector[j] = pElementOld->GetGeometry().GetPoint(j).FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)(k,l);
+                        }
+                        NodalStress(k,l) = inner_prod(ShapeFunctionsValuesVector,NodalVariableVector);
+                    }
+                }
+
+                itNodeNew->FastGetSolutionStepValue(INITIAL_NODAL_CAUCHY_STRESS_TENSOR) = NodalStress;
+                itNodeNew->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) = NodalStress;
+            }
         }
     }
 

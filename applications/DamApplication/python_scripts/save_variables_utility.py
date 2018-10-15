@@ -53,6 +53,12 @@ class SaveVariablesUtility:
         for i in range(mechanical_loads_sub_model_part_list.size()):
             mechanical_parts.append(main_model_part.GetSubModelPart(mechanical_loads_sub_model_part_list[i].GetString()))
 
+        OutputMdpa.write('Begin NodalData DISPLACEMENT')
+        for part in mechanical_parts:
+            for node in part.Nodes:
+                OutputMdpa.write('\n' + str(node.Id) + ' 0 ' + str(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)))
+        OutputMdpa.write('\nEnd NodalData\n')
+
         OutputMdpa.write('Begin NodalData NODAL_CAUCHY_STRESS_TENSOR')
         for part in mechanical_parts:
             for node in part.Nodes:
