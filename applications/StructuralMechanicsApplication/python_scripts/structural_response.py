@@ -195,8 +195,8 @@ class MassResponseFunction(ResponseFunctionBase):
         self.model = model
         self.model_part_needs_to_be_imported = False
 
+        model_part_name = response_settings["model_part_name"].GetString()
         input_type = response_settings["model_import_settings"]["input_type"].GetString()
-        model_part_name = response_settings["model_import_settings"]["input_filename"].GetString()
         if input_type == "mdpa":
             self.model_part = ModelPart(model_part_name)
             self.model.AddModelPart(self.model_part)
@@ -215,7 +215,7 @@ class MassResponseFunction(ResponseFunctionBase):
 
         if self.model_part_needs_to_be_imported:
             # import model part
-            model_part_io = ModelPartIO(self.model_part.Name)
+            model_part_io = ModelPartIO(self.response_settings["model_import_settings"]["input_filename"].GetString())
             self.model_part.ProcessInfo.SetValue(DOMAIN_SIZE, 3)
             model_part_io.ReadModelPart(self.model_part)
 
