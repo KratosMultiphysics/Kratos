@@ -183,20 +183,22 @@ namespace Kratos
 	template<std::size_t TDim>
 	void CalculateDistanceToSkinProcess<TDim>::CalculateNodeDistance(Node<3>& rNode)
 	{
-		double coord[3] = {rNode.X(), rNode.Y(), rNode.Z()};
-		double distance = DistancePositionInSpace(coord);
+		double distance = DistancePositionInSpace(rNode);
 		double& node_distance =  rNode.GetSolutionStepValue(DISTANCE);
 
 		//const double epsilon = 1.00e-12;
 		//if(fabs(node_distance) > fabs(distance))
 		//    node_distance = distance;
-		/*else*/ if (distance*node_distance < 0.00) // assigning the correct sign
+		/*else*/ 
+		
+		if (distance * node_distance < 0.0) { // assigning the correct sign
 			node_distance = -node_distance;
+		}
 	}
 
 	//TODO: This method has been adapted from the previous implementation. It is still pending to update it.
 	template<std::size_t TDim>
-	double CalculateDistanceToSkinProcess<TDim>::DistancePositionInSpace(double* coords)
+	double CalculateDistanceToSkinProcess<TDim>::DistancePositionInSpace(const Node<3> &rNode)
 	{
 
 		typedef Element::GeometryType triangle_type;
@@ -209,10 +211,15 @@ namespace Kratos
 
         for (int i_direction = 0; i_direction < TDim; i_direction++){
 			// Initialize the current direction distance
+			// distances[i_direction] = std::numeric_limits<double>::max();
 			distances[i_direction] = 1.0;
 
             // Creating the ray
+			const array_1d<double,3> coords = rNode.Coordinates();
             double ray[3] = {coords[0], coords[1], coords[2]};
+			if (rNode.Id() == 22){
+				std::cout << "Ray: [" << ray[0] << " , " << ray[1] << " , " << ray[2] << "]" << std::endl;
+			}
 
 			OctreeType* pOctree = CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess.GetOctreePointer();
             pOctree->NormalizeCoordinates(ray);
@@ -223,21 +230,27 @@ namespace Kratos
 			}
             ray[i_direction] = 0; // starting from the lower extreme
 
+			if (rNode.Id() == 22){
+				std::cout << "Ray: [" << ray[0] << " , " << ray[1] << " , " << ray[2] << "]" << std::endl;
+			}
             this->GetRayIntersections(ray, i_direction, intersections);
 
             int ray_color = 1;
             std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
             while (i_intersection != intersections.end())
 			{
+				if (rNode.Id() == 22){
+					KRATOS_WATCH(*(i_intersection->second))
+				}
                 double d = coords[i_direction] - i_intersection->first;
                 if (d > epsilon) {
                     ray_color = -ray_color;
                     distances[i_direction] = d;
                 } else if (d > -epsilon) {
-                    distances[i_direction] = 0.00;
+                    distances[i_direction] = 0.0;
                     break;
                 } else {
-                    if(distances[i_direction] > -d) {
+                    if (distances[i_direction] > -d) {
                         distances[i_direction] = -d;
 					}
                     break;
@@ -245,6 +258,10 @@ namespace Kratos
 
                 i_intersection++;
             }
+
+			if (intersections.size() == 1){
+				std::cout << "Node: " << rNode.Id() << " has " << intersections.size() << " interserctions. d = " << distances[i_direction] << " direction: " << i_direction << " ray: [" << ray[0] << " , " << ray[1] << "]" << std::endl;
+			}
 
             distances[i_direction] *= ray_color;
         }
@@ -281,19 +298,27 @@ namespace Kratos
         // getting the entrance cell from lower extreme
         OctreeType::cell_type* cell = pOctree->pGetCell(ray_key);
 
+		std::cout  << "ray_key: [" << ray_key[0] << "," << ray_key[1] << "," << ray_key[2] << "]" << std::endl;
+
+		unsigned int i_cell = 0;
         while (cell)
 		{
+			i_cell++;
             this->GetCellIntersections(cell, ray, ray_key, direction, intersections);
-            // go to the next cell
+            std::cout << intersections.size() << std::endl;
+			// go to the next cell
             if (cell->GetNeighbourKey(1 + direction * 2, cell_key))
 			{
                 ray_key[direction] = cell_key[direction];
                 cell = pOctree->pGetCell(ray_key);
                 ray_key[direction] -= 1 ;//the key returned by GetNeighbourKey is inside the cell (minkey +1), to ensure that the corresponding
-                //cell get in pGetCell is the right one.
+                std::cout  << "\tray_key: [" << ray_key[0] << "," << ray_key[1] << "," << ray_key[2] << "]" << std::endl;
+				//cell get in pGetCell is the right one.
             } else
                 cell = NULL;
         }
+
+		// KRATOS_WATCH(i_cell)
 
         // now eliminating the repeated objects
         if (!intersections.empty())
@@ -306,7 +331,7 @@ namespace Kratos
             while (++i_begin != intersections.end())
 			{
                 // considering the very near points as the same points
-                if (fabs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
+                if (std::abs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
                     *(++i_intersection) = *i_begin;
             }
             intersections.resize((++i_intersection) - intersections.begin());
@@ -469,11 +494,13 @@ namespace Kratos
 		}
 
 		// Call the line - line intersection util
+		const double tolerance = 1.0e-6*rGeometry.Length();
 		const int is_intersected =  IntersectionUtilities::ComputeLineLineIntersection(
 			rGeometry,
 			ray_pt_1,
 			ray_pt_2,
-			int_pt);
+			int_pt,
+			tolerance);
 
 		// Convert the auxiliar intersection point to the original type
 		for (unsigned int i = 0; i < 3; ++i){

@@ -95,7 +95,7 @@ namespace Kratos
 
       virtual void CalculateNodeDistance(Node<3>& rNode); //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
 
-      virtual double DistancePositionInSpace(double* pCoords); //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
+      virtual double DistancePositionInSpace(const Node<3> &rNode); //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
 
       virtual void GetRayIntersections(double* ray, int direction, std::vector<std::pair<double,Element::GeometryType*> >& intersections); //TODO: This method has been adapted from the previous implementation. It is still pending to update it.
 
