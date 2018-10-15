@@ -728,16 +728,12 @@ void AddModelPartToPython(pybind11::module& m)
 
     class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")
         .def(init([](const std::string& name) { 
-                    std::cout << "************************************************************" << std::endl;
-                    std::cout << "************************************************************" << std::endl;
-                    std::cout << "************************************************************" << std::endl;
-                    std::cout << "USING OLD DEPRECATED CONSTRUCTOR OF MODELPART" << std::endl;
-                    std::cout << "THIS WILL BE REMOVED ON NOV 1 2018" << std::endl;
-                    std::cout << "the call to ModelPart(" << name << " ) " << std::endl;
-                    std::cout << "should be substituted by current_model.CreateModelPart(" << name << ") " << std::endl;
-                    std::cout << "************************************************************" << std::endl;
-                    std::cout << "************************************************************" << std::endl;
-                    std::cout << "************************************************************" << std::endl;
+                    KRATOS_WARNING("DEPRECATION") << "************************************************************" << std::endl;
+                    KRATOS_WARNING("DEPRECATION") << "USING OLD DEPRECATED CONSTRUCTOR OF MODELPART" << std::endl;
+                    KRATOS_WARNING("DEPRECATION") << "THIS WILL BE REMOVED ON NOV 1 2018" << std::endl;
+                    KRATOS_WARNING("DEPRECATION") << "the call to ModelPart(" << name << " ) " << std::endl;
+                    KRATOS_WARNING("DEPRECATION") << "should be substituted by current_model.CreateModelPart(" << name << ") " << std::endl;
+                    KRATOS_WARNING("DEPRECATION") << "************************************************************" << std::endl;
                     static Model static_model; //NOT NICE! to be removed!!
                     return std::make_shared<ModelPart>(name, static_model);
                 }
