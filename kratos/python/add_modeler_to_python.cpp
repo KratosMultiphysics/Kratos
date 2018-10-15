@@ -53,11 +53,11 @@ void GenerateMesh(Modeler& GM, ModelPart& model_part, const char* ElementName, c
 void  AddModelerToPython(pybind11::module& m)
 {
     class_<Modeler, Modeler::Pointer>(m,"Modeler")
-            .def(init<>())
-            .def("GenerateModelPart",&GenerateModelPart)
-            .def("GenerateMesh",&GenerateMesh)
-            .def("GenerateNodes",&Modeler::GenerateNodes)
-    .def("__repr__", &Modeler::Info)
+    .def(init<>())
+    .def("GenerateModelPart",&GenerateModelPart)
+    .def("GenerateMesh",&GenerateMesh)
+    .def("GenerateNodes",&Modeler::GenerateNodes)
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Modeler)
     ;
 
     class_<ConnectivityPreserveModeler,ConnectivityPreserveModeler::Pointer,Modeler>(m,"ConnectivityPreserveModeler")
