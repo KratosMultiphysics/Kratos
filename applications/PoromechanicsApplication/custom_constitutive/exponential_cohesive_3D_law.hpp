@@ -32,6 +32,9 @@ class KRATOS_API(POROMECHANICS_APPLICATION) ExponentialCohesive3DLaw : public Bi
 
 public:
 
+    /// Definition of the base class
+    typedef BilinearCohesive3DLaw BaseType;
+
     KRATOS_CLASS_POINTER_DEFINITION(ExponentialCohesive3DLaw);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -58,65 +61,63 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void GetLawFeatures(Features& rFeatures) override;
-    
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
-        
+
     void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues ) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateMaterialResponseCauchy (Parameters & rValues) override;
-    
+
     void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
-    
+
     void SetValue( const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
 
     // Member Variables
-    
+
     double mStateVariable;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     virtual void ComputeEquivalentStrain(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement);
-    
+
     virtual void ComputeEquivalentStrainContact(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement);
-    
-    
+
+
     virtual void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& JointStrength,
                                                         const double& DamageThreshold,const double& CriticalDisplacement);
 
     virtual void ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
                                                             const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
-                                      
-                                                            
+
+
     virtual void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,const double& JointStrength,
                                                         const double& DamageThreshold,const double& CriticalDisplacement);
 
     virtual void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
                                                             const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
-                                                            
-                                                            
+
+
     virtual void ComputeStressVector(Vector& rStressVector,const Vector& StrainVector,const double& JointStrength,
                                                 const double& DamageThreshold,const double& CriticalDisplacement);
-    
+
     virtual void ComputeStressVectorContact(Vector& rStressVector,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
                                                         const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     // Serialization
-    
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -131,4 +132,4 @@ private:
 
 }; // Class ExponentialCohesive3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_EXPONENTIAL_COHESIVE_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_EXPONENTIAL_COHESIVE_3D_LAW_H_INCLUDED  defined

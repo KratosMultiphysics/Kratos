@@ -39,12 +39,18 @@ void BilinearCohesive3DLaw::GetLawFeatures(Features& rFeatures)
 int BilinearCohesive3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
 {
     // Verify ProcessInfo variables
-    if ( IS_CONVERGED.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"IS_CONVERGED Key is 0. Check if all applications were correctly registered.", "" )
+    KRATOS_CHECK_VARIABLE_KEY(IS_CONVERGED);
 
     // Verify Properties variables
-    if(CRITICAL_DISPLACEMENT.Key() == 0 || rMaterialProperties.Has( CRITICAL_DISPLACEMENT ) == false || rMaterialProperties[CRITICAL_DISPLACEMENT] <= 0.0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"CRITICAL_DISPLACEMENT has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
+    KRATOS_CHECK_VARIABLE_KEY(CRITICAL_DISPLACEMENT);
+    if(rMaterialProperties.Has(CRITICAL_DISPLACEMENT)) {
+        KRATOS_ERROR_IF(rMaterialProperties[CRITICAL_DISPLACEMENT] <= 0.0) << "CRITICAL_DISPLACEMENT has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "CRITICAL_DISPLACEMENT not defined" << std::endl;
+    }
+
+    //TODO: seguir
+
     if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties.Has( YOUNG_MODULUS ) == false || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
         KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
     if(YIELD_STRESS.Key() == 0 || rMaterialProperties.Has( YIELD_STRESS ) == false || rMaterialProperties[YIELD_STRESS] < 0.0)
@@ -54,6 +60,7 @@ int BilinearCohesive3DLaw::Check(const Properties& rMaterialProperties,const Geo
     const double& DamageThreshold = rMaterialProperties[DAMAGE_THRESHOLD];
     if(DAMAGE_THRESHOLD.Key() == 0 || rMaterialProperties.Has( DAMAGE_THRESHOLD ) == false || DamageThreshold<=0.0 || DamageThreshold > 1.0)
         KRATOS_THROW_ERROR( std::invalid_argument,"DAMAGE_THRESHOLD has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
+
 
     return 0;
 }
