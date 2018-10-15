@@ -1,32 +1,15 @@
 {
     "optimization_settings" : {
-        "objectives" : [{
-            "identifier" : "strain_energy",
-            "type"       : "minimization",
-            "use_kratos" : true,
-            "kratos_response_settings":{
-                "response_type"          : "strain_energy",
-                "primal_settings"        : "primal_parameters.json",
-                "gradient_mode"          : "semi_analytic",
-                "step_size"              : 1e-6,
-                "consider_discretization": false
+        "model_settings" : {
+            "domain_size"           : 3,
+            "model_part_name"       : "3D_Shell",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "3D_Shell"
             },
-            "project_gradient_on_surface_normals" : true
-        }],
-        "constraints" : [],
-        "design_variables" : {
-            "type"                               : "vertex_morphing",
-            "optimization_model_part_name"       : "3D_Shell",
             "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"                        : 3,
-            "filter" : {
-                "filter_function_type"       : "linear",
-                "filter_radius"              : 3.0,
-                "max_nodes_in_filter_radius" : 10000,
-                "matrix_free_filtering"      : false
-            },
             "damping" : {
-                "perform_damping" : true,
+                "apply_damping" : true,
                 "damping_regions" : [{
                         "sub_model_part_name"   : "support_edges",
                         "damp_X"                : false,
@@ -45,6 +28,29 @@
             },
             "mesh_motion" : {
                 "apply_mesh_solver" : false
+            }
+        },
+        "objectives" : [{
+            "identifier" : "strain_energy",
+            "type"       : "minimization",
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "response_type"          : "strain_energy",
+                "primal_settings"        : "primal_parameters.json",
+                "gradient_mode"          : "semi_analytic",
+                "step_size"              : 1e-6,
+                "consider_discretization": false
+            },
+            "project_gradient_on_surface_normals" : true
+        }],
+        "constraints" : [],
+        "design_variables" : {
+            "type"                               : "vertex_morphing",
+            "filter" : {
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 3.0,
+                "max_nodes_in_filter_radius" : 10000,
+                "matrix_free_filtering"      : false
             }
         },
         "optimization_algorithm" : {
