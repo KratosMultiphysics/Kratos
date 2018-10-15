@@ -61,6 +61,8 @@ public:
 /// Pointer definition of IntegrationPointStatisticsProcess
 KRATOS_CLASS_POINTER_DEFINITION(IntegrationPointStatisticsProcess);
 
+typedef std::map< std::string, StatisticsSampler::Pointer > StatisticsDictionary;
+
 ///@}
 ///@name Life Cycle
 ///@{
@@ -101,7 +103,7 @@ void ExecuteInitialize() override
     StatisticsRecord::Pointer p_turbulence_statistics = Kratos::make_shared<StatisticsRecord>();
 
     // Build statistics records
-    std::map< std::string, StatisticsRecord::Pointer > recorded_quantities;
+    CreateStatisticsFromInput(p_turbulence_statistics);
 
     // Initialize STATISTICS_CONTAINER in ProcessInfo
     p_turbulence_statistics->InitializeStorage(mrModelPart.Elements());
@@ -175,7 +177,7 @@ protected:
 ///@name Protected Operations
 ///@{
 
-void CreateStatisticsFromInput()
+void CreateStatisticsFromInput(StatisticsRecord::Pointer pRecordedStatistics)
 {
     // Validate parameters
     Kratos::Parameters default_parameters = Kratos::Parameters(R"({
@@ -186,7 +188,7 @@ void CreateStatisticsFromInput()
 
     mParameters.ValidateAndAssignDefaults(default_parameters);
 
-    std::map< std::string, StatisticsSampler::Pointer > created_statistics;
+    StatisticsDictionary defined_statistics;
 
     for (unsigned int i = 0; i < mParameters["statistics"].size(); i++)
     {
@@ -199,7 +201,7 @@ void CreateStatisticsFromInput()
 
         if ( statistic_type == "average" )
         {
-            CreateAverageSampler(settings);
+            pRecordedStatistics->AddResult(CreateAverageSampler(settings,defined_statistics));
         }
         else
         {
@@ -209,7 +211,9 @@ void CreateStatisticsFromInput()
 
 }
 
-StatisticsSampler::Pointer CreateAverageSampler(Kratos::Parameters Parameters) const
+StatisticsSampler::Pointer CreateAverageSampler(
+    Kratos::Parameters Parameters,
+    StatisticsDictionary& rDefinedStatistics) const
 {
     Kratos::Parameters default_parameters(R"({
         "type" : "average",
@@ -220,14 +224,15 @@ StatisticsSampler::Pointer CreateAverageSampler(Kratos::Parameters Parameters) c
     Parameters.ValidateAndAssignDefaults(default_parameters);
     std::string variable_name = Parameters["variable"].GetString();
     std::string type = Parameters["type"].GetString();
-    KRATOS_ERROR_IF_NOT(type == "value") << "Trying to define an average statistic of unsupported type " << type << "." << std::endl;
+    KRATOS_ERROR_IF_NOT(type == "average") << "Trying to define an average statistic of unsupported type " << type << "." << std::endl;
 
+    StatisticsSampler::Pointer new_statistic;
     if (KratosComponents<Variable<double>>::Has(variable_name))
     {
         // build double variable sampler
         Variable<double> variable = KratosComponents<Variable<double>>::Get(variable_name);
         auto value_getter = Kratos::Internals::MakeSamplerAtLocalCoordinate::ValueGetter(variable);
-        return Kratos::make_shared<ScalarAverageSampler>(value_getter,variable_name);
+        new_statistic = Kratos::make_shared<ScalarAverageSampler>(value_getter,variable_name);
     }
     else if (KratosComponents<Variable<array_1d<double,3>>>::Has(variable_name))
     {
@@ -238,7 +243,7 @@ StatisticsSampler::Pointer CreateAverageSampler(Kratos::Parameters Parameters) c
         tags.push_back(std::string(variable_name+"_X"));
         tags.push_back(std::string(variable_name+"_Y"));
         tags.push_back(std::string(variable_name+"_Z"));
-        return Kratos::make_shared<VectorAverageSampler<array_1d<double,3>>>(value_getter,3,tags);
+        new_statistic = Kratos::make_shared<VectorAverageSampler<array_1d<double,3>>>(value_getter,3,tags);
     }
     else
     {
@@ -246,6 +251,9 @@ StatisticsSampler::Pointer CreateAverageSampler(Kratos::Parameters Parameters) c
         << "Trying to define an average statistic for variable " << variable_name
         << " which is not a variable of a supported type." << std::endl;
     }
+        
+    rDefinedStatistics[variable_name] = new_statistic;
+    return new_statistic;
 }
 /*
 StatisticsSampler::Pointer CreateVarianceSampler(Kratos::Parameters Parameters) const
