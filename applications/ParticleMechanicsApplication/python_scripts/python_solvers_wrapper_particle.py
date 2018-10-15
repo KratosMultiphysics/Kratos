@@ -22,7 +22,7 @@ def CreateSolver(model, custom_settings):
 
             time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
             if (time_integration_method == "implicit"):
-                solver_module_name = "particle_mpm_solver_new"
+                solver_module_name = "particle_mpm_solver"
             else:
                 err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the python solvers wrapper\n"
                 err_msg += "Available options are: \"implicit\""
