@@ -452,7 +452,7 @@ class Solution(object):
             self.BeforePrintingOperations(self.time)
             self.PrintResults()
             self.FinalizeTimeStep(self.time)
-            if self.BreakOut():
+            if self.BreakSolutionStepLoop():
                 break
 
     def RunAnalytics(self, time, is_time_to_print=True):
@@ -508,9 +508,9 @@ class Solution(object):
         self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess(self.time))
 
     def FinalizeTimeStep(self, time):
-        self.BreakOut()
+        self.BreakSolutionStepLoop()
 
-    def BreakOut(self):
+    def BreakSolutionStepLoop(self):
         return False
 
     def Finalize(self):
