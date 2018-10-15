@@ -94,20 +94,20 @@ void RigidBodyPointLinkCondition::GetDofList(DofsVectorType& rConditionDofList,
   for(WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
   {
 
-    DofsVectorType SlaveConditionDofList;
-    ie->GetDofList(SlaveConditionDofList, rCurrentProcessInfo);
+    DofsVectorType SlaveDofList;
+    ie->GetDofList(SlaveDofList, rCurrentProcessInfo);
 
-    for(unsigned int i=0; i<SlaveConditionDofList.size(); i++)
-      rConditionDofList.push_back(SlaveConditionDofList[i]);
+    for(unsigned int i=0; i<SlaveDofList.size(); i++)
+      rConditionDofList.push_back(SlaveDofList[i]);
   }
 
   Element& MasterElement = (GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
-  
-  DofsVectorType MasterConditionDofList;
-  MasterElement.GetDofList(MasterConditionDofList, rCurrentProcessInfo);
-  
-  for(unsigned int i=0; i<MasterConditionDofList.size(); i++)
-    rConditionDofList.push_back(MasterConditionDofList[i]);
+
+  DofsVectorType MasterDofList;
+  MasterElement.GetDofList(MasterDofList, rCurrentProcessInfo);
+
+  for(unsigned int i=0; i<MasterDofList.size(); i++)
+    rConditionDofList.push_back(MasterDofList[i]);
 
   KRATOS_CATCH("")
 }
@@ -177,14 +177,14 @@ void RigidBodyPointLinkCondition::GetValuesVector(Vector& rValues, int Step)
   }
 
   Element& MasterElement = (GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
-  
+
   Vector MasterValues;
   MasterElement.GetValuesVector(MasterValues, Step);
 
   sizei += MasterValues.size();
 
   for(unsigned int i=0; i<MasterValues.size(); i++)
-    rValues[indexi+i] = MasterValues[i]; 
+    rValues[indexi+i] = MasterValues[i];
 
   KRATOS_CATCH("")
 }
@@ -224,10 +224,10 @@ void RigidBodyPointLinkCondition::GetFirstDerivativesVector( Vector& rValues, in
   MasterElement.GetFirstDerivativesVector(MasterValues, Step);
 
   sizei += MasterValues.size();
-  
+
   for(unsigned int i=0; i<MasterValues.size(); i++)
     rValues[indexi+i] = MasterValues[i];
-  
+
 
   KRATOS_CATCH("")
 }
@@ -271,7 +271,7 @@ void RigidBodyPointLinkCondition::GetSecondDerivativesVector( Vector& rValues, i
 
   for(unsigned int i=0; i<MasterValues.size(); i++)
     rValues[indexi+i] = MasterValues[i];
-  
+
   KRATOS_CATCH("")
 }
 
@@ -341,16 +341,17 @@ void RigidBodyPointLinkCondition::Initialize()
   KRATOS_TRY
 
   //Fix linked deformable point dofs
-  for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-  {
-    (GetGeometry()[i].pGetDof(DISPLACEMENT_X))->FixDof();
-    (GetGeometry()[i].pGetDof(DISPLACEMENT_Y))->FixDof();
-    (GetGeometry()[i].pGetDof(DISPLACEMENT_Z))->FixDof();
+  // commented JMC October 15 2018
+  // for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+  // {
+  //   (GetGeometry()[i].pGetDof(DISPLACEMENT_X))->FixDof();
+  //   (GetGeometry()[i].pGetDof(DISPLACEMENT_Y))->FixDof();
+  //   (GetGeometry()[i].pGetDof(DISPLACEMENT_Z))->FixDof();
 
-    (GetGeometry()[i].pGetDof(ROTATION_X))->FixDof();
-    (GetGeometry()[i].pGetDof(ROTATION_Y))->FixDof();
-    (GetGeometry()[i].pGetDof(ROTATION_Z))->FixDof();
-  }
+  //   (GetGeometry()[i].pGetDof(ROTATION_X))->FixDof();
+  //   (GetGeometry()[i].pGetDof(ROTATION_Y))->FixDof();
+  //   (GetGeometry()[i].pGetDof(ROTATION_Z))->FixDof();
+  // }
 
   KRATOS_CATCH("")
 }
@@ -378,7 +379,7 @@ void RigidBodyPointLinkCondition::InitializeNonLinearIteration(ProcessInfo& Curr
   KRATOS_TRY
 
   // const unsigned int inode = GetGeometry().PointsNumber()-1;
-      
+
   // PointPointerType  mpSlaveNode = GetGeometry()(inode);
 
   // array_1d<double, 3 >&  Displacement = mpSlaveNode->FastGetSolutionStepValue(DISPLACEMENT);
@@ -419,7 +420,7 @@ void RigidBodyPointLinkCondition::InitializeSystemMatrices(MatrixType& rLeftHand
 
 {
   //resizing as needed the LHS
-  unsigned int MatSize = rSlaveElementSize + 6; //slave body element + rigid body element
+  unsigned int MatSize = rSlaveElementSize + 6; //slave elements + rigid-body element
 
   if ( rCalculationFlags.Is(RigidBodyPointLinkCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
   {
@@ -458,9 +459,12 @@ void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& r
       rVariables.SlaveNode = i;
   }
 
-  rVariables.Distance = ZeroVector(3);
-  rVariables.SkewSymDistance = ZeroMatrix(3,3);
-  rVariables.LagrangeMultipliers = ZeroVector(3);
+  rVariables.Distance.resize(3);
+  noalias(rVariables.Distance) = ZeroVector(3);
+  rVariables.SkewSymDistance.resize(3,3,false);
+  noalias(rVariables.SkewSymDistance) = ZeroMatrix(3,3);
+  rVariables.LagrangeMultipliers.resize(3);
+  noalias(rVariables.LagrangeMultipliers) = ZeroVector(3);
 
   //compute distance from the slave node to the master rigid body element node (center of gravity)
   Element& MasterElement = (GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
@@ -538,7 +542,7 @@ void RigidBodyPointLinkCondition::CalculateAndAddRHS(LocalSystemComponents& rLoc
 
   // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
   this->CalculateAndAddForces( rRightHandSideVector, rLinkedRightHandSideVector, rVariables);
-  
+
   //KRATOS_WATCH( rRightHandSideVector )
 }
 
