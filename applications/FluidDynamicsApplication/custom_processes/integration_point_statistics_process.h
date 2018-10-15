@@ -217,14 +217,16 @@ StatisticsSampler::Pointer CreateAverageSampler(
 {
     Kratos::Parameters default_parameters(R"({
         "type" : "average",
-        "variable": "",
-        "type": "value"
+        "variable": ""
     })");
 
     Parameters.ValidateAndAssignDefaults(default_parameters);
     std::string variable_name = Parameters["variable"].GetString();
     std::string type = Parameters["type"].GetString();
     KRATOS_ERROR_IF_NOT(type == "average") << "Trying to define an average statistic of unsupported type " << type << "." << std::endl;
+
+    KRATOS_ERROR_IF_NOT(rDefinedStatistics.find(variable_name) != rDefinedStatistics.end())
+    << "Duplicate definition of an average for " << variable_name << std::endl;
 
     StatisticsSampler::Pointer new_statistic;
     if (KratosComponents<Variable<double>>::Has(variable_name))
@@ -255,15 +257,42 @@ StatisticsSampler::Pointer CreateAverageSampler(
     rDefinedStatistics[variable_name] = new_statistic;
     return new_statistic;
 }
-/*
-StatisticsSampler::Pointer CreateVarianceSampler(Kratos::Parameters Parameters) const
+
+StatisticsSampler::Pointer CreateVarianceSampler(
+    Kratos::Parameters Parameters,
+    StatisticsDictionary& rDefinedStatistics) const
 {
     Kratos::Parameters default_parameters(R"({
         "type" : "",
-        "variable": "",
-        "type": "value"
+        "variables": []
     })");
-}*/
+
+    Parameters.ValidateAndAssignDefaults(default_parameters);
+    KRATOS_ERROR_IF(Parameters["variables"].size() < 1 || Parameters["variables"].size() > 2)
+    << "Unexpected number of arguments when reading \"variables\" list argument."
+    << "Expected 1 or 2 values, got " << Parameters["variables"].size() << std::endl;
+    std::string type = Parameters["type"].GetString();
+
+    StatisticsSampler::Pointer new_statistic;
+    if (Parameters["variables"].size() == 1)
+    {
+        // symmetric variance
+        std::string variable_name = Parameters["variables"][0].GetString();
+        StatisticsDictionary::iterator it_average = rDefinedStatistics.find(variable_name);
+        KRATOS_ERROR_IF(it_average == rDefinedStatistics.end())
+        << "Trying to define a variance for " << variable_name
+        << " but no average has been defined for this variable" << std::endl;
+        
+        new_statistic = Kratos::make_shared<SymmetricVarianceSampler>(it_average->second);
+    }
+    else // size == 2
+    {
+        // complete or componentwise variance
+    }
+        
+    //rDefinedStatistics[statistic_name] = new_statistic;
+    return new_statistic;
+}
 
 ///@}
 ///@name Protected  Access
@@ -300,6 +329,18 @@ double mStartTime;
 ///@}
 ///@name Private Operations
 ///@{
+
+bool ProcessComponent(
+    const std::string& rInputName,
+    std::string& rBaseVariableName,
+    unsigned int& rComponentIndex) const
+{
+    bool is_component = false;
+
+    //TODO implement string manipulation
+
+    return is_component;
+}
 
 ///@}
 ///@name Private  Access
