@@ -340,18 +340,17 @@ void RigidBodyPointLinkCondition::Initialize()
 {
   KRATOS_TRY
 
-  //Fix linked deformable point dofs
-  // commented JMC October 15 2018
-  // for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-  // {
-  //   (GetGeometry()[i].pGetDof(DISPLACEMENT_X))->FixDof();
-  //   (GetGeometry()[i].pGetDof(DISPLACEMENT_Y))->FixDof();
-  //   (GetGeometry()[i].pGetDof(DISPLACEMENT_Z))->FixDof();
+  //Fix linked deformable point dofs (TODO: Get nodal dofs to fix the correct ones)
+  for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+  {
+    (GetGeometry()[i].pGetDof(DISPLACEMENT_X))->FixDof();
+    (GetGeometry()[i].pGetDof(DISPLACEMENT_Y))->FixDof();
+    (GetGeometry()[i].pGetDof(DISPLACEMENT_Z))->FixDof();
 
-  //   (GetGeometry()[i].pGetDof(ROTATION_X))->FixDof();
-  //   (GetGeometry()[i].pGetDof(ROTATION_Y))->FixDof();
-  //   (GetGeometry()[i].pGetDof(ROTATION_Z))->FixDof();
-  // }
+    (GetGeometry()[i].pGetDof(ROTATION_X))->FixDof();
+    (GetGeometry()[i].pGetDof(ROTATION_Y))->FixDof();
+    (GetGeometry()[i].pGetDof(ROTATION_Z))->FixDof();
+  }
 
   KRATOS_CATCH("")
 }
