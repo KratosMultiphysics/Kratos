@@ -96,22 +96,37 @@ class ParticleMechanicsAnalysis(AnalysisStage):
                     if (self.project_parameters.Has(process_name) is True):
                         raise Exception("Mixing of process initialization is not allowed!")
         elif parameter_name == "output_processes":
-            if self.project_parameters.Has("output_configuration"):
-                info_msg  = "Using the old way to create the gid-output, this will be removed!\n"
+            if self.project_parameters.Has("grid_output_configuration") or self.project_parameters.Has("body_output_configuration"):
+                info_msg  = "Using the old way to create the gid-output for grid, this will be removed!\n"
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
                 KratosMultiphysics.Logger.PrintInfo("ParticleMechanicsAnalysis", info_msg)
-                gid_output= self._SetUpGiDOutput()
-                list_of_processes += [gid_output,]
+                if self.project_parameters.Has("grid_output_configuration"):
+                    grid_gid_output= self._SetUpGiDOutput("grid_output")
+                    list_of_processes += [grid_gid_output,]
+                if self.project_parameters.Has("body_output_configuration"):
+                    mp_gid_output= self._SetUpGiDOutput("body_output")
+                    list_of_processes += [mp_gid_output,]
         else:
             raise NameError("wrong parameter name")
 
         return list_of_processes
 
-    def _SetUpGiDOutput(self):
+    def _SetUpGiDOutput(self, parameter_name):
         '''Initialize a GiD output instance'''
-        
+        if self.parallel_type == "OpenMP":
+            if parameter_name == "grid_output":
+                from gid_output_process import GiDOutputProcess as OutputProcess
+                grid_output_file_name = self.project_parameters["problem_data"]["problem_name"].GetString() + "_Grid"
+                gid_output = OutputProcess(self._GetSolver().GetGridModelPart(), grid_output_file_name,
+                                    self.project_parameters["grid_output_configuration"])
+            elif parameter_name == "body_output":
+                from mpm_gid_output_process import ParticleMPMGiDOutputProcess as OutputProcess
+                mp_output_file_name = self.project_parameters["problem_data"]["problem_name"].GetString() + "_Body"
+                gid_output = OutputProcess(self._GetSolver().GetComputingModelPart(), mp_output_file_name,
+                                    self.project_parameters["body_output_configuration"])
+        return gid_output
 
 
 if __name__ == "__main__":
