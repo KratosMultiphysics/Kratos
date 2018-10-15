@@ -34,6 +34,9 @@ namespace Kratos {
             void SetNvFlexParams(NvFlexParams& g_params);
             void SetNvFlexCopyDescParams(NvFlexCopyDesc& copyDesc);
             void TransferDataFromFlexToKratos();
+            bool CheckIfItsTimeToChangeGravity(const double velocity_threshold_for_gravity_change,
+                                                    const double min_time_between_changes,
+                                                    const double max_time_between_changes);
             void SetGravity();
             void Finalize();
 
@@ -63,7 +66,8 @@ namespace Kratos {
             ParticleCreatorDestructor& mrParticleCreatorDestructor;
             NvFlexInitDesc mInitDesc;
             int mMaxparticles;
-            bool mTimeToChangeGravityValue;
+            bool mTimeToChangeGravityValue; //TODO: delete
+            double mPreviousTime;
 
             NvFlexVector<NvFlexCollisionGeometry>* mShapeGeometry;
             NvFlexVector<Vec4>* mShapePositions;
