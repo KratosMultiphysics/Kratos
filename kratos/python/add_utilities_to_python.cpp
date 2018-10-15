@@ -409,7 +409,7 @@ void AddUtilitiesToPython(pybind11::module& m)
 //     .staticmethod("Start")
 //     .staticmethod("Stop")
     //      .def("PrintTimingInformation",Timer::PrintTimingInformation)
-    .def("__repr__",&Timer::Info)
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Timer)
     ;
 
     class_<OpenMPUtils >(m,"OpenMPUtils")
@@ -435,7 +435,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("FindPointOnMesh", &BinBasedFastPointLocator < 3 > ::FindPointOnMeshSimplified)
     .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
     ;
-    
+
     class_< BinBasedFastPointLocatorConditions < 2 > >(m,"BinBasedFastPointLocatorConditions2D")
     .def(init<ModelPart& >())
     .def("UpdateSearchDatabase", &BinBasedFastPointLocatorConditions < 2 > ::UpdateSearchDatabase)
