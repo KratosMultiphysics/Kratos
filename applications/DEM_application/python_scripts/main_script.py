@@ -235,7 +235,7 @@ class Solution(object):
                                                      self.procedures)
 
     def Run(self):
-        
+
         self.Initialize()
 
         self.RunMainTemporalLoop()
@@ -286,7 +286,7 @@ class Solution(object):
 
         # Perform a partition to balance the problem
         self.SetSearchStrategy()
-        
+
         self.SolverBeforeInitialize()
 
         self.parallelutils.Repart(self.spheres_model_part)
@@ -301,11 +301,11 @@ class Solution(object):
 
         #Strategy Initialization
         os.chdir(self.main_path)
-        
+
         self.SolverInitialize()
-        
+
         self.PreSearchStrategyOperations()
-        
+
         self.SolverAfterInitialize()
 
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
@@ -339,7 +339,7 @@ class Solution(object):
         self.solver.AddDofs(self.spheres_model_part)
         self.solver.AddDofs(self.cluster_model_part)
         self.solver.AddDofs(self.DEM_inlet_model_part)
-        
+
     def PreSearchStrategyOperations(self):
         pass
 
@@ -348,7 +348,7 @@ class Solution(object):
 
     def SolverBeforeInitialize(self):
         self.solver.BeforeInitialize()
-        
+
     def SolverAfterInitialize(self):
         pass
 
@@ -497,8 +497,7 @@ class Solution(object):
         self.procedures.SetInitialNodalValues(self.spheres_model_part, self.cluster_model_part, self.DEM_inlet_model_part, self.rigid_face_model_part)
 
     def InitializeTimeStep(self):
-        
-        SphericElementGlobalPhysicsCalculator(self.spheres_model_part).SetGravity(self.spheres_model_part)
+        pass
 
     def BeforeSolveOperations(self, time):
         if self.post_normal_impact_velocity_option:
