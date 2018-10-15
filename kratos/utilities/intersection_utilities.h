@@ -173,6 +173,7 @@ public:
      * 0 (disjoint - no intersection) 
      * 1 (intersect in a unique point)
      * 2 (overlap)
+     * 3 (intersect in one endpoint)
      */
 	template <class TGeometryType>
 	static int ComputeLineLineIntersection(
@@ -216,7 +217,12 @@ public:
 			const double t = aux_3/aux_1;
 			if (((u >= 0.0) && (u <= 1.0)) && ((t >= 0.0) && (t <= 1.0))){
 				rIntersectionPoint = rLinePoint0 + u*s;
-				return 1;
+				// Check if the intersection occurs in one of the end points
+				if (u < epsilon || (1.0 - u) < epsilon) {
+					return 3;
+				} else {
+					return 1;
+				}
 			}
 		}
 		// Otherwise, the lines are non-parallel but do not intersect
