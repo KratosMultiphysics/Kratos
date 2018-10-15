@@ -18,7 +18,16 @@ namespace Kratos
 
 int ExponentialCohesive3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
 {
-    const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+    // Verify ProcessInfo variables
+    KRATOS_CHECK_VARIABLE_KEY(IS_CONVERGED);
+
+    // Verify Properties variables
+    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+    if(rMaterialProperties.Has(YOUNG_MODULUS)) {
+        KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "YOUNG_MODULUS not defined" << std::endl;
+    }
 
 
     return 0;

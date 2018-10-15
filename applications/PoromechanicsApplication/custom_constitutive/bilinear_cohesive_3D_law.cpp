@@ -49,18 +49,35 @@ int BilinearCohesive3DLaw::Check(const Properties& rMaterialProperties,const Geo
         KRATOS_ERROR << "CRITICAL_DISPLACEMENT not defined" << std::endl;
     }
 
-    //TODO: seguir
+    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+    if(rMaterialProperties.Has(YOUNG_MODULUS)) {
+        KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "YOUNG_MODULUS not defined" << std::endl;
+    }
 
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties.Has( YOUNG_MODULUS ) == false || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
-        KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
-    if(YIELD_STRESS.Key() == 0 || rMaterialProperties.Has( YIELD_STRESS ) == false || rMaterialProperties[YIELD_STRESS] < 0.0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"YIELD_STRESS has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
-    if(FRICTION_COEFFICIENT.Key() == 0 || rMaterialProperties.Has( FRICTION_COEFFICIENT ) == false || rMaterialProperties[FRICTION_COEFFICIENT] < 0.0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"FRICTION_COEFFICIENT has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
-    const double& DamageThreshold = rMaterialProperties[DAMAGE_THRESHOLD];
-    if(DAMAGE_THRESHOLD.Key() == 0 || rMaterialProperties.Has( DAMAGE_THRESHOLD ) == false || DamageThreshold<=0.0 || DamageThreshold > 1.0)
-        KRATOS_THROW_ERROR( std::invalid_argument,"DAMAGE_THRESHOLD has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
+    KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
+    if(rMaterialProperties.Has(YIELD_STRESS)) {
+        KRATOS_ERROR_IF(rMaterialProperties[YIELD_STRESS] < 0.0) << "YIELD_STRESS has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "YIELD_STRESS not defined" << std::endl;
+    }
 
+    KRATOS_CHECK_VARIABLE_KEY(FRICTION_COEFFICIENT);
+    if(rMaterialProperties.Has(FRICTION_COEFFICIENT)) {
+        KRATOS_ERROR_IF(rMaterialProperties[FRICTION_COEFFICIENT] < 0.0) << "FRICTION_COEFFICIENT has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "FRICTION_COEFFICIENT not defined" << std::endl;
+    }
+
+    KRATOS_CHECK_VARIABLE_KEY(DAMAGE_THRESHOLD);
+    if(rMaterialProperties.Has(DAMAGE_THRESHOLD)) {
+        const double& damage_threshold = rMaterialProperties[DAMAGE_THRESHOLD];
+        const bool check = static_cast<bool>((damage_threshold <= 0.0) || (damage_threshold > 1.0));
+        KRATOS_ERROR_IF(check) << "DAMAGE_THRESHOLD has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "DAMAGE_THRESHOLD not defined" << std::endl;
+    }
 
     return 0;
 }
