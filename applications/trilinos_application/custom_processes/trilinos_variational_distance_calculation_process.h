@@ -162,14 +162,6 @@ public:
     ///@name Operators
     ///@{
 
-    ///@}base_model_part.GetOwnerModel().HasModelPart("DistancePart")
-    ///@nbase_model_part.GetOwnerModel().HasModelPart("DistancePart")
-    ///@{base_model_part.GetOwnerModel().HasModelPart("DistancePart")
-
-    ///@}base_model_part.GetOwnerModel().HasModelPart("DistancePart")
-    ///@nbase_model_part.GetOwnerModel().HasModelPart("DistancePart")
-    ///@{base_model_part.GetOwnerModel().HasModelPart("DistancePart")
-
     ///@}
     ///@name Inquiry
     ///@{
