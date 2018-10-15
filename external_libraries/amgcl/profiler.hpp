@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -36,9 +36,8 @@ THE SOFTWARE.
 #include <map>
 #include <string>
 #include <vector>
+#include <type_traits>
 
-#include <boost/type_traits.hpp>
-#include <boost/io/ios_state.hpp>
 #include <amgcl/perf_counter/clock.hpp>
 
 
@@ -80,7 +79,7 @@ class profiler {
         /**
          * Returns delta in the measured value since the corresponding tic().
          */
-        delta_type toc(const std::string& /*name*/) {
+        delta_type toc(const std::string& /*name*/ = "") {
             profile_unit *top = stack.back();
             stack.pop_back();
 
@@ -102,6 +101,18 @@ class profiler {
             root.begin = counter.current();
         }
 
+        struct scoped_ticker {
+            profiler &prof;
+            scoped_ticker(profiler &prof) : prof(prof) {}
+            ~scoped_ticker() {
+                prof.toc();
+            }
+        };
+
+        scoped_ticker scoped_tic(const std::string &name) {
+            tic(name);
+            return scoped_ticker(*this);
+        }
     private:
         struct profile_unit {
             profile_unit() : length(0) {}
@@ -170,8 +181,13 @@ class profiler {
             if (stack.back() != &root)
                 out << "Warning! Profile is incomplete." << std::endl;
 
-            boost::io::ios_all_saver stream_state(out);
+            std::ios_base::fmtflags ff(out.flags());
+            auto fp = out.precision();
+
             root.print(out, name, 0, root.length, root.total_width(name, 0));
+
+            out.flags(ff);
+            out.precision(fp);
         }
 
         /// Sends formatted profiling data to an output stream.
@@ -184,24 +200,6 @@ class profiler {
             prof.print(out);
             return out << std::endl;
         }
-};
-
-/// Scoped ticker.
-/** Calls prof.tic(name) on construction, and prof.toc(name) on destruction. */
-template <class Profiler>
-struct scoped_tic {
-    Profiler &prof;
-    std::string name;
-
-    scoped_tic(Profiler &prof, const std::string &name)
-        : prof(prof), name(name)
-    {
-        prof.tic(name);
-    }
-
-    ~scoped_tic() {
-        prof.toc(name);
-    }
 };
 
 } // namespace amgcl

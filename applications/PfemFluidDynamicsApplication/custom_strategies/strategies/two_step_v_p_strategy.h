@@ -17,7 +17,7 @@
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -207,11 +207,11 @@ public:
             if (ierr != 0) break;
         }
 
-        for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
-        {
-            ierr = itCond->Check(rCurrentProcessInfo);
-            if (ierr != 0) break;
-        }
+        /* for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond) */
+        /* { */
+        /*     ierr = itCond->Check(rCurrentProcessInfo); */
+        /*     if (ierr != 0) break; */
+        /* } */
 
         return ierr;
 
@@ -322,8 +322,8 @@ public:
 
       this->CalculateDisplacements();
       BaseType::MoveMesh();
-      BoundaryNormalsCalculationUtilities BoundaryComputation;
-      BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel);
+      /* BoundaryNormalsCalculationUtilities BoundaryComputation; */
+      /* BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel); */
 
       KRATOS_CATCH("");
 

@@ -263,6 +263,9 @@ class Algorithm(object):
 
         self.pp.fluid_fraction_fields.append(field1)
 
+        # Setting body_force_per_unit_mass_variable_name
+        Add("body_force_per_unit_mass_variable_name").SetString('BODY_FORCE')
+
     def SetDoSolveDEMVariable(self):
         self.do_solve_dem = self.pp.CFD_DEM["do_solve_dem"].GetBool()
 
@@ -345,6 +348,8 @@ class Algorithm(object):
 
         self.TransferGravityFromDisperseToFluid()
 
+        self.AssignKinematicViscosityFromDynamicViscosity()
+
         # coarse-graining: applying changes to the physical properties of the model to adjust for
         # the similarity transformation if required (fluid effects only).
         SDP.ApplySimilarityTransformations(
@@ -394,6 +399,7 @@ class Algorithm(object):
                 self.pp,
                 flow_field=self.GetFieldUtility()
                 )
+
             self.projection_module.UpdateDatabase(self.h_min)
 
         # creating a custom functions calculator for the implementation of
@@ -1038,6 +1044,10 @@ class Algorithm(object):
                 node.SetSolutionStepValue(BODY_FORCE_X, 0, self.pp.CFD_DEM["GravityX"].GetDouble())
                 node.SetSolutionStepValue(BODY_FORCE_Y, 0, self.pp.CFD_DEM["GravityY"].GetDouble())
                 node.SetSolutionStepValue(BODY_FORCE_Z, 0, self.pp.CFD_DEM["GravityZ"].GetDouble())
+
+    def AssignKinematicViscosityFromDynamicViscosity(self):
+        # Eulerian fluid already works with kinematic viscosity
+        pass
 
     def yield_DEM_time(self, current_time, current_time_plus_increment, delta_time):
         current_time += delta_time

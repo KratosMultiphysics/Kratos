@@ -21,7 +21,7 @@
 #include "spatial_containers/spatial_containers.h"
 
 #include "custom_processes/split_elements_process.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 #include "includes/model_part.h"
 
 
@@ -151,8 +151,8 @@ namespace Kratos
 	    ComputingModelPartName = i_mp->Name();
 	    ModelPart& rComputingModelPart = mrModelPart.GetSubModelPart(ComputingModelPartName);
 	    const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-	    ModelerUtilities ModelerUtils;
-	    double modelPartVolume=ModelerUtils.ComputeModelPartVolume(rComputingModelPart);
+	    MesherUtilities MesherUtils;
+	    double modelPartVolume=MesherUtils.ComputeModelPartVolume(rComputingModelPart);
 	    double criticalVolume=0.5*modelPartVolume/double(rComputingModelPart.Elements().size());
 
       	    for(ElementsContainerType::iterator i_elem = rComputingModelPart.Elements().begin() ; i_elem != rComputingModelPart.Elements().end() ; i_elem++)
@@ -213,7 +213,7 @@ namespace Kratos
 		    if(dimension==2){
 		    
 		      Triangle2D3<Node < 3 > > firstGeom(newNode,vertices(0),vertices(1));
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      Element::Pointer newElement = i_elem->Create(rElementId,firstGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -222,7 +222,7 @@ namespace Kratos
 		      rComputingModelPart.AddElement(newElement);
 
 		      Triangle2D3<Node < 3 > > secondGeom(newNode,vertices(2),vertices(0));
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      newElement = i_elem->Create(rElementId,secondGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -231,7 +231,7 @@ namespace Kratos
 		      rComputingModelPart.AddElement(newElement);
 
 		      Triangle2D3<Node < 3 > > thirdGeom(newNode,vertices(1),vertices(2));
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      newElement = i_elem->Create(rElementId,thirdGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -242,7 +242,7 @@ namespace Kratos
 		    }else if(dimension==3){
 
 		      Tetrahedra3D4<Node < 3 > > firstGeom(newNode,vertices(1),vertices(2),vertices(3));
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      Element::Pointer newElement = i_elem->Create(rElementId,firstGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -251,7 +251,7 @@ namespace Kratos
 		      rComputingModelPart.AddElement(newElement);
 
 		      Tetrahedra3D4<Node < 3 > > secondGeom(vertices(0),newNode,vertices(2),vertices(3));
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      newElement = i_elem->Create(rElementId,secondGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -260,7 +260,7 @@ namespace Kratos
 		      rComputingModelPart.AddElement(newElement);
 
 		      Tetrahedra3D4<Node < 3 > > thirdGeom(vertices(0),vertices(1),newNode,vertices(3));
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      newElement = i_elem->Create(rElementId,thirdGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -269,7 +269,7 @@ namespace Kratos
 		      rComputingModelPart.AddElement(newElement);
 
 		      Tetrahedra3D4<Node < 3 > > fourthGeom(vertices(0),vertices(1),vertices(2),newNode);
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      newElement = i_elem->Create(rElementId,fourthGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -345,7 +345,7 @@ namespace Kratos
       PointCoordinates[0] =rPoint[0];
       PointCoordinates[1] =rPoint[1];
       PointCoordinates[2] =rPoint[2];
-      unsigned int rNodeId = ModelerUtilities::GetMaxNodeId(mrModelPart)+1;
+      unsigned int rNodeId = MesherUtilities::GetMaxNodeId(mrModelPart)+1;
 
       ModelPart::NodeType::Pointer newNode = i_mp->CreateNewNode( rNodeId, rPoint[0], rPoint[1], rPoint[2]); 
 
@@ -371,7 +371,7 @@ namespace Kratos
       newNode->Set(FLUID);
       newNode->Reset(FREE_SURFACE);
       bool is_inside = false;
-      is_inside = ModelerUtilities::CalculatePosition(ElementPointCoordinates,PointCoordinates,ShapeFunctionsN );
+      is_inside = MesherUtilities::CalculatePosition(ElementPointCoordinates,PointCoordinates,ShapeFunctionsN );
       if(is_inside == true)
 	{
 	  double alpha = 1; //1 to interpolate, 0 to leave the original data

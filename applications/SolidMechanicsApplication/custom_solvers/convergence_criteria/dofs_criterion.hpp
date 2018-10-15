@@ -163,7 +163,8 @@ class DofsCriterion : public ConvergenceCriterion<TSparseSpace,TDenseSpace>
       {
         if(this->GetEchoLevel() >= 1)
         {
-          std::cout << "VARIABLE (" << GetDofName() << ") :: Ratio = " << ratio << "; Norm = " << absolute_norm << std::endl;
+          std::cout << "DOF (" << GetDofName() << ") ["<<rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]<<"] :: Ratio = " << ratio << "; Norm = " << absolute_norm << std::endl;
+          std::cout << " CorrectionNorm = " << CorrectionNorm << "; ReferenceNorm = " << ReferenceNorm << std::endl;
         }
       }
 

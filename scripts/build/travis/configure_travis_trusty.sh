@@ -73,7 +73,9 @@ CXX_PERF_FLAGS="-O0 -fopenmp"
 #        CXX_WARN_FLAGS="-Wall"
 # --------------------------------------------------------------------------------------------------------------
 C_WARN_FLAGS="-Wall"
-CXX_WARN_FLAGS="-Wall"
+CXX_WARN_FLAGS="-Wall -Werror=suggest-override -Werror=unused-variable \
+                -Werror=misleading-indentation -Werror=return-type \
+                -Werror=sign-compare -Werror=unused-but-set-variable"
 
 # Other flags
 #    Indicate any other flag you want to add here
@@ -130,12 +132,12 @@ CMAKE_APPLICATION=(
 CMAKE_BUILD=(
    # CMake C compiler
   -DCMAKE_C_COMPILER=${C_COMPILER}
-  -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} ${C_PERF_FLAGS} ${C_IGNORE_WARN} ${C_CUSTOM_FLAGS}"
+  -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} ${C_PERF_FLAGS} ${C_WARN_FLAGS} ${C_CUSTOM_FLAGS}"
 
   # CMake C++ compiler
   # Please DO NOT REMOVE THE "-std=c++11" FLAG.
   -DCMAKE_CXX_COMPILER=${CXX_COMPILER}
-  -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -std=c++11 ${CXX_PERF_FLAGS} ${CXX_IGNORE_WARN} ${CXX_CUSTOM_FLAGS}"
+  -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -std=c++11 ${CXX_PERF_FLAGS} ${CXX_WARN_FLAGS} ${CXX_CUSTOM_FLAGS}"
 
   # Build type
   # NOTE: This is better commented for travis since we don't want to use

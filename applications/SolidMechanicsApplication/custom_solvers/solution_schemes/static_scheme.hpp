@@ -78,7 +78,20 @@ namespace Kratos
         :BaseType(rTimeVectorIntegrationMethods)
     {
     }
-    
+
+
+    /// Constructor.
+    StaticScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods, Flags& rOptions)
+        :BaseType(rTimeScalarIntegrationMethods, rOptions)
+    {
+    }
+
+    /// Constructor.
+    StaticScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods)
+        :BaseType(rTimeScalarIntegrationMethods)
+    {
+    }
+
     /// Constructor.
     StaticScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
                  IntegrationMethodsScalarType& rTimeScalarIntegrationMethods,
@@ -93,7 +106,7 @@ namespace Kratos
         :BaseType(rTimeVectorIntegrationMethods, rTimeScalarIntegrationMethods)
     {
     }
-    
+
     /// Copy Constructor.
     StaticScheme(StaticScheme& rOther)
         :BaseType(rOther)
@@ -121,7 +134,7 @@ namespace Kratos
     this is the place to initialize the Scheme.
     This is intended to be called just once when the strategy is initialized
      */
-    virtual void Initialize(ModelPart& rModelPart) override
+    void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -178,7 +191,7 @@ namespace Kratos
      * @return Zero means  all ok
      */
 
-    virtual int Check(ModelPart& rModelPart) override
+    int Check(ModelPart& rModelPart) override
     {
       KRATOS_TRY;
 
@@ -230,7 +243,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "StaticScheme";
@@ -238,13 +251,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "StaticScheme";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "StaticScheme Data";
     }

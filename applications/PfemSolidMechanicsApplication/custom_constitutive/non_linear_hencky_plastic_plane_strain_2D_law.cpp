@@ -8,13 +8,10 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/non_linear_hencky_plastic_plane_strain_2D_law.hpp"
 
 #include "pfem_solid_mechanics_application_variables.h"
@@ -51,7 +48,7 @@ ConstitutiveLaw::Pointer NonLinearHenckyElasticPlasticPlaneStrain2DLaw::Clone() 
     NonLinearHenckyElasticPlasticPlaneStrain2DLaw::Pointer p_clone(new NonLinearHenckyElasticPlasticPlaneStrain2DLaw(*this));
     return p_clone;
 }
- 
+
 NonLinearHenckyElasticPlasticPlaneStrain2DLaw::~NonLinearHenckyElasticPlasticPlaneStrain2DLaw()
 {
 }
@@ -126,7 +123,7 @@ void NonLinearHenckyElasticPlasticPlaneStrain2DLaw::GetLawFeatures(Features& rFe
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
+
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
 

@@ -7,6 +7,7 @@ import KratosMultiphysics
 KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication", "TrilinosApplication")
 
 # Import applications
+import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Other imports
@@ -24,7 +25,7 @@ class TrilinosMeshSolverStructuralSimilarity(trilinos_mesh_solver_base.TrilinosM
 
     #### Private functions ####
 
-    def _create_mesh_motion_solver(self):
+    def _create_mesh_motion_solving_strategy(self):
         linear_solver = self.get_linear_solver()
         communicator = self.get_communicator()
         time_order = self.settings["time_order"].GetInt()
@@ -32,7 +33,7 @@ class TrilinosMeshSolverStructuralSimilarity(trilinos_mesh_solver_base.TrilinosM
         compute_reactions = self.settings["compute_reactions"].GetBool()
         calculate_mesh_velocities = self.settings["calculate_mesh_velocities"].GetBool()
         echo_level = self.settings["echo_level"].GetInt()
-        solver = TrilinosApplication.TrilinosStructuralMeshMovingStrategy(
+        solving_strategy = TrilinosApplication.TrilinosStructuralMeshMovingStrategy(
             communicator,
             self.mesh_model_part,
             linear_solver,
@@ -41,4 +42,4 @@ class TrilinosMeshSolverStructuralSimilarity(trilinos_mesh_solver_base.TrilinosM
             compute_reactions,
             calculate_mesh_velocities,
             echo_level)
-        return solver
+        return solving_strategy

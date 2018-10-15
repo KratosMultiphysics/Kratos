@@ -5,8 +5,8 @@ from KratosMultiphysics import *
 
 import sys
 
-class TestModelPart(KratosUnittest.TestCase): 
-    
+class TestModelPart(KratosUnittest.TestCase):
+
     def setUp(self):
         if (sys.version_info < (3, 2)):
             self.assertRaisesRegex = self.assertRaisesRegexp
@@ -110,14 +110,14 @@ class TestModelPart(KratosUnittest.TestCase):
 
         #trying to create a node with Id 1 and coordinates which are different from the ones of the existing node 1. Error
         with self.assertRaises(RuntimeError):
-            model_part.CreateNewNode(1, 0.00,0.00,0.00) 
+            model_part.CreateNewNode(1, 0.00,0.00,0.00)
 
         #here i try to create a node with Id 1 but the coordinates coincide with the ones of the existing node. EXISTING NODE is returned and no error is thrown
-        model_part.CreateNewNode(1, 1.00,0.00,0.00) 
+        model_part.CreateNewNode(1, 1.00,0.00,0.00)
         self.assertEqual(model_part.NumberOfNodes(), 1)
         self.assertEqual(model_part.GetNode(1).Id, 1)
-        self.assertEqual(model_part.GetNode(1,0).X, 1.00) 
-        
+        self.assertEqual(model_part.GetNode(1,0).X, 1.00)
+
         self.assertEqual(len(model_part.Nodes), 1)
 
         model_part.CreateNewNode(2000, 2.00,0.00,0.00)
@@ -484,170 +484,170 @@ class TestModelPart(KratosUnittest.TestCase):
     def test_modelpart_buffersize(self):
         model_part = ModelPart("Main")
         model_part.SetBufferSize(3)
-        
+
         model_part.CreateSubModelPart("submodel")
         submodel = model_part.GetSubModelPart("submodel")
         self.assertEqual(model_part.GetBufferSize(), submodel.GetBufferSize() )
-        
+
     def test_add_node(self):
         model_part1 = ModelPart("Main")
         sub1 = model_part1.CreateSubModelPart("sub1")
         sub2 = model_part1.CreateSubModelPart("sub2")
-        
+
         model_part2 = ModelPart("Other")
-        
+
         model_part1.CreateNewNode(1,0.0,0.1,0.2)
         model_part1.CreateNewNode(2,2.0,0.1,0.2)
-        
+
         n1 = model_part2.CreateNewNode(1,1.0,1.1,0.2)
         n3 = model_part2.CreateNewNode(3,2.0,3.1,0.2)
         n4 = model_part2.CreateNewNode(4,2.0,3.1,10.2)
-        
+
         #this should add node 3 to both sub1 and model_part1, but not to sub2
-        sub1.AddNode( model_part2.Nodes[3], 0 )  
+        sub1.AddNode( model_part2.Nodes[3], 0 )
         #self.assertTrue( n3.Id in sub1.Nodes )
         #self.assertTrue( n3.Id in model_part1.Nodes )
-        #self.assertFalse( n3.Id in sub2.Nodes )        
+        #self.assertFalse( n3.Id in sub2.Nodes )
         self.assertTrue( n3 in sub1.Nodes )
         self.assertTrue( n3 in model_part1.Nodes )
-        self.assertFalse( n3 in sub2.Nodes )        
+        self.assertFalse( n3 in sub2.Nodes )
 
-        
+
         ##next should throw an exception, since we try to add a node with Id1 which already exists
         with self.assertRaisesRegex(RuntimeError, "Error\: attempting to add pNewNode with Id \:1, unfortunately a \(different\) node with the same Id already exists\n"):
             sub2.AddNode( n1, 0 )
-            
+
         #create two extra nodes in the model model_part2
         n5 = model_part2.CreateNewNode(5,2.0,3.1,0.2)
         n6 = model_part2.CreateNewNode(6,2.0,3.1,10.2)
-        
+
         ### here we test adding a list of nodes at once
         #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
         with self.assertRaisesRegex(RuntimeError, "Error: while adding nodes to submodelpart, the node with Id 4 does not exist in the root model part"):
             sub1.AddNodes([4,5])
-            
+
         model_part1.AddNode( n4, 0 )
         model_part1.AddNode( n5, 0 )
-        
-        
+
+
         sub1.AddNodes([4,5]) #now it works, since we already added the nodes
         self.assertTrue( n4.Id in sub1.Nodes )
         self.assertTrue( n5.Id in sub1.Nodes )
         self.assertFalse( n5.Id in sub2.Nodes )
-        
+
     def test_add_condition(self):
         model_part1 = ModelPart("Main")
         sub1 = model_part1.CreateSubModelPart("sub1")
         sub2 = model_part1.CreateSubModelPart("sub2")
-        
+
         model_part2 = ModelPart("Other")
-        
+
         model_part1.CreateNewNode(1,0.0,0.1,0.2)
         model_part1.CreateNewNode(2,2.0,0.1,0.2)
-        
+
         n1 = model_part2.CreateNewNode(1,1.0,1.1,0.2)
         n3 = model_part2.CreateNewNode(3,2.0,3.1,0.2)
         n4 = model_part2.CreateNewNode(4,2.0,3.1,10.2)
-        
+
         model_part1.CreateNewCondition("Condition2D", 1, [1,2], sub1.GetProperties()[1])
         model_part1.CreateNewCondition("Condition2D", 2, [1,2], sub1.GetProperties()[1])
-        
+
         c1 = model_part2.CreateNewCondition("Condition3D", 1, [1,3,4], model_part2.GetProperties()[1])
         c3 = model_part2.CreateNewCondition("Condition3D", 3, [1,3,4], model_part2.GetProperties()[1])
-        
+
         #this should add condition 3 to both sub1 and model_part1, but not to sub2
-        sub1.AddCondition( model_part2.Conditions[3], 0 )  
+        sub1.AddCondition( model_part2.Conditions[3], 0 )
         self.assertTrue( c3.Id in sub1.Conditions )
         self.assertTrue( c3.Id in model_part1.Conditions )
         self.assertFalse( c3.Id in sub2.Conditions )
-        
+
         ##next should throw an exception, since we try to add a condition with Id1 which already exists
         with self.assertRaisesRegex(RuntimeError, "Error\: attempting to add pNewCondition with Id \:1, unfortunately a \(different\) condition with the same Id already exists\n"):
             sub2.AddCondition( c1, 0 )
-            
+
         ##now we add two conditions at once
         c4 = model_part2.CreateNewCondition("Condition3D", 4, [1,3,4], model_part2.GetProperties()[1])
         c5 = model_part2.CreateNewCondition("Condition3D", 5, [1,3,4], model_part2.GetProperties()[1])
-        
+
         ### here we test adding a list of conditions at once
         #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
         with self.assertRaisesRegex(RuntimeError, "Error: the condition with Id 4 does not exist in the root model part"):
             sub1.AddConditions([4,5])
-            
+
         model_part1.AddCondition( c4, 0 )
         model_part1.AddCondition( c5, 0 )
-        
-        
+
+
         sub1.AddConditions([4,5]) #now it works, since we already added the nodes
         self.assertTrue( c4.Id in sub1.Conditions )
         self.assertTrue( c5.Id in sub1.Conditions )
         self.assertFalse( c5.Id in sub2.Conditions )
 
-            
+
     def test_add_element(self):
         model_part1 = ModelPart("Main")
         sub1 = model_part1.CreateSubModelPart("sub1")
         sub2 = model_part1.CreateSubModelPart("sub2")
-        
+
         model_part2 = ModelPart("Other")
-        
+
         model_part1.CreateNewNode(1,0.0,0.1,0.2)
         model_part1.CreateNewNode(2,2.0,0.1,0.2)
-        
+
         n1 = model_part2.CreateNewNode(1,1.0,1.1,0.2)
         n3 = model_part2.CreateNewNode(3,2.0,3.1,0.2)
         n4 = model_part2.CreateNewNode(4,2.0,3.1,10.2)
-        
+
         model_part1.CreateNewElement("Element2D2N", 1, [1,2], sub1.GetProperties()[1])
         model_part1.CreateNewElement("Element2D2N", 2, [1,2], sub1.GetProperties()[1])
-        
+
         c1 = model_part2.CreateNewElement("Element2D2N", 1, [3,4], model_part2.GetProperties()[1])
         c3 = model_part2.CreateNewElement("Element2D2N", 3, [3,4], model_part2.GetProperties()[1])
-        
+
         #this should add condition 3 to both sub1 and model_part1, but not to sub2
-        sub1.AddElement( model_part2.Elements[3], 0 )  
+        sub1.AddElement( model_part2.Elements[3], 0 )
         self.assertTrue( c3.Id in sub1.Elements )
         self.assertTrue( c3.Id in model_part1.Elements )
         self.assertFalse( c3.Id in sub2.Elements )
-        
+
         ##next should throw an exception, since we try to add a node with Id1 which already exists
         with self.assertRaisesRegex(RuntimeError, "Error\: attempting to add pNewElement with Id \:1, unfortunately a \(different\) element with the same Id already exists\n"):
             sub2.AddElement( c1, 0 )
-            
+
         e4 = model_part2.CreateNewElement("Element2D2N", 4, [1,3], model_part2.GetProperties()[1])
         e5 = model_part2.CreateNewElement("Element2D2N", 5, [1,3], model_part2.GetProperties()[1])
 
-            
+
        ### here we test adding a list of elements at once
         #now add node 4 and 5 to the model_part1 by Id - here it fails since we did not yet add node 4
         with self.assertRaisesRegex(RuntimeError, "Error: the element with Id 4 does not exist in the root model part"):
             sub1.AddElements([4,5])
-            
+
         model_part1.AddElement( e4, 0 )
         model_part1.AddElement( e5, 0 )
-        
-        
+
+
         sub1.AddElements([4,5]) #now it works, since we already added the nodes
         self.assertTrue( e4.Id in sub1.Elements )
         self.assertTrue( e5.Id in sub1.Elements )
         self.assertFalse( e5.Id in sub2.Elements )
-        
+
     def test_model_part_iterators(self):
         model_part1 = ModelPart("Main")
         sub1 = model_part1.CreateSubModelPart("sub1")
         sub2 = model_part1.CreateSubModelPart("sub2")
-        
+
         subsub1 = sub1.CreateSubModelPart("subsub1")
-        
+
         names = set(["sub1","sub2"])
-        
+
         counter = 0
-        
+
         for subpart in model_part1.SubModelParts:
             part_name = subpart.Name
             if part_name in names:
                 counter+=1
-                
+
             if(subpart.Name == "sub1"):
                 for subsubpart in subpart.SubModelParts:
                     self.assertEqual(subsubpart.Name,"subsub1")
@@ -659,6 +659,46 @@ class TestModelPart(KratosUnittest.TestCase):
 
         self.assertTrue(model_part.HasNodalSolutionStepVariable(VELOCITY))
         self.assertFalse(model_part.HasNodalSolutionStepVariable(PRESSURE))
-        
+
+    def test_model_part_master_slave_constraint(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(PRESSURE)
+        n1 = model_part.CreateNewNode(1, 1.0,1.1,0.2)
+        n2 = model_part.CreateNewNode(2, 2.0,3.1,0.2)
+        VariableUtils().AddDof(PRESSURE,model_part)
+
+        c1 = MasterSlaveConstraint(10)
+        model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, n1, PRESSURE, n2, PRESSURE, 0.5, 0.0)
+
+        model_part.AddMasterSlaveConstraint(c1)
+
+        consts = model_part.GetMasterSlaveConstraints()
+
+        self.assertTrue(len(consts) == 2)
+
+        self.assertTrue( c1.Id in model_part.MasterSlaveConstraints )
+
+        #now try to add to submodelparts
+        sub1 = model_part.CreateSubModelPart("sub1")
+        sub2 = model_part.CreateSubModelPart("sub2")
+        subsub1 = sub1.CreateSubModelPart("subsub1")
+
+        ss1 = subsub1.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 2, n1, PRESSURE, n2, PRESSURE, 0.5, 0.0)
+
+        self.assertTrue(ss1 in subsub1.MasterSlaveConstraints)
+        self.assertTrue(ss1 in sub1.MasterSlaveConstraints)
+        self.assertTrue(ss1 in model_part.MasterSlaveConstraints)
+        self.assertFalse(ss1 in sub2.MasterSlaveConstraints)
+
+        sub1.RemoveMasterSlaveConstraint(ss1)
+        self.assertFalse(ss1 in subsub1.MasterSlaveConstraints)
+        self.assertFalse(ss1 in sub1.MasterSlaveConstraints)
+        self.assertTrue(ss1 in model_part.MasterSlaveConstraints)
+
+        subsub1.RemoveMasterSlaveConstraintFromAllLevels(ss1)
+
+        self.assertFalse(ss1 in model_part.MasterSlaveConstraints)
+
+
 if __name__ == '__main__':
     KratosUnittest.main()

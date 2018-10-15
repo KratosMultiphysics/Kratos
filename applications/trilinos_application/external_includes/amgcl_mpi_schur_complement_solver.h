@@ -35,18 +35,22 @@
 #include "Epetra_LinearProblem.h"
 //#include "Teuchos_ParameterList.hpp"
 
+#include <boost/range/iterator_range.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include <amgcl/amg.hpp>
 #include <amgcl/adapter/epetra.hpp>
 #include <amgcl/profiler.hpp>
-#include <amgcl/solver/bicgstab.hpp>
+#include <amgcl/solver/runtime.hpp>
+#include <amgcl/coarsening/runtime.hpp>
+#include <amgcl/relaxation/runtime.hpp>
+#include <amgcl/relaxation/as_preconditioner.hpp>
 
 #include <amgcl/mpi/make_solver.hpp>
 #include <amgcl/mpi/schur_pressure_correction.hpp>
 #include <amgcl/mpi/block_preconditioner.hpp>
 #include <amgcl/mpi/subdomain_deflation.hpp>
-#include <amgcl/mpi/direct_solver.hpp>
-#include <boost/property_tree/json_parser.hpp> //needed to print AMGCL internal settings
+#include <amgcl/mpi/direct_solver/runtime.hpp>
 
 
 
@@ -119,10 +123,10 @@ public:
             msg << "currently prescribed velocity_block_preconditioner preconditioner_type : " << rParameters["velocity_block_preconditioner"]["smoother_type"].GetString() << std::endl;
             msg << "admissible values are : spai0,ilu0,damped_jacobi,gauss_seidel,chebyshev"<< std::endl;
             KRATOS_THROW_ERROR(std::invalid_argument," smoother_type is invalid: ",msg.str());
-        }    
+        }
 
         mCoarseEnough = rParameters["coarse_enough"].GetInt();
-        
+
 //         {
 //             "solver": {
 //                 "type" : "fgmres",
@@ -150,13 +154,13 @@ public:
 //                     }
 //                 }
 //             }
-//         }   
+//         }
 
         mTolerance = rParameters["tolerance"].GetDouble();
         mMaxIterations = rParameters["max_iteration"].GetInt();
         mVerbosity=rParameters["verbosity"].GetInt();
         mprm.put("solver.type", rParameters["krylov_type"].GetString());
-        
+
         if(rParameters["krylov_type"].GetString() == "gmres" || rParameters["krylov_type"].GetString() == "lgmres" || rParameters["krylov_type"].GetString() == "fgmres")
             mprm.put("solver.M",  rParameters["gmres_krylov_space_dimension"].GetInt());
 
@@ -195,8 +199,8 @@ public:
     {
         KRATOS_TRY
 
-        using amgcl::prof;
-        prof.reset();
+        //using amgcl::prof;
+        //prof.reset();
 
         amgcl::mpi::communicator world ( MPI_COMM_WORLD );
         if ( mVerbosity >=0 && world.rank == 0 ) {
@@ -212,83 +216,40 @@ public:
         }
 
         typedef amgcl::backend::builtin<double> Backend;
-        
+
         typedef  amgcl::mpi::make_solver<
             amgcl::mpi::schur_pressure_correction<
                 amgcl::mpi::make_solver<
                     amgcl::mpi::block_preconditioner<
-                        amgcl::runtime::relaxation::as_preconditioner<Backend>
+                        amgcl::relaxation::as_preconditioner<Backend, amgcl::runtime::relaxation::wrapper>
+                        >,
+                    amgcl::runtime::solver::wrapper
                     >,
-                    amgcl::runtime::iterative_solver
+                amgcl::mpi::subdomain_deflation<
+                    amgcl::amg<Backend, amgcl::runtime::coarsening::wrapper, amgcl::runtime::relaxation::wrapper>,
+                    amgcl::runtime::solver::wrapper,
+                    amgcl::runtime::mpi::direct::solver<double>
+                    >
                 >,
-                amgcl::mpi::make_solver<
-                    amgcl::mpi::subdomain_deflation<
-                        amgcl::runtime::amg<Backend>,
-                        amgcl::runtime::iterative_solver,
-                        amgcl::runtime::mpi::direct_solver<double>
-                    >,
-                    amgcl::runtime::iterative_solver
-                >
-            >,
-            amgcl::runtime::iterative_solver
+            amgcl::runtime::solver::wrapper
             > SDD;
-        
-//         typedef  amgcl::mpi::make_solver<
-//             amgcl::mpi::schur_pressure_correction<
-//                 amgcl::mpi::make_solver<
-//                     amgcl::mpi::block_preconditioner<
-//                         amgcl::runtime::relaxation::as_preconditioner<Backend>
-//                     >,
-//                     amgcl::solver::bicgstab
-//                 >,
-//                 amgcl::mpi::make_solver<
-//                     amgcl::mpi::subdomain_deflation<
-//                         amgcl::runtime::amg<Backend>,
-//                         amgcl::runtime::iterative_solver,
-//                         amgcl::runtime::mpi::direct_solver<double>
-//                     >,
-//                     amgcl::runtime::iterative_solver
-//                 >
-//             >,
-//             amgcl::runtime::iterative_solver
-//             > SDD;
-            
-//     typedef amgcl::mpi::make_solver<
-//         amgcl::mpi::schur_pressure_correction<
-//             amgcl::mpi::make_solver<
-//                 amgcl::mpi::block_preconditioner<
-//                     amgcl::runtime::relaxation::as_preconditioner<Backend>
-//                     >,
-//                 amgcl::solver::gmres //amgcl::solver::bicgstab
-//                 >,
-//             amgcl::mpi::make_solver<
-//                 amgcl::mpi::subdomain_deflation<
-//                     amgcl::runtime::amg<Backend>,
-//                     amgcl::solver::gmres, //amgcl::solver::bicgstab,
-//                     amgcl::mpi::skyline_lu<double>
-//                     >,
-//                 amgcl::solver::fgmres
-//                 >
-//             >,
-//         amgcl::solver::fgmres
-//         > SDD;
-        
-        boost::function<double(ptrdiff_t,unsigned)> dv = amgcl::mpi::constant_deflation(1);
+
+        std::function<double(ptrdiff_t,unsigned)> dv = amgcl::mpi::constant_deflation(1);
         mprm.put("precond.psolver.precond.num_def_vec", 1);
         mprm.put("precond.psolver.precond.def_vec", &dv);
-        
+
         mprm.put("precond.pmask", static_cast<void*>(&mPressureMask[0]));
         mprm.put("precond.pmask_size", mPressureMask.size());
 
-        prof.tic ( "setup" );
-        SDD solve ( world, amgcl::backend::map ( rA ), mprm );
-        double tm_setup = prof.toc ( "setup" );
+        //prof.tic ( "setup" );
+        SDD solve ( world, amgcl::adapter::map ( rA ), mprm );
+        //double tm_setup = prof.toc ( "setup" );
 
-        prof.tic ( "Solve" );
+        //prof.tic ( "Solve" );
         size_t iters;
         double resid;
-        boost::tie ( iters, resid ) = solve ( frange, xrange );
-        double solve_tm = prof.toc ( "Solve" );
+        std::tie ( iters, resid ) = solve ( frange, xrange );
+        //double solve_tm = prof.toc ( "Solve" );
 
 
 
@@ -297,14 +258,14 @@ public:
                 std::cout
                         << "------- AMGCL -------\n" << std::endl
                         << "Iterations      : " << iters   << std::endl
-                        << "Error           : " << resid   << std::endl
-                        << "amgcl setup time: " << tm_setup   << std::endl
-                        << "amgcl solve time: " << solve_tm   << std::endl;
+                        << "Error           : " << resid   << std::endl;
+                        //<< "amgcl setup time: " << tm_setup   << std::endl
+                        //<< "amgcl solve time: " << solve_tm   << std::endl;
             }
 
-            if ( mVerbosity > 1 ) {
-                std::cout << prof  << std::endl;
-            }
+            // if ( mVerbosity > 1 ) {
+            //     std::cout << prof  << std::endl;
+            // }
         }
 
 
@@ -313,7 +274,7 @@ public:
 
         KRATOS_CATCH ( "" );
     }
-    
+
     /**
      * Assignment operator.
      */
@@ -367,7 +328,7 @@ public:
         int my_pid = rA.Comm().MyPID();
 
         //filling the pressure mask
-        if(mPressureMask.size() != static_cast<unsigned int>(rA.NumMyRows())) 
+        if(mPressureMask.size() != static_cast<unsigned int>(rA.NumMyRows()))
             mPressureMask.resize( rA.NumMyRows(), false );
 
         int counter = 0;
@@ -380,10 +341,10 @@ public:
             {
                 mPressureMask[counter]  = (it->GetVariable().Key() == PRESSURE);
                 counter++;
-                
+
 #ifdef KRATOS_DEBUG
                 if(it->GetVariable().Key() == PRESSURE)
-                   npressures++; 
+                   npressures++;
 #endif
             }
         }
@@ -391,7 +352,7 @@ public:
     std::cout << "MPI proc :" << my_pid << " npressures = " << npressures << " local rows = " << rA.NumMyRows();
 #endif
         if(counter != rA.NumMyRows())
-            KRATOS_ERROR << "pressure mask as a size " << mPressureMask.size() << " which does not correspond with the number of local rows:" << rA.NumMyRows() << std::endl; 
+            KRATOS_ERROR << "pressure mask as a size " << mPressureMask.size() << " which does not correspond with the number of local rows:" << rA.NumMyRows() << std::endl;
 
     }
 
@@ -444,6 +405,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_AMGCL_MPI_SCHUR_COMPLEMENT_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_AMGCL_MPI_SCHUR_COMPLEMENT_SOLVER_H_INCLUDED  defined
 
 

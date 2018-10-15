@@ -240,7 +240,7 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     // We copy the new model part to the original one
     geometry_model_part.AddNodes( auxiliar_model_part.NodesBegin(), auxiliar_model_part.NodesEnd() );
     geometry_model_part.AddElements( auxiliar_model_part.ElementsBegin(), auxiliar_model_part.ElementsEnd() );
-    
+
     // We copy the external layers
     if (create_submodelparts_external_layers) {
         const std::string name_upper = "Upper_"+model_part_name;

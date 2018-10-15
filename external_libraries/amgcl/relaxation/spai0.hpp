@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ THE SOFTWARE.
  * \brief  Sparse approximate inverse relaxation scheme.
  */
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/util.hpp>
 
@@ -59,18 +59,16 @@ struct spai0 {
     template <class Matrix>
     spai0( const Matrix &A, const params &, const typename Backend::params &backend_prm)
     {
-        typedef typename backend::row_iterator<Matrix>::type row_iterator;
-
         const size_t n = rows(A);
 
-        std::shared_ptr< backend::numa_vector<value_type> > m = std::make_shared< backend::numa_vector<value_type> >(n, false);
+        auto m = std::make_shared< backend::numa_vector<value_type> >(n, false);
 
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
             value_type  num = math::zero<value_type>();
             scalar_type den = math::zero<scalar_type>();
 
-            for(row_iterator a = backend::row_begin(A, i); a; ++a) {
+            for(auto a = backend::row_begin(A, i); a; ++a) {
                 value_type v = a.value();
                 scalar_type norm_v = math::norm(v);
                 den += norm_v * norm_v;
@@ -86,8 +84,7 @@ struct spai0 {
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_pre
     template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
     void apply_pre(
-            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp,
-            const params&
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
             ) const
     {
         static const scalar_type one = math::identity<scalar_type>();
@@ -98,8 +95,7 @@ struct spai0 {
     /// \copydoc amgcl::relaxation::damped_jacobi::apply_post
     template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
     void apply_post(
-            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp,
-            const params&
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
             ) const
     {
         static const scalar_type one = math::identity<scalar_type>();
@@ -108,13 +104,16 @@ struct spai0 {
     }
 
     template <class Matrix, class VectorRHS, class VectorX>
-    void apply( const Matrix&, const VectorRHS &rhs, VectorX &x, const params&) const
+    void apply( const Matrix&, const VectorRHS &rhs, VectorX &x) const
     {
         backend::vmul(math::identity<scalar_type>(), *M, rhs, math::zero<scalar_type>(), x);
     }
 
-    private:
-        std::shared_ptr<matrix_diagonal> M;
+    size_t bytes() const {
+        return backend::bytes(*M);
+    }
+
+    std::shared_ptr<matrix_diagonal> M;
 };
 
 } // namespace relaxation

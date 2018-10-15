@@ -66,7 +66,7 @@ namespace Kratos
    *  Mesh nodes    must have a the nodal variable VOLUME_ACCELERATION in order to compute weight
    */
 
-  class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyUtilities
+  class RigidBodyUtilities
   {
   public:
 
@@ -871,7 +871,7 @@ namespace Kratos
 
         for(unsigned int i=0; i<mesh_nodes.size(); i++) {
             NodesContainerType::ptr_iterator pTubeNode = mesh_nodes.ptr_begin()+i;
-            (rDestinationModelPart.Nodes()).push_back(*pTubeNode); 
+            (rDestinationModelPart.Nodes()).push_back(*pTubeNode);
         }
 
     }

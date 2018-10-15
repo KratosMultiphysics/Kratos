@@ -28,7 +28,7 @@ add_definitions( -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
 
 include_directories(
 	${CMAKE_SOURCE_DIR}/kratos
-	${EIGEN_ROOT}
+        SYSTEM ${EIGEN_ROOT} # Including as System to suppress compile-warnings from it
 )
 
 if( USE_EIGEN_MKL MATCHES ON )

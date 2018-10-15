@@ -240,7 +240,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
         properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEMContinuumConstitutiveLaw"
         properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
 
-        properties_walls[WALL_FRICTION] = 0.0
+        properties_walls[FRICTION] = 0.0
         properties_walls[WALL_COHESION] = 0.0
         properties_walls[COMPUTE_WEAR] = 0
         properties_walls[SEVERITY_OF_WEAR] = 0.001

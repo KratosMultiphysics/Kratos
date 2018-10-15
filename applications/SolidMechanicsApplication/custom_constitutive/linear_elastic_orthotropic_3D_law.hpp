@@ -74,7 +74,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~LinearElasticOrthotropic3DLaw();
+    ~LinearElasticOrthotropic3DLaw() override;
 
     /**
      * Operators
@@ -226,4 +226,4 @@ private:
 
 }; // Class LinearElasticOrthotropic3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_ELASTIC_ORTHOTROPIC_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_ELASTIC_ORTHOTROPIC_3D_LAW_H_INCLUDED  defined

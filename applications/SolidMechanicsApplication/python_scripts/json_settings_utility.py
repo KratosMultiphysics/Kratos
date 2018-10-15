@@ -9,7 +9,7 @@ KratosMultiphysics.CheckForPreviousImport()
 
 #Utility class to manage json settings
 class JsonSettingsUtility(object):
-    
+
     @staticmethod
     # delete not matching settings supplied settings and print a warning
     def CheckAndFixNotMatchingSettings(supplied_settings, expected_settings):
@@ -25,7 +25,7 @@ class JsonSettingsUtility(object):
 
         if( update_needed ):
             print(" ::[PLEASE consider to UPDATE the INPUT FILE to run the case with the GIVEN SETTINGS]:: ")
-                
+
         # check if the parameter has the same type as expected
         for name, expected_value in expected_settings.items():
             if supplied_settings.Has(name): #  transfer value.

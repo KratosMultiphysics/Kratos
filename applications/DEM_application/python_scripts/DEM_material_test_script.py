@@ -76,10 +76,9 @@ class MaterialTest(object):
 
       self.initial_time = datetime.datetime.now()
 
-      os.chdir(self.graphs_path)
-
-      self.chart = open(self.problem_name + "_Parameter_chart.grf", 'w')
-
+      # self.energy_plot = open(energy_plot, 'w')
+      absolute_path_to_file = os.path.join(graphs_path, self.problem_name + "_Parameter_chart.grf")
+      self.chart = open(absolute_path_to_file, 'w')
       self.aux = AuxiliaryUtilities()
       self.PreUtilities = PreUtilities()
 
@@ -95,18 +94,19 @@ class MaterialTest(object):
   def Flush(self,a):
       a.flush()
 
+
   def PrepareTestOedometric(self):
       if(self.test_type == "Oedometric"):
 
         for node in self.LAT:
 
-          node.SetSolutionStepValue(VELOCITY_X, 0.0);
-          node.SetSolutionStepValue(VELOCITY_Z, 0.0);
-          node.Fix(VELOCITY_X);
-          node.Fix(VELOCITY_Z);
+          node.SetSolutionStepValue(VELOCITY_X, 0.0)
+          node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+          node.Fix(VELOCITY_X)
+          node.Fix(VELOCITY_Z)
 
   def PrepareTestTriaxialHydro(self):
-      if ( ( self.test_type == "Triaxial") or ( self.test_type == "Hydrostatic") ):
+    if ( ( self.test_type == "Triaxial") or ( self.test_type == "Hydrostatic") ):
 
         ####### Correction Coefs  TODO 0.25* for cylinder section EXXON
         self.alpha_top = 3.141592*self.diameter*self.diameter*0.25/(self.xtop_area + 0.70710678*self.xtopcorner_area)
@@ -115,42 +115,46 @@ class MaterialTest(object):
 
   def PrepareTests(self):
 
-      ##Fixing horizontally top and bot
-      if self.test_type != "BTS":
-
+    ##Fixing horizontally top and bot
+    if self.test_type != "BTS":
         for node in self.TOP:
-
-          node.SetSolutionStepValue(VELOCITY_X, 0.0);
-          node.SetSolutionStepValue(VELOCITY_Z, 0.0);
-          node.Fix(VELOCITY_X);
-          node.Fix(VELOCITY_Z);
+            node.SetSolutionStepValue(VELOCITY_X, 0.0)
+            node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+            node.Fix(VELOCITY_X)
+            node.Fix(VELOCITY_Z)
 
         for node in self.BOT:
+            node.SetSolutionStepValue(VELOCITY_X, 0.0)
+            node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+            node.Fix(VELOCITY_X)
+            node.Fix(VELOCITY_Z)
 
-          node.SetSolutionStepValue(VELOCITY_X, 0.0);
-          node.SetSolutionStepValue(VELOCITY_Z, 0.0);
-          node.Fix(VELOCITY_X);
-          node.Fix(VELOCITY_Z);
-
-      if self.test_type == "BTS":
-
-        self.bts_export = open(self.problem_name + ".grf", 'w');
+    if self.test_type == "BTS":
+        absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + ".grf")
+        self.bts_export = open(absolute_path_to_file, 'w')
         ##self.BtsSkinDetermination()
 
-      elif self.test_type == "Shear":
-          self.BreakBondUtility(self.spheres_model_part)
-          self.graph_export = open(self.problem_name +"_graph.grf", 'w')
-          self.graph_export_1 = open(self.problem_name +"_graph_top.grf", 'w')
-          self.graph_export_2 = open(self.problem_name +"_graph_bot.grf", 'w')
+    elif self.test_type == "Shear":
+        self.BreakBondUtility(self.spheres_model_part)
+        absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
+        absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_graph_top.grf")
+        absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_bot.grf")
+        self.graph_export   = open(absolute_path_to_file1, 'w')
+        self.graph_export_1 = open(absolute_path_to_file2, 'w')
+        self.graph_export_2 = open(absolute_path_to_file3, 'w')
 
-      else:
-
-        self.graph_export = open(self.problem_name +"_graph.grf", 'w')
-        self.graph_export_1 = open(self.problem_name +"_graph_top.grf", 'w')
-        self.graph_export_2 = open(self.problem_name +"_graph_bot.grf", 'w')
+    else:
+        absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
+        absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_graph_top.grf")
+        absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_bot.grf")
+        self.graph_export   = open(absolute_path_to_file1, 'w')
+        self.graph_export_1 = open(absolute_path_to_file2, 'w')
+        self.graph_export_2 = open(absolute_path_to_file3, 'w')
 
         if self.test_type == "Hydrostatic":
-          self.graph_export_volumetric = open(self.problem_name+"_graph_VOL.grf",'w')
+            absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_graph_VOL.grf")
+            self.graph_export_volumetric   = open(absolute_path_to_file, 'w')
+            #self.graph_export_volumetric = open(self.problem_name+"_graph_VOL.grf",'w')
 
         self.Procedures.KRATOSprint ('Initial Height of the Model: ' + str(self.height)+'\n')
 
@@ -325,28 +329,22 @@ class MaterialTest(object):
     prepare_check = [0,0,0,0]
     self.total_check = 0
 
-    for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
-      if(self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, TOP)):
+    for smp in self.RigidFace_model_part.SubModelParts:
+        if smp[TOP]:
+            self.top_mesh_nodes = smp.Nodes
+            prepare_check[0] = 1
+        if smp[BOTTOM]:
+            self.bot_mesh_nodes = smp.Nodes
+            prepare_check[1] = 1
 
-        self.top_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
-        prepare_check[0] = 1
+    for smp in self.spheres_model_part.SubModelParts:
+        if smp[TOP]:
+            self.top_mesh_nodes = smp.Nodes
+            prepare_check[2] = -1
 
-      if(self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, BOTTOM)):
-
-        self.bot_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
-        prepare_check[1] = 1
-
-    for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
-
-      if(self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, TOP)):
-
-        self.top_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
-        prepare_check[2] = -1
-
-      if(self.aux.GetIthSubModelPartData(self.spheres_model_part, mesh_number, BOTTOM)):
-
-        self.bot_mesh_nodes = self.aux.GetIthSubModelPartNodes(self.spheres_model_part,mesh_number)
-        prepare_check[3] = -1
+        if smp[BOTTOM]:
+            self.bot_mesh_nodes = smp.Nodes
+            prepare_check[3] = -1
 
     for it in range(len(prepare_check)):
 
@@ -419,9 +417,9 @@ class MaterialTest(object):
 
   def PrintGraph(self, time):
 
-    for mesh_number in range(0, self.RigidFace_model_part.NumberOfSubModelParts()):
-        if (self.aux.GetIthSubModelPartData(self.RigidFace_model_part, mesh_number, TOP)):
-            self.mesh_nodes = self.aux.GetIthSubModelPartNodes(self.RigidFace_model_part,mesh_number)
+    for smp in self.RigidFace_model_part.SubModelParts:
+        if smp[TOP]:
+            self.mesh_nodes = smp.Nodes
 
     if(self.graph_counter == self.graph_frequency):
 
@@ -462,7 +460,7 @@ class MaterialTest(object):
     self.chart.write( "                                    " +'\n')
     self.chart.write( "    DENSI  = " + (str(self.spheres_model_part.GetProperties()[1][PARTICLE_DENSITY]).rjust(3))+" Kg/m3     "+'\n')
     self.chart.write( "    STAFRC = " + (str(self.spheres_model_part.GetProperties()[1][CONTACT_INTERNAL_FRICC]).rjust(3))+"           "+'\n')
-    self.chart.write( "    DYNFRC = " + (str(self.spheres_model_part.GetProperties()[1][PARTICLE_FRICTION]).rjust(3))+"          " +'\n')
+    self.chart.write( "    DYNFRC = " + (str(self.spheres_model_part.GetProperties()[1][FRICTION]).rjust(3))+"          " +'\n')
     self.chart.write( "    YOUNG  = " + (str(self.spheres_model_part.GetProperties()[1][YOUNG_MODULUS]/1e9).rjust(3))+" GPa"+"     " +'\n')
     self.chart.write( "    POISS  = " + (str(self.spheres_model_part.GetProperties()[1][POISSON_RATIO]).rjust(3))+"           " +'\n')
     self.chart.write( "    FTS    = " + (str(self.spheres_model_part.GetProperties()[1][CONTACT_SIGMA_MIN]).rjust(3))+" Mpa        " +'\n')
@@ -482,26 +480,29 @@ class MaterialTest(object):
 
     self.chart.close()
 
-    a_chart = open(self.problem_name + "_Parameter_chart.grf","r")
-    for line in a_chart.readlines():
+
+    absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_Parameter_chart.grf")
+    data_extract_for_print = open(absolute_path_to_file,"r")
+    for line in data_extract_for_print.readlines():
         self.Procedures.KRATOSprint(line)
-    a_chart.close()
+    data_extract_for_print.close()
 
   def FinalizeGraphs(self):
 
-    os.chdir(self.graphs_path)
-
     #Create a copy and renaming
+    absolute_path_to_file1 = os.path.join(self.graphs_path, self.problem_name + "_graph.grf")
+    absolute_path_to_file2 = os.path.join(self.graphs_path, self.problem_name + "_bts.grf")
+    absolute_path_to_file3 = os.path.join(self.graphs_path, self.problem_name + "_graph_VOL.grf")
     for filename in os.listdir("."):
-      if filename.startswith(self.problem_name + "_graph.grf"):
+      if filename.startswith(absolute_path_to_file1):
           shutil.copy(filename, filename+"COPY")
-          os.rename(filename+"COPY", self.problem_name + "_graph_" + str(self.initial_time).replace(":", "") + ".grf")
-      if filename.startswith(self.problem_name + "_bts.grf"):
+          os.rename(filename+"COPY", absolute_path_to_file1 + str(self.initial_time).replace(":", "") + ".grf")
+      if filename.startswith(absolute_path_to_file2):
           shutil.copy(filename, filename+"COPY")
-          os.rename(filename+"COPY", self.problem_name + "_bts_" + str(self.initial_time).replace(":", "") + ".grf")
-      if filename.startswith(self.problem_name + "_graph_VOL.grf"):
+          os.rename(filename+"COPY", absolute_path_to_file2 + str(self.initial_time).replace(":", "") + ".grf")
+      if filename.startswith(absolute_path_to_file3):
           shutil.copy(filename, filename+"COPY")
-          os.rename(filename+"COPY", self.problem_name + "_graph_VOL" + str(self.initial_time).replace(":", "") + ".grf")
+          os.rename(filename+"COPY", absolute_path_to_file3 + str(self.initial_time).replace(":", "") + ".grf")
 
     if(self.test_type == "BTS"):
         self.bts_export.close()
@@ -514,12 +515,9 @@ class MaterialTest(object):
 
   def OrientationStudy(self,contact_model_part,step):
 
-    os.chdir(self.post_path)
-
-    OrientationChart = open("OrientationChart_"+str(step), 'w')
-
+    absolute_path_to_file = os.path.join(self.graphs_path, "OrientationChart_"+str(step))
+    OrientationChart = open(absolute_path_to_file, 'w')
     counter = 1
-
     for element in contact_model_part.Elements:
 
         u1 = element.GetNode(1).X - element.GetNode(0).X
@@ -821,9 +819,7 @@ class MaterialTest(object):
 
   def GenerateGraphics(self):
 
-        ##os.chdir(self.graphs_path)
-        os.chdir("/media/farrufat/Data/Simulations/debugger_december2016/debugger_specimen_v1-0.gid/test")
-
+        ##os.ch.dir("/media/----/Data/Simulations/debugger_december2016/debugger_specimen_v1-0.gid/test")
         ## PROBLEM DATA
         area = 0.000001 ### 1mm2
         grad_p = 1 ## Pa/m

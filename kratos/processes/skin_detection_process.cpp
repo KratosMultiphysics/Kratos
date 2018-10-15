@@ -139,23 +139,16 @@ void SkinDetectionProcess<TDim>::Execute()
     if (!(mrModelPart.HasSubModelPart(name_auxiliar_model_part))) {
         mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
     } else {
+        auto& conditions_array = mrModelPart.GetSubModelPart(name_auxiliar_model_part).Conditions();
 
-        ModelPart& r_auxiliar_model_part = mrModelPart.GetSubModelPart(name_auxiliar_model_part);
-        auto& nodes_array = r_auxiliar_model_part.Nodes();
-    
-        #pragma omp parallel for 
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-            (nodes_array.begin() + i)->Set(TO_ERASE, true);
-   
-        r_auxiliar_model_part.RemoveNodes(TO_ERASE);
-    
-        auto& conditions_array = r_auxiliar_model_part.Conditions();
- 
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
             (conditions_array.begin() + i)->Set(TO_ERASE, true);
-         
-        r_auxiliar_model_part.RemoveConditions(TO_ERASE);
+
+        mrModelPart.GetSubModelPart(name_auxiliar_model_part).RemoveConditionsFromAllLevels(TO_ERASE);
+
+        mrModelPart.RemoveSubModelPart(name_auxiliar_model_part);
+        mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
     } 
     ModelPart& r_auxiliar_model_part = mrModelPart.GetSubModelPart(name_auxiliar_model_part);
 
@@ -166,7 +159,7 @@ void SkinDetectionProcess<TDim>::Execute()
         pre_name = "Surface";
 
     // The number of conditions
-    IndexType condition_id = mrModelPart.Conditions().size();
+    IndexType condition_id = mrModelPart.GetRootModelPart().Conditions().size();
 
     // The indexes of the nodes of the skin
     std::unordered_set<IndexType> nodes_in_the_skin;

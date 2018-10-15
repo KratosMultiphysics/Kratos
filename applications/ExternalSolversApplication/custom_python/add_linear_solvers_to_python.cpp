@@ -12,14 +12,11 @@
 
 // System includes
 
-// External includes
-#include <complex>
-
 
 // Project includes
+#include "python/add_linear_solvers_to_python.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "python/add_linear_solvers_to_python.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/direct_solver.h"
@@ -38,6 +35,8 @@
   #include "external_includes/pastix_complex_solver.h"
 #endif
 
+// External includes
+#include <complex>
 
 namespace Kratos
 {
@@ -78,14 +77,14 @@ void  AddLinearSolversToPython(pybind11::module& m)
         .def(init<Parameters::Pointer>() )
         .def(init<Parameters::Pointer, TLinearSolverType<std::complex<double>>::Pointer>())
         ;
-#endif    
-          
-    
+#endif
+
+
     class_<SuperLUSolverType, typename SuperLUSolverType::Pointer,DirectSolverType>
     (m, "SuperLUSolver")
       .def(init<>() )
       .def(init<Parameters>());
-      
+
     class_<SuperLUIterativeSolverType, typename SuperLUIterativeSolverType::Pointer,LinearSolverType>
     (m, "SuperLUIterativeSolver")
     .def(init<>() )
@@ -107,10 +106,11 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(init<Parameters&>())
     ;
 #endif
-    
+
     class_<GMRESSolverType,typename GMRESSolverType::Pointer, IterativeSolverType>
     (m, "GMRESSolver")
     .def(init<Parameters >())
+    .def(init<Parameters,  PreconditionerType::Pointer >())
     .def(init<double>())
     .def(init<double, unsigned int>())
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())

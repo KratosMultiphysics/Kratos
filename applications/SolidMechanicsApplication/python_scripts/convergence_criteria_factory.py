@@ -68,14 +68,14 @@ class ConvergenceCriterion:
         if(self.settings["convergence_criterion"].GetString() == "Variable_criterion"):
             convergence_criterion = KratosSolid.DofsCriterion(kratos_variable,V_RT,V_AT)
             convergence_criterion.SetEchoLevel(echo_level)
-            convergence_criterion.Set(KratosSolid.CriterionLocalFlags.INCREMENTAL)
+            #convergence_criterion.Set(KratosSolid.CriterionLocalFlags.INCREMENTAL) //smaller reference value
         elif(self.settings["convergence_criterion"].GetString() == "Residual_criterion"):
             convergence_criterion = KratosSolid.ResidualCriterion(kratos_variable,R_RT,R_AT)
             convergence_criterion.SetEchoLevel(echo_level)
         elif(self.settings["convergence_criterion"].GetString() == "And_criterion"):
             Variable = KratosSolid.DofsCriterion(kratos_variable,V_RT,V_AT)
             Variable.SetEchoLevel(echo_level)
-            Variable.Set(KratosSolid.CriterionLocalFlags.INCREMENTAL)
+            #Variable.Set(KratosSolid.CriterionLocalFlags.INCREMENTAL) //smaller reference value
             Residual = KratosSolid.ResidualCriterion(kratos_variable,R_RT,R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosSolid.CompositeCriterion(Residual,Variable)
@@ -83,7 +83,7 @@ class ConvergenceCriterion:
         elif(self.settings["convergence_criterion"].GetString() == "Or_criterion"):
             Variable = KratosSolid.DofsCriterion(kratos_variable,V_RT,V_AT)
             Variable.SetEchoLevel(echo_level)
-            Variable.Set(KratosSolid.CriterionLocalFlags.INCREMENTAL)
+            #Variable.Set(KratosSolid.CriterionLocalFlags.INCREMENTAL) //smaller reference value
             Residual = KratosSolid.ResidualCriterion(kratos_variable,R_RT,R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosSolid.CompositeCriterion(Residual,Variable)
@@ -105,7 +105,7 @@ class ConvergenceCriterion:
         echo_level = self.settings["echo_level"].GetInt()
 
         if(echo_level >= 1):
-            print("::[Mechanical_Solver]:: Convergence criterion [", self.settings["convergence_criterion"].GetString(),"]")
+            print("::[-----Criterion-----]::", self.settings["convergence_criterion"].GetString(),)
 
         convergence_criterion = None
         if(self.settings["convergence_criterion"].GetString() == "Variable_criterion"):

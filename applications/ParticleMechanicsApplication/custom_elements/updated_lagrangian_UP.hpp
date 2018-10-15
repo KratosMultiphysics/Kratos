@@ -9,6 +9,8 @@
 //
 //  Main authors:    Ilaria Iaconeta
 //
+
+
 #if !defined(KRATOS_UPDATED_LAGRANGIAN_UP_H_INCLUDED )
 #define  KRATOS_UPDATED_LAGRANGIAN_UP_H_INCLUDED
 
@@ -16,11 +18,8 @@
 
 // External includes
 
-
 // Project includes
 #include "custom_elements/updated_lagrangian.hpp"
-//#include "custom_utilities/comparison_utilities.hpp"
-
 
 namespace Kratos
 {

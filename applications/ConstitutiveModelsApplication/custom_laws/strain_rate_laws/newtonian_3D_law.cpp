@@ -44,14 +44,14 @@ namespace Kratos
   {
     ConstitutiveLaw::operator=(rOther);
     return *this;
-  } 
-  
+  }
+
   //********************************CLONE***********************************************
   //************************************************************************************
 
   ConstitutiveLaw::Pointer Newtonian3DLaw::Clone() const
   {
-    return ( Newtonian3DLaw::Pointer(new Newtonian3DLaw(*this)) );
+    return Kratos::make_shared<Newtonian3DLaw>(*this);
   }
 
   //*******************************DESTRUCTOR*******************************************
@@ -70,7 +70,7 @@ namespace Kratos
                                            const Vector& rShapeFunctionsValues )
   {
     KRATOS_TRY
-      
+
     KRATOS_CATCH(" ")
   }
 
@@ -83,14 +83,14 @@ namespace Kratos
     KRATOS_TRY
 
     //0.- Check if the constitutive parameters are passed correctly to the law calculation
-    //CheckParameters(rValues); 
+    //CheckParameters(rValues);
 
     const Flags& rOptions = rValues.GetOptions();
-    
-        
+
+
     //2.-Calculate Total kirchhoff stress and  Constitutive Matrix related to Cauchy stress
 
-    const Properties& rMaterialProperties  = rValues.GetMaterialProperties();    
+    const Properties& rMaterialProperties  = rValues.GetMaterialProperties();
 
     // Calculate total Kirchhoff stress
 
@@ -98,21 +98,21 @@ namespace Kratos
 
       Vector& rStrainVector                  = rValues.GetStrainVector();
       Vector& rStressVector                  = rValues.GetStressVector();
-      this->CalculateStress( rStressVector, rStrainVector, rMaterialProperties);
-      
+      this->CalculateStress(rStressVector, rStrainVector, rMaterialProperties);
+
     }
-    else if( rOptions.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
+    if( rOptions.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
       Matrix& rConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
       this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rMaterialProperties);
-      
+
     }
 
-    // std::cout<<" ConstitutiveMatrix "<<rValues.GetConstitutiveMatrix()<<std::endl;   
+    // std::cout<<" ConstitutiveMatrix "<<rValues.GetConstitutiveMatrix()<<std::endl;
     // std::cout<<" StrainVector "<<rValues.GetStrainVector()<<std::endl;
     // std::cout<<" StressVector "<<rValues.GetStressVector()<<std::endl;
 
-    
+
     KRATOS_CATCH(" ")
 
   }
@@ -130,7 +130,7 @@ void Newtonian3DLaw::CalculateStress(Vector& rStressVector,
     const double& rViscosity = rMaterialProperties[DYNAMIC_VISCOSITY];
 
     const double pressure = (rStrainVector[0]+rStrainVector[1]+rStrainVector[2])/3.0;
-    
+
     // Cauchy StressVector
     rStressVector[0] = 2.0*rViscosity*(rStrainVector[0] - pressure);
     rStressVector[1] = 2.0*rViscosity*(rStrainVector[1] - pressure);
@@ -153,13 +153,13 @@ void Newtonian3DLaw::CalculateStress(Vector& rStressVector,
                                                    const Properties& rMaterialProperties)
   {
     KRATOS_TRY
-          
+
     // Viscosity
     const double& rViscosity = rMaterialProperties[DYNAMIC_VISCOSITY];
 
     const double diagonal_component = 4.0 * rViscosity / 3.0;
     const double side_component = -0.5 * diagonal_component;
-    
+
     // 3D linear elastic constitutive matrix
     rConstitutiveMatrix ( 0 , 0 ) = diagonal_component;
     rConstitutiveMatrix ( 1 , 1 ) = diagonal_component;
@@ -179,20 +179,28 @@ void Newtonian3DLaw::CalculateStress(Vector& rStressVector,
     rConstitutiveMatrix ( 2 , 1 ) = side_component;
 
     //initialize to zero other values
-    for(unsigned int i=0; i<3; i++)
+    for(unsigned int i=0; i<3; ++i)
     {
-          for(unsigned int j=3; i<6; i++)
-          {
-            rConstitutiveMatrix ( i , j ) = 0;
-            rConstitutiveMatrix ( j , i ) = 0;
-          }
-          
+      for(unsigned int j=3; j<6; ++j)
+      {
+        rConstitutiveMatrix ( i , j ) = 0;
+        rConstitutiveMatrix ( j , i ) = 0;
+      }
+
     }
-    
+
+    rConstitutiveMatrix ( 3 , 4 ) = 0.0;
+    rConstitutiveMatrix ( 3 , 5 ) = 0.0;
+    rConstitutiveMatrix ( 4 , 5 ) = 0.0;
+
+    rConstitutiveMatrix ( 4 , 3 ) = 0.0;
+    rConstitutiveMatrix ( 5 , 3 ) = 0.0;
+    rConstitutiveMatrix ( 5 , 4 ) = 0.0;
+
     KRATOS_CATCH(" ")
   }
 
- 
+
 
   //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
   //************************************************************************************
@@ -205,7 +213,7 @@ void Newtonian3DLaw::CalculateStress(Vector& rStressVector,
     rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
     rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
     rFeatures.mOptions.Set( ISOTROPIC );
-    
+
     //Set strain measure required by the consitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Velocity_Gradient);
 
@@ -214,7 +222,7 @@ void Newtonian3DLaw::CalculateStress(Vector& rStressVector,
 
     //Set the spacedimension
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
-    
+
     KRATOS_CATCH(" ")
   }
 
@@ -224,17 +232,32 @@ void Newtonian3DLaw::CalculateStress(Vector& rStressVector,
   int Newtonian3DLaw::Check(const Properties& rMaterialProperties,
                             const GeometryType& rElementGeometry,
                             const ProcessInfo& rCurrentProcessInfo)
-  {    
+  {
     KRATOS_TRY
-      		
+
     KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
 
     if( rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.00 )
       KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Newtonian3DLaw: " << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
 
     return 0;
-    
+
     KRATOS_CATCH(" ")
   }
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void Newtonian3DLaw::FinalizeMaterialResponseCauchy(Parameters& rValues)
+  {
+    KRATOS_TRY
+
+    rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
+    this->CalculateMaterialResponseCauchy(rValues);
+    rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
+
+    KRATOS_CATCH(" ")
+  }
+
 
 } // Namespace Kratos

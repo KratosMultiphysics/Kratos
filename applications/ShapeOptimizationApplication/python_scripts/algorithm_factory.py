@@ -14,22 +14,28 @@ from __future__ import print_function, absolute_import, division
 # Additional imports
 from algorithm_steepest_descent import AlgorithmSteepestDescent
 from algorithm_penalized_projection import AlgorithmPenalizedProjection
+from algorithm_trust_region import AlgorithmTrustRegion
 
 # ==============================================================================
-def CreateAlgorithm( optimization_settings, model_part_controller, analyzer, communicator ):
+def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, model_part_controller):
     algorithm_name = optimization_settings["optimization_algorithm"]["name"].GetString()
 
     if algorithm_name == "steepest_descent":
-        return AlgorithmSteepestDescent( optimization_settings,
-                                         model_part_controller,
-                                         analyzer,
-                                         communicator )
+        return AlgorithmSteepestDescent(optimization_settings,
+                                        analyzer,
+                                        communicator,
+                                        model_part_controller)
     elif algorithm_name == "penalized_projection":
-        return AlgorithmPenalizedProjection( optimization_settings,
-                                             model_part_controller,
-                                             analyzer,
-                                             communicator )
+        return AlgorithmPenalizedProjection(optimization_settings,
+                                            analyzer,
+                                            communicator,
+                                            model_part_controller)
+    elif algorithm_name == "trust_region":
+        return AlgorithmTrustRegion(optimization_settings,
+                                    analyzer,
+                                    communicator,
+                                    model_part_controller)
     else:
-        raise NameError("The following optimization algorithm not supported by the algorithm factory: " + AlgorithmName)
+        raise NameError("The following optimization algorithm is not supported by the algorithm factory: " + algorithm_name)
 
-# # ==============================================================================
+ # ==============================================================================

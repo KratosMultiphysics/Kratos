@@ -10,6 +10,21 @@
         "echo_level"      : 1
     },
     "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"              : 3,
+            "model_part_name"          : "structure",
+            "model_import_settings"    : {
+                "input_type"       : "mdpa",
+                "input_filename"   : "structure"
+            },
+            "design_surface_sub_model_part_name" : "design_surface",
+            "damping" : {
+                "apply_damping" : false
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
         "objectives" : [{
             "identifier" : "eigenfrequency",
             "type"       : "maximization",
@@ -23,37 +38,28 @@
                 "weighting_method"       : "linear_scaling",
                 "weighting_factors"      : [1.0,1.0],
                 "consider_discretization": false
-            }
+            },
+            "project_gradient_on_surface_normals" : true
         }],
         "constraints" : [],
         "design_variables" : {
             "type"                               : "vertex_morphing",
-            "optimization_model_part_name"       : "structure",
-            "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 0.3,
                 "max_nodes_in_filter_radius" : 10000,
                 "matrix_free_filtering"      : true
-            },
-            "mesh_motion" : {
-                "apply_mesh_solver" : false
-            },
-            "damping" : {
-                "perform_damping" : false
             }
         },
         "optimization_algorithm" : {
-            "name"                                 : "steepest_descent",
-            "max_iterations"                       : 5,
-            "relative_tolerance"                   : 5e-0,
-            "project_gradients_on_surface_normals" : true
-        },
-        "line_search" : {
-            "line_search_type"           : "manual_stepping",
-            "normalize_search_direction" : true,
-            "step_size"                  : 0.1
+            "name"               : "steepest_descent",
+            "max_iterations"     : 5,
+            "relative_tolerance" : 5e-0,
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : true,
+                "step_size"                  : 0.1
+            }
         },
         "output" : {
             "output_directory"        : "Optimization_Results",

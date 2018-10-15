@@ -33,6 +33,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
              "variable_name": "VARIABLE_NAME",
              "modulus" : 0.0,
              "direction": [0.0, 0.0, 0.0],
+             "compound_assignment": "direct",
              "constrained": false,
              "interval": [0.0, "End"],
              "local_axes" : {}
@@ -124,89 +125,129 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         return nodal_variables
 
     def ExecuteInitialize(self):
-
         # set model part
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
+        if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         # set processes
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name", self.settings["model_part_name"])
+        params.AddValue("compound_assignment", self.settings["compound_assignment"])
 
         params.AddEmptyValue("value")
         params.__setitem__("value", self.settings["direction"])
 
         self.CreateAssignmentProcess(params)
 
+        self.SetCurrentTime()
         if( self.IsInsideInterval() and self.interval_string == "initial" ):
             self.AssignValueProcess.Execute()
 
 
     def ExecuteInitializeSolutionStep(self):
+        if self.IsRecoverStep():
+            self.SetPreviousTime()
+            self.ExecuteUnAssignment()
 
-        if self.IsInsideInterval():
-            self.AssignValueProcess.Execute()
+        self.SetCurrentTime()
+        self.ExecuteAssignment()
 
     def ExecuteFinalizeSolutionStep(self):
-
         if not self.interval_ended:
-            current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-            delta_time   = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-
+            self.SetCurrentTime()
             #arithmetic floating point tolerance
-            tolerance = delta_time * 0.001
+            tolerance = self.delta_time * 0.001
 
-            if( (current_time + delta_time) > (self.interval[1] + tolerance) ):
+            if( (self.current_time + self.delta_time) > (self.interval[1] + tolerance) ):
                 self.interval_ended = True
                 if not self.finalized :
                     self.AssignValueProcess.ExecuteFinalize()
                     self.finalized = True
-
-
     #
     def CreateAssignmentProcess(self, params):
 
         if( self.value_is_numeric ):
-
             params.AddValue("variable_name", self.settings["variable_name"])
-
             counter = 0
             for i in self.value:
                 params["value"][counter].SetDouble(i)
                 counter+=1
-
             self.AssignValueProcess = KratosSolid.AssignVectorToConditionsProcess(self.model_part, params)
-
         else:
-
             #function values are assigned to a vector variable :: transformation is needed
             if( isinstance(self.var,KratosMultiphysics.Array1DVariable3) ):
                 variable_name = self.settings["variable_name"].GetString() + "_VECTOR"
-                print(" variable name modified:", variable_name)
+                #print("::[--Assign_Variable--]:: "+variable_name)
                 params.AddEmptyValue("variable_name")
                 params["variable_name"].SetString(variable_name)
             else:
                 params.AddValue("variable_name", self.settings["variable_name"])
-
             counter = 0
             for i in self.value:
                 params["value"][counter].SetDouble(i)
                 counter+=1
-
             params.AddEmptyValue("entity_type").SetString("CONDITIONS")
             self.AssignValueProcess = KratosSolid.AssignVectorFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
 
+        # in case of going to previous time step for time step reduction
+        self.CreateUnAssignmentProcess(params)
+
+    #
+    def CreateUnAssignmentProcess(self, params):
+        params["compound_assignment"].SetString(self.GetInverseAssigment(self.settings["compound_assignment"].GetString()))
+        if( self.value_is_numeric ):
+            self.UnAssignValueProcess = KratosSolid.AssignVectorToConditionsProcess(self.model_part, params)
+        else:
+            self.UnAssignValueProcess = KratosSolid.AssignVectorFieldToEntitiesProcess(self.model_part, self.compiled_function, "function",  self.value_is_spatial_function, params)
+
+    #
+    def ExecuteAssignment(self):
+        if self.IsInsideInterval():
+            self.AssignValueProcess.Execute()
+    #
+    def ExecuteUnAssignment(self):
+        if self.IsInsideInterval():
+            self.UnAssignValueProcess.Execute()
+    #
+    @classmethod
+    def GetInverseAssigment(self,compound_assignment):
+        if compound_assignment == "direct":
+            return "direct"
+        if compound_assignment == "addition":
+            return "subtraction"
+        if compound_assignment == "subtraction":
+            return "addition"
+        if compound_assignment == "multiplication":
+            return "division"
+        if compound_assignment == "division":
+            return "multiplication"
+
+    #
+    def IsRecoverStep(self):
+        if self.model_part.ProcessInfo.Has(KratosSolid.DELTA_TIME_CHANGED):
+            if self.model_part.ProcessInfo[KratosSolid.DELTA_TIME_CHANGED] is True:
+                return True
+            else:
+                return False
+        else:
+            return False
+    #
+    def SetCurrentTime(self):
+        self.delta_time = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        self.current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        self.previous_time = self.current_time-self.delta_time
+    #
+    def SetPreviousTime(self):
+        self.delta_time = self.model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME]
+        self.current_time = self.model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.TIME]
+        self.previous_time = self.current_time-self.delta_time
     #
     def IsInsideInterval(self):
-
-        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        delta_time   = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-
         #arithmetic floating point tolerance
-        tolerance = delta_time * 0.001
+        tolerance = self.delta_time * 0.001
 
-        if( current_time >= (self.interval[0] - tolerance) and current_time <= (self.interval[1] + tolerance) ):
+        if( self.current_time >= (self.interval[0] - tolerance) and self.current_time <= (self.interval[1] + tolerance) ):
             self.interval_ended = False
             return True
         else:

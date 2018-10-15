@@ -1,51 +1,52 @@
 {
     "optimization_settings" : {
-        "objectives" : [{
-                "identifier" : "targetDeviation",
-                "type"       : "minimization",
-                "use_kratos" : false
-        }],
-        "constraints" : [],
-        "design_variables" : {
-            "type"                               : "vertex_morphing",
-            "optimization_model_part_name"       : "tent",
-            "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"                        : 3,
-            "filter" : {
-                "filter_function_type"       : "gaussian",
-                "filter_radius"              : 5.0,
-                "max_nodes_in_filter_radius" : 100,
-                "matrix_free_filtering"      : false
+        "model_settings"  : {
+            "domain_size"              : 3,
+            "model_part_name"          : "tent",
+            "model_import_settings"    : {
+                "input_type"       : "mdpa",
+                "input_filename"   : "tent"
             },
+            "design_surface_sub_model_part_name" : "design_surface",
             "damping" : {
-                "perform_damping" : false,
-                "damping_regions" : []
+                "apply_damping" : false
             },
             "mesh_motion" : {
                 "apply_mesh_solver" : false
             }
         },
-        "optimization_algorithm" : {
-            "name"                                 : "steepest_descent",
-            "max_iterations"                       : 300,
-            "relative_tolerance"                   : 1e-2,
-            "project_gradients_on_surface_normals" : true
+        "objectives" : [{
+                "identifier" : "targetDeviation",
+                "type"       : "minimization",
+                "use_kratos" : false,
+                "project_gradient_on_surface_normals" : true
+        }],
+        "constraints" : [],
+        "design_variables" : {
+            "type"                               : "vertex_morphing",
+            "filter" : {
+                "filter_function_type"       : "gaussian",
+                "filter_radius"              : 5.0,
+                "max_nodes_in_filter_radius" : 100,
+                "matrix_free_filtering"      : false
+            }
         },
-        "line_search" : {
-            "line_search_type"           : "manual_stepping",
-            "normalize_search_direction" : false,
-            "step_size"                  : 0.01
+        "optimization_algorithm" : {
+            "name"               : "steepest_descent",
+            "max_iterations"     : 300,
+            "relative_tolerance" : 1e-2,
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : false,
+                "step_size"                  : 0.01
+            }
         },
         "output" : {
             "output_directory"        : "Optimization_Results",
             "design_history_filename" : "design_history",
             "response_log_filename"   : "response_log",
             "design_output_mode"      : "WriteDesignSurface",
-            "nodal_results"           : [ "OBJECTIVE_SENSITIVITY",
-                                          "MAPPED_OBJECTIVE_SENSITIVITY",
-                                          "CONTROL_POINT_UPDATE",
-                                          "CONTROL_POINT_CHANGE",
-                                          "SHAPE_UPDATE",
+            "nodal_results"           : [ "SHAPE_UPDATE",
                                           "SHAPE_CHANGE" ],
             "output_format" : {
                 "name"              : "gid",

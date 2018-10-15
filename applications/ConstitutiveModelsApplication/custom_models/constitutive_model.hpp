@@ -57,21 +57,21 @@ namespace Kratos
   public:
 
     //state flags
-    KRATOS_DEFINE_LOCAL_FLAG( ADD_HISTORY_VECTOR );    
+    KRATOS_DEFINE_LOCAL_FLAG( ADD_HISTORY_VECTOR );
     KRATOS_DEFINE_LOCAL_FLAG( HISTORY_STRAIN_MEASURE );
     KRATOS_DEFINE_LOCAL_FLAG( HISTORY_STRESS_MEASURE );
-    
+
     ///@name Type Definitions
-    ///@{  
+    ///@{
     typedef ConstitutiveModelData::SizeType                    SizeType;
     typedef ConstitutiveModelData::VectorType                VectorType;
     typedef ConstitutiveModelData::MatrixType                MatrixType;
     typedef ConstitutiveModelData::ModelData              ModelDataType;
-    typedef ConstitutiveModelData::MaterialData        MaterialDataType; 
+    typedef ConstitutiveModelData::MaterialData        MaterialDataType;
 
-    typedef ConstitutiveModelData::StrainMeasureType  StrainMeasureType;   
-    typedef ConstitutiveModelData::StressMeasureType  StressMeasureType;   
-    
+    typedef ConstitutiveModelData::StrainMeasureType  StrainMeasureType;
+    typedef ConstitutiveModelData::StressMeasureType  StressMeasureType;
+
     /// Pointer definition of ConstitutiveModel
     KRATOS_CLASS_POINTER_DEFINITION( ConstitutiveModel );
 
@@ -79,7 +79,7 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.    
+    /// Default constructor.
     ConstitutiveModel();
 
     /// Copy constructor.
@@ -87,7 +87,7 @@ namespace Kratos
 
     /// Clone.
     virtual ConstitutiveModel::Pointer Clone() const;
-    
+
     /// Assignment operator.
     ConstitutiveModel& operator=(ConstitutiveModel const& rOther);
 
@@ -106,71 +106,71 @@ namespace Kratos
 
     /**
      * Initialize member data
-     */    
+     */
     virtual void InitializeMaterial(const Properties& rMaterialProperties);
 
-    
+
     /**
      * Initialize member data
-     */    
+     */
     virtual void InitializeModel(ModelDataType& rValues);
 
     /**
      * Finalize member data
-     */    
+     */
     virtual void FinalizeModel(ModelDataType& rValues);
 
-    
+
     /**
      * Calculate Strain Energy Density Functions
      */
     virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction);
 
-          
+
     /**
      * Calculate Stresses
-     */    
+     */
     virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix);
 
     virtual void CalculateIsochoricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix);
-    
+
     virtual void CalculateVolumetricStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix);
 
-    
+
     /**
      * Calculate Constitutive Tensor
      */
     virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive);
-    
-    virtual void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive); 
-    
-    virtual void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive); 
 
-    
+    virtual void CalculateIsochoricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive);
+
+    virtual void CalculateVolumetricConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutive);
+
+
     /**
      * Calculate Stress and Constitutive Tensor
      */
     virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutive);
-    
+
     virtual void CalculateIsochoricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutive);
-    
+
     virtual void CalculateVolumetricStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutive);
 
-    
+
     /**
      * Check
-     */    
+     */
     virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo);
-    
+
     ///@}
     ///@name Access
     ///@{
-    
+
     /**
      * Has Values
-     */   
+     */
     virtual bool Has(const Variable<double>& rThisVariable);
-    
+
     /**
      * Set Values
      */
@@ -182,12 +182,12 @@ namespace Kratos
 
     virtual void SetValue(const Variable<Matrix>& rThisVariable, const Matrix& rValue,
 			  const ProcessInfo& rCurrentProcessInfo);
-    
+
     /**
      * Get Values
      */
     virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue);
-    
+
     /**
      * method to ask the constituitve model the list of variables (dofs) needed from the domain
      * @param rScalarVariables : list of scalar dofs
@@ -195,7 +195,7 @@ namespace Kratos
      */
     virtual void GetDomainVariablesList(std::vector<Variable<double> >& rScalarVariables,
 					std::vector<Variable<array_1d<double,3> > >& rComponentVariables);
-    
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -237,26 +237,26 @@ namespace Kratos
     ///@name Protected static Member Variables
     ///@{
 
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
 
     Flags mOptions;
-    
-    //initial or historical strains/stresses    
+
+    //initial or historical strains/stresses
     VectorType mHistoryVector;
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
 
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
 
-        
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -275,7 +275,7 @@ namespace Kratos
     ///@}
 
   private:
-    
+
     ///@name Static Member Variables
     ///@{
 
@@ -283,7 +283,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
+
 
     ///@}
     ///@name Private Operators
@@ -299,7 +299,7 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
@@ -340,13 +340,13 @@ namespace Kratos
   ///@}
   ///@name Input and output
   ///@{
-  
+
   ///@}
 
   ///@} addtogroup block
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CONSTITUTIVE_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_CONSTITUTIVE_MODEL_H_INCLUDED  defined
 
 

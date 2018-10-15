@@ -63,15 +63,15 @@ public:
     ///@{
 
     /// Default constructor.
-    PointContactCondition( 
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry 
+    PointContactCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry
         );
-    
-    PointContactCondition( 
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry,  
-        PropertiesType::Pointer pProperties 
+
+    PointContactCondition(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties
         );
 
     /// Destructor.
@@ -85,17 +85,17 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
-    
-    Condition::Pointer Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes,  
-        PropertiesType::Pointer pProperties 
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const override;
 
     ///@}
@@ -156,19 +156,19 @@ protected:
      * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
      * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
-    void CalculateAll( 
-        MatrixType& rLeftHandSideMatrix, 
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
+        bool CalculateResidualVectorFlag
         ) override;
-        
+
     /**
-     * It calcules the integration load for the point load 
+     * It calcules the integration load for the point load
      */
     virtual double GetPointLoadIntegrationWeight();
-        
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -182,7 +182,7 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     // A protected default constructor necessary for serialization
     PointContactCondition() {};
 
@@ -276,6 +276,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_CONTACT_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_POINT_CONTACT_CONDITION_H_INCLUDED  defined
 
 

@@ -9,11 +9,13 @@
 //
 //  Main authors:    Ilaria Iaconeta
 //
+
+
 // System includes
 #include <iostream>
+#include <cmath>
 
 // External includes
-#include<cmath>
 
 // Project includes
 #include "includes/properties.h"
@@ -104,7 +106,6 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix 
 
 }
 
-
 Vector HenckyElasticPlasticPlaneStrain2DLaw::SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix)
 {
     rStressVector = MathUtils<double>::StressTensorToVector( rStressMatrix, rStressVector.size() );
@@ -172,12 +173,12 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matri
 
 
     Vector TrialEigenValues = ZeroVector(3);
-    TrialEigenValues(0) = AuxEigenValues(0);
-    TrialEigenValues(1) = AuxEigenValues(1);
-    TrialEigenValues(2) =  rCauchyGreenMatrix(2,2);
+    TrialEigenValues[0] = AuxEigenValues[0];
+    TrialEigenValues[1] = AuxEigenValues[1];
+    TrialEigenValues[2] = rCauchyGreenMatrix(2,2);
 
     for (unsigned int i = 0; i<3; i++)
-        rMainStrain(i) = 0.50*std::log(TrialEigenValues(i));
+        rMainStrain[i] = 0.50*std::log(TrialEigenValues[i]);
 
 }
 

@@ -12,9 +12,9 @@
 // External includes
 
 // Project includes
+#include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
 #include "utilities/openmp_utils.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 
 // Solution strategies
 #include "custom_solvers/solution_strategies/newton_raphson_strategy.hpp"
@@ -97,18 +97,18 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef NewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>       NewtonRaphsonStrategyType;
   typedef LineSearchSolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>     LineSearchStrategyType;
   typedef ExplicitSolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>         ExplicitStrategyType;
-  typedef ExplicitHamiltonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitHamiltonStrategyType;
+  //typedef ExplicitHamiltonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitHamiltonStrategyType;
   typedef EigensolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>           EigensolverStrategyType;
 
   // Solution builder_and_solver types
   typedef ReductionBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>               ReductionBuilderAndSolverType;
   typedef BlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>                       BlockBuilderAndSolverType;
   typedef ExplicitBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>                 ExplicitBuilderAndSolverType;
-  typedef ExplicitHamiltonBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitHamiltonBuilderAndSolverType;
+  //typedef ExplicitHamiltonBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitHamiltonBuilderAndSolverType;
 
   // Solution scheme types
   typedef ExplicitCentralDifferencesScheme<SparseSpaceType, LocalSpaceType>    ExplicitCentralDifferencesSchemeType;
-  typedef ExplicitHamiltonScheme<SparseSpaceType, LocalSpaceType>                        ExplicitHamiltonSchemeType;
+  //typedef ExplicitHamiltonScheme<SparseSpaceType, LocalSpaceType>                        ExplicitHamiltonSchemeType;
   typedef EigensolverScheme<SparseSpaceType, LocalSpaceType>                                  EigensolverSchemeType;
 
   typedef StaticScheme<SparseSpaceType, LocalSpaceType>                                            StaticSchemeType;
@@ -202,7 +202,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef EmcStepRotationMethod<VariableComponentType, double>            EmcStepRotationMethodComponentType;
 
 
-  //***************************SOLVER FLAGS******************************
+  //*********************CONVERGENCE CRITERION FLAGS*********************
 
   // Convergence Criteria Local Flags
   class_<CriterionLocalFlags>(m,"CriterionLocalFlags")
@@ -221,6 +221,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<>())
       .def_readonly_static("INITIALIZED", &SolverLocalFlags::INITIALIZED)
       .def_readonly_static("CONVERGED", &SolverLocalFlags::CONVERGED)
+      .def_readonly_static("ADAPTIVE_SOLUTION", &SolverLocalFlags::ADAPTIVE_SOLUTION)
+      .def_readonly_static("MOVE_MESH", &SolverLocalFlags::MOVE_MESH)
+      .def_readonly_static("UPDATE_VARIABLES", &SolverLocalFlags::UPDATE_VARIABLES)
       .def_readonly_static("REFORM_DOFS", &SolverLocalFlags::REFORM_DOFS)
       .def_readonly_static("INCREMENTAL_SOLUTION", &SolverLocalFlags::INCREMENTAL_SOLUTION)
       .def_readonly_static("COMPUTE_REACTIONS", &SolverLocalFlags::COMPUTE_REACTIONS)
@@ -229,6 +232,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def_readonly_static("IMPLEX", &SolverLocalFlags::IMPLEX)
       ;
 
+  //***********************TIME INTEGRATION FLAGS************************
+
+  // Convergence Criteria Local Flags
+  class_<TimeIntegrationLocalFlags>(m,"TimeIntegrationLocalFlags")
+      .def(init<>())
+      .def_readonly_static("PREDICT_PRIMARY_VARIABLE", &TimeIntegrationLocalFlags::PREDICT_PRIMARY_VARIABLE)
+      ;
 
   //*************************STRATEGY CLASSES***************************
 
@@ -273,7 +283,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   // Solid Mechanics Newton Raphson Line Search Strategy
   class_<LineSearchStrategyType, typename LineSearchStrategyType::Pointer, NewtonRaphsonStrategyType>(m,"LineSearchStrategy")
       .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int, unsigned int>())
       .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int, unsigned int>())
       ;
 
   // Solid Mechanics Explicit Strategy
@@ -347,11 +359,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<Flags&>())
       .def(init<TimeVectorIntegrationMethods&, Flags&>())
       .def(init<TimeVectorIntegrationMethods&>())
+      .def(init<TimeScalarIntegrationMethods&, Flags&>())
+      .def(init<TimeScalarIntegrationMethods&>())
       .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
       .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())
       .def("Initialize", &SolutionSchemeType::Initialize)
       .def("InitializeSolutionStep", &SolutionSchemeType::InitializeSolutionStep)
       .def("FinalizeSolutionStep", &SolutionSchemeType::FinalizeSolutionStep)
+      .def("SetProcess", &SolutionSchemeType::SetProcess)
+      .def("SetProcessVector", &SolutionSchemeType::SetProcessVector)
       .def("Update", &SolutionSchemeType::Update)
       .def("MoveMesh", &SolutionSchemeType::MoveMesh)
       .def("Check", &SolutionSchemeType::Check)
@@ -361,16 +377,20 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   class_<StaticSchemeType, typename StaticSchemeType::Pointer, SolutionSchemeType>(m,"StaticScheme")
       .def(init<TimeVectorIntegrationMethods&, Flags&>())
       .def(init<TimeVectorIntegrationMethods&>())
+      .def(init<TimeScalarIntegrationMethods&, Flags&>())
+      .def(init<TimeScalarIntegrationMethods&>())
       .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
-      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())      
+      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())
       ;
 
   // Dynamic Scheme Type
   class_<DynamicSchemeType, typename DynamicSchemeType::Pointer, SolutionSchemeType>(m,"DynamicScheme")
       .def(init<TimeVectorIntegrationMethods&, Flags&>())
       .def(init<TimeVectorIntegrationMethods&>())
+      .def(init<TimeScalarIntegrationMethods&, Flags&>())
+      .def(init<TimeScalarIntegrationMethods&>())
       .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&, Flags&>())
-      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())      
+      .def(init<TimeVectorIntegrationMethods&, TimeScalarIntegrationMethods&>())
       ;
 
   // Explicit scheme: Central differences
@@ -423,7 +443,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   //*******************TIME INTEGRATION METHODS*************************
 
   //Time integraton methods for vector variables
-  class_<TimeIntegrationMethodVectorType, TimeIntegrationMethodVectorType::Pointer>(m,"VectorTimeIntegration")
+  class_<TimeIntegrationMethodVectorType, TimeIntegrationMethodVectorType::Pointer, Flags>(m,"VectorTimeIntegration")
       .def(init<const VariableVectorType&>())
       .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
       .def(init<const VariableVectorType&, const VariableVectorType&, const VariableVectorType&, const VariableVectorType&>())
@@ -431,9 +451,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("SetInputVariable", &TimeIntegrationMethodVectorType::SetInputVariable)
       .def("HasStepVariable", &TimeIntegrationMethodVectorType::HasStepVariable)
       .def("SetStepVariable", &TimeIntegrationMethodVectorType::SetStepVariable)
+      .def("GetVariableName", &TimeIntegrationMethodVectorType::GetVariableName)
       .def("GetPrimaryVariableName", &TimeIntegrationMethodVectorType::GetPrimaryVariableName)
       .def("CalculateParameters", &TimeIntegrationMethodVectorType::CalculateParameters)
       .def("SetParameters", &TimeIntegrationMethodVectorType::SetParameters)
+      .def("SetFlags", &TimeIntegrationMethodVectorType::SetFlags)
       .def("Assign", &TimeIntegrationMethodVectorType::Assign)
       .def("Predict", &TimeIntegrationMethodVectorType::Predict)
       .def("__repr__", &TimeIntegrationMethodVectorType::Info)
@@ -534,7 +556,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       ;
 
   //Time integration methods for scalar variables
-  class_<TimeIntegrationMethodScalarType, TimeIntegrationMethodScalarType::Pointer>(m,"ScalarTimeIntegration")
+  class_<TimeIntegrationMethodScalarType, TimeIntegrationMethodScalarType::Pointer, Flags>(m,"ScalarTimeIntegration")
       .def(init<const VariableScalarType&>())
       .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
       .def(init<const VariableScalarType&, const VariableScalarType&, const VariableScalarType&, const VariableScalarType&>())
@@ -542,9 +564,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("SetInputVariable", &TimeIntegrationMethodScalarType::SetInputVariable)
       .def("HasStepVariable", &TimeIntegrationMethodScalarType::HasStepVariable)
       .def("SetStepVariable", &TimeIntegrationMethodScalarType::SetStepVariable)
+      .def("GetVariableName", &TimeIntegrationMethodScalarType::GetVariableName)
       .def("GetPrimaryVariableName", &TimeIntegrationMethodScalarType::GetPrimaryVariableName)
       .def("CalculateParameters", &TimeIntegrationMethodScalarType::CalculateParameters)
       .def("SetParameters", &TimeIntegrationMethodScalarType::SetParameters)
+      .def("SetFlags", &TimeIntegrationMethodScalarType::SetFlags)
       .def("Assign", &TimeIntegrationMethodScalarType::Assign)
       .def("Predict", &TimeIntegrationMethodScalarType::Predict)
       .def("__repr__", &TimeIntegrationMethodScalarType::Info)
@@ -645,7 +669,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       ;
 
   // Time integration methods for variable components
-  class_<TimeIntegrationMethodComponentType, typename TimeIntegrationMethodComponentType::Pointer>(m,"ComponentTimeIntegration")
+  class_<TimeIntegrationMethodComponentType, typename TimeIntegrationMethodComponentType::Pointer, Flags>(m,"ComponentTimeIntegration")
       .def(init<const VariableComponentType&>())
       .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
       .def(init<const VariableComponentType&, const VariableComponentType&, const VariableComponentType&, const VariableComponentType&>())
@@ -653,9 +677,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("SetInputVariable", &TimeIntegrationMethodComponentType::SetInputVariable)
       .def("HasStepVariable", &TimeIntegrationMethodComponentType::HasStepVariable)
       .def("SetStepVariable", &TimeIntegrationMethodComponentType::SetStepVariable)
+      .def("GetVariableName", &TimeIntegrationMethodComponentType::GetVariableName)
       .def("GetPrimaryVariableName", &TimeIntegrationMethodComponentType::GetPrimaryVariableName)
       .def("CalculateParameters", &TimeIntegrationMethodComponentType::CalculateParameters)
       .def("SetParameters", &TimeIntegrationMethodComponentType::SetParameters)
+      .def("SetFlags", &TimeIntegrationMethodComponentType::SetFlags)
       .def("Assign", &TimeIntegrationMethodComponentType::Assign)
       .def("Predict", &TimeIntegrationMethodComponentType::Predict)
       .def("__repr__", &TimeIntegrationMethodComponentType::Info)
@@ -769,6 +795,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   //to define it as a variable
   class_<Variable<VectorTimeIntegrationContainerPointerType>, VariableData>(m,"VectorTimeIntegrationMethodsVariable")
+      .def( "__repr__", &Variable<VectorTimeIntegrationContainerPointerType>::Info )
       ;
 
   // Time vector integration methods container type
@@ -786,6 +813,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   //to define it as a variable
   class_<Variable<ComponentTimeIntegrationContainerPointerType>, VariableData>(m,"ComponentTimeIntegrationMethodsVariable")
+      .def( "__repr__", &Variable<ComponentTimeIntegrationContainerPointerType>::Info )
       ;
 
   // Time vector integration methods container type
@@ -803,6 +831,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   //to define it as a variable
   class_<Variable<ScalarTimeIntegrationContainerPointerType>, VariableData>(m,"ScalarTimeIntegrationMethodsVariable")
+      .def( "__repr__", &Variable<ScalarTimeIntegrationContainerPointerType>::Info )
       ;
 
 }

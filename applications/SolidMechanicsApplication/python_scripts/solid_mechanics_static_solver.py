@@ -9,8 +9,8 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the mechanical solver base class
 import solid_mechanics_implicit_dynamic_solver as BaseSolver
 
-def CreateSolver(custom_settings):
-    return StaticMonolithicSolver(custom_settings)
+def CreateSolver(custom_settings, Model):
+    return StaticMonolithicSolver(Model, custom_settings)
 
 class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
     """The solid mechanics static solver.
@@ -21,7 +21,7 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
 
     See solid_mechanics_monolithic_solver.py for more information.
     """
-    def __init__(self, custom_settings):
+    def __init__(self, Model, custom_settings):
 
         # Set defaults and validate custom settings.
         static_settings = KratosMultiphysics.Parameters("""
@@ -42,13 +42,12 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
 
         # Construct the base solver.
         # Calling base class of ImplicitMonolithicSolver it is ok.
-        super(BaseSolver.ImplicitMonolithicSolver, self).__init__(custom_settings)
+        super(BaseSolver.ImplicitMonolithicSolver, self).__init__(Model, custom_settings)
 
-        print("::[Static_Scheme]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
 
     #### Solver internal methods ####
 
-    def _set_scheme_parameters(self):
+    def _set_scheme_process_info_parameters(self):
         pass
 
     def _create_mechanical_solver(self):
@@ -59,16 +58,21 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
                 mechanical_solver = self._create_newton_raphson_strategy()
             else:
                 mechanical_solver = self._create_linear_strategy()
-
+        mechanical_solver.Set(KratosSolid.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
         return mechanical_solver
 
 
     def _create_linear_strategy(self):
-        mechanical_scheme = self._get_solution_scheme()
+        solution_scheme = self._get_solution_scheme()
         builder_and_solver = self._get_builder_and_solver()
 
         options = KratosMultiphysics.Flags()
         options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.settings["solving_strategy_settings"]["compute_reactions"].GetBool())
         options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
 
-        return KratosSolid.LinearStrategy(self.model_part, mechanical_scheme, builder_and_solver, options)
+        return KratosSolid.LinearStrategy(self.model_part, solution_scheme, builder_and_solver, options)
+
+    @classmethod
+    def _class_prefix(self):
+        header = "::[---Static_Solver---]::"
+        return header

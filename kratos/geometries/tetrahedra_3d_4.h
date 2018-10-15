@@ -30,7 +30,31 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Tetrahedra3D4
+ * @ingroup KratosCore
+ * @brief A four node tetrahedra geometry with linear shape functions
+ * @details The node ordering corresponds with:       
+ *                             v
+ *                            .
+ *                          ,/
+ *                         /
+ *                      2                                                            
+ *                    ,/|`\                                                       
+ *                  ,/  |  `\                         
+ *                ,/    '.   `\                      
+ *              ,/       |     `\                 
+ *            ,/         |       `\                
+ *           0-----------'.--------1 --> u        
+ *            `\.         |      ,/               
+ *               `\.      |    ,/                     
+ *                  `\.   '. ,/                      
+ *                     `\. |/                                
+ *                        `3                                   
+ *                           `\.
+ *                              ` w       
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
 template<class TPointType> class Tetrahedra3D4 : public Geometry<TPointType>
 {
@@ -778,7 +802,7 @@ public:
         X[1] = rPoint[0];
         X[2] = rPoint[1];
         X[3] = rPoint[2];
-        
+
         // Auxiliar coordinates
         const double x1 = this->GetPoint( 0 ).X();
         const double x2 = this->GetPoint( 1 ).X();
@@ -792,7 +816,7 @@ public:
         const double z2 = this->GetPoint( 1 ).Z();
         const double z3 = this->GetPoint( 2 ).Z();
         const double z4 = this->GetPoint( 3 ).Z();
-        
+
         // Auxiliar diff
         const double x12 = x1 - x2;
         const double x13 = x1 - x3;
@@ -824,7 +848,7 @@ public:
         const double z34 = z3 - z4;
         const double z42 = z4 - z2;
         const double z43 = z4 - z3;
-        
+
         // Compute LHS
         BoundedMatrix<double, 4,4> invJ;
         const double aux_volume = 1.0/(6.0*this->Volume());
@@ -844,35 +868,35 @@ public:
         invJ(1,3) = aux_volume * (x31*y43 - x34*y13);
         invJ(2,3) = aux_volume * (x24*y14 - x14*y24);
         invJ(3,3) = aux_volume * (x13*y21 - x12*y31);
-        
+
         const array_1d<double,4> result = prod(invJ, X);
-        
+
         if (rResult.size() != 3)
             rResult.resize(3, false);
-        
+
         rResult[0] = result[1];
         rResult[1] = result[2];
         rResult[2] = result[3];
 
         return rResult;
     }
-    
+
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
+    bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
         this->PointLocalCoordinates( rResult, rPoint );
-        
+
         if( rResult[0] >= 0.0-Tolerance )
         {
             if( rResult[1] >= 0.0-Tolerance )
@@ -886,7 +910,7 @@ public:
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -980,27 +1004,28 @@ public:
         // faces in columns
       if(NodesInFaces.size1() != 4 || NodesInFaces.size2() != 4)
         NodesInFaces.resize(4, 4, false);
-      
-      NodesInFaces(0,0)=0;//face or other node
+
+      //face 1
+      NodesInFaces(0,0)=0;//contrary node to the face
       NodesInFaces(1,0)=1;
       NodesInFaces(2,0)=2;
       NodesInFaces(3,0)=3;
-      
-      NodesInFaces(0,1)=1;//face or other node
+      //face 2
+      NodesInFaces(0,1)=1;//contrary node to the face
       NodesInFaces(1,1)=2;
       NodesInFaces(2,1)=0;
       NodesInFaces(3,1)=3;
-      
-      NodesInFaces(0,2)=2;//face or other node
+      //face 3
+      NodesInFaces(0,2)=2;//contrary node to the face
       NodesInFaces(1,2)=0;
       NodesInFaces(2,2)=1;
       NodesInFaces(3,2)=3;
-      
-      NodesInFaces(0,3)=3;//face or other node
+      //face 4
+      NodesInFaces(0,3)=3;//contrary node to the face
       NodesInFaces(1,3)=0;
       NodesInFaces(2,3)=2;
       NodesInFaces(3,3)=1;
-      
+
     }
 
     /**
@@ -1242,7 +1267,7 @@ public:
             return true;
         if(Triangle3D3Type(this->pGetPoint(2),this->pGetPoint(3), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        
+
         CoordinatesArrayType local_coordinates;
         // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
         if(IsInside(rLowPoint,local_coordinates))

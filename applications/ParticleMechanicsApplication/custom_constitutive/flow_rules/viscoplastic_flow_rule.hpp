@@ -1,10 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:            Duan Wenjie $
-//   Date:                $Date:                March 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Duan Wenjie
 //
+
 
 #if !defined(KRATOS_VISCOPLASTIC_FLOW_RULE_H_INCLUDED )
 #define  KRATOS_VISCOPLASTIC_FLOW_RULE_H_INCLUDED

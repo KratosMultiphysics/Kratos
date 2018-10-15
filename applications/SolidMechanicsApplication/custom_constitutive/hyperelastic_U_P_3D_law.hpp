@@ -94,7 +94,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElasticUP3DLaw();
+    ~HyperElasticUP3DLaw() override;
 
     /**
      * Operators
@@ -233,4 +233,4 @@ private:
 
 }; // Class HyperElasticUP3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HYPERELASTIC_U_P_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_HYPERELASTIC_U_P_3D_LAW_H_INCLUDED  defined

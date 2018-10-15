@@ -40,12 +40,14 @@ void InterfacePreprocessCondition::GenerateInterfacePart<2>(
     
     Parameters default_parameters = Parameters(R"(
     {
-        "simplify_geometry"                    : false
+        "simplify_geometry"                    : false,
+        "contact_property_id"                  : 0
     })" );
     
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
     
     const bool simplest_geometry = ThisParameters["simplify_geometry"].GetBool();
+    const int contact_property_id = ThisParameters["contact_property_id"].GetInt();
     
     IndexType cond_counter = 0;
 
@@ -59,16 +61,21 @@ void InterfacePreprocessCondition::GenerateInterfacePart<2>(
         IndexType cond_id = ReorderConditions();
 
         // Store new properties in a map
-        std::unordered_map<IndexType, Properties::Pointer> new_properties = CreateNewProperties();
+        std::unordered_map<IndexType, Properties::Pointer> new_properties;
+        if (contact_property_id == 0) new_properties = CreateNewProperties();
 
         // We iterate over the elements and check the nodes on the interface
         for (auto it_elem = mrMainModelPart.ElementsBegin(); it_elem != mrMainModelPart.ElementsEnd(); ++it_elem) {
             GeometryType& this_geometry = it_elem->GetGeometry();
-            Properties::Pointer p_prop = new_properties[it_elem->pGetProperties()->Id()];
+            Properties::Pointer p_prop = (contact_property_id == 0) ? new_properties[it_elem->pGetProperties()->Id()] : mrMainModelPart.pGetProperties(contact_property_id);
             KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
 
-            for (IndexType i_edge = 0; i_edge < this_geometry.EdgesNumber(); ++i_edge)
-                GenerateEdgeCondition(rInterfacePart, p_prop, this_geometry.Edges()[i_edge], simplest_geometry, cond_counter, cond_id);
+            if (this_geometry.LocalSpaceDimension() == 2) {
+                for (IndexType i_edge = 0; i_edge < this_geometry.EdgesNumber(); ++i_edge)
+                    GenerateEdgeCondition(rInterfacePart, p_prop, this_geometry.Edges()[i_edge], simplest_geometry, cond_counter, cond_id);
+            } else {
+                GenerateEdgeCondition(rInterfacePart, p_prop, this_geometry, simplest_geometry, cond_counter, cond_id);
+            }
         }
     } else {
         KRATOS_ERROR << "ERROR:: Nor conditions or nodes on the interface. Check your flags" << std::endl;
@@ -95,12 +102,14 @@ void InterfacePreprocessCondition::GenerateInterfacePart<3>(
     
     Parameters default_parameters = Parameters(R"(
     {
-        "simplify_geometry"                    : false
+        "simplify_geometry"                    : false,
+        "contact_property_id"                  : 0
     })" );
     
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
     
     const bool simplest_geometry = ThisParameters["simplify_geometry"].GetBool();
+    const int contact_property_id = ThisParameters["contact_property_id"].GetInt();
     
     IndexType cond_counter = 0;
     
@@ -114,12 +123,13 @@ void InterfacePreprocessCondition::GenerateInterfacePart<3>(
         IndexType cond_id = ReorderConditions();
 
         // Store new properties in a map
-        std::unordered_map<IndexType, Properties::Pointer> new_properties = CreateNewProperties();
+        std::unordered_map<IndexType, Properties::Pointer> new_properties;
+        if (contact_property_id == 0) new_properties = CreateNewProperties();
 
         // Generate Conditions from original the faces that can be considered interface
         for (auto it_elem = mrMainModelPart.ElementsBegin(); it_elem != mrMainModelPart.ElementsEnd(); ++it_elem) {
             GeometryType& this_geometry = it_elem->GetGeometry();
-            Properties::Pointer p_prop = new_properties[it_elem->pGetProperties()->Id()];
+            Properties::Pointer p_prop = (contact_property_id == 0) ? new_properties[it_elem->pGetProperties()->Id()] : mrMainModelPart.pGetProperties(contact_property_id);
             KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
 
             if (this_geometry.LocalSpaceDimension() == 3) {

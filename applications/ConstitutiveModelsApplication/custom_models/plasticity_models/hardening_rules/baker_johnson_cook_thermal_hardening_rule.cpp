@@ -23,7 +23,7 @@ namespace Kratos
   BakerJohnsonCookThermalHardeningRule::BakerJohnsonCookThermalHardeningRule()
     :HardeningRule()
   {
-  
+
   }
 
 
@@ -51,7 +51,7 @@ namespace Kratos
 
   HardeningRule::Pointer BakerJohnsonCookThermalHardeningRule::Clone() const
   {
-    return ( HardeningRule::Pointer(new BakerJohnsonCookThermalHardeningRule(*this)) );
+    return Kratos::make_shared<BakerJohnsonCookThermalHardeningRule>(*this);
   }
 
 
@@ -73,11 +73,11 @@ namespace Kratos
 
     const ModelDataType& rModelData = rVariables.GetModelData();
 
-    //get values        
+    //get values
     const double& rRateFactor              = rVariables.GetRateFactor();
     const double& rEquivalentPlasticStrain = rVariables.GetInternalVariables()[0];
     const double& rDeltaGamma              = rVariables.GetDeltaInternalVariables()[0];
-    
+
     const double& rTemperature             = rModelData.GetTemperature();
     const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
 
@@ -85,19 +85,19 @@ namespace Kratos
     const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
     const double& K = rMaterialProperties[JC_PARAMETER_K];
     const double& C = rMaterialProperties[JC_PARAMETER_C];
-    
+
     const double& n = rMaterialProperties[JC_PARAMETER_n];
     const double& m = rMaterialProperties[JC_PARAMETER_m];
-    
+
     const double& rReferenceTemperature = rMaterialProperties[REFERENCE_TEMPERATURE];
     const double& rMeldTemperature      = rMaterialProperties[MELD_TEMPERATURE];
     const double& rPlasticStrainRate    = rMaterialProperties[PLASTIC_STRAIN_RATE];
-    
+
     if(rTemperature - rReferenceTemperature < 0){
       std::cout<<" Initial Temperature conditions not defined properly ("<<rTemperature<<" < "<<rReferenceTemperature<<")"<<std::endl;
-	
+
     }
-	
+
     double NormalizedTemperature =  pow( (rTemperature)/(rMeldTemperature), m );
 
     double Kv = K * exp((-1)*NormalizedTemperature);
@@ -105,19 +105,19 @@ namespace Kratos
 
 
     rHardening   = ( Kv * pow(rEquivalentPlasticStrain, nv) );
-	
+
     if( rRateFactor != 0 ){
 
       if( rDeltaGamma == 0 )
 	std::cout<<" Something is wrong in the Baker_Johnson_Cook_hardening variables supplied "<<std::endl;
 
-      rHardening  *= (1.0 + rRateFactor * C * std::log( (rDeltaGamma * sqrt(2.0/3.0))/(rPlasticStrainRate * rDeltaTime) ) ); 
+      rHardening  *= (1.0 + rRateFactor * C * std::log( (rDeltaGamma * sqrt(2.0/3.0))/(rPlasticStrainRate * rDeltaTime) ) );
 
-    }	
+    }
 
     return rHardening;
 
-	
+
     KRATOS_CATCH(" ")
   }
 
@@ -128,14 +128,14 @@ namespace Kratos
   double& BakerJohnsonCookThermalHardeningRule::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
   {
     KRATOS_TRY
-      
+
     const ModelDataType& rModelData = rVariables.GetModelData();
 
-    //get values        
+    //get values
     const double& rRateFactor              = rVariables.GetRateFactor();
     const double& rEquivalentPlasticStrain = rVariables.GetInternalVariables()[0];
     const double& rDeltaGamma              = rVariables.GetDeltaInternalVariables()[0];
-    
+
     const double& rTemperature             = rModelData.GetTemperature();
     const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
 
@@ -143,38 +143,38 @@ namespace Kratos
     const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
     const double& K = rMaterialProperties[JC_PARAMETER_K];
     const double& C = rMaterialProperties[JC_PARAMETER_C];
-    
+
     const double& n = rMaterialProperties[JC_PARAMETER_n];
     const double& m = rMaterialProperties[JC_PARAMETER_m];
-    
+
     const double& rReferenceTemperature = rMaterialProperties[REFERENCE_TEMPERATURE];
     const double& rMeldTemperature      = rMaterialProperties[MELD_TEMPERATURE];
     const double& rPlasticStrainRate    = rMaterialProperties[PLASTIC_STRAIN_RATE];
 
     if(rTemperature - rReferenceTemperature < 0){
       std::cout<<" Initial Temperature conditions not defined properly ("<<rTemperature<<" < "<<rReferenceTemperature<<")"<<std::endl;
-      
+
     }
-    
+
     double NormalizedTemperature =  pow( (rTemperature)/(rMeldTemperature), m );
-    
+
     double Kv = K * exp((-1)*NormalizedTemperature);
     double nv = n * exp((-1)*NormalizedTemperature);
-    
-    
+
+
     rDeltaHardening  = ( nv * Kv * pow(rEquivalentPlasticStrain, nv-1) );
-    
+
     if( rRateFactor != 0 ){
-      
+
       if( rDeltaGamma == 0 )
 	std::cout<<" Something is wrong in the Baker_Johnson_Cook_hardening variables supplied "<<std::endl;
-      
+
       rDeltaHardening *= (1.0 + rRateFactor * C * std::log( (rDeltaGamma * sqrt(2.0/3.0))/(rPlasticStrainRate * rDeltaTime) ) );
-      
+
       rDeltaHardening += rRateFactor * ( sqrt(3.0/2.0) * ( Kv * pow( rEquivalentPlasticStrain, nv ) ) * C / rDeltaGamma );
     }
-    
-    return rDeltaHardening;	
+
+    return rDeltaHardening;
 
 
     KRATOS_CATCH(" ")
@@ -190,11 +190,11 @@ namespace Kratos
 
     const ModelDataType& rModelData = rVariables.GetModelData();
 
-    //get values        
+    //get values
     const double& rRateFactor              = rVariables.GetRateFactor();
     const double& rEquivalentPlasticStrain = rVariables.GetInternalVariables()[0];
     const double& rDeltaGamma              = rVariables.GetDeltaInternalVariables()[0];
-    
+
     const double& rTemperature             = rModelData.GetTemperature();
     const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
 
@@ -202,43 +202,43 @@ namespace Kratos
     const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
     const double& K = rMaterialProperties[JC_PARAMETER_K];
     const double& C = rMaterialProperties[JC_PARAMETER_C];
-    
+
     const double& n = rMaterialProperties[JC_PARAMETER_n];
     const double& m = rMaterialProperties[JC_PARAMETER_m];
-    
+
     const double& rReferenceTemperature = rMaterialProperties[REFERENCE_TEMPERATURE];
     const double& rMeldTemperature      = rMaterialProperties[MELD_TEMPERATURE];
     const double& rPlasticStrainRate    = rMaterialProperties[PLASTIC_STRAIN_RATE];
-      
+
     if(rTemperature - rReferenceTemperature < 0){
       std::cout<<" Initial Temperature conditions not defined properly ("<<rTemperature<<" < "<<rReferenceTemperature<<")"<<std::endl;
-	
+
     }
-	
+
     double NormalizedTemperature =  pow( (rTemperature)/(rMeldTemperature), m );
 
     double Kv = K * exp((-1)*NormalizedTemperature);
     double nv = n * exp((-1)*NormalizedTemperature);
 
-	
+
     double DeltaNormalizedTemperature = (m / rMeldTemperature) * pow( (rTemperature/rMeldTemperature), m-1 );
 
     rDeltaThermalHardening  = (1 + nv *std::log( rEquivalentPlasticStrain ) );
-    
+
     rDeltaThermalHardening *= ( Kv * pow ( rEquivalentPlasticStrain, nv) * DeltaNormalizedTemperature );
-		
+
     if( rRateFactor != 0 ){
 
       if( rDeltaGamma == 0 )
 	std::cout<<" Something is wrong in the Baker_Johnson_Cook_hardening variables supplied "<<std::endl;
-      
+
       rDeltaThermalHardening *= ( 1.0 + rRateFactor * C * std::log( (rDeltaGamma * sqrt(2.0/3.0))/(rPlasticStrainRate * rDeltaTime) ) );
-      
-    }	  
+
+    }
 
     return rDeltaThermalHardening;
-    
-	
+
+
     KRATOS_CATCH(" ")
   }
 

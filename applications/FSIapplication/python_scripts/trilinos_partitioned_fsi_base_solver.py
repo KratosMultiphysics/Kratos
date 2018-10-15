@@ -153,13 +153,13 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
     def _ComputeMeshPredictionSingleFaced(self):
         step = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
         self._PrintInfoOnRankZero("Computing time step ",str(step)," prediction...")
-        
+
         # Set the redistribution settings
         redistribution_tolerance = 1e-8
         redistribution_max_iters = 50
 
         # Convert the nodal reaction to traction loads before transfering
-        KratosFSI.VariableRedistributionUtility.DistributePointValues(
+        KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
             self._GetFluidInterfaceSubmodelPart(),
             KratosMultiphysics.REACTION,
             KratosMultiphysics.VAUX_EQ_TRACTION,
@@ -172,7 +172,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
                                   KratosMapping.Mapper.SWAP_SIGN)
 
         # Convert the transferred traction loads to point loads
-        KratosFSI.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
+        KratosMultiphysics.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
             self._GetStructureInterfaceSubmodelPart(),
             KratosMultiphysics.VAUX_EQ_TRACTION,
             KratosStructural.POINT_LOAD)
@@ -181,7 +181,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         is_converged = self.structure_solver.SolveSolutionStep()
         if not is_converged:
             self._PrintWarningOnRankZero("Mesh prediction structure solver did not converge.")
-        
+
         # Map the obtained structure displacement to the fluid interface
         self.interface_mapper.InverseMap(KratosMultiphysics.MESH_DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)
 
@@ -193,20 +193,20 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
     def _ComputeMeshPredictionDoubleFaced(self):
         step = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
         self._PrintInfoOnRankZero("Computing time step ",str(step)," prediction...")
-        
+
         # Set the redistribution settings
         redistribution_tolerance = 1e-8
         redistribution_max_iters = 50
 
         # Convert the nodal reaction to traction loads before transfering
-        KratosFSI.VariableRedistributionUtility.DistributePointValues(
+        KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
             self._GetFluidPositiveInterfaceSubmodelPart(),
             KratosMultiphysics.REACTION,
             KratosMultiphysics.VAUX_EQ_TRACTION,
             redistribution_tolerance,
             redistribution_max_iters)
 
-        KratosFSI.VariableRedistributionUtility.DistributePointValues(
+        KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
             self._GetFluidNegativeInterfaceSubmodelPart(),
             KratosMultiphysics.REACTION,
             KratosMultiphysics.VAUX_EQ_TRACTION,
@@ -225,7 +225,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
                                       KratosMapping.Mapper.SWAP_SIGN | KratosMapping.Mapper.ADD_VALUES)
 
         # Convert the transferred traction loads to point loads
-        KratosFSI.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
+        KratosMultiphysics.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
             self._GetStructureInterfaceSubmodelPart(),
             KratosMultiphysics.VAUX_EQ_TRACTION,
             KratosStructural.POINT_LOAD)
@@ -234,7 +234,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
         is_converged = self.structure_solver.SolveSolutionStep()
         if not is_converged:
             self._PrintWarningOnRankZero("Mesh prediction structure solver did not converge.")
-        
+
         # Map the obtained structure displacement to the fluid interface
         self.pos_interface_mapper.InverseMap(KratosMultiphysics.MESH_DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)
         self.neg_interface_mapper.InverseMap(KratosMultiphysics.MESH_DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)

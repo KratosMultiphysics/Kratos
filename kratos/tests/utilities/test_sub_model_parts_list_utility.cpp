@@ -67,25 +67,25 @@ namespace Kratos
             element_nodes_0[0] = p_node_1;
             element_nodes_0[1] = p_node_2;
             element_nodes_0[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_0( element_nodes_0 );
+            Triangle2D3 <NodeType> triangle_0( PointerVector<NodeType>{element_nodes_0} );
 
             std::vector<NodeType::Pointer> element_nodes_1 (3);
             element_nodes_1[0] = p_node_1;
             element_nodes_1[1] = p_node_3;
             element_nodes_1[2] = p_node_4;
-            Triangle2D3 <NodeType> triangle_1( element_nodes_1 );
+            Triangle2D3 <NodeType> triangle_1( PointerVector<NodeType>{element_nodes_1} );
 
             std::vector<NodeType::Pointer> element_nodes_2 (3);
             element_nodes_2[0] = p_node_2;
             element_nodes_2[1] = p_node_5;
             element_nodes_2[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_2( element_nodes_2 );
+            Triangle2D3 <NodeType> triangle_2( PointerVector<NodeType>{element_nodes_2} );
 
             std::vector<NodeType::Pointer> element_nodes_3 (3);
             element_nodes_3[0] = p_node_5;
             element_nodes_3[1] = p_node_6;
             element_nodes_3[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_3( element_nodes_3 );
+            Triangle2D3 <NodeType> triangle_3( PointerVector<NodeType>{element_nodes_3} );
 
             Element::Pointer p_elem_0 = first_model_part.CreateNewElement("Element2D3N", 1, triangle_0, p_elem_prop);
             Element::Pointer p_elem_1 = first_model_part.CreateNewElement("Element2D3N", 2, triangle_1, p_elem_prop);
@@ -205,25 +205,25 @@ namespace Kratos
             element_nodes_0[0] = p_node_1;
             element_nodes_0[1] = p_node_2;
             element_nodes_0[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_0( element_nodes_0 );
+            Triangle2D3 <NodeType> triangle_0( PointerVector<NodeType>{element_nodes_0} );
 
             std::vector<NodeType::Pointer> element_nodes_1 (3);
             element_nodes_1[0] = p_node_1;
             element_nodes_1[1] = p_node_3;
             element_nodes_1[2] = p_node_4;
-            Triangle2D3 <NodeType> triangle_1( element_nodes_1 );
+            Triangle2D3 <NodeType> triangle_1( PointerVector<NodeType>{element_nodes_1} );
 
             std::vector<NodeType::Pointer> element_nodes_2 (3);
             element_nodes_2[0] = p_node_2;
             element_nodes_2[1] = p_node_5;
             element_nodes_2[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_2( element_nodes_2 );
+            Triangle2D3 <NodeType> triangle_2( PointerVector<NodeType>{element_nodes_2} );
 
             std::vector<NodeType::Pointer> element_nodes_3 (3);
             element_nodes_3[0] = p_node_5;
             element_nodes_3[1] = p_node_6;
             element_nodes_3[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_3( element_nodes_3 );
+            Triangle2D3 <NodeType> triangle_3( PointerVector<NodeType>{element_nodes_3} );
 
             Element::Pointer p_elem_0 = first_model_part.CreateNewElement("Element2D3N", 1, triangle_0, p_elem_prop);
             Element::Pointer p_elem_1 = first_model_part.CreateNewElement("Element2D3N", 2, triangle_1, p_elem_prop);

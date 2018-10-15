@@ -156,7 +156,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         redistribution_max_iters = 50
 
         # Convert the nodal reaction to traction loads before transfering
-        KratosFSI.VariableRedistributionUtility.DistributePointValues(
+        KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
             self._GetFluidInterfaceSubmodelPart(),
             KratosMultiphysics.REACTION,
             KratosMultiphysics.VAUX_EQ_TRACTION,
@@ -169,7 +169,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
                                   KratosMapping.Mapper.SWAP_SIGN)
 
         # Convert the transferred traction loads to point loads
-        KratosFSI.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
+        KratosMultiphysics.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
             self._GetStructureInterfaceSubmodelPart(),
             KratosMultiphysics.VAUX_EQ_TRACTION,
             KratosStructural.POINT_LOAD)
@@ -185,14 +185,14 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         redistribution_max_iters = 50
 
         # Convert the nodal reaction to traction loads before transfering
-        KratosFSI.VariableRedistributionUtility.DistributePointValues(
+        KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
             self._GetFluidPositiveInterfaceSubmodelPart(),
             KratosMultiphysics.REACTION,
             KratosMultiphysics.VAUX_EQ_TRACTION,
             redistribution_tolerance,
             redistribution_max_iters)
 
-        KratosFSI.VariableRedistributionUtility.DistributePointValues(
+        KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
             self._GetFluidNegativeInterfaceSubmodelPart(),
             KratosMultiphysics.REACTION,
             KratosMultiphysics.VAUX_EQ_TRACTION,
@@ -212,7 +212,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
                                       KratosMapping.Mapper.SWAP_SIGN | KratosMapping.Mapper.ADD_VALUES)
 
         # Convert the transferred traction loads to point loads
-        KratosFSI.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
+        KratosMultiphysics.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
             self._GetStructureInterfaceSubmodelPart(),
             KratosMultiphysics.VAUX_EQ_TRACTION,
             KratosStructural.POINT_LOAD)
@@ -244,7 +244,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
 
         self.neg_interface_mapper.InverseMap(KratosMultiphysics.VECTOR_PROJECTED,
                                              KratosMultiphysics.DISPLACEMENT)
-        
+
         #TODO: One of these mappings is not needed. At the moment both are performed to ensure that
         # the _GetFluidInterfaceSubmodelPart(), which is the one used to compute the interface residual,
         # gets the structure DISPLACEMENT. Think a way to properly identify the reference fluid interface.

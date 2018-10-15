@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,7 @@ THE SOFTWARE.
 \ingroup adapters
 */
 
-#include <boost/static_assert.hpp>
-#include <boost/type_traits.hpp>
+#include <type_traits>
 
 #include <amgcl/util.hpp>
 #include <amgcl/backend/builtin.hpp>
@@ -45,12 +44,12 @@ template <typename Ptr, typename Col, typename Val>
 std::shared_ptr< backend::crs<Val> >
 zero_copy(size_t n, const Ptr *ptr, const Col *col, const Val *val) {
     // Check that Ptr and Col types are binary-compatible with ptrdiff_t:
-    BOOST_STATIC_ASSERT(boost::is_integral<Ptr>::value);
-    BOOST_STATIC_ASSERT(boost::is_integral<Col>::value);
-    BOOST_STATIC_ASSERT(sizeof(Ptr) == sizeof(ptrdiff_t));
-    BOOST_STATIC_ASSERT(sizeof(Col) == sizeof(ptrdiff_t));
+    static_assert(std::is_integral<Ptr>::value, "Unsupported Ptr type");
+    static_assert(std::is_integral<Col>::value, "Unsupported Col type");
+    static_assert(sizeof(Ptr) == sizeof(ptrdiff_t), "Unsupported Ptr type");
+    static_assert(sizeof(Col) == sizeof(ptrdiff_t), "Unsupported Col type");
 
-    std::shared_ptr< backend::crs<Val> > A = std::make_shared< backend::crs<Val> >();
+    auto A = std::make_shared< backend::crs<Val> >();
     A->nrows = n;
     A->ncols = n;
     A->nnz   = ptr[n];

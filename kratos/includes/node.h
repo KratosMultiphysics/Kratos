@@ -100,24 +100,11 @@ public:
 
     typedef typename std::size_t SizeType;
 
-    //typedef Neighbours<NodeType, Element> NeighboursType;
-
-    /** Element array type for neighbor elements. */
-    //typedef typename NeighboursType::NeighbourElementsArrayType NeighbourElementsArrayType;
-
-    /** Element array type for neighbor elements. */
-    //typedef typename NeighboursType::NeighbourNodesArrayType NeighbourNodesArrayType;
-
     typedef PointerVectorSet<TDofType, GetDofKey> DofsContainerType;
 
-    //typedef Buffer<std::vector<FixDataValueContainer> > SolutionStepsNodalDataContainerType;
-
-//        typedef Buffer<std::vector<VariablesListDataValueContainer> > SolutionStepsNodalDataContainerType;
     typedef VariablesListDataValueContainer SolutionStepsNodalDataContainerType;
 
     typedef VariablesListDataValueContainer::BlockType BlockType;
-
-    //typedef VectorMap<IndexType, NeighboursType > SolutionStepsNeighboursContainerType;
 
     typedef Variable<double> DoubleVariableType;
 
@@ -485,98 +472,20 @@ public:
     ///@name Nodal Data
     ///@{
 
-//       void CreateSolutionStepData(IndexType SolutionStepIndex = IndexType())
-// 	{
-// 	  if(mSolutionStepsNodalData->find(SolutionStepIndex) == mSolutionStepsNodalData->end())
-// 	    mSolutionStepsNodalData->insert(SolutionStepIndex, DataValueContainer());
-
-// 	}
-
-//       void CloneSolutionStepNodalData(IndexType SolutionStepIndex, IndexType SourceSolutionStepIndex)
-// 	{
-// 	  SolutionStepsNodalDataContainerType::iterator i;
-// 	  if(mSolutionStepsNodalData->find(SolutionStepIndex) == mSolutionStepsNodalData->end())
-// 	    {
-// 	      if((i = mSolutionStepsNodalData->find(SourceSolutionStepIndex)) == mSolutionStepsNodalData->end())
-// 		mSolutionStepsNodalData->insert(SolutionStepIndex, DataValueContainer());
-// 	      else
-// 		mSolutionStepsNodalData->insert(SolutionStepIndex, *i);
-// 	    }
-// 	}
-
-//       void CloneSolutionStepNodalData(IndexType SolutionStepIndex, DataValueContainer const &  SourceSolutionStepData)
-// 	{
-// 	  if(mSolutionStepsNodalData->find(SolutionStepIndex) == mSolutionStepsNodalData->end())
-// 		mSolutionStepsNodalData->insert(SolutionStepIndex, SourceSolutionStepData);
-// 	}
-
     void CreateSolutionStepData()
     {
         mSolutionStepsNodalData.PushFront();
-// 	  VariablesListDataValueContainer temp(&Globals::DefaultVariablesList);
-// 	  if(!mSolutionStepsNodalData.empty())
-// 	      mSolutionStepsNodalData.push_front(temp);
-// 	  else
-// 	      mSolutionStepsNodalData.resize(1,temp);
-// 	  mSolutionStepsNodalData->push_front(DataValueContainer());
-
     }
 
     void CloneSolutionStepData()
     {
         mSolutionStepsNodalData.CloneFront();
-// 	  if(!mSolutionStepsNodalData.empty())
-// 	      mSolutionStepsNodalData.push_front(mSolutionStepsNodalData[SourceSolutionStepIndex]);
     }
 
     void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex)
     {
         mSolutionStepsNodalData.AssignData(mSolutionStepsNodalData.Data(SourceSolutionStepIndex), DestinationSourceSolutionStepIndex);
     }
-
-//       void CloneSolutionStepNodalData(VariablesListDataValueContainer const &  SourceSolutionStepData)
-// 	{
-// 	  if(!mSolutionStepsNodalData.empty())
-//   	      mSolutionStepsNodalData.push_front(SourceSolutionStepData);
-// 	}
-
-//       void OverwriteSolutionStepNodalData(IndexType SolutionStepIndex, IndexType SourceSolutionStepIndex, IndexType OldSolutionStepIndex)
-// 	{
-// 	  SolutionStepsNodalDataContainerType::iterator i;
-// 	  SolutionStepsNodalDataContainerType::iterator i_old;
-// 	  if(mSolutionStepsNodalData.find(SolutionStepIndex) == mSolutionStepsNodalData.end())
-// 	    {
-// 	      if((i_old = mSolutionStepsNodalData.find(OldSolutionStepIndex)) == mSolutionStepsNodalData.end())
-// 		{
-// 		  if((i = mSolutionStepsNodalData.find(SourceSolutionStepIndex)) == mSolutionStepsNodalData.end())
-// 		    mSolutionStepsNodalData.insert(SolutionStepIndex, DataValueContainer());
-// 		  else
-// 		    mSolutionStepsNodalData.insert(SolutionStepIndex, *i);
-// 		}
-// 	      else
-// 		{
-// 		  i_old.base()->first = SolutionStepIndex;
-// 		  i_old.base()->second = *i;
-// 		}
-// 	    }
-// 	}
-
-//       void OverwriteSolutionStepNodalData(IndexType SolutionStepIndex, DataValueContainer const &  SourceSolutionStepData)
-// 	{
-// 	  if(mSolutionStepsNodalData.find(SolutionStepIndex) == mSolutionStepsNodalData.end())
-// 	      if((i_old = mSolutionStepsNodalData.find(OldSolutionStepIndex)) == mSolutionStepsNodalData.end())
-// 		mSolutionStepsNodalData.insert(SolutionStepIndex, SourceSolutionStepData);
-// 	      else
-// 		{
-// 		  i_old.base()->first = SolutionStepIndex;
-// 		  i_old.base()->second = SourceSolutionStepData;
-// 		}
-// 	}
-
-//       void RemoveSolutionStepNodalData(IndexType SolutionStepIndex)
-// 	{
-// 	    mSolutionStepsNodalData.erase(SolutionStepIndex);
-// 	}
 
     void ClearSolutionStepsData()
     {
@@ -588,44 +497,22 @@ public:
         mSolutionStepsNodalData.SetVariablesList(pVariablesList);
     }
 
-
-//       DataValueContainer::Pointer pSolutionStepNodalData(IndexType SolutionStepIndex)
-// 	{
-// 	  SolutionStepsNodalDataContainerType::iterator i;
-// 	  if((i = mSolutionStepsNodalData.find(SolutionStepIndex)) == mSolutionStepsNodalData.end())
-// 	    KRATOS_ERROR <<  "Solution step index out of range.", *this);
-
-// 	  return (i.base()->second);
-// 	}
-
-//       template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable)
-// 	{
-// 	  if(mSolutionStepsNodalData.empty())
-// 	     CreateSolutionStepData(0);
-
-// 	  return mSolutionStepsNodalData.back().GetValue(rThisVariable);
-// 	}
-
-//       template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
-// 	{
-// 	  SolutionStepsNodalDataContainerType::iterator i;
-// 	  if((i = mSolutionStepsNodalData.find(SolutionStepIndex)) == mSolutionStepsNodalData.end())
-// 	    KRATOS_ERROR <<  "Solution step index out of range.", *this);
-
-// 	  return i->GetValue(rThisVariable);
-// 	}
-
-//       VariablesListDataValueContainer& SolutionStepNodalData()
-// 	{
-// 	  return mSolutionStepsNodalData;
-// 	}
-
     VariablesListDataValueContainer& SolutionStepData()
     {
         return mSolutionStepsNodalData;
     }
 
+    const VariablesListDataValueContainer& SolutionStepData() const
+    {
+        return mSolutionStepsNodalData;
+    }
+
     DataValueContainer& Data()
+    {
+        return mData;
+    }
+
+    const DataValueContainer& Data() const
     {
         return mData;
     }
@@ -735,78 +622,6 @@ public:
         return mData.Has(rThisVariable);
     }
 
-//       template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
-// 	{
-// 	  if(!mData.Has(rThisVariable))
-// 	    {
-// 	      SolutionStepsNodalDataContainerType::iterator i;
-// 	      if((i = mSolutionStepsNodalData.find(SolutionStepIndex)) != mSolutionStepsNodalData.end())
-// 		return i->GetValue(rThisVariable);
-// 	    }
-
-// 	  return mData.GetValue(rThisVariable);
-// 	}
-
-    ///@}
-    ///@name Neighbours
-    ///@{
-
-    /*      void CreateSolutionStepNeighbours(IndexType SolutionStepIndex)
-    	{
-    	  if(mSolutionStepsNeighbours.find(SolutionStepIndex) == mSolutionStepsNeighbours.end())
-    	    mSolutionStepsNeighbours.insert(SolutionStepIndex, typename NeighboursType::Pointer(new NeighboursType()));
-    	}
-
-          void CreateSolutionStepNeighbours(IndexType SolutionStepIndex, IndexType SourceSolutionStepIndex)
-    	{
-    	  typename SolutionStepsNeighboursContainerType::iterator i;
-    	  if(mSolutionStepsNeighbours.find(SolutionStepIndex) == mSolutionStepsNeighbours.end())
-    	    {
-    	      if((i = mSolutionStepsNeighbours.find(SourceSolutionStepIndex)) == mSolutionStepsNeighbours.end())
-    		mSolutionStepsNeighbours.insert(SolutionStepIndex, typename NeighboursType::Pointer(new NeighboursType));
-    	      else
-    		mSolutionStepsNeighbours.insert(SolutionStepIndex, *i);
-    	    }
-    	}
-
-          void CreateSolutionStepNeighbours(IndexType SolutionStepIndex, NeighboursType const &  SourceSolutionStepData)
-    	{
-    	  if(mSolutionStepsNeighbours.find(SolutionStepIndex) == mSolutionStepsNeighbours.end())
-    		mSolutionStepsNeighbours.insert(SolutionStepIndex, SourceSolutionStepData);
-    	}
-
-          void RemoveSolutionStepNeighbours(IndexType SolutionStepIndex)
-    	{
-    	    mSolutionStepsNeighbours.erase(SolutionStepIndex);
-    	}
-
-          void ClearSolutionStepsNeighbours()
-    	{
-    	    mSolutionStepsNeighbours.clear();
-    	}
-
-
-          typename NeighboursType::Pointer pSolutionStepNeighbours(IndexType SolutionStepIndex)
-    	{
-    	  typename SolutionStepsNeighboursContainerType::iterator i;
-    	  if((i = mSolutionStepsNeighbours.find(SolutionStepIndex)) == mSolutionStepsNeighbours.end())
-    	    KRATOS_ERROR <<  "Solution step index out of range." << std::endl;
-
-    	  return *(i.base());
-    	}
-
-          NeighboursType& SolutionStepNeighbours(IndexType SolutionStepIndex)
-    	{
-    	  return *pSolutionStepNeighbours(SolutionStepIndex);
-    	}
-
-          NeighbourElementsArrayType& NeighbourElements(IndexType SolutionStepIndex)
-    	{return SolutionStepNeighbours(SolutionStepIndex).NeighbourElements();}
-
-          NeighbourNodesArrayType& NeighbourNodes(IndexType SolutionStepIndex)
-    	{return SolutionStepNeighbours(SolutionStepIndex).NeighbourNodes();}
-      */
-
     ///@}
     ///@name Operations
     ///@{
@@ -851,7 +666,7 @@ public:
         }
     }
 
-    IndexType GetBufferSize()
+    IndexType GetBufferSize() const
     {
         return mSolutionStepsNodalData.QueueSize();
     }
@@ -919,12 +734,10 @@ public:
         return mSolutionStepsNodalData.pGetVariablesList();
     }
 
-
-    /// TODO: remove this function when removing data_file_io object.
-//        IndexType& DepricatedIdAccess()
-//        {
-//            return BaseType::DepricatedIdAccess();
-//        }
+    const VariablesList * pGetVariablesList() const
+    {
+        return mSolutionStepsNodalData.pGetVariablesList();
+    }
 
     ///@}
     ///@name Dofs
@@ -932,9 +745,9 @@ public:
 
     //advanced functions by Riccardo
     template<class TVariableType>
-    inline unsigned int GetDofPosition(TVariableType const& rDofVariable)
+    inline unsigned int GetDofPosition(TVariableType const& rDofVariable) const
     {
-        typename DofsContainerType::iterator it=mDofs.find(rDofVariable.Key());
+        typename DofsContainerType::const_iterator it=mDofs.find(rDofVariable.Key());
         return it - mDofs.begin();
     }
 
@@ -1276,8 +1089,6 @@ private:
     DataValueContainer mData;
 
     SolutionStepsNodalDataContainerType mSolutionStepsNodalData;
-
-    //SolutionStepsNeighboursContainerType mSolutionStepsNeighbours;
 
     ///Initial Position of the node
     PointType mInitialPosition;
