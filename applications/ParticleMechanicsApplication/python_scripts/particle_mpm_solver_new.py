@@ -238,6 +238,17 @@ class ParticleMPMSolver(PythonSolver):
       
         self.print_on_rank_zero("::[ParticleMPMSolver]:: ","Solver is initialized correctly.")
 
+    def AdvanceInTime(self, current_time):
+        dt = self.ComputeDeltaTime()
+        new_time = current_time + dt
+        self.model_part1.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.model_part1.CloneTimeStep(new_time)
+
+        return new_time
+
+    def ComputeDeltaTime(self):
+        return self.settings["time_stepping"]["time_step"].GetDouble()
+
     def SolveSolutionStep(self):
         (self.solver).Solve()
 
