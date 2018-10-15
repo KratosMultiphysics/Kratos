@@ -1,8 +1,8 @@
-//    |  /           |             
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
 //  License:         BSD License
 //                     Kratos default license: kratos/license.txt
@@ -58,7 +58,7 @@ typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayTyp
 typedef Point::CoordinatesArrayType CoordinatesArrayType;
 
 array_1d<double,3> GetNormalFromCondition(
-    Condition& dummy, 
+    Condition& dummy,
     CoordinatesArrayType& LocalCoords
     )
 {
@@ -120,7 +120,7 @@ NodeType::Pointer GetNodeFromCondition( Condition& dummy, unsigned int index )
     return( dummy.GetGeometry().pGetPoint(index) );
 }
 
-void ConditionCalculateLocalSystemStandard( Condition& dummy, 
+void ConditionCalculateLocalSystemStandard( Condition& dummy,
                                                 Matrix& rLeftHandSideMatrix,
                                                 Vector& rRightHandSideVector,
                                                 ProcessInfo& rCurrentProcessInfo)
@@ -250,7 +250,7 @@ void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>&
 
     if(values.size() != integration_points.size())
         KRATOS_ERROR << "size of values is : " << values.size() << " while the integration points size is " << integration_points.size() << std::endl;
-    
+
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
@@ -558,7 +558,7 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
     .def("Initialize", &Element::Initialize)
     //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
-    .def("__repr__", &Element::Info) //self_ns::str(self))
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Element)
     ;
 
     PointerVectorSetPythonInterface<MeshType::ElementsContainerType>().CreateInterface(m,"ElementsArray")
@@ -663,7 +663,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Initialize", &Condition::Initialize)
     .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
     .def("Info", &Condition::Info)
-    .def("__repr__", &Condition::Info ) // self_ns::str(self))
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Condition)
     ;
 
     PointerVectorSetPythonInterface<MeshType::ConditionsContainerType>().CreateInterface(m,"ConditionsArray")
@@ -682,7 +682,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("HasProperties", &MeshType::HasProperties)
     .def("HasElement", &MeshType::HasElement)
     .def("HasCondition", &MeshType::HasCondition)
-    .def("__repr__", &MeshType::Info)
+    .def("__str__", KRATOS_DEF_PYTHON_STR(MeshType)
     ;
 }
 }  // namespace Python.
