@@ -59,7 +59,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     class_<Variable<DEMDiscontinuumConstitutiveLaw::Pointer>, Variable<DEMDiscontinuumConstitutiveLaw::Pointer>::Pointer>(m, "DEMDiscontinuumConstitutiveLawPointerVariable")
-        .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<DEMDiscontinuumConstitutiveLaw::Pointer>)
+        .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<DEMDiscontinuumConstitutiveLaw::Pointer>))
         ;
 
     class_<DEM_D_Linear_viscous_Coulomb, DEM_D_Linear_viscous_Coulomb::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_viscous_Coulomb")
@@ -134,7 +134,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     class_<Variable<DEMContinuumConstitutiveLaw::Pointer>, Variable<DEMContinuumConstitutiveLaw::Pointer>::Pointer>(m, "DEMContinuumConstitutiveLawPointerVariable")
-        .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<DEMContinuumConstitutiveLaw::Pointer>)
+        .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<DEMContinuumConstitutiveLaw::Pointer>))
         ;
 
     class_<DEM_Dempack, DEM_Dempack::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_Dempack")
