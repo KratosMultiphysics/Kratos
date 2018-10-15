@@ -72,42 +72,62 @@
             }
         }]
     },
-    "body_output_configuration" : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "time",
-            "output_frequency"    : 0.01,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "gauss_point_results" : ["MP_VELOCITY","MP_DISPLACEMENT","MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN","MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN","MP_DENSITY"]
-        },
-        "point_data_configuration"  : []
-    },
-    "grid_output_configuration" : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "time",
-            "output_frequency"    : 0.01,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION"]
-        },
-        "point_data_configuration"  : []
+    "output_processes" : {
+        "body_output_process" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "Parameters"    : {
+                "model_part_name"           : "MPM_Material",
+                "output_name"               : "planar_granular_collapse_quad_structured_Body",
+                "postprocess_parameters"    : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "time",
+                        "output_frequency"    : 0.01,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "gauss_point_results" : ["MP_VELOCITY","MP_DISPLACEMENT","MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN","MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN","MP_DENSITY"]
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }],
+        "grid_output_process" : [{
+            "python_module" : "mpm_gid_output_process",
+            "kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
+            "process_name"  : "ParticleMPMGiDOutputProcess",
+            "Parameters"    : {
+                "model_part_name"           : "Background_Grid",
+                "output_name"               : "planar_granular_collapse_quad_structured_Grid",
+                "postprocess_parameters"    : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "time",
+                        "output_frequency"    : 0.01,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["DISPLACEMENT","REACTION"]
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }]    
     }
 }
