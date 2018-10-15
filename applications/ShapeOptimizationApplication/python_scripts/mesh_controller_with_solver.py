@@ -63,7 +63,7 @@ class MeshControllerWithSolver(MeshController) :
         self.OptimizationModelPart = model[self.MeshSolverSettings["solver_settings"]["model_part_name"].GetString()]
 
         if self.MeshSolverSettings["boundary_conditions_process_list"].size() == 0:
-            self.__ExtractAndFixWholeSurface(self.OptimizationModelPart, self.MeshSolverSettings)
+            self.__FixWholeSurface(self.OptimizationModelPart, self.MeshSolverSettings)
             self.has_automatic_boundary_process = True
         else:
             self.has_automatic_boundary_process = False
@@ -101,7 +101,8 @@ class MeshControllerWithSolver(MeshController) :
         self._mesh_moving_analysis.Finalize()
 
     # --------------------------------------------------------------------------
-    def __AddDefaultProblemData(self, mesh_solver_settings):
+    @staticmethod
+    def __AddDefaultProblemData(mesh_solver_settings):
         problem_data = Parameters("""{
             "echo_level" : 0,
             "start_time" : 0.0,
@@ -112,7 +113,8 @@ class MeshControllerWithSolver(MeshController) :
         mesh_solver_settings.AddValue("problem_data", problem_data)
 
     # --------------------------------------------------------------------------
-    def __ExtractAndFixWholeSurface(self, optimization_model_part, mesh_solver_settings):
+    @staticmethod
+    def __FixWholeSurface(optimization_model_part, mesh_solver_settings):
         optimization_model_part.CreateSubModelPart("auto_surface_nodes")
 
         auto_process_settings = Parameters(
