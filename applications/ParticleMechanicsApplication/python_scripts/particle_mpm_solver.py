@@ -4,7 +4,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
 KratosMultiphysics.CheckRegisteredApplications("ParticleMechanicsApplication")
 
 # Import applications and dependencies
@@ -60,10 +59,8 @@ class ParticleMPMSolver(PythonSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "MPM_Material",
-            "domain_size"     : 2,
-            "time_stepping" : {
-                "time_step"       : 0.0005
-            },
+            "domain_size"     : -1,
+            "time_stepping"   : {},
             "solver_type"                        : "StaticSolver",
             "echo_level"                         : 0,
             "time_integration_method"            : "Implicit",
@@ -250,12 +247,6 @@ class ParticleMPMSolver(PythonSolver):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def SolveSolutionStep(self):
-        (self.solver).Solve()
-
-    def Solve(self):
-        warn_message  = 'Using "Solve" is deprecated and will be removed in the future!\n'
-        warn_message += 'Use the "SolveSolutionStep" instead'
-        self.print_warning_on_rank_zero("::[ParticleMPMSolver]:: ", warn_message)
         (self.solver).Solve()
 
     ### Solver private functions
