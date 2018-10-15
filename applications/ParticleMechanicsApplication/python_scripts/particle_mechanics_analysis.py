@@ -128,6 +128,8 @@ class ParticleMechanicsAnalysis(AnalysisStage):
                                     self.project_parameters["body_output_configuration"])
         return gid_output
 
+    def _GetSimulationName(self):
+        return "::[Particle Mechanics Analysis]:: "
 
 if __name__ == "__main__":
     from sys import argv
