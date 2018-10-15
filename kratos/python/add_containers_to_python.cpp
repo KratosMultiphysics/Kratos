@@ -133,6 +133,16 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 
 void  AddContainersToPython(pybind11::module& m)
 {
+    typedef Variable<array_1d<double, 3> > Array1DVariable3;
+    typedef Variable<array_1d<double, 4> > Array1DVariable4;
+    typedef Variable<array_1d<double, 6> > Array1DVariable6;
+    typedef Variable<array_1d<double, 9> > Array1DVariable9;
+
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > Array1DComponentVariable;
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > Array1D4ComponentVariable;
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > Array1D6ComponentVariable;
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > Array1D9ComponentVariable;
+
     //def("TestContainers", TestContainers);
 
 //     BoundedVectorPythonInterface<array_1d<double, 3>, 3>::CreateInterface(m, "Array3" )
@@ -146,91 +156,91 @@ void  AddContainersToPython(pybind11::module& m)
 
     class_<VariableData>(m, "VariableData" )
     .def("Name", &VariableData::Name, return_value_policy::copy)
-    .def( "__repr__", &VariableData::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(VariableData))
     ;
 
     class_<Variable<std::string>, VariableData>(m, "StringVariable" )
-    .def( "__repr__", &Variable<std::string>::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<std::string>))
     ;
 
     class_<Variable<bool>, VariableData>(m, "BoolVariable" )
-    .def( "__repr__", &Variable<bool>::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<bool>))
     ;
 
     class_<Variable<int>,VariableData>(m, "IntegerVariable")
-    .def( "__repr__", &Variable<int>::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<int>))
     ;
 
     class_<Variable<DenseVector<int> >,VariableData>(m, "IntegerVectorVariable")
-    .def( "__repr__", &Variable<DenseVector<int>>::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<DenseVector<int> >))
     ;
 
     class_<Variable<double>,VariableData>(m, "DoubleVariable")
-    .def( "__repr__", &Variable<double>::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<double>))
     ;
 
     class_<Variable<Vector >,VariableData>(m, "VectorVariable")
-    .def( "__repr__", &Variable<Vector >::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<Vector >))
     ;
 
-    class_<Variable<array_1d<double, 3> >,VariableData>(m, "Array1DVariable3")
-    .def( "__repr__", &Variable<array_1d<double, 3> >::Info )
+    class_<Array1DVariable3,VariableData>(m, "Array1DVariable3")
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1DVariable3))
     ;
 
-    class_<Variable<array_1d<double, 4> >,VariableData>(m, "Array1DVariable4")
-    .def( "__repr__", &Variable<array_1d<double, 4> >::Info )
+    class_<Array1DVariable4,VariableData>(m, "Array1DVariable4")
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1DVariable4))
     ;
 
-    class_<Variable<array_1d<double, 6> >,VariableData>(m, "Array1DVariable6")
-    .def( "__repr__", &Variable<array_1d<double, 6> >::Info )
+    class_<Array1DVariable6,VariableData>(m, "Array1DVariable6")
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1DVariable6))
     ;
 
-    class_<Variable<array_1d<double, 9> >,VariableData>(m, "Array1DVariable9")
-    .def( "__repr__", &Variable<array_1d<double, 9> >::Info )
+    class_<Array1DVariable9,VariableData>(m, "Array1DVariable9")
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1DVariable9))
     ;
 
     class_<Variable<DenseMatrix<double> >,VariableData>(m, "MatrixVariable")
-    .def( "__repr__", &Variable<DenseMatrix<double> >::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<DenseMatrix<double> >))
     ;
 
     class_<Variable<ConstitutiveLaw::Pointer>,VariableData>(m, "ConstitutuveLawVariable")
-    .def( "__repr__", &Variable<ConstitutiveLaw::Pointer>::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<ConstitutiveLaw::Pointer>))
     ;
 
     class_<Variable<ConvectionDiffusionSettings::Pointer > ,VariableData>(m,"ConvectionDiffusionSettingsVariable")
-    .def( "__repr__", &Variable<ConvectionDiffusionSettings::Pointer >::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<ConvectionDiffusionSettings::Pointer >))
     ;
 
     class_<Variable<RadiationSettings::Pointer > ,VariableData>(m,"RadiationSettingsVariable")
-    .def( "__repr__", &Variable<RadiationSettings::Pointer >::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<RadiationSettings::Pointer >))
     ;
     class_<VariableComponent<VectorComponentAdaptor<Vector > >,VariableData>(m, "VectorComponentVariable")
-    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<Vector > >::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(VariableComponent<VectorComponentAdaptor<Vector > >))
     // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<Vector > >::GetSourceVariable ) // components for vector are not yet fully supported
     ;
 
-    class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >,VariableData>(m, "Array1DComponentVariable")
-    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::Info )
-    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >::GetSourceVariable )
+    class_<Array1DComponentVariable,VariableData>(m, "Array1DComponentVariable")
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1DComponentVariable))
+    .def( "GetSourceVariable", &Array1DComponentVariable::GetSourceVariable )
     ;
 
-    class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >,VariableData>(m, "Array1D4ComponentVariable")
-    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >::Info )
-    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > >::GetSourceVariable )
+    class_<Array1D4ComponentVariable,VariableData>(m, "Array1D4ComponentVariable")
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1D4ComponentVariable))
+    .def( "GetSourceVariable", &Array1D4ComponentVariable::GetSourceVariable )
     ;
 
-    class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >,VariableData>(m, "Array1D6ComponentVariable")
-    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >::Info )
-    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > >::GetSourceVariable )
+    class_<Array1D6ComponentVariable,VariableData>(m, "Array1D6ComponentVariable")
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1D6ComponentVariable))
+    .def( "GetSourceVariable", &Array1D6ComponentVariable::GetSourceVariable )
     ;
 
-    class_<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >,VariableData>(m, "Array1D9ComponentVariable")
-    .def( "__repr__", &VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >::Info )
-    .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > >::GetSourceVariable )
+    class_<Array1D9ComponentVariable,VariableData>(m, "Array1D9ComponentVariable")
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1D9ComponentVariable))
+    .def( "GetSourceVariable", &Array1D9ComponentVariable::GetSourceVariable )
     ;
 
     class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
-    .def( "__repr__", &Variable<Quaternion<double> >::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<Quaternion<double> >))
     ;
 
     //***********************************************************************
@@ -265,42 +275,42 @@ void  AddContainersToPython(pybind11::module& m)
     typedef class_<DataValueContainer, DataValueContainer::Pointer> DataValueContainerBinderType;
     DataValueContainerBinderType DataValueBinder(m, "DataValueContainer" );
     DataValueBinder.def( "__len__", &DataValueContainer::Size );
-    DataValueBinder.def( "__repr__", &DataValueContainer::Info );
+    DataValueBinder.def("__str__", KRATOS_DEF_PYTHON_STR(DataValueContainer));
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<bool> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<int> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<double> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<array_1d<double, 3>> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<array_1d<double, 4>> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<array_1d<double, 6>> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<array_1d<double, 9>> >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable3 >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable4 >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable6 >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable9 >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Vector> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Matrix> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<RadiationSettings::Pointer> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DComponentVariable >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1D4ComponentVariable >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1D6ComponentVariable >(DataValueBinder);
+    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1D9ComponentVariable >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
 
     typedef class_<VariablesListDataValueContainer, VariablesListDataValueContainer::Pointer> VariableDataValueContainerBinderType;
     VariableDataValueContainerBinderType VariableDataValueBinder(m, "VariablesListDataValueContainer" );
     VariableDataValueBinder.def( "__len__", &VariablesListDataValueContainer::Size );
-    VariableDataValueBinder.def( "__repr__", &VariablesListDataValueContainer::Info );
+    VariableDataValueBinder.def("__str__", KRATOS_DEF_PYTHON_STR(VariablesListDataValueContainer));
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<bool> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<int> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<double> >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<array_1d<double, 3>> >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<array_1d<double, 4>> >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<array_1d<double, 6>> >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<array_1d<double, 9>> >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DVariable3 >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DVariable4 >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DVariable6 >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DVariable9 >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Vector> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Matrix> >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >(VariableDataValueBinder);
-    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1DComponentVariable >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1D4ComponentVariable >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1D6ComponentVariable >(VariableDataValueBinder);
+    VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Array1D9ComponentVariable >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<Quaternion<double>> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<std::string> >(VariableDataValueBinder);
 
@@ -319,7 +329,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("Clear", &Flags::Clear)
     .def("__or__", FlagsOr)
     .def("__and__", FlagsAnd)
-    .def("__repr__", &Flags::Info )
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Flags))
     ;
 
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,STRUCTURE);
