@@ -163,6 +163,15 @@ class ParticleMPMSolver(PythonSolver):
 
         self.print_on_rank_zero("::[ParticleMPMSolver]:: ", "ModelPart prepared for Solver.")
 
+    def GetComputingModelPart(self):
+        if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
+            raise Exception("The ComputingModelPart was not created yet!")
+        return self.model.GetModelPart(self.settings["model_part_name"].GetString())
+
+    def GetGridModelPart(self):
+        if not self.model.HasModelPart("Background_Grid"):
+            raise Exception("The GridModelPart was not created yet!")
+        return self.model.GetModelPart("Background_Grid")
 
     def AddDofs(self):
         # Add dofs to different model parts
