@@ -184,8 +184,8 @@ namespace Testing {
         auto line_geom = GenerateVerticalLine2D2();
 
         // Set the points that define the intersection line
-        const Point line_pt_1(0.0,0.0,0.0);
-        const Point line_pt_2(1.0,0.0,0.0);
+        const Point line_pt_1(-1.0,0.0,0.0);
+        const Point line_pt_2(0.0,0.0,0.0);
 
         // Initialize the intersection point
         Point int_pt(0.0,0.0,0.0);
@@ -199,7 +199,7 @@ namespace Testing {
 
         // Compute and check the obtained intersection point coordinates
         const array_1d<double,3> int_pt_coords = int_pt.Coordinates();
-        KRATOS_CHECK_EQUAL(int_id, 1);
+        KRATOS_CHECK_EQUAL(int_id, 3);
         KRATOS_CHECK_NEAR(int_pt.Coordinates()[0], 0.0, 1e-6);
         KRATOS_CHECK_NEAR(int_pt.Coordinates()[1], 0.0, 1e-6);
         KRATOS_CHECK_NEAR(int_pt.Coordinates()[2], 0.0, 1e-6);
