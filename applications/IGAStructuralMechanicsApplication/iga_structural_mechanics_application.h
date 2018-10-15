@@ -71,6 +71,7 @@
 
 #include "custom_constitutive/plane_stress_2d_kinematically_enriched_law.h"
 #include "custom_constitutive/plane_stress_2d_tc_damage_law.h"
+#include "custom_constitutive/plane_stress_2d_tc_plastic_damage_law.h"
 
 namespace Kratos {
 
@@ -317,6 +318,7 @@ private:
 
     const PlaneStress2dKinematicallyEnrichedLaw mPlaneStress2dKinematicallyEnrichedLaw;
     const PlaneStress2dTCDamageLaw mPlaneStress2dTCDamageLaw;
+    const PlaneStress2dTCPlasticDamageLaw mPlaneStress2dTCPlasticDamageLaw;
     ///@}
 
     ///@name Private Operators

@@ -144,6 +144,7 @@ KRATOS_REGISTER_CONDITION("MeshlessForceInterfaceCondition", mMeshlessForceInter
 
 KRATOS_REGISTER_CONSTITUTIVE_LAW("PlaneStress2dKinematicallyEnrichedLaw", mPlaneStress2dKinematicallyEnrichedLaw);
 KRATOS_REGISTER_CONSTITUTIVE_LAW("PlaneStress2dTCDamageLaw", mPlaneStress2dTCDamageLaw);
+KRATOS_REGISTER_CONSTITUTIVE_LAW("PlaneStress2dTCPlasticDamageLaw", mPlaneStress2dTCPlasticDamageLaw);
 
 
 KRATOS_REGISTER_VARIABLE(UNIAXIAL_COMPRESSIVE_STRENGTH)
