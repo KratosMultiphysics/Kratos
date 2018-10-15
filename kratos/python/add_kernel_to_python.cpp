@@ -207,7 +207,7 @@ void AddKernelToPython(pybind11::module& m) {
         .def("GetVariableComponentVariable4Names", GetVariableNames<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >)
         .def("GetVariableComponentVariable6Names", GetVariableNames<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >)
         .def("GetVariableComponentVariable9Names", GetVariableNames<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >)
-        .def("__repr__", &Kernel::Info)
+        .def("__str__", KRATOS_DEF_PYTHON_STR(Kernel)
         .def("HasConstitutiveLaw", HasConstitutiveLaw)
         .def("GetConstitutiveLaw", GetConstitutiveLaw, return_value_policy::reference_internal)
         .def_static("Version", &Kernel::Version)
