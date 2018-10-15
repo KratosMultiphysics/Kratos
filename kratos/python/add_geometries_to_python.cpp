@@ -1,10 +1,10 @@
-//    |  /           |             
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
@@ -47,13 +47,13 @@ namespace Kratos
 
 namespace Python
 {
-    
+
     const PointerVector< Node<3> >& ConstGetPoints( Geometry<Node<3> >& geom ) { return geom.Points(); }
     PointerVector< Node<3> >& GetPoints( Geometry<Node<3> >& geom ) { return geom.Points(); }
-    
+
 void  AddGeometriesToPython(pybind11::module& m)
 {
-    using namespace pybind11; 
+    using namespace pybind11;
 
     typedef Node<3> NodeType;
     typedef NodeType::Pointer pNodeType;
@@ -70,11 +70,11 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)
     .def("Volume",&GeometryType::Volume)
-    .def("Info",&GeometryType::Info)
+    .def("__str__", KRATOS_DEF_PYTHON_STR(GeometryType)
 //     .def("Points", &GeometryType::ConstGetPoints)
 //     .def("Points", &GeometryType::GetPoints)
     ;
-    
+
     // 2D
     class_<Line2D2<NodeType>, Line2D2<NodeType>::Pointer,  GeometryType  >(m,"Line2D2").def( init<pNodeType, pNodeType>())
     ;
@@ -120,7 +120,7 @@ void  AddGeometriesToPython(pybind11::module& m)
 //     ;
 //     class_<Hexahedra3D27<NodeType>, Hexahedra3D27<NodeType>::Pointer,  GeometryType  >(m,"Hexahedra3D27").def( init<pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType, pNodeType>())
 //     ;
-     
+
 }
 
 }  // namespace Python.
