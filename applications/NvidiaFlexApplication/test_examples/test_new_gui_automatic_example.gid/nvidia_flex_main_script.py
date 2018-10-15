@@ -1,0 +1,1 @@
+/home/maceli/kratos/applications/NvidiaFlexApplication/python_scripts/nvidia_flex_main_script.py

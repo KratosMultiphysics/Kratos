@@ -173,6 +173,12 @@ namespace Kratos {
         SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
         SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
         ComputeNewRigidFaceNeighboursHistoricalData();
+        
+        // SIEMENS PROJECT
+        //       
+        MarkToDeleteAllSpheresInitiallyIndentedWithFEM(*mpDem_model_part);
+        //
+        // SIEMENS PROJECT
 
         //set flag to 2 (search performed this timestep)
         mSearchControl = 2;
@@ -195,6 +201,26 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }// Initialize()
+    
+    void ExplicitSolverStrategy::MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart) {
+
+        ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
+        
+        #pragma omp parallel for
+        
+        for (int k = 0; k < (int)pElements.size(); k++) {
+            
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            Element* p_element = &(*it);
+            SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(p_element);
+
+            if (p_sphere->mNeighbourRigidFaces.size()) {
+                
+                p_sphere->Set(TO_ERASE);
+                p_sphere->GetGeometry()[0].Set(TO_ERASE);
+            }
+        }
+    }
 
     void ExplicitSolverStrategy::ComputeNodalArea() {
 
@@ -709,7 +735,6 @@ namespace Kratos {
             mListOfSphericParticles[i]->Initialize(r_process_info);
             total_mass += mListOfSphericParticles[i]->GetMass();
         }
-
 
         KRATOS_CATCH("")
     }
