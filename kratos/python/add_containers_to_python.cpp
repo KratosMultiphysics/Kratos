@@ -236,17 +236,14 @@ void  AddContainersToPython(pybind11::module& m)
     ;
 
     class_<Variable<ConstitutiveLaw::Pointer>,VariableData>(m, "ConstitutuveLawVariable")
-    .def(init<>( [](const std::string& name){return CreateVariable< Variable< ConstitutiveLaw::Pointer > >(name);} ))
     .def( "__repr__", &Variable<ConstitutiveLaw::Pointer>::Info )
     ;
 
     class_<Variable<ConvectionDiffusionSettings::Pointer > ,VariableData>(m,"ConvectionDiffusionSettingsVariable")
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<ConvectionDiffusionSettings::Pointer >>(name);} ))
     .def( "__repr__", &Variable<ConvectionDiffusionSettings::Pointer >::Info )
     ;
 
     class_<Variable<RadiationSettings::Pointer > ,VariableData>(m,"RadiationSettingsVariable")
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<RadiationSettings::Pointer >>(name);} ))
     .def( "__repr__", &Variable<RadiationSettings::Pointer >::Info )
     ;
     class_<VariableComponent<VectorComponentAdaptor<Vector > >,VariableData>(m, "VectorComponentVariable")
@@ -295,7 +292,6 @@ void  AddContainersToPython(pybind11::module& m)
     ;
 
     class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
-    .def(init<>( [](const std::string& name){return CreateVariable<Variable<Quaternion<double> >>(name);} ))
     .def( "__repr__", &Variable<Quaternion<double> >::Info )
     ;
 

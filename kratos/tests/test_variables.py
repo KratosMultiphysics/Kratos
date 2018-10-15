@@ -24,8 +24,6 @@ class TestVariables(KratosUnittest.TestCase):
 
         NEW_DOUBLE_VECTOR_VARIABLE = KratosMultiphysics.VectorVariable("NEW_DOUBLE_VECTOR_VARIABLE")
 
-        NEW_Q_VARIABLE = KratosMultiphysics.DoubleQuaternionVariable("NEW_Q_VARIABLE")
-
         NEW_VARIABLE = KratosMultiphysics.Array1DVariable3("NEW_VARIABLE")
 
 
@@ -36,8 +34,8 @@ class TestVariables(KratosUnittest.TestCase):
 
     @KratosUnittest.expectedFailure
     def test_CreateDuplicateVariableComponentFail(self):
-        NEW_VARIABLE_TWO = KratosMultiphysics.Array1DVariable3("NEW_VARIABLE_TWO")
-        NEW_VARIABLE_TWO_X = KratosMultiphysics.Array1DComponentVariable("NEW_VARIABLE_TWO_X", "NEW_VARIABLE_TWO", 1)
+        NEW_DOUBLE_VECTOR_VARIABLE_TWO = KratosMultiphysics.Array1DVariable3("NEW_DOUBLE_VECTOR_VARIABLE_TWO")
+        NEW_DOUBLE_VECTOR_VARIABLE_TWO_X = KratosMultiphysics.Array1DComponentVariable("NEW_DOUBLE_VECTOR_VARIABLE_TWO_X", "NEW_DOUBLE_VECTOR_VARIABLE_TWO", 1)
 
 
 
