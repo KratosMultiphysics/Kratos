@@ -19,6 +19,7 @@
 
 
 // Project includes
+#include "includes/define_python.h"
 #include "add_modeler_to_python.h"
 #include "modeler/modeler.h"
 #include "modeler/edge_swapping_2d_modeler.h"
