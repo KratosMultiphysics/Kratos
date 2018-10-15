@@ -80,8 +80,8 @@
         "python_module"   : "integration_point_statistics_process",
         "help"            : "",
         "process_name"    : "IntegrationPointStatisticsProcess",
-        "model_part_name" : "Parts_Fluid",
         "Parameters" : {
+            "model_part_name" : "Parts_Fluid",
             "statistics" : [
                 {
                     "type" : "average",

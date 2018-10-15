@@ -11,7 +11,9 @@ def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 
-    # TODO: pass the model directly
-    model_part = model.GetModelPart(settings["model_part_name"].GetString())
+    if not settings["Parameters"].Has("model_part_name"):
+        msg = "Provided settings argument does not contain the model part name.\n"
+        msg += "Please provide it as the Parameters/model_part_name (string) argument."
+        raise Exception(msg)
 
-    return KratosCFD.IntegrationPointStatisticsProcess(model_part, settings["Parameters"])
+    return KratosCFD.IntegrationPointStatisticsProcess(model, settings["Parameters"])

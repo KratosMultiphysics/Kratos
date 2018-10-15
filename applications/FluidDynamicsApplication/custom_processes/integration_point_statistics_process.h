@@ -65,10 +65,18 @@ KRATOS_CLASS_POINTER_DEFINITION(IntegrationPointStatisticsProcess);
 ///@name Life Cycle
 ///@{
 
-/// Default constructor.
+/// Constructor.
 IntegrationPointStatisticsProcess(ModelPart& rModelPart, Kratos::Parameters Parameters):
     Process(),
     mrModelPart(rModelPart),
+    mParameters(Parameters),
+    mStartTime(0.0)
+{}
+
+/// Default constructor.
+IntegrationPointStatisticsProcess(Model& rModel, Kratos::Parameters Parameters):
+    Process(),
+    mrModelPart(rModel.GetModelPart(Parameters["model_part_name"].GetString())),
     mParameters(Parameters),
     mStartTime(0.0)
 {}
@@ -172,7 +180,8 @@ void CreateStatisticsFromInput()
     // Validate parameters
     Kratos::Parameters default_parameters = Kratos::Parameters(R"({
         "statistics" : [],
-        "output_file_name": "statistics.csv"
+        "output_file_name": "statistics.csv",
+        "model_part_name": ""
     })");
 
     mParameters.ValidateAndAssignDefaults(default_parameters);

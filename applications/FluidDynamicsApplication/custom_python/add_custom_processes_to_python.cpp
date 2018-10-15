@@ -20,6 +20,7 @@
 #endif // KRATOS_USE_AMATRIX
 
 // Project includes
+#include "containers/model.h"
 #include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
@@ -110,6 +111,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     class_<IntegrationPointStatisticsProcess, IntegrationPointStatisticsProcess::Pointer, Process>
     (m, "IntegrationPointStatisticsProcess")
+    .def(init<Model&, Kratos::Parameters>())
     ;
 
     class_<MoveRotorProcess, MoveRotorProcess::Pointer, Process>
