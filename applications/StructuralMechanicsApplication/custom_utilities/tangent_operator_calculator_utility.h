@@ -315,9 +315,6 @@ public:
         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
         pConstitutiveLaw->CalculateMaterialResponse(rValues, rStressMeasure);
-
-        // We set back
-        cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, back_flag);
     }
 
     /**
