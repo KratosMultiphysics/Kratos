@@ -504,24 +504,17 @@ void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<double>&
     if (rValues.size() != size)
         rValues.resize(size);
 
-	// The membrane formulation needs to iterate to find the correct
-	// mid-surface strain values.
-	//
-	// Check if we are doing a non-linear analysis type. If not, print warning
-	// for just the first element.
+    // The membrane formulation needs to iterate to find the correct
+    // mid-surface strain values.
+    // Check if we are doing a non-linear analysis type. If not, print warning
 
-    if (this->Id() == 1)
-	{
-		if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
-		{
-			std::cout << "\nWARNING:\nGauss point results have been requested for a linear analysis."
-				<< "\nThe membrane formulation used in the specified shell element"
-				<< "(ShellThickElement3D4N) requires iteration to accurately determine "
-				<< "recovered quantities (strain, stress, etc...).\n"
-				<< "Please switch to 'analysis_type = Non-Linear' in your json file for accurate recovered quantities."
-				<< std::endl;
-		}
-	}
+    if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
+    {
+        KRATOS_WARNING_ONCE("ShellThickElement3D4N") << "Warning: Gauss point results have "
+            << "been requested for a linear analysis.\nThe membrane formulation used "
+            << "requires iteration to accurately determine recovered "
+            << "quantities (strain, stress, etc...)." << std::endl;
+    }
 
 	if (rVariable == VON_MISES_STRESS ||
 		rVariable == VON_MISES_STRESS_TOP_SURFACE ||
@@ -800,24 +793,17 @@ void ShellThickElement3D4N::CalculateOnIntegrationPoints(const Variable<Matrix>&
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-	// The membrane formulation needs to iterate to find the correct
-	// mid-surface strain values.
-	//
-	// Check if we are doing a non-linear analysis type. If not, print warning
-	// for just the first element.
+    // The membrane formulation needs to iterate to find the correct
+    // mid-surface strain values.
+    // Check if we are doing a non-linear analysis type. If not, print warning
 
-	if (this->Id() == 1)
-	{
-		if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
-		{
-			std::cout << "\nWARNING:\nGauss point results have been requested for a linear analysis."
-				<< "\nThe membrane formulation used in the specified shell element"
-				<< "(ShellThickElement3D4N) requires iteration to accurately determine "
-				<< "recovered quantities (strain, stress, etc...).\n"
-				<< "Please switch to 'analysis_type = Non-Linear' in your json file for accurate recovered quantities."
-				<< std::endl;
-		}
-	}
+    if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
+    {
+        KRATOS_WARNING_ONCE("ShellThickElement3D4N") << "Warning: Gauss point results have "
+            << "been requested for a linear analysis.\nThe membrane formulation used "
+            << "requires iteration to accurately determine recovered "
+            << "quantities (strain, stress, etc...)." << std::endl;
+    }
 
 
     if(TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;

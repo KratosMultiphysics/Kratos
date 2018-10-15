@@ -56,13 +56,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.Mapper = mapper_factory.CreateMapper(self.DesignSurface, OptimizationSettings["design_variables"]["filter"])
         self.DataLogger = data_logger_factory.CreateDataLogger(ModelPartController, Communicator, OptimizationSettings)
 
-        self.GeometryUtilities = GeometryUtilities(self.DesignSurface)
         self.OptimizationUtilities = OptimizationUtilities(self.DesignSurface, OptimizationSettings)
-
-        self.isDampingSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
-        if self.isDampingSpecified:
-            damping_regions = self.ModelPartController.GetDampingRegions()
-            self.DampingUtilities = DampingUtilities(self.DesignSurface, damping_regions, OptimizationSettings)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -90,9 +84,9 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         timer = Timer()
         timer.StartTimer()
 
-        for self.optimizationIteration in range(1,self.maxIterations):
+        for self.optimization_iteration in range(1,self.maxIterations):
             print("\n>===================================================================")
-            print("> ",timer.GetTimeStamp(),": Starting optimization iteration ", self.optimizationIteration)
+            print("> ",timer.GetTimeStamp(),": Starting optimization iteration ", self.optimization_iteration)
             print(">===================================================================\n")
 
             timer.StartNewLap()
@@ -131,7 +125,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.Communicator.requestValueOf(self.only_con["identifier"].GetString())
         self.Communicator.requestGradientOf(self.only_con["identifier"].GetString())
 
-        self.Analyzer.AnalyzeDesignAndReportToCommunicator(self.DesignSurface, self.optimizationIteration, self.Communicator)
+        self.Analyzer.AnalyzeDesignAndReportToCommunicator(self.DesignSurface, self.optimization_iteration, self.Communicator)
 
         objGradientDict = self.Communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
         conGradientDict = self.Communicator.getStandardizedGradient(self.only_con["identifier"].GetString())
@@ -140,17 +134,16 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         WriteDictionaryDataOnNodalVariable(conGradientDict, self.OptimizationModelPart, DC1DX)
 
         if self.only_obj["project_gradient_on_surface_normals"].GetBool() or self.only_con["project_gradient_on_surface_normals"].GetBool():
-            self.GeometryUtilities.ComputeUnitSurfaceNormals()
+            self.ModelPartController.ComputeUnitSurfaceNormals()
 
         if self.only_obj["project_gradient_on_surface_normals"].GetBool():
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
+            self.ModelPartController.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
 
         if self.only_con["project_gradient_on_surface_normals"].GetBool():
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
+            self.ModelPartController.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
 
-        if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(DF1DX)
-            self.DampingUtilities.DampNodalVariable(DC1DX)
+        self.ModelPartController.DampNodalVariableIfSpecified(DF1DX)
+        self.ModelPartController.DampNodalVariableIfSpecified(DC1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
@@ -164,8 +157,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.OptimizationUtilities.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
 
-        if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(SHAPE_UPDATE)
+        self.ModelPartController.DampNodalVariableIfSpecified(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):
@@ -190,20 +182,21 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.algorithm_settings["line_search"]["step_size"].GetDouble()
         additional_values_to_log["correction_scaling"] = self.algorithm_settings["correction_scaling"].GetDouble()
-        self.DataLogger.LogCurrentValues(self.optimizationIteration, additional_values_to_log)
+        self.DataLogger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
+        self.DataLogger.LogCurrentDesign(self.optimization_iteration)
 
     # --------------------------------------------------------------------------
     def __isAlgorithmConverged(self):
 
-        if self.optimizationIteration > 1 :
+        if self.optimization_iteration > 1 :
 
             # Check if maximum iterations were reached
-            if self.optimizationIteration == self.maxIterations:
+            if self.optimization_iteration == self.maxIterations:
                 print("\n> Maximal iterations of optimization problem reached!")
                 return True
 
             # Check for relative tolerance
-            relativeChangeOfObjectiveValue = self.DataLogger.GetValue("rel_change_obj", self.optimizationIteration)
+            relativeChangeOfObjectiveValue = self.DataLogger.GetValue("rel_change_obj", self.optimization_iteration)
             if abs(relativeChangeOfObjectiveValue) < self.relativeTolerance:
                 print("\n> Optimization problem converged within a relative objective tolerance of ",self.relativeTolerance,"%.")
                 return True

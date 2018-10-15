@@ -44,7 +44,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) IsochoricOgdenModel : public OgdenModel
+  class IsochoricOgdenModel : public OgdenModel
   {
   public:
 

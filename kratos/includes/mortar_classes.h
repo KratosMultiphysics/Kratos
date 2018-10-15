@@ -515,16 +515,16 @@ public:
     ~MortarKinematicVariablesWithDerivatives() override= default;
 
     // Shape functions local derivatives for contact pair
-    Matrix DNDeMaster = Matrix(TNumNodesMaster, TDim - 1, 0.0);
-    Matrix DNDeSlave = Matrix(TNumNodes, TDim - 1, 0.0);
+    Matrix DNDeMaster = ScalarMatrix(TNumNodes, TDim - 1, 0.0);
+    Matrix DNDeSlave = ScalarMatrix(TNumNodes, TDim - 1, 0.0);
 
     /*
     * Jacobians in current configuration on all integration points of slave segment
     * Only those two variables contain info on all GP
     * other variables contain info only on the currently-calculated GP
     */
-    Matrix jSlave = Matrix(TDim, TDim - 1, 0.0);
-    Matrix jMaster = Matrix(TDim, TDim - 1, 0.0);
+    Matrix jSlave = ScalarMatrix(TDim, TDim - 1, 0.0);
+    Matrix jMaster = ScalarMatrix(TDim, TDim - 1, 0.0);
 
     ///@}
     ///@name Operators

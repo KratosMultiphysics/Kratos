@@ -32,7 +32,7 @@ namespace Kratos
 
 
 
-class NewHenckyTrescaPlasticPlaneStrain2DLaw 
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) NewHenckyTrescaPlasticPlaneStrain2DLaw 
   : public HenckyTrescaPlasticPlaneStrain2DLaw
 
 {

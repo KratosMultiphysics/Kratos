@@ -20,6 +20,7 @@
         "material_import_settings"           : {
             "materials_filename" : "shell_test/Shell_linear_static_pinched_cylinder_materials.json"
         },
+        "multi_point_constraints_used"       : false,
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,

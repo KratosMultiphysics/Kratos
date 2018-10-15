@@ -24,6 +24,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
     Furthermore it can be used for testing in MPI where the node numbers can change
     """
     def __init__(self, model, params):
+        KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters('''{
             "help"            : "This process writes results from a geometrical position (point) in the model to a file. It first searches the entity containing the requested output location and then interpolates the requested variable(s). The output can be requested for elements, conditions and nodes. For nodes no geometrical interpolation is performed, the exact coordinates have to be specified. This process works in MPI as well as with restarts. It can serve as a basis for other processes (e.g. MultiplePointsOutputProcess). Furthermore it can be used for testing in MPI where the node numbers can change",
@@ -142,7 +143,9 @@ class PointOutputProcess(KratosMultiphysics.Process):
         # i.e. if no entity was found then also no output_file will be
         # initialized which means that the loop body will never be executed
         for var_list,ent,coord,f in zip(self.output_variables, self.entity, self.area_coordinates, self.output_file):
-            out = "{0:.12g}".format(time) # making the format more readable
+            # not formatting time in order to not lead to problems with time recognition
+            # in the file writer when restarting
+            out = str(time)
             for var in var_list:
                 value = Interpolate(var, ent, coord)
 

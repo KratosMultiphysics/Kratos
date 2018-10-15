@@ -531,7 +531,7 @@ void QSVMS<TElementData>::AddMassStabilization(
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
+void QSVMS<TElementData>::AddBoundaryTraction(TElementData& rData,
     const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
 
     BoundedMatrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
@@ -566,9 +566,9 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
         for (unsigned int d = 0; d < Dim; d++) {
             const unsigned int row = i*BlockSize + d;
             for (unsigned int col = 0; col < LocalSize; col++) {
-                rLHS(row,col) -= wni*normal_stress_operator(d,col);
+                rLHS(row,col) += wni*normal_stress_operator(d,col);
             }
-            rRHS[row] += wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
+            rRHS[row] -= wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
         }
     }
 }
@@ -671,7 +671,7 @@ void QSVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProces
     this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
     const unsigned int NumGauss = GaussWeights.size();
 
-    array_1d<double,NumNodes*Dim> momentum_rhs(NumNodes*Dim,0.0);
+    array_1d<double,NumNodes*Dim> momentum_rhs = ZeroVector(NumNodes*Dim);
     VectorType MassRHS = ZeroVector(NumNodes);
     VectorType NodalArea = ZeroVector(NumNodes);
 
@@ -683,7 +683,7 @@ void QSVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProces
         data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
         this->CalculateMaterialResponse(data);
 
-        array_1d<double, 3> MomentumRes(3, 0.0);
+        array_1d<double, 3> MomentumRes = ZeroVector(3);
         double MassRes = 0.0;
 
         array_1d<double,3> convective_velocity = this->GetAtCoordinate(data.Velocity,data.N) - this->GetAtCoordinate(data.MeshVelocity,data.N);
@@ -727,7 +727,7 @@ void QSVMS<TElementData>::SubscaleVelocity(
     array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
     this->CalculateTau(rData,convective_velocity,tau_one,tau_two);
 
-    array_1d<double,3> Residual(3,0.0);
+    array_1d<double,3> Residual = ZeroVector(3);
 
     if (rData.UseOSS != 1.0)
         this->AlgebraicMomentumResidual(rData,convective_velocity,Residual);

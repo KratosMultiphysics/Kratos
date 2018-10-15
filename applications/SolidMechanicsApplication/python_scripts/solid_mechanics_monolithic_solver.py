@@ -8,8 +8,8 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-def CreateSolver(custom_settings):
-    return MonolithicSolver(custom_settings)
+def CreateSolver(custom_settings, Model):
+    return MonolithicSolver(Model, custom_settings)
 
 #Base class to develop other solvers
 class MonolithicSolver(object):
@@ -38,9 +38,10 @@ class MonolithicSolver(object):
     settings -- Kratos parameters containing solver settings.
     model_part -- the model part used to construct the solver (computing_model_part).
     """
-    def __init__(self, custom_settings):
+    def __init__(self, Model, custom_settings):
         default_settings = KratosMultiphysics.Parameters("""
         {
+            "solving_model_part": "computing_domain",
             "dofs": [],
             "time_integration_settings":{
                 "solution_type": "Dynamic",
@@ -61,12 +62,14 @@ class MonolithicSolver(object):
             "solving_strategy_settings":{
                 "builder_type": "block_builder",
                 "line_search": false,
+                "line_search_type": 0,
                 "implex": false,
                 "compute_reactions": true,
                 "move_mesh_flag": true,
                 "iterative_update": true,
                 "clear_storage": false,
                 "reform_dofs_at_each_step": false,
+                "adaptive_solution": false,
                 "max_iteration": 10
             },
             "linear_solver_settings":{
@@ -100,19 +103,11 @@ class MonolithicSolver(object):
         self.settings["linear_solver_settings"].ValidateAndAssignDefaults(default_settings["linear_solver_settings"])
         #print("Monolithic Solver Settings",self.settings.PrettyPrintJsonString())
 
+        # Model
+        self.model = Model
+
         # Echo level
         self.echo_level = 0
-
-
-    def GetMinimumBufferSize(self):
-        buffer_size = self.settings["time_integration_settings"]["buffer_size"].GetInt()
-        time_integration_order = self.settings["time_integration_settings"]["time_integration_order"].GetInt()
-        if( buffer_size <= time_integration_order ):
-            buffer_size = time_integration_order + 1
-        return buffer_size;
-
-    def SetComputingModelPart(self, computing_model_part):
-        self.model_part = computing_model_part
 
 
     def ExecuteInitialize(self):
@@ -122,7 +117,6 @@ class MonolithicSolver(object):
 
         # Configure model and solver
         self._set_integration_parameters()
-
 
     def ExecuteBeforeSolutionLoop(self):
 
@@ -156,6 +150,7 @@ class MonolithicSolver(object):
     def Clear(self):
         if self.settings["solving_strategy_settings"]["clear_storage"].GetBool():
             self._get_mechanical_solver().Clear()
+        self._check_reform_dofs()
 
     def Check(self):
         self._get_mechanical_solver().Check()
@@ -165,7 +160,7 @@ class MonolithicSolver(object):
 
     def Solve(self):
         self.Clear()
-        self._get_mechanical_solver().Solve()
+        return self._get_mechanical_solver().Solve()
 
     # step by step:
 
@@ -174,8 +169,7 @@ class MonolithicSolver(object):
         self._get_mechanical_solver().InitializeSolutionStep()
 
     def SolveSolutionStep(self):
-        is_converged = self._get_mechanical_solver().SolveSolutionStep()
-        return is_converged
+        return self._get_mechanical_solver().SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
         self._get_mechanical_solver().FinalizeSolutionStep()
@@ -183,31 +177,84 @@ class MonolithicSolver(object):
 
     #### Solver internal methods ####
 
+    def _check_adaptive_solution(self):
+        return self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool()
+
+    def _check_reform_dofs(self):
+        if self._domain_parts_updated():
+            if not self._get_mechanical_solver().GetOptions().Is(KratosSolid.SolverLocalFlags.REFORM_DOFS):
+                self._get_mechanical_solver().GetOptions().Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, True)
+                KratosMultiphysics.Logger.PrintInfo("", self._class_prefix()+" Set flag (REFORM_DOFS:true)")
+        else:
+            if self._get_mechanical_solver().GetOptions().Is(KratosSolid.SolverLocalFlags.REFORM_DOFS):
+                self._get_mechanical_solver().GetOptions().Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, False)
+                KratosMultiphysics.Logger.PrintInfo("", self._class_prefix()+" Set flag (REFORM_DOFS:false)")
+
+    def _domain_parts_updated(self):
+        update_time = False
+        if not self._is_not_restarted():
+            if self.process_info.Has(KratosSolid.RESTART_STEP_TIME):
+                update_time = self._check_current_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME])
+
+        if not update_time and self.process_info.Has(KratosSolid.MESHING_STEP_TIME):
+            update_time = self._check_previous_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
+
+        if not update_time and self.process_info.Has(KratosSolid.CONTACT_STEP_TIME):
+            update_time = self._check_previous_time_step(self.process_info[KratosSolid.CONTACT_STEP_TIME])
+
+        return update_time
+
+    def _check_current_time_step(self, step_time):
+        current_time  = self.process_info[KratosMultiphysics.TIME]
+        delta_time    = self.process_info[KratosMultiphysics.DELTA_TIME]
+        #arithmetic floating point tolerance
+        tolerance = delta_time * 0.001
+
+        if( step_time > current_time-tolerance and step_time < current_time+tolerance ):
+            return True
+        else:
+            return False
+
+    def _check_previous_time_step(self, step_time):
+        current_time  = self.process_info[KratosMultiphysics.TIME]
+        delta_time    = self.process_info[KratosMultiphysics.DELTA_TIME]
+        previous_time = current_time - delta_time
+
+        #arithmetic floating point tolerance
+        tolerance = delta_time * 0.001
+
+        if( step_time > previous_time-tolerance and step_time < previous_time+tolerance ):
+            return True
+        else:
+            return False
+
     def _check_initialized(self):
-        if( not self._is_not_restarted() ):
-            self._get_solution_scheme().Initialize(self.main_model_part)
+        if not self._is_not_restarted():
+            mechanical_solver = self._get_mechanical_solver()
             if hasattr(mechanical_solver, 'SetInitializePerformedFlag'):
-                self.get_mechanical_solver.SetInitializePerformedFlag(True)
+                mechanical_solver.SetInitializePerformedFlag(True)
             else:
-                self.get_mechanical_solver.Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
+                mechanical_solver.Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
 
     def _is_not_restarted(self):
-        if( self.process_info.Has(KratosMultiphysics.IS_RESTARTED) ):
-            if( self.process_info[KratosMultiphysics.IS_RESTARTED] == False ):
-                return True
-            else:
+        if self.process_info.Has(KratosMultiphysics.IS_RESTARTED):
+            if self.process_info[KratosMultiphysics.IS_RESTARTED]:
                 return False
+            else:
+                return True
         else:
             return True
 
     def _set_model_info(self):
 
-        # Main model part and computing model part
+        # Get solving model part
+        self.model_part = self.model[self.settings["solving_model_part"].GetString()]
+
+        # Main model part from computing model part
         self.main_model_part = self.model_part.GetRootModelPart()
 
         # Process information
         self.process_info = self.main_model_part.ProcessInfo
-
 
     def _set_integration_parameters(self):
         # Add dofs
@@ -246,12 +293,18 @@ class MonolithicSolver(object):
             self._mechanical_solver = self._create_mechanical_solver()
         return self._mechanical_solver
 
+    def _get_minimum_buffer_size(self):
+        buffer_size = self.settings["time_integration_settings"]["buffer_size"].GetInt()
+        time_integration_order = self.settings["time_integration_settings"]["time_integration_order"].GetInt()
+        if( buffer_size <= time_integration_order ):
+            buffer_size = time_integration_order + 1
+        return buffer_size;
 
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
-        buffer_size = self.GetMinimumBufferSize()
+        buffer_size = self._get_minimum_buffer_size()
         self.main_model_part.SetBufferSize(buffer_size)
         # Cycle the buffer. This sets all historical nodal solution step data to
         # the current value and initializes the time stepping in the process info.
@@ -265,7 +318,6 @@ class MonolithicSolver(object):
             time = time + delta_time
             self.process_info.SetValue(KratosMultiphysics.STEP, step)
             self.main_model_part.CloneTimeStep(time)
-        self.process_info[KratosMultiphysics.IS_RESTARTED] = False
 
     def _create_solution_scheme(self):
         import schemes_factory

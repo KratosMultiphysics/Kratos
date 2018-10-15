@@ -12,9 +12,9 @@
 // External includes
 
 // Project includes
+#include "custom_python/add_custom_strategies_to_python.h"
 #include "spaces/ublas_space.h"
 #include "utilities/openmp_utils.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 
 // Solution strategies
 #include "custom_solvers/solution_strategies/newton_raphson_strategy.hpp"
@@ -97,18 +97,18 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef NewtonRaphsonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>       NewtonRaphsonStrategyType;
   typedef LineSearchSolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>     LineSearchStrategyType;
   typedef ExplicitSolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>         ExplicitStrategyType;
-  typedef ExplicitHamiltonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitHamiltonStrategyType;
+  //typedef ExplicitHamiltonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitHamiltonStrategyType;
   typedef EigensolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>           EigensolverStrategyType;
 
   // Solution builder_and_solver types
   typedef ReductionBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>               ReductionBuilderAndSolverType;
   typedef BlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>                       BlockBuilderAndSolverType;
   typedef ExplicitBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>                 ExplicitBuilderAndSolverType;
-  typedef ExplicitHamiltonBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitHamiltonBuilderAndSolverType;
+  //typedef ExplicitHamiltonBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitHamiltonBuilderAndSolverType;
 
   // Solution scheme types
   typedef ExplicitCentralDifferencesScheme<SparseSpaceType, LocalSpaceType>    ExplicitCentralDifferencesSchemeType;
-  typedef ExplicitHamiltonScheme<SparseSpaceType, LocalSpaceType>                        ExplicitHamiltonSchemeType;
+  //typedef ExplicitHamiltonScheme<SparseSpaceType, LocalSpaceType>                        ExplicitHamiltonSchemeType;
   typedef EigensolverScheme<SparseSpaceType, LocalSpaceType>                                  EigensolverSchemeType;
 
   typedef StaticScheme<SparseSpaceType, LocalSpaceType>                                            StaticSchemeType;
@@ -221,6 +221,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def(init<>())
       .def_readonly_static("INITIALIZED", &SolverLocalFlags::INITIALIZED)
       .def_readonly_static("CONVERGED", &SolverLocalFlags::CONVERGED)
+      .def_readonly_static("ADAPTIVE_SOLUTION", &SolverLocalFlags::ADAPTIVE_SOLUTION)
       .def_readonly_static("MOVE_MESH", &SolverLocalFlags::MOVE_MESH)
       .def_readonly_static("UPDATE_VARIABLES", &SolverLocalFlags::UPDATE_VARIABLES)
       .def_readonly_static("REFORM_DOFS", &SolverLocalFlags::REFORM_DOFS)
@@ -282,7 +283,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   // Solid Mechanics Newton Raphson Line Search Strategy
   class_<LineSearchStrategyType, typename LineSearchStrategyType::Pointer, NewtonRaphsonStrategyType>(m,"LineSearchStrategy")
       .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int, unsigned int>())
       .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int, unsigned int>())
       ;
 
   // Solid Mechanics Explicit Strategy
