@@ -71,7 +71,11 @@ class Solution(object):
 
         # Creating necessary directories:
         self.problem_name = self.GetProblemTypeFilename()
-        [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name))
+
+        [self.post_path,
+        self.data_and_results,
+        self.graphs_path,
+        MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name))
 
         # Prepare modelparts
         self.CreateModelParts()
@@ -448,6 +452,8 @@ class Solution(object):
             self.BeforePrintingOperations(self.time)
             self.PrintResults()
             self.FinalizeTimeStep(self.time)
+            if self.BreakOut():
+                break
 
     def RunAnalytics(self, time, is_time_to_print=True):
         for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
@@ -502,7 +508,10 @@ class Solution(object):
         self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess(self.time))
 
     def FinalizeTimeStep(self, time):
-        pass
+        self.BreakOut()
+
+    def BreakOut(self):
+        return False
 
     def Finalize(self):
 
