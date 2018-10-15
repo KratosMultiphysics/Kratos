@@ -254,21 +254,13 @@ void  AddBasicOperations(pybind11::module& m)
     //NOTE: deliberatly avoiding defining a Pointer handler, to make it incompatible with the Kratos. all uses should pass through the AuxiliaryMatrixWrapper
     class_< Epetra_FECrsMatrix  > (m,"Epetra_FECrsMatrix")
     .def(init< Epetra_FECrsMatrix& >())
-    .def("__repr__",[](const Epetra_FECrsMatrix& self){
-            std::stringstream ss;
-            ss << self;
-            return ss.str();
-        })
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Epetra_FECrsMatrix))
     ;
 
     //NOTE: deliberatly avoiding defining a Pointer handler, to make it incompatible with the Kratos. all uses should pass through the AuxiliaryVectorWrapper
     class_< Epetra_FEVector > (m,"Epetra_FEVector").def(init< Epetra_FEVector& >())
     .def("SetValue", SetValue)
-    .def("__repr__",[](const Epetra_FEVector& self){
-            std::stringstream ss;
-            ss << self;
-            return ss.str();
-        })
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Epetra_FEVector))
     ;
 
     class_< AuxiliaryMatrixWrapper > (m,"TrilinosMatrixPointer")//.def(init< TrilinosSparseSpaceType::MatrixPointerType > ())
@@ -310,11 +302,7 @@ void  AddBasicOperations(pybind11::module& m)
     .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
     .def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix)
     .def("SetValue", SetValue)
-    .def("__repr__",[](const TrilinosSparseSpaceType& self){
-            std::stringstream ss;
-            self.PrintInfo(ss);
-            return ss.str();
-        })
+    .def("__str__", KRATOS_DEF_PYTHON_STR(TrilinosSparseSpaceType))
     ;
 
 

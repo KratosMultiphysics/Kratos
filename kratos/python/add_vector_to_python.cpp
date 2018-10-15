@@ -99,7 +99,7 @@ namespace Python
 #endif // KRATOS_USE_AMATRIX
 
         binder.def("__iter__", [](TVectorType& self){ return make_iterator(self.begin(), self.end(), return_value_policy::reference_internal); } , keep_alive<0,1>() ) ;
-        binder.def("__repr__", [](const TVectorType& self) -> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; });
+        binder.def("__str__", KRATOS_DEF_PYTHON_STR(TVectorType));
 
         return binder;
         }
@@ -126,7 +126,7 @@ namespace Python
         .def("__rdiv__", [](VectorSlice vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar;}, is_operator())
         .def("__add__", [](const VectorSlice& vec1, const VectorSlice& vec2){Vector aux(vec1); aux += vec2; return aux;}, is_operator())
         .def("__sub__", [](const VectorSlice& vec1, const VectorSlice& vec2){Vector aux(vec1); aux -= vec2; return aux;}, is_operator())
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
 			.def("__setitem__", [](VectorSlice& self, const unsigned int i, const typename VectorSlice::data_type value) {self[i] = value; })
 #else
 			.def("__setitem__", [](VectorSlice& self, const unsigned int i, const typename VectorSlice::value_type value) {self[i] = value; })
@@ -152,12 +152,12 @@ namespace Python
                 self[start] = value[i]; start += step;
             }
         })
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
 		.def("__iter__", [](VectorSlice& self){ return make_iterator(self.data(), self.data() + self.size(), return_value_policy::reference_internal); } , keep_alive<0,1>() )
 #else
 		.def("__iter__", [](VectorSlice& self){ return make_iterator(self.begin(), self.end(), return_value_policy::reference_internal); } , keep_alive<0,1>() )
 #endif // ifdef KRATOS_USE_AMATRIX
-		.def("__repr__", [](const VectorSlice& self) -> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; })
+        .def("__str__", KRATOS_DEF_PYTHON_STR(VectorSlice))
         ;
 
         auto vector_binder = CreateVectorInterface<Vector>(m, "Vector");

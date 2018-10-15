@@ -41,8 +41,8 @@ namespace Python
     //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     class_<Variable<TurbulenceStatisticsContainer::Pointer>,VariableData>(m, "TurbulenceStatisticsContainerVariable")
-      .def( "__repr__", &Variable<TurbulenceStatisticsContainer::Pointer>::Info )
-      ;
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<TurbulenceStatisticsContainer::Pointer>))
+    ;
   }
 
 }  // namespace Python.
