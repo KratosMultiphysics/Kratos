@@ -84,7 +84,7 @@ public:
 
     /// this function is designed for being execute once before the solution loop but after all of the
     /// solvers where built
-    void ExecuteBeforeSolutionLoop() final override
+    void ExecuteBeforeSolutionLoop() override final
     {
       KRATOS_WARNING(" SolverProcess ") << " method not available " << std::endl;
     }
@@ -113,14 +113,14 @@ public:
 
 
     /// this function will be executed at every time step BEFORE  writing the output
-    void ExecuteBeforeOutputStep() final override
+    void ExecuteBeforeOutputStep() override final
     {
       KRATOS_WARNING(" SolverProcess ") << " method not available " << std::endl;
     }
 
 
     /// this function will be executed at every time step AFTER writing the output
-    void ExecuteAfterOutputStep() final override
+    void ExecuteAfterOutputStep() override final
     {
     }
 
