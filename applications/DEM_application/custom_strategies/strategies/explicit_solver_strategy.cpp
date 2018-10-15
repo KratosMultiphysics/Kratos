@@ -173,12 +173,8 @@ namespace Kratos {
         SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
         SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
         ComputeNewRigidFaceNeighboursHistoricalData();
-        
-        // SIEMENS PROJECT
-        //       
+
         MarkToDeleteAllSpheresInitiallyIndentedWithFEM(*mpDem_model_part);
-        //
-        // SIEMENS PROJECT
 
         //set flag to 2 (search performed this timestep)
         mSearchControl = 2;
@@ -735,6 +731,7 @@ namespace Kratos {
             mListOfSphericParticles[i]->Initialize(r_process_info);
             total_mass += mListOfSphericParticles[i]->GetMass();
         }
+
 
         KRATOS_CATCH("")
     }
