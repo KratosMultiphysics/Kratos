@@ -27,6 +27,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
 
   using namespace pybind11;
+
+  typedef TableKeyVariables<double,double>                TableKeyScalarVariablesType;
+
   class_<PropertiesLayout, PropertiesLayout::Pointer >(m,"PropertiesLayout")
       .def(init<>())
       .def(init<>(Properties&))
@@ -38,7 +41,17 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
   class_<Variable<PropertiesLayout::Pointer>, VariableData>(m,"PropertiesLayoutVariable")
       ;
+  
+  class_<TableKeyScalarVariablesType, TableKeyScalarVariablesType::Pointer >(m,"TableKeyScalarVariables")
+      .def(init<>())
+      .def("Clone", &TableKeyScalarVariablesType::Clone)
+      .def("__repr__", &TableKeyScalarVariablesType::Info )
+      DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON_AS_POINTER(TableKeyScalarVariablesType)
+      DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON_AS_POINTER(TableKeyScalarVariablesType)
+      ;
 
+  class_<Variable<TableKeyScalarVariablesType::Pointer>, VariableData>(m,"TableKeyScalarVariablesVariable")
+      ;
 
 }
 

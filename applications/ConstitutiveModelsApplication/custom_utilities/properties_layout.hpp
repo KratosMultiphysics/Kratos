@@ -16,44 +16,9 @@
 // External includes
 
 // Project includes
+#include "geometries/geometry.h"
 #include "includes/properties.h"
-
-
-#if !defined(PROPERTIES_EXTENSIONS_H_INCLUDED)
-#define PROPERTIES_EXTENSIONS_H_INCLUDED
-
-#if !defined(DECLARE_ADD_THIS_TYPE_TO_PROPERTIES)
-#define DECLARE_ADD_THIS_TYPE_TO_PROPERTIES                             \
-  template<class TVariable>                                             \
-  static void AddToProperties(TVariable const& rV, typename TVariable::Type const& rValue, Properties::Pointer& p) \
-  {                                                                     \
-    p->SetValue(rV, rValue);                                            \
-  }
-
-#define DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON(TClassName)          \
-  .def_static("AddToProperties", &TClassName::AddToProperties< Variable< TClassName > >)
-
-#define DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON_AS_POINTER(TClassName) \
-  .def_static("AddToProperties", &TClassName::AddToProperties< Variable< TClassName::Pointer > >)
-#endif
-
-#if !defined(DECLARE_GET_THIS_TYPE_FROM_PROPERTIES)
-#define DECLARE_GET_THIS_TYPE_FROM_PROPERTIES                           \
-  template<class TVariable>                                             \
-  static typename TVariable::Type GetFromProperties(TVariable const& rV, Properties::Pointer& p) \
-  {                                                                     \
-    return p->GetValue(rV);                                             \
-  }
-
-#define DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON(TClassName)        \
-  .def_static("GetFromProperties", &TClassName::GetFromProperties< Variable< TClassName > >)
-
-#define DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON_AS_POINTER(TClassName) \
-  .def_static("GetFromProperties", &TClassName::GetFromProperties< Variable< TClassName::Pointer > >)
-#endif
-
-
-#endif // PROPERTIES_EXTENSIONS_H_INCLUDED
+#include "custom_utilities/table_key_variables.hpp"
 
 
 namespace Kratos
@@ -107,7 +72,13 @@ class PropertiesLayout
   /// Type of container used for tables
   typedef Table<double> TableType;
 
-  typedef std::unordered_map<std::size_t, TableType> TablesContainerType; 
+  typedef std::unordered_map<std::size_t, TableType> TablesContainerType;
+
+  typedef std::pair<std::size_t, double>  VariableKeyArgumentsType;
+  
+  typedef std::pair<std::size_t, VariableKeyArgumentsType> ScalarTableArgumentsType;
+
+  typedef std::vector<ScalarTableArgumentsType> ScalarTableArgumentsContainerType;
 
   ///@}
   ///@name Life Cycle
@@ -169,47 +140,17 @@ class PropertiesLayout
   ///@name Operations
   ///@{
 
-  void Configure(const Properties& rProperties, const GeometryType& rGeometry, const Vector& rShapeFunctions)
-  {
-    mpData = &(rProperties.Data());
-    mpTables = &(rProperties.Tables());
-
-    std::size_t max_size = 0;
-    for(auto it = mpTables->begin(); it != mpTables->end(); ++it)
-      if( it->first > max_size )
-        max_size = it->first;
-
-    mTableArguments.resize(max_size);
-
-    for(auto it = mpTables->begin(); it != mpTables->end(); ++it)
-    {
-      double Variable = 0.0;
-      for(std::size_t j=1; j<rShapeFunctions.size(); ++j)
-        Variable = rShapeFunctions[j] * rGeometry[j].FastGetSolutionStepValue(it->second.GetYVariable());
-      mTableArguments[it->first] = Variable;
-    }
-  }
-
-  template<class TVariableType>
-  typename TVariableType::Type& GetValue(const TVariableType& rV)
-  {
-    typename TablesContainerType::iterator i;
-    
-    if((i = std::find_if(mpTables->begin(), mpTables->end(), VariableCheck(rV.Key()))) != mpTables->end())
-    {
-      return *static_cast<const typename TVariableType::Type*>((i->second)[mTableArguments[(i->first)]]);
-    }
-    return mpData->GetValue(rV);
-  }
-
+  void Configure(const Properties& rProperties, const GeometryType& rGeometry, const Vector& rShapeFunctions);
+  
+ 
   template<class TVariableType>
   typename TVariableType::Type const& GetValue(const TVariableType& rV) const
   {
-    typename TablesContainerType::iterator i;
-    
-    if((i = std::find_if(mpTables->begin(), mpTables->end(), VariableCheck(rV.Key()))) != mpTables->end())
+    typename ScalarTableArgumentsContainerType::const_iterator i;
+
+    if((i = std::find_if(mTableArguments.begin(), mTableArguments.end(), VariableKeyCheck(rV.Key()))) != mTableArguments.end())
     {
-      return *static_cast<const typename TVariableType::Type*>((i->second)[mTableArguments[(i->first)]]);
+      return *static_cast<const typename TVariableType::Type*>(mpTables->at((i->first))[(i->second).second]);
     }
     return mpData->GetValue(rV);
   }
@@ -227,14 +168,6 @@ class PropertiesLayout
   bool IsEmpty() const
   {
     return !( HasVariables() || HasTables() );
-  }
-
-  int64_t Key(std::size_t XKey, std::size_t YKey) const
-  {
-    int64_t result_key = XKey;
-    result_key = result_key << 32;
-    result_key |= YKey; // I know that the key is less than 2^32 so I don't need zeroing the upper part
-    return result_key;
   }
 
   ///@}
@@ -318,8 +251,9 @@ class PropertiesLayout
 
   const TablesContainerType* mpTables;
 
-  Vector mTableArguments; // all table arguments considered as "double" type
+  ScalarTableArgumentsContainerType mTableArguments; // all table variable Keys and table arguments considered as "double" type
 
+  
   ///@}
   ///@name Private Operators
   ///@{
@@ -328,14 +262,14 @@ class PropertiesLayout
   ///@name Private Operations
   ///@{
 
-  class VariableCheck
+  class VariableKeyCheck
   {
     std::size_t mI;
    public:
-    VariableCheck(std::size_t I) : mI(I) {}
-    bool operator()(const DataValueContainer::ValueType& I)
+    VariableKeyCheck(std::size_t I) : mI(I) {}
+    bool operator()(const ScalarTableArgumentsType& I)
     {
-      return I.second->GetYVariable()->Key() == mI;
+      return I.first == mI;
     }
   };
   
@@ -347,14 +281,12 @@ class PropertiesLayout
 
   void save(Serializer& rSerializer) const
   {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject);
-    rSerializer.save("mTableArguments", mTableArguments);
+    rSerializer.save("mTableKeysVariableArguments", mTableArguments);
   }
 
   void load(Serializer& rSerializer)
   {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject);
-    rSerializer.load("mTableArguments", mTableArguments);
+    rSerializer.load("mTableKeysVariableArguments", mTableArguments);
   }
 
   ///@}

@@ -39,6 +39,10 @@ PYBIND11_MODULE(KratosConstitutiveModelsApplication,m)
 
   AddCustomConstitutiveLawsToPython(m);
   AddCustomUtilitiesToPython(m);
+
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TABLES_SCALAR_VARIABLES )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROPERTIES_LAYOUT )
+  
 }
 
 

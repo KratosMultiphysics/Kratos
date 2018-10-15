@@ -121,8 +121,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    PropertiesLayout::Pointer Properties = rProperties[PROPERTIES_LAYOUT].Clone();
-    Properties.Configure(rValues.GetMaterialProperties(),rValues.GetElementGeometry(),rValues.GetShapeFunctionsValues());             
+    PropertiesLayout::Pointer Properties = rValues.GetMaterialProperties()[PROPERTIES_LAYOUT]->Clone();
+    Properties->Configure(rValues.GetMaterialProperties(),rValues.GetElementGeometry(),rValues.GetShapeFunctionsValues());             
     rModelValues.SetOptions(rValues.GetOptions());
     rModelValues.SetMaterialProperties(rValues.GetMaterialProperties());
     rModelValues.SetProcessInfo(rValues.GetProcessInfo());
