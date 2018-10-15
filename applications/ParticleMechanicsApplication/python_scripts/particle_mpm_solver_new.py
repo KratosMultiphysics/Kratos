@@ -103,12 +103,6 @@ class ParticleMPMSolver(PythonSolver):
             "move_mesh_flag"                     : false,
             "problem_domain_sub_model_part_list" : [],
             "processes_sub_model_part_list"      : [],
-            "time_stepping"                      : {
-                "automatic_time_step" : true,
-                "CFL_number"          : 1,
-                "minimum_delta_time"  : 1e-4,
-                "maximum_delta_time"  : 0.01
-            },
             "linear_solver_settings": {
                 "solver_type" : "AMGCL",
                 "smoother_type":"damped_jacobi",
@@ -193,7 +187,6 @@ class ParticleMPMSolver(PythonSolver):
 
         # Set definition of the global solver type
         self.solver_type                    = self.settings["solver_type"].GetString()
-        self.scheme_type                    = self.settings["scheme_type"].GetString()
         self.time_integration_method        = self.settings["time_integration_method"].GetString()
 
         # Set definition of the solver parameters
@@ -205,19 +198,6 @@ class ParticleMPMSolver(PythonSolver):
         self.implex                 = self.settings["implex"].GetBool()
         self.move_mesh_flag         = self.settings["move_mesh_flag"].GetBool()
 
-        # Set explicit scheme definitions
-        if self.scheme_type == "Explicit":
-            self.explicit_integration_scheme    = self.settings["explicit_integration_scheme"].GetString()
-            self.rayleigh_damping               = self.settings["rayleigh_damping"].GetBool()
-            self.max_delta_time                 = self.settings["max_delta_time"].GetDouble()
-            
-            value = 0
-            if(self.settings["time_step_prediction_level"].GetString() == "Automatic"):
-                value = 1
-            elif(self.settings["time_step_prediction_level"].GetString()== "RefreshEveryTimeStep"):
-                value = 2
-            self.time_step_prediction_level = value
-      
         # Set default solver_settings parameters
         self.geometry_element   = self.settings["geometry_element"].GetString()
         self.number_particle    = self.settings["particle_per_element"].GetInt()
