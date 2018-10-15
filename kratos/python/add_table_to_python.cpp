@@ -42,7 +42,7 @@ double TableGetNearestValue(DoubleTableType& ThisTable, double X)
 void  AddTableToPython(pybind11::module& m)
 {
     using namespace pybind11;
-    
+
     class_<DoubleTableType, DoubleTableType::Pointer>(m,"PiecewiseLinearTable")
     .def(init<>())
     .def(init<Matrix const&>())
@@ -50,7 +50,7 @@ void  AddTableToPython(pybind11::module& m)
     .def("GetDerivative",&DoubleTableType::GetDerivative)
     .def("GetNearestValue", TableGetNearestValue)
     .def("AddRow", &DoubleTableType::PushBack)
-    .def("__repr__", &DoubleTableType::Info)
+    .def("__str__", KRATOS_DEF_PYTHON_STR(DoubleTableType)
     ;
 }
 
