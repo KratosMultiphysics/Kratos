@@ -23,7 +23,15 @@ namespace Kratos {
         NvidiaFlexError = (severity == eNvFlexLogError); //eNvFlexLogWarning eNvFlexLogInfo eNvFlexLogDebug eNvFlexLogAll
     }
 
-    FlexWrapper::FlexWrapper(ModelPart& rSpheresModelPart, ModelPart& rFemModelPart, ParticleCreatorDestructor& rParticleCreatorDestructor):mFlexSolver(NULL), mrSpheresModelPart(rSpheresModelPart), mrFemModelPart(rFemModelPart), mrParticleCreatorDestructor(rParticleCreatorDestructor) {
+    FlexWrapper::FlexWrapper(ModelPart& rSpheresModelPart,
+                            ModelPart& rFemModelPart,
+                            ParticleCreatorDestructor& rParticleCreatorDestructor,
+                            Parameters physics_parameters):
+                            mFlexSolver(NULL),
+                            mrSpheresModelPart(rSpheresModelPart),
+                            mrFemModelPart(rFemModelPart),
+                            mrParticleCreatorDestructor(rParticleCreatorDestructor),
+                            mInputParameters(physics_parameters) {
 
         mMaxparticles = 100000; //10000;
         // a setting of -1 means Flex will use the device specified in the NVIDIA control panel
@@ -69,8 +77,6 @@ namespace Kratos {
         mSolverDescriptor.maxDiffuseParticles = 0;
         mFlexSolver = NvFlexCreateSolver(mFlexLibrary, &mSolverDescriptor);
 
-        mTimeToChangeGravityValue = true; //TODO: delete
-        mPreviousTime = 0.0;
     }
 
     FlexWrapper::~FlexWrapper() {
@@ -260,11 +266,13 @@ namespace Kratos {
         if (mFlexParameters.radius == 0.0) KRATOS_ERROR << "The radius of the particles cannot be 0.0!"<<std::endl;
 
         // We obtain both friction and coefficient of restitution from the mdpa
-        Element* p_element = mrSpheresModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin()->get();
-        if (!p_element) return;
-        SphericParticle* p_spheric_particle = dynamic_cast<SphericParticle*> (p_element);
-        mFlexParameters.staticFriction = mFlexParameters.particleFriction = mFlexParameters.dynamicFriction = (float) p_spheric_particle->GetProperties()[PARTICLE_FRICTION];
-        mFlexParameters.restitution = (float) p_spheric_particle->GetProperties()[COEFFICIENT_OF_RESTITUTION];
+        //Element* p_element = mrSpheresModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin()->get();
+        //if (!p_element) return;
+        //SphericParticle* p_spheric_particle = dynamic_cast<SphericParticle*> (p_element);
+        //mFlexParameters.staticFriction = mFlexParameters.particleFriction = mFlexParameters.dynamicFriction = (float) p_spheric_particle->GetProperties()[PARTICLE_FRICTION];
+        //mFlexParameters.restitution = (float) p_spheric_particle->GetProperties()[COEFFICIENT_OF_RESTITUTION];
+        mFlexParameters.staticFriction = mFlexParameters.particleFriction = mFlexParameters.dynamicFriction = mInputParameters["friction"].GetDouble();
+        mFlexParameters.restitution = mInputParameters["coeficient_of_restitution"].GetDouble();
 
         //check that all radii are the same!!
         const double tolerance = 1.0e-6;
@@ -382,145 +390,6 @@ namespace Kratos {
 
         mFlexPositions->unmap();
         mFlexVelocities->unmap();
-    }
-
-    bool FlexWrapper::CheckIfItsTimeToChangeGravity(const double velocity_threshold_for_gravity_change,
-                                                    const double min_time_between_changes,
-                                                    const double max_time_between_changes) {
-
-        const double& current_time = mrSpheresModelPart.GetProcessInfo()[TIME];
-
-        if(current_time < mPreviousTime + min_time_between_changes) return false;
-        if(current_time > mPreviousTime + max_time_between_changes) {
-            mPreviousTime = current_time;
-            return true;
-        }
-
-        const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
-        double max_squared_velocity = 0.0;
-        for (size_t i = 0; i < number_of_nodes; i++) {
-            const auto node_it = mrSpheresModelPart.Nodes().begin() + i;
-            auto& vel = node_it->FastGetSolutionStepValue(VELOCITY);
-
-            const double node_i_squared_velocity_module = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
-            if(node_i_squared_velocity_module > max_squared_velocity) max_squared_velocity = node_i_squared_velocity_module;
-        }
-
-        if (max_squared_velocity < velocity_threshold_for_gravity_change*velocity_threshold_for_gravity_change) {
-            mPreviousTime = current_time;
-            return true;
-        }
-        else return false;
-    }
-
-    void FlexWrapper::SetGravity() {
-
-        static bool called_for_the_first_time = true;
-        static float current_reference_time_for_almost_motionless_states = mrSpheresModelPart.GetProcessInfo()[TIME];
-        static float current_reference_time_for_gravity_changes          = mrSpheresModelPart.GetProcessInfo()[TIME];
-        std::string gravities_filename = "TimeAngle.csv";
-
-	/*std::ifstream exists_the_file(gravities_filename);
-        static bool fixed_gravity = false;
-
-        KRATOS_WATCH(fixed_gravity)
-        KRATOS_WATCH(bool(exists_the_file))
-
-        if (fixed_gravity) return;
-
-	if (!exists_the_file) {
-            const array_1d<double,3>& gravity = mrSpheresModelPart.GetProcessInfo()[GRAVITY];
-            mFlexParameters.gravity[0] = (float)gravity[0];
-            mFlexParameters.gravity[1] = (float)gravity[1];
-            mFlexParameters.gravity[2] = (float)gravity[2];
-            NvFlexSetParams(mFlexSolver, &mFlexParameters);
-            fixed_gravity = true;
-            return;
-	}*/
-
-        static std::ifstream input_file(gravities_filename);
-        std::string line;
-        static size_t gravity_number = 0;
-        float elapsed_time_between_almost_motionless_states = mrSpheresModelPart.GetProcessInfo()[TIME] - current_reference_time_for_almost_motionless_states;
-        float elapsed_time_between_gravity_changes          = mrSpheresModelPart.GetProcessInfo()[TIME] - current_reference_time_for_gravity_changes;
-        // Minimum time span to wait between gravity shifts to ensure that the powder reallocates
-        const float minimum_delta_time_between_gravity_changes = 0.5f; //1000.5f;
-        const float maximum_delta_time_between_gravity_changes = 15.0f;
-        const size_t number_of_nodes = mrSpheresModelPart.Nodes().size();
-        // We choose the maximum velocity admissible in order to change the gravity vector
-        const float maximum_squared_velocity_module = 0.001f * 0.001f; //0.005f * 0.005f; // squares will be compared
-        mTimeToChangeGravityValue = true;
-        float node_i_squared_velocity_module = 0.0f;
-        NvFlexGetVelocities(mFlexSolver, mFlexVelocities->buffer, &mFlexCopyDescriptor);
-        mFlexVelocities->map();
-        // There is a different number of gravities in TimeAngle.csv for each of the 5 cases
-        // cube3: 113
-        // maze2: 179
-        // maze3: 197
-        // maze4:   3
-        // maze5:   3
-        const size_t total_number_of_gravities = 113;
-
-        for (size_t i = 0; i < number_of_nodes; i++) {
-
-            float velocity_x = (*mFlexVelocities)[i][0];
-            float velocity_y = (*mFlexVelocities)[i][1];
-            float velocity_z = (*mFlexVelocities)[i][2];
-
-            node_i_squared_velocity_module += velocity_x * velocity_x + velocity_y * velocity_y + velocity_z * velocity_z;
-        }
-
-        if (number_of_nodes) node_i_squared_velocity_module /= number_of_nodes;
-
-        if (node_i_squared_velocity_module > maximum_squared_velocity_module) {
-
-            mTimeToChangeGravityValue = false;
-            current_reference_time_for_almost_motionless_states = mrSpheresModelPart.GetProcessInfo()[TIME];
-        }
-
-        mFlexVelocities->unmap();
-
-        if (elapsed_time_between_gravity_changes > maximum_delta_time_between_gravity_changes) mTimeToChangeGravityValue = true;
-
-        if ((called_for_the_first_time) or (mTimeToChangeGravityValue and (elapsed_time_between_almost_motionless_states > minimum_delta_time_between_gravity_changes))) {
-
-            if (gravity_number > total_number_of_gravities) {
-
-                std::cout << "\n\nNo more gravity vectors left... Simulation should be stopped soon...\n\n";
-                mTimeToChangeGravityValue = false;
-                return;
-            }
-
-            std::getline(input_file, line);
-            std::istringstream iss{line};
-            std::vector<std::string> tokens;
-            std::string token;
-
-            while (std::getline(iss, token, ',')) tokens.push_back(token);
-
-            const float gravity_x = std::stof(tokens[3]);
-            const float gravity_y = std::stof(tokens[4]);
-            const float gravity_z = std::stof(tokens[5]);
-
-            mFlexParameters.gravity[0] = 9.81 * gravity_x;
-            mFlexParameters.gravity[1] = 9.81 * gravity_y;
-            mFlexParameters.gravity[2] = 9.81 * gravity_z;
-
-            mTimeToChangeGravityValue = called_for_the_first_time = false;
-
-            current_reference_time_for_almost_motionless_states = mrSpheresModelPart.GetProcessInfo()[TIME];
-            current_reference_time_for_gravity_changes          = mrSpheresModelPart.GetProcessInfo()[TIME];
-
-            NvFlexSetParams(mFlexSolver, &mFlexParameters);
-
-            ++gravity_number;
-
-            std::cout << "\n**********CHANGING GRAVITY VECTOR...\nGravity number " << gravity_number << "\n";
-            KRATOS_WATCH(mFlexParameters.gravity[0])
-            KRATOS_WATCH(mFlexParameters.gravity[1])
-            KRATOS_WATCH(mFlexParameters.gravity[2])
-            std::cout << "\n";
-        }
     }
 
     void FlexWrapper::Finalize() {

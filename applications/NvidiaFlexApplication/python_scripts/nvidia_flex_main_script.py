@@ -15,14 +15,18 @@ class SolutionDEM(main_script.Solution):
 
     def __init__(self):
         super(SolutionDEM, self).__init__()
-        self.changing_gravity_option = True
-        self.velocity_threshold_for_gravity_change = 0.02
-        self.time_at_last_gravity_change = 0.0
-        self.min_time_between_gravity_changes = 0.25
-        self.max_time_between_gravity_changes = 3.0
-        self.gravities_filename = "TimeAngle.csv"
+
+        parameters_file = open("NvidiaFlexSimulationParameters.json", 'r')
+        self.nvidia_flex_parameters = Parameters(parameters_file.read())
+
+        self.changing_gravity_option = self.nvidia_flex_parameters["gravity_parameters"]["changing_gravity_option"].GetBool()
+        self.velocity_threshold_for_gravity_change = self.nvidia_flex_parameters["gravity_parameters"]["velocity_threshold_for_gravity_change"].GetDouble()
+        self.min_time_between_gravity_changes = self.nvidia_flex_parameters["gravity_parameters"]["min_time_between_gravity_changes"].GetDouble()
+        self.max_time_between_gravity_changes = self.nvidia_flex_parameters["gravity_parameters"]["max_time_between_gravity_changes"].GetDouble()
+        self.gravities_filename = self.nvidia_flex_parameters["gravity_parameters"]["gravities_filename"].GetString()
         self.list_of_gravities = []
         self.gravity_iterator_position = 0
+        self.time_at_last_gravity_change = 0.0
         self.stop_signal = False
 
     def Initialize(self):
@@ -73,10 +77,14 @@ class SolutionFlex(SolutionDEM):
 
     def __init__(self):
         super(SolutionFlex, self).__init__()
-        self.number_of_steps_until_flex_update = 10
+        flex_delta_time = self.nvidia_flex_parameters["flex_delta_time"].GetDouble()
+        self.DEM_parameters["MaxTimeStep"].SetDouble(flex_delta_time)
+        self.dt = flex_delta_time
+        self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, flex_delta_time)
+        self.number_of_steps_until_flex_update = self.nvidia_flex_parameters["number_of_steps_until_flex_update"].GetInt()
 
     def Run(self):
-        self.nvidia_flex_wrapper = FlexWrapper(self.spheres_model_part, self.rigid_face_model_part, self.creator_destructor)
+        self.nvidia_flex_wrapper = FlexWrapper(self.spheres_model_part, self.rigid_face_model_part, self.creator_destructor, self.nvidia_flex_parameters["physics_parameters"])
         super(SolutionFlex, self).Run()
 
     def SolverSolve(self):

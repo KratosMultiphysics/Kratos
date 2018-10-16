@@ -19,7 +19,7 @@ namespace Kratos {
         void AddCustomUtilitiesToPython(pybind11::module& m) {
 
         class_<FlexWrapper, FlexWrapper::Pointer>(m, "FlexWrapper")
-            .def(init<ModelPart&, ModelPart&, ParticleCreatorDestructor&>())
+            .def(init<ModelPart&, ModelPart&, ParticleCreatorDestructor&, Parameters>())
             .def("UpdateFlex", &FlexWrapper::UpdateFlex)
             .def("TransferDataFromFlexToKratos", &FlexWrapper::TransferDataFromFlexToKratos)
             .def("SolveTimeSteps", &FlexWrapper::SolveTimeSteps)
