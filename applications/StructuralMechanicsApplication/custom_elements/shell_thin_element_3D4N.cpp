@@ -626,14 +626,12 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
 {
     if (rVariable == LOCAL_AXIS_1 ||
         rVariable == LOCAL_AXIS_2 ||
-        rVariable == LOCAL_AXIS_3)
-    {
+        rVariable == LOCAL_AXIS_3) {
         BaseShellElement::ComputeLocalAxis(rVariable, rOutput, mpCoordinateTransformation);
     }
     else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
              rVariable == LOCAL_MATERIAL_AXIS_2 ||
-             rVariable == LOCAL_MATERIAL_AXIS_3)
-    {
+             rVariable == LOCAL_MATERIAL_AXIS_3) {
         BaseShellElement::ComputeLocalMaterialAxis(rVariable, rOutput, mpCoordinateTransformation);
     }
 }

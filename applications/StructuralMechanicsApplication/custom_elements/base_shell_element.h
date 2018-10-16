@@ -481,18 +481,23 @@ protected:
         const SizeType num_gps = GetNumberOfGPs();
         if (rOutput.size() != num_gps) rOutput.resize(num_gps);
 
-        for (IndexType i=1; i<num_gps; ++i)
+        for (IndexType i=1; i<num_gps; ++i) {
             noalias(rOutput[i]) = ZeroVector(3);
+        }
 
         const auto localCoordinateSystem(rpCoordinateTransformation->CreateLocalCoordinateSystem());
-        if (rVariable == LOCAL_AXIS_1)
+        if (rVariable == LOCAL_AXIS_1) {
             noalias(rOutput[0]) = localCoordinateSystem.Vx();
-        else if (rVariable == LOCAL_AXIS_2)
+        }
+        else if (rVariable == LOCAL_AXIS_2) {
             noalias(rOutput[0]) = localCoordinateSystem.Vy();
-        else if (rVariable == LOCAL_AXIS_3)
+        }
+        else if (rVariable == LOCAL_AXIS_3) {
             noalias(rOutput[0]) = localCoordinateSystem.Vz();
-        else
+        }
+        else {
             KRATOS_ERROR << "Wrong variable: " << rVariable.Name() << "!" << std::endl;
+        }
     }
 
     /**
@@ -511,27 +516,28 @@ protected:
         const SizeType num_gps = GetNumberOfGPs();
         if (rOutput.size() != num_gps) rOutput.resize(num_gps);
 
-        for (IndexType i=1; i<num_gps; ++i)
+        for (IndexType i=1; i<num_gps; ++i) {
             noalias(rOutput[i]) = ZeroVector(3);
+        }
 
         const auto localCoordinateSystem(rpCoordinateTransformation->CreateLocalCoordinateSystem());
 
         const auto eZ = localCoordinateSystem.Vz();
 
-        if (rVariable == LOCAL_MATERIAL_AXIS_1)
-        {
+        if (rVariable == LOCAL_MATERIAL_AXIS_1) {
             const auto q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mat_angle);
             q.RotateVector3(localCoordinateSystem.Vx(), rOutput[0]);
         }
-        else if (rVariable == LOCAL_MATERIAL_AXIS_2)
-        {
+        else if (rVariable == LOCAL_MATERIAL_AXIS_2) {
             const auto q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mat_angle);
             q.RotateVector3(localCoordinateSystem.Vy(), rOutput[0]);
         }
-        else if (rVariable == LOCAL_MATERIAL_AXIS_3)
+        else if (rVariable == LOCAL_MATERIAL_AXIS_3) {
             noalias(rOutput[0]) = eZ;
-        else
+        }
+        else {
             KRATOS_ERROR << "Wrong variable: " << rVariable.Name() << "!" << std::endl;
+        }
     }
 
 
