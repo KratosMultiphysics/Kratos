@@ -17,7 +17,7 @@ class Algorithm(BaseAlgorithm):
 
     def SetFluidAlgorithm(self):
         import pfem_fluid_ready_for_dem_coupling as fluid_solution
-        self.fluid_solution = fluid_solution.Solution()
+        self.fluid_solution = fluid_solution.Solution(self.model)
         self.fluid_solution.main_path = self.main_path
 
     def SetCouplingParameters(self, varying_parameters):
