@@ -23,8 +23,11 @@
         "echo_level"                  : 0,
         "compute_reactions"           : false,
         "maximum_iterations"          : 1000,
-        "dynamic_tau"                 : 0.0,
-        "oss_switch"                  : 0,
+        "stabilization"               : {
+            "formulation": "qsvms",
+            "use_orthogonal_subscales": false,
+            "dynamic_tau"                 : 0.0
+        },
         "relative_velocity_tolerance" : 1e-6,
         "absolute_velocity_tolerance" : 1e-6,
         "relative_pressure_tolerance" : 1e-6,
@@ -44,11 +47,8 @@
         "no_skin_parts"               : ["Pressure_lower_left_corner"],
         "time_stepping"               : {
             "automatic_time_step" : false,
-            "time_step"           : 1.0
-        },
-        "time_scheme"                 : "steady",
-        "velocity_relaxation"         : 0.9,
-        "pressure_relaxation"         : 0.9
+            "time_step"           : 0.1
+        }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
@@ -59,7 +59,7 @@
         "Parameters"    : {
             "model_part_name" : "Parts_Fluid",
             "variable_name"   : "VELOCITY",
-            "constrained"     : [true,true,true],
+            "constrained"     : [false,false,false],
             "value"           : ["5*t","-2*t", "t"],
             "interval"        : [0.0,"End"]
         }
@@ -71,7 +71,7 @@
             "model_part_name" : "Parts_Fluid",
             "variable_name"   : "PRESSURE",
             "value"           : "t+2",
-            "constrained"     : true
+            "constrained"     : false
         }
     }],
     "gravity"                          : [],
@@ -104,7 +104,7 @@
                     "variables": ["VELOCITY_X","VELOCITY_Y"]
                 }
             ],
-            "output_file_name": "statistics_test.csv"
+            "output_file_name": "statistics_test"
         }
      },{
         "python_module"   : "compare_two_files_check_process",
@@ -112,21 +112,9 @@
         "help"            : "",
         "process_name"    : "CompareTwoFilesCheckProcess",
         "Parameters" :{
-            "output_file_name"    : "steady_cavity5_probe_1.dat",
-            "reference_file_name" : "steady_cavity5_probe_ref_1.dat",
-            "comparison_type"     : "dat_file",
-            "remove_output_file"    : true,
-            "decimal_places"      : 5
-        }
-    },{
-        "python_module"   : "compare_two_files_check_process",
-        "kratos_module"   : "KratosMultiphysics",
-        "help"            : "",
-        "process_name"    : "CompareTwoFilesCheckProcess",
-        "Parameters" :{
-            "output_file_name"    : "steady_cavity5_probe_2.dat",
-            "reference_file_name" : "steady_cavity5_probe_ref_2.dat",
-            "comparison_type"     : "dat_file",
+            "output_file_name"    : "statistics_test.csv",
+            "reference_file_name" : "statistics_reference.csv",
+            "comparison_type"     : "deterministic",
             "remove_output_file"    : true,
             "decimal_places"      : 5
         }

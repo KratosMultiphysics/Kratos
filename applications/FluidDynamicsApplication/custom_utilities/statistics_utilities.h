@@ -136,6 +136,7 @@ virtual void OutputHeader(
     std::ofstream& rOutStream,
     const std::string& rSeparator) const
 {
+    rOutStream << rSeparator;
 }
 
 virtual double Finalize(double Value, std::size_t SampleSize) const

@@ -172,7 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesSecondThirdOrder, FluidDynamicsAppli
 
     p_turbulence_statistics->SampleIntegrationPointResults(model_part);
 
-    //p_turbulence_statistics->PrintToFile(model_part);
+    //p_turbulence_statistics->PrintToFile(model_part, "statistics");
 
     std::vector<double> expected_output{
     //  p   u  v  w   pu    pv pw   uu  uv  uw    vv vw  ww  pu(cw) uwp

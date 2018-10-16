@@ -103,11 +103,17 @@ std::vector<double> StatisticsRecord::OutputForTest(ModelPart::ElementsContainer
     return result;
 }
 
-void StatisticsRecord::PrintToFile(const ModelPart& rModelPart) const
+void StatisticsRecord::PrintToFile(const ModelPart& rModelPart, const std::string& rOutputFileName) const
 {
     // Open output file
     std::stringstream file_name;
-    file_name << "gp_statistics_" << rModelPart.GetCommunicator().MyPID() << ".csv";
+    file_name << rOutputFileName;
+    if (rModelPart.GetCommunicator().TotalProcesses() > 1)
+    {
+        file_name << "_" << rModelPart.GetCommunicator().MyPID();
+    }
+    file_name << ".csv";
+
     std::ofstream stats_file;
     stats_file.open(file_name.str().c_str(), std::ios::out | std::ios::trunc);
 

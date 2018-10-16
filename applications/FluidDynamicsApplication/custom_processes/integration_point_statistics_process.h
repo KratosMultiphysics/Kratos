@@ -126,7 +126,7 @@ void ExecuteFinalizeSolutionStep() override
 void ExecuteFinalize() override
 {
     auto p_turbulence_statistics = mrModelPart.GetProcessInfo().GetValue(STATISTICS_CONTAINER);
-    p_turbulence_statistics->PrintToFile(mrModelPart);
+    p_turbulence_statistics->PrintToFile(mrModelPart, mOutputFileName);
 }
 
 ///@}
@@ -182,11 +182,13 @@ void CreateStatisticsFromInput(StatisticsRecord::Pointer pRecordedStatistics)
     // Validate parameters
     Kratos::Parameters default_parameters = Kratos::Parameters(R"({
         "statistics" : [],
-        "output_file_name": "statistics.csv",
+        "output_file_name": "statistics",
         "model_part_name": ""
     })");
 
     mParameters.ValidateAndAssignDefaults(default_parameters);
+
+    mOutputFileName = mParameters["output_file_name"].GetString();
 
     StatisticsDictionary defined_statistics;
 
@@ -375,6 +377,8 @@ ModelPart& mrModelPart;
 Kratos::Parameters mParameters;
 
 double mStartTime;
+
+std::string mOutputFileName;
 
 ///@}
 ///@name Private Operators
