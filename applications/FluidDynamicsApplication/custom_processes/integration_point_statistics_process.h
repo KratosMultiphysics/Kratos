@@ -209,6 +209,10 @@ void CreateStatisticsFromInput(StatisticsRecord::Pointer pRecordedStatistics)
         {
             pRecordedStatistics->AddHigherOrderStatistic(CreateVarianceSampler(settings,defined_statistics));
         }
+        else if ( statistic_type == "third_order_moment" )
+        {
+//            pRecordedStatistics->AddHigherOrderStatistic(CreateThirdOrderSampler(settings,defined_statistics));
+        }
         else
         {
             KRATOS_ERROR << "Unknown string \"" << statistic_type << "\" passed as \"type\" argument in statistics definition." << std::endl;
@@ -304,24 +308,46 @@ StatisticsSampler::Pointer CreateVarianceSampler(
         unsigned int second_argument_index;
         bool second_argument_is_component = ProcessComponent(second_argument,second_argument_base,second_argument_index);
 
-        KRATOS_ERROR_IF(first_argument_is_component != second_argument_is_component)
-        << "Mixing component and non-component variables when defining statistics is not yet supported." << std::endl;
-
+        StatisticsSampler::Pointer first_statistic;
         if (first_argument_is_component)
         {
-            // componentwise statistic
             auto found = rDefinedStatistics.find(first_argument_base);
             KRATOS_ERROR_IF(found == rDefinedStatistics.end())
             << "Trying to record variance for " << first_argument << " and " << second_argument
             << " but no average was declared for " << first_argument_base << "." << std::endl;
-            StatisticsSampler::Pointer first_statistic = found->second;
+            first_statistic = found->second;
 
-            found = rDefinedStatistics.find(second_argument_base);
+        }
+        else
+        {
+            auto found = rDefinedStatistics.find(first_argument);
+            KRATOS_ERROR_IF(found == rDefinedStatistics.end())
+            << "Trying to record variance for " << first_argument << " and " << second_argument
+            << " but no average was declared for " << first_argument << "." << std::endl;
+            first_statistic = found->second;
+        }
+
+        StatisticsSampler::Pointer second_statistic;
+        if (second_argument_is_component)
+        {
+            auto found = rDefinedStatistics.find(second_argument_base);
             KRATOS_ERROR_IF(found == rDefinedStatistics.end())
             << "Trying to record variance for " << first_argument << " and " << second_argument
             << " but no average was declared for " << second_argument_base << "." << std::endl;
-            StatisticsSampler::Pointer second_statistic = found->second;
+            second_statistic = found->second;
+        }
+        else
+        {
+            auto found = rDefinedStatistics.find(second_argument);
+            KRATOS_ERROR_IF(found == rDefinedStatistics.end())
+            << "Trying to record variance for " << first_argument << " and " << second_argument
+            << " but no average was declared for " << second_argument << "." << std::endl;
+            second_statistic = found->second;
+        }
 
+        if (first_argument_is_component || second_argument_is_component)
+        {
+            // componentwise statistic
             new_statistic = Kratos::make_shared<ComponentwiseVarianceSampler>(
                 first_statistic,first_argument_index,
                 second_statistic,second_argument_index);
@@ -329,18 +355,6 @@ StatisticsSampler::Pointer CreateVarianceSampler(
         else
         {
             // full variable statistic
-            auto found = rDefinedStatistics.find(first_argument);
-            KRATOS_ERROR_IF(found == rDefinedStatistics.end())
-            << "Trying to record variance for " << first_argument << " and " << second_argument
-            << " but no average was declared for " << first_argument << "." << std::endl;
-            StatisticsSampler::Pointer first_statistic = found->second;
-
-            found = rDefinedStatistics.find(second_argument);
-            KRATOS_ERROR_IF(found == rDefinedStatistics.end())
-            << "Trying to record variance for " << first_argument << " and " << second_argument
-            << " but no average was declared for " << second_argument << "." << std::endl;
-            StatisticsSampler::Pointer second_statistic = found->second;
-
             new_statistic = Kratos::make_shared<VarianceSampler>(
                 first_statistic, second_statistic);
         }
@@ -394,6 +408,7 @@ bool ProcessComponent(
     unsigned int& rComponentIndex) const
 {
     bool is_component = false;
+    rComponentIndex = 0; // can be used also if variable is not a component
 
     const std::string x_suffix = std::string("_X");
     const std::string y_suffix = std::string("_Y");

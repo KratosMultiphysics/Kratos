@@ -101,7 +101,11 @@
                 },
                 {
                     "type" : "variance",
-                    "variables": ["VELOCITY_X","VELOCITY_Y"]
+                    "variables": ["VELOCITY_X","VELOCITY_Z"]
+                },
+                {
+                    "type" : "variance",
+                    "variables": ["VELOCITY_Y","PRESSURE"]
                 }
             ],
             "output_file_name": "statistics_test"
