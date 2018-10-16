@@ -72,6 +72,7 @@ IntegrationPointStatisticsProcess(ModelPart& rModelPart, Kratos::Parameters Para
     Process(),
     mrModelPart(rModelPart),
     mParameters(Parameters),
+    mDimension(3),
     mStartTime(0.0)
 {}
 
@@ -80,6 +81,7 @@ IntegrationPointStatisticsProcess(Model& rModel, Kratos::Parameters Parameters):
     Process(),
     mrModelPart(rModel.GetModelPart(Parameters["model_part_name"].GetString())),
     mParameters(Parameters),
+    mDimension(3),
     mStartTime(0.0)
 {}
 
@@ -179,11 +181,14 @@ protected:
 
 void CreateStatisticsFromInput(StatisticsRecord::Pointer pRecordedStatistics)
 {
+    KRATOS_TRY;
+
     // Validate parameters
     Kratos::Parameters default_parameters = Kratos::Parameters(R"({
         "statistics" : [],
         "output_file_name": "statistics",
         "model_part_name": "",
+        "dimension": 3,
         "start_time": 0.0
     })");
 
@@ -191,6 +196,10 @@ void CreateStatisticsFromInput(StatisticsRecord::Pointer pRecordedStatistics)
 
     mOutputFileName = mParameters["output_file_name"].GetString();
     mStartTime = mParameters["start_time"].GetDouble();
+
+    mDimension = mParameters["dimension"].GetInt();
+    KRATOS_ERROR_IF( mDimension != 2 && mDimension != 3)
+    << "Unsupported dimension " << mDimension << ". IntegrationPointStatisticsProcess only works for dimension 2 or 3." << std::endl;
 
     StatisticsDictionary defined_statistics;
 
@@ -221,12 +230,15 @@ void CreateStatisticsFromInput(StatisticsRecord::Pointer pRecordedStatistics)
         }
     }
 
+    KRATOS_CATCH("");
 }
 
 StatisticsSampler::Pointer CreateAverageSampler(
     Kratos::Parameters Parameters,
     StatisticsDictionary& rDefinedStatistics) const
 {
+    KRATOS_TRY;
+
     Kratos::Parameters default_parameters(R"({
         "type" : "average",
         "variable": "",
@@ -265,20 +277,20 @@ StatisticsSampler::Pointer CreateAverageSampler(
         std::vector<std::string> tags;
         if (Parameters["tags"].size() > 0)
         {
-            KRATOS_ERROR_IF(Parameters["tags"].size() != 3) << 3 << " tags are needed for vector averages, but "
+            KRATOS_ERROR_IF(Parameters["tags"].size() != mDimension) << mDimension << " tags are needed for vector averages, but "
             << Parameters["tags"].size() << " were provided for variable " << variable_name << "." << std::endl;
 
-            tags.push_back(Parameters["tags"][0].GetString());
-            tags.push_back(Parameters["tags"][1].GetString());
-            tags.push_back(Parameters["tags"][2].GetString());
+            for (unsigned int i = 0; i < mDimension; i++) {
+                tags.push_back(Parameters["tags"][i].GetString());
+            }
         }
         else
         {
             tags.push_back(std::string(variable_name+"_X"));
             tags.push_back(std::string(variable_name+"_Y"));
-            tags.push_back(std::string(variable_name+"_Z"));
+            if (mDimension == 3) tags.push_back(std::string(variable_name+"_Z"));
         }
-        new_statistic = Kratos::make_shared<VectorAverageSampler<array_1d<double,3>>>(value_getter,3,tags);
+        new_statistic = Kratos::make_shared<VectorAverageSampler<array_1d<double,3>>>(value_getter,mDimension,tags);
     }
     else
     {
@@ -289,12 +301,16 @@ StatisticsSampler::Pointer CreateAverageSampler(
 
     rDefinedStatistics[variable_name] = new_statistic;
     return new_statistic;
+
+    KRATOS_CATCH("");
 }
 
 StatisticsSampler::Pointer CreateVarianceSampler(
     Kratos::Parameters Parameters,
     StatisticsDictionary& rDefinedStatistics) const
 {
+    KRATOS_TRY;
+
     Kratos::Parameters default_parameters(R"({
         "type" : "",
         "variables": []
@@ -302,7 +318,7 @@ StatisticsSampler::Pointer CreateVarianceSampler(
 
     Parameters.ValidateAndAssignDefaults(default_parameters);
     KRATOS_ERROR_IF(Parameters["variables"].size() < 1 || Parameters["variables"].size() > 2)
-    << "Unexpected number of arguments when reading \"variables\" list argument."
+    << "Unexpected number of arguments when reading \"variables\" list argument. "
     << "Expected 1 or 2 values, got " << Parameters["variables"].size() << "." << std::endl;
 
     StatisticsSampler::Pointer new_statistic;
@@ -373,7 +389,7 @@ StatisticsSampler::Pointer CreateVarianceSampler(
              (second_argument_is_component && !(first_argument_is_component || IsScalar(first_argument) ))
         )
         {
-            KRATOS_ERROR << "Variances involving a component and a vector are currently not supported, please define them component-by-component" << std::endl;
+            KRATOS_ERROR << "Variances involving a component and a vector are currently not supported, please define them component-by-component." << std::endl;
         }
 
         if (first_argument_is_component || second_argument_is_component)
@@ -393,12 +409,16 @@ StatisticsSampler::Pointer CreateVarianceSampler(
         rDefinedStatistics[MakeVarianceKey(first_argument,second_argument)] = new_statistic;
     }
     return new_statistic;
+
+    KRATOS_CATCH("");
 }
 
 StatisticsSampler::Pointer CreateThirdOrderSampler(
     Kratos::Parameters Parameters,
     StatisticsDictionary& rDefinedStatistics) const
 {
+    KRATOS_TRY;
+
     Kratos::Parameters default_parameters(R"({
         "type" : "",
         "variables": []
@@ -406,7 +426,7 @@ StatisticsSampler::Pointer CreateThirdOrderSampler(
 
     Parameters.ValidateAndAssignDefaults(default_parameters);
     KRATOS_ERROR_IF(Parameters["variables"].size() != 3 )
-    << "Unexpected number of arguments when reading \"variables\" list argument."
+    << "Unexpected number of arguments when reading \"variables\" list argument. "
     << "Expected 3 values, got " << Parameters["variables"].size() << "." << std::endl;
 
     const std::string first_argument  = Parameters["variables"][0].GetString();
@@ -467,6 +487,8 @@ StatisticsSampler::Pointer CreateThirdOrderSampler(
         first_third_correlation, first_third_correlation->ComponentIndex(first_argument_index,third_argument_index),
         second_third_correlation, second_third_correlation->ComponentIndex(second_argument_index, third_argument_index)
     );
+
+    KRATOS_CATCH("");
 }
 
 ///@}
@@ -495,6 +517,8 @@ ModelPart& mrModelPart;
 
 Kratos::Parameters mParameters;
 
+unsigned int mDimension;
+
 double mStartTime;
 
 std::string mOutputFileName;
@@ -517,6 +541,8 @@ bool ProcessComponent(
     std::string& rBaseVariableName,
     unsigned int& rComponentIndex) const
 {
+    KRATOS_TRY
+
     bool is_component = false;
 
     const std::string x_suffix = std::string("_X");
@@ -540,6 +566,9 @@ bool ProcessComponent(
         is_component = true;
         rBaseVariableName = rInputName.substr(0, rInputName.length() - 2);
         rComponentIndex = 2;
+        KRATOS_ERROR_IF_NOT(mDimension == 3)
+        << "Trying to record a statistic for " << rInputName
+        << " but IntegrationPointStatisticsProcess was initialized with dimension 2." << std::endl;
     }
     else
     {
@@ -548,6 +577,8 @@ bool ProcessComponent(
     }
 
     return is_component;
+
+    KRATOS_CATCH("");
 }
 
 bool StringEndsWith(std::string const &rString, std::string const &rEnding) const {

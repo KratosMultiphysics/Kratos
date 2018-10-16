@@ -82,11 +82,12 @@
         "process_name"    : "IntegrationPointStatisticsProcess",
         "Parameters" : {
             "model_part_name" : "Parts_Fluid",
+            "dimension"       : 2,
             "statistics" : [
                 {
                     "type" : "average",
                     "variable": "VELOCITY",
-                    "tags": ["u","v","w"]
+                    "tags": ["u","v"]
                 },
                 {
                     "type" : "average",
@@ -103,7 +104,7 @@
                 },
                 {
                     "type" : "variance",
-                    "variables": ["VELOCITY_X","VELOCITY_Z"]
+                    "variables": ["VELOCITY_X","VELOCITY_Y"]
                 },
                 {
                     "type" : "variance",
@@ -111,7 +112,7 @@
                 },
                 {
                     "type" : "third_order_moment",
-                    "variables": ["PRESSURE","VELOCITY_X","VELOCITY_Z"]
+                    "variables": ["PRESSURE","VELOCITY_X","VELOCITY_Y"]
                 }
             ],
             "output_file_name": "statistics_test"
