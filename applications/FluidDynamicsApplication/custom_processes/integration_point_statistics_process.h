@@ -27,31 +27,13 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup FluidDynamicsApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-  */
+/// Helper process to record statistics on the integration points of the mesh.
 class IntegrationPointStatisticsProcess: public Process
 {
 public:
@@ -67,7 +49,10 @@ typedef std::map< std::string, StatisticsSampler::Pointer > StatisticsDictionary
 ///@name Life Cycle
 ///@{
 
-/// Constructor.
+/// Constructor using a ModelPart.
+/** @param rModelPart ModelPart the statistics will be calculated on.
+ *  @param pParameters Parameters object defining the desired statistics.
+ */
 IntegrationPointStatisticsProcess(ModelPart& rModelPart, Kratos::Parameters::Pointer pParameters):
     Process(),
     mrModelPart(rModelPart),
@@ -76,7 +61,10 @@ IntegrationPointStatisticsProcess(ModelPart& rModelPart, Kratos::Parameters::Poi
     mStartTime(0.0)
 {}
 
-/// Default constructor.
+/// Constructor using a Model.
+/** @param rModel Model instance containing the ModelPart the statistics will be calculated on.
+ *  @param pParameters Parameters object defining the desired statistics.
+ */
 IntegrationPointStatisticsProcess(Model& rModel, Kratos::Parameters::Pointer pParameters):
     Process(),
     mrModelPart(rModel.GetModelPart((*pParameters)["model_part_name"].GetString())),
@@ -90,13 +78,10 @@ IntegrationPointStatisticsProcess(Model& rModel, Kratos::Parameters::Pointer pPa
 {}
 
 ///@}
-///@name Operators
-///@{
-
-///@}
 ///@name Operations
 ///@{
 
+/// Define the statistics and initialize internal storage.
 void ExecuteInitialize() override
 {
     KRATOS_TRY;
@@ -132,14 +117,6 @@ void ExecuteFinalize() override
 }
 
 ///@}
-///@name Access
-///@{
-
-///@}
-///@name Inquiry
-///@{
-
-///@}
 ///@name Input and output
 ///@{
 
@@ -158,24 +135,9 @@ void PrintInfo(std::ostream &rOStream) const override { rOStream << "Integration
 void PrintData(std::ostream &rOStream) const override {}
 
 ///@}
-///@name Friends
-///@{
-
-///@}
 
 protected:
-///@name Protected static Member Variables
-///@{
 
-///@}
-///@name Protected member Variables
-///@{
-
-///@}
-///@name Protected Operators
-///@{
-
-///@}
 ///@name Protected Operations
 ///@{
 
@@ -493,24 +455,9 @@ StatisticsSampler::Pointer CreateThirdOrderSampler(
 }
 
 ///@}
-///@name Protected  Access
-///@{
-
-///@}
-///@name Protected Inquiry
-///@{
-
-///@}
-///@name Protected LifeCycle
-///@{
-
-///@}
 
 private:
-///@name Static Member Variables
-///@{
 
-///@}
 ///@name Member Variables
 ///@{
 
@@ -525,18 +472,16 @@ double mStartTime;
 std::string mOutputFileName;
 
 ///@}
-///@name Private Operators
-///@{
-
-///@}
 ///@name Private Operations
 ///@{
 
+/// Helper function to check if the requested variable is a scalar variable.
 bool IsScalar(const std::string& rInputName) const
 {
     return KratosComponents< Variable<double> >::Has(rInputName);
 }
 
+/// Helper function to determine if the requested variable is a vector component (and if so, which one).
 bool ProcessComponent(
     const std::string& rInputName,
     std::string& rBaseVariableName,
@@ -582,6 +527,7 @@ bool ProcessComponent(
     KRATOS_CATCH("");
 }
 
+/// Helper function to check whether a string ends with a given substring.
 bool StringEndsWith(std::string const &rString, std::string const &rEnding) const {
     if (rString.length() >= rEnding.length()) {
         return (0 == rString.compare(rString.length() - rEnding.length(), rEnding.length(), rEnding));
@@ -616,15 +562,6 @@ void ProcessThirdOrderInputValue(
     << "Only scalar or component variables are supported at the moment." << std::endl;
 }
 
-///@}
-///@name Private  Access
-///@{
-
-///@}
-///@name Private Inquiry
-///@{
-
-///@}
 ///@name Un accessible methods
 ///@{
 
@@ -640,10 +577,6 @@ IntegrationPointStatisticsProcess(IntegrationPointStatisticsProcess const &rOthe
 
 ///@}
 
-///@name Type Definitions
-///@{
-
-///@}
 ///@name Input and output
 ///@{
 
