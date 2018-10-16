@@ -16,9 +16,9 @@ def CreateSolver(model, custom_settings):
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        if (solver_type == "StaticSolver" or solver_type == "Static" or solver_type ==  "static" or
-            solver_type == "DynamicSolver" or solver_type == "Dynamic" or solver_type ==  "dynamic" or
-            solver_type == "QuasiStaticSolver" or solver_type == "Quasi-static" or solver_type ==  "quasi-static"):
+        solver_type_list = ["StaticSolver", "Static", "static", "DynamicSolver", "Dynamic", "dynamic", 
+            "QuasiStaticSolver", "Quasi-static", "quasi_static"]
+        if (solver_type in solver_type_list):
 
             time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
             if (time_integration_method == "implicit"):
@@ -30,8 +30,8 @@ def CreateSolver(model, custom_settings):
 
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"Static\", \"Dynamic\", \"Quasi-static\""
-            raise Exception(err_msg)
+            err_msg += "Available options are:"
+            raise Exception(err_msg, solver_type_list)
 
     else:
         err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
