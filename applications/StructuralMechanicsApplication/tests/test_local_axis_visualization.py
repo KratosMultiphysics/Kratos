@@ -24,7 +24,6 @@ def CreateShellNodes(mp,element_name):
         mp.CreateNewNode(8, -0.0,  0.5, 0.00)
         mp.CreateNewNode(9, -0.5, -0.0,   0.0)
 
-
 def CreateShellElements(mp,element_name):
     if element_name.endswith("4N"): # Quadrilaterals
         mp.CreateNewElement(element_name, 1, [1,6,5,9], mp.GetProperties()[1])
@@ -36,7 +35,6 @@ def CreateShellElements(mp,element_name):
         mp.CreateNewElement(element_name, 2, [2,3,5], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 3, [3,4,5], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 4, [4,1,5], mp.GetProperties()[1])
-
 
 def WriteGiDOutput(model_part):
     from gid_output_process import GiDOutputProcess
@@ -65,6 +63,26 @@ def WriteGiDOutput(model_part):
     gid_output.PrintOutput()
     gid_output.ExecuteFinalizeSolutionStep()
     gid_output.ExecuteFinalize()
+
+def CheckResults(ref_file_name, out_file_name):
+    # check the results
+    settings_check_process = KratosMultiphysics.Parameters("""
+    {
+        "reference_file_name"   : \"""" + ref_file_name + """\",
+        "output_file_name"      : \"""" + out_file_name + """\",
+        "comparison_type"       : "post_res_file"
+    }
+    """)
+
+    check_process = CompareTwoFilesCheckProcess(settings_check_process)
+
+    check_process.ExecuteInitialize()
+    check_process.ExecuteBeforeSolutionLoop()
+    check_process.ExecuteInitializeSolutionStep()
+    check_process.ExecuteFinalizeSolutionStep()
+    check_process.ExecuteBeforeOutputStep()
+    check_process.ExecuteAfterOutputStep()
+    check_process.ExecuteFinalize()
 
 
 class TestLocalAxisVisualization(KratosUnittest.TestCase):
@@ -114,7 +132,7 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
         reference_file_name = os.path.join("local_axis_visualization_ref_result_files", reference_file_name)
         reference_file_name = GetFilePath(reference_file_name)
         output_file_name = "local_axis_" + self.element_name + "_0.post.res"
-        self.__CheckResults(reference_file_name, output_file_name)
+        CheckResults(reference_file_name, output_file_name)
 
     def __ExecuteBeamTest(self):
         model_part = KratosMultiphysics.ModelPart(self.element_name)
@@ -148,27 +166,7 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
         reference_file_name = os.path.join("local_axis_visualization_ref_result_files", reference_file_name)
         reference_file_name = GetFilePath(reference_file_name)
         output_file_name = "local_axis_" + self.element_name + "_0.post.res"
-        self.__CheckResults(reference_file_name, output_file_name)
-
-    def __CheckResults(self, ref_file_name, out_file_name):
-        # check the results
-        settings_check_process = KratosMultiphysics.Parameters("""
-        {
-            "reference_file_name"   : \"""" + ref_file_name + """\",
-            "output_file_name"      : \"""" + out_file_name + """\",
-            "comparison_type"       : "post_res_file"
-        }
-        """)
-
-        check_process = CompareTwoFilesCheckProcess(settings_check_process)
-
-        check_process.ExecuteInitialize()
-        check_process.ExecuteBeforeSolutionLoop()
-        check_process.ExecuteInitializeSolutionStep()
-        check_process.ExecuteFinalizeSolutionStep()
-        check_process.ExecuteBeforeOutputStep()
-        check_process.ExecuteAfterOutputStep()
-        check_process.ExecuteFinalize()
+        CheckResults(reference_file_name, output_file_name)
 
 if __name__ == '__main__':
     KratosUnittest.main()
