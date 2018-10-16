@@ -81,6 +81,8 @@ void  AddMatrixToPython(pybind11::module& m)
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
 	// This constructor is not supported by AMatrix
 	//matrix_binder.def(init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
+	matrix_binder.def("fill", [](DenseMatrix<double>& self, const  typename double value) { self.fill(value); });
+	matrix_binder.def("fill_identity", [](DenseMatrix<double>& self) { self.fill_identity(); });
 #else
 	matrix_binder.def(init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
 #endif // KRATOS_USE_AMATRIX
