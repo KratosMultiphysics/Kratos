@@ -770,15 +770,14 @@ namespace Kratos
         /** Checks if it calculates the orthonormal base
          * Checks if it calculates the orthonormal base
          */
-
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsOrthonormalBasisTest, KratosCoreMathUtilsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsOrthonormalBasisFrisvadTest, KratosCoreMathUtilsFastSuite)
         {
             array_1d<double, 3> a = ZeroVector(3);
             a[1] = 1.0;
 
             array_1d<double, 3>  b, c;
 
-            MathUtils<double>::OrthonormalBasis(a, b, c);
+            MathUtils<double>::OrthonormalBasisFrisvad(a, b, c);
 
             KRATOS_CHECK_EQUAL(b[0], 1.0);
             KRATOS_CHECK_EQUAL(c[2], -1.0);

@@ -985,14 +985,14 @@ public:
     }
 
     /**
-     * @brief This computes a orthonormal basis from a given vector
+     * @brief This computes a orthonormal basis from a given vector (Frisvad method)
      * @param c The input vector
      * @param a First resulting vector
      * @param b Second resulting vector
      * @note Orthonormal basis taken from: http://orbit.dtu.dk/files/126824972/onb_frisvad_jgt2012_v2.pdf
      */
     template< class T1, class T2 , class T3>
-    static inline void OrthonormalBasis(const T1& c,T2& a,T3& b ){
+    static inline void OrthonormalBasisFrisvad(const T1& c,T2& a,T3& b ){
         KRATOS_DEBUG_ERROR_IF_NOT(norm_2(c) < (1.0 - 1.0e-6) || norm_2(c) > (1.0 + 1.0e-6)) << "Input should be a normal vector" << std::endl;
         if ((c[2] + 1.0) > ZeroTolerance) {
             a[0] = 1.0 - std::pow(c[0], 2)/(1.0 + c[2]);
@@ -1015,6 +1015,29 @@ public:
             b[1] = -1.0;
             b[2] = 0.0;
         }
+    }
+    /**
+     * @brief This computes a orthonormal basis from a given vector (Hughes Moeller method)
+     * @param c The input vector
+     * @param a First resulting vector
+     * @param b Second resulting vector
+     * @note Orthonormal basis taken from: http://orbit.dtu.dk/files/126824972/onb_frisvad_jgt2012_v2.pdf
+     */
+    template< class T1, class T2 , class T3>
+    static inline void OrthonormalBasisHughesMoeller(const T1& c,T2& a,T3& b ){
+        KRATOS_DEBUG_ERROR_IF_NOT(norm_2(c) < (1.0 - 1.0e-6) || norm_2(c) > (1.0 + 1.0e-6)) << "Input should be a normal vector" << std::endl;
+        //  Choose a vector  orthogonal  to n as the  direction  of b2.
+        if(std::abs(c[0]) > std::abs(c[2])) {
+            b[0] = -c[1];
+            b[1] =  c[0];
+            b[2] =  0.0;
+        } else {
+            b[0] = 0.0;
+            b[1] = -c[2];
+            b[2]  = c[1];
+            b /=  norm_2(b);         //  Normalize  b
+        }
+        UnitCrossProduct(a, b , c); //  Construct  a  using a cross  product
     }
 
     /**
