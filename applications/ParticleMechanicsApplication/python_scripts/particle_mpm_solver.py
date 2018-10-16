@@ -323,7 +323,7 @@ class ParticleMPMSolver(PythonSolver):
         # Specific active node and element check for particle MPM solver
         for node in self.grid_model_part.Nodes:
             if (node.Is(KratosMultiphysics.ACTIVE)):
-                print(node.Id)
+                self.print_on_rank_zero("::[ParticleMPMSolver]:: ","WARNING: This grid node have been set active: ", node.Id)
                 
         for element in self.initial_material_model_part.Elements:
             element.Set(KratosMultiphysics.ACTIVE, True)
