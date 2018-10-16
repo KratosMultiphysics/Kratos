@@ -91,6 +91,14 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
         self.element_name = "ShellThinElementCorotational3D3N"
         self.__ExecuteShellTest()
 
+    def test_3DBeamElement(self):
+        self.element_name = "CrBeamElement3D2N"
+        self.__ExecuteBeamTest()
+
+    def test_3DLinearBeamElement(self):
+        self.element_name = "CrLinearBeamElement3D2N"
+        self.__ExecuteBeamTest()
+
     def __ExecuteShellTest(self):
         model_part = KratosMultiphysics.ModelPart(self.element_name)
 
@@ -98,8 +106,8 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
         CreateShellElements(model_part, self.element_name)
 
         for i, elem in enumerate(model_part.Elements):
-            angle = i*25*math.pi/180 # radians, every 25 degree
-            elem.SetValue(StructuralMechanicsApplication.MATERIAL_ORIENTATION_ANGLE, angle)
+            in_plane_rotation_angle = i*25*math.pi/180 # radians, every 25 degree
+            elem.SetValue(StructuralMechanicsApplication.MATERIAL_ORIENTATION_ANGLE, in_plane_rotation_angle)
 
         WriteGiDOutput(model_part)
         reference_file_name = "local_axis_" + self.element_name + "_0.post.res.ref"
@@ -108,11 +116,39 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
         output_file_name = "local_axis_" + self.element_name + "_0.post.res"
         self.__CheckResults(reference_file_name, output_file_name)
 
-    def test_3DBeamElement(self):
-        self.element_name = "CrBeamElement3D2N"
+    def __ExecuteBeamTest(self):
+        model_part = KratosMultiphysics.ModelPart(self.element_name)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 
-    def test_3DLinearBeamElement(self):
-        self.element_name = "CrBeamLinearElement3D2N"
+        nr_nodes = 9
+        nr_elements = nr_nodes-1
+
+        #create nodes
+        dx = 1.00 / nr_elements
+        for i in range(nr_nodes):
+            model_part.CreateNewNode(i+1,i*dx,0.00,0.00)
+
+        #create Element
+        for i in range(nr_elements):
+            model_part.CreateNewElement(self.element_name, i+1, [i+1,i+2],
+             model_part.GetProperties()[0])
+
+        for i, elem in enumerate(model_part.Elements):
+            if i > nr_elements/2: # prescribing only half of the elements with LOCAL_AXIS_2!
+                break
+            angle_around_x_axis = i*25*math.pi/180 # radians, every 25 degree
+            vec_comp_y = math.sin(angle_around_x_axis)
+            vec_comp_z = math.cos(angle_around_x_axis)
+            local_axis_2 = KratosMultiphysics.Vector([0, vec_comp_y, vec_comp_z])
+            elem.SetValue(KratosMultiphysics.LOCAL_AXIS_2, local_axis_2)
+
+        WriteGiDOutput(model_part)
+        reference_file_name = "local_axis_" + self.element_name + "_0.post.res.ref"
+        reference_file_name = os.path.join("local_axis_visualization_ref_result_files", reference_file_name)
+        reference_file_name = GetFilePath(reference_file_name)
+        output_file_name = "local_axis_" + self.element_name + "_0.post.res"
+        self.__CheckResults(reference_file_name, output_file_name)
 
     def __CheckResults(self, ref_file_name, out_file_name):
         # check the results
@@ -133,8 +169,6 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
         check_process.ExecuteBeforeOutputStep()
         check_process.ExecuteAfterOutputStep()
         check_process.ExecuteFinalize()
-
-
 
 if __name__ == '__main__':
     KratosUnittest.main()
