@@ -40,7 +40,9 @@ def GetDefaultInputParameters():
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
-
+            "strategy_parameters" :{
+                "RemoveBallsInitiallyTouchingWalls": false
+            },
             "DeltaOption"                      : "Absolute",
             "SearchTolerance"                  : 0.0,
             "CoordinationNumber"               : 10,
