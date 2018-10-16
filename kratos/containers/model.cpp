@@ -58,9 +58,11 @@ namespace Kratos
         KRATOS_TRY
 
         if(this->HasModelPart(ModelPartName))
-            mRootModelPartMap.erase(ModelPartName);
-        //NOTE: the corresponding variable list should NOT be removed
+            mRootModelPartMap.erase(ModelPartName); //NOTE: the corresponding variable list should NOT be removed
+        else
+            KRATOS_WARNING("Info") << "attempting to delete inexisting modelpart : " << ModelPartName << std::endl;
 
+        
         KRATOS_CATCH("")
     }
     
