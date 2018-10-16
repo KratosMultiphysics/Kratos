@@ -68,35 +68,51 @@ def WriteGiDOutput(model_part):
 
 
 class TestLocalAxisVisualization(KratosUnittest.TestCase):
-    @classmethod
-    def tearDownClass(cls):
-    # def tearDown(self):
+    def tearDown(self):
         # delete all files leftover from the tests
-        kratos_utils.DeleteFileIfExisting("local_axis_ShellThickElementCorotational3D4N_0.post.msh")
-        kratos_utils.DeleteFileIfExisting("local_axis_ShellThickElementCorotational3D4N_0.post.res") # usually this is deleted by the check process but not if it fails
+        output_file_name = "local_axis_" + self.element_name + "_0.post.res"
+        msh_file_name = "local_axis_" + self.element_name + "_0.post.msh"
+        kratos_utils.DeleteFileIfExisting(msh_file_name)
+        kratos_utils.DeleteFileIfExisting(output_file_name) # usually this is deleted by the check process but not if it fails
 
     def test_ThickQuadShellElement(self):
-        element_name = "ShellThickElementCorotational3D4N"
-        model_part = KratosMultiphysics.ModelPart(element_name)
+        self.element_name = "ShellThickElementCorotational3D4N"
+        self.__ExecuteShellTest()
 
-        CreateShellNodes(model_part, element_name)
-        CreateShellElements(model_part, element_name)
+    def test_ThinQuadShellElement(self):
+        self.element_name = "ShellThinElementCorotational3D4N"
+        self.__ExecuteShellTest()
+
+    def test_ThickTriShellElement(self):
+        self.element_name = "ShellThickElementCorotational3D3N"
+        self.__ExecuteShellTest()
+
+    def test_ThinTriShellElement(self):
+        self.element_name = "ShellThinElementCorotational3D3N"
+        self.__ExecuteShellTest()
+
+    def __ExecuteShellTest(self):
+        model_part = KratosMultiphysics.ModelPart(self.element_name)
+
+        CreateShellNodes(model_part, self.element_name)
+        CreateShellElements(model_part, self.element_name)
 
         for i, elem in enumerate(model_part.Elements):
             angle = i*25*math.pi/180 # radians, every 25 degree
             elem.SetValue(StructuralMechanicsApplication.MATERIAL_ORIENTATION_ANGLE, angle)
 
         WriteGiDOutput(model_part)
-        reference_file_name = "local_axis_ShellThickElementCorotational3D4N_0.post.res.ref"
+        reference_file_name = "local_axis_" + self.element_name + "_0.post.res.ref"
         reference_file_name = os.path.join("local_axis_visualization_ref_result_files", reference_file_name)
-        output_file_name = "local_axis_ShellThickElementCorotational3D4N_0.post.res"
+        reference_file_name = GetFilePath(reference_file_name)
+        output_file_name = "local_axis_" + self.element_name + "_0.post.res"
         self.__CheckResults(reference_file_name, output_file_name)
 
-
     def test_3DBeamElement(self):
-        pass
+        self.element_name = "CrBeamElement3D2N"
+
     def test_3DLinearBeamElement(self):
-        pass
+        self.element_name = "CrBeamLinearElement3D2N"
 
     def __CheckResults(self, ref_file_name, out_file_name):
         # check the results
@@ -118,71 +134,6 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
         check_process.ExecuteAfterOutputStep()
         check_process.ExecuteFinalize()
 
-
-
-    # def test_PostprocessEigenvaluesProcess(self):
-    #     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-    #     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-    #     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-    #     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
-
-    #     CreateNodes(model_part)
-
-    #     # adding dofs is needed for the process internally
-    #     KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
-    #     KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
-    #     KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
-    #     KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,model_part)
-    #     KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,model_part)
-    #     KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,model_part)
-
-    #     test_model.AddModelPart(model_part)
-
-    #     # set EigenValues and -Vectors
-    #     num_eigenvalues = 4
-    #     eigenval_vector = GetEigenValueVector(num_eigenvalues)
-    #     model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR] = eigenval_vector
-
-    #     for node in model_part.Nodes:
-    #         node.SetValue(StructuralMechanicsApplication.EIGENVECTOR_MATRIX,
-    #                       GetEigenVectorMatrix(num_eigenvalues, node.Id))
-
-    #     # Use the process
-    #     # here the minimum settings are specified to test the default values!
-    #     settings_eigen_process = KratosMultiphysics.Parameters("""{"result_file_format_use_ascii" : true}""")
-
-    #     post_eigen_process = PostProcessEigenvaluesProcess(test_model, settings_eigen_process)
-
-    #     post_eigen_process.ExecuteInitialize()
-    #     post_eigen_process.ExecuteBeforeSolutionLoop()
-    #     post_eigen_process.ExecuteInitializeSolutionStep()
-    #     post_eigen_process.ExecuteFinalizeSolutionStep()
-    #     post_eigen_process.ExecuteBeforeOutputStep()
-    #     post_eigen_process.ExecuteAfterOutputStep()
-    #     post_eigen_process.ExecuteFinalize()
-
-    #     # check the results
-    #     settings_check_process = KratosMultiphysics.Parameters("""
-    #     {
-    #         "reference_file_name"   : "",
-    #         "output_file_name"      : "",
-    #         "remove_output_file"    : true,
-    #         "comparison_type"       : "post_res_file"
-    #     }
-    #     """)
-
-    #     settings_check_process["reference_file_name"].SetString(GetFilePath("test_postprocess_eigenvalues_process.ref"))
-    #     settings_check_process["output_file_name"].SetString("Structure_EigenResults_0.post.res")
-
-    #     check_process = CompareTwoFilesCheckProcess(test_model, settings_check_process)
-
-    #     check_process.ExecuteInitialize()
-    #     check_process.ExecuteBeforeSolutionLoop()
-    #     check_process.ExecuteInitializeSolutionStep()
-    #     check_process.ExecuteFinalizeSolutionStep()
-    #     check_process.ExecuteBeforeOutputStep()
-    #     check_process.ExecuteAfterOutputStep()
-    #     check_process.ExecuteFinalize()
 
 
 if __name__ == '__main__':
