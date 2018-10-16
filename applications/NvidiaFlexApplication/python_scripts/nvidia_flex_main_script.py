@@ -17,6 +17,7 @@ class SolutionDEM(main_script.Solution):
         super(SolutionDEM, self).__init__()
         self.changing_gravity_option = True
         self.velocity_threshold_for_gravity_change = 0.02
+        self.time_at_last_gravity_change = 0.0
         self.min_time_between_gravity_changes = 0.25
         self.max_time_between_gravity_changes = 3.0
         self.gravities_filename = "TimeAngle.csv"
@@ -38,7 +39,7 @@ class SolutionDEM(main_script.Solution):
     def SolverSolve(self):
         super(SolutionDEM, self).SolverSolve()
         if self.changing_gravity_option:
-            if self.nvidia_flex_wrapper.CheckIfItsTimeToChangeGravity(self.velocity_threshold_for_gravity_change, self.min_time_between_gravity_changes, self.max_time_between_gravity_changes):
+            if NvidiaFlexPreUtilities().CheckIfItsTimeToChangeGravity(self.spheres_model_part, self.time_at_last_gravity_change, self.velocity_threshold_for_gravity_change, self.min_time_between_gravity_changes, self.max_time_between_gravity_changes):
                 #TODO: utility of max_time_between_gravity_changes??
                 self._ChangeGravity()
 
@@ -55,7 +56,6 @@ class SolutionDEM(main_script.Solution):
         if self.gravity_iterator_position >= len(self.list_of_gravities) - 1:
             print("No more gravities available. Exiting.")
             self.stop_signal = True
-            sys.exit() #TODO: to be removed
 
         self.gravity_iterator_position += 1
         new_gravity = self.list_of_gravities[self.gravity_iterator_position]
@@ -90,7 +90,7 @@ class SolutionFlex(SolutionDEM):
         self.nvidia_flex_wrapper.SolveTimeSteps(self.dt, 1) #DO NOT CHANGE THIS 1, OR INSTABILITIES MAY APPEAR
         self.nvidia_flex_wrapper.TransferDataFromFlexToKratos()
         if self.changing_gravity_option:
-            if self.nvidia_flex_wrapper.CheckIfItsTimeToChangeGravity(self.velocity_threshold_for_gravity_change, self.min_time_between_gravity_changes, self.max_time_between_gravity_changes):
+            if NvidiaFlexPreUtilities().CheckIfItsTimeToChangeGravity(self.spheres_model_part, self.time_at_last_gravity_change, self.velocity_threshold_for_gravity_change, self.min_time_between_gravity_changes, self.max_time_between_gravity_changes):
                 self._ChangeGravity()
 
     def _CheckNvidiaParameters(self):

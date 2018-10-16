@@ -23,13 +23,13 @@ namespace Kratos {
             .def("UpdateFlex", &FlexWrapper::UpdateFlex)
             .def("TransferDataFromFlexToKratos", &FlexWrapper::TransferDataFromFlexToKratos)
             .def("SolveTimeSteps", &FlexWrapper::SolveTimeSteps)
-            .def("CheckIfItsTimeToChangeGravity", &FlexWrapper::CheckIfItsTimeToChangeGravity)
             ;
 
         class_<NvidiaFlexPreUtilities, NvidiaFlexPreUtilities::Pointer >(m, "NvidiaFlexPreUtilities")
         .def(init<>())
         .def(init<ModelPart&>())
         .def("RemoveSpheresInitiallyIndentedWithFEM", &NvidiaFlexPreUtilities::RemoveSpheresInitiallyIndentedWithFEM)
+        .def("CheckIfItsTimeToChangeGravity", &NvidiaFlexPreUtilities::CheckIfItsTimeToChangeGravity)
         ;
 
         }
