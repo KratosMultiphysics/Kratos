@@ -129,12 +129,12 @@ public:
 
         //************************************************************************************************
         //construct a new auxiliary model part
-        BaseSpAlType::mrspalart_model_part.SetBufferSize(3);
-        BaseSpAlType::mrspalart_model_part.GetNodalSolutionStepVariablesList() = BaseSpAlType::mr_model_part.GetNodalSolutionStepVariablesList();
-        BaseSpAlType::mrspalart_model_part.SetBufferSize(BaseSpAlType::mr_model_part.GetBufferSize());
-        BaseSpAlType::mrspalart_model_part.SetNodes(BaseSpAlType::mr_model_part.pNodes());
-        BaseSpAlType::mrspalart_model_part.SetProcessInfo(BaseSpAlType::mr_model_part.pGetProcessInfo());
-        BaseSpAlType::mrspalart_model_part.SetProperties(BaseSpAlType::mr_model_part.pProperties());
+        BaseSpAlType::mrSpalartModelPart.SetBufferSize(3);
+        BaseSpAlType::mrSpalartModelPart.GetNodalSolutionStepVariablesList() = BaseSpAlType::mr_model_part.GetNodalSolutionStepVariablesList();
+        BaseSpAlType::mrSpalartModelPart.SetBufferSize(BaseSpAlType::mr_model_part.GetBufferSize());
+        BaseSpAlType::mrSpalartModelPart.SetNodes(BaseSpAlType::mr_model_part.pNodes());
+        BaseSpAlType::mrSpalartModelPart.SetProcessInfo(BaseSpAlType::mr_model_part.pGetProcessInfo());
+        BaseSpAlType::mrSpalartModelPart.SetProperties(BaseSpAlType::mr_model_part.pProperties());
 
         // Create a communicator for the new model part and copy the partition information about nodes.
         Communicator& rReferenceComm = BaseSpAlType::mr_model_part.GetCommunicator();
@@ -150,7 +150,7 @@ public:
             pSpalartMPIComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
             pSpalartMPIComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
         }
-        BaseSpAlType::mrspalart_model_part.SetCommunicator( pSpalartMPIComm );
+        BaseSpAlType::mrSpalartModelPart.SetCommunicator( pSpalartMPIComm );
 
         std::string ElementName;
         if (BaseSpAlType::mdomain_size == 2)
@@ -165,7 +165,7 @@ public:
         {
             Properties::Pointer properties = iii->pGetProperties();
             Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry(), properties);
-            BaseSpAlType::mrspalart_model_part.Elements().push_back(p_element);
+            BaseSpAlType::mrSpalartModelPart.Elements().push_back(p_element);
         }
 
         std::string ConditionName;
@@ -179,11 +179,11 @@ public:
         {
             Properties::Pointer properties = iii->pGetProperties();
             Condition::Pointer p_condition = rReferenceCondition.Create(iii->Id(), iii->GetGeometry(), properties);
-            BaseSpAlType::mrspalart_model_part.Conditions().push_back(p_condition);
+            BaseSpAlType::mrSpalartModelPart.Conditions().push_back(p_condition);
         }
 
         // Create a communicator for the new model part
-        ParallelFillCommunicator CommunicatorGeneration(BaseSpAlType::mrspalart_model_part);
+        ParallelFillCommunicator CommunicatorGeneration(BaseSpAlType::mrSpalartModelPart);
         CommunicatorGeneration.Execute();
         //CommunicatorGeneration.PrintDebugInfo()
 
@@ -213,7 +213,7 @@ public:
         bool CalculateReactions = false;
         bool MoveMesh = false;
 
-        BaseSpAlType::mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(BaseSpAlType::mrspalart_model_part,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
+        BaseSpAlType::mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(BaseSpAlType::mrSpalartModelPart,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
         BaseSpAlType::mpSolutionStrategy->SetEchoLevel(0);
         BaseSpAlType::mpSolutionStrategy->Check();
 

@@ -105,7 +105,7 @@ public:
         bool ReformDofSet,
         unsigned int TimeOrder)
         : mr_model_part(rModelPart),
-        mrspalart_model_part(rModelPart.GetOwnerModel().CreateModelPart("SpalartModelPart")),
+        mrSpalartModelPart(rModelPart.GetOwnerModel().CreateModelPart("SpalartModelPart")),
         mdomain_size(DomainSize),
         mtol(NonLinearTol),
         mmax_it(MaxIter),
@@ -136,11 +136,11 @@ public:
 
         //************************************************************************************************
         //construct a new auxiliary model part
-        mrspalart_model_part.GetNodalSolutionStepVariablesList() = mr_model_part.GetNodalSolutionStepVariablesList();
-        mrspalart_model_part.SetBufferSize(3);
-        mrspalart_model_part.Nodes() = mr_model_part.Nodes();
-        mrspalart_model_part.SetProcessInfo(mr_model_part.pGetProcessInfo());
-        mrspalart_model_part.SetProperties(mr_model_part.pProperties());
+        mrSpalartModelPart.GetNodalSolutionStepVariablesList() = mr_model_part.GetNodalSolutionStepVariablesList();
+        mrSpalartModelPart.SetBufferSize(3);
+        mrSpalartModelPart.Nodes() = mr_model_part.Nodes();
+        mrSpalartModelPart.SetProcessInfo(mr_model_part.pGetProcessInfo());
+        mrSpalartModelPart.SetProperties(mr_model_part.pProperties());
 
         std::string ElementName;
         if (DomainSize == 2)
@@ -155,7 +155,7 @@ public:
         {
             Properties::Pointer properties = iii->pGetProperties();
             Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry(), properties);
-            mrspalart_model_part.Elements().push_back(p_element);
+            mrSpalartModelPart.Elements().push_back(p_element);
         }
 
         // pointer types for the solution strategy construcion
@@ -180,7 +180,7 @@ public:
         bool CalculateReactions = false;
         bool MoveMesh = false;
 
-        mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(mrspalart_model_part,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
+        mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(mrSpalartModelPart,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
         mpSolutionStrategy->SetEchoLevel(0);
         mpSolutionStrategy->Check();
     }
@@ -189,7 +189,7 @@ public:
 
     ~SpalartAllmarasTurbulenceModel() override
     {
-        Model& r_model = mrspalart_model_part.GetOwnerModel();
+        Model& r_model = mrSpalartModelPart.GetOwnerModel();
         r_model.DeleteModelPart("SpalartModelPart");
     }
 
@@ -210,13 +210,13 @@ public:
 
         if(madapt_for_fractional_step == true)
         {
-            if (!(mrspalart_model_part.NodesBegin()->SolutionStepsDataHas(FRACT_VEL)))
+            if (!(mrSpalartModelPart.NodesBegin()->SolutionStepsDataHas(FRACT_VEL)))
                 KRATOS_THROW_ERROR(std::logic_error, "Variable is not in the model part:", FRACT_VEL);
 
             #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(mrspalart_model_part.Nodes().size()); i++)
+            for (int i = 0; i < static_cast<int>(mrSpalartModelPart.Nodes().size()); i++)
             {
-                ModelPart::NodesContainerType::iterator it = mrspalart_model_part.NodesBegin() + i;
+                ModelPart::NodesContainerType::iterator it = mrSpalartModelPart.NodesBegin() + i;
                 it->FastGetSolutionStepValue(VELOCITY) = it->FastGetSolutionStepValue(FRACT_VEL);
             }
         }
@@ -224,8 +224,8 @@ public:
         AuxSolve();
 
         //update viscosity on the nodes
-        for (ModelPart::NodeIterator i = mrspalart_model_part.NodesBegin();
-                i != mrspalart_model_part.NodesEnd(); ++i)
+        for (ModelPart::NodeIterator i = mrSpalartModelPart.NodesBegin();
+                i != mrSpalartModelPart.NodesEnd(); ++i)
         {
             double molecular_viscosity = i->FastGetSolutionStepValue(MOLECULAR_VISCOSITY);
             double turbulent_viscosity = i->FastGetSolutionStepValue(TURBULENT_VISCOSITY);
@@ -273,11 +273,11 @@ public:
     {
         KRATOS_TRY;
 
-        mrspalart_model_part.GetProcessInfo()[C_DES] = CDES;
+        mrSpalartModelPart.GetProcessInfo()[C_DES] = CDES;
 /*
         //update viscosity on the nodes
-        for (ModelPart::NodeIterator i = mrspalart_model_part.NodesBegin();
-                i != mrspalart_model_part.NodesEnd(); ++i)
+        for (ModelPart::NodeIterator i = mrSpalartModelPart.NodesBegin();
+                i != mrSpalartModelPart.NodesEnd(); ++i)
         {
             double distance = i->FastGetSolutionStepValue(DISTANCE);
             const array_1d<double,3>& xc = i->Coordinates();
@@ -362,7 +362,7 @@ protected:
     ///@{
 
     ModelPart& mr_model_part;
-    ModelPart& mrspalart_model_part;
+    ModelPart& mrSpalartModelPart;
     unsigned int mdomain_size;
     double mtol;
     unsigned int mmax_it;
@@ -399,7 +399,7 @@ protected:
         :
         Process(),
         mr_model_part(rModelPart),
-        mrspalart_model_part(rModelPart.GetOwnerModel().CreateModelPart("SpalartModelPart"))
+        mrSpalartModelPart(rModelPart.GetOwnerModel().CreateModelPart("SpalartModelPart"))
     {}
 
     ///@}
@@ -431,7 +431,7 @@ private:
         KRATOS_TRY
 
         //calculate the BDF coefficients
-        ProcessInfo& rCurrentProcessInfo = mrspalart_model_part.GetProcessInfo();
+        ProcessInfo& rCurrentProcessInfo = mrSpalartModelPart.GetProcessInfo();
         double Dt = rCurrentProcessInfo[DELTA_TIME];
 
         if (mtime_order == 2)
@@ -518,8 +518,8 @@ private:
 
 
 
-        for (ModelPart::NodeIterator i = mrspalart_model_part.NodesBegin();
-                i != mrspalart_model_part.NodesEnd(); ++i)
+        for (ModelPart::NodeIterator i = mrSpalartModelPart.NodesBegin();
+                i != mrSpalartModelPart.NodesEnd(); ++i)
         {
             norm += pow(i->FastGetSolutionStepValue(TURBULENT_VISCOSITY), 2);
         }
@@ -535,11 +535,11 @@ private:
     {
         KRATOS_TRY;
 
-        ProcessInfo& rCurrentProcessInfo = mrspalart_model_part.GetProcessInfo();
+        ProcessInfo& rCurrentProcessInfo = mrSpalartModelPart.GetProcessInfo();
 
         //first of all set to zero the nodal variables to be updated nodally
-        for (ModelPart::NodeIterator i = mrspalart_model_part.NodesBegin();
-                i != mrspalart_model_part.NodesEnd(); ++i)
+        for (ModelPart::NodeIterator i = mrSpalartModelPart.NodesBegin();
+                i != mrSpalartModelPart.NodesEnd(); ++i)
         {
             (i)->FastGetSolutionStepValue(TEMP_CONV_PROJ) = 0.00;
             (i)->FastGetSolutionStepValue(NODAL_AREA) = 0.00;
@@ -549,20 +549,20 @@ private:
         //and the determination of the nodal area
 
 
-        for (ModelPart::ElementIterator i = mrspalart_model_part.ElementsBegin();
-                i != mrspalart_model_part.ElementsEnd(); ++i)
+        for (ModelPart::ElementIterator i = mrSpalartModelPart.ElementsBegin();
+                i != mrSpalartModelPart.ElementsEnd(); ++i)
         {
             (i)->InitializeSolutionStep(rCurrentProcessInfo);
         }
 
-        Communicator& rComm = mrspalart_model_part.GetCommunicator();
+        Communicator& rComm = mrSpalartModelPart.GetCommunicator();
 
         rComm.AssembleCurrentData(NODAL_AREA);
         rComm.AssembleCurrentData(TEMP_CONV_PROJ);
 
         // Obtain nodal projection of the residual
-        for (ModelPart::NodeIterator i = mrspalart_model_part.NodesBegin();
-                i != mrspalart_model_part.NodesEnd(); ++i)
+        for (ModelPart::NodeIterator i = mrSpalartModelPart.NodesBegin();
+                i != mrSpalartModelPart.NodesEnd(); ++i)
         {
             const double NodalArea = i->FastGetSolutionStepValue(NODAL_AREA);
             if(NodalArea > 0.0)
