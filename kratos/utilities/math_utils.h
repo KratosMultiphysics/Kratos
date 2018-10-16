@@ -1029,15 +1029,15 @@ public:
         KRATOS_DEBUG_ERROR_IF_NOT(norm_2(c) < (1.0 - 1.0e-6) || norm_2(c) > (1.0 + 1.0e-6)) << "Input should be a normal vector" << std::endl;
         //  Choose a vector  orthogonal  to n as the  direction  of b2.
         if(std::abs(c[0]) > std::abs(c[2])) {
-            b[0] = -c[1];
-            b[1] =  c[0];
+            b[0] =  c[1];
+            b[1] = -c[0];
             b[2] =  0.0;
         } else {
-            b[0] = 0.0;
-            b[1] = -c[2];
-            b[2]  = c[1];
-            b /=  norm_2(b);         //  Normalize  b
+            b[0] =   0.0;
+            b[1] =   c[2];
+            b[2]  = -c[1];
         }
+        b /=  norm_2(b); //  Normalize  b
         UnitCrossProduct(a, b , c); //  Construct  a  using a cross  product
     }
 
