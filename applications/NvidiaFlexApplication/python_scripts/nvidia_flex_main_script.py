@@ -56,6 +56,7 @@ class SolutionDEM(main_script.Solution):
         if self.gravity_iterator_position >= len(self.list_of_gravities) - 1:
             print("No more gravities available. Exiting.")
             self.stop_signal = True
+            return
 
         self.gravity_iterator_position += 1
         new_gravity = self.list_of_gravities[self.gravity_iterator_position]
