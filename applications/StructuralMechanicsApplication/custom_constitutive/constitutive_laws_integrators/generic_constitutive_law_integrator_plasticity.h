@@ -754,18 +754,6 @@ class GenericConstitutiveLawIntegratorPlasticity
     ///@name Un accessible methods
     ///@{
 
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
-
     ///@}
 
 }; // Class GenericYieldSurface
