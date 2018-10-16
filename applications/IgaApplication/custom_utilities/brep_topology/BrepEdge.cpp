@@ -30,23 +30,20 @@ namespace Kratos
     }
 
     ///Constructor
-    BrepEdge::BrepEdge(unsigned int edge_id,
-        std::vector<Topology>& brep_edge_topology_vector,
-        std::vector<TrimmingRange>& trimming_range_vector,
-        unsigned int& degree,
-        Vector& knot_vector,
-        Vector& active_range,
-        std::vector<int>& control_point_ids,
-        Kratos::shared_ptr<ModelPart> model_part)
-        : m_brep_edge_topology_vector(brep_edge_topology_vector),
-        m_trimming_range_vector(trimming_range_vector),
-        m_degree(degree),
-        m_knot_vector(knot_vector),
-        m_active_range(active_range),
-        m_control_point_ids(control_point_ids),
-        mp_model_part(model_part),
-        IndexedObject(edge_id),
-        Flags()
+    BrepEdge::BrepEdge(unsigned int rBrepId,
+		std::vector<Topology>& rBrepEdgeTopologyVector,
+		std::vector<TrimmingRange>& rTrimmingRangeVector,
+		Vector& rKnotVector,
+		Vector& rActiveRange,
+		std::vector<int>& rControlPointIds,
+		Kratos::shared_ptr<ModelPart> rModelPart)
+        : m_brep_edge_topology_vector(rBrepEdgeTopologyVector),
+          m_trimming_range_vector(rTrimmingRangeVector),
+          m_active_range(rActiveRange),
+          m_control_point_ids(rControlPointIds),
+          mp_model_part(rModelPart),
+          IndexedObject(rBrepId),
+          Flags()
     {
         m_curve_geometry = NodeCurveGeometry(degree, NumberOfNodes);
 

@@ -33,12 +33,12 @@ namespace Kratos
         /* Descibes the topology properties of vertices. */
         struct VertexTopology
         {
-            int face_id;
+            int brep_id;
             int trim_index;
 
-            Topology(const int& rFaceId, const int& rTrimIndex)
+			VertexTopology(const int& rBrepId, const int& rTrimIndex)
             {
-                face_id = rFaceId;
+                brep_id    = rBrepId;
                 trim_index = rTrimIndex;
             }
         };
@@ -48,14 +48,14 @@ namespace Kratos
         Topology GetVertexInformation(const int& rTopologyIndex);
 
         /// Constructor.
-        BrepVertex::BrepVertex(unsigned int VertexId,
-            std::vector<Topology>& BrepVertexTopologyVector,
-            int control_point_id,
-            Vector& Point)
-            : m_brep_vertex_topology_vector(BrepVertexTopologyVector),
-              m_control_point_id(control_point_id),
-              m_point(Point),
-              IndexedObject(VertexId),
+        BrepVertex::BrepVertex(unsigned int& rVertexId,
+            std::vector<Topology>& rBrepVertexTopologyVector,
+            int rControlPointId,
+            Vector& rPoint)
+            : m_brep_vertex_topology_vector(rBrepVertexTopologyVector),
+              m_control_point_id(rControlPointId),
+              m_point(rPoint),
+              IndexedObject(rVertexId),
               Flags()
         {};
 
