@@ -311,7 +311,7 @@ public:
         Flags& cl_options = rValues.GetOptions();
 
         // In order to avoid recursivity...
-        const bool back_flag = cl_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
         cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
         pConstitutiveLaw->CalculateMaterialResponse(rValues, rStressMeasure);
