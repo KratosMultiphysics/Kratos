@@ -51,12 +51,13 @@ class RigidBodyPointLinkCondition
 
   ///@name Type Definitions
 
-  ///Tensor order 1 definition
-  typedef Vector                        VectorType;
-  typedef Element                      ElementType;
-  typedef Node<3>::Pointer        PointPointerType;
-  typedef Quaternion<double>        QuaternionType;
-
+  typedef Vector                             VectorType;
+  typedef Element                           ElementType;
+  typedef Node<3>::Pointer             PointPointerType;
+  typedef Quaternion<double>             QuaternionType;
+  typedef Node<3>::DofsContainerType  DofsContainerType;
+  typedef GeometryData::SizeType               SizeType;
+  
   ///@{
   // Counted pointer of RigidBodyPointLinkCondition
   KRATOS_CLASS_POINTER_DEFINITION( RigidBodyPointLinkCondition );
@@ -364,7 +365,7 @@ class RigidBodyPointLinkCondition
    */
   virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
                                         VectorType& rRightHandSideVector,
-                                        const unsigned int& rSlaveElementSize,
+                                        const SizeType& rSlaveElementSize,
                                         Flags& rCalculationFlags);
   /**
    * Initialize General Variables
@@ -402,6 +403,11 @@ class RigidBodyPointLinkCondition
   virtual void CalculateAndAddForces(VectorType& rRightHandSideVector,
                                      VectorType& rLinkedRightHandSideVector,
                                      GeneralVariables& rVariables);
+  /**
+   * Get element size from the dofs
+   */
+  virtual SizeType GetDofsSize();
+  
   /**
    * Calculation of an SkewSymmetricTensor from a vector
    */

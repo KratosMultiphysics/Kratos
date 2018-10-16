@@ -30,10 +30,9 @@ namespace Kratos {
     mAxisymContactDomainLMCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
     mAxisymContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
     mThermalContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
-    mAxisymThermalContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3)))
-    // ,
-    // mRigidBodyPointLinkCondition2D1N( 0, Kratos::make_shared< Point3D<Node<3> >( Condition::GeometryType::PointsArrayType(1))),
-    // mRigidBodyPointLinkCondition3D1N( 0, Kratos::make_shared< Point3D<Node<3> >( Condition::GeometryType::PointsArrayType(1)))
+    mAxisymThermalContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
+    mRigidBodyPointLinkCondition2D1N( 0, Kratos::make_shared< Point3D<Node<3> >( Condition::GeometryType::PointsArrayType(1))),
+    mRigidBodyPointLinkCondition3D1N( 0, Kratos::make_shared< Point3D<Node<3> >( Condition::GeometryType::PointsArrayType(1)))
 
   {}
 

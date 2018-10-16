@@ -69,7 +69,7 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_CORE
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_conctact/beam_point_pressure_condition.cpp
 
 	## rigid body links
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_point_link_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_point_link_condition.cpp
 
 	##elements
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
