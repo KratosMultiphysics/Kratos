@@ -111,7 +111,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     class_<IntegrationPointStatisticsProcess, IntegrationPointStatisticsProcess::Pointer, Process>
     (m, "IntegrationPointStatisticsProcess")
-    .def(init<Model&, Kratos::Parameters>())
+    .def(init<Model&, Parameters::Pointer>())
     ;
 
     class_<MoveRotorProcess, MoveRotorProcess::Pointer, Process>
