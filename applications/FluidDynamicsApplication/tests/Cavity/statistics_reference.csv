@@ -1,4 +1,4 @@
-Element Id, Integration point, x, y, z, <VELOCITY_X>, <VELOCITY_Y>, <VELOCITY_Z>, <PRESSURE>, <PRESSURE'VELOCITY_X'>, <PRESSURE'VELOCITY_Y'>, <PRESSURE'VELOCITY_Z'>, <VELOCITY_X'VELOCITY_X'>, <VELOCITY_X'VELOCITY_Y'>, <VELOCITY_X'VELOCITY_Z'>, <VELOCITY_Y'VELOCITY_Y'>, <VELOCITY_Y'VELOCITY_Z'>, <VELOCITY_Z'VELOCITY_Z'>, <VELOCITY_X'VELOCITY_Z'>, <VELOCITY_Y'PRESSURE'>, <PRESSURE'VELOCITY_X'VELOCITY_Z'>, 
+Element Id, Integration point, x, y, z, <u>, <v>, <w>, <p>, <p'u'>, <p'v'>, <p'w'>, <u'u'>, <u'v'>, <u'w'>, <v'v'>, <v'w'>, <w'w'>, <u'w'>, <v'p'>, <p'u'w'>, 
 1, 0, 0.166667, 0.0333333, 0, 3, -1.2, 0.6, 2.46, 0.66, -0.264, 0.132, 2.75, -1.1, 0.55, 0.44, -0.22, 0.11, 0.55, -0.264, 0.039
 1, 1, 0.166667, 0.133333, 0, 3, -1.2, 0.6, 2.46, 0.66, -0.264, 0.132, 2.75, -1.1, 0.55, 0.44, -0.22, 0.11, 0.55, -0.264, 0.039
 1, 2, 0.0666667, 0.0333333, 0, 3, -1.2, 0.6, 2.46, 0.66, -0.264, 0.132, 2.75, -1.1, 0.55, 0.44, -0.22, 0.11, 0.55, -0.264, 0.039

@@ -85,11 +85,13 @@
             "statistics" : [
                 {
                     "type" : "average",
-                    "variable": "VELOCITY"
+                    "variable": "VELOCITY",
+                    "tags": ["u","v","w"]
                 },
                 {
                     "type" : "average",
-                    "variable": "PRESSURE"
+                    "variable": "PRESSURE",
+                    "tags": ["p"]
                 },
                 {
                     "type" : "variance",

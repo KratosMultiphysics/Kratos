@@ -183,12 +183,14 @@ void CreateStatisticsFromInput(StatisticsRecord::Pointer pRecordedStatistics)
     Kratos::Parameters default_parameters = Kratos::Parameters(R"({
         "statistics" : [],
         "output_file_name": "statistics",
-        "model_part_name": ""
+        "model_part_name": "",
+        "start_time": 0.0
     })");
 
     mParameters.ValidateAndAssignDefaults(default_parameters);
 
     mOutputFileName = mParameters["output_file_name"].GetString();
+    mStartTime = mParameters["start_time"].GetDouble();
 
     StatisticsDictionary defined_statistics;
 
@@ -227,7 +229,8 @@ StatisticsSampler::Pointer CreateAverageSampler(
 {
     Kratos::Parameters default_parameters(R"({
         "type" : "average",
-        "variable": ""
+        "variable": "",
+        "tags": []
     })");
 
     Parameters.ValidateAndAssignDefaults(default_parameters);
@@ -244,7 +247,15 @@ StatisticsSampler::Pointer CreateAverageSampler(
         // build double variable sampler
         Variable<double> variable = KratosComponents<Variable<double>>::Get(variable_name);
         auto value_getter = Kratos::Internals::MakeSamplerAtLocalCoordinate::ValueGetter(variable);
-        new_statistic = Kratos::make_shared<ScalarAverageSampler>(value_getter,variable_name);
+        std::string tag = variable_name;
+        if (Parameters["tags"].size() > 0)
+        {
+            KRATOS_ERROR_IF(Parameters["tags"].size() != 1) << "Only one tag is needed for scalar averages, but "
+            << Parameters["tags"].size() << " were provided for variable " << variable_name << "." << std::endl;
+
+            tag = Parameters["tags"][0].GetString();
+        }
+        new_statistic = Kratos::make_shared<ScalarAverageSampler>(value_getter,tag);
     }
     else if (KratosComponents<Variable<array_1d<double,3>>>::Has(variable_name))
     {
@@ -252,9 +263,21 @@ StatisticsSampler::Pointer CreateAverageSampler(
         Variable<array_1d<double,3>> variable = KratosComponents<Variable<array_1d<double,3>>>::Get(variable_name);
         auto value_getter = Kratos::Internals::MakeSamplerAtLocalCoordinate::ValueGetter(variable);
         std::vector<std::string> tags;
-        tags.push_back(std::string(variable_name+"_X"));
-        tags.push_back(std::string(variable_name+"_Y"));
-        tags.push_back(std::string(variable_name+"_Z"));
+        if (Parameters["tags"].size() > 0)
+        {
+            KRATOS_ERROR_IF(Parameters["tags"].size() != 3) << 3 << " tags are needed for vector averages, but "
+            << Parameters["tags"].size() << " were provided for variable " << variable_name << "." << std::endl;
+
+            tags.push_back(Parameters["tags"][0].GetString());
+            tags.push_back(Parameters["tags"][1].GetString());
+            tags.push_back(Parameters["tags"][2].GetString());
+        }
+        else
+        {
+            tags.push_back(std::string(variable_name+"_X"));
+            tags.push_back(std::string(variable_name+"_Y"));
+            tags.push_back(std::string(variable_name+"_Z"));
+        }
         new_statistic = Kratos::make_shared<VectorAverageSampler<array_1d<double,3>>>(value_getter,3,tags);
     }
     else
