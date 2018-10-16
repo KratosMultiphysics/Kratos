@@ -47,7 +47,6 @@ Import_DelaunayMeshingApplication = False
 Import_FluidRveLagrangeMultipliersApplication=False
 Import_PoromechanicsApplication = False
 Import_FluidTransportApplication = False
-Import_NvidiaFlexApplication=False
 
 print("Applications Available:")
 print("Import_FluidRveLagrangeMultipliersApplication: False")
@@ -94,7 +93,6 @@ print("Import_ShallowWaterApplication: False")
 print("Import_DelaunayMeshingApplication: False")
 print("Import_PoromechanicsApplication: False")
 print("Import_FluidTransportApplication: False")
-print("Import_NvidiaFlexApplication: False")
 
 application_directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -145,7 +143,6 @@ def ImportApplications(kernel, applications_path=application_directory):
     print("Import_DelaunayMeshingApplication: " + str(Import_DelaunayMeshingApplication))
     print("Import_PoromechanicsApplication: " + str(Import_PoromechanicsApplication))
     print("Import_FluidTransportApplication: " + str(Import_FluidTransportApplication))
-    print("Import_NvidiaFlexApplication: " + str(Import_NvidiaFlexApplication))
 
     if(Import_FluidRveLagrangeMultipliersApplication):
         print("importing KratosFluidRveLagrangeMultipliersApplication ...")
@@ -501,14 +498,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         shallow_water_application = KratosShallowWaterApplication()
         kernel.AddApplication(shallow_water_application)
         print("KratosShallowWaterApplication Succesfully imported")
-    if(Import_NvidiaFlexApplication):
-        print("importing KratosNvidiaFlexApplication ...")
-        sys.path.append(applications_path + '/ConstitutiveModels/python_scripts')
-        sys.path.append(applications_path + '/ConstitutiveModels/Linux')
-        from KratosNvidiaFlexApplication import *
-        nvidia_flex_application = KratosNvidiaFlexApplication()
-        kernel.AddApplication(nvidia_flex_application)
-        print("KratosNvidiaFlexApplication succesfully imported")
 
     if(Import_DelaunayMeshingApplication):
         print("importing KratosDelaunayMeshingApplication ...")
@@ -624,8 +613,6 @@ def ImportApplications(kernel, applications_path=application_directory):
         kernel.InitializeApplication(poromechanics_application)
     if(Import_FluidTransportApplication):
         kernel.InitializeApplication(fluid_transport_application)
-    if(Import_NvidiaFlexApplication):
-        kernel.InitializeApplication(nvidia_flex_application)
 
 # def ImportApplications(kernel  ):
     # import os.path
