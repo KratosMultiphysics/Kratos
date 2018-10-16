@@ -56,13 +56,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.Mapper = mapper_factory.CreateMapper(self.DesignSurface, OptimizationSettings["design_variables"]["filter"])
         self.DataLogger = data_logger_factory.CreateDataLogger(ModelPartController, Communicator, OptimizationSettings)
 
-        self.GeometryUtilities = GeometryUtilities(self.DesignSurface)
         self.OptimizationUtilities = OptimizationUtilities(self.DesignSurface, OptimizationSettings)
-
-        self.isDampingSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
-        if self.isDampingSpecified:
-            damping_regions = self.ModelPartController.GetDampingRegions()
-            self.DampingUtilities = DampingUtilities(self.DesignSurface, damping_regions, OptimizationSettings)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -140,17 +134,16 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         WriteDictionaryDataOnNodalVariable(conGradientDict, self.OptimizationModelPart, DC1DX)
 
         if self.only_obj["project_gradient_on_surface_normals"].GetBool() or self.only_con["project_gradient_on_surface_normals"].GetBool():
-            self.GeometryUtilities.ComputeUnitSurfaceNormals()
+            self.ModelPartController.ComputeUnitSurfaceNormals()
 
         if self.only_obj["project_gradient_on_surface_normals"].GetBool():
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
+            self.ModelPartController.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
 
         if self.only_con["project_gradient_on_surface_normals"].GetBool():
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
+            self.ModelPartController.ProjectNodalVariableOnUnitSurfaceNormals(DC1DX)
 
-        if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(DF1DX)
-            self.DampingUtilities.DampNodalVariable(DC1DX)
+        self.ModelPartController.DampNodalVariableIfSpecified(DF1DX)
+        self.ModelPartController.DampNodalVariableIfSpecified(DC1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
@@ -164,8 +157,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.OptimizationUtilities.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
 
-        if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(SHAPE_UPDATE)
+        self.ModelPartController.DampNodalVariableIfSpecified(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):
