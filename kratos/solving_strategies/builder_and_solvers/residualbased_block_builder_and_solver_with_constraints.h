@@ -548,10 +548,9 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         }
 
         Element::EquationIdVectorType ids(3, 0);
-        Element::EquationIdVectorType aux_ids(3, 0);
 
         const int nelements = static_cast<int>(rModelPart.Elements().size());
-#pragma omp parallel for firstprivate(nelements, ids, aux_ids, constraint_imposer)
+#pragma omp parallel for firstprivate(nelements, ids, constraint_imposer)
         for (int iii = 0; iii < nelements; iii++)
         {
             typename ElementsContainerType::iterator i_element = rModelPart.Elements().begin() + iii;
@@ -591,8 +590,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             }
         }
 
+        Element::EquationIdVectorType aux_ids(3, 0);
+
         const int nconstraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-#pragma omp parallel for firstprivate(nconstraints, ids, constraint_imposer)
+#pragma omp parallel for firstprivate(nconstraints, ids, aux_ids, constraint_imposer)
         for (int iii = 0; iii < nconstraints; iii++)
         {
             auto i_constraint = rModelPart.MasterSlaveConstraints().begin() + iii;
