@@ -97,19 +97,14 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
     rValues.CheckAllParameters();
 
     //Initialize main variables
-    Vector& rStrainVector = rValues.GetStrainVector();
-    double EquivalentStrain;
-
-    //Material properties
     Flags& Options = rValues.GetOptions();
-    const Properties& MaterialProperties = rValues.GetMaterialProperties();
-    const double& CriticalDisplacement = MaterialProperties[CRITICAL_DISPLACEMENT];
-    const double& DamageThreshold = MaterialProperties[DAMAGE_THRESHOLD];
-    const double& YieldStress = MaterialProperties[YIELD_STRESS];
+
+    ConstitutiveLawVariables Variables;
+    this->InitializeConstitutiveLawVariables(Variables,rValues);
 
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY) ) // No contact between interfaces
     {
-        this->ComputeEquivalentStrain(EquivalentStrain,rStrainVector,CriticalDisplacement);
+        this->ComputeEquivalentStrain(Variables,rValues);
 
         if(Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR))
         {
@@ -118,13 +113,13 @@ void BilinearCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues
                 // COMPUTE_CONSTITUTIVE_TENSOR
                 Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 
-                if(EquivalentStrain >= mStateVariable) //Loading
+                if(rVariables.LoadingFlag) //Loading
                 {
-                    this->ComputeConstitutiveMatrixLoading(rConstitutiveMatrix,rStrainVector,YieldStress,DamageThreshold,CriticalDisplacement);
+                    this->ComputeConstitutiveMatrixLoading(rConstitutiveMatrix,Variables,rValues);
                 }
                 else //Unloading
                 {
-                    this->ComputeConstitutiveMatrixUnloading(rConstitutiveMatrix,YieldStress,DamageThreshold,CriticalDisplacement);
+                    this->ComputeConstitutiveMatrixUnloading(rConstitutiveMatrix,Variables,rValues);
                 }
             }
             else
@@ -264,20 +259,51 @@ void BilinearCohesive3DLaw::SetValue( const Variable<double>& rThisVariable, con
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::ComputeEquivalentStrain(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement)
+void BilinearCohesive3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables,
+                                                                Parameters& rValues)
+
 {
-    rEquivalentStrain = sqrt(StrainVector[0]*StrainVector[0]+StrainVector[1]*StrainVector[1]+StrainVector[2]*StrainVector[2])/CriticalDisplacement;
+    const Properties& MaterialProperties = rValues.GetMaterialProperties();
+    rVariables.CriticalDisplacement = MaterialProperties[CRITICAL_DISPLACEMENT];
+    rVariables.DamageThreshold = MaterialProperties[DAMAGE_THRESHOLD];
+    rVariables.YieldStress = MaterialProperties[YIELD_STRESS];
+
+    rVariables.YoungModulus = MaterialProperties[YOUNG_MODULUS];
+    rVariables.FrictionCoefficient = MaterialProperties[FRICTION_COEFFICIENT];
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void BilinearCohesive3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables,
+                                                    Parameters& rValues)
+{
+    rVariables.EquivalentStrain = std::sqrt(StrainVector[0]*StrainVector[0]+
+                                            StrainVector[1]*StrainVector[1]+
+                                            StrainVector[2]*StrainVector[2])/CriticalDisplacement;
+
+    rVariables.LoadingFlag = false;
+    if(rVariables.EquivalentStrain >= mStateVariable)
+    {
+        rVariables.LoadingFlag = true;
+    }
 }
 
 //----------------------------------------------------------------------------------------
 
-void BilinearCohesive3DLaw::ComputeEquivalentStrainContact(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement)
+void BilinearCohesive3DLaw::ComputeEquivalentStrainContact(ConstitutiveLawVariables& rVariables,
+                                                            Parameters& rValues)
 {
-    rEquivalentStrain = sqrt(StrainVector[0]*StrainVector[0]+StrainVector[1]*StrainVector[1])/CriticalDisplacement;
+    rVariables.EquivalentStrain = std::sqrt(StrainVector[0]*StrainVector[0]+
+                                            StrainVector[1]*StrainVector[1])/CriticalDisplacement;
+    rVariables.LoadingFlag = false;
+    if(rVariables.EquivalentStrain >= mStateVariable)
+    {
+        rVariables.LoadingFlag = true;
+    }
 }
 
 //----------------------------------------------------------------------------------------
-
+//TODO
 void BilinearCohesive3DLaw::ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YieldStress,
                                                                         const double& DamageThreshold,const double& CriticalDisplacement)
 {

@@ -29,6 +29,26 @@ int ExponentialCohesive3DLaw::Check(const Properties& rMaterialProperties,const 
         KRATOS_ERROR << "YOUNG_MODULUS not defined" << std::endl;
     }
 
+    KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
+    if(rMaterialProperties.Has(YIELD_STRESS)) {
+        KRATOS_ERROR_IF(rMaterialProperties[YIELD_STRESS] < 0.0) << "YIELD_STRESS has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "YIELD_STRESS not defined" << std::endl;
+    }
+
+    KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
+    if(rMaterialProperties.Has(FRACTURE_ENERGY)) {
+        KRATOS_ERROR_IF(rMaterialProperties[FRACTURE_ENERGY] <= 0.0) << "FRACTURE_ENERGY has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "FRACTURE_ENERGY not defined" << std::endl;
+    }
+
+    KRATOS_CHECK_VARIABLE_KEY(SHEAR_FRACTURE_ENERGY);
+    if(rMaterialProperties.Has(SHEAR_FRACTURE_ENERGY)) {
+        KRATOS_ERROR_IF(rMaterialProperties[SHEAR_FRACTURE_ENERGY] < 0.0) << "SHEAR_FRACTURE_ENERGY has an invalid value " << std::endl;
+    } else {
+        KRATOS_ERROR << "SHEAR_FRACTURE_ENERGY not defined" << std::endl;
+    }
 
     return 0;
 }
@@ -37,7 +57,7 @@ int ExponentialCohesive3DLaw::Check(const Properties& rMaterialProperties,const 
 
 void ExponentialCohesive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues )
 {
-    mStateVariable = rMaterialProperties[DAMAGE_THRESHOLD];
+    mStateVariable = 1.0e-12;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -48,11 +68,16 @@ void ExponentialCohesive3DLaw::CalculateMaterialResponseCauchy (Parameters& rVal
     rValues.CheckAllParameters();
 
     //Initialize main variables
-    Vector& rStrainVector = rValues.GetStrainVector();
+    Flags& Options = rValues.GetOptions();
     double EquivalentStrain;
 
+
+
+    Vector& rStrainVector = rValues.GetStrainVector();
+
+
     //Material properties
-    Flags& Options = rValues.GetOptions();
+
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
     const double& CriticalDisplacement = MaterialProperties[CRITICAL_DISPLACEMENT];
     const double& DamageThreshold = MaterialProperties[DAMAGE_THRESHOLD];

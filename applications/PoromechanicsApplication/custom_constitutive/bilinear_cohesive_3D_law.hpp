@@ -58,64 +58,86 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void GetLawFeatures(Features& rFeatures) override;
-    
+
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
-        
+
     void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues ) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateMaterialResponseCauchy (Parameters & rValues) override;
-    
+
     void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
-    
+
     void SetValue( const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
 
+    struct ConstitutiveLawVariables
+    {
+        double EquivalentStrain;
+        bool LoadingFlag;
+        double LoadingFunction;
+
+        double CriticalDisplacement;
+        double DamageThreshold;
+        double YieldStress;
+        double YoungModulus;
+        double FrictionCoefficient;
+
+        double ModeMixingRatio;
+        double CurveFittingParameter;
+
+        Matrix CompressionMatrix;
+        Matrix WeightMatrix;
+    };
+
     // Member Variables
-    
+
     double mStateVariable;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    virtual void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+
+
     virtual void ComputeEquivalentStrain(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement);
-    
+
     virtual void ComputeEquivalentStrainContact(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement);
-    
-    
+
+
     virtual void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& JointStrength,
                                                         const double& DamageThreshold,const double& CriticalDisplacement);
 
     virtual void ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
                                                             const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
-                                      
-                                                            
+
+
     virtual void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,const double& JointStrength,
                                                         const double& DamageThreshold,const double& CriticalDisplacement);
 
     virtual void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
                                                             const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
-                                                            
-                                                            
+
+
     virtual void ComputeStressVector(Vector& rStressVector,const Vector& StrainVector,const double& JointStrength,
                                                 const double& DamageThreshold,const double& CriticalDisplacement);
-    
+
     virtual void ComputeStressVectorContact(Vector& rStressVector,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
                                                         const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     // Serialization
-    
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -130,4 +152,4 @@ private:
 
 }; // Class BilinearCohesive3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_BILINEAR_COHESIVE_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_BILINEAR_COHESIVE_3D_LAW_H_INCLUDED  defined
