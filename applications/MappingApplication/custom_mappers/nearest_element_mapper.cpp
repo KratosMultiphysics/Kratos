@@ -29,6 +29,53 @@ namespace Kratos
 typedef std::size_t IndexType;
 typedef std::size_t SizeType;
 
+typedef Node<3> NodeType;
+typedef Geometry<NodeType> GeometryType;
+typedef Kratos::shared_ptr<GeometryType> GeometryPointerType;
+typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
+
+
+bool ProjectTo1D2D(const GeometryPointerType pGeometry,
+                   const Point& rPointToProject,
+                   CoordinatesArrayType& rLocalCoords,
+                   double& rDistance)
+{
+    CoordinatesArrayType local_coords_init;
+
+    Point projected_point;
+
+    // using the center as trial for the projection
+    pGeometry->PointLocalCoordinates(local_coords_init, pGeometry->Center());
+
+    // trying to project to the geometry
+    rDistance = std::abs(GeometricalProjectionUtilities::FastProjectDirection(
+        *pGeometry,
+        rPointToProject,
+        projected_point,
+        pGeometry->UnitNormal(local_coords_init),
+        pGeometry->UnitNormal(local_coords_init)));
+
+    bool is_inside = pGeometry->IsInside(projected_point, rLocalCoords);
+
+    return is_inside;
+}
+
+bool ProjectIntoVolume(const GeometryPointerType pGeometry,
+                       const Point& rPointToProject,
+                       CoordinatesArrayType& rLocalCoords,
+                       double& rDistance)
+{
+    bool is_inside = pGeometry->IsInside(rPointToProject, rLocalCoords);
+
+    if (is_inside) {
+        // Calculate Distance
+        rDistance = MapperUtilities::ComputeDistance(rPointToProject, pGeometry->Center());
+        rDistance /= pGeometry->Volume(); // Normalize Distance by Volume
+    }
+
+    return is_inside;
+}
+
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
@@ -36,33 +83,35 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
                                                       const double NeighborDistance)
 {
     const auto& p_geom = rpInterfaceObject->pGetBaseGeometry();
+    const SizeType num_nodes = p_geom->PointsNumber();
 
-    Point proj_point;
-    Point point_to_proj(this->Coordinates());
+    const auto geom_family = p_geom->GetGeometryFamily();
 
-    typedef typename Geometry<Node<3>>::CoordinatesArrayType CoordinatesArrayType;
-
-    CoordinatesArrayType local_coords_init;
+    bool is_inside;
+    double proj_dist;
     CoordinatesArrayType local_coords;
 
-    p_geom->PointLocalCoordinates(local_coords_init, p_geom->Center());
+    const Point point_to_proj(this->Coordinates());
 
-    // trying to project to the geometry
-    const double proj_dist = std::abs(GeometricalProjectionUtilities::FastProjectDirection(
-        *p_geom,
-        point_to_proj,
-        proj_point,
-        p_geom->UnitNormal(local_coords_init),
-        p_geom->UnitNormal(local_coords_init)));
+    // select projection depending on type of geometry
+    if ((geom_family == GeometryData::Kratos_Linear        && num_nodes == 2) || // linear line
+        (geom_family == GeometryData::Kratos_Triangle      && num_nodes == 3) || // linear triangle
+        (geom_family == GeometryData::Kratos_Quadrilateral && num_nodes == 4)) { // linear quad
+        is_inside = ProjectTo1D2D(p_geom, point_to_proj, local_coords, proj_dist);
+    }
+    else if (geom_family == GeometryData::Kratos_Tetrahedra ||
+             geom_family == GeometryData::Kratos_Prism ||
+             geom_family == GeometryData::Kratos_Hexahedra) { // Volume projection
+        is_inside = ProjectIntoVolume(p_geom, point_to_proj, local_coords, proj_dist);
+    }
+    else {
+        KRATOS_ERROR << "not implemented" << std::endl;
+    }
 
-    const bool is_inside = p_geom->IsInside(proj_point, local_coords);
-
-    const SizeType num_nodes = (*p_geom).PointsNumber();
     Vector shape_function_values;
 
     // if it is closer, then we update the members to make this geometry the closest projection
-    if (is_inside && proj_dist < mClosestProjectionDistance)
-    {
+    if (is_inside && proj_dist < mClosestProjectionDistance) {
         SetLocalSearchWasSuccessful();
         mClosestProjectionDistance = proj_dist;
         mShapeFunctionValues.clear();
@@ -74,8 +123,7 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
 
         if (mShapeFunctionValues.size() != num_nodes) mShapeFunctionValues.resize(num_nodes);
         if (mNodeIds.size() != num_nodes)             mNodeIds.resize(num_nodes);
-        for (IndexType i=0; i<num_nodes; ++i)
-        {
+        for (IndexType i=0; i<num_nodes; ++i) {
             mShapeFunctionValues[i] = shape_function_values[i];
             KRATOS_DEBUG_ERROR_IF_NOT((*p_geom)[i].Has(INTERFACE_EQUATION_ID))
                 << "Node #" << (*p_geom)[i].Id() << " does not have an Interface Id!\n" << (*p_geom)<< "\n"
@@ -92,14 +140,12 @@ void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const Inte
     const auto& p_geom = rpInterfaceObject->pGetBaseGeometry();
 
     // looping the points of the geometry and finding the nearest neighbor
-    for (const auto& r_point : p_geom->Points())
-    {
+    for (const auto& r_point : p_geom->Points()) {
         const double dist = MapperUtilities::ComputeDistance(this->Coordinates(), r_point.Coordinates());
 
         // in case of an approximation this is the actual distance,
         // not the projected one bcs no valid projection could be found!
-        if (dist < mClosestProjectionDistance)
-        {
+        if (dist < mClosestProjectionDistance) {
             mClosestProjectionDistance = dist;
             if (mNodeIds.size() != 1) mNodeIds.resize(1);
             if (mShapeFunctionValues.size() != 1) mShapeFunctionValues.resize(1);
