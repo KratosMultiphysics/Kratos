@@ -211,7 +211,7 @@ void CreateStatisticsFromInput(StatisticsRecord::Pointer pRecordedStatistics)
         }
         else if ( statistic_type == "third_order_moment" )
         {
-//            pRecordedStatistics->AddHigherOrderStatistic(CreateThirdOrderSampler(settings,defined_statistics));
+            pRecordedStatistics->AddHigherOrderStatistic(CreateThirdOrderSampler(settings,defined_statistics));
         }
         else
         {
@@ -280,8 +280,7 @@ StatisticsSampler::Pointer CreateVarianceSampler(
     Parameters.ValidateAndAssignDefaults(default_parameters);
     KRATOS_ERROR_IF(Parameters["variables"].size() < 1 || Parameters["variables"].size() > 2)
     << "Unexpected number of arguments when reading \"variables\" list argument."
-    << "Expected 1 or 2 values, got " << Parameters["variables"].size() << std::endl;
-    std::string type = Parameters["type"].GetString();
+    << "Expected 1 or 2 values, got " << Parameters["variables"].size() << "." << std::endl;
 
     StatisticsSampler::Pointer new_statistic;
     if (Parameters["variables"].size() == 1)
@@ -294,6 +293,7 @@ StatisticsSampler::Pointer CreateVarianceSampler(
         << " but no average has been defined for this variable." << std::endl;
 
         new_statistic = Kratos::make_shared<SymmetricVarianceSampler>(it_average->second);
+        rDefinedStatistics[MakeVarianceKey(variable_name,variable_name)] = new_statistic;
     }
     else // size == 2
     {
@@ -345,6 +345,14 @@ StatisticsSampler::Pointer CreateVarianceSampler(
             second_statistic = found->second;
         }
 
+        if (
+             (first_argument_is_component && !(second_argument_is_component || IsScalar(second_argument) )) ||
+             (second_argument_is_component && !(first_argument_is_component || IsScalar(first_argument) ))
+        )
+        {
+            KRATOS_ERROR << "Variances involving a component and a vector are currently not supported, please define them component-by-component" << std::endl;
+        }
+
         if (first_argument_is_component || second_argument_is_component)
         {
             // componentwise statistic
@@ -358,10 +366,84 @@ StatisticsSampler::Pointer CreateVarianceSampler(
             new_statistic = Kratos::make_shared<VarianceSampler>(
                 first_statistic, second_statistic);
         }
-    }
 
-    //rDefinedStatistics[statistic_name] = new_statistic;
+        rDefinedStatistics[MakeVarianceKey(first_argument,second_argument)] = new_statistic;
+    }
     return new_statistic;
+}
+
+StatisticsSampler::Pointer CreateThirdOrderSampler(
+    Kratos::Parameters Parameters,
+    StatisticsDictionary& rDefinedStatistics) const
+{
+    Kratos::Parameters default_parameters(R"({
+        "type" : "",
+        "variables": []
+    })");
+
+    Parameters.ValidateAndAssignDefaults(default_parameters);
+    KRATOS_ERROR_IF(Parameters["variables"].size() != 3 )
+    << "Unexpected number of arguments when reading \"variables\" list argument."
+    << "Expected 3 values, got " << Parameters["variables"].size() << "." << std::endl;
+
+    const std::string first_argument  = Parameters["variables"][0].GetString();
+    const std::string second_argument = Parameters["variables"][1].GetString();
+    const std::string third_argument  = Parameters["variables"][2].GetString();
+
+    std::string first_argument_base;
+    unsigned int first_argument_index;
+    ProcessThirdOrderInputValue(first_argument, first_argument_base, first_argument_index);
+    auto found = rDefinedStatistics.find(first_argument_base);
+    KRATOS_ERROR_IF(found == rDefinedStatistics.end())
+    << "Trying to record third order moment for " << first_argument << ", " << second_argument << " and " << third_argument
+    << " but no average was declared for " << first_argument_base << "." << std::endl;
+    StatisticsSampler::Pointer first_average = found->second;
+
+    std::string second_argument_base;
+    unsigned int second_argument_index;
+    ProcessThirdOrderInputValue(second_argument, second_argument_base, second_argument_index);
+    found = rDefinedStatistics.find(second_argument_base);
+    KRATOS_ERROR_IF(found == rDefinedStatistics.end())
+    << "Trying to record third order moment for " << first_argument << ", " << second_argument << " and " << third_argument
+    << " but no average was declared for " << second_argument_base << "." << std::endl;
+    StatisticsSampler::Pointer second_average = found->second;
+
+    std::string third_argument_base;
+    unsigned int third_argument_index;
+    ProcessThirdOrderInputValue(third_argument, third_argument_base, third_argument_index);
+    found = rDefinedStatistics.find(third_argument_base);
+    KRATOS_ERROR_IF(found == rDefinedStatistics.end())
+    << "Trying to record third order moment for " << first_argument << ", " << second_argument << " and " << third_argument
+    << " but no average was declared for " << third_argument_base << "." << std::endl;
+    StatisticsSampler::Pointer third_average = found->second;
+
+    found = rDefinedStatistics.find(MakeVarianceKey(first_argument_base,second_argument_base));
+    KRATOS_ERROR_IF(found == rDefinedStatistics.end())
+    << "Trying to record third order moment for " << first_argument << ", " << second_argument << " and " << third_argument
+    << " but no correlation was declared for " << first_argument_base << " and " << second_argument_base << "." << std::endl;
+    StatisticsSampler::Pointer first_second_correlation = found->second;
+
+    found = rDefinedStatistics.find(MakeVarianceKey(first_argument_base,third_argument_base));
+    KRATOS_ERROR_IF(found == rDefinedStatistics.end())
+    << "Trying to record third order moment for " << first_argument << ", " << second_argument << " and " << third_argument
+    << " but no correlation was declared for " << first_argument_base << " and " << third_argument_base << "." << std::endl;
+    StatisticsSampler::Pointer first_third_correlation = found->second;
+
+
+    found = rDefinedStatistics.find(MakeVarianceKey(second_argument_base,third_argument_base));
+    KRATOS_ERROR_IF(found == rDefinedStatistics.end())
+    << "Trying to record third order moment for " << first_argument << ", " << second_argument << " and " << third_argument
+    << " but no correlation was declared for " << second_argument_base << " and " << third_argument_base << "." << std::endl;
+    StatisticsSampler::Pointer second_third_correlation = found->second;
+
+    return Kratos::make_shared<ThirdOrderCorrelationSampler>(
+        first_average, first_argument_index,
+        second_average, second_argument_index,
+        third_average, third_argument_index,
+        first_second_correlation, first_second_correlation->ComponentIndex(first_argument_index,second_argument_index),
+        first_third_correlation, first_third_correlation->ComponentIndex(first_argument_index,third_argument_index),
+        second_third_correlation, second_third_correlation->ComponentIndex(second_argument_index, third_argument_index)
+    );
 }
 
 ///@}
@@ -402,13 +484,17 @@ std::string mOutputFileName;
 ///@name Private Operations
 ///@{
 
+bool IsScalar(const std::string& rInputName) const
+{
+    return KratosComponents< Variable<double> >::Has(rInputName);
+}
+
 bool ProcessComponent(
     const std::string& rInputName,
     std::string& rBaseVariableName,
     unsigned int& rComponentIndex) const
 {
     bool is_component = false;
-    rComponentIndex = 0; // can be used also if variable is not a component
 
     const std::string x_suffix = std::string("_X");
     const std::string y_suffix = std::string("_Y");
@@ -432,6 +518,11 @@ bool ProcessComponent(
         rBaseVariableName = rInputName.substr(0, rInputName.length() - 2);
         rComponentIndex = 2;
     }
+    else
+    {
+        rComponentIndex = 0; // can be used also if variable is not a component
+        rBaseVariableName = rInputName;
+    }
 
     return is_component;
 }
@@ -442,6 +533,32 @@ bool StringEndsWith(std::string const &rString, std::string const &rEnding) cons
     } else {
         return false;
     }
+}
+
+/// Helper function to ensure that variance keys in the dictionary of defined statistics are independent of the order of arguments.
+std::string MakeVarianceKey(std::string const &rFirstArgument, std::string const &rSecondArgument) const
+{
+    if (rFirstArgument < rSecondArgument)
+    {
+        return std::string("Variance_" + rFirstArgument + "_" + rSecondArgument);
+    }
+    else
+    {
+        return std::string("Variance_" + rSecondArgument + "_" + rFirstArgument);
+    }
+}
+
+/// Helper function to read input for third order correlations
+void ProcessThirdOrderInputValue(
+    const std::string& rArgument,
+    std::string& rBaseName,
+    unsigned int& rComponentIndex ) const
+{
+    bool argument_is_scalar = IsScalar(rArgument);
+    bool argument_is_component = ProcessComponent(rArgument,rBaseName,rComponentIndex);
+    KRATOS_ERROR_IF_NOT(argument_is_scalar || argument_is_component)
+    << "Unexpected variable " << rArgument << " found while defining a third order correlation. "
+    << "Only scalar or component variables are supported at the moment." << std::endl;
 }
 
 ///@}

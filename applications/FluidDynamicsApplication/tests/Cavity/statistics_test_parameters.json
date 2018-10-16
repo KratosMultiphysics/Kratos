@@ -70,7 +70,7 @@
         "Parameters"    : {
             "model_part_name" : "Parts_Fluid",
             "variable_name"   : "PRESSURE",
-            "value"           : "t+2",
+            "value"           : "t*t+2",
             "constrained"     : false
         }
     }],
@@ -106,6 +106,10 @@
                 {
                     "type" : "variance",
                     "variables": ["VELOCITY_Y","PRESSURE"]
+                },
+                {
+                    "type" : "third_order_moment",
+                    "variables": ["PRESSURE","VELOCITY_X","VELOCITY_Z"]
                 }
             ],
             "output_file_name": "statistics_test"
