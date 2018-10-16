@@ -54,7 +54,7 @@ namespace Kratos
  * @todo Finish adapt for 2D dimension
  */
 template <SizeType TVoigtSize = 6>
-class ConstitutiveLawUtilities
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
 {
   public:
     ///@name Type definitions

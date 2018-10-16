@@ -55,7 +55,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaYieldSurface
+class TrescaYieldSurface
 {
 public:
     ///@name Type Definitions

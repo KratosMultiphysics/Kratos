@@ -63,7 +63,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template<class TYieldSurfaceType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegratorPlasticity
+class GenericConstitutiveLawIntegratorPlasticity
 {
   public:
     ///@name Type Definitions

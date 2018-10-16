@@ -53,7 +53,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <class TPlasticPotentialType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SimoJuYieldSurface
+class SimoJuYieldSurface
 {
   public:
     ///@name Type Definitions
