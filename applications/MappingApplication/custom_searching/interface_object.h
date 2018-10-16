@@ -305,6 +305,11 @@ public:
         UpdateCoordinates();
     }
 
+    void UpdateCoordinates() override
+    {
+        noalias(Coordinates()) = mpNode->Coordinates();
+    }
+
     NodePointerType pGetBaseNode() const override
     {
         return mpNode;
@@ -312,11 +317,6 @@ public:
 
 private:
     NodePointerType mpNode;
-
-    void UpdateCoordinates() override
-    {
-        noalias(Coordinates()) = mpNode->Coordinates();
-    }
 
     friend class Serializer;
 
@@ -343,6 +343,11 @@ public:
         UpdateCoordinates();
     }
 
+    void UpdateCoordinates() override
+    {
+        noalias(Coordinates()) = mpGeometry->Center();
+    }
+
     GeometryPointerType pGetBaseGeometry() const override
     {
         return mpGeometry;
@@ -350,11 +355,6 @@ public:
 
 private:
     GeometryPointerType mpGeometry;
-
-    void UpdateCoordinates() override
-    {
-        noalias(Coordinates()) = mpGeometry->Center();
-    }
 
     friend class Serializer;
 
