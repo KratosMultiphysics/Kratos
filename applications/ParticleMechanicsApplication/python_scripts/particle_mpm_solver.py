@@ -14,29 +14,6 @@ import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 from python_solver import PythonSolver
 
 def CreateSolver(model, custom_settings):
-
-    domain_size = custom_settings["domain_size"].GetInt()
-
-    ### In MPM three model parts are needed
-    ## Material model part definition
-    material_model_part_name = custom_settings["model_part_name"].GetString()
-    material_model_part = KratosMultiphysics.ModelPart(material_model_part_name) # Equivalent to model_part3 in the old format
-    material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-
-    ## Initial material model part definition
-    initial_material_model_part_name = "Initial_" + material_model_part_name
-    initial_material_model_part = KratosMultiphysics.ModelPart(initial_material_model_part_name) #Equivalent to model_part2 in the old format
-    initial_material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-
-    ## Grid model part definition
-    grid_model_part = KratosMultiphysics.ModelPart("Background_Grid") #Equivalent to model_part1 in the old format
-    grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-
-    ## Adding into one model
-    model.AddModelPart(grid_model_part)
-    model.AddModelPart(initial_material_model_part)
-    model.AddModelPart(material_model_part)
-
     return ParticleMPMSolver(model, custom_settings)
 
 class ParticleMPMSolver(PythonSolver):
@@ -45,11 +22,10 @@ class ParticleMPMSolver(PythonSolver):
     def __init__(self, model, custom_settings):
         super(ParticleMPMSolver, self).__init__(model, custom_settings)
 
+        # Add model part containers
+        self._add_model_part_containers()
+
         # Default settings
-        material_model_part_name = custom_settings["model_part_name"].GetString()
-        self.model_part1 = self.model.GetModelPart("Background_Grid")                        #grid_model_part
-        self.model_part2 = self.model.GetModelPart("Initial_" + material_model_part_name)    #initial_model_part
-        self.model_part3 = self.model.GetModelPart(material_model_part_name)                 #mpm_model_part
         self.min_buffer_size = 3
 
         # There is only a single rank in OpenMP, we always print
@@ -134,8 +110,8 @@ class ParticleMPMSolver(PythonSolver):
     ### Solver public functions
     def AddVariables(self):
         # Add variables to different model parts
-        self._add_variables_to_model_part(self.model_part1)
-        self._add_variables_to_model_part(self.model_part2)
+        self._add_variables_to_model_part(self.grid_model_part)
+        self._add_variables_to_model_part(self.initial_material_model_part)
 
         self.print_on_rank_zero("::[ParticleMPMSolver]:: ", "Variables are added.")
  
@@ -166,8 +142,8 @@ class ParticleMPMSolver(PythonSolver):
 
     def AddDofs(self):
         # Add dofs to different model parts
-        self._add_dofs_to_model_part(self.model_part1)
-        self._add_dofs_to_model_part(self.model_part2)
+        self._add_dofs_to_model_part(self.grid_model_part)
+        self._add_dofs_to_model_part(self.initial_material_model_part)
         
         self.print_on_rank_zero("::[ParticleMPMSolver]:: ","DOFs are added.")
 
@@ -223,9 +199,9 @@ class ParticleMPMSolver(PythonSolver):
 
         # Initialize solver
         if(self.domain_size==2):
-            self.solver = KratosParticle.MPM2D(self.model_part1, self.model_part2, self.model_part3, self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.geometry_element, self.number_particle, self.block_builder, self.pressure_dofs)
+            self.solver = KratosParticle.MPM2D(self.grid_model_part, self.initial_material_model_part, self.material_model_part, self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.geometry_element, self.number_particle, self.block_builder, self.pressure_dofs)
         else:
-            self.solver = KratosParticle.MPM3D(self.model_part1, self.model_part2, self.model_part3, self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.geometry_element,  self.number_particle, self.block_builder, self.pressure_dofs)
+            self.solver = KratosParticle.MPM3D(self.grid_model_part, self.initial_material_model_part, self.material_model_part, self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.geometry_element,  self.number_particle, self.block_builder, self.pressure_dofs)
       
         # Set echo level
         self._set_echo_level()
@@ -238,8 +214,8 @@ class ParticleMPMSolver(PythonSolver):
     def AdvanceInTime(self, current_time):
         dt = self.ComputeDeltaTime()
         new_time = current_time + dt
-        self.model_part1.ProcessInfo[KratosMultiphysics.STEP] += 1
-        self.model_part1.CloneTimeStep(new_time)
+        self.grid_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.grid_model_part.CloneTimeStep(new_time)
 
         return new_time
 
@@ -250,6 +226,30 @@ class ParticleMPMSolver(PythonSolver):
         (self.solver).Solve()
 
     ### Solver private functions
+    def _add_model_part_containers(self):
+
+        domain_size = self.settings["domain_size"].GetInt()
+
+        ### In MPM three model parts are needed
+        ## Material model part definition
+        material_model_part_name = self.settings["model_part_name"].GetString()
+        self.material_model_part = KratosMultiphysics.ModelPart(material_model_part_name) # Equivalent to model_part3 in the old format
+        self.material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+        ## Initial material model part definition
+        initial_material_model_part_name = "Initial_" + material_model_part_name
+        self.initial_material_model_part = KratosMultiphysics.ModelPart(initial_material_model_part_name) #Equivalent to model_part2 in the old format
+        self.initial_material_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+        ## Grid model part definition
+        self.grid_model_part = KratosMultiphysics.ModelPart("Background_Grid") #Equivalent to model_part1 in the old format
+        self.grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+
+        ## Adding into one model
+        self.model.AddModelPart(self.grid_model_part)
+        self.model.AddModelPart(self.initial_material_model_part)
+        self.model.AddModelPart(self.material_model_part)
+
     def _add_variables_to_model_part(self, model_part):
         # Add displacements
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -309,27 +309,27 @@ class ParticleMPMSolver(PythonSolver):
     def _model_part_reading(self):
         # reading the model part of the background grid
         if(self.settings["grid_model_import_settings"]["input_type"].GetString() == "mdpa"):
-            KratosMultiphysics.ModelPartIO(self.settings["grid_model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.model_part1)
+            KratosMultiphysics.ModelPartIO(self.settings["grid_model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.grid_model_part)
         else:
             raise Exception("Other input options are not implemented yet.")
         
         # reading the model part of the material point
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.model_part2)
+            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.initial_material_model_part)
         else:
             raise Exception("Other input options are not implemented yet.")
 
     def _execute_check_and_prepare(self):
         # Specific active node and element check for particle MPM solver
-        for node in self.model_part1.Nodes:
+        for node in self.grid_model_part.Nodes:
             if (node.Is(KratosMultiphysics.ACTIVE)):
                 print(node.Id)
                 
-        for element in self.model_part2.Elements:
+        for element in self.initial_material_model_part.Elements:
             element.Set(KratosMultiphysics.ACTIVE, True)
 
         # Specify domain size
-        self.domain_size = self.model_part3.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.domain_size = self.material_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
          # Read material property
         materials_imported = self._import_constitutive_laws()
@@ -339,7 +339,7 @@ class ParticleMPMSolver(PythonSolver):
             self.print_warning_on_rank_zero("::[ParticleMPMSolver]:: ","Constitutive law was not imported.")
 
         # Clone property of model_part2 to model_part3
-        self.model_part3.Properties = self.model_part2.Properties
+        self.material_model_part.Properties = self.initial_material_model_part.Properties
 
     def _import_constitutive_laws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
@@ -347,7 +347,7 @@ class ParticleMPMSolver(PythonSolver):
             import read_materials_process
             # Create a dictionary of model parts.
             Model = KratosMultiphysics.Model()
-            Model.AddModelPart(self.model_part2)
+            Model.AddModelPart(self.initial_material_model_part)
             # Add constitutive laws and material properties from json file to model parts.
             read_materials_process.ReadMaterialsProcess(Model, self.settings["material_import_settings"])
                        
@@ -371,17 +371,17 @@ class ParticleMPMSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosSolid.PRESSURE_REACTION, model_part)
 
     def _set_buffer_size(self):
-        current_buffer_size = self.model_part1.GetBufferSize()
+        current_buffer_size = self.grid_model_part.GetBufferSize()
         if self.min_buffer_size > current_buffer_size:
-            self.model_part1.SetBufferSize(self.min_buffer_size)
+            self.grid_model_part.SetBufferSize(self.min_buffer_size)
         else:
-            self.model_part1.SetBufferSize(current_buffer_size)
+            self.grid_model_part.SetBufferSize(current_buffer_size)
         
-        current_buffer_size = self.model_part2.GetBufferSize()
+        current_buffer_size = self.initial_material_model_part.GetBufferSize()
         if self.min_buffer_size > current_buffer_size:
-            self.model_part2.SetBufferSize(self.min_buffer_size)
+            self.initial_material_model_part.SetBufferSize(self.min_buffer_size)
         else:
-            self.model_part2.SetBufferSize(current_buffer_size)
+            self.initial_material_model_part.SetBufferSize(current_buffer_size)
 
     def _set_echo_level(self):
         self.solver.SetEchoLevel(self.echo_level)
