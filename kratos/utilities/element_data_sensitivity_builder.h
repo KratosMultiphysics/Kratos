@@ -141,7 +141,7 @@ private:
                                                 Vector const& rSensitivityVector,
                                                 Element& rElement)
     {
-        KRATOS_DEBUG_ERROR_IF(rSensitivityVector.size() != 1);
+        KRATOS_DEBUG_ERROR_IF(rSensitivityVector.size() != 1) << "rSensitivityVector.size() = " << rSensitivityVector.size() << std::endl;
         rElement.GetValue(rVariable) += rSensitivityVector[0];
     }
 
@@ -151,7 +151,7 @@ private:
     {
         array_1d<double, 3>& r_sensitivity = rElement.GetValue(rVariable);
         const auto ws_dim = rElement.GetGeometry().WorkingSpaceDimension();
-        KRATOS_DEBUG_ERROR_IF(rSensitivityVector.size() != ws_dim);
+        KRATOS_DEBUG_ERROR_IF(rSensitivityVector.size() != ws_dim) << "rSensitivityVector.size() = " << rSensitivityVector.size() << std::endl;
         for (unsigned d = 0; d < ws_dim; ++d)
             r_sensitivity[d] += rSensitivityVector[d];
     }
