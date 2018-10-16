@@ -14,15 +14,10 @@
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
-#include "includes/model_part.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-
 
 //Utilities
 #include "custom_utilities/formfinding_io_utility.h"
-
 
 namespace Kratos
 {
@@ -40,9 +35,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("PrintPrestressData",&FormfindingIOUtility::PrintPrestressData )
     ;
 
+
 }
 
-}  // namespace Python.  
+}  // namespace Python.
 
 } // Namespace Kratos
 

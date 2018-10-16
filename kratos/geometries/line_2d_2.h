@@ -50,7 +50,15 @@ namespace Kratos
 ///@{
 
 /**
-*/
+ * @class Line2D2
+ * @ingroup KratosCore
+ * @brief An two node 2D line geometry with linear shape functions
+ * @details The node ordering corresponds with: 
+ *      0----------1 --> u  
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
+ */
 template<class TPointType>
 
 class Line2D2 : public Geometry<TPointType>
@@ -643,6 +651,7 @@ public:
     {
         if(NumberNodesInFaces.size() != 2 )
             NumberNodesInFaces.resize(2,false);
+
         // Lines have 1 node in edges/faces
         NumberNodesInFaces[0]=1;
         NumberNodesInFaces[1]=1;
@@ -651,12 +660,17 @@ public:
 
     void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
+        // faces in columns
         if(NodesInFaces.size1() != 2 || NodesInFaces.size2() != 2)
             NodesInFaces.resize(2,2,false);
 
-        NodesInFaces(0,0)=0;//face or other node
+        //face 1
+        NodesInFaces(0,0)=0;//contrary node to the face
         NodesInFaces(1,0)=1;
 
+        //face 2
+        NodesInFaces(0,1)=1;//contrary node to the face
+        NodesInFaces(1,1)=0;
     }
 
     ///@}

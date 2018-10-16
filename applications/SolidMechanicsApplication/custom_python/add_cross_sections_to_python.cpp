@@ -61,7 +61,7 @@ void AddCrossSectionsToPython(pybind11::module& m)
       .def("NumberOfPlies", &ShellCrossSection::NumberOfPlies)
       .def("NumberOfIntegrationPointsAt", &ShellCrossSection::NumberOfIntegrationPointsAt)
       .def("SetConstitutiveLawAt", &ShellCrossSection::SetConstitutiveLawAt)
-      .def("__repr__", &ShellCrossSection::Info )  
+      .def("__repr__", &ShellCrossSection::Info )
       DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON_AS_POINTER(ShellCrossSection)
       DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON_AS_POINTER(ShellCrossSection)
       ;

@@ -3,14 +3,14 @@ Begin ModelPartData
 End ModelPartData
 
 Begin Properties 0
-WALL_FRICTION 0.3
+FRICTION 0.3
 WALL_COHESION 0.0
 YOUNG_MODULUS 1e6
 POISSON_RATIO 0.2
 End Properties
 
 Begin Properties 1
-WALL_FRICTION 0.3
+FRICTION 0.3
 WALL_COHESION 0.0
 YOUNG_MODULUS 1e6
 POISSON_RATIO 0.2
@@ -168,106 +168,84 @@ Begin Conditions RigidFace3D3N // GUI DEM-FEM-Wall group identifier: fem_gross
 83  1  18 13 15
 End Conditions
 
-Begin SubModelPart 1 // GUI DEM-FEM-Wall group identifier: fem_fine
-Begin SubModelPartData // GUI DEM-FEM-Wall group identifier: fem_fine
-  VELOCITY [3] (0.0,0.0,0.0)
-  VELOCITY_PERIOD 0.0
-  ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
-  ROTATION_CENTER [3] (0.0,0.0,0.0)
-  ANGULAR_VELOCITY_PERIOD 0.0
-  VELOCITY_START_TIME 0.0
-  VELOCITY_STOP_TIME 1000.0
-  ANGULAR_VELOCITY_START_TIME 0.0
-  ANGULAR_VELOCITY_STOP_TIME 1000.0
-  FIXED_MESH_OPTION 1
+Begin SubModelPart fem_fine // DEM-FEM-Wall. Group name: fem_fine
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: fem_fine
+  PROPERTIES_ID 0
+  RIGID_BODY_MOTION 0
   IDENTIFIER fem_fine
-   TOP  0
-   BOTTOM  0
-   FORCE_INTEGRATION_GROUP  0
-End SubModelPartData
-
-Begin SubModelPartNodes
-61
-62
-52
-54
-End SubModelPartNodes
+  FORCE_INTEGRATION_GROUP  0
+  End SubModelPartData
+  Begin SubModelPartNodes
+  61
+  62
+  52
+  54
+  End SubModelPartNodes
 End SubModelPart
 
-Begin SubModelPart 2 // GUI DEM-FEM-Wall group identifier: fem_gross
-Begin SubModelPartData // GUI DEM-FEM-Wall group identifier: fem_gross
-  VELOCITY [3] (0.0,0.0,0.0)
-  VELOCITY_PERIOD 0.0
-  ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
-  ROTATION_CENTER [3] (0.0,0.0,0.0)
-  ANGULAR_VELOCITY_PERIOD 0.0
-  VELOCITY_START_TIME 0.0
-  VELOCITY_STOP_TIME 1000.0
-  ANGULAR_VELOCITY_START_TIME 0.0
-  ANGULAR_VELOCITY_STOP_TIME 1000.0
-  FIXED_MESH_OPTION 1
+Begin SubModelPart fem_gross // DEM-FEM-Wall. Group name: fem_gross
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: fem_gross
+  PROPERTIES_ID 1
+  RIGID_BODY_MOTION 0
   IDENTIFIER fem_gross
-   TOP  0
-   BOTTOM  0
-   FORCE_INTEGRATION_GROUP  0
-End SubModelPartData
-
-Begin SubModelPartNodes
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-51
-53
-55
-56
-57
-58
-59
-60
-End SubModelPartNodes
+  FORCE_INTEGRATION_GROUP  0
+  End SubModelPartData
+  Begin SubModelPartNodes
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+  10
+  11
+  12
+  13
+  14
+  15
+  16
+  17
+  18
+  19
+  20
+  21
+  22
+  23
+  24
+  25
+  26
+  27
+  28
+  29
+  30
+  31
+  32
+  33
+  34
+  35
+  36
+  37
+  38
+  39
+  40
+  41
+  42
+  43
+  44
+  45
+  46
+  47
+  48
+  49
+  51
+  53
+  55
+  56
+  57
+  58
+  59
+  60
+  End SubModelPartNodes
 End SubModelPart
 

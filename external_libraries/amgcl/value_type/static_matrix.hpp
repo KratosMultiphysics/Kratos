@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,12 +31,8 @@ THE SOFTWARE.
  * \brief  Enable statically sized matrices as value types.
  */
 
-#include <boost/array.hpp>
-#include <boost/type_traits.hpp>
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/storage.hpp>
-#include <boost/numeric/ublas/lu.hpp>
+#include <array>
+#include <type_traits>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/value_type/interface.hpp>
@@ -45,7 +41,7 @@ namespace amgcl {
 
 template <typename T, int N, int M>
 struct static_matrix {
-    boost::array<T, N * M> buf;
+    std::array<T, N * M> buf;
 
     T operator()(int i, int j) const {
         return buf[i * M + j];
@@ -168,16 +164,16 @@ static_matrix<T, N, M> operator*(
     return c;
 }
 
-template <class T> struct is_static_matrix : boost::false_type {};
+template <class T> struct is_static_matrix : std::false_type {};
 
 template <class T, int N, int M>
-struct is_static_matrix< static_matrix<T, N, M> > : boost::true_type {};
+struct is_static_matrix< static_matrix<T, N, M> > : std::true_type {};
 
 namespace backend {
 
 /// Enable static matrix as a value-type.
 template <typename T, int N, int M>
-struct is_builtin_vector< std::vector<static_matrix<T, N, M> > > : boost::true_type {};
+struct is_builtin_vector< std::vector<static_matrix<T, N, M> > > : std::true_type {};
 
 } // namespace backend
 
@@ -197,15 +193,15 @@ struct rhs_of< static_matrix<T, N, N> > {
 
 /// Whether the value type is a statically sized matrix.
 template <class T, int N, int M>
-struct is_static_matrix< static_matrix<T, N, M> > : boost::true_type {};
+struct is_static_matrix< static_matrix<T, N, M> > : std::true_type {};
 
 /// Number of rows for statically sized matrix types.
 template <class T, int N, int M>
-struct static_rows< static_matrix<T, N, M> > : boost::integral_constant<int, N> {};
+struct static_rows< static_matrix<T, N, M> > : std::integral_constant<int, N> {};
 
 /// Number of columns for statically sized matrix types.
 template <class T, int N, int M>
-struct static_cols< static_matrix<T, N, M> > : boost::integral_constant<int, M> {};
+struct static_cols< static_matrix<T, N, M> > : std::integral_constant<int, M> {};
 
 /// Specialization of conjugate transpose for static matrices.
 template <typename T, int N, int M>
@@ -320,38 +316,9 @@ template <typename T, int N>
 struct inverse_impl< static_matrix<T, N, N> >
 {
     static static_matrix<T, N, N> get(static_matrix<T, N, N> A) {
-        // Perform LU-factorization of A in-place
-        for(int k = 0; k < N; ++k) {
-            T d = math::inverse(A(k,k));
-            assert(!math::is_zero(d));
-            for(int i = k+1; i < N; ++i) {
-                A(i,k) *= d;
-                for(int j = k+1; j < N; ++j)
-                    A(i,j) -= A(i,k) * A(k,j);
-            }
-            A(k,k) = d;
-        }
-
-        // Invert identity matrix in-place to get the solution.
-        static_matrix<T, N, N> y;
-        for(int k = 0; k < N; ++k) {
-            // Lower triangular solve:
-            for(int i = 0; i < N; ++i) {
-                T b = static_cast<T>(i == k);
-                for(int j = 0; j < i; ++j)
-                    b -= A(i,j) * y(j,k);
-                y(i,k) = b;
-            }
-
-            // Upper triangular solve:
-            for(int i = N; i --> 0; ) {
-                for(int j = i+1; j < N; ++j)
-                    y(i,k) -= A(i,j) * y(j,k);
-                y(i,k) *= A(i,i);
-            }
-        }
-
-        return y;
+        std::array<T, N * N> buf;
+        detail::inverse(N, A.data(), buf.data());
+        return A;
     }
 };
 
@@ -367,12 +334,12 @@ namespace backend {
 template <class Backend>
 struct relaxation_is_supported<
     Backend, relaxation::spai1,
-    typename boost::enable_if<
-        typename amgcl::is_static_matrix<
+    typename std::enable_if<
+        amgcl::is_static_matrix<
             typename Backend::value_type
-            >::type
+            >::value
         >::type
-    > : boost::false_type
+    > : std::false_type
 {};
 
 } // namespace backend

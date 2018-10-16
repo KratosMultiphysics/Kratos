@@ -12,8 +12,8 @@
 
 // External includes
 #include "includes/define.h"
+#include "DEM_application_variables.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
 #include "custom_elements/cylinder_particle.h"
 #include "custom_elements/cylinder_continuum_particle.h"
 #include "custom_elements/spheric_particle.h"
@@ -97,11 +97,11 @@ private:
     const ParticleContactElement mParticleContactElement;
     const SolidFace3D  mSolidFace3D3N;
     const SolidFace3D  mSolidFace3D4N;
+    const RigidFace3D  mRigidFace3D2N;
     const RigidFace3D  mRigidFace3D3N;
     const RigidFace3D  mRigidFace3D4N;
-    const RigidFace3D  mRigidFace3D2N;
-    const RigidEdge3D  mRigidEdge3D2N;
     const AnalyticRigidFace3D  mAnalyticRigidFace3D3N;
+    const RigidEdge3D  mRigidEdge3D2N;
     const RigidBodyElement3D mRigidBodyElement3D;
     const ShipElement3D mShipElement3D;
     const Cluster3D  mCluster3D;

@@ -87,7 +87,7 @@ optimization_model_part = ModelPart(parameters["optimization_settings"]["design_
 optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, parameters["optimization_settings"]["design_variables"]["domain_size"].GetInt())
 
 import optimizer_factory
-optimizer = optimizer_factory.CreateOptimizer(parameters, optimization_model_part, CustomAnalyzer())
+optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], optimization_model_part, CustomAnalyzer())
 optimizer.Optimize()
 
 # =======================================================================================================

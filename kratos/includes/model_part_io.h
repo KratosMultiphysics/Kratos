@@ -89,7 +89,7 @@ public:
     ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
 
     /// Constructor with stream.
-    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream);
+    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags Options = IO::NOT_IGNORE_VARIABLES_ERROR);
 
 
     /// Constructor with filenames.
@@ -409,7 +409,7 @@ protected:
 
     void ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart);
 
-    void WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string InitialTabulation);
+    void WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string& InitialTabulation);
 
     void ReadSubModelPartDataBlock(ModelPart& rModelPart);
 
@@ -554,7 +554,7 @@ protected:
 
     void ResetInput();
 
-    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions);
+    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, DenseVector<unsigned int>& partitions);
 
 
 

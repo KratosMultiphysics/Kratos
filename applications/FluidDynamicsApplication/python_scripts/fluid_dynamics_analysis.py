@@ -15,22 +15,34 @@ class FluidDynamicsAnalysis(AnalysisStage):
     def __init__(self,model,parameters):
         # Deprecation warnings
         solver_settings = parameters["solver_settings"]
-        if not solver_settings.Has("domain_size"):
+
+        if solver_settings.Has("domain_size") and parameters["problem_data"].Has("domain_size"):
+            warn_msg  = '"domain_size" defined both in "problem_data" and "solver_settings"!'
+            warn_msg += 'the definition in the "solver_settings" will be employed'
+            Kratos.Logger.PrintWarning("FluidDynamicsAnalysis", warn_msg)
+
+        if solver_settings.Has("model_part_name") and parameters["problem_data"].Has("model_part_name"):
+            warn_msg  = '"model_part_name" defined both in "problem_data" and "solver_settings"!'
+            warn_msg += 'the definition in the "solver_settings" will be employed'
+            Kratos.Logger.PrintWarning("FluidDynamicsAnalysis", warn_msg)
+
+        if not solver_settings.Has("domain_size") and parameters["problem_data"].Has("domain_size"):
             Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(parameters["problem_data"]["domain_size"].GetInt())
 
-        if not solver_settings.Has("model_part_name"):
+        if not solver_settings.Has("model_part_name") and parameters["problem_data"].Has("model_part_name"):
             Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
 
-        super(FluidDynamicsAnalysis,self).__init__(model,parameters)
-
-        ## Import parallel modules if needed
-        if (self.parallel_type == "MPI"):
+        # Import parallel modules if needed
+        # has to be done before the base-class constuctor is called (in which the solver is constructed)
+        if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             import KratosMultiphysics.MetisApplication as MetisApplication
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+
+        super(FluidDynamicsAnalysis,self).__init__(model,parameters)
 
     def _CreateSolver(self):
         import python_solvers_wrapper_fluid
@@ -49,7 +61,11 @@ class FluidDynamicsAnalysis(AnalysisStage):
         if parameter_name == "processes":
             processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to create the processes, this will be removed!")
+                info_msg  = "Using the old way to create the processes, this will be removed!\n"
+                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                info_msg += "for a description of the new format"
+                KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", info_msg)
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
@@ -61,7 +77,11 @@ class FluidDynamicsAnalysis(AnalysisStage):
                         raise Exception("Mixing of process initialization is not alowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
-                #KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
+                info_msg  = "Using the old way to create the gid-output, this will be removed!\n"
+                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                info_msg += "for a description of the new format"
+                KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", info_msg)
                 gid_output= self._SetUpGiDOutput()
                 list_of_processes += [gid_output,]
         else:

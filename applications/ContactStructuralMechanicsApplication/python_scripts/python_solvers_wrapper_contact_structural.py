@@ -20,7 +20,6 @@ def CreateSolver(model, custom_settings):
 
         elif (solver_type == "static" or solver_type == "Static"):
             solver_module_name = "contact_structural_mechanics_static_solver"
-
         else:
             raise Exception("The requested solver type is not in the python solvers wrapper")
 

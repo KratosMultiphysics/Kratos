@@ -49,7 +49,15 @@ namespace Kratos
 ///@{
 
 /**
-*/
+ * @class Line3D3
+ * @ingroup KratosCore
+ * @brief An three node 3D line geometry with quadratic shape functions
+ * @details The node ordering corresponds with: 
+ *      0-----2----1 
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
+ */
 template<class TPointType>
 
 class Line3D3 : public Geometry<TPointType>
@@ -826,7 +834,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, CoordinatesArrayType& rPoint )
     {
-        rResult.resize( 3, 1 );
+        rResult.resize( 3, 1, false);
         noalias( rResult ) = ZeroMatrix( 3, 1 );
 
         rResult( 0, 0 ) = rPoint[0] - 0.5;

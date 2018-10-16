@@ -83,8 +83,8 @@ class Procedures(DEM_procedures.Procedures):
 
     def KRATOSprint(self, message):
         if (mpi.rank == 0):
-            print(message)
-            self.Flush(sys.stdout)
+            Logger.Print(*args, label="DEM")
+            Logger.Flush()
 
 
 class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):
@@ -140,8 +140,8 @@ class MultifileList(object):
 
 class DEMIo(DEM_procedures.DEMIo):
 
-    def __init__(self, DEM_parameters, post_path):
-        super(DEMIo,self).__init__(DEM_parameters, post_path)
+    def __init__(self, DEM_parameters, post_path, all_model_parts):
+        super(DEMIo,self).__init__(DEM_parameters, post_path, all_model_parts)
 
     def AddMpiVariables(self):
         self.spheres_variables.append(PARTITION_INDEX)

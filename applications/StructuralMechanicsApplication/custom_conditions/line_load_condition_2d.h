@@ -77,17 +77,17 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
-        
-    Condition::Pointer Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes, 
-        PropertiesType::Pointer pProperties 
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const override;
 
     ///@}
@@ -148,12 +148,12 @@ protected:
      * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
      * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
-    void CalculateAll( 
-        MatrixType& rLeftHandSideMatrix, 
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
+        bool CalculateResidualVectorFlag
         ) override;
 
     void CalculateAndSubKp(
@@ -169,7 +169,7 @@ protected:
         const Vector& N,
         const array_1d<double, 3>& Normal,
         const double Pressure,
-        const double IntegrationWeight 
+        const double IntegrationWeight
         );
 
     ///@}
@@ -202,7 +202,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -277,6 +277,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined 
+#endif // KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined
 
 

@@ -146,6 +146,19 @@ void SubModelPartsListUtility::ComputeSubModelPartsList(
         else // There is a combination
             rElemColors[key] = combinations[value];
     }
+
+    // Clean up the colors
+    for (auto& color : rColors) {
+        std::unordered_set<std::string> aux_set;
+        for (auto& name : color.second) {
+            aux_set.insert(name);
+        }
+        std::vector<std::string> aux_vector;
+        for (auto& name : aux_set) {
+            aux_vector.push_back(name);
+        }
+        color.second = aux_vector;
+    }
 }
 
 /***********************************************************************************/

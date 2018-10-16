@@ -1,17 +1,16 @@
 {
     "problem_data"             : {
         "problem_name"    : "3D_contact_simplest_patch_matching_slope_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
+    "model_part_name" : "Structure",
+        "domain_size"     : 3,
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,        
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
@@ -24,6 +23,9 @@
         {
             "mortar_type"                    : "ALMContactFrictionless"
         },
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : true,
@@ -35,103 +37,105 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type" : "SkylineLUFactorizationSolver"
+            "solver_type" : "SuperLUSolver"
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["Parts_Parts_Nodes1","Parts_Parts_Nodes2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","SurfaceLoad3D_SurfaceLoad","Contact_Part"]
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Parts_Parts_Nodes1",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,null],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Parts_Parts_Nodes2",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,null],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "contact_process_list"       : [{
+            "python_module"   : "alm_contact_process",
+            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "help"                  : "",
+            "process_name"          : "ALMContactProcess",
+            "Parameters"            : {
+                "model_part_name"             : "Structure",
+                "contact_model_part"          : { "0" : ["Contact_Part"]},
+                "contact_type"                : "Frictionless",
+                "assume_master_slave"         : { "0" : ["Parts_Parts_Nodes1"]}
+            }
         }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Parts_Parts_Nodes1",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,null],
-            "interval"        : [0.0,"End"]
+        ],
+        "loads_process_list"       : [{
+            "python_module"   : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorByDirectionToConditionProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "SurfaceLoad3D_SurfaceLoad",
+                "variable_name"   : "SURFACE_LOAD",
+                "modulus"         : 1.0e9,
+                "direction"       : [0.0,0.0,-1.0],
+                "interval"        : [0.0,"End"]
+            }
         }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Parts_Parts_Nodes2",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,null],
-            "interval"        : [0.0,"End"]
+        ],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["DISPLACEMENT_Z"],
+                "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test_results.json",
+                "model_part_name"      : "Contact_Part",
+                "time_frequency"       : 1.0
+            }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+                "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test_results_LM.json",
+                "model_part_name"      : "Contact_Part",
+                "historical_value"     : false,
+                "relative_tolerance"   : 1e-5,
+                "time_frequency"       : 1.0
+            }
         }
-    }],
-    "contact_process_list"       : [{
-        "python_module"   : "alm_contact_process",
-        "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
-        "help"                  : "",
-        "process_name"          : "ALMContactProcess",
-        "Parameters"            : {
-            "model_part_name"             : "Structure",
-            "contact_model_part"          : ["Contact_Part"],
-            "contact_type"                : "Frictionless",
-            "assume_master_slave"         : "Parts_Parts_Nodes1"
-        }
-    }
-    ],
-    "loads_process_list"       : [{
-        "python_module"   : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "AssignVectorByDirectionToConditionProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "SurfaceLoad3D_SurfaceLoad",
-            "variable_name"   : "SURFACE_LOAD",
-            "modulus"         : 1.0e9,
-            "direction"       : [0.0,0.0,-1.0],
-            "interval"        : [0.0,"End"]
-        }
-    }
-    ],
-    "json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_Z"],
-            "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test_results.json",
-            "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 1.0
-        }
-    },{
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
-            "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test_results_LM.json",
-            "model_part_name"      : "Contact_Part",
-            "historical_value"     : false,
-            "relative_tolerance"   : 1e-5,
-            "time_frequency"       : 1.0
-        }
-    }
-    ],
+        ]
+    },
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",
@@ -159,7 +163,16 @@
         }
     }
     ],
-    "_output_configuration"     : {
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "test_solution",
+                "postprocess_parameters" : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -178,7 +191,7 @@
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","CAUCHY_STRESS_TENSOR"]
         },
-        "point_data_configuration"  : []
+        "point_data_configuration"  : []}}}]
     },
     "restart_options"          : {
         "SaveRestart"      : false,

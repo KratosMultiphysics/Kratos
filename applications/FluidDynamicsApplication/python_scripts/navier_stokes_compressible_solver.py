@@ -19,11 +19,12 @@ class NavierStokesCompressibleSolver(FluidSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "compressible_solver_from_defaults",
-            "model_part_name": "FluidModelPart",
-            "domain_size": 2,
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "two_element_test"
+                "input_filename": "two_element_test",
+                "reorder": false
             },
             "maximum_iterations": 10,
             "echo_level": 1,
@@ -53,8 +54,7 @@ class NavierStokesCompressibleSolver(FluidSolver):
                 "maximum_delta_time"  : 0.01
             },
             "periodic": "periodic",
-            "move_mesh_flag": false,
-            "reorder": false
+            "move_mesh_flag": false
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -186,7 +186,8 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
     def PrepareModelPart(self):
         super(NavierStokesCompressibleSolver,self).PrepareModelPart()
-        self._ExecuteAfterReading()
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self._ExecuteAfterReading()
 
     def _ExecuteAfterReading(self):
         ## Replace element and conditions

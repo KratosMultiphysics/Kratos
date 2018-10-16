@@ -77,12 +77,12 @@ namespace Kratos
          static inline void CalculateStressInvariants( const Vector& rStress, double& I1, double& J2, double& Lode)
          {
             CalculateStressInvariants( rStress, I1, J2);
-            Matrix StressTensor  = MathUtils<double>::StressVectorToTensor( rStress); 
+            Matrix StressTensor  = MathUtils<double>::StressVectorToTensor( rStress);
 
             for (unsigned int i = 0; i < 3; ++i)
                StressTensor(i,i) -= I1;
 
-            Lode = MathUtils<double>::Det(StressTensor); 
+            Lode = MathUtils<double>::Det(StressTensor);
             Lode = 3.0 * sqrt(3.0) / 2.0 * Lode / pow( J2, 3);
 
             double epsi = 1.0e-9;
@@ -91,12 +91,12 @@ namespace Kratos
             }
             else if ( J2 < 10.0*epsi) {
                Lode = 30.0*Globals::Pi / 180.0;
-            } 
+            }
             else {
                Lode = std::asin( -Lode) / 3.0;
             }
 
-            //std::cout << " THISLODE " << Lode << " Stress;atrox " << StressTensor << " Stress " << rStress << 
+            //std::cout << " THISLODE " << Lode << " Stress;atrox " << StressTensor << " Stress " << rStress <<
          }
 
          static inline void CalculateDerivativeVectors( const MatrixType& rStressMatrix, VectorType& C1, VectorType & C2)
@@ -156,8 +156,8 @@ namespace Kratos
             }
             else {
                C2 = ZeroVector(6);
-               C3 = ZeroVector(6); 
-               return; 
+               C3 = ZeroVector(6);
+               return;
             }
 
             C3 = ZeroVector(6);
@@ -166,9 +166,9 @@ namespace Kratos
             for (int i = 0; i < 3; i++)
                ShearStress(i) -= I1;
 
-            C3(0) = ShearStress(1)*ShearStress(2) - pow( ShearStress(4), 2); 
-            C3(1) = ShearStress(2)*ShearStress(0) - pow( ShearStress(5), 2); 
-            C3(2) = ShearStress(0)*ShearStress(1) - pow( ShearStress(3), 2); 
+            C3(0) = ShearStress(1)*ShearStress(2) - pow( ShearStress(4), 2);
+            C3(1) = ShearStress(2)*ShearStress(0) - pow( ShearStress(5), 2);
+            C3(2) = ShearStress(0)*ShearStress(1) - pow( ShearStress(3), 2);
 
             C3(3) = 2.0 * ( ShearStress(4)*ShearStress(5) - ShearStress(2)*ShearStress(3));
             C3(4) = 2.0 * ( ShearStress(5)*ShearStress(3) - ShearStress(0)*ShearStress(4));

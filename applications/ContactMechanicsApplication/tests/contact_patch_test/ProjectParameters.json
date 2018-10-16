@@ -27,7 +27,7 @@
     },
     "solver_settings"          : {
 	"solver_type" : "solid_mechanics_static_solver",
-	"Parameters"  : {       
+	"Parameters"  : {
 	    "time_settings"             : {
 		"time_step"  : 0.01,
 		"start_time" : 0.0,
@@ -46,7 +46,7 @@
     "problem_process_list" : [
 	{
 	    "help"            : "This process applies parametric walls and search contact",
-	    "kratos_module"   : "KratosMultiphysics.ContactMechanicsApplication",                
+	    "kratos_module"   : "KratosMultiphysics.ContactMechanicsApplication",
 	    "python_module"   : "parametric_walls_process",
 	    "process_name"    : "ParametricWallsProcess",
 	    "Parameters"      : {
@@ -83,13 +83,13 @@
 				"velocity" : [0,0,0],
 				"plane_size": 1.0
 			    }
-			},                    
+			},
 			"contact_search_settings":{
 			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
 			    "contact_search_type": "ParametricWallContactSearch",
 			    "contact_parameters":{
 				"contact_condition_type": "EPPointContactPenaltyCondition2D1N",
-				"kratos_module": "KratosMultiphysics.ContactMechanicsApplication",                            
+				"kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
 				"friction_law_type": "HardeningCoulombFrictionLaw",
 				"variables_of_properties":{
 				    "FRICTION_ACTIVE": true,
@@ -107,7 +107,7 @@
 	}],
     "constraints_process_list" : [
 	{
-	    "help"            : "This process imposes a vector constraint",        
+	    "help"            : "This process imposes a vector constraint",
 	    "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
 	    "python_module"   : "assign_vector_components_to_nodes_process",
 	    "process_name"    : "AssignVectorComponentsToNodesProcess",
@@ -123,7 +123,7 @@
 	    }
 	},
 	{
-	    "help"            : "This process imposes a vector constraint",        
+	    "help"            : "This process imposes a vector constraint",
 	    "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
 	    "python_module"   : "assign_vector_components_to_nodes_process",
 	    "process_name"    : "AssignVectorComponentsToNodesProcess",
@@ -139,7 +139,7 @@
 	    }
 	},
 	{
-	    "help"            : "This process imposes a vector constraint",        
+	    "help"            : "This process imposes a vector constraint",
 	    "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
 	    "python_module"   : "assign_vector_components_to_nodes_process",
 	    "process_name"    : "AssignVectorComponentsToNodesProcess",

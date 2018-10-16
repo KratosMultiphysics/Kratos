@@ -14,8 +14,13 @@
         "material_import_settings" :{
             "materials_filename": "StructuralMaterials.json"
         },
+        "model_import_settings"    : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "rectangular_plate_structure",
+            "input_file_label" : 0
+        },
         "gradient_mode"          : "finite_differencing",
-        "step_size"              : 1e-6,
+        "step_size"              : 1e-5,
         "consider_discretization": false
     }
 }

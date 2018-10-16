@@ -52,13 +52,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+
 
 
 // Project includes
-#include "includes/define.h"
+// #include "includes/define.h
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_meshers_to_python.h"
+#include "includes/model_part.h"
 
 #include "external_includes/tetgen_pfem_refine.h"
 #include "external_includes/tetgen_mesh_suite_optimized.h"
@@ -160,36 +162,36 @@ void TriRegenerateulf_pressure(TriGenModeler& Mesher,ModelPart& model_part,doubl
 		KratosComponents<Condition>::Get("Condition2D"),alpha_shape	);
 }
 */
-void  AddMeshersToPython()
+void  AddMeshersToPython(pybind11::module& m)
 {
 
-    using namespace boost::python;
+    using namespace pybind11;
 
-    class_<TetGenModeler >("TetGenModeler",
-                           init< >())
+    class_<TetGenModeler >(m,"TetGenModeler")
+    .def(init< >())
     // .def("ReGenerateMesh",TetRegenerate)
     // .def("ReGenerateMesh_Lagrangian",TetRegenerateLagrangian)
     .def("ReGenerateUpdatedLagrangian3D",TetRegenerateUpdatedLagrangian)
     .def("ReGenerateUpdatedLagrangian3Dinc",TetRegenerateUpdatedLagrangianInc)
     ;
 
-    class_<TetGenPfemModeler >("TetGenPfemModeler",
-                               init< >())
+    class_<TetGenPfemModeler >(m,"TetGenPfemModeler")
+    .def(init< >())
     .def("ReGenerateMeshPfemUlf3D",TetRegeneratePfemUlf3D)
     .def("ReGenerateMeshPfemUlf3Dinc",TetRegeneratePfemUlf3DInc)
     .def("ReGenerateMeshPfem3Dinc",TetRegeneratePfem3DInc)
     ;
 
-    class_<TriGenModeler >("TriGenModeler",
-                           init< >())
+    class_<TriGenModeler >(m,"TriGenModeler")
+    .def(init< >())
     .def("ReGenerateMesh",TriRegenerate)
     .def("ReGenerateMeshCoupled",TriRegenerateCoupled)
     .def("ReGenerateUpdatedLagrangian",TriRegenerateUpdatedLagrangian)
     .def("RegenerateUpdatedLagrangian2Dinc",TriRegenerateUpdatedLagrangianTest)
     // .def("ReGenerateulf_pressure",TriRegenerateulf_pressure)
     ;
-    class_<TriGenCDTrefine >("TriRefine",
-                             init< >())
+    class_<TriGenCDTrefine >(m,"TriRefine")
+    .def(init< >())
     .def("RefineMesh",RefineCDT)
     ;
 

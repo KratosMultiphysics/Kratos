@@ -9,22 +9,16 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-
 
 #include "spaces/ublas_space.h"
 
 // Strategies
-#include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/custom_strategies/residual_based_arc_length_strategy.hpp"
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
@@ -32,19 +26,16 @@
 #include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp"
 
 // Schemes
-#include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 #include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
-
-// Builder and solvers
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "custom_strategies/custom_builder_and_solver/residualbased_block_builder_and_solver_with_mpc.h"
+#include "custom_response_functions/adjoint_schemes/adjoint_structural_static_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_and_other_dof_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/residual_displacement_and_other_dof_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/error_mesh_criteria.h"
 
 // Builders and solvers
 
@@ -88,11 +79,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
     typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
+    typedef AdjointStructuralStaticScheme< SparseSpaceType, LocalSpaceType > AdjointStructuralStaticSchemeType;
 
 
     // Custom convergence criterion types
     typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
     typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
+    typedef ErrorMeshCriteria< SparseSpaceType,  LocalSpaceType > ErrorMeshCriteriaType;
 
     // Custom builder and solvers types
 
@@ -155,7 +148,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Explicit Central Differences Scheme Type
     class_< ExplicitCentralDifferencesSchemeType,typename ExplicitCentralDifferencesSchemeType::Pointer, BaseSchemeType >(m,"ExplicitCentralDifferencesScheme")
-    .def(init< const double, const double, const double>() );
+    .def(init< const double, const double, const double>())
+    .def(init< Parameters>())
+    ;
+
+    class_<AdjointStructuralStaticSchemeType, AdjointStructuralStaticSchemeType::Pointer, BaseSchemeType>(m, "AdjointStructuralStaticScheme")
+        .def(init<Parameters, AdjointStructuralResponseFunction::Pointer>());
+
 
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
@@ -163,23 +162,24 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Displacement and other DoF Convergence Criterion
     class_< DisplacementAndOtherDoFCriteriaType,typename DisplacementAndOtherDoFCriteriaType::Pointer,ConvergenceCriteriaType>(m,"DisplacementAndOtherDoFCriteria")
-            .def(init< double, double, std::string >())
-            .def(init< double, double>())
-            ;
+    .def(init< double, double, std::string >())
+    .def(init< double, double>())
+    ;
 
     // Displacement and other DoF residual Convergence Criterion
     class_< ResidualDisplacementAndOtherDoFCriteriaType,typename ResidualDisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType >(m,"ResidualDisplacementAndOtherDoFCriteria")
     .def( init< double, double, std::string >())
-            .def(init< double, double>())
-            ;
+    .def(init< double, double>())
+    ;
+
+    // Error mesh Convergence Criterion
+    class_< ErrorMeshCriteriaType, typename ErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ErrorMeshCriteria")
+    .def(init<Parameters>())
+    ;
 
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
-    class_< ResidualBasedBlockBuilderAndSolverWithMpc< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-     typename ResidualBasedBlockBuilderAndSolverWithMpc< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
-                ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >(m,"ResidualBasedBlockBuilderAndSolverWithMpc")
-                .def(init<LinearSolverType::Pointer>());
 }
 
 }  // namespace Python.

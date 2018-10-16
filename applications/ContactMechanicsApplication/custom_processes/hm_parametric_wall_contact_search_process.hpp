@@ -5,7 +5,7 @@
 //   Date:                $Date:               January 2018 $
 //   Revision:            $Revision:                    0.0 $
 //
-// 
+//
 
 #if !defined(KRATOS_HM_PARAMETRIC_WALL_CONTACT_SEARCH_PROCESS_H_INCLUDED )
 #define  KRATOS_HM_PARAMETRIC_WALL_CONTACT_SEARCH_PROCESS_H_INCLUDED
@@ -26,8 +26,8 @@
 
 #include "custom_processes/parametric_wall_contact_search_process.hpp"
 
-#include "custom_conditions/hydraulic_rigid_contact_penalty_3D_condition.hpp"
-#include "custom_conditions/hydraulic_axisym_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/hydraulic_contact/hydraulic_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/hydraulic_contact/hydraulic_axisym_rigid_contact_penalty_2D_condition.hpp"
 
 #include "contact_mechanics_application_variables.h"
 
@@ -88,7 +88,7 @@ namespace Kratos
 
          HMParametricWallContactSearchProcess( ModelPart& rMainModelPart,
                std::string rSubModelPartName,
-               SpatialBoundingBox::Pointer pParametricWall, 
+               SpatialBoundingBox::Pointer pParametricWall,
                Parameters CustomParameters)
             : ParametricWallContactSearchProcess( rMainModelPart, rSubModelPartName, pParametricWall, CustomParameters)
          {
@@ -101,10 +101,10 @@ namespace Kratos
 
             KRATOS_CATCH(" ")
 
-         } 
+         }
 
          /// Destructor.
-         virtual ~HMParametricWallContactSearchProcess() {}   
+         virtual ~HMParametricWallContactSearchProcess() {}
 
 
          ///@}
@@ -204,25 +204,25 @@ namespace Kratos
 
                   ConditionType::Pointer pCondition;
 
-                  if( (*nd)->Is(RIGID) ){  //rigid wall contacting with a rigid body 
+                  if( (*nd)->Is(RIGID) ){  //rigid wall contacting with a rigid body
 
                      GeometryType::Pointer pGeometry;
                      if( Dimension == 2 )
-                        pGeometry = GeometryType::Pointer(new Point2DType( (*nd) ));
+                       pGeometry = Kratos::make_shared<Point2DType>(*nd);
                      else if( Dimension == 3 )
-                        pGeometry = GeometryType::Pointer(new Point3DType( (*nd) ));
+                       pGeometry = Kratos::make_shared<Point3DType>(*nd);
 
-                     //pCondition= ModelPart::ConditionType::Pointer(new RigidBodyPointRigidContactCondition(id, pGeometry, mpProperties, mpParametricWall) );
+                     //pCondition= Kratos::make_shared<RigidBodyPointRigidContactCondition>(id, pGeometry, mpProperties, mpParametricWall);
 
                      ContactConditions.push_back(pCondition);
 
                   }
-                  else{ //rigid wall contacting with a deformable body 
+                  else{ //rigid wall contacting with a deformable body
 
-                     Condition::NodesArrayType  pConditionNode;
+                     Condition::NodesArrayType pConditionNode;
                      pConditionNode.push_back( (*nd) );
 
-                     ConditionType::Pointer  pConditionType = FindPointConditionHM(rContactModelPart, (*nd) , false);
+                     ConditionType::Pointer pConditionType = FindPointConditionHM(rContactModelPart, (*nd) , false);
                      pCondition = pConditionType->Clone(id, pConditionNode);
                      pCondition->Set(CONTACT);
                      pCondition->SetValue(HYDRAULIC, false);
@@ -235,8 +235,8 @@ namespace Kratos
                      ContactConditions.push_back(pCondition);
                   }
 
-                  id +=2;	   		
-               }       		     
+                  id +=2;
+               }
 
             }
 
@@ -300,7 +300,7 @@ namespace Kratos
          ///@name Member Variables
          ///@{
 
-         ConditionType::Pointer  mpHydraulicConditionType; 
+         ConditionType::Pointer  mpHydraulicConditionType;
 
          ///@}
          ///@name Private Operators
@@ -322,25 +322,25 @@ namespace Kratos
             // create geometry prototype for the contact conditions
             GeometryType::Pointer pGeometry;
             if( Dimension == 2 )
-               pGeometry = GeometryType::Pointer(new Point2DType( *((mrMainModelPart.Nodes().begin()).base()) ));
+              pGeometry = Kratos::make_shared<Point2DType>(*((mrMainModelPart.Nodes().begin()).base()));
             else if( Dimension == 3 )
-               pGeometry = GeometryType::Pointer(new Point3DType( *((mrMainModelPart.Nodes().begin()).base()) ));
+              pGeometry = Kratos::make_shared<Point3DType>(*((mrMainModelPart.Nodes().begin()).base()));
 
 
             unsigned int LastConditionId = 1;
             if( mrMainModelPart.NumberOfConditions() != 0 )
                LastConditionId = mrMainModelPart.Conditions().back().Id() + 1;
 
-            std::string ConditionName = CustomParameters["hydraulic_condition_type"].GetString();  
+            std::string ConditionName = CustomParameters["hydraulic_condition_type"].GetString();
 
             if ( ConditionName == "HydraulicPointContactCondition2D1N" ) {
-               return  ConditionType::Pointer (new HydraulicRigidContactPenalty3DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall)); 
-            } 
+              return  Kratos::make_shared<HydraulicRigidContactPenalty3DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
+            }
             else if ( ConditionName == "HydraulicAxisymPointContactCondition2D1N") {
-               return  ConditionType::Pointer (new HydraulicAxisymRigidContactPenalty2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall)); 
+              return  Kratos::make_shared<HydraulicAxisymRigidContactPenalty2DCondition>(LastConditionId, pGeometry, mpProperties, mpParametricWall);
             } else {
-               std::cout << ConditionName << std::endl;
-               KRATOS_ERROR << "the specified hydraulic contact condition does not exist " << std::endl;
+              std::cout << ConditionName << std::endl;
+              KRATOS_ERROR << "the specified hydraulic contact condition does not exist " << std::endl;
             }
 
             return NULL;
@@ -356,7 +356,7 @@ namespace Kratos
          ConditionType::Pointer FindPointConditionHM(ModelPart & rModelPart, Node<3>::Pointer pPoint, bool rHydraulic)
          {
             KRATOS_TRY
-      
+
             for(ModelPart::ConditionsContainerType::iterator i_cond =rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); ++i_cond)
             {
                if( i_cond->Is(CONTACT) && i_cond->GetGeometry().size() == 1 ){
@@ -432,6 +432,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HM_PARAMETRIC_WALL_CONTACT_SEARCH_PROCESS_H_INCLUDED  defined 
-
-
+#endif // KRATOS_HM_PARAMETRIC_WALL_CONTACT_SEARCH_PROCESS_H_INCLUDED  defined

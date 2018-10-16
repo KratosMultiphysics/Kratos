@@ -13,7 +13,6 @@
 #include "mpi.h"
 #include "spatial_containers/tree.h"
 
-#include "containers/buffer.h"
 #include "includes/serializer.h"
 #include "utilities/timer.h"
 

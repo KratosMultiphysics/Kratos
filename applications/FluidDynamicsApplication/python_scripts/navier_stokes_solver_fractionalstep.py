@@ -22,11 +22,12 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "FractionalStep",
-            "model_part_name": "FluidModelPart",
-            "domain_size": 2,
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                     "input_type": "mdpa",
-                    "input_filename": "unknown_name"
+                    "input_filename": "unknown_name",
+                    "reorder": false
             },
             "predictor_corrector": false,
             "maximum_velocity_iterations": 3,
@@ -76,8 +77,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
                 "maximum_delta_time"  : 0.01
             },
             "move_mesh_flag": false,
-            "use_slip_conditions": true,
-            "reorder": false
+            "use_slip_conditions": true
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -133,7 +133,8 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Fluid solver variables added correctly.")
 
     def PrepareModelPart(self):
-        self._set_physical_properties()
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self._set_physical_properties()
         super(NavierStokesSolverFractionalStep, self).PrepareModelPart()
 
     def Initialize(self):
@@ -141,7 +142,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:

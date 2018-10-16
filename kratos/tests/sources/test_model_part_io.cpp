@@ -174,7 +174,7 @@ KRATOS_TEST_CASE_IN_SUITE(
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
-    
+
     // Create a model part to write
     ModelPart main_model_part("MainModelPart");
     main_model_part.SetBufferSize(1);
@@ -194,7 +194,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     main_model_part.CreateNewElement("Element2D3N", 2, elem_nodes_2, p_properties_1);
 
     //elemental data
-    Matrix stress(2,2,1);
+    Matrix stress = ScalarMatrix(2,2, 1.00);
     main_model_part.GetMesh().GetElement(1).SetValue(CAUCHY_STRESS_TENSOR,stress);
     bool is_restarted = true;
     main_model_part.GetMesh().GetElement(1).SetValue(IS_RESTARTED,is_restarted);
@@ -204,7 +204,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     main_model_part.GetMesh().GetElement(1).SetValue(TEMPERATURE, temperature);
     double displacement_x = 1.2;
     main_model_part.GetMesh().GetElement(1).SetValue(DISPLACEMENT_X, displacement_x);
-    
+
 
     std::vector<ModelPart::IndexType> cond_nodes_1 = {1,2};
     std::vector<ModelPart::IndexType> cond_nodes_2 = {3,4};
@@ -220,7 +220,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     main_model_part.GetMesh().GetCondition(1).SetValue(TEMPERATURE, temperature);
     main_model_part.GetMesh().GetCondition(1).SetValue(DISPLACEMENT_X, displacement_x);
 
-    ModelPart::Pointer p_sub_model_part = main_model_part.CreateSubModelPart("SubModelPart");
+    ModelPart* p_sub_model_part = &main_model_part.CreateSubModelPart("SubModelPart");
     std::vector<ModelPart::IndexType> sub_model_part_nodes = {1,2,4};
     std::vector<ModelPart::IndexType> sub_model_part_elems = {1};
     std::vector<ModelPart::IndexType> sub_model_part_conds = {1,3};
@@ -268,7 +268,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     delete model_part_io_output;
 
     // Remove the generated files
-    std::string aux_string_mdpa = output_file_name + ".mdpa"; 
+    std::string aux_string_mdpa = output_file_name + ".mdpa";
     std::string aux_string_time = output_file_name + ".time";
     const char *mdpa_to_remove = aux_string_mdpa.c_str();
     const char *time_to_remove = aux_string_time.c_str();
@@ -279,6 +279,94 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     if (remove(time_to_remove) != 0) {
         KRATOS_ERROR << error_msg + ".time";
     }
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(ModelPartIOVariableNotInSolutionStepData, KratosCoreFastSuite) {
+    Kratos::shared_ptr<std::iostream> p_input(new std::stringstream(
+        R"input(
+			    Begin Properties  0
+                End Properties
+
+				Begin Nodes
+				       1        0.0        0.0         0.0
+				       2        1.0        0.0         0.0
+				       3        1.0        1.0         0.0
+				       4        0.0        1.0         0.0
+				End Nodes
+
+				Begin Elements Element2D3N
+				  1 0 1 2 4
+				  2 0 3 4 2
+				End Elements
+
+				Begin NodalData DISPLACEMENT_X
+				1 1 100.0
+				End NodalData
+
+				Begin NodalData DISPLACEMENT_Y
+				1 1 100.0
+				End NodalData
+
+				Begin NodalData PRESSURE
+				2 0 50.0
+				End NodalData
+
+				Begin NodalData TEMPERATURE
+				4 0 33.0
+				End NodalData
+
+				Begin NodalData FORCE_Y
+				3    0    5.0
+				End NodalData
+			)input"));
+
+    Kernel kernel;
+    KratosApplication application(std::string("Kratos"));
+    application.Register();
+    kernel.Initialize();
+
+    // 1. Reading without IGNORE flag -> Error
+    ModelPartIO default_model_part_io(p_input);
+
+    ModelPart model_part_0("ErrorForce");
+    model_part_0.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part_0.AddNodalSolutionStepVariable(PRESSURE);
+    model_part_0.AddNodalSolutionStepVariable(TEMPERATURE);
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        default_model_part_io.ReadModelPart(model_part_0),
+        "The nodal solution step container does not have this variable: FORCE_Y");
+
+    ModelPart model_part_1("ErrorTemperature");
+    model_part_1.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part_1.AddNodalSolutionStepVariable(FORCE);
+    model_part_1.AddNodalSolutionStepVariable(PRESSURE);
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        default_model_part_io.ReadModelPart(model_part_1),
+        "The nodal solution step container does not have this variable: TEMPERATURE");
+
+    // 2. Reading with IGNORE flag -> Not set
+    ModelPartIO ignore_model_part_io(p_input,ModelPartIO::READ|ModelPartIO::IGNORE_VARIABLES_ERROR);
+
+    ModelPart model_part_2("IgnoreForce");
+    model_part_0.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part_0.AddNodalSolutionStepVariable(PRESSURE);
+    model_part_0.AddNodalSolutionStepVariable(TEMPERATURE);
+
+    ignore_model_part_io.ReadModelPart(model_part_2);
+    KRATOS_CHECK_EQUAL(model_part_2.NumberOfNodes(), 4);
+    KRATOS_CHECK_EQUAL(model_part_2.NodesBegin()->Has(FORCE), false);
+
+    ModelPart model_part_3("IgnoreTemperature");
+    model_part_1.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part_1.AddNodalSolutionStepVariable(FORCE);
+    model_part_1.AddNodalSolutionStepVariable(PRESSURE);
+
+    ignore_model_part_io.ReadModelPart(model_part_3);
+    KRATOS_CHECK_EQUAL(model_part_3.NumberOfNodes(), 4);
+    KRATOS_CHECK_EQUAL(model_part_3.NodesBegin()->Has(TEMPERATURE), false);
 }
 
 }  // namespace Testing.

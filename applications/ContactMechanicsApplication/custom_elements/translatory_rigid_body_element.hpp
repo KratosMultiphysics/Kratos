@@ -5,7 +5,7 @@
 //   Date:                $Date:                  July 2016 $
 //   Revision:            $Revision:                    0.0 $
 //
-// 
+//
 
 #if !defined(KRATOS_TRANSLATORY_RIGID_BODY_ELEMENT_H_INCLUDED )
 #define  KRATOS_TRANSLATORY_RIGID_BODY_ELEMENT_H_INCLUDED
@@ -47,22 +47,22 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) TranslatoryRigidBodyElement
 public:
 
     ///@name Type Definitions
-    ///@{    
+    ///@{
    ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw                          ConstitutiveLawType;
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer      ConstitutiveLawPointerType;
     ///StressMeasure from constitutive laws
     typedef ConstitutiveLawType::StressMeasure         StressMeasureType;
-    ///Type definition for integration methods 
+    ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod            IntegrationMethod;
     ///Type definition for beam utilities
     typedef BeamMathUtils<double>                      BeamMathUtilsType;
-    ///Type definition for quaternion 
+    ///Type definition for quaternion
     typedef Quaternion<double>                            QuaternionType;
     ///Type for nodes
     typedef Node<3>                                             NodeType;
-    ///Type for nodes container    
+    ///Type for nodes container
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
 
 
@@ -78,7 +78,7 @@ public:
 
     /// Serializer constructor
     TranslatoryRigidBodyElement() {};
-    
+
     /// Default constructors
     TranslatoryRigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
@@ -153,7 +153,7 @@ public:
       * Must be called before any calculation is done
       */
     void Initialize() override;
-  
+
 
     //************* COMPUTING  METHODS
 
@@ -213,7 +213,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
- 
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -227,20 +227,18 @@ protected:
                                           Flags& rCalculationFlags) override;
 
 
- 
+
     /**
       * Calculation of the Tangent Intertia Matrix
       */
     virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-					   ElementVariables& rVariables,
-					   ProcessInfo& rCurrentProcessInfo) override;
+					   ElementVariables& rVariables) override;
 
     /**
       * Calculation of the Inertial Forces Vector
       */
     virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-					   ElementVariables& rVariables,
-					   ProcessInfo& rCurrentProcessInfo) override;
+					   ElementVariables& rVariables) override;
 
 
     /**
@@ -284,9 +282,9 @@ private:
     friend class Serializer;
 
     virtual void save(Serializer& rSerializer) const override;
-  
+
     virtual void load(Serializer& rSerializer) override;
-  
+
     ///@name Private Inquiry
     ///@{
     ///@}

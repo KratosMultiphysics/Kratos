@@ -44,17 +44,17 @@ namespace Kratos
     typedef ConstitutiveModelData::MatrixType                          MatrixType;
     typedef ConstitutiveModelData::ModelData                        ModelDataType;
     typedef ConstitutiveModelData::ConstitutiveLawData                LawDataType;
-    
+
     /// Pointer definition of Constitutive3DLaw
     KRATOS_CLASS_POINTER_DEFINITION( Constitutive3DLaw );
-	
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
     Constitutive3DLaw();
-   
+
     /// Copy constructor.
     Constitutive3DLaw(const Constitutive3DLaw& rOther);
 
@@ -65,13 +65,13 @@ namespace Kratos
     Constitutive3DLaw& operator=(const Constitutive3DLaw& rOther);
 
     /// Destructor.
-    virtual ~Constitutive3DLaw();
+    ~Constitutive3DLaw() override;
 
     ///@}
     ///@name Operators
     ///@{
 
-    
+
     ///@}
     ///@name Operations
     ///@{
@@ -105,7 +105,7 @@ namespace Kratos
      * @param rValues
      * @see   Parameters
      */
-    virtual void CalculateMaterialResponsePK1(Parameters & rValues) override;
+    void CalculateMaterialResponsePK1(Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -113,7 +113,7 @@ namespace Kratos
      * @param rValues
      * @see   Parameters
      */
-    virtual void CalculateMaterialResponsePK2(Parameters & rValues) override;
+    void CalculateMaterialResponsePK2(Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -121,7 +121,7 @@ namespace Kratos
      * @param rValues
      * @see   Parameters
      */
-    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
 
 
     /**
@@ -130,42 +130,34 @@ namespace Kratos
      * @param rValues
      * @see   Parameters
      */
-    virtual void CalculateMaterialResponseCauchy (Parameters & rValues) override;
+    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
 
 
-    
+
     /**
      * Initialize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-    virtual void InitializeMaterialResponsePK1 (Parameters& rValues) override;
+    void InitializeMaterialResponsePK1 (Parameters& rValues) override;
 
     /**
      * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    virtual void InitializeMaterialResponsePK2 (Parameters& rValues) override;
+    void InitializeMaterialResponsePK2 (Parameters& rValues) override;
 
     /**
      * Initialize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-    virtual void InitializeMaterialResponseKirchhoff (Parameters& rValues) override;
+    void InitializeMaterialResponseKirchhoff (Parameters& rValues) override;
 
     /**
      * Initialize the material response in terms of Cauchy stresses
      * @see Parameters
      */
-    virtual void InitializeMaterialResponseCauchy (Parameters& rValues) override;
+    void InitializeMaterialResponseCauchy (Parameters& rValues) override;
 
-       
-    /**
-     * Updates the material response:
-     * Cauchy stresses and Internal Variables
-     * @param rValues
-     * @see   Parameters
-     */
-    virtual void FinalizeMaterialResponsePK1(Parameters & rValues) override;
 
     /**
      * Updates the material response:
@@ -173,7 +165,7 @@ namespace Kratos
      * @param rValues
      * @see   Parameters
      */
-    virtual void FinalizeMaterialResponsePK2(Parameters & rValues) override;
+    void FinalizeMaterialResponsePK1(Parameters & rValues) override;
 
     /**
      * Updates the material response:
@@ -181,7 +173,7 @@ namespace Kratos
      * @param rValues
      * @see   Parameters
      */
-    virtual void FinalizeMaterialResponseKirchhoff(Parameters & rValues) override;
+    void FinalizeMaterialResponsePK2(Parameters & rValues) override;
 
     /**
      * Updates the material response:
@@ -189,7 +181,15 @@ namespace Kratos
      * @param rValues
      * @see   Parameters
      */
-    virtual void FinalizeMaterialResponseCauchy(Parameters & rValues) override;
+    void FinalizeMaterialResponseKirchhoff(Parameters & rValues) override;
+
+    /**
+     * Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponseCauchy(Parameters & rValues) override;
 
 
     /**
@@ -213,76 +213,76 @@ namespace Kratos
     ///@}
     ///@name Access
     ///@{
-        
+
     /**
      * Has Values
-     */   
-    virtual bool Has(const Variable<double>& rThisVariable) override;
-    
-    virtual bool Has(const Variable<Vector>& rThisVariable) override;
-    
-    virtual bool Has(const Variable<Matrix>& rThisVariable) override;
+     */
+    bool Has(const Variable<double>& rThisVariable) override;
 
-    virtual bool Has(const Variable<array_1d<double,3> >& rThisVariable) override;
+    bool Has(const Variable<Vector>& rThisVariable) override;
 
-    virtual bool Has(const Variable<array_1d<double,6> >& rThisVariable) override;
-    
+    bool Has(const Variable<Matrix>& rThisVariable) override;
+
+    bool Has(const Variable<array_1d<double,3> >& rThisVariable) override;
+
+    bool Has(const Variable<array_1d<double,6> >& rThisVariable) override;
+
     /**
      * Set Values
      */
-    virtual void SetValue(const Variable<double>& rVariable,
+    void SetValue(const Variable<double>& rVariable,
                   const double& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
-    
-    virtual void SetValue(const Variable<Vector>& rThisVariable,
+
+    void SetValue(const Variable<Vector>& rThisVariable,
                   const Vector& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
-    
-    virtual void SetValue(const Variable<Matrix>& rThisVariable,
+
+    void SetValue(const Variable<Matrix>& rThisVariable,
                   const Matrix& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
-    
-    virtual void SetValue(const Variable<array_1d<double,3> >& rThisVariable,
+
+    void SetValue(const Variable<array_1d<double,3> >& rThisVariable,
                   const array_1d<double,3>& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
-    
-    virtual void SetValue(const Variable<array_1d<double,6> >& rThisVariable,
+
+    void SetValue(const Variable<array_1d<double,6> >& rThisVariable,
                   const array_1d<double,6>& rValue,
                   const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Get Values
      */
-    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
-    
-    virtual Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
 
-    virtual Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
-    virtual array_1d<double,3>& GetValue(const Variable<array_1d<double,3> >& rThisVariable, array_1d<double,3>& rValue) override;
+    Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 
-    virtual array_1d<double,6>& GetValue(const Variable<array_1d<double,6> >& rThisVariable, array_1d<double,6>& rValue) override;
+    array_1d<double,3>& GetValue(const Variable<array_1d<double,3> >& rThisVariable, array_1d<double,3>& rValue) override;
+
+    array_1d<double,6>& GetValue(const Variable<array_1d<double,6> >& rThisVariable, array_1d<double,6>& rValue) override;
 
     /**
      * Calculate Values
      */
-    virtual int& CalculateValue(Parameters& rParameterValues, const Variable<int>& rThisVariable, int& rValue) override;
+    int& CalculateValue(Parameters& rParameterValues, const Variable<int>& rThisVariable, int& rValue) override;
 
-    virtual double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-  
-    virtual Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue) override;
-    
-    virtual Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
-    
-    virtual array_1d<double, 3 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,3> >& rVariable, array_1d<double,3> & rValue) override;
-    
-    virtual array_1d<double, 6 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,6> >& rVariable, array_1d<double,6> & rValue) override;
+    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
 
-    
+    Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue) override;
+
+    Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+
+    array_1d<double, 3 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,3> >& rVariable, array_1d<double,3> & rValue) override;
+
+    array_1d<double, 6 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double,6> >& rVariable, array_1d<double,6> & rValue) override;
+
+
     ///@}
     ///@name Inquiry
     ///@{
-    
+
     /**
      * Dimension of the law:
      */
@@ -299,13 +299,13 @@ namespace Kratos
       return 6;
     };
 
-    
+
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Constitutive3DLaw";
@@ -313,13 +313,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Constitutive3DLaw";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "Constitutive3DLaw Data";
     }
@@ -332,20 +332,20 @@ namespace Kratos
 
     ///@}
 
-    
+
   protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -357,7 +357,7 @@ namespace Kratos
      * @param rModelValues
      */
     virtual void CalculateValue (Parameters & rValues, ModelDataType& rModelValues);
-    
+
     /**
      * Computes the material response with model data:
      * PK1 stresses and algorithmic ConstitutiveMatrix
@@ -394,9 +394,9 @@ namespace Kratos
      * @param rModelValues
      */
     virtual void CalculateMaterialResponseCauchy (Parameters & rValues, ModelDataType& rModelValues);
-   
 
-    
+
+
     /**
      * Get voigt index tensor:
      */
@@ -408,13 +408,13 @@ namespace Kratos
     /**
      * Initialize ModelData type:
      */
-    virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues);	
+    virtual void InitializeModelData(Parameters& rValues, ModelDataType& rModelValues);
 
     /**
      * Finalize ModelData type:
      */
     virtual void FinalizeModelData(Parameters& rValues, ModelDataType& rModelValues);
-    
+
     /**
      * Calculates the variables of the domain (element)
      * @param rValues
@@ -423,7 +423,7 @@ namespace Kratos
      * @see   ConstitutiveLawData
      */
     virtual void CalculateDomainVariables(Parameters& rValues, ModelDataType& rModelValues);
-    
+
     /**
      * Calculates the Pressure of the domain (element)
      * @param rValues
@@ -432,7 +432,7 @@ namespace Kratos
      */
     virtual double& CalculateDomainVariable(Parameters& rValues, const Variable<double>& rThisVariable, double& rVariable);
 
-    
+
     /**
      * Calculates the Temperature of the domain (element)
      * @param rValues
@@ -465,7 +465,7 @@ namespace Kratos
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -473,6 +473,8 @@ namespace Kratos
     ///@}
     ///@name Private Operators
     ///@{
+
+    using ConstitutiveLaw::CalculateValue;
 
     ///@}
     ///@name Private Operations
@@ -487,12 +489,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
@@ -523,6 +525,6 @@ namespace Kratos
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
-#endif // KRATOS_ELASTIC_CONSTITUTIVE_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_ELASTIC_CONSTITUTIVE_3D_LAW_H_INCLUDED  defined

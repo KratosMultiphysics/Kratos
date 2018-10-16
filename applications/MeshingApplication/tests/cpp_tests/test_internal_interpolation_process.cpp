@@ -27,13 +27,13 @@
 #include "custom_processes/mmg_process.h"
 #include "includes/mat_variables.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
-        
+
         void GiDIODebugInternalInterpolation(ModelPart& ThisModelPart, const std::string name = "")
         {
             GidIO<> gid_io("TEST_INTERNAL_INTERPOLATION_MMG"+name, GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
@@ -60,7 +60,7 @@ namespace Kratos
             auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
             gid_io.PrintOnGaussPoints(this_var, ThisModelPart, label);
         }
-        
+
         void Create2DModelPart(ModelPart& ThisModelPart)
         {
             Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
@@ -94,10 +94,10 @@ namespace Kratos
             element_nodes_3[1] = p_node_6;
             element_nodes_3[2] = p_node_3;
 
-            Element::Pointer p_elem_0 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 1, element_nodes_0, p_elem_prop);
-            Element::Pointer p_elem_1 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 2, element_nodes_1, p_elem_prop);
-            Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 3, element_nodes_2, p_elem_prop);
-            Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 4, element_nodes_3, p_elem_prop);
+            Element::Pointer p_elem_0 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 1, PointerVector<NodeType>{element_nodes_0}, p_elem_prop);
+            Element::Pointer p_elem_1 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 2, PointerVector<NodeType>{element_nodes_1}, p_elem_prop);
+            Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 3, PointerVector<NodeType>{element_nodes_2}, p_elem_prop);
+            Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 4, PointerVector<NodeType>{element_nodes_3}, p_elem_prop);
 
             // Initialize Elements
             p_elem_0->Initialize();
@@ -198,18 +198,18 @@ namespace Kratos
             element_nodes_11[2] = p_node_1;
             element_nodes_11[3] = p_node_6;
 
-            Element::Pointer p_elem_0 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 1, element_nodes_0, p_elem_prop);
-            Element::Pointer p_elem_1 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 2, element_nodes_1, p_elem_prop);
-            Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 3, element_nodes_2, p_elem_prop);
-            Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 4, element_nodes_3, p_elem_prop);
-            Element::Pointer p_elem_4 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 5, element_nodes_4, p_elem_prop);
-            Element::Pointer p_elem_5 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 6, element_nodes_5, p_elem_prop);
-            Element::Pointer p_elem_6 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 7, element_nodes_6, p_elem_prop);
-            Element::Pointer p_elem_7 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 8, element_nodes_7, p_elem_prop);
-            Element::Pointer p_elem_8 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 9, element_nodes_8, p_elem_prop);
-            Element::Pointer p_elem_9 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 10, element_nodes_9, p_elem_prop);
-            Element::Pointer p_elem_10 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 11, element_nodes_10, p_elem_prop);
-            Element::Pointer p_elem_11 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 12, element_nodes_11, p_elem_prop);
+            Element::Pointer p_elem_0 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 1, PointerVector<NodeType>{element_nodes_0}, p_elem_prop);
+            Element::Pointer p_elem_1 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 2, PointerVector<NodeType>{element_nodes_1}, p_elem_prop);
+            Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 3, PointerVector<NodeType>{element_nodes_2}, p_elem_prop);
+            Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 4, PointerVector<NodeType>{element_nodes_3}, p_elem_prop);
+            Element::Pointer p_elem_4 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 5, PointerVector<NodeType>{element_nodes_4}, p_elem_prop);
+            Element::Pointer p_elem_5 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 6, PointerVector<NodeType>{element_nodes_5}, p_elem_prop);
+            Element::Pointer p_elem_6 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 7, PointerVector<NodeType>{element_nodes_6}, p_elem_prop);
+            Element::Pointer p_elem_7 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 8, PointerVector<NodeType>{element_nodes_7}, p_elem_prop);
+            Element::Pointer p_elem_8 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 9, PointerVector<NodeType>{element_nodes_8}, p_elem_prop);
+            Element::Pointer p_elem_9 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 10, PointerVector<NodeType>{element_nodes_9}, p_elem_prop);
+            Element::Pointer p_elem_10 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 11, PointerVector<NodeType>{element_nodes_10}, p_elem_prop);
+            Element::Pointer p_elem_11 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 12, PointerVector<NodeType>{element_nodes_11}, p_elem_prop);
 
             // Initialize Elements
             p_elem_0->Initialize();
@@ -248,6 +248,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2PlasticityPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -257,13 +259,13 @@ namespace Kratos
             Create2DModelPart(this_model_part);
 
             // Set DISTANCE and other variables
-            Vector ref_metric(3);
+            array_1d<double, 3> ref_metric;
             ref_metric[0] = 1.0;
-            ref_metric[1] = 0;
-            ref_metric[2] = 1.0;
+            ref_metric[1] = 1.0;
+            ref_metric[2] = 0.0;
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
-                it_node->SetValue(MMG_METRIC, ref_metric);
+                it_node->SetValue(METRIC_TENSOR_2D, ref_metric);
             }
 
             // Set PLASTIC_STRAIN on the GP
@@ -298,7 +300,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolation(this_model_part, "pre1");
 
-            MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -344,6 +346,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2PlasticityPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -353,13 +357,13 @@ namespace Kratos
             Create2DModelPart(this_model_part);
 
             // Set DISTANCE and other variables
-            Vector ref_metric(3);
+            array_1d<double, 3> ref_metric(3);
             ref_metric[0] = 1.0;
-            ref_metric[1] = 0;
-            ref_metric[2] = 1.0;
+            ref_metric[1] = 1.0;
+            ref_metric[2] = 0.0;
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
-                it_node->SetValue(MMG_METRIC, ref_metric);
+                it_node->SetValue(METRIC_TENSOR_2D, ref_metric);
             }
 
             // Set PLASTIC_STRAIN on the GP
@@ -395,10 +399,10 @@ namespace Kratos
 //             GiDIODebugInternalInterpolation(this_model_part, "pre1");
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<true>(this_model_part);
             process.Execute();
 
-            MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -445,6 +449,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2Plasticity3DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -454,13 +460,13 @@ namespace Kratos
             Create3DModelPart(this_model_part);
 
             // Set DISTANCE and other variables
-            Vector ref_metric = ZeroVector(6);
+            array_1d<double, 6> ref_metric = ZeroVector(6);
             ref_metric[0] = 1.0;
-            ref_metric[3] = 1.0;
-            ref_metric[5] = 1.0;
+            ref_metric[1] = 1.0;
+            ref_metric[2] = 1.0;
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
-                it_node->SetValue(MMG_METRIC, ref_metric);
+                it_node->SetValue(METRIC_TENSOR_3D, ref_metric);
             }
 
             // Set PLASTIC_STRAIN on the GP
@@ -495,7 +501,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolation(this_model_part, "pre2");
 
-            MmgProcess<3> mmg_process = MmgProcess<3>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -542,6 +548,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2Plasticity3DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -551,13 +559,13 @@ namespace Kratos
             Create3DModelPart(this_model_part);
 
             // Set DISTANCE and other variables
-            Vector ref_metric = ZeroVector(6);
+            array_1d<double, 6> ref_metric = ZeroVector(6);
             ref_metric[0] = 1.0;
-            ref_metric[3] = 1.0;
-            ref_metric[5] = 1.0;
+            ref_metric[1] = 1.0;
+            ref_metric[2] = 1.0;
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
-                it_node->SetValue(MMG_METRIC, ref_metric);
+                it_node->SetValue(METRIC_TENSOR_3D, ref_metric);
             }
 
             // Set PLASTIC_STRAIN on the GP
@@ -593,10 +601,10 @@ namespace Kratos
 //             GiDIODebugInternalInterpolation(this_model_part, "pre2");
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<true>(this_model_part);
             process.Execute();
 
-            MmgProcess<3> mmg_process = MmgProcess<3>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -643,6 +651,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -652,13 +662,13 @@ namespace Kratos
             Create2DModelPart(this_model_part);
 
             // Set DISTANCE and other variables
-            Vector ref_metric(3);
+            array_1d<double, 3> ref_metric;
             ref_metric[0] = 1.0;
-            ref_metric[1] = 0;
-            ref_metric[2] = 1.0;
+            ref_metric[1] = 1.0;
+            ref_metric[2] = 0.0;
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
-                it_node->SetValue(MMG_METRIC, ref_metric);
+                it_node->SetValue(METRIC_TENSOR_2D, ref_metric);
             }
 
             // Compute remesh
@@ -675,7 +685,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre1");
 
-            MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -701,7 +711,7 @@ namespace Kratos
         }
         /**
         * Checks the correct work of the internal variable interpolation process after remesh LST test
-        * Test triangle 
+        * Test triangle
         */
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsLST1, KratosMeshingApplicationFastSuite)
@@ -710,32 +720,34 @@ namespace Kratos
             this_model_part.SetBufferSize(2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 2;
-            
+
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
-            
+
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
-            
+
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
-            
+
             Create2DModelPart(this_model_part);
 
             // Set DISTANCE and other variables
-            Vector ref_metric(3);
+            array_1d<double, 3> ref_metric;
             ref_metric[0] = 1.0;
-            ref_metric[1] = 0;
-            ref_metric[2] = 1.0;
+            ref_metric[1] = 1.0;
+            ref_metric[2] = 0.0;
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
-                it_node->SetValue(MMG_METRIC, ref_metric);
+                it_node->SetValue(METRIC_TENSOR_2D, ref_metric);
             }
 
             // Compute remesh
@@ -753,15 +765,15 @@ namespace Kratos
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre1");
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<true>(this_model_part);
             process.Execute();
 
-            MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG2D> mmg_process = MmgProcess<MMGLibray::MMG2D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
 //             GiDIODebugInternalInterpolationElement(this_model_part, "1");
-            
+
             const double tolerance = 1.0e-4;
             for (auto& elem : this_model_part.Elements()) {
                 auto& r_this_geometry = elem.GetGeometry();
@@ -780,7 +792,7 @@ namespace Kratos
                     KRATOS_CHECK_LESS_EQUAL(std::abs(detF0_vector[i] - 1.0), tolerance);
             }
         }
-        
+
         /**
         * Checks the correct work of the internal variable interpolation process after remesh CPT test
         * Test tetrahedra
@@ -802,6 +814,8 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -811,13 +825,13 @@ namespace Kratos
             Create3DModelPart(this_model_part);
 
             // Set DISTANCE and other variables
-            Vector ref_metric = ZeroVector(6);
+            array_1d<double, 6> ref_metric = ZeroVector(6);
             ref_metric[0] = 1.0;
-            ref_metric[3] = 1.0;
-            ref_metric[5] = 1.0;
+            ref_metric[1] = 1.0;
+            ref_metric[2] = 1.0;
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
-                it_node->SetValue(MMG_METRIC, ref_metric);
+                it_node->SetValue(METRIC_TENSOR_3D, ref_metric);
             }
 
             // Compute remesh
@@ -834,7 +848,7 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre2");
 
-            MmgProcess<3> mmg_process = MmgProcess<3>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG
@@ -880,22 +894,24 @@ namespace Kratos
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
+            if (!p_this_law->Has(PLASTIC_STRAIN))
+                return void();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
-            
+
             Create3DModelPart(this_model_part);
-            
+
             // Set DISTANCE and other variables
-            Vector ref_metric = ZeroVector(6);
+            array_1d<double, 6> ref_metric = ZeroVector(6);
             ref_metric[0] = 1.0;
-            ref_metric[3] = 1.0;
-            ref_metric[5] = 1.0;
+            ref_metric[1] = 1.0;
+            ref_metric[2] = 1.0;
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
-                it_node->SetValue(MMG_METRIC, ref_metric);
+                it_node->SetValue(METRIC_TENSOR_3D, ref_metric);
             }
 
             // Compute remesh
@@ -913,10 +929,10 @@ namespace Kratos
 //             GiDIODebugInternalInterpolationElement(this_model_part, "pre2");
 
             // Compute NodalH
-            FindNodalHProcess process = FindNodalHProcess(this_model_part);
+            auto process = FindNodalHProcess<true>(this_model_part);
             process.Execute();
 
-            MmgProcess<3> mmg_process = MmgProcess<3>(this_model_part, params);
+            MmgProcess<MMGLibray::MMG3D> mmg_process = MmgProcess<MMGLibray::MMG3D>(this_model_part, params);
             mmg_process.Execute();
 
 //             // DEBUG

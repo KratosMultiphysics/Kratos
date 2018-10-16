@@ -14,11 +14,9 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return MeshTyingProcess(Model, settings["Parameters"])
 
-import python_process
-# All the processes python processes should be derived from "python_process"
+import search_base_process
 
-
-class MeshTyingProcess(python_process.PythonProcess):
+class MeshTyingProcess(search_base_process.SearchBaseProcess):
     """This class is used in order to compute the a mortar mesh tying formulation
 
     This class constructs the model parts containing the mesh tying conditions and
@@ -28,29 +26,32 @@ class MeshTyingProcess(python_process.PythonProcess):
     Only the member variables listed below should be accessed directly.
 
     Public member variables:
-    model_part -- the model part used to construct the process.
+    Model -- the model used to construct the process.
     settings -- Kratos parameters containing solver settings.
     """
 
-    def __init__(self, model_part, settings):
+    def __init__(self, Model, settings):
         """ The default constructor of the class
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        model_part -- the model part used to construct the process.
+        Model -- the model part used to construct the process.
         settings -- Kratos parameters containing solver settings.
         """
 
+        # NOTE: Due to recursive check "search_model_part" and "assume_master_slave" requires to pre-define configurations, if more that 10 pairs of contact are required, just add. I assume nobody needs that much
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
+            "help"                        : "This class is used in order to compute the a mortar mesh tying formulation. This class constructs the model parts containing the mesh tying conditions and initializes parameters and variables related with the mesh tying. The class creates search utilities to be used to create the tying pairs",
             "mesh_id"                     : 0,
             "model_part_name"             : "Structure",
             "computing_model_part_name"   : "computing_domain",
-            "mesh_tying_model_part"       : "Tying_Part",
-            "assume_master_slave"         : "",
-            "type_variable"               : "Components",
-            "geometry_element"            : "Quadrilateral",
+            "mesh_tying_model_part"       : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "mesh_tying_property_ids"     : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
+            "interval"                    : [0.0,"End"],
+            "variable_name"               : "DISPLACEMENT",
             "search_parameters" : {
                 "type_search"                 : "in_radius",
                 "search_factor"               : 3.5,
@@ -58,6 +59,7 @@ class MeshTyingProcess(python_process.PythonProcess):
                 "max_number_results"          : 1000,
                 "bucket_size"                 : 4,
                 "dynamic_search"              : false,
+                "database_step_update"        : 999999999,
                 "debug_mode"                  : false,
                 "check_gap"                   : "check_mapping"
             },
@@ -66,25 +68,37 @@ class MeshTyingProcess(python_process.PythonProcess):
         """)
 
         # Overwrite the default settings with user-provided parameters
-        self.settings = settings
-        self.settings.ValidateAndAssignDefaults(default_parameters)
+        self.mesh_tying_settings = settings
+        self.mesh_tying_settings.ValidateAndAssignDefaults(default_parameters)
 
-        self.main_model_part = model_part[self.settings["model_part_name"].GetString()]
-        self.computing_model_part_name = self.settings["computing_model_part_name"].GetString()
+        # We transfer the parameters to the base class
+        base_process_settings = KM.Parameters("""{}""")
+        base_process_settings.AddValue("mesh_id", self.mesh_tying_settings["mesh_id"])
+        base_process_settings.AddValue("model_part_name", self.mesh_tying_settings["model_part_name"])
+        base_process_settings.AddValue("computing_model_part_name", self.mesh_tying_settings["computing_model_part_name"])
+        base_process_settings.AddValue("search_model_part", self.mesh_tying_settings["mesh_tying_model_part"])
+        base_process_settings.AddValue("assume_master_slave", self.mesh_tying_settings["assume_master_slave"])
+        base_process_settings.AddValue("search_property_ids", self.mesh_tying_settings["mesh_tying_property_ids"])
+        base_process_settings.AddValue("interval", self.mesh_tying_settings["interval"])
+        base_process_settings.AddValue("integration_order", self.mesh_tying_settings["integration_order"])
+        base_process_settings.AddValue("search_parameters", self.mesh_tying_settings["search_parameters"])
 
-        self.dimension = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
+        # Construct the base process.
+        super(MeshTyingProcess, self).__init__(Model, base_process_settings)
 
-        self.mesh_tying_model_part = model_part[self.settings["mesh_tying_model_part"].GetString()]
-
-        if (self.settings["assume_master_slave"].GetString() != ""):
-            KM.VariableUtils().SetFlag(KM.SLAVE, False, self.mesh_tying_model_part.Nodes)
-            KM.VariableUtils().SetFlag(KM.MASTER, True, self.mesh_tying_model_part.Nodes)
-            model_part_slave = self.main_model_part.GetSubModelPart(self.settings["assume_master_slave"].GetString())
-            KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Nodes)
-            KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Nodes)
-
-        self.type_variable = self.settings["type_variable"].GetString()
-        self.geometry_element = self.settings["geometry_element"].GetString()
+        # Mesh tying configurations
+        # Determine if the variable is components or scalar
+        self.variable_name = self.mesh_tying_settings["variable_name"].GetString()
+        if (KM.KratosGlobals.HasVariable(self.variable_name)):
+            var_type = KM.KratosGlobals.GetVariableType(self.variable_name)
+            if (var_type == "Array"):
+                self.type_variable = "Components"
+            elif (var_type == "Double"):
+                self.type_variable = "Scalar"
+            else:
+                raise Exception("Variable " + self.variable_name + " not compatible")
+        else:
+            raise Exception("Variable " + self.variable_name + " not registered")
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -93,86 +107,8 @@ class MeshTyingProcess(python_process.PythonProcess):
         self -- It signifies an instance of a class.
         """
 
-        # The computing model part
-        computing_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name)
-
-        # We compute NODAL_H that can be used in the search and some values computation
-        self.find_nodal_h = KM.FindNodalHProcess(computing_model_part)
-        self.find_nodal_h.Execute()
-
-        # Appending the conditions created to the self.main_model_part
-        if (computing_model_part.HasSubModelPart("Contact")):
-            interface_model_part = computing_model_part.GetSubModelPart("Contact")
-        else:
-            interface_model_part = computing_model_part.CreateSubModelPart("Contact")
-
-        # Setting the integration order and active check factor
-        for prop in computing_model_part.GetProperties():
-            prop[CSMA.INTEGRATION_ORDER_CONTACT] = self.settings["integration_order"].GetInt()
-
-        self.main_model_part.ProcessInfo[CSMA.ACTIVE_CHECK_FACTOR] = self.settings["search_parameters"]["active_check_factor"].GetDouble()
-
-        # We set the interface flag
-        KM.VariableUtils().SetFlag(KM.INTERFACE, True, self.mesh_tying_model_part.Nodes)
-
-        self.interface_preprocess = CSMA.InterfacePreprocessCondition(self.main_model_part)
-
-        # It should create the conditions automatically
-        interface_parameters = KM.Parameters("""{"simplify_geometry": false}""")
-        if (self.dimension == 2):
-            self.interface_preprocess.GenerateInterfacePart2D(self.mesh_tying_model_part, interface_parameters)
-        else:
-            self.interface_preprocess.GenerateInterfacePart3D(self.mesh_tying_model_part, interface_parameters)
-
-        # When all conditions are simultaneously master and slave
-        if (self.settings["assume_master_slave"].GetString() == ""):
-            KM.VariableUtils().SetFlag(KM.SLAVE, True, self.mesh_tying_model_part.Conditions)
-
-        # We copy the conditions to the ContactSubModelPart
-        for cond in self.mesh_tying_model_part.Conditions:
-            interface_model_part.AddCondition(cond)
-        del(cond)
-        for node in self.mesh_tying_model_part.Nodes:
-            interface_model_part.AddNode(node, 0)
-        del(node)
-
-        # Creating the search
-        condition_name = "MeshTyingMortar"
-        search_parameters = KM.Parameters("""{"condition_name": "", "final_string": ""}""")
-        search_parameters.AddValue("type_search",self.settings["search_parameters"]["type_search"])
-        search_parameters.AddValue("check_gap",self.settings["search_parameters"]["check_gap"])
-        search_parameters.AddValue("allocation_size",self.settings["search_parameters"]["max_number_results"])
-        search_parameters.AddValue("bucket_size",self.settings["search_parameters"]["bucket_size"])
-        search_parameters.AddValue("search_factor",self.settings["search_parameters"]["search_factor"])
-        search_parameters["condition_name"].SetString(condition_name)
-        search_parameters["final_string"].SetString(self.geometry_element + self.type_variable)
-
-        # We compute the number of nodes of the geometry
-        number_nodes = len(computing_model_part.Conditions[1].GetNodes())
-        if (self.dimension == 2):
-            self.contact_search = CSMA.TreeContactSearch2D2N(computing_model_part, search_parameters)
-        else:
-            if (number_nodes == 3):
-                self.contact_search = CSMA.TreeContactSearch3D3N(computing_model_part, search_parameters)
-            else:
-                self.contact_search = CSMA.TreeContactSearch3D4N(computing_model_part, search_parameters)
-
-        zero_vector = KM.Vector(3)
-        zero_vector[0] = 0.0
-        zero_vector[1] = 0.0
-        zero_vector[2] = 0.0
-
-        # Initilialize weighted variables and LM
-        if (self.type_variable == "Scalar"):
-            KM.VariableUtils().SetVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL, 0.0, self.mesh_tying_model_part.Nodes)
-        else:
-            KM.VariableUtils().SetVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL, zero_vector, self.mesh_tying_model_part.Nodes)
-
-        # Setting the conditions
-        KM.VariableUtils().SetNonHistoricalVariable(KM.NORMAL, zero_vector, self.mesh_tying_model_part.Conditions)
-
-        self.contact_search.CreatePointListMortar()
-        self.contact_search.InitializeMortarConditions()
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -180,15 +116,8 @@ class MeshTyingProcess(python_process.PythonProcess):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        self.contact_search.ClearMortarConditions()
-
-        self.contact_search.UpdateMortarConditions()
-        #self.contact_search.CheckMortarConditions()
-
-        # We initialize the conditions (just in case, technically already done)
-        for cond in self.mesh_tying_model_part.Conditions:
-            cond.Initialize()
-        del cond
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -196,9 +125,8 @@ class MeshTyingProcess(python_process.PythonProcess):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-
-        #self.contact_search.CheckMortarConditions()
-        pass
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -206,8 +134,8 @@ class MeshTyingProcess(python_process.PythonProcess):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-
-        pass
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteFinalizeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
@@ -215,8 +143,8 @@ class MeshTyingProcess(python_process.PythonProcess):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-
-        pass
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteBeforeOutputStep()
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -224,8 +152,8 @@ class MeshTyingProcess(python_process.PythonProcess):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-
-        pass
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteAfterOutputStep()
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
@@ -233,24 +161,109 @@ class MeshTyingProcess(python_process.PythonProcess):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
+        # We call to the base process
+        super(MeshTyingProcess, self).ExecuteFinalize()
 
-        pass
-
-    def __get_enum_flag(self, param, label, dictionary):
-        """ Parse enums settings using an auxiliary dictionary of acceptable values.
+    def _get_condition_name(self):
+        """ This method returns the condition name
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        param -- The label to add to the postprocess file
-        label -- The label used to get the string
-        dictionary -- The dictionary containing the list of possible candidates
         """
 
-        keystring = param[label].GetString()
-        try:
-            value = dictionary[keystring]
-        except KeyError:
-            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__, value, label)
-            raise Exception(msg)
+        # We define the condition name to be used
+        return "MeshTyingMortar"
 
-        return value
+    def _get_final_string(self, key = "0"):
+        """ This method returns the final string of the condition name
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        key -- The key to identify the current pair
+        """
+        # Determine the geometry of the element
+        super(MeshTyingProcess, self)._get_final_string(key)
+        number_nodes, number_nodes_master = self._compute_number_nodes_elements()
+        geometry_element = self.__type_element(number_nodes)
+        geometry_element_master = self.__type_element(number_nodes_master)
+        # We compute the number of nodes of the conditions
+        number_nodes, number_nodes_master = super(MeshTyingProcess, self)._compute_number_nodes()
+        if (number_nodes != number_nodes_master):
+            return geometry_element + str(number_nodes_master) + "N" + geometry_element_master
+        else:
+            return geometry_element
+
+    def _initialize_search_conditions(self):
+        """ This method initializes some conditions values
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        # We call to the base process
+        super(MeshTyingProcess, self)._initialize_search_conditions()
+
+        # Setting tying variable
+        for prop in self._get_process_model_part().GetProperties():
+            prop[CSMA.TYING_VARIABLE] = self.variable_name
+
+        # Initializing some values
+        zero_vector = KM.Vector(3)
+        zero_vector[0] = 0.0
+        zero_vector[1] = 0.0
+        zero_vector[2] = 0.0
+
+        # Initilialize weighted variables and LM
+        if (self.type_variable == "Scalar"):
+            KM.VariableUtils().SetVariable(CSMA.WEIGHTED_SCALAR_RESIDUAL, 0.0, self._get_process_model_part().Nodes)
+        else:
+            KM.VariableUtils().SetVariable(CSMA.WEIGHTED_VECTOR_RESIDUAL, zero_vector, self._get_process_model_part().Nodes)
+
+        # Setting the conditions
+        KM.VariableUtils().SetNonHistoricalVariable(KM.NORMAL, zero_vector, self._get_process_model_part().Conditions)
+
+    def _compute_number_nodes_elements(self):
+        """ This method computes the  number of nodes per element
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        # We compute the number of nodes of the geometry
+        if (self.predefined_master_slave is True and self.dimension == 3):
+            slave_defined = False
+            master_defined = False
+            for elem in self.computing_model_part.Elements:
+                nodes = elem.GetNodes()
+                for node in nodes:
+                    if (node.Is(KM.SLAVE)):
+                        number_nodes = len(elem.GetNodes())
+                        slave_defined = True
+                    if (node.Is(KM.MASTER)):
+                        number_nodes_master = len(elem.GetNodes())
+                        master_defined = True
+                if (slave_defined and master_defined):
+                    break
+        else:
+            number_nodes = len(self.computing_model_part.Elements[1].GetNodes())
+            number_nodes_master = number_nodes
+
+        return number_nodes, number_nodes_master
+
+    def __type_element(self, number_nodes):
+        """ This method computes the type of element considered
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        number_nodes -- The number of nodes of the element
+        """
+
+        if (self.dimension == 2):
+            if (number_nodes == 3):
+                return "Triangle"
+            elif (number_nodes == 4):
+                return "Quadrilateral"
+        else:
+            if (number_nodes == 4):
+                return "Tetrahedron"
+            elif (number_nodes == 8):
+                return "Hexahedron"

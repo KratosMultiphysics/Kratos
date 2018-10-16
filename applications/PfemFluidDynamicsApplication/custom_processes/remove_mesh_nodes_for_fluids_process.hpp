@@ -21,16 +21,17 @@
 
 #include "includes/model_part.h"
 #include "custom_utilities/mesh_error_calculation_utilities.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 
 #include "pfem_fluid_dynamics_application_variables.h"
+#include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
 //Data:     NORMAL, MASTER_NODES, NEIGHBOUR_NODES, NEIGBOUR_ELEMENTS
 //StepData: MEAN_ERROR, CONTACT_FORCE
 //Flags:    (checked) TO_ERASE, BOUNDARY, STRUCTURE, TO_SPLIT, CONTACT, NEW_ENTITY, BLOCKED
 //          (set)     TO_ERASE(conditions,nodes)(set), NEW_ENTITY(conditions,nodes)(set), BLOCKED(nodes)->locally, VISITED(nodes)(set)
-//          (modified)  
+//          (modified)
 //          (reset)   BLOCKED->locally
 //(set):=(set in this process)
 
@@ -49,11 +50,10 @@ namespace Kratos
     Additional treatment of the nonconvex boundaries is also going to erase nodes.
 
     At the end of the execution nodes are cleaned (only in the current mesh)
-    If boundary nodes are removed, conditions must be build again (new conditions are build in the current mesh)   
 */
 
 class RemoveMeshNodesForFluidsProcess
-  : public Process
+  : public MesherProcess
 {
 public:
   ///@name Type Definitions
@@ -74,14 +74,17 @@ public:
 
     /// Default constructor.
     RemoveMeshNodesForFluidsProcess(ModelPart& rModelPart,
-			   ModelerUtilities::MeshingParameters& rRemeshingParameters,
-			   int EchoLevel) 
+			   MesherUtilities::MeshingParameters& rRemeshingParameters,
+			   int EchoLevel)
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-      std::cout<<" remove_mesh_nodes_process_for_fluids "<<std::endl;
-      mEchoLevel = EchoLevel;
-    }
+      KRATOS_INFO("RemoveMeshNodesForFluidsProcess") << " remove_mesh_nodes_process_for_fluids ";
+
+			mEchoLevel = EchoLevel;
+		}
+
+
 
 
   /// Destructor.
@@ -114,93 +117,61 @@ public:
 	std::cout<<" [ REMOVE CLOSE NODES: "<<std::endl;
       }
 
-    double RemovedConditions = mrModelPart.NumberOfConditions();
     // double NumberOfNodes = mrModelPart.NumberOfNodes();
 
     bool any_node_removed      = false;
-    bool any_condition_removed = false;
-    
+
     int error_nodes_removed    = 0;
     int inside_nodes_removed   = 0;
     int boundary_nodes_removed = 0;
 
     //if the remove_node switch is activated, we check if the nodes got too close
-    if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES))
+    if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES))
       {
 	if( mEchoLevel > 1 )
 	  std::cout<<" REMOVE_NODES is TRUE "<<std::endl;
 	bool any_node_removed_on_error = false;
 	////////////////////////////////////////////////////////////
-	if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_ERROR))	      
+	if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_ERROR))
 	  {
 	    if( mEchoLevel > 1 )
 	      std::cout<<" REMOVE_NODES_ON_ERROR is TRUE "<<std::endl;
-	  
+
 	    any_node_removed_on_error = RemoveNodesOnError(error_nodes_removed); //2D and 3D
 	  }
-	//////////////////////////////////////////////////////////// 
+	////////////////////////////////////////////////////////////
 	if( mEchoLevel > 1 )
 	  std::cout<<"error_nodes_removed :"<<error_nodes_removed<<std::endl;
-	bool any_convex_condition_removed = false;
 
 	bool any_node_removed_on_distance = false;
 	////////////////////////////////////////////////////////////
-	if (mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_DISTANCE))	      
+	if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE))
 	  {
 	    if( mEchoLevel > 1 )
 	      std::cout<<" REMOVE_NODES_ON_DISTANCE is TRUE "<<std::endl;
 	    // double  MeanRadius=0;
-	    any_node_removed_on_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed, any_condition_removed); 
+	    any_node_removed_on_distance = RemoveNodesOnDistance(inside_nodes_removed, boundary_nodes_removed);
 	  }
 	// REMOVE ON DISTANCE
 	////////////////////////////////////////////////////////////
-	  
+
 	if(any_node_removed_on_error || any_node_removed_on_distance)
 	  any_node_removed = true;
 
-	if(any_convex_condition_removed || any_condition_removed)
-	  any_condition_removed = true;
-	  
 
 	if(any_node_removed)
 	  this->CleanRemovedNodes(mrModelPart);
 
-	if(any_condition_removed){
-	  //Clean Conditions
-	  ModelPart::ConditionsContainerType RemoveConditions;
-
-	  //id = 0;
-	  for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ic++)
-	    {
-
-	      if(ic->IsNot(TO_ERASE)){
-		//id+=1;
-		RemoveConditions.push_back(*(ic.base()));
-		//RemoveConditions.back().SetId(id);
-	      }
-	      else{
-		if( mEchoLevel > 1 )
-		  std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
-	      }
-	    }
-
-          mrModelPart.Conditions().swap(RemoveConditions);
-
-	}
-
-
       }
 
-      
+
     // number of removed nodes:
     // mrRemesh.Info->RemovedNodes = NumberOfNodes - mrModelPart.NumberOfNodes();
     mrRemesh.Info->RemovedNodes +=  error_nodes_removed + inside_nodes_removed + boundary_nodes_removed;
     int distance_remove =  inside_nodes_removed + boundary_nodes_removed;
       
-    RemovedConditions -= mrModelPart.NumberOfConditions();
-      
+     
     if( mEchoLevel > 1 ){
-      std::cout<<"  remove_mesh_nodes_process_for_fluids  [ CONDITIONS ( removed : "<<RemovedConditions<<" ) ]"<<std::endl;
       std::cout<<"   [ NODES      ( removed : "<<mrRemesh.Info->RemovedNodes<<" ) ]"<<std::endl;
       std::cout<<"   [ Error(removed: "<<error_nodes_removed<<"); Distance(removed: "<<distance_remove<<"; inside: "<<inside_nodes_removed<<"; boundary: "<<boundary_nodes_removed<<") ]"<<std::endl;
 
@@ -260,10 +231,10 @@ private:
   ///@name Static Member Variables
   ///@{
   ModelPart& mrModelPart;
- 
-  ModelerUtilities::MeshingParameters& mrRemesh;
 
-  ModelerUtilities mModelerUtilities;  
+  MesherUtilities::MeshingParameters& mrRemesh;
+
+  MesherUtilities mMesherUtilities;
 
   int mEchoLevel;
 
@@ -281,19 +252,19 @@ private:
       //MESH 0 total domain mesh
       ModelPart::NodesContainerType temporal_nodes;
     temporal_nodes.reserve(rModelPart.Nodes().size());
-	
+
     temporal_nodes.swap(rModelPart.Nodes());
-	
+
     for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
       {
 	if( i_node->IsNot(TO_ERASE) ){
-	  (rModelPart.Nodes()).push_back(*(i_node.base()));	
+	  (rModelPart.Nodes()).push_back(*(i_node.base()));
 	}
       }
-	
+
     rModelPart.Nodes().Sort();
-	
-	
+
+
     KRATOS_CATCH( "" )
       }
 
@@ -303,10 +274,10 @@ private:
   bool RemoveNodesOnError(int& error_removed_nodes)
   {
     KRATOS_TRY
-	 
-    //***SIZES :::: parameters do define the tolerance in mesh size: 
+
+    //***SIZES :::: parameters do define the tolerance in mesh size:
     double size_for_criterion_error   = 2.0 * mrRemesh.Refine->CriticalRadius; //compared with mean node radius
-       
+
     bool any_node_removed = false;
 
     MeshErrorCalculationUtilities MeshErrorDistribution;
@@ -315,7 +286,7 @@ private:
     std::vector<double> NodalError;
     std::vector<int>    nodes_ids;
 
-	      
+
     MeshErrorDistribution.NodalErrorCalculation(mrModelPart,NodalError,nodes_ids,mrRemesh.Refine->GetErrorVariable());
 
     for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
@@ -328,24 +299,24 @@ private:
 	    if(rN[i].Is(TO_ERASE))
 	      erased_nodes += 1;
 	  }
-	   
-	   
+
+
 	if( in->IsNot(BOUNDARY) &&  in->IsNot(STRUCTURE) && erased_nodes < 1 )
 	  {
 	    double& MeanError = in->FastGetSolutionStepValue(MEAN_ERROR);
 	    MeanError = NodalError[nodes_ids[in->Id()]];
-	       
+
 	    WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
 	    double mean_node_radius = 0;
 	    for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
 	      {
-		mean_node_radius+= mModelerUtilities.CalculateElementRadius(ne->GetGeometry()); //Triangle 2D, Tetrahedron 3D
-		//mean_node_radius+= mModelerUtilities.CalculateTriangleRadius(ne->GetGeometry());
-		//mean_node_radius+= mModelerUtilities.CalculateTetrahedronRadius(ne->GetGeometry());
+		mean_node_radius+= mMesherUtilities.CalculateElementRadius(ne->GetGeometry()); //Triangle 2D, Tetrahedron 3D
+		//mean_node_radius+= mMesherUtilities.CalculateTriangleRadius(ne->GetGeometry());
+		//mean_node_radius+= mMesherUtilities.CalculateTetrahedronRadius(ne->GetGeometry());
 	      }
-	       
+
 	    mean_node_radius /= double(neighb_elems.size());
-	       
+
 	    if(NodalError[nodes_ids[in->Id()]] < mrRemesh.Refine->ReferenceError && mean_node_radius < size_for_criterion_error)
 	      {
 		in->Set(TO_ERASE);
@@ -354,7 +325,7 @@ private:
 	      }
 	  }
       }
-       
+
     return any_node_removed;
 
     KRATOS_CATCH(" ")
@@ -363,13 +334,13 @@ private:
 
 
 
-  bool RemoveNodesOnDistance(int& inside_nodes_removed, int& boundary_nodes_removed, bool& any_condition_removed)
+  bool RemoveNodesOnDistance(int& inside_nodes_removed, int& boundary_nodes_removed)
   {
     KRATOS_TRY
-	 
+
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
-    //***SIZES :::: parameters do define the tolerance in mesh size: 
+    //***SIZES :::: parameters do define the tolerance in mesh size:
     double initialMeanRadius=0;
     initialMeanRadius=mrRemesh.Refine->InitialRadius;
 
@@ -384,14 +355,14 @@ private:
     //   size_for_distance_boundary     = 0.5 * initialMeanRadius; //compared to element radius
     //   size_for_wall_tip_contact_side = 0.15 * mrRemesh.Refine->CriticalSide;
     // }
- 
+
     bool derefine_wall_tip_contact = false;
 
     bool any_node_removed = false;
 
     //bucket size definition:
     unsigned int bucket_size = 20;
-       
+
     //create the list of the nodes to be check during the search
     std::vector<Node<3>::Pointer> list_of_nodes;
     list_of_nodes.reserve(mrModelPart.NumberOfNodes());
@@ -399,24 +370,24 @@ private:
       {
 	(list_of_nodes).push_back(*(i_node.base()));
       }
-       
+
     KdtreeType nodes_tree(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
 
     ////////////////////////////////////////////////////////////
-       
+
     //all of the nodes in this list will be preserved
     unsigned int num_neighbours = 100;
-       
+
     std::vector<Node<3>::Pointer> neighbours         (num_neighbours);
     std::vector<double>           neighbour_distances(num_neighbours);
-       
-       
+
+
     //radius means the distance, if the distance between two nodes is closer to radius -> mark for removing
     double radius=0;
     Node<3> work_point(0,0.0,0.0,0.0);
     unsigned int n_points_in_radius;
-       
-       
+
+
     for(ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
       {
 	if(in->Is(TO_ERASE)){
@@ -424,7 +395,7 @@ private:
 	}
 	bool on_contact_tip = false;
 	bool contact_active = false;
-	   
+
 	if( in->SolutionStepsDataHas(CONTACT_FORCE) ){
 	  array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
 	  if(norm_2(ContactForceNormal)>0)
@@ -432,7 +403,7 @@ private:
 	}
 
 	if(contact_active || in->Is(TO_SPLIT) || in->Is(CONTACT) )
-	  on_contact_tip = true;				  
+	  on_contact_tip = true;
 
 	if( in->IsNot(NEW_ENTITY) &&  in->IsNot(INLET) )
 	// if( in->IsNot(NEW_ENTITY) )
@@ -451,7 +422,7 @@ private:
 	      WeakPointerVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 	      unsigned int countRigid=0;
 	      for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
-		{	   
+		{
 		  if(nn->Is(RIGID) || nn->Is(SOLID)){
 		    countRigid++;
 		  }
@@ -462,14 +433,14 @@ private:
 	    }else{
 	      WeakPointerVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
 	      for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
-		{	   
+		{
 		  if(nn->Is(FREE_SURFACE)){
 		    freeSurfaceNeighNodes++;
 		  }
 		  // if(nn->Is(RIGID)){
 		  //   rigidNeighNodes++;
 		  // }
-		}   
+		}
 	    }
 
 	    if(in->Is(INLET)){
@@ -482,8 +453,8 @@ private:
 
 		if (  in->IsNot(INLET) && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED) )
 		  {
-		    if( mrRemesh.Refine->RemovingOptions.Is(ModelerUtilities::REMOVE_NODES_ON_DISTANCE) ){
-		      
+		    if( mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE) ){
+
 		      // if (in->IsNot(FREE_SURFACE) && in->IsNot(RIGID) && (freeSurfaceNeighNodes==dimension || rigidNeighNodes==dimension)){
 		       if (in->IsNot(FREE_SURFACE) && in->IsNot(RIGID) && freeSurfaceNeighNodes==dimension){
 		      	WeakPointerVector< Node < 3 > >& neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
@@ -566,15 +537,15 @@ private:
 		    {
 		      bool nn_on_contact_tip = false;
 		      bool contact_active = false;
-	   
+
 		      if( (*nn)->SolutionStepsDataHas(CONTACT_FORCE) ){
 			array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
 			if(norm_2(ContactForceNormal)>0)
 			  contact_active = true;
 		      }
-			   
+
 		      if(contact_active || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
-			nn_on_contact_tip = true;				  
+			nn_on_contact_tip = true;
 
        		      if ( (*nn)->Is(BOUNDARY) && !nn_on_contact_tip && neighbour_distances[k] < size_for_distance_boundary && neighbour_distances[k] > 0.0 )
 			{
@@ -585,7 +556,7 @@ private:
 			}
 
 		      if ( (*nn)->Is(BOUNDARY) && nn_on_contact_tip && neighbour_distances[k] < size_for_wall_tip_contact_side ) {
-			if ( (*nn)->IsNot(TO_ERASE)) { 
+			if ( (*nn)->IsNot(TO_ERASE)) {
 			  counter += 1;
 			}
 		      }
@@ -662,7 +633,7 @@ private:
 	      // }
 	      // }
 
-	  }	
+	  }
       }
 
     unsigned int erased_nodes=0;
@@ -672,14 +643,14 @@ private:
 	unsigned int rigidNodes=0;
 	//coordinates
 	for(unsigned int i=0; i<ie->GetGeometry().size(); i++)
-	  {	
+	  {
 	    if((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID)){
 	    // if(ie->GetGeometry()[i].Is(RIGID)  || ie->GetGeometry()[i].Is(SOLID)){
 	      rigidNodes++;
 	    }
 	  }
-	
-	// if(rigidNodes>1){    
+
+	// if(rigidNodes>1){
 	//   if(dimension==2){
 	//     EraseCriticalNodes2D(ie->GetGeometry(),erased_nodes,inside_nodes_removed);
 	//   }else if(dimension==3){
@@ -696,10 +667,10 @@ private:
 
 
       }
- 
+
 
     if(erased_nodes>0){
-      if( mEchoLevel > 1 ) 
+      if( mEchoLevel > 1 )
 	std::cout<<"layer_nodes_removed "<<erased_nodes<<std::endl;
       any_node_removed = true;
     }
@@ -709,27 +680,27 @@ private:
       std::cout<<"inside_nodes_removed "<<inside_nodes_removed<<std::endl;
     }
     return any_node_removed;
-       
+
     KRATOS_CATCH(" ")
 
-      } 
+      }
 
 
   void EraseCriticalNodes2D( Element::GeometryType& Element, unsigned int &erased_nodes,int& inside_nodes_removed)
-  { 
+  {
 
     KRATOS_TRY
-	 
+
       // std::cout<<"erased_nodes "<<erased_nodes<<std::endl;
     double safetyCoefficient2D=0.5;
     double elementVolume=Element.Area();
-	    
+
     // ////////  it erases nodes in very small elements /////////
     // double criticalVolume=0.1*mrRemesh.Refine->MeanVolume;
     // criticalVolume=0;
     // if(elementVolume<criticalVolume){
     //   for(unsigned int i=0; i<Element.size(); i++)
-    // 	{	
+    // 	{
     // 	  if(Element[i].IsNot(RIGID) && Element[i].IsNot(SOLID) && Element[i].IsNot(TO_ERASE)){
     // 	    Element[i].Set(TO_ERASE);
     // 	    if( mEchoLevel > 1 )
@@ -739,7 +710,7 @@ private:
     // 	    break;
     // 	  }
     // 	}
-	   
+
     // }
 
 
@@ -787,7 +758,7 @@ private:
 	  unsigned int countRigid=0;
 	  unsigned int countFreeSurface=0;
 	  for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
-	      {	   
+	      {
 		if(nn->Is(RIGID) || nn->Is(SOLID)){
 		  countRigid++;
 		}
@@ -801,7 +772,7 @@ private:
 	}
 
 	////// if the node is very close to the wall is erased in any case
-    	if(height<(0.5*safetyCoefficient2D*wallLength)){ 
+    	if(height<(0.5*safetyCoefficient2D*wallLength)){
 	  Element[i].Set(TO_ERASE);
 	  erased_nodes += 1;
 	  inside_nodes_removed++;
@@ -853,14 +824,14 @@ private:
 
 
   void EraseCriticalNodes3D( Element::GeometryType& Element, unsigned int &erased_nodes,int& inside_nodes_removed)
-  { 
-	  
+  {
+
     KRATOS_TRY
 
     double safetyCoefficient3D=0.6;
     // double safetyCoefficient3D=0.7;
 
-	    
+
     double elementVolume=Element.Volume();
     double criticalVolume=0.1*mrRemesh.Refine->MeanVolume;
     if(elementVolume<criticalVolume){
@@ -875,7 +846,7 @@ private:
 	    break;
 	  }
 	}
-	   
+
     }
     array_1d<double,6> Edges(6,0.0);
     array_1d<unsigned int,6> FirstEdgeNode(6,0);
@@ -918,7 +889,7 @@ private:
 	    wallLength=Edges[counter];
 	  }
 	  if(((Element[i].Is(RIGID) && Element[j].IsNot(RIGID)) ||
-	     (Element[j].Is(RIGID) && Element[i].IsNot(RIGID)) ) && 
+	     (Element[j].Is(RIGID) && Element[i].IsNot(RIGID)) ) &&
 	     (Edges[counter]<minimumLength || minimumLength==0)){
 	    minimumLength=Edges[counter];
 	  }
@@ -935,7 +906,7 @@ private:
 	  unsigned int countRigid=0;
 	  unsigned int countFreeSurface=0;
 	  for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); nn++)
-	    {	   
+	    {
 	      if(nn->Is(RIGID) || nn->Is(SOLID)){
 		countRigid++;
 	      }
@@ -978,7 +949,7 @@ private:
     // 	    Element[i].Set(TO_ERASE);
     // 	    erased_nodes += 1;
     // 	    inside_nodes_removed++;
-    // 	  }    	
+    // 	  }
     // 	}
     //   }
     // }
@@ -1018,7 +989,7 @@ private:
 
 
   bool CheckForMovingLayerNodes( Node < 3 >&  CheckedNode,const double wallLength)
-  { 
+  {
     KRATOS_TRY
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
@@ -1085,8 +1056,8 @@ private:
 
 
   void InterpolateFromTwoNodes(unsigned int idMaster,unsigned int idSlave1,unsigned int idSlave2)
-  { 
-	  
+  {
+
     KRATOS_TRY
 
       Node<3>::Pointer MasterNode = mrModelPart.pGetNode(idMaster);
@@ -1096,7 +1067,7 @@ private:
       VariablesList& rVariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
 
       unsigned int buffer_size = MasterNode->GetBufferSize();
-    
+
     for(VariablesList::const_iterator i_variable =  rVariablesList.begin();  i_variable != rVariablesList.end() ; i_variable++)
       {
 	//std::cout<<" name "<<i_variable->Name()<<std::endl;
@@ -1110,12 +1081,12 @@ private:
 	      {
 		//getting the data of the solution step
 		double& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-		  
+
 		double node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
 		double node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-		  
+
 		node_data = (0.5*node0_data + 0.5*node1_data);
-		  
+
 	      }
 	  }
 	else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
@@ -1126,11 +1097,11 @@ private:
 	      {
 		//getting the data of the solution step
 		array_1d<double, 3>& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-		  
+
 		const array_1d<double, 3>& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
 		const array_1d<double, 3>& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-		noalias(node_data) = (0.5*node0_data + 0.5*node1_data);		  
-		// node_data = (0.5*node0_data + 0.5*node1_data);		  
+		noalias(node_data) = (0.5*node0_data + 0.5*node1_data);
+		// node_data = (0.5*node0_data + 0.5*node1_data);
 	      }
 
 	  }
@@ -1152,15 +1123,15 @@ private:
 	      {
 		//getting the data of the solution step
 		Matrix& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-		  
+
 		Matrix& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
 		Matrix& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-		  
+
 		if( node_data.size1() > 0 && node_data.size2() ){
 		  if( node_data.size1() == node0_data.size1() && node_data.size2() == node0_data.size2() &&
 		      node_data.size1() == node1_data.size1() && node_data.size2() == node1_data.size2() ) {
-		    noalias(node_data) = (0.5*node0_data + 0.5*node1_data);	       
-		    // node_data = (0.5*node0_data + 0.5*node1_data);	       
+		    noalias(node_data) = (0.5*node0_data + 0.5*node1_data);
+		    // node_data = (0.5*node0_data + 0.5*node1_data);
 		  }
 		}
 	      }
@@ -1174,15 +1145,15 @@ private:
 	      {
 		//getting the data of the solution step
 		Vector& node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-		  
+
 		Vector& node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
 		Vector& node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-		  
+
 		if( node_data.size() > 0 ){
 		  if( node_data.size() == node0_data.size() &&
 		      node_data.size() == node1_data.size()) {
-		    noalias(node_data) = (0.5*node0_data + 0.5*node1_data);	       
-		    // node_data = (0.5*node0_data + 0.5*node1_data);	       
+		    noalias(node_data) = (0.5*node0_data + 0.5*node1_data);
+		    // node_data = (0.5*node0_data + 0.5*node1_data);
 		  }
 		}
 	      }
@@ -1243,6 +1214,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_REMOVE_MESH_NODES_FOR_FLUIDS_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_REMOVE_MESH_NODES_FOR_FLUIDS_PROCESS_H_INCLUDED  defined
 
 

@@ -10,14 +10,15 @@ def Factory(settings, Model):
 
 
 class SaveRestartProcess(KratosMultiphysics.Process):
-
+    """This process compares saves restart files
+    It works both in OpenMP and MPI
+    see the "default_settings" for available options
+    """
     def __init__(self, model, params):
-        """This process compares saves restart files
-        It works both in OpenMP and MPI
-        see the "default_settings" for available options
-        """
+        KratosMultiphysics.Process.__init__(self)
         ## Settings string in json format
         default_settings = KratosMultiphysics.Parameters("""{
+            "help"                         : "This process is used in order to save/load the problem databse with the serializer the current problem",
             "model_part_name"              : "",
             "echo_level"                   : 0,
             "serializer_trace"             : "no_trace",
@@ -28,6 +29,7 @@ class SaveRestartProcess(KratosMultiphysics.Process):
 
         ## Overwrite the default settings with user-provided parameters
         params.ValidateAndAssignDefaults(default_settings)
+        params.RemoveValue("help")
         self.params = params
         self.model = model
 

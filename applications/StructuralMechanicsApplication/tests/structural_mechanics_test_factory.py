@@ -179,6 +179,12 @@ class Simple3D2NTrussLinearCompressionPlasticTest(StructuralMechanicsTestFactory
 class Simple3D2NTrussLinearTensionPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/linear_3D2NTruss_plastic_tension_test"
 
+class Simple3D2NTrussNonLinearSnapthroughPlasticTest(StructuralMechanicsTestFactory):
+    file_name = "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test"
+
+class Simple3D2NTrussNonLinearTensionPlasticTest(StructuralMechanicsTestFactory):
+    file_name = "truss_test/nonlinear_3D2NTruss_plastic_tension_test"
+
 class Simple3D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_3D2NBeamCr_test"
 
@@ -220,6 +226,9 @@ class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests(StructuralMechanic
 
 class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate_lumped"
+
+class RigidFaceTestWithImposeRigidMovementProcess(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/rigid_test"
 
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):

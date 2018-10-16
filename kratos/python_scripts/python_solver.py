@@ -121,7 +121,7 @@ class PythonSolver(object):
         warning_msg  = 'Using "Solve" is deprecated and will be removed in the future!\n'
         warning_msg += 'Use the separate calls to "Initialize", "InitializeSolutionStep", "Predict", '
         warning_msg += '"SolveSolutionStep" and "FinalizeSolutionStep"'
-        KratosMultiphysics.Logger.PrintWarning("::[PythonSolver]::", warning_msg)
+        self.print_warning_on_rank_zero("::[PythonSolver]::", warning_msg)
         self.Initialize()
         self.Predict()
         self.InitializeSolutionStep()
@@ -134,28 +134,35 @@ class PythonSolver(object):
     def _ImportModelPart(self, model_part, model_part_import_settings):
         """This function imports the ModelPart
         """
-        KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part.")
-        problem_path = os.getcwd()
-        input_filename = model_part_import_settings["input_filename"].GetString()
+        self.print_on_rank_zero("::[PythonSolver]::", "Reading model part.")
         input_type = model_part_import_settings["input_type"].GetString()
 
         if (input_type == "mdpa"):
+            problem_path = os.getcwd()
+            input_filename = model_part_import_settings["input_filename"].GetString()
+            import_flags = KratosMultiphysics.ModelPartIO.READ
+            if model_part_import_settings.Has("ignore_variables_not_in_solution_step_data"):
+                if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
+                    import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|KratosMultiphysics.ModelPartIO.READ
+
             # Import model part from mdpa file.
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
-            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(model_part)
+            self.print_on_rank_zero("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            KratosMultiphysics.ModelPartIO(input_filename, import_flags).ReadModelPart(model_part)
             if (model_part_import_settings.Has("reorder") and model_part_import_settings["reorder"].GetBool()):
                 tmp = KratosMultiphysics.Parameters("{}")
                 KratosMultiphysics.ReorderAndOptimizeModelPartProcess(model_part, tmp).Execute()
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished reading model part from mdpa file.")
+            self.print_on_rank_zero("::[PythonSolver]::", "Finished reading model part from mdpa file.")
         elif (input_type == "rest"):
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Loading model part from restart file.")
+            self.print_on_rank_zero("::[PythonSolver]::", "Loading model part from restart file.")
             from restart_utility import RestartUtility
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
-            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]::", "Finished loading model part from restart file.")
+            self.print_on_rank_zero("::[PythonSolver]::", "Finished loading model part from restart file.")
+        elif(input_type == "use_input_model_part"):
+            pass
         else:
             raise Exception("Other model part input options are not yet implemented.")
-        KratosMultiphysics.Logger.PrintInfo("ModelPart", model_part)
-        KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]:: ", "Finished reading model part.")
+        self.print_on_rank_zero("ModelPart", model_part)
+        self.print_on_rank_zero("::[PythonSolver]:: ", "Finished reading model part.")
 
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
@@ -166,3 +173,72 @@ class PythonSolver(object):
             restart_settings.AddValue("echo_level", model_part_import_settings["echo_level"])
 
         return restart_settings
+
+    #### Auxiliar functions ####
+
+    def print_on_rank_zero(self, *args):
+        # This function will be overridden in the trilinos-solvers
+        KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
+
+    def print_warning_on_rank_zero(self, *args):
+        # This function will be overridden in the trilinos-solvers
+        KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
+
+    def validate_and_transfer_matching_settings(self, origin_settings, destination_settings):
+        """Transfer matching settings from origin to destination.
+
+        If a name in origin matches a name in destination, then the setting is
+        validated against the destination.
+
+        The typical use is for validating and extracting settings in derived classes:
+
+        class A:
+            def __init__(self, model_part, a_settings):
+                default_a_settings = Parameters('''{
+                    ...
+                }''')
+                a_settings.ValidateAndAssignDefaults(default_a_settings)
+        class B(A):
+            def __init__(self, model_part, custom_settings):
+                b_settings = Parameters('''{
+                    ...
+                }''') # Here the settings contain default values.
+                self.validate_and_transfer_matching_settings(custom_settings, b_settings)
+                super().__init__(model_part, custom_settings)
+        """
+        for name, dest_value in destination_settings.items():
+            if origin_settings.Has(name): # Validate and transfer value.
+                orig_value = origin_settings[name]
+                if dest_value.IsDouble() and orig_value.IsDouble():
+                    destination_settings[name].SetDouble(origin_settings[name].GetDouble())
+                elif dest_value.IsInt() and orig_value.IsInt():
+                    destination_settings[name].SetInt(origin_settings[name].GetInt())
+                elif dest_value.IsBool() and orig_value.IsBool():
+                    destination_settings[name].SetBool(origin_settings[name].GetBool())
+                elif dest_value.IsString() and orig_value.IsString():
+                    destination_settings[name].SetString(origin_settings[name].GetString())
+                elif dest_value.IsArray() and orig_value.IsArray():
+                    if dest_value.size() != orig_value.size():
+                        raise Exception('len("' + name + '") != ' + str(dest_value.size()))
+                    for i in range(dest_value.size()):
+                        if dest_value[i].IsDouble() and orig_value[i].IsDouble():
+                            dest_value[i].SetDouble(orig_value[i].GetDouble())
+                        elif dest_value[i].IsInt() and orig_value[i].IsInt():
+                            dest_value[i].SetInt(orig_value[i].GetInt())
+                        elif dest_value[i].IsBool() and orig_value[i].IsBool():
+                            dest_value[i].SetBool(orig_value[i].GetBool())
+                        elif dest_value[i].IsString() and orig_value[i].IsString():
+                            dest_value[i].SetString(orig_value[i].GetString())
+                        elif dest_value[i].IsSubParameter() and orig_value[i].IsSubParameter():
+                            self.validate_and_transfer_matching_settings(orig_value[i], dest_value[i])
+                            if len(orig_value[i].items()) != 0:
+                                raise Exception('Json settings not found in default settings: ' + orig_value[i].PrettyPrintJsonString())
+                        else:
+                            raise Exception('Unsupported parameter type.')
+                elif dest_value.IsSubParameter() and orig_value.IsSubParameter():
+                    self.validate_and_transfer_matching_settings(orig_value, dest_value)
+                    if len(orig_value.items()) != 0:
+                        raise Exception('Json settings not found in default settings: ' + orig_value.PrettyPrintJsonString())
+                else:
+                    raise Exception('Unsupported parameter type.')
+                origin_settings.RemoveValue(name)

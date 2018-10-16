@@ -32,14 +32,16 @@ ShellToSolidShellProcess<TNumNodes>::ShellToSolidShellProcess(
 
     Parameters default_parameters = Parameters(R"(
     {
-        "element_name"              : "SolidShellElementSprism3D6N",
-        "new_constitutive_law_name" : "",
-        "model_part_name"           : "",
-        "number_of_layers"          : 1,
-        "export_to_mdpa"            : false,
-        "output_name"               : "output",
-        "computing_model_part_name" : "computing_domain",
-        "initialize_elements"       : false
+        "element_name"                         : "SolidShellElementSprism3D6N",
+        "new_constitutive_law_name"            : "",
+        "model_part_name"                      : "",
+        "number_of_layers"                     : 1,
+        "export_to_mdpa"                       : false,
+        "output_name"                          : "output",
+        "computing_model_part_name"            : "computing_domain",
+        "create_submodelparts_external_layers" : false,
+        "append_submodelparts_external_layers" : false,
+        "initialize_elements"                  : false
     })" );
 
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -64,6 +66,9 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
 
     // Auxiliar model part where to store new nodes and elements
     ModelPart auxiliar_model_part;
+    const bool create_submodelparts_external_layers = mThisParameters["create_submodelparts_external_layers"].GetBool();
+    const bool append_submodelparts_external_layers = mThisParameters["append_submodelparts_external_layers"].GetBool();
+    ModelPart auxiliar_model_part_upper, auxiliar_model_part_lower;
 
     // Auxiliar values
     NodesArrayType& nodes_array = geometry_model_part.Nodes();
@@ -71,6 +76,7 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     const SizeType geometry_number_of_nodes = nodes_array.size();
     const SizeType geometry_number_of_elements = elements_array.size();
     const SizeType total_number_of_nodes = mrThisModelPart.Nodes().size();
+    const SizeType total_number_of_conditions = mrThisModelPart.Conditions().size();
     const SizeType total_number_of_elements = mrThisModelPart.Elements().size();
 
     // First we reoder the ids
@@ -141,6 +147,9 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
         // We copy the step data
         CopyVariablesList(p_node0, p_node_begin);
 
+        // We add the node to the external layers
+        if (create_submodelparts_external_layers) auxiliar_model_part_lower.AddNode(p_node0);
+
         for (IndexType j = 0; j < number_of_layers; ++j) {
             coordinates += normal * delta_thickness;
             node_id = (j + 1) * geometry_number_of_nodes + total_number_of_nodes + i + 1;
@@ -152,6 +161,9 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
 
             // We copy the step data
             CopyVariablesList(p_node1, p_node_begin);
+
+            // We add the node to the external layers
+            if (create_submodelparts_external_layers && j == (number_of_layers - 1)) auxiliar_model_part_upper.AddNode(p_node1);
         }
 
         // We set the flag TO_ERASE for later remove the nodes
@@ -187,6 +199,30 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
         it_elem->Set(TO_ERASE, true);
     }
 
+    // We create the conditions if necessary
+    if (create_submodelparts_external_layers) {
+        const std::string condition_name = "SurfaceCondition3D" + std::to_string(TNumNodes) + "N";
+        IndexType condition_counter = total_number_of_conditions;
+        for(IndexType i = 0; i < geometry_number_of_elements; ++i) {
+            auto it_elem = elements_array.begin() + i;
+
+            auto p_prop = it_elem->pGetProperties();
+            set_id_properties.insert(p_prop->Id());
+
+            std::vector<IndexType> upper_condition_node_ids (TNumNodes);
+            std::vector<IndexType> lower_condition_node_ids (TNumNodes);
+            for (IndexType k = 0; k < TNumNodes; ++k) {
+                const IndexType index_node = it_elem->GetGeometry()[k].Id();
+                lower_condition_node_ids[TNumNodes - (k + 1)] = total_number_of_nodes + index_node; // We invert the order for the lower face to have the normal in the right direction
+                upper_condition_node_ids[k] = total_number_of_nodes + index_node + number_of_layers * geometry_number_of_nodes;
+            }
+            condition_counter++;
+            auxiliar_model_part_lower.CreateNewCondition(condition_name, condition_counter, lower_condition_node_ids, p_prop);
+            condition_counter++;
+            auxiliar_model_part_upper.CreateNewCondition(condition_name, condition_counter, upper_condition_node_ids, p_prop);
+        }
+    }
+
     // We reassign a new constitutive law
     const std::string& new_constitutive_law_name = mThisParameters["new_constitutive_law_name"].GetString();
     if (new_constitutive_law_name != "") {
@@ -204,13 +240,27 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     // We copy the new model part to the original one
     geometry_model_part.AddNodes( auxiliar_model_part.NodesBegin(), auxiliar_model_part.NodesEnd() );
     geometry_model_part.AddElements( auxiliar_model_part.ElementsBegin(), auxiliar_model_part.ElementsEnd() );
-    
+
+    // We copy the external layers
+    if (create_submodelparts_external_layers) {
+        const std::string name_upper = "Upper_"+model_part_name;
+        ModelPart* p_upper_model_part = append_submodelparts_external_layers ? &geometry_model_part.CreateSubModelPart(name_upper) : &mrThisModelPart.CreateSubModelPart(name_upper);
+        p_upper_model_part->AddNodes( auxiliar_model_part_upper.NodesBegin(), auxiliar_model_part_upper.NodesEnd() );
+        p_upper_model_part->AddConditions( auxiliar_model_part_upper.ConditionsBegin(), auxiliar_model_part_upper.ConditionsEnd() );
+        const std::string name_lower = "Lower_"+model_part_name;
+        ModelPart* p_lower_model_part = append_submodelparts_external_layers ? &geometry_model_part.CreateSubModelPart(name_lower) : &mrThisModelPart.CreateSubModelPart(name_lower);
+        p_lower_model_part->AddNodes( auxiliar_model_part_lower.NodesBegin(), auxiliar_model_part_lower.NodesEnd() );
+        p_lower_model_part->AddConditions( auxiliar_model_part_lower.ConditionsBegin(), auxiliar_model_part_lower.ConditionsEnd() );
+    }
+
     // We add to the computing model part if available
     const std::string& computing_model_part_name = mThisParameters["computing_model_part_name"].GetString();
     if (computing_model_part_name != "") {
         ModelPart& computing_model_part = mrThisModelPart.GetSubModelPart(computing_model_part_name);
         computing_model_part.AddNodes( auxiliar_model_part.NodesBegin(), auxiliar_model_part.NodesEnd() );
         computing_model_part.AddElements( auxiliar_model_part.ElementsBegin(), auxiliar_model_part.ElementsEnd() );
+        computing_model_part.AddConditions( auxiliar_model_part_upper.ConditionsBegin(), auxiliar_model_part_upper.ConditionsEnd() );
+        computing_model_part.AddConditions( auxiliar_model_part_lower.ConditionsBegin(), auxiliar_model_part_lower.ConditionsEnd() );
     }
 
     // Reorder again all the IDs
@@ -278,6 +328,10 @@ void ShellToSolidShellProcess<TNumNodes>::ReorderAllIds(const bool ReorderAccord
             }
         }
     }
+
+    ConditionsArrayType& condition_array = mrThisModelPart.Conditions();
+    for(SizeType i = 0; i < condition_array.size(); ++i)
+        (condition_array.begin() + i)->SetId(i + 1);
 
     ElementsArrayType& element_array = mrThisModelPart.Elements();
     for(SizeType i = 0; i < element_array.size(); ++i)

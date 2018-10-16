@@ -230,7 +230,7 @@
       <Item id="VelocityDeviation" kkword="MAX_RAND_DEVIATION_ANGLE" />
       <Item id="StandardDeviation" kkword="STANDARD_DEVIATION" />
       <Item id="ParticleSphericity" kkword="PARTICLE_SPHERICITY" />
-      <Item id="ParticleFrictionAngle" kkword="PARTICLE_FRICTION" />
+      <Item id="ParticleFrictionAngle" kkword="FRICTION" />
       <Item id="CoefficientOfRestitution" kkword="COEFFICIENT_OF_RESTITUTION" />
       <Item id="ParticleCohesion" kkword="PARTICLE_COHESION" />
       <Item id="RollingFriction" kkword="ROLLING_FRICTION" />

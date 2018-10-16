@@ -15,6 +15,9 @@
 // System includes
 
 // External includes
+#ifdef KRATOS_USE_AMATRIX
+#include "boost/numeric/ublas/matrix.hpp" // for the sparse space dense vector
+#endif // KRATOS_USE_AMATRIX
 
 // Project includes
 #include "includes/define_python.h"
@@ -47,7 +50,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
@@ -61,13 +64,13 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     class_<StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >, StokesInitializationProcess< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, Process>
     (m,"StokesInitializationProcess")
-    .def(init<ModelPart::Pointer, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
+    .def(init<ModelPart&, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
     .def("SetConditions",&StokesInitializationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>::SetConditions)
     ;
 
     class_<BoussinesqForceProcess, BoussinesqForceProcess::Pointer, Process>
     (m,"BoussinesqForceProcess")
-    .def(init<ModelPart::Pointer, Parameters& >())
+    .def(init<ModelPart&, Parameters& >())
     ;
 
     class_<WindkesselModel, WindkesselModel::Pointer, Process>
@@ -93,13 +96,13 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     class_<EmbeddedSkinVisualizationProcess, EmbeddedSkinVisualizationProcess::Pointer, Process>
     (m,"EmbeddedSkinVisualizationProcess")
-    .def(init < 
-        ModelPart&, 
-        ModelPart&, 
-        const std::vector<Variable <double> >, 
-        const std::vector<Variable< array_1d<double, 3> > >, 
-        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >, 
-        std::string, 
+    .def(init <
+        ModelPart&,
+        ModelPart&,
+        const std::vector<Variable <double> >,
+        const std::vector<Variable< array_1d<double, 3> > >,
+        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >,
+        std::string,
         const bool >())
     .def(init< ModelPart&, ModelPart&, Parameters& >())
     ;

@@ -27,7 +27,7 @@ namespace Kratos {
 
             Model model;
 
-            model.AddModelPart(model_part);
+            model.AddModelPart(model_part.get());
 
             KRATOS_CHECK_EQUAL(model.GetModelPart("Main").Name(), model_part->Name());
 
@@ -53,7 +53,7 @@ namespace Kratos {
 
             Model model;
 
-            model.AddModelPart(model_part);
+            model.AddModelPart(model_part.get());
 
             KRATOS_CHECK(model.HasModelPart("Main"));
             KRATOS_CHECK(model.HasModelPart("Main.Inlet1"));

@@ -149,18 +149,17 @@ public:
      * This function resizes and sets to zero an interface vector (length equal to the
      * residual size).
      * @param rInterfaceModelPart: interface modelpart in where the residual is computed
-     * @param pInterfaceVector: pointer to the vector that is to be resized
+     * @return pointer to the vector that has been created
      */
-    virtual void SetUpInterfaceVector(ModelPart& rInterfaceModelPart,
-                                      VectorPointerType& pInterfaceVector)
+    virtual VectorPointerType SetUpInterfaceVector(ModelPart& rInterfaceModelPart)
     {
-        unsigned int ResidualSize = this->GetInterfaceResidualSize(rInterfaceModelPart);
-        if ( TSpace::Size(*pInterfaceVector) != ResidualSize )
-        {
-            TSpace::Resize(pInterfaceVector,ResidualSize);
+        VectorPointerType p_int_vector = TSpace::CreateEmptyVectorPointer();
+        const unsigned int residual_size = this->GetInterfaceResidualSize(rInterfaceModelPart);
+        if (TSpace::Size(*p_int_vector) != residual_size){
+            TSpace::Resize(p_int_vector, residual_size);
         }
-
-        TSpace::SetToZero(*pInterfaceVector);
+        TSpace::SetToZero(*p_int_vector);
+        return p_int_vector;
     }
 
     /**
@@ -172,12 +171,13 @@ public:
      * @param rInterfaceModelPart: interface modelpart in where the residual is computed
      * @param interface_residual: reference to the residual vector
      */
-    virtual void ComputeInterfaceVectorResidual(ModelPart& rInterfaceModelPart,
-                                                const Variable<array_1d<double, 3 > >& rOriginalVariable,
-                                                const Variable<array_1d<double, 3 > >& rModifiedVariable,
-                                                VectorType& interface_residual)
-    {
-        TSpace::SetToZero(interface_residual);
+    virtual void ComputeInterfaceResidualVector(
+        ModelPart &rInterfaceModelPart,
+        const Variable<array_1d<double, 3 > > &rOriginalVariable,
+        const Variable<array_1d<double, 3 > > &rModifiedVariable,
+        VectorType &rInterfaceResidual){
+
+        TSpace::SetToZero(rInterfaceResidual);
 
         // Compute node-by-node residual
         this->ComputeNodeByNodeResidual(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, FSI_INTERFACE_RESIDUAL);
@@ -189,21 +189,20 @@ public:
         auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
         ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
         #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
-        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
+        for(int k = 0; k < static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
         {
             const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
             const unsigned int base_i = k*TDim;
 
-            const array_1d<double,3>& fsi_res = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
+            const array_1d<double,3> &fsi_res = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
             for (unsigned int jj=0; jj<TDim; ++jj)
             {
-                this->SetLocalValue(interface_residual, base_i+jj, fsi_res[jj]);
+                this->SetLocalValue(rInterfaceResidual, base_i + jj, fsi_res[jj]);
             }
         }
 
         // Store the L2 norm of the error in the fluid process info
-        rInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_RESIDUAL_NORM) = TSpace::TwoNorm(interface_residual);
-
+        rInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_RESIDUAL_NORM) = TSpace::TwoNorm(rInterfaceResidual);
     }
 
     /**
@@ -217,8 +216,8 @@ public:
      */
     void ComputeFluidInterfaceMeshVelocityResidualNorm(ModelPart& rFluidInterfaceModelPart)
     {
-        VectorPointerType pFluidInterfaceMeshResidual = TSpace::CreateEmptyVectorPointer();
-        this->SetUpInterfaceVector(rFluidInterfaceModelPart, pFluidInterfaceMeshResidual);
+        // VectorPointerType p_fluid_interface_mesh_residual = TSpace::CreateEmptyVectorPointer();
+        VectorPointerType p_fluid_interface_mesh_residual = this->SetUpInterfaceVector(rFluidInterfaceModelPart);
 
         // Compute node-by-node residual
         this->ComputeNodeByNodeResidual(rFluidInterfaceModelPart, VELOCITY, MESH_VELOCITY, FSI_INTERFACE_MESH_RESIDUAL);
@@ -238,12 +237,12 @@ public:
             const array_1d<double,3>& fsi_mesh_res = it_node->FastGetSolutionStepValue(FSI_INTERFACE_MESH_RESIDUAL);
             for (unsigned int jj=0; jj<TDim; ++jj)
             {
-                this->SetLocalValue(*pFluidInterfaceMeshResidual, base_i+jj, fsi_mesh_res[jj]);
+                this->SetLocalValue(*p_fluid_interface_mesh_residual, base_i+jj, fsi_mesh_res[jj]);
             }
         }
 
         // Store the L2 norm of the error in the fluid process info
-        rFluidInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_MESH_RESIDUAL_NORM) = TSpace::TwoNorm(*pFluidInterfaceMeshResidual);
+        rFluidInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_MESH_RESIDUAL_NORM) = TSpace::TwoNorm(*p_fluid_interface_mesh_residual);
 
     }
 
@@ -253,22 +252,20 @@ public:
      * @param rSolutionVariable: variable in where the corrected solution is to be stored
      * @param rCorrectedGuess: vector containing the interface corrected values
      */
-    virtual void UpdateInterfaceValues(ModelPart& rInterfaceModelPart,
-                                       const Variable<array_1d<double, 3 > >& rSolutionVariable,
-                                       VectorType& rCorrectedGuess)
-    {
+    virtual void UpdateInterfaceValues(
+        ModelPart& rInterfaceModelPart,
+        const Variable<array_1d<double, 3 > >& rSolutionVariable,
+        const VectorType& rCorrectedGuess){
+
         auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
         ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
         #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
-        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
-        {
-            const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
+        for(int k = 0; k < static_cast<int>(rLocalMesh.NumberOfNodes()); ++k){
+            const ModelPart::NodeIterator it_node = local_mesh_nodes_begin + k;
             const unsigned int base_i = k*TDim;
-
             array_1d<double,3>& updated_value = it_node->FastGetSolutionStepValue(rSolutionVariable);
-            for (unsigned int jj=0; jj<TDim; ++jj)
-            {
-                updated_value[jj] = this->GetLocalValue( rCorrectedGuess, base_i+jj );
+            for (unsigned int jj = 0; jj < TDim; ++jj){
+                updated_value[jj] = this->GetLocalValue(rCorrectedGuess, base_i+jj);
             }
         }
 
@@ -583,7 +580,7 @@ protected:
         TSpace::SetValue(rVector,LocalRow,Value);
     }
 
-    virtual double GetLocalValue(VectorType& rVector, int LocalRow) const
+    virtual double GetLocalValue(const VectorType& rVector, int LocalRow) const
     {
         return TSpace::GetValue(rVector,LocalRow);
     }

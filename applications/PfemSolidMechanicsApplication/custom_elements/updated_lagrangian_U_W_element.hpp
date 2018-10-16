@@ -37,7 +37,7 @@ namespace Kratos
 /// Updated Lagrangian Large Displacement Lagrangian U-W Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
 
 
-class UpdatedLagrangianUWElement
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) UpdatedLagrangianUWElement
     : public UpdatedLagrangianElement
 {
 public:
@@ -52,6 +52,10 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef UpdatedLagrangianElement::ElementDataType ElementDataType;
 
     /// Counted pointer of LargeDisplacementUPElement
     KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUWElement );
@@ -221,21 +225,21 @@ protected:
      */
 
     virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
+                                    ElementDataType& rVariables,
                                     double& rIntegrationWeight) override;
 
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
      */
     virtual void CalculateAndAddKuum(MatrixType& rK,
-                                     ElementVariables & rVariables,
+                                     ElementDataType & rVariables,
                                      double& rIntegrationWeight
                                     ) override;
     /**
      * Calculation of the water Material Stiffness Matrix. 
      */
     virtual void CalculateAndAddKww(MatrixType& rK,
-                                     ElementVariables & rVariables,
+                                     ElementDataType & rVariables,
                                      double& rIntegrationWeight
                                     );
 
@@ -244,7 +248,7 @@ protected:
      */
 
     virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                    ElementVariables& rVariables,
+                                    ElementDataType& rVariables,
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight) override;
 
@@ -252,7 +256,7 @@ protected:
      * Calculation of the Internal Forces due to sigma. Fi = B * sigma
      */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           ) override;
 
@@ -260,7 +264,7 @@ protected:
      * Volumetric loads
      */
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           Vector & rVolumeForces,
           double& rIntegrationWeight
           ) override;
@@ -268,7 +272,7 @@ protected:
      * Volumetric loads
      */
     virtual void CalculateAndAddExternalWaterForces(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           Vector & rVolumeForces,
           double& rIntegrationWeight
           );
@@ -276,7 +280,7 @@ protected:
      * Calculation of the water like  Forces. RHS
      */
     void CalculateAndAddWaterPressureForces(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
+          ElementDataType & rVariables,
           double& rIntegrationWeight
           );
 
@@ -285,7 +289,7 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    virtual void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
@@ -309,7 +313,7 @@ protected:
     void CalculateB2Matrix( Matrix & rB2, const Matrix& rDN_DX);
 
 
-    double & CalculateGaussPointWaterPressure( ElementVariables & rVariables, double & rWaterPressure);
+    double & CalculateGaussPointWaterPressure( ElementDataType & rVariables, double & rWaterPressure);
 
     ///@}
     ///@name Protected  Access

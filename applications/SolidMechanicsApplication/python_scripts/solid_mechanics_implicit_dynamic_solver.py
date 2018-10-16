@@ -9,8 +9,8 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the mechanical solver base class
 import solid_mechanics_monolithic_solver as BaseSolver
 
-def CreateSolver(custom_settings):
-    return ImplicitMonolithicSolver(custom_settings)
+def CreateSolver(custom_settings, Model):
+    return ImplicitMonolithicSolver(Model, custom_settings)
 
 class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
     """The solid mechanics implicit dynamic solver.
@@ -22,7 +22,7 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
 
     See solid_mechanics_monolithic_solver.py for more information.
     """
-    def __init__(self, custom_settings):
+    def __init__(self, Model, custom_settings):
 
         # Set defaults and validate custom settings.
         ##TODO : solving_strategy_settings must be time_integration_settings (GiD interface changes needed)
@@ -44,13 +44,11 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
         if( custom_settings.Has("solving_strategy_settings") ):
             from json_settings_utility import JsonSettingsUtility
             JsonSettingsUtility.TransferMatchingSettingsToDestination(custom_settings["solving_strategy_settings"], implicit_solver_settings["solving_strategy_settings"])
-            
+
         self.implicit_solver_settings = implicit_solver_settings["solving_strategy_settings"]
 
         # Construct the base solver.
-        super(ImplicitMonolithicSolver, self).__init__(custom_settings)
-
-        print("::[Implicit_Scheme]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
+        super(ImplicitMonolithicSolver, self).__init__(Model, custom_settings)
 
 
     def GetVariables(self):
@@ -61,7 +59,7 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
 
     #### Solver internal methods ####
 
-    def _set_scheme_parameters(self):
+    def _set_scheme_process_info_parameters(self):
 
         integration_method = self.settings["time_integration_settings"]["integration_method"].GetString()
 
@@ -95,29 +93,16 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
 
 
     def _create_mechanical_solver(self):
-        if(self.settings["solving_strategy_settings"]["line_search"].GetBool() == True):
+        if self.settings["solving_strategy_settings"]["line_search"].GetBool():
             mechanical_solver = self._create_line_search_strategy()
         else:
             mechanical_solver = self._create_newton_raphson_strategy()
+        mechanical_solver.Set(KratosSolid.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
         return mechanical_solver
 
 
     def _create_line_search_strategy(self):
-        mechanical_scheme = self._get_solution_scheme()
-        #linear_solver = self._get_linear_solver()
-        convergence_criterion = self._get_convergence_criterion()
-        builder_and_solver = self._get_builder_and_solver()
-
-        options = KratosMultiphysics.Flags()
-        options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.settings["solving_strategy_settings"]["compute_reactions"].GetBool())
-        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
-        #options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.settings["solving_strategy_settings"]["move_mesh_flag"].GetBool())
-
-        return KratosSolid.LineSearchStrategy(self.model_part, mechanical_scheme, builder_and_solver, convergence_criterion,
-                                              options, self.settings["solving_strategy_settings"]["max_iteration"].GetInt())
-
-    def _create_newton_raphson_strategy(self):
-        mechanical_scheme = self._get_solution_scheme()
+        solution_scheme = self._get_solution_scheme()
         #linear_solver = self._get_linear_solver()
         convergence_criterion = self._get_convergence_criterion()
         builder_and_solver = self._get_builder_and_solver()
@@ -126,6 +111,30 @@ class ImplicitMonolithicSolver(BaseSolver.MonolithicSolver):
         options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.settings["solving_strategy_settings"]["compute_reactions"].GetBool())
         options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
         options.Set(KratosSolid.SolverLocalFlags.IMPLEX, self.settings["solving_strategy_settings"]["implex"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.UPDATE_VARIABLES, self.settings["solving_strategy_settings"]["iterative_update"].GetBool())
+        #options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.settings["solving_strategy_settings"]["move_mesh_flag"].GetBool())
 
-        return KratosSolid.NewtonRaphsonStrategy(self.model_part, mechanical_scheme, builder_and_solver, convergence_criterion,
+        return KratosSolid.LineSearchStrategy(self.model_part, solution_scheme, builder_and_solver, convergence_criterion,
+                                              options, self.settings["solving_strategy_settings"]["max_iteration"].GetInt(),
+                                              self.settings["solving_strategy_settings"]["line_search_type"].GetInt())
+
+    def _create_newton_raphson_strategy(self):
+        solution_scheme = self._get_solution_scheme()
+        #linear_solver = self._get_linear_solver()
+        convergence_criterion = self._get_convergence_criterion()
+        builder_and_solver = self._get_builder_and_solver()
+
+        options = KratosMultiphysics.Flags()
+        options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.settings["solving_strategy_settings"]["compute_reactions"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.IMPLEX, self.settings["solving_strategy_settings"]["implex"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.UPDATE_VARIABLES, self.settings["solving_strategy_settings"]["iterative_update"].GetBool())
+        #options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.settings["solving_strategy_settings"]["move_mesh_flag"].GetBool())
+
+        return KratosSolid.NewtonRaphsonStrategy(self.model_part, solution_scheme, builder_and_solver, convergence_criterion,
                                                  options, self.settings["solving_strategy_settings"]["max_iteration"].GetInt())
+
+    @classmethod
+    def _class_prefix(self):
+        header = "::[--Implicit_Solver--]::"
+        return header

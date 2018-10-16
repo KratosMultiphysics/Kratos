@@ -65,6 +65,15 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
+    /// The base element type
+    typedef BaseSolidElement BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
     /// Counted pointer of SmallDisplacement
     KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacement);
 
@@ -75,6 +84,11 @@ public:
     /// Default constructor.
     SmallDisplacement(IndexType NewId, GeometryType::Pointer pGeometry);
     SmallDisplacement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+
+    // Copy constructor
+    SmallDisplacement(SmallDisplacement const& rOther)
+        :BaseType(rOther)
+    {};
 
     /// Destructor.
     ~SmallDisplacement() override;
@@ -111,7 +125,7 @@ public:
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const override;
-    
+
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -157,7 +171,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     SmallDisplacement() : BaseSolidElement()
     {
     }
@@ -166,7 +180,7 @@ protected:
      * @brief This method returns if the element provides the strain
      */
     bool UseElementProvidedStrain() override;
-    
+
     /**
      * @brief This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix The LHS
@@ -176,38 +190,38 @@ protected:
      * @param CalculateResidualVectorFlag The flag to set if compute the RHS
      */
     void CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-    
+
     /**
      * @brief This functions updates the kinematics variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated 
+     * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param PointNumber The integration point considered
-     */ 
+     */
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
-        
+
      /**
      * @brief This functions updates the constitutive variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated 
+     * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param rThisConstitutiveVariables The constitutive variables
      * @param rValues The CL parameters
      * @param PointNumber The integration point considered
      * @param IntegrationPoints The list of integration points
      * @param ThisStressMeasure The stress measure considered
-     */ 
+     */
     void CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables, 
-        ConstitutiveVariables& rThisConstitutiveVariables, 
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
         ) override;
@@ -223,7 +237,7 @@ protected:
         Matrix& rB,
         const Matrix& rDN_DX,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber
+        const IndexType PointNumber
         );
 
     /**
@@ -303,4 +317,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SMALL_DISPLACEMENT_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_DISPLACEMENT_H_INCLUDED  defined

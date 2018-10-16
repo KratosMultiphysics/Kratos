@@ -50,6 +50,11 @@ namespace Kratos
         }
     }
 
+	void LoggerOutput::Flush()
+	{
+		mrStream << std::flush;
+	}
+
 	/// Print information about this object.
 	void LoggerOutput::PrintInfo(std::ostream& rOStream) const
 	{

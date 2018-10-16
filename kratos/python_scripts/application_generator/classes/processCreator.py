@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division
+
 from classes.classCreator import ClassCreator
 
 # from utils.constants import ctab

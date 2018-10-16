@@ -45,14 +45,14 @@ namespace Kratos
 /** Detail class definition.
 
     This Box represents a 2D wall composed by plane
-    
-    A convexity parameter is given to determine which side of each nose is considered 
+
+    A convexity parameter is given to determine which side of each nose is considered
     the internal or external boundary
 
     This bounding box is essentially used for rigid wall contact purposes
 */
 
-class KRATOS_API(CONTACT_MECHANICS_APPLICATION) PlaneBoundingBox
+class PlaneBoundingBox
   : public SpatialBoundingBox
 {
 public:
@@ -70,13 +70,13 @@ protected:
 
     typedef struct
     {
-      
+
       PointType  Point;      // plane point
       PointType  Normal;     // plane normal
 
-     
+
     public:
-     
+
       void Initialize()
       {
 
@@ -126,7 +126,7 @@ public:
                  }],
                  "velocity": [0.0, 0.0, 0.0],
                  "plane_size": 1.0
-                
+
             }  )" );
 
 
@@ -137,7 +137,7 @@ public:
         {
 	  KRATOS_THROW_ERROR(std::runtime_error,"paramters_list for the Plane BBX must contain only one term",CustomParameters.PrettyPrintJsonString());
         }
-        
+
       mBox.Initialize();
       mPlane.Initialize();
 
@@ -168,10 +168,10 @@ public:
 	  mBox.UpperPoint[i] = mBox.Radius;
 	  mBox.LowerPoint[i] = (-1) * mBox.Radius;
 	}
-      
+
       mBox.UpperPoint += mPlane.Point;
       mBox.LowerPoint += mPlane.Point;
-      
+
       mBox.Convexity = BoxParameters["convexity"].GetInt();
 
       mBox.SetInitialValues();
@@ -181,7 +181,7 @@ public:
       KRATOS_CATCH("")
     }
 
-  
+
     //**************************************************************************
     //**************************************************************************
 
@@ -192,9 +192,9 @@ public:
 		     int Convexity)
     {
       KRATOS_TRY
-                  
+
       std::cout<<" [--PLANE WALL--] "<<std::endl;
-      
+
       mBox.Center  = Point;
       mPlane.Point = Point;
       mBox.Convexity = Convexity;
@@ -209,7 +209,7 @@ public:
       std::cout<<"  [Point:"<<mPlane.Point<<std::endl;
       std::cout<<"  [Normal:"<<mPlane.Normal<<std::endl;
       std::cout<<" [--------] "<<std::endl;
-      
+
       mBox.Velocity = Velocity;
 
       mBox.SetInitialValues();
@@ -222,7 +222,7 @@ public:
     //**************************************************************************
     //**************************************************************************
 
- 
+
     /// Assignment operator.
     PlaneBoundingBox& operator=(PlaneBoundingBox const& rOther)
     {
@@ -239,7 +239,7 @@ public:
     //**************************************************************************
 
     /// Copy constructor.
-    PlaneBoundingBox(PlaneBoundingBox const& rOther) 
+    PlaneBoundingBox(PlaneBoundingBox const& rOther)
       :SpatialBoundingBox(rOther)
       ,mPlane(rOther.mPlane)
     {
@@ -277,43 +277,43 @@ public:
       mPlane.Point = mBox.Center;
 
       KRATOS_CATCH("")
-      
+
     }
 
 
     //************************************************************************************
     //************************************************************************************
-   
+
 
     bool IsInside (const PointType& rPoint, double& rCurrentTime, double Radius = 0) override
     {
-      
+
       KRATOS_TRY
 
       bool is_inside = false;
 
-      PointType  Displacement = this->GetBoxDisplacement(rCurrentTime);      
+      PointType  Displacement = this->GetBoxDisplacement(rCurrentTime);
 
       PointType  PlanePoint   = mBox.InitialCenter + Displacement;
-      
+
       if( mBox.Convexity == 1 )
-	PlanePoint += mPlane.Normal * 0.1; //increase the bounding box 
+	PlanePoint += mPlane.Normal * 0.1; //increase the bounding box
 
       if( mBox.Convexity == -1 )
-       	PlanePoint -= mPlane.Normal * 0.1; //decrease the bounding box 
+       	PlanePoint -= mPlane.Normal * 0.1; //decrease the bounding box
 
       is_inside = ContactSearch(rPoint, PlanePoint);
 
 
       return is_inside;
-      
+
       KRATOS_CATCH("")
     }
 
 
     //************************************************************************************
     //************************************************************************************
-    
+
     bool IsInside(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
@@ -322,11 +322,11 @@ public:
 
       rValues.SetContactFace(0);
       rValues.SetRadius(0.0);
-      
+
       is_inside = ContactSearch(rValues, rCurrentProcessInfo);
 
       return is_inside;
-		      
+
       KRATOS_CATCH("")
     }
 
@@ -336,17 +336,17 @@ public:
             virtual void GetParametricDirections(BoundingBoxParameters & rValues, Vector & rT1, Vector & rT2) override
             {
                KRATOS_TRY
-               
+
                // GetTheNormalOfThePlane
                   PointType Normal(3);
-                  noalias(Normal) = mPlane.Normal; 
+                  noalias(Normal) = mPlane.Normal;
                   PointType T1(3); PointType T2(3);
                   noalias(T1) = ZeroVector(3); noalias(T2) = ZeroVector(3);
                   this->CalculateOrthonormalBase(Normal, T1, T2);
 
                   for (unsigned int i = 0; i < 3; i++)
                   {
-                     rT1(i) = T1(i); rT2(i) = T2(i); 
+                     rT1(i) = T1(i); rT2(i) = T2(i);
                }
 
                KRATOS_CATCH("")
@@ -358,7 +358,7 @@ public:
     void CreateBoundingBoxBoundaryMesh(ModelPart& rModelPart, int linear_partitions = 4, int angular_partitions = 4 ) override
     {
       KRATOS_TRY
-	
+
       unsigned int NodeId = 0;
       if( rModelPart.IsSubModelPart() )
 	NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
@@ -373,11 +373,11 @@ public:
       ModelPart* pMainModelPart = &rModelPart;
       if( rModelPart.IsSubModelPart() )
 	pMainModelPart = rModelPart.GetParentModelPart();
-	
+
       for(ModelPart::SubModelPartIterator i_mp= pMainModelPart->SubModelPartsBegin() ; i_mp!=pMainModelPart->SubModelPartsEnd(); i_mp++)
 	{
 	  if( i_mp->Is(BOUNDARY) || i_mp->Is(ACTIVE) ){
-	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
+	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; ++i_node)
 	      {
 		if( i_node->Id() == rModelPart.Nodes().front().Id() ){
 		  BoundaryModelPartsName.push_back(i_mp->Name());
@@ -385,70 +385,70 @@ public:
 		}
 	      }
 	  }
-	}     
+	}
       //get boundary model parts ( temporary implementation )
-      
+
       PointType DirectionX(3);
-      noalias(DirectionX) = mPlane.Normal;      
+      noalias(DirectionX) = mPlane.Normal;
       PointType DirectionY(3);
       noalias(DirectionY) = ZeroVector(3);
       PointType DirectionZ(3);
       noalias(DirectionZ) = ZeroVector(3);
-   
+
       this->CalculateOrthonormalBase(DirectionX, DirectionY, DirectionZ);
 
       PointType BasePoint(3);
       PointType RotationAxis(3);
       PointType RotatedDirectionY(3);
-     
+
       //calculate center
       PointType Upper = (mBox.UpperPoint - mPlane.Point);
       Upper -= inner_prod(Upper,mPlane.Normal) * mPlane.Normal;
- 
+
       PointType Lower = (mBox.LowerPoint - mPlane.Point);
       Lower -= inner_prod(Lower,mPlane.Normal) * mPlane.Normal;
-      
+
       PointType PlaneCenter = mPlane.Point + 0.5 * (Upper + Lower);
       double PlaneRadius    = norm_2(Upper-Lower);
       PlaneRadius *= 0.5;
-      
+
       double alpha = 0;
-      QuaternionType Quaternion;      
+      QuaternionType Quaternion;
 
       if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[SPACE_DIMENSION]==2 )
 	angular_partitions = 2;
       else
 	angular_partitions = 4;
-      
-      
+
+
       for(int k=0; k<angular_partitions; k++)
-	{		  
+	{
 	  alpha = (2.0 * 3.14159262 * k)/(double)angular_partitions;
-	      
+
 	  //vector of rotation
 	  RotationAxis = DirectionX * alpha;
 	  Quaternion   = QuaternionType::FromRotationVector(RotationAxis);
-		  
+
 	  RotatedDirectionY = DirectionY;
-	  
+
 	  Quaternion.RotateVector3(RotatedDirectionY);
-	  
+
 	  //add the angular_partitions points number along the circle
 	  NodeId += 1;
-  
-	  noalias(BasePoint) = PlaneCenter + PlaneRadius * RotatedDirectionY;	 
-	  
+
+	  noalias(BasePoint) = PlaneCenter + PlaneRadius * RotatedDirectionY;
+
 	  NodeType::Pointer pNode = this->CreateNode(rModelPart, BasePoint, NodeId);
-	   
+
 	  pNode->Set(RIGID,true);
-	  
+
 	  rModelPart.AddNode( pNode );
 
 	  //get boundary model parts ( temporary implementation )
 	  for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
 	    (pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
 	  //get boundary model parts ( temporary implementation )
-	  
+
 	}
 
       //std::cout<<" Nodes Added "<<NodeId-InitialNodeId<<std::endl;
@@ -460,12 +460,12 @@ public:
 	std::cout<<" CREATE a QUADRILATERAL mesh "<<std::endl;
 	this->CreateQuadrilateralBoundaryMesh(rModelPart, InitialNodeId);
       }
-      
+
       KRATOS_CATCH( "" )
     }
 
 
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -531,7 +531,7 @@ protected:
 
     void CreateLinearBoundaryMesh(ModelPart& rModelPart, const unsigned int& rInitialNodeId)
     {
-      
+
       KRATOS_TRY
 
       //add elements to computing model part: (in order to be written)
@@ -549,34 +549,34 @@ protected:
 	      pComputingModelPart = &rModelPart.GetSubModelPart(i_mp->Name());
 	  }
       }
-	
+
       // Create surface of the cylinder/tube with quadrilateral shell conditions
-      unsigned int ElementId = 0; 
+      unsigned int ElementId = 0;
       if( rModelPart.IsSubModelPart() )
 	ElementId = this->GetMaxElementId( *(rModelPart.GetParentModelPart()) );
       else
 	ElementId = this->GetMaxElementId( rModelPart );
 
-      unsigned int NodeId = 0; 
+      unsigned int NodeId = 0;
       if( rModelPart.IsSubModelPart() )
 	NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
       else
 	NodeId = this->GetMaxNodeId( rModelPart );
 
-      
+
       //GEOMETRY:
       GeometryType::Pointer pFace;
       ElementType::Pointer pElement;
 
-      //PROPERTIES: 
+      //PROPERTIES:
       int number_of_properties = rModelPart.NumberOfProperties();
-      Properties::Pointer pProperties = Properties::Pointer(new Properties(number_of_properties));
+      Properties::Pointer pProperties = Kratos::make_shared<Properties>(number_of_properties);
 
       int counter       = 0;
       unsigned int Id   = rInitialNodeId;
 
       Vector FaceNodesIds(2);
-      noalias( FaceNodesIds ) = ZeroVector(2);	   
+      noalias( FaceNodesIds ) = ZeroVector(2);
 
       while(Id < NodeId){
 
@@ -585,30 +585,30 @@ protected:
 
 	FaceNodesIds[0] = rInitialNodeId + counter ;
 	FaceNodesIds[1] = rInitialNodeId + counter + 1;
-	
+
 	GeometryType::PointsArrayType FaceNodes;
 	FaceNodes.reserve(2);
-	      
+
 	//NOTE: when creating a PointsArrayType
 	//important ask for pGetNode, if you ask for GetNode a copy is created
 	//if a copy is created a segmentation fault occurs when the node destructor is called
 
 	for(unsigned int j=0; j<2; j++)
 	  FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
-	  	  
-	pFace    = GeometryType::Pointer(new Line2D2<NodeType>( FaceNodes ));      
-	pElement = ElementType::Pointer(new Element(ElementId, pFace, pProperties));
-				       
+
+	pFace    = Kratos::make_shared<Line2D2<NodeType> >(FaceNodes);
+        pElement = Kratos::make_shared<Element>(ElementId, pFace, pProperties);
+
 	rModelPart.AddElement(pElement);
 	pElement->Set(ACTIVE,false);
 	pComputingModelPart->AddElement(pElement);
 
 	Id = rInitialNodeId + counter + 2;
-	
+
       }
 
       KRATOS_CATCH( "" )
-				     
+
     }
 
 
@@ -617,9 +617,9 @@ protected:
 
     void CreateQuadrilateralBoundaryMesh(ModelPart& rModelPart, const unsigned int& rInitialNodeId)
     {
-      
-      KRATOS_TRY       
-	
+
+      KRATOS_TRY
+
       //add elements to computing model part: (in order to be written)
       ModelPart* pComputingModelPart = NULL;
       if( rModelPart.IsSubModelPart() )
@@ -635,32 +635,32 @@ protected:
 	      pComputingModelPart = &rModelPart.GetSubModelPart(i_mp->Name());
 	  }
       }
-	
+
       // Create surface of the cylinder/tube with quadrilateral shell conditions
-      unsigned int ElementId = 0; 
+      unsigned int ElementId = 0;
       if( rModelPart.IsSubModelPart() )
 	ElementId = this->GetMaxElementId( *(rModelPart.GetParentModelPart()) );
       else
 	ElementId = this->GetMaxElementId( rModelPart );
 
-      unsigned int NodeId = 0; 
+      unsigned int NodeId = 0;
       if( rModelPart.IsSubModelPart() )
 	NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
       else
 	NodeId = this->GetMaxNodeId( rModelPart );
 
-      
+
       //GEOMETRY:
       GeometryType::Pointer pFace;
       ElementType::Pointer pElement;
 
-      //PROPERTIES: 
+      //PROPERTIES:
       int number_of_properties = rModelPart.NumberOfProperties();
-      Properties::Pointer pProperties = Properties::Pointer(new Properties(number_of_properties));
+      Properties::Pointer pProperties = Kratos::make_shared<Properties>(number_of_properties);
 
       int counter       = 0;
       unsigned int Id   = rInitialNodeId;
-      
+
       Vector FaceNodesIds(4);
       noalias( FaceNodesIds ) = ZeroVector(4);
 
@@ -673,34 +673,34 @@ protected:
 	FaceNodesIds[1] = rInitialNodeId + counter + 1;
 	FaceNodesIds[2] = rInitialNodeId + counter + 2;
 	FaceNodesIds[3] = rInitialNodeId + counter + 3;
-		
+
 	//std::cout<<" FaceNodesIds "<<FaceNodesIds<<" element id "<<ElementId<<std::endl;
-	
+
 	GeometryType::PointsArrayType FaceNodes;
 	FaceNodes.reserve(4);
-	      
+
 	//NOTE: when creating a PointsArrayType
 	//important ask for pGetNode, if you ask for GetNode a copy is created
 	//if a copy is created a segmentation fault occurs when the node destructor is called
 
 	for(unsigned int j=0; j<4; j++)
 	  FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
-	  	  
-	pFace    = GeometryType::Pointer(new Quadrilateral3D4<NodeType>( FaceNodes ));      
-	pElement = ElementType::Pointer(new Element(ElementId, pFace, pProperties));
-				       
+
+	pFace    = Kratos::make_shared<Quadrilateral3D4<NodeType> >(FaceNodes);
+	pElement = Kratos::make_shared<Element>(ElementId, pFace, pProperties);
+
 	rModelPart.AddElement(pElement);
 	pElement->Set(ACTIVE,false);
 	pComputingModelPart->AddElement(pElement);
 
 	Id = rInitialNodeId + counter + 3;
-	
+
       }
 
       KRATOS_CATCH( "" )
-				     
+
     }
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -744,13 +744,13 @@ private:
       //1.-compute gap
       double GapNormal = inner_prod((rPoint - rPlanePoint), mBox.Convexity*mPlane.Normal);
 
-       
+
       if(GapNormal<0)
 	return true;
       else
 	return false;
 
-    
+
       KRATOS_CATCH( "" )
 
    }
@@ -762,26 +762,26 @@ private:
     bool ContactSearch(BoundingBoxParameters& rValues, const ProcessInfo& rCurrentProcessInfo)
     {
       KRATOS_TRY
-      
+
       const PointType& rPoint = rValues.GetPoint();
       PointType& rNormal      = rValues.GetNormal();
       PointType& rTangent     = rValues.GetTangent();
-      
+
       double& rGapNormal      = rValues.GetGapNormal();
-           
+
       rNormal  = ZeroVector(3);
       rTangent = ZeroVector(3);
-      
+
       //1.-compute contact normal
       rNormal = mPlane.Normal;
 
-      rNormal *= mBox.Convexity; 
+      rNormal *= mBox.Convexity;
 
       //2.-compute  normal gap
       rGapNormal = inner_prod((rPoint - mPlane.Point), rNormal);
 
       this->ComputeContactTangent(rValues,rCurrentProcessInfo);
-      
+
       if(rGapNormal<0)
 	return true;
       else
@@ -832,6 +832,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PLANE_BOUNDING_BOX_H_INCLUDED  defined 
-
-
+#endif // KRATOS_PLANE_BOUNDING_BOX_H_INCLUDED  defined

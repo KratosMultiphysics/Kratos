@@ -16,179 +16,117 @@ class AdjointFluidAnalysis(AnalysisStage):
     '''Main script for adjoint sensitivity optimization in fluid dynamics simulations.'''
 
     def __init__(self,model,parameters):
-        super(AdjointFluidAnalysis,self).__init__(model,parameters)
+        # Deprecation warnings
+        solver_settings = parameters["solver_settings"]
+        if not solver_settings.Has("domain_size"):
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Using the old way to pass the domain_size, this will be removed!")
+            solver_settings.AddEmptyValue("domain_size")
+            solver_settings["domain_size"].SetInt(parameters["problem_data"]["domain_size"].GetInt())
 
-        self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
-        self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
+        if not solver_settings.Has("model_part_name"):
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Using the old way to pass the model_part_name, this will be removed!")
+            solver_settings.AddEmptyValue("model_part_name")
+            solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
 
-        # If this is an MPI run, load the distributed memory modules
-        if (self.parallel_type == "MPI"):
+        if not parameters["problem_data"].Has("end_time"):
+            parameters["problem_data"].AddEmptyValue("end_time")
+            parameters["problem_data"]["end_time"].SetDouble( \
+                            parameters["problem_data"]["start_step"].GetDouble() + \
+                            parameters["problem_data"]["nsteps"].GetInt()*solver_settings["time_stepping"]["time_step"].GetDouble()
+                        )
+
+        if not parameters["problem_data"].Has("start_time"):
+            parameters["problem_data"].AddEmptyValue("start_time")
+            parameters["problem_data"]["start_time"].SetDouble( \
+                            parameters["problem_data"]["start_step"].GetDouble() \
+                            )
+        self.number_of_steps = parameters["problem_data"]["nsteps"].GetInt()
+
+        self.is_printing_rank = True
+        ## Import parallel modules if needed
+        if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             from KratosMultiphysics.mpi import mpi
-            import KratosMultiphysics.MetisApplication
-            import KratosMultiphysics.TrilinosApplication
+            import KratosMultiphysics.MetisApplication as MetisApplication
+            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
             self.is_printing_rank = (mpi.rank == 0)
-        else:
-            self.is_printing_rank = True
 
-        ## Create model part and solver (but don't initialize them yet)
-        model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-        self.main_model_part = Kratos.ModelPart(model_part_name)
-
-        #import python_solvers_wrapper_fluid
-        #self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
-        #TODO: add adjoint solver to wrapper as part of the migration procedure
-        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
-        self.solver = solver_module.CreateSolver(self.main_model_part, self.project_parameters["solver_settings"])
+        super(AdjointFluidAnalysis, self).__init__(model, parameters)
 
     def Initialize(self):
-        '''
-        Construct and initialize all classes and tools used in the simulation loop.
-        '''
-        domain_size = self.project_parameters["problem_data"]["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, domain_size)
+        super(AdjointFluidAnalysis, self).Initialize()
 
-        self._SetUpRestart()
+        # dummy time step to correctly calculate DELTA_TIME
+        self._GetSolver().main_model_part.CloneTimeStep(self.time)
 
-        if self.load_restart:
-            self.restart_utility.LoadRestart()
+    def _CreateSolver(self):
+        import python_solvers_wrapper_adjoint_fluid
+        return python_solvers_wrapper_adjoint_fluid.CreateSolver(self.model, self.project_parameters)
+
+    def _CreateProcesses(self, parameter_name, initialization_order):
+        """Create a list of Processes
+        This method is TEMPORARY to not break existing code
+        It will be removed in the future
+        """
+        list_of_processes = super(AdjointFluidAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+
+        # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
+        # Note 1: gravity is constructed first. Outlet process might need its information.
+        # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
+        if parameter_name == "processes":
+            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
+            if len(list_of_processes) == 0: # Processes are given in the old format
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Using the old way to create the processes, this will be removed!")
+                from process_factory import KratosProcessFactory
+                factory = KratosProcessFactory(self.model)
+                for process_name in processes_block_names:
+                    if (self.project_parameters.Has(process_name) is True):
+                        list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
+            else: # Processes are given in the new format
+                for process_name in processes_block_names:
+                    if (self.project_parameters.Has(process_name) is True):
+                        raise Exception("Mixing of process initialization is not alowed!")
+        elif parameter_name == "output_processes":
+            if self.project_parameters.Has("output_configuration"):
+                #KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
+                gid_output= self._SetUpGiDOutput()
+                list_of_processes += [gid_output,]
         else:
-            self.solver.AddVariables()
-            self.solver.ImportModelPart()
-            self.solver.AddDofs()
+            raise NameError("wrong parameter name")
 
-        self.model.AddModelPart(self.main_model_part)
+        return list_of_processes
 
-        # this should let eventual derived stages modify the model after reading.
-        self.ModifyInitialProperties()
-        self.ModifyInitialGeometry()
+    def _SetUpGiDOutput(self):
+        '''Initialize a GiD output instance'''
+        if self.parallel_type == "OpenMP":
+            from gid_output_process import GiDOutputProcess as OutputProcess
+        elif self.parallel_type == "MPI":
+            from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
-        self._SetUpListOfProcesses()
-        self._SetUpAnalysis()
+        output = OutputProcess(self._GetSolver().GetComputingModelPart(),
+                                self.project_parameters["problem_data"]["problem_name"].GetString() ,
+                                self.project_parameters["output_configuration"])
 
-        for process in self.list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
-    def InitializeSolutionStep(self):
-
-        if self.is_printing_rank:
-            Kratos.Logger.PrintInfo("Adjoint Fluid Analysis","STEP = ", self.main_model_part.ProcessInfo[Kratos.STEP])
-            Kratos.Logger.PrintInfo("Adjoint Fluid Analysis","TIME = ", self.time)
-
-        super(AdjointFluidAnalysis,self).InitializeSolutionStep()
-
-    def OutputSolutionStep(self):
-
-        if self.have_output and self.output.IsOutputStep():
-
-            for process in self.list_of_processes:
-                process.ExecuteBeforeOutputStep()
-
-            self.output.PrintOutput()
-
-            for process in self.list_of_processes:
-                process.ExecuteAfterOutputStep()
-
-        if self.save_restart:
-            self.restart_utility.SaveRestart()
-
+        return output
 
     def RunSolutionLoop(self):
         """Note that the adjoint problem is solved in reverse time
         """
-
-        #self.output.PrintOutput()
-
         for step in range(self.number_of_steps):
-            self.time = self.solver.AdvanceInTime(self.time)
+            self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
-            self.solver.Predict()
-            self.solver.SolveSolutionStep()
+            self._GetSolver().Predict()
+            self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
-    def _SetUpListOfProcesses(self):
-        '''
-        Read the definition of initial and boundary conditions for the problem and initialize the processes that will manage them.
-        Also initialize any additional processes present in the problem (such as those used to calculate additional results).
-        '''
-        from process_factory import KratosProcessFactory
-        factory = KratosProcessFactory(self.model)
-        self.list_of_processes =  factory.ConstructListOfProcesses( self.project_parameters["initial_conditions_process_list"] )
-        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["boundary_conditions_process_list"] )
-        self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["gravity"] )
-        if self.project_parameters.Has("list_other_processes"):
-            self.list_of_processes += factory.ConstructListOfProcesses( self.project_parameters["list_other_processes"] )
+    def _GetOrderOfProcessesInitialization(self):
+        return ["gravity",
+                "initial_conditions_process_list",
+                "boundary_conditions_process_list",
+                "auxiliar_process_list"]
 
-        #TODO this should be generic
-        # initialize GiD  I/O
-        self.output = self._SetUpGiDOutput()
-        if self.output is not None:
-            self.list_of_processes += [self.output,]
-
-    def _SetUpAnalysis(self):
-        '''
-        Initialize the Python solver and its auxiliary tools and processes.
-        This function should prepare everything so that the simulation
-        can start immediately after exiting it.
-        '''
-
-        for process in self.list_of_processes:
-            process.ExecuteInitialize()
-
-        self.solver.Initialize()
-        self.solver.SolverInitialize() # this initializes the strategy
-
-        ## If the echo level is high enough, print the complete list of settings used to run the simualtion
-        if self.is_printing_rank and self.echo_level > 1:
-            with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
-                parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
-
-        ## Stepping and time settings
-        self.number_of_steps = self.project_parameters["problem_data"]["nsteps"].GetInt()
-
-        if self.main_model_part.ProcessInfo[Kratos.IS_RESTARTED]:
-            self.time = self.main_model_part.ProcessInfo[Kratos.TIME]
-        else:
-            self.time = self.project_parameters["problem_data"]["start_step"].GetDouble()
-            self.main_model_part.ProcessInfo.SetValue(Kratos.TIME,self.time)
-
-
-    def _SetUpGiDOutput(self):
-        '''Initialize self.output as a GiD output instance.'''
-        self.have_output = self.project_parameters.Has("output_configuration")
-        if self.have_output:
-            if self.parallel_type == "OpenMP":
-                from gid_output_process import GiDOutputProcess as OutputProcess
-            elif self.parallel_type == "MPI":
-                from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
-
-            output = OutputProcess(self.solver.GetComputingModelPart(),
-                                   self.project_parameters["problem_data"]["problem_name"].GetString() ,
-                                   self.project_parameters["output_configuration"])
-
-            return output
-
-    def _SetUpRestart(self):
-        """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""
-        if self.project_parameters.Has("restart_settings"):
-            restart_settings = self.project_parameters["restart_settings"]
-            self.load_restart = restart_settings["load_restart"].GetBool()
-            self.save_restart = restart_settings["save_restart"].GetBool()
-            restart_settings.RemoveValue("load_restart")
-            restart_settings.RemoveValue("save_restart")
-            restart_settings.AddValue("input_filename", self.project_parameters["problem_data"]["problem_name"])
-            restart_settings.AddValue("echo_level", self.project_parameters["problem_data"]["echo_level"])
-
-            if self.parallel_type == "OpenMP":
-                from restart_utility import RestartUtility as Restart
-            elif self.parallel_type == "MPI":
-                from trilinos_restart_utility import TrilinosRestartUtility as Restart
-
-            self.restart_utility = Restart(self.main_model_part,
-                                           self.project_parameters["restart_settings"])
-        else:
-            self.load_restart = False
-            self.save_restart = False
+    def _GetSimulationName(self):
+        return self.__class__.__name__
 
 if __name__ == '__main__':
     from sys import argv

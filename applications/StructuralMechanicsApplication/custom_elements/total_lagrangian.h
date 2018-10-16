@@ -59,12 +59,24 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangian
 public:
     ///@name Type Definitions
     ///@{
+
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
+
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    /// The base element type
+    typedef BaseSolidElement BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
 
     /// Counted pointer of TotalLagrangian
     KRATOS_CLASS_POINTER_DEFINITION(TotalLagrangian);
@@ -76,6 +88,11 @@ public:
     /// Default constructor.
     TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
     TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+
+    // Copy constructor
+    TotalLagrangian(TotalLagrangian const& rOther)
+        :BaseType(rOther)
+    {};
 
     /// Destructor.
     ~TotalLagrangian() override;
@@ -162,7 +179,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     TotalLagrangian() : BaseSolidElement()
     {
     }
@@ -176,24 +193,25 @@ protected:
      * @param CalculateResidualVectorFlag The flag to set if compute the RHS
      */
     void CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-        
+
     /**
      * @brief This functions updates the kinematics variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated 
+     * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param PointNumber The integration point considered
-     */ 
+     * @param rIntegrationMethod The integration method considered
+     */
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -223,7 +241,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-   
+
     /**
      * @brief This method computes the deformation matrix B
      * @param rB The deformation matrix
@@ -256,6 +274,7 @@ private:
                          ProcessInfo const& rCurrentProcessInfo);
 
     void CalculateShapeSensitivity(ShapeParameter Deriv,
+                                   Matrix& rDN_DX0,
                                    Matrix& rDN_DX0_Deriv,
                                    Matrix& rF_Deriv,
                                    double& rDetJ0_Deriv,
@@ -309,4 +328,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined 
+#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined

@@ -78,7 +78,7 @@ AxisymmetricUpdatedLagrangianUPElement&  AxisymmetricUpdatedLagrangianUPElement:
 
 Element::Pointer AxisymmetricUpdatedLagrangianUPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new AxisymmetricUpdatedLagrangianUPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+  return Kratos::make_shared< AxisymmetricUpdatedLagrangianUPElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 
@@ -124,7 +124,7 @@ Element::Pointer AxisymmetricUpdatedLagrangianUPElement::Clone( IndexType NewId,
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new AxisymmetricUpdatedLagrangianUPElement(NewElement) );
+    return Kratos::make_shared< AxisymmetricUpdatedLagrangianUPElement >(NewElement);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -233,10 +233,10 @@ void AxisymmetricUpdatedLagrangianUPElement::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianUPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void AxisymmetricUpdatedLagrangianUPElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
     const unsigned int voigt_size      = 4;
 
     rVariables.Initialize(voigt_size,dimension,number_of_nodes);
@@ -274,7 +274,7 @@ void AxisymmetricUpdatedLagrangianUPElement::InitializeElementVariables (Element
 ////************************************************************************************
 ////************************************************************************************
 
-void AxisymmetricUpdatedLagrangianUPElement::FinalizeStepVariables( ElementVariables & rVariables, const double& rPointNumber )
+void AxisymmetricUpdatedLagrangianUPElement::FinalizeStepVariables( ElementDataType & rVariables, const double& rPointNumber )
 {
     //update internal (historical) variables
     mDeterminantF0[rPointNumber]         = rVariables.detF * rVariables.detF0;
@@ -286,10 +286,10 @@ void AxisymmetricUpdatedLagrangianUPElement::FinalizeStepVariables( ElementVaria
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
 {
 
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.CurrentRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
 
@@ -309,9 +309,9 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemCompo
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
-    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * Globals::Pi * rVariables.CurrentRadius;
     if ( this->GetProperties().Has( THICKNESS ) )
       IntegrationWeight /= GetProperties()[THICKNESS];
 
@@ -332,13 +332,13 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemCompo
 //************************************************************************************
 
 
-void AxisymmetricUpdatedLagrangianUPElement::CalculateKinematics(ElementVariables& rVariables,
+void AxisymmetricUpdatedLagrangianUPElement::CalculateKinematics(ElementDataType& rVariables,
         const double& rPointNumber)
 
 {
     KRATOS_TRY
 
-    //unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    //const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -403,16 +403,16 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateRadius(double & rCurrentRa
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     rCurrentRadius=0;
     rReferenceRadius=0;
 
     if ( dimension == 2 )
     {
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
             //Displacement from the reference to the current configuration
             // array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -451,15 +451,15 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateDeformationGradient(Matrix
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     rF = identity_matrix<double> ( 3 );
 
     if( dimension == 2 )
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
             rF ( 0 , 0 ) += rDeltaPosition(i,0)*rDN_DX ( i , 0 );
             rF ( 0 , 1 ) += rDeltaPosition(i,0)*rDN_DX ( i , 1 );
@@ -498,15 +498,15 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateDeformationMatrix(Matrix& 
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
 
     rB.clear(); //set all components to zero
 
     if( dimension == 2 )
     {
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
             unsigned int index = 2 * i;
 
@@ -543,7 +543,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateGreenLagrangeStrain(const 
 {
     KRATOS_TRY
 
-    const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension   = GetGeometry().WorkingSpaceDimension();
 
     //Right Cauchy-Green Calculation
     Matrix C ( 3, 3 );
@@ -588,7 +588,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAlmansiStrain(const Matrix
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //Left Cauchy-Green Calculation
     Matrix LeftCauchyGreen(rF.size1(), rF.size1());
@@ -635,13 +635,13 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAlmansiStrain(const Matrix
 //************************************************************************************
 //************************************************************************************
 void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-								     ElementVariables & rVariables,
+								     ElementDataType & rVariables,
 								     double& rIntegrationWeight)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     unsigned int indexp = dimension;
 
@@ -660,9 +660,9 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddPressureForces(Vecto
     double Coefficient = 0;
     Coefficient = this->CalculatePUCoefficient( Coefficient, rVariables );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
 
             // consistent=1;
@@ -700,13 +700,13 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddPressureForces(Vecto
 //************************************************************************************
 
 void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-        ElementVariables & rVariables,
+        ElementDataType & rVariables,
         double& rIntegrationWeight)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     unsigned int indexp = dimension;
 
@@ -745,9 +745,9 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddStabilizedPressure(V
     //use of this variable for the complete parameter:
     AlphaStabilization=(AlphaStabilization/LameMu);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
 
             double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
@@ -795,18 +795,19 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddStabilizedPressure(V
 //************************************************************************************
 
 void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKuug(MatrixType& rK,
-        ElementVariables& rVariables,
+        ElementDataType& rVariables,
         double& rIntegrationWeight)
 
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     int size = number_of_nodes * dimension;
 
-    Matrix Kuu = zero_matrix<double>(size,size);
+    Matrix Kuu(size,size);
+    noalias(Kuu) = ZeroMatrix(size,size);
 
     // axisymmetric geometric matrix
 
@@ -817,10 +818,10 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKuug(MatrixType& rK,
     unsigned int indexi = 0;
     unsigned int indexj = 0;
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
         indexj =0;
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
             alpha1 = rVariables.DN_DX(j,0) * ( rVariables.DN_DX(i,0) * rVariables.StressVector[0] + rVariables.DN_DX(i,1) * rVariables.StressVector[3] );
             alpha2 = rVariables.DN_DX(j,1) * ( rVariables.DN_DX(i,0) * rVariables.StressVector[3] + rVariables.DN_DX(i,1) * rVariables.StressVector[1] );
@@ -847,14 +848,14 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKuug(MatrixType& rK,
     //assemble into rk the geometric uu contribution:
     indexi = 0;
     indexj = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
-        for ( unsigned int idim = 0; idim < dimension ; idim ++)
+        for ( SizeType idim = 0; idim < dimension ; idim ++)
         {
             indexj=0;
-            for ( unsigned int j = 0; j < number_of_nodes; j++ )
+            for ( SizeType j = 0; j < number_of_nodes; j++ )
             {
-                for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
+                for ( SizeType jdim = 0; jdim < dimension ; jdim ++)
                 {
                     rK(indexi+i,indexj+j)+=Kuu(indexi,indexj);
                     indexj++;
@@ -874,24 +875,24 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKuug(MatrixType& rK,
 //************************************************************************************
 
 void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKup (MatrixType& rK,
-        ElementVariables& rVariables,
+        ElementDataType& rVariables,
         double& rIntegrationWeight)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //MatrixType Kh=rK;
     //contributions to stiffness matrix calculated on the reference configuration
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
         unsigned int indexp  = dimension;
         unsigned int indexup = dimension * i + i;
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
 
-            for ( unsigned int k = 0; k < dimension; k++ )
+            for ( SizeType k = 0; k < dimension; k++ )
             {
                 rK(indexup+k,indexp) +=  rVariables.DN_DX ( i , k ) *  rVariables.N[j] * rIntegrationWeight * rVariables.detF;
 
@@ -913,14 +914,14 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKup (MatrixType& rK,
 //************************************************************************************
 
 void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKpu (MatrixType& rK,
-        ElementVariables& rVariables,
+        ElementDataType& rVariables,
         double& rIntegrationWeight)
 
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //MatrixType Kh=rK;
 
@@ -930,12 +931,12 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKpu (MatrixType& rK,
     double DeltaCoefficient = 0;
     DeltaCoefficient = this->CalculatePUDeltaCoefficient( DeltaCoefficient, rVariables );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
             int indexup= dimension*j + j;
-            for ( unsigned int k = 0; k < dimension; k++ )
+            for ( SizeType k = 0; k < dimension; k++ )
             {
                 rK(indexp,indexup+k) +=  DeltaCoefficient * rVariables.N[i] * rVariables.DN_DX ( j , k ) * rIntegrationWeight * rVariables.detF;
 
@@ -960,15 +961,15 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKpu (MatrixType& rK,
 //************************************************************************************
 
 void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKpp (MatrixType& rK,
-        ElementVariables& rVariables,
+        ElementDataType& rVariables,
         double& rIntegrationWeight)
 {
     KRATOS_TRY
 
     //repasar
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     double BulkModulus = 1.0;
     if( GetProperties().Has(BULK_MODULUS)  ){
@@ -984,10 +985,10 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKpp (MatrixType& rK,
     unsigned int indexpi = dimension;
     //double consistent = 1.0;
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
         unsigned int indexpj = dimension;
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
             // consistent=1;
             // if(indexpi==indexpj)
@@ -1013,15 +1014,15 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKpp (MatrixType& rK,
 //************************************************************************************
 
 void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
-        ElementVariables & rVariables,
+        ElementDataType & rVariables,
         double& rIntegrationWeight)
 {
     KRATOS_TRY
 
     //repasar
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     // MatrixType Kh=rK;
 
@@ -1060,10 +1061,10 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKppStab (MatrixType&
     AlphaStabilization=(AlphaStabilization/LameMu);
 
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
     {
         unsigned int indexpj = dimension;
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
 	    //AXISYM
             if(integration_points == 1)
@@ -1087,7 +1088,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddKppStab (MatrixType&
                 consistent *= ( rVariables.N[i] * rVariables.N[j] - (1.0/3.0) * rVariables.N[i] - (1.0/3.0) * rVariables.N[j] + (1.0/9.0) );
                 // }
 
-                rK(indexpi,indexpj)  -= consistent;;
+                rK(indexpi,indexpj)  -= consistent;
             }
 
             indexpj += (dimension + 1);
@@ -1112,8 +1113,8 @@ double& AxisymmetricUpdatedLagrangianUPElement::CalculateTotalMass( double& rTot
     KRATOS_TRY
 
     //Compute the Volume Change acumulated:
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
@@ -1125,13 +1126,13 @@ double& AxisymmetricUpdatedLagrangianUPElement::CalculateTotalMass( double& rTot
 	this->CalculateKinematics(Variables,PointNumber);
 
 	//getting informations for integration
-        double IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
+        Variables.IntegrationWeight = Variables.detJ * integration_points[PointNumber].Weight();
 
 	//compute point volume change
 	double PointVolumeChange = 0;
 	PointVolumeChange = this->CalculateVolumeChange( PointVolumeChange, Variables );
 
-	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * 2.0 * 3.141592654 * Variables.CurrentRadius * IntegrationWeight;
+	rTotalMass += PointVolumeChange * GetProperties()[DENSITY] * 2.0 * Globals::Pi * Variables.CurrentRadius * Variables.IntegrationWeight;
 
       }
 
@@ -1149,8 +1150,8 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rM
     KRATOS_TRY
 
     //lumped
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().size();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().size();
     const unsigned int MatSize = this->GetDofsSize();
 
     if ( rMassMatrix.size1() != MatSize )
@@ -1165,8 +1166,8 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rM
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
-    ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    ElementDataType Variables;
+    this->InitializeElementData(Variables,rCurrentProcessInfo);
 
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -1176,7 +1177,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rM
       this->CalculateKinematics( Variables, PointNumber );
 
       //getting informations for integration
-      double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ * 2.0 * 3.141592654 * Variables.CurrentRadius;
+      double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ * 2.0 * Globals::Pi * Variables.CurrentRadius;
 
 
       //compute point volume change
@@ -1185,15 +1186,15 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rM
 
       double CurrentDensity = PointVolumeChange * GetProperties()[DENSITY];
 
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
       	{
       	  unsigned int indexupi = dimension * i + i;
 
-      	  for ( unsigned int j = 0; j < number_of_nodes; j++ )
+      	  for ( SizeType j = 0; j < number_of_nodes; j++ )
       	    {
       	      unsigned int indexupj = dimension * j + j;
 
-      	      for ( unsigned int k = 0; k < dimension; k++ )
+      	      for ( SizeType k = 0; k < dimension; k++ )
       		{
       		  rMassMatrix( indexupi+k , indexupj+k ) += Variables.N[i] * Variables.N[j] * CurrentDensity * IntegrationWeight;
       		}
@@ -1213,13 +1214,13 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rM
 
     // LumpFact = GetGeometry().LumpingFactors( LumpFact );
 
-    // for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    // for ( SizeType i = 0; i < number_of_nodes; i++ )
     // 	{
     // 	  double temp = LumpFact[i] * TotalMass;
 
     // 	  unsigned int indexup = dimension * i + i;
 
-    // 	  for ( unsigned int j = 0; j < dimension; j++ )
+    // 	  for ( SizeType j = 0; j < dimension; j++ )
     // 	    {
     // 	      rMassMatrix( indexup+j , indexup+j ) += temp;
     // 	    }
@@ -1234,7 +1235,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateMassMatrix( MatrixType& rM
 //************************************************************************************
 //************************************************************************************
 
-void AxisymmetricUpdatedLagrangianUPElement::GetHistoricalVariables( ElementVariables& rVariables, const double& rPointNumber )
+void AxisymmetricUpdatedLagrangianUPElement::GetHistoricalVariables( ElementDataType& rVariables, const double& rPointNumber )
 {
     LargeDisplacementElement::GetHistoricalVariables(rVariables,rPointNumber);
 
@@ -1248,7 +1249,7 @@ void AxisymmetricUpdatedLagrangianUPElement::GetHistoricalVariables( ElementVari
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
 
-double& AxisymmetricUpdatedLagrangianUPElement::CalculateVolumeChange( double& rVolumeChange, ElementVariables& rVariables )
+double& AxisymmetricUpdatedLagrangianUPElement::CalculateVolumeChange( double& rVolumeChange, ElementDataType& rVariables )
 {
     KRATOS_TRY
 

@@ -118,7 +118,7 @@ public:
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
     void GetDofList(
-        DofsVectorType& rElementalDofList, 
+        DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -126,7 +126,7 @@ public:
      * Sets on rResult the ID's of the element degrees of freedom
      */
     void EquationIdVector(
-        EquationIdVectorType& rResult, 
+        EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -186,8 +186,8 @@ public:
      */
 
     void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix, 
-        VectorType& rRightHandSideVector, 
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -199,7 +199,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateRightHandSide( 
+    void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo
         ) override;
@@ -211,7 +211,7 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLeftHandSide( 
+    void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
         ProcessInfo& rCurrentProcessInfo
         ) override;
@@ -223,7 +223,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(
-        MatrixType& rMassMatrix, 
+        MatrixType& rMassMatrix,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -234,7 +234,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix, 
+        MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -345,4 +345,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED  defined

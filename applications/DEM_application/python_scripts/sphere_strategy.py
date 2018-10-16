@@ -221,7 +221,7 @@ class ExplicitStrategy(object):
         # TIME RELATED PARAMETERS
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
 
-        os.chdir('..')
+        #-----os.chdir('..')   # check functionality
 
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
@@ -330,12 +330,12 @@ class ExplicitStrategy(object):
     def AddDofs(self, spheres_model_part):
 
         for node in spheres_model_part.Nodes:
-            node.AddDof(VELOCITY_X, REACTION_X)
-            node.AddDof(VELOCITY_Y, REACTION_Y)
-            node.AddDof(VELOCITY_Z, REACTION_Z)
-            node.AddDof(ANGULAR_VELOCITY_X, REACTION_X)
-            node.AddDof(ANGULAR_VELOCITY_Y, REACTION_Y)
-            node.AddDof(ANGULAR_VELOCITY_Z, REACTION_Z)
+            node.AddDof(VELOCITY_X)
+            node.AddDof(VELOCITY_Y)
+            node.AddDof(VELOCITY_Z)
+            node.AddDof(ANGULAR_VELOCITY_X)
+            node.AddDof(ANGULAR_VELOCITY_Y)
+            node.AddDof(ANGULAR_VELOCITY_Z)
 
         Logger.Print("DOFs for the DEM solution added correctly", label="DEM")
 
@@ -521,6 +521,21 @@ class ExplicitStrategy(object):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
         else:
             translational_scheme_name = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
+
+        if properties.Has(PARTICLE_FRICTION):
+            self.Procedures.KRATOSprint("---------------------------------------------------")
+            self.Procedures.KRATOSprint("  WARNING: Property PARTICLE_FRICTION is deprecated ")
+            self.Procedures.KRATOSprint("  since April 11th, 2018, replace with FRICTION")
+            self.Procedures.KRATOSprint("  Automatic replacement is done now.")
+            self.Procedures.KRATOSprint("---------------------------------------------------")
+            properties[FRICTION] = properties[PARTICLE_FRICTION]
+        if properties.Has(WALL_FRICTION):
+            self.Procedures.KRATOSprint("-------------------------------------------------")
+            self.Procedures.KRATOSprint("  WARNING: Property WALL_FRICTION is deprecated")
+            self.Procedures.KRATOSprint("  since April 11th, 2018, replace with FRICTION")
+            self.Procedures.KRATOSprint("  Automatic replacement is done now.")
+            self.Procedures.KRATOSprint("-------------------------------------------------")
+            properties[FRICTION] = properties[WALL_FRICTION]
 
         translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
 

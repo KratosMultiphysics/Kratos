@@ -24,6 +24,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_components.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/process_info.cpp;
     # ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_signed_distance_to_3d_skin_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
@@ -57,8 +58,11 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_triangle_2d_3.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_tetrahedra_3d_4.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_sensitivity_utility.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/brute_force_point_locator.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_utils.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/sub_model_parts_list_utility.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/read_materials_utility.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_redistribution_utility.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;
@@ -67,50 +71,55 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/elements/mesh_element.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/conditions/mesh_condition.cpp;
 
 )
 
 ## Kratos python interface code
 set( KRATOS_PYTHON_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_part_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_points_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_deprecated_variables_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/python/add_c2c_variables_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_cfd_variables_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mesh_moving_variables_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mapping_variables_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_dem_variables_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_fsi_variables_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mat_variables_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_legacy_structural_app_vars_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_containers_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_constitutive_law_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_processes_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometries_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_io_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kernel_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_vector_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_application_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mesh_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_modeler_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_properties_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_node_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_linear_solvers_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_process_info_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_market_interface_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_serializer_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_table_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/assign_scalar_field_to_conditions_process.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_part_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_points_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_deprecated_variables_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_c2c_variables_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_cfd_variables_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_mesh_moving_variables_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_mapping_variables_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_dem_variables_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_fsi_variables_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_mat_variables_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_legacy_structural_app_vars_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_containers_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_constitutive_law_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_processes_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometries_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_io_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_kernel_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_vector_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_application_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_mesh_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_modeler_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_properties_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_node_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_linear_solvers_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_process_info_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_market_interface_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_serializer_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_table_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_search_strategies_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_parameters_to_python.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_testing_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_parameters_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_testing_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_logger_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_memory_info_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_response_functions_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_constraint_to_python.cpp
 )
 
 ## Kratos testing engine soruces

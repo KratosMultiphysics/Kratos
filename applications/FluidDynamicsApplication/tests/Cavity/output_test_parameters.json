@@ -1,0 +1,145 @@
+{
+    "problem_data" : {
+        "problem_name"    : "square5",
+        "echo_level"      : 0,
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 0.2
+    },
+    "solver_settings" : {
+        "solver_type"                   : "Monolithic",
+        "model_part_name"               : "MainModelPart",
+        "domain_size"                   : 2,
+        "maximum_iterations"            : 10,
+        "dynamic_tau"                   : 0.001,
+        "oss_switch"                    : 0,
+        "echo_level"                    : 0,
+        "consider_periodic_conditions"  : false,
+        "compute_reactions"             : false,
+        "reform_dofs_at_each_step"      : false,
+        "relative_velocity_tolerance"   : 0.001,
+        "absolute_velocity_tolerance"   : 1e-5,
+        "relative_pressure_tolerance"   : 0.001,
+        "absolute_pressure_tolerance"   : 1e-5,
+        "volume_model_part_name"      : "Parts_Fluid",
+        "skin_parts"                  : ["NoSlip2D_left_wall","NoSlip2D_right_wall","NoSlip2D_bottom_wall","NoSlip2D_top_wall"],
+        "no_skin_parts"               : ["Pressure_lower_left_corner"],
+        "time_stepping"               : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.1
+        },
+        "linear_solver_settings" : {
+            "solver_type"         : "AMGCL",
+            "max_iteration"       : 500,
+            "tolerance"           : 1e-9,
+            "provide_coordinates" : false,
+            "smoother_type"       : "ilu0",
+            "krylov_type"         : "gmres",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : true,
+            "verbosity"           : 0
+        },
+        "model_import_settings" : {
+            "input_type"     : "mdpa",
+            "input_filename" : "square5"
+        },
+        "time_scheme":"bossak",
+        "alpha":-0.3
+    },
+    "initial_conditions_process_list"  : [],
+    "boundary_conditions_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "NoSlip2D_left_wall",
+            "variable_name"   : "VELOCITY",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "NoSlip2D_right_wall",
+            "variable_name"   : "VELOCITY",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "NoSlip2D_bottom_wall",
+            "variable_name"   : "VELOCITY",
+            "constrained"     : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "model_part_name" : "NoSlip2D_top_wall",
+            "variable_name"   : "VELOCITY",
+            "constrained"     : [true,true,true],
+            "value"           : [1.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "AssignScalarVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Pressure_lower_left_corner",
+            "variable_name"   : "PRESSURE",
+            "value"           : 0,
+            "constrained"     : true
+        }
+    }],
+    "gravity"                          : [],
+    "auxiliar_process_list" :[{
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "single_mesh_primal_output_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+            "model_part_name" : "MainModelPart",
+            "file_settings" : {
+                "file_access_mode" : "truncate"
+            },
+            "model_part_output_settings" : {
+                "prefix" : "/ModelData"
+            },
+            "nodal_solution_step_data_settings" : {
+                "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
+            },
+            "output_time_settings" : {
+                "output_step_frequency": 1
+            },
+            "alpha_bossak" : 0.0
+        }
+    },{
+	"python_module" : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "JsonOutputProcess",
+        "Parameters" : {
+            "output_variables"    : ["VELOCITY", "ACCELERATION", "PRESSURE"],
+            "output_file_name"    : "reference_results.json",
+            "model_part_name"     : "MainModelPart",
+            "sub_model_part_name" : "",
+            "time_frequency"      : 0.0,
+            "resultant_solution"  : false
+        }
+    }]
+}

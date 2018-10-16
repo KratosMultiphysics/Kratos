@@ -140,7 +140,6 @@ namespace Kratos {
          */
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
             double NewAlphaBossak,
-            double MoveMeshStrategy,
             unsigned int DomainSize,
             const Variable<int>& rPeriodicIdVar)
         :
@@ -152,7 +151,7 @@ namespace Kratos {
             mAlphaBossak = NewAlphaBossak;
             mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
             mGammaNewmark = 0.5 - mAlphaBossak;
-            mMeshVelocity = MoveMeshStrategy;
+            mMeshVelocity = 0.0;
 
 
             //Allocate auxiliary memory
@@ -599,8 +598,7 @@ namespace Kratos {
                 }//end of loop over nodes
 
                 //loop on nodes to compute ADVPROJ   CONVPROJ NODALAREA
-                array_1d<double, 3 > output(3,0.0);
-
+                array_1d<double, 3 > output = ZeroVector(3);
 
                 const int nel = static_cast<int>(rModelPart.Elements().size());
                 auto elbegin = rModelPart.ElementsBegin();
@@ -648,6 +646,13 @@ namespace Kratos {
             {
                 auto itNode = rModelPart.NodesBegin() + k;
                 (itNode->FastGetSolutionStepValue(REACTION)).clear();
+
+                // calculating relaxed acceleration
+                const array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 0);
+                const array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
+                const array_1d<double, 3> relaxed_acceleration = (1 - mAlphaBossak) * CurrentAcceleration
+                                                                    + mAlphaBossak * OldAcceleration;
+                (itNode)->SetValue(RELAXED_ACCELERATION, relaxed_acceleration);
             }
 
             //for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
@@ -819,7 +824,7 @@ namespace Kratos {
             unsigned int nodes_in_cond = rGeometry.PointsNumber();
 
             double nodal_area = 0.0;
-            array_1d<double,3> momentum_projection(3,0.0);
+            array_1d<double,3> momentum_projection = ZeroVector(3);
             double mass_projection = 0.0;
             for ( unsigned int i = 0; i < nodes_in_cond; i++ )
             {
@@ -877,7 +882,7 @@ namespace Kratos {
                                 const array_1d<double, 3 > & DeltaVel,
                                 const array_1d<double, 3 > & OldAcceleration)
         {
-            noalias(CurrentAcceleration) = ma0 * DeltaVel + ma2*OldAcceleration;
+            noalias(CurrentAcceleration) = ma0 * DeltaVel + ma2 * OldAcceleration;
         }
 
 

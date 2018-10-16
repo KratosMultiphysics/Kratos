@@ -139,7 +139,7 @@ void WallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
         else
         {
             rElementalDofList.resize(0);
-        }        
+        }
     }
 }
 
@@ -264,7 +264,7 @@ void WallCondition<TDim,TNumNodes>::ApplyNeumannCondition(MatrixType &rLocalMatr
             }
 
             // Velocity inflow correction
-            array_1d<double,3> Vel(3,0.0);
+            array_1d<double,3> Vel = ZeroVector(3);
             double Density = 0.0;
 
             for (unsigned int i = 0; i < TNumNodes; i++)

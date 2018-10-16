@@ -9,17 +9,13 @@
 //  Main authors:    Armin Geiser
 //
 
-
 #if !defined(KRATOS_ADD_RESPONSE_FUNCTIONS_TO_PYTHON_H_INCLUDED )
 #define  KRATOS_ADD_RESPONSE_FUNCTIONS_TO_PYTHON_H_INCLUDED
-
-
 
 // System includes
 #include <pybind11/pybind11.h>
 
 // External includes
-
 
 // Project includes
 #include "includes/define_python.h"

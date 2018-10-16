@@ -42,7 +42,6 @@ LargeDisplacementElement::LargeDisplacementElement( IndexType NewId, GeometryTyp
 LargeDisplacementElement::LargeDisplacementElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     :SolidElement( NewId, pGeometry, pProperties )
 {
-    mFinalizedStep = true; // the creation is out of the time step, it must be true
 }
 
 
@@ -51,7 +50,6 @@ LargeDisplacementElement::LargeDisplacementElement( IndexType NewId, GeometryTyp
 
 LargeDisplacementElement::LargeDisplacementElement( LargeDisplacementElement const& rOther)
     :SolidElement(rOther)
-    ,mFinalizedStep(rOther.mFinalizedStep)
 {
 }
 
@@ -63,8 +61,6 @@ LargeDisplacementElement&  LargeDisplacementElement::operator=(LargeDisplacement
 {
     SolidElement::operator=(rOther);
 
-    mFinalizedStep = rOther.mFinalizedStep;
-
     return *this;
 }
 
@@ -75,7 +71,7 @@ LargeDisplacementElement&  LargeDisplacementElement::operator=(LargeDisplacement
 Element::Pointer LargeDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
     KRATOS_ERROR << " calling the default method Create for a large displacement element " << std::endl;
-    return Element::Pointer( new LargeDisplacementElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Kratos::make_shared< LargeDisplacementElement >(NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 //************************************CLONE*******************************************
@@ -102,7 +98,7 @@ Element::Pointer LargeDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
     NewElement.SetData(this->GetData());
     NewElement.SetFlags(this->GetFlags());
 
-    return Element::Pointer( new LargeDisplacementElement(NewElement) );
+    return Kratos::make_shared< LargeDisplacementElement >(NewElement);
 }
 
 
@@ -113,14 +109,10 @@ LargeDisplacementElement::~LargeDisplacementElement()
 {
 }
 
-
 //************************************************************************************
 //************************************************************************************
 
-//************************************************************************************
-//************************************************************************************
-
-void LargeDisplacementElement::GetHistoricalVariables( ElementVariables& rVariables, const double& rPointNumber )
+void LargeDisplacementElement::GetHistoricalVariables( ElementDataType& rVariables, const double& rPointNumber )
 {
     //Deformation Gradient F ( set to identity )
     unsigned int size =  rVariables.F.size1();
@@ -130,45 +122,58 @@ void LargeDisplacementElement::GetHistoricalVariables( ElementVariables& rVariab
 
 }
 
-void LargeDisplacementElement::SetElementVariables(ElementVariables& rVariables,
-						   ConstitutiveLaw::Parameters& rValues,
-						   const int & rPointNumber)
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementElement::SetElementData(ElementDataType& rVariables,
+                                              ConstitutiveLaw::Parameters& rValues,
+                                              const int & rPointNumber)
 {
 
     //to take in account previous step for output print purposes
-    if( mFinalizedStep ){
+    if( this->Is(SolidElement::FINALIZED_STEP) ){
       this->GetHistoricalVariables(rVariables,rPointNumber);
     }
 
+    //to be accurate calculus must stop
     if(rVariables.detF<0){
 
-	std::cout<<" Element: "<<this->Id()<<std::endl;
+      KRATOS_WARNING(" [Element Ignored]") << "LargeDispElement["<<this->Id()<<"] (|F|=" << rVariables.detF <<")  (Iter:"<<rVariables.GetProcessInfo()[NL_ITERATION_NUMBER]<<")"<<std::endl;
+      rVariables.detJ = 0;
 
-	unsigned int number_of_nodes = GetGeometry().PointsNumber();
+      SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	  {
-	    array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
-	    array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-	    array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-	    array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-	    std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<" (Cur: "<<CurrentPosition<<") "<<std::endl;
-	    std::cout<<" ---Disp: "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
-	  }
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        array_1d<double, 3> & CurrentPosition      = GetGeometry()[i].Coordinates();
+        array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+        array_1d<double, 3> PreviousPosition       = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
+        KRATOS_WARNING("")<<" Node["<<GetGeometry()[i].Id()<<"]: (Position: (pre)"<<PreviousPosition<<",(cur)"<<CurrentPosition<<")"<<std::endl;
+        //KRATOS_WARNING("")<<" (Displacement: (pre)"<<CurrentDisplacement<<",(cur)"<<PreviousDisplacement<<")"<<std::endl;
+      }
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) ){
+          array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
+          array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+          KRATOS_WARNING("")<<" (Contact: (pre)"<<PreContactForce<<",(cur)"<<ContactForce<<")["<<GetGeometry()[i].Id()<<"]"<<std::endl;
+        }
 
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	  {
-	    if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) ){
-	      array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
-	      array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
-	      std::cout<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Cur:"<<ContactForce<<") "<<std::endl;
-	    }
-	    else{
-	      std::cout<<" ---Contact_Force: NULL "<<std::endl;
-	    }
-	  }
+      }
 
-        KRATOS_THROW_ERROR( std::invalid_argument," LARGE DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", rVariables.detF )
+      this->Set(SELECTED,true);
+
+      KRATOS_ERROR<<" [Element Failed] ["<<this->Id()<<"]"<<std::endl;
+
+    }
+    else{
+
+      if(this->Is(SELECTED) && this->Is(ACTIVE)){
+        this->Set(SELECTED,false);
+        KRATOS_WARNING("")<<" Undo SELECTED LargeDispElement "<<this->Id()<<std::endl;
+      }
+
     }
 
     //Compute F and detF (from 0 to n+1) : store it in H variable and detH
@@ -194,8 +199,7 @@ void LargeDisplacementElement::InitializeSolutionStep( ProcessInfo& rCurrentProc
     KRATOS_TRY
 
     SolidElement::InitializeSolutionStep(rCurrentProcessInfo);
-
-    mFinalizedStep = false;
+    this->Set(SolidElement::FINALIZED_STEP, false);
 
     KRATOS_CATCH( "" )
 }
@@ -211,7 +215,7 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 
     SolidElement::FinalizeSolutionStep(rCurrentProcessInfo);
 
-    mFinalizedStep = true;
+    this->Set(SolidElement::FINALIZED_STEP, true);
 
     KRATOS_CATCH( "" )
 }
@@ -221,13 +225,13 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 //************************************************************************************
 
 void LargeDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-						   ElementVariables& rVariables,
+						   ElementDataType& rVariables,
 						   double& rIntegrationWeight)
 
 {
     KRATOS_TRY
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
     Matrix ReducedKg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
     MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
@@ -243,7 +247,7 @@ void LargeDisplacementElement::CalculateGreenLagrangeStrain(const Matrix& rF, Ve
 {
     KRATOS_TRY
 
-    const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension   = GetGeometry().WorkingSpaceDimension();
 
     //Right Cauchy-Green Calculation
     Matrix C ( dimension, dimension );
@@ -297,7 +301,7 @@ void LargeDisplacementElement::CalculateAlmansiStrain(const Matrix& rF, Vector& 
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
 
     //Left Cauchy-Green Calculation
     Matrix LeftCauchyGreen(dimension, dimension);
@@ -377,8 +381,8 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
     if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
     {
         //create and initialize element variables:
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+        ElementDataType Variables;
+        this->InitializeElementData(Variables,rCurrentProcessInfo);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -387,17 +391,17 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
             this->CalculateKinematics(Variables,PointNumber);
 
 	    //to take in account previous step writing
-	    if( mFinalizedStep ){
+	    if( this->Is(SolidElement::FINALIZED_STEP) ){
 	      this->GetHistoricalVariables(Variables,PointNumber);
 	      noalias(Variables.H) = prod(Variables.F,Variables.F0);
 	    }
 
             //Compute Green-Lagrange Strain
-
 	    if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
 	      this->CalculateGreenLagrangeStrain( Variables.H, Variables.StrainVector );
             else
 	      this->CalculateAlmansiStrain( Variables.H, Variables.StrainVector );
+
 
             if ( rOutput[PointNumber].size() != Variables.StrainVector.size() )
 	      rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
@@ -443,7 +447,7 @@ int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
     // Check that the constitutive law has the correct dimension
-    unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension  = GetGeometry().WorkingSpaceDimension();
     if( dimension == 2 )
     {
       if( LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRAIN_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::PLANE_STRESS_LAW) && LawFeatures.mOptions.IsNot(ConstitutiveLaw::AXISYMMETRIC_LAW) )
@@ -461,13 +465,11 @@ int LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 void LargeDisplacementElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SolidElement )
-    rSerializer.save("FinalizedStep",mFinalizedStep);
 }
 
 void LargeDisplacementElement::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SolidElement )
-    rSerializer.load("FinalizedStep",mFinalizedStep);
 }
 
 

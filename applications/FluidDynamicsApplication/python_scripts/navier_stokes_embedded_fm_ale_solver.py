@@ -23,12 +23,13 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "embedded_solver_from_defaults",
-            "model_part_name": "FluidModelPart",
-            "structure_model_part_name": "StructureModelPart",
-            "domain_size": 2,
+            "model_part_name": "",
+            "structure_model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "unknown_name"
+                "input_filename": "unknown_name",
+                "reorder": false
             },
             "distance_reading_settings": {
                 "import_mode": "from_mdpa",
@@ -57,7 +58,6 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
                 "maximum_delta_time": 1.0
             },
             "move_mesh_flag": false,
-            "reorder": false,
             "fm_ale_settings": {
                 "fm_ale_step_frequency": 1,
                 "search_radius" : 1.0
@@ -65,6 +65,10 @@ class NavierStokesEmbeddedFMALEMonolithicSolver(navier_stokes_embedded_solver.Na
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
+
+        if settings["structure_model_part_name"].GetString() == "":
+            raise Exception('Please provide the name of the fixed model part as the "structure_model_part_name" (string) parameter!')
+
         return settings
 
     def __init__(self, model, custom_settings):
