@@ -16,6 +16,7 @@
 
 // External includes
 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
 
 // Project includes
 #include "testing/testing.h"
@@ -33,3 +34,4 @@ namespace Kratos {
 
     }
 }  // namespace Kratos.
+#endif // ifdef KRATOS_USE_AMATRIX
