@@ -1238,9 +1238,18 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     rOutput[1][2] = -1.0 * stress[2] * 0.50 + stress[8] * 0.50;
     rOutput[2][2] = -1.0 * stress[2] * 0.25 + stress[8] * 0.75;
   }
-  else if (rVariable == LOCAL_AXIS_1) rOutput[1] = column (transformation_matrix, 0);
-  else if (rVariable == LOCAL_AXIS_2) rOutput[1] = column (transformation_matrix, 1);
-  else if (rVariable == LOCAL_AXIS_3) rOutput[1] = column (transformation_matrix, 2);
+
+
+
+  else if (rVariable == LOCAL_AXIS_1){
+    for (SizeType i =0; i<this->msDimension; ++i) rOutput[1][i] = column (transformation_matrix, 0)[i];
+  }
+  else if (rVariable == LOCAL_AXIS_2){
+    for (SizeType i =0; i<this->msDimension; ++i) rOutput[1][i] = column (transformation_matrix, 1)[i];
+  }
+  else if (rVariable == LOCAL_AXIS_3){
+    for (SizeType i =0; i<this->msDimension; ++i) rOutput[1][i] = column (transformation_matrix, 2)[i];
+  }
 
 
   KRATOS_CATCH("")
