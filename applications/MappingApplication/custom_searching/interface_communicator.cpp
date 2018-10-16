@@ -179,6 +179,14 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(InterfaceObject::Constr
         const auto elements_begin = mrModelPartOrigin.GetCommunicator().LocalMesh().Elements().ptr_begin();
         const auto conditions_begin = mrModelPartOrigin.GetCommunicator().LocalMesh().Conditions().ptr_begin();
 
+        // TODO sum those accross ranks!
+        KRATOS_ERROR_IF( (num_elements > 0 && num_conditions != 0) ||
+                         (num_elements != 0 && num_conditions > 0) )
+            << "Both Elements and Conditions are present which is not allowed!\n"
+            << "Name of ModelPart: " << mrModelPartOrigin.Name()
+            << "\nNumber of Elements: " << num_elements
+            << "; Number of Condition: " << num_conditions << std::endl;
+
         mpInterfaceObjectsOrigin->resize(num_elements+num_conditions); // one of them has to be zero!!!
 
         #pragma omp parallel for
