@@ -1016,6 +1016,7 @@ public:
             b[2] = 0.0;
         }
     }
+
     /**
      * @brief This computes a orthonormal basis from a given vector (Hughes Moeller method)
      * @param c The input vector
@@ -1038,6 +1039,31 @@ public:
             b /=  norm_2(b);         //  Normalize  b
         }
         UnitCrossProduct(a, b , c); //  Construct  a  using a cross  product
+    }
+
+    /**
+     * @brief This computes a orthonormal basis from a given vector (Naive method)
+     * @param c The input vector
+     * @param a First resulting vector
+     * @param b Second resulting vector
+     * @note Orthonormal basis taken from: http://orbit.dtu.dk/files/126824972/onb_frisvad_jgt2012_v2.pdf
+     */
+    template< class T1, class T2 , class T3>
+    static inline void OrthonormalBasisNaive(const T1& c,T2& a,T3& b ){
+        KRATOS_DEBUG_ERROR_IF_NOT(norm_2(c) < (1.0 - 1.0e-6) || norm_2(c) > (1.0 + 1.0e-6)) << "Input should be a normal vector" << std::endl;
+        // If c is near  the x-axis , use  the y-axis. Otherwise  use  the x-axis.
+        if(c[0] > 0.9f) {
+            a[0] = 0.0;
+            a[1] = 1.0;
+            a[2] = 0.0;
+        } else {
+            a[0] = 1.0;
+            a[1] = 0.0;
+            a[2] = 0.0;
+        }
+        a  -= c * inner_prod(a, c); // Make a  orthogonal  to c
+        a /=  norm_2(a);            //  Normalize  a
+        UnitCrossProduct(b, c, a);  //  Construct  b  using a cross  product
     }
 
     /**
