@@ -989,32 +989,16 @@ public:
      * @param c The input vector
      * @param a First resulting vector
      * @param b Second resulting vector
-     * @note Orthonormal basis taken from: http://orbit.dtu.dk/files/126824972/onb_frisvad_jgt2012_v2.pdf
+     * @param Type The type of method employed, 0 is HughesMoeller, 1 is Frisvad and otherwise Naive
      */
     template< class T1, class T2 , class T3>
-    static inline void OrthonormalBasisFrisvad(const T1& c,T2& a,T3& b ){
-        KRATOS_DEBUG_ERROR_IF_NOT(norm_2(c) < (1.0 - 1.0e-6) || norm_2(c) > (1.0 + 1.0e-6)) << "Input should be a normal vector" << std::endl;
-        if ((c[2] + 1.0) > ZeroTolerance) {
-            a[0] = 1.0 - std::pow(c[0], 2)/(1.0 + c[2]);
-            a[1] = - (c[0] * c[1])/(1.0 + c[2]);
-            a[2] = - c[0];
-            const double norm_a = norm_2(a);
-            KRATOS_DEBUG_ERROR_IF_NOT(norm_a < ZeroTolerance) << "Zero norm of the vector" << std::endl;
-            a /= norm_a;
-            b[0] = - (c[0] * c[1])/(1.0 + c[2]);
-            b[1] = 1.0 - std::pow(c[1], 2)/(1.0 + c[2]);
-            b[2] = -c[1];
-            const double norm_b = norm_2(b);
-            KRATOS_DEBUG_ERROR_IF_NOT(norm_b < ZeroTolerance) << "Zero norm of the vector" << std::endl;
-            b /= norm_b;
-        } else { // In case that the vector is in negative Z direction
-            a[0] = 1.0;
-            a[1] = 0.0;
-            a[2] = 0.0;
-            b[0] = 0.0;
-            b[1] = -1.0;
-            b[2] = 0.0;
-        }
+    static inline void OrthonormalBasis(const T1& c,T2& a,T3& b, const IndexType Type = 0 ){
+        if (Type == 0)
+            OrthonormalBasisHughesMoeller(c,a,b);
+        else if (Type == 1)
+            OrthonormalBasisFrisvad(c,a,b);
+        else
+            OrthonormalBasisNaive(c,a,b);
     }
 
     /**
@@ -1026,7 +1010,7 @@ public:
      */
     template< class T1, class T2 , class T3>
     static inline void OrthonormalBasisHughesMoeller(const T1& c,T2& a,T3& b ){
-        KRATOS_DEBUG_ERROR_IF_NOT(norm_2(c) < (1.0 - 1.0e-6) || norm_2(c) > (1.0 + 1.0e-6)) << "Input should be a normal vector" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(norm_2(c) < (1.0 - 1.0e-6) || norm_2(c) > (1.0 + 1.0e-6)) << "Input should be a normal vector" << std::endl;
         //  Choose a vector  orthogonal  to n as the  direction  of b2.
         if(std::abs(c[0]) > std::abs(c[2])) {
             b[0] =  c[1];
@@ -1042,6 +1026,37 @@ public:
     }
 
     /**
+     * @brief This computes a orthonormal basis from a given vector (Frisvad method)
+     * @param c The input vector
+     * @param a First resulting vector
+     * @param b Second resulting vector
+     * @note Orthonormal basis taken from: http://orbit.dtu.dk/files/126824972/onb_frisvad_jgt2012_v2.pdf
+     */
+    template< class T1, class T2 , class T3>
+    static inline void OrthonormalBasisFrisvad(const T1& c,T2& a,T3& b ){
+        KRATOS_DEBUG_ERROR_IF(norm_2(c) < (1.0 - 1.0e-3) || norm_2(c) > (1.0 + 1.0e-3)) << "Input should be a normal vector" << std::endl;
+        if ((c[2] + 1.0) > 1.0e4 * ZeroTolerance) {
+            a[0] = 1.0 - std::pow(c[0], 2)/(1.0 + c[2]);
+            a[1] = - (c[0] * c[1])/(1.0 + c[2]);
+            a[2] = - c[0];
+            const double norm_a = norm_2(a);
+            a /= norm_a;
+            b[0] = - (c[0] * c[1])/(1.0 + c[2]);
+            b[1] = 1.0 - std::pow(c[1], 2)/(1.0 + c[2]);
+            b[2] = -c[1];
+            const double norm_b = norm_2(b);
+            b /= norm_b;
+        } else { // In case that the vector is in negative Z direction
+            a[0] = 1.0;
+            a[1] = 0.0;
+            a[2] = 0.0;
+            b[0] = 0.0;
+            b[1] = -1.0;
+            b[2] = 0.0;
+        }
+    }
+
+    /**
      * @brief This computes a orthonormal basis from a given vector (Naive method)
      * @param c The input vector
      * @param a First resulting vector
@@ -1050,7 +1065,7 @@ public:
      */
     template< class T1, class T2 , class T3>
     static inline void OrthonormalBasisNaive(const T1& c,T2& a,T3& b ){
-        KRATOS_DEBUG_ERROR_IF_NOT(norm_2(c) < (1.0 - 1.0e-6) || norm_2(c) > (1.0 + 1.0e-6)) << "Input should be a normal vector" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(norm_2(c) < (1.0 - 1.0e-3) || norm_2(c) > (1.0 + 1.0e-3)) << "Input should be a normal vector" << std::endl;
         // If c is near  the x-axis , use  the y-axis. Otherwise  use  the x-axis.
         if(c[0] > 0.9f) {
             a[0] = 0.0;
