@@ -90,6 +90,18 @@
                 {
                     "type" : "average",
                     "variable": "PRESSURE"
+                },
+                {
+                    "type" : "variance",
+                    "variables": ["PRESSURE","VELOCITY"]
+                },
+                {
+                    "type" : "variance",
+                    "variables": ["VELOCITY"]
+                },
+                {
+                    "type" : "variance",
+                    "variables": ["VELOCITY_X","VELOCITY_Y"]
                 }
             ],
             "output_file_name": "statistics_test.csv"

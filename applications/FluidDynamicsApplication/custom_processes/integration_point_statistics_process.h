@@ -203,9 +203,13 @@ void CreateStatisticsFromInput(StatisticsRecord::Pointer pRecordedStatistics)
         {
             pRecordedStatistics->AddResult(CreateAverageSampler(settings,defined_statistics));
         }
+        else if ( statistic_type == "variance" )
+        {
+            pRecordedStatistics->AddHigherOrderStatistic(CreateVarianceSampler(settings,defined_statistics));
+        }
         else
         {
-            KRATOS_ERROR << "Unknown string \"" << statistic_type << " passed as \"type\" argument in statistics definition." << std::endl;
+            KRATOS_ERROR << "Unknown string \"" << statistic_type << "\" passed as \"type\" argument in statistics definition." << std::endl;
         }
     }
 
@@ -225,8 +229,8 @@ StatisticsSampler::Pointer CreateAverageSampler(
     std::string type = Parameters["type"].GetString();
     KRATOS_ERROR_IF_NOT(type == "average") << "Trying to define an average statistic of unsupported type " << type << "." << std::endl;
 
-    KRATOS_ERROR_IF_NOT(rDefinedStatistics.find(variable_name) != rDefinedStatistics.end())
-    << "Duplicate definition of an average for " << variable_name << std::endl;
+    KRATOS_ERROR_IF(rDefinedStatistics.find(variable_name) != rDefinedStatistics.end())
+    << "Duplicate definition of an average for " << variable_name << "." << std::endl;
 
     StatisticsSampler::Pointer new_statistic;
     if (KratosComponents<Variable<double>>::Has(variable_name))
@@ -253,7 +257,7 @@ StatisticsSampler::Pointer CreateAverageSampler(
         << "Trying to define an average statistic for variable " << variable_name
         << " which is not a variable of a supported type." << std::endl;
     }
-        
+
     rDefinedStatistics[variable_name] = new_statistic;
     return new_statistic;
 }
@@ -281,15 +285,65 @@ StatisticsSampler::Pointer CreateVarianceSampler(
         StatisticsDictionary::iterator it_average = rDefinedStatistics.find(variable_name);
         KRATOS_ERROR_IF(it_average == rDefinedStatistics.end())
         << "Trying to define a variance for " << variable_name
-        << " but no average has been defined for this variable" << std::endl;
-        
+        << " but no average has been defined for this variable." << std::endl;
+
         new_statistic = Kratos::make_shared<SymmetricVarianceSampler>(it_average->second);
     }
     else // size == 2
     {
         // complete or componentwise variance
+        std::string first_argument = Parameters["variables"][0].GetString();
+        std::string first_argument_base;
+        unsigned int first_argument_index;
+        bool first_argument_is_component = ProcessComponent(first_argument,first_argument_base,first_argument_index);
+
+        std::string second_argument = Parameters["variables"][1].GetString();
+        std::string second_argument_base;
+        unsigned int second_argument_index;
+        bool second_argument_is_component = ProcessComponent(second_argument,second_argument_base,second_argument_index);
+
+        KRATOS_ERROR_IF(first_argument_is_component != second_argument_is_component)
+        << "Mixing component and non-component variables when defining statistics is not yet supported." << std::endl;
+
+        if (first_argument_is_component)
+        {
+            // componentwise statistic
+            auto found = rDefinedStatistics.find(first_argument_base);
+            KRATOS_ERROR_IF(found == rDefinedStatistics.end())
+            << "Trying to record variance for " << first_argument << " and " << second_argument
+            << " but no average was declared for " << first_argument_base << "." << std::endl;
+            StatisticsSampler::Pointer first_statistic = found->second;
+
+            found = rDefinedStatistics.find(second_argument_base);
+            KRATOS_ERROR_IF(found == rDefinedStatistics.end())
+            << "Trying to record variance for " << first_argument << " and " << second_argument
+            << " but no average was declared for " << second_argument_base << "." << std::endl;
+            StatisticsSampler::Pointer second_statistic = found->second;
+
+            new_statistic = Kratos::make_shared<ComponentwiseVarianceSampler>(
+                first_statistic,first_argument_index,
+                second_statistic,second_argument_index);
+        }
+        else
+        {
+            // full variable statistic
+            auto found = rDefinedStatistics.find(first_argument);
+            KRATOS_ERROR_IF(found == rDefinedStatistics.end())
+            << "Trying to record variance for " << first_argument << " and " << second_argument
+            << " but no average was declared for " << first_argument << "." << std::endl;
+            StatisticsSampler::Pointer first_statistic = found->second;
+
+            found = rDefinedStatistics.find(second_argument);
+            KRATOS_ERROR_IF(found == rDefinedStatistics.end())
+            << "Trying to record variance for " << first_argument << " and " << second_argument
+            << " but no average was declared for " << second_argument << "." << std::endl;
+            StatisticsSampler::Pointer second_statistic = found->second;
+
+            new_statistic = Kratos::make_shared<VarianceSampler>(
+                first_statistic, second_statistic);
+        }
     }
-        
+
     //rDefinedStatistics[statistic_name] = new_statistic;
     return new_statistic;
 }
@@ -337,9 +391,38 @@ bool ProcessComponent(
 {
     bool is_component = false;
 
-    //TODO implement string manipulation
+    const std::string x_suffix = std::string("_X");
+    const std::string y_suffix = std::string("_Y");
+    const std::string z_suffix = std::string("_Z");
+
+    if( StringEndsWith(rInputName,x_suffix) )
+    {
+        is_component = true;
+        rBaseVariableName = rInputName.substr(0, rInputName.length() - 2);
+        rComponentIndex = 0;
+    }
+    else if ( StringEndsWith(rInputName,y_suffix) )
+    {
+        is_component = true;
+        rBaseVariableName = rInputName.substr(0, rInputName.length() - 2);
+        rComponentIndex = 1;
+    }
+    else if ( StringEndsWith(rInputName,z_suffix) )
+    {
+        is_component = true;
+        rBaseVariableName = rInputName.substr(0, rInputName.length() - 2);
+        rComponentIndex = 2;
+    }
 
     return is_component;
+}
+
+bool StringEndsWith(std::string const &rString, std::string const &rEnding) const {
+    if (rString.length() >= rEnding.length()) {
+        return (0 == rString.compare(rString.length() - rEnding.length(), rEnding.length(), rEnding));
+    } else {
+        return false;
+    }
 }
 
 ///@}
