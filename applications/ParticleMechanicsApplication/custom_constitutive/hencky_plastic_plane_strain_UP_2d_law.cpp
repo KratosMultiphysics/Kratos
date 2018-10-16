@@ -20,7 +20,6 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_plastic_plane_strain_UP_2d_law.hpp"
-//#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "particle_mechanics_application.h"
 
 namespace Kratos

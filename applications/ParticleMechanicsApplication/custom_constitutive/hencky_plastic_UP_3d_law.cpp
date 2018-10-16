@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_plastic_UP_3d_law.hpp"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 #include "particle_mechanics_application.h"
 
 namespace Kratos
@@ -132,7 +132,7 @@ void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialRe
 
     double tol = 1e-9;
     int iter = 100;
-    SolidMechanicsMathUtilities<double>::EigenVectors(rStressMatrix, eigen_vectors, eigen_values, tol, iter);
+    ParticleMechanicsMathUtilities<double>::EigenVectors(rStressMatrix, eigen_vectors, eigen_values, tol, iter);
 
     rStressMatrix.clear();
     for(unsigned int i=0; i<3; i++)

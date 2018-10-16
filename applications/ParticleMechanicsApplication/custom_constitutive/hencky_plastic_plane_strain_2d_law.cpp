@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_plastic_plane_strain_2d_law.hpp"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 #include "particle_mechanics_application.h"
 
 namespace Kratos
@@ -153,7 +153,7 @@ void HenckyElasticPlasticPlaneStrain2DLaw::CalculateHenckyMainStrain(const Matri
     Auxiliar(2,2) = 1.0;
     Matrix AuxEigenVectors = ZeroMatrix(3,3);
     Vector AuxEigenValues  = ZeroVector(3);
-    SolidMechanicsMathUtilities<double>::EigenVectors(Auxiliar, AuxEigenVectors, AuxEigenValues);
+    ParticleMechanicsMathUtilities<double>::EigenVectors(Auxiliar, AuxEigenVectors, AuxEigenValues);
 
 
     Matrix EigenVectors = ZeroMatrix(3,3);
