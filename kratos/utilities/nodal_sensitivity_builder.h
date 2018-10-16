@@ -89,14 +89,12 @@ private:
         if (r_comm.TotalProcesses() > 1)
         {
 // Make sure we only add the old sensitivity once when we assemble.
-#pragma omp parallel
+#pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfNodes()); ++i)
             {
-                ModelPart::NodeIterator nodes_begin;
-                ModelPart::NodeIterator nodes_end;
-                OpenMPUtils::PartitionedIterators(mrModelPart.Nodes(), nodes_begin, nodes_end);
-                for (auto it = nodes_begin; it != nodes_end; ++it)
-                    if (it->FastGetSolutionStepValue(PARTITION_INDEX) != r_comm.MyPID())
-                        it->FastGetSolutionStepValue(rVariable) = rVariable.Zero();
+                const auto it = mrModelPart.NodesBegin() + i;
+                if (it->FastGetSolutionStepValue(PARTITION_INDEX) != r_comm.MyPID())
+                    it->FastGetSolutionStepValue(rVariable) = rVariable.Zero();
             }
         }
 
@@ -137,7 +135,7 @@ private:
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
-#pragma omp for
+#pragma omp parallel for
         for (int i = 0; i < static_cast<int>(r_elements.size()); ++i)
         {
             const auto it = r_elements.begin() + i;
@@ -183,7 +181,7 @@ private:
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
-#pragma omp for
+#pragma omp parallel for
         for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i)
         {
             const auto it = r_conditions.begin() + i;
