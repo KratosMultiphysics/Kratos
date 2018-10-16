@@ -131,7 +131,7 @@ namespace Kratos {
 			KRATOS_CHECK_NEAR(RHS(5), 0.0176796, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(6), 28.2303, 1e-1);
 			KRATOS_CHECK_NEAR(RHS(7), 46.459, 1e-1);
-			KRATOS_CHECK_NEAR(RHS(8), 0.0202233, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(8), 0.0202928, 1e-7);
 		}
 
 	    // /** Checks the EmbeddedNavierStokes3D4N element.
