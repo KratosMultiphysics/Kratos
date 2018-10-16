@@ -29,27 +29,11 @@ namespace Kratos
 ///@addtogroup FluidDynamicsApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Internal container for integration point statistitcs on a given element.
+/** @see StatisticsRecord @see IntegrationPointStatisticsProcess.
   */
 class StatisticsData
 {
@@ -94,7 +78,11 @@ public:
     ///@name Operations
     ///@{
 
-
+    /// Initialize internal storage for this container.
+    /** @param rElement The element instance this container stores data for.
+     *  @param MeasurementSize Total number of quantities that are recorded.
+     *  For vector and matrix statistics, each component should be counted as a different quantity.
+     */
     void InitializeStorage(Element& rElement, std::size_t MeasurementSize)
     {
         const GeometryData::IntegrationMethod integration_method = rElement.GetIntegrationMethod();
@@ -104,8 +92,15 @@ public:
         mData = ZeroMatrix(number_of_integration_points, MeasurementSize);
     }
 
+    /// Record a new realization for the measured statistics.
+    /** This function assumes that InitializeStorage has been called in advance.
+     *  @param rElement The element instance this container stores data for.
+     *  @param rRecordedStatistics List of first order statistics stored in this container.
+     *  @param rHigherOrderStatistics List of higher order statistics stored in this container.
+     *  @param NumberOfMeasurements How many times this function has been called so far (including this one).
+     */
     void UpdateMeasurement(
-        const Element* pElement,
+        const Element& rElement,
         const PointerVector<StatisticsSampler>& rStatisticsSamplers,
         const PointerVector<StatisticsSampler>& rHigherOrderStatistics,
         ValueContainerType& rUpdate,
@@ -114,8 +109,8 @@ public:
         KRATOS_DEBUG_ERROR_IF(NumMeasurements == 0)
         << "Trying to update statistics, but providied number of recorded steps is zero" << std::endl;
 
-        const Geometry<Node<3>> &r_geometry = pElement->GetGeometry();
-        const GeometryData::IntegrationMethod integration_method = pElement->GetIntegrationMethod();
+        const Geometry<Node<3>> &r_geometry = rElement.GetGeometry();
+        const GeometryData::IntegrationMethod integration_method = rElement.GetIntegrationMethod();
         Matrix shape_functions;
         typename Geometry<Node<3>>::ShapeFunctionsGradientsType shape_gradients;
         this->CalculateGeometryData(r_geometry, integration_method, shape_functions, shape_gradients);
@@ -135,7 +130,7 @@ public:
                 // loop on higer order statistics. They require the already written rMeasurements, (const) mData and the number of steps as input
                 for (auto it_statistic = rHigherOrderStatistics.begin(); it_statistic != rHigherOrderStatistics.end(); ++it_statistic)
                 {
-                    it_statistic->SampleDataPoint(it_update_buffer, DataIterator(g), rUpdate, NumMeasurements);
+                    it_statistic->SampleDataPoint(it_update_buffer, IntegrationPointData(g), rUpdate, NumMeasurements);
                 }
             }
 
@@ -146,36 +141,14 @@ public:
         }
     }
 
-/*    void CalculateUpdateDelta(
-        const Element* pElement,
-        const std::vector<StatisticsSampler::Pointer>& rStatisticsSamplers,
-        ValueContainerType& rMeasurements,
-        std::size_t NumMeasurements) const
-    {
-        const Geometry< Node<3> >& r_geometry = pElement->GetGeometry();
-        const GeometryData::IntegrationMethod integration_method = pElement->GetIntegrationMethod();
-        Matrix shape_functions;
-        typename Geometry<Node<3>>::ShapeFunctionsGradientsType shape_gradients;
-        this->CalculateGeometryData(r_geometry,integration_method,shape_functions,shape_gradients);
-
-        auto it_measurement_buffer = rMeasurements.begin();
-        for (auto it_sampler = rStatisticsSamplers.begin(); it_sampler != rStatisticsSamplers.end(); ++it_sampler) {
-            //(**it_sampler).SampleDataPoint(r_geometry,shape_functions,shape_gradients,it_measurement_buffer);
-        }
-
-        // loop on higer order statistics. They require the already written rMeasurements, (const) mData and the number of steps as input
-    }
-
-    void UpdateMeasurement(const ValueContainerType& rUpdate)
-    {
-        for (unsigned int i = 0; i < mData.size(); i++)
-        {
-            mData[i] += rUpdate[i];
-        }
-    }*/
-
-    void Combine(const StatisticsData& rOther) {}
-
+    /// Write computed statistics to output file.
+    /** @param rOutputStream output file stream.
+     *  @param rElement Element instance this container stores data for.
+     *  @param rRecordedStatistics List of first order statistics stored in this container.
+     *  @param rHigherOrderStatistics List of higher order statistics stored in this container.
+     *  @param NumberOfMeasurements How many realizations have been recorded up to this point.
+     *  @param rSeparator Separator to use in the output file.
+     */
     void WriteToCSVOutput(
         std::ofstream& rOutputStream,
         const Element& rElement,
@@ -193,15 +166,15 @@ public:
         for (unsigned int g = 0; g < shape_functions.size1(); g++)
         {
             // Print element ID and integration point index
-            rOutputStream << rElement.Id() << ", " << g << ", ";
+            rOutputStream << rElement.Id() << rSeparator << g << rSeparator;
 
             // Print integration point coordinates
             array_1d<double,3> coordinates(3,0.0);
             for (unsigned int n = 0; n < shape_functions.size2(); n++)
                 coordinates += shape_functions(g,n) * r_geometry[n].Coordinates();
-            rOutputStream << coordinates[0] << rSeparator << coordinates[1] << rSeparator << coordinates[2]; // << ", ";
+            rOutputStream << coordinates[0] << rSeparator << coordinates[1] << rSeparator << coordinates[2];
 
-            auto data_iterator = DataIterator(g).begin();
+            auto data_iterator = IntegrationPointData(g).begin();
             for (auto it_sampler = rRecordedStatistics.begin(); it_sampler != rRecordedStatistics.end(); ++it_sampler)
             {
                 it_sampler->OutputResult(rOutputStream,data_iterator,NumberOfMeasurements,rSeparator);
@@ -216,33 +189,33 @@ public:
         }
     }
 
-    /*ValueContainerType Output() {
-        return mData;
-    }*/
-
-    void LoadFromFile() {}
-
-    void SaveToFile() {}
-
-    ///@}
-    ///@name Access
-    ///@{
-
     ///@}
     ///@name Inquiry
     ///@{
 
+    /// How many integration points this container holds data for.
     std::size_t NumberOfIntegrationPoints() const
     {
         return mData.size1();
     }
 
+    /// How many quantities this container holds data for.
+    /** When working with vector or matrix quantities, each individual component
+     *  is counted as a different quantity.
+     */
     std::size_t NumberOfStatisticalQuantities() const
     {
         return mData.size2();
     }
 
-    IntegrationPointDataView DataIterator(std::size_t IntegrationPointIndex)
+    ///@}
+    ///@name Access
+    ///@{
+
+    /// Access internal data for a given integration point.
+    /** @param IntegrationPointIndex index of the requested integration point.
+     */
+    IntegrationPointDataView IntegrationPointData(std::size_t IntegrationPointIndex)
     {
         KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex >= mData.size1())
             << "Asking for integration point number " << IntegrationPointIndex
@@ -250,7 +223,10 @@ public:
         return (mData.begin1() + IntegrationPointIndex);
     }
 
-    IntegrationPointDataConstView DataIterator(std::size_t IntegrationPointIndex) const
+    /// Access internal data for a given integration point.
+    /** @param IntegrationPointIndex index of the requested integration point.
+     */
+    IntegrationPointDataConstView IntegrationPointData(std::size_t IntegrationPointIndex) const
     {
         KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex >= mData.size1())
             << "Asking for integration point number " << IntegrationPointIndex
@@ -277,24 +253,9 @@ public:
     virtual void PrintData(std::ostream &rOStream) const {}
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
     ///@name Protected Operations
     ///@{
 
@@ -315,24 +276,9 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
 
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -349,34 +295,8 @@ private:
     void load(Serializer& rSerializer) {}
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
-    ///@}
 
 }; // Class StatisticsData
-
-///@}
-
-///@name Type Definitions
-///@{
 
 ///@}
 ///@name Input and output

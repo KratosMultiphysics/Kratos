@@ -70,7 +70,7 @@ void StatisticsRecord::UpdateStatistics(Element* pElement)
     << " does not have TURBULENCE_STATISTICS_DATA defined." << std::endl;
 
     auto &r_elemental_statistics = pElement->GetValue(TURBULENCE_STATISTICS_DATA);
-    r_elemental_statistics.UpdateMeasurement(pElement, mAverageData, mHigherOrderData, mUpdateBuffer, mRecordedSteps);
+    r_elemental_statistics.UpdateMeasurement(*pElement, mAverageData, mHigherOrderData, mUpdateBuffer, mRecordedSteps);
 }
 
 std::vector<double> StatisticsRecord::OutputForTest(ModelPart::ElementsContainerType& rElements) const
@@ -81,7 +81,7 @@ std::vector<double> StatisticsRecord::OutputForTest(ModelPart::ElementsContainer
         auto& r_statistics = it_element->GetValue(TURBULENCE_STATISTICS_DATA);
         for (std::size_t g = 0; g < r_statistics.NumberOfIntegrationPoints(); g++)
         {
-            auto data_iterator = r_statistics.DataIterator(g).begin();
+            auto data_iterator = r_statistics.IntegrationPointData(g).begin();
             for (auto it_average = mAverageData.begin(); it_average != mAverageData.end(); ++it_average)
             {
                 for(std::size_t index = 0; index < it_average->GetSize(); index++)

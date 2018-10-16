@@ -87,11 +87,6 @@ unsigned int GetSize() const {
     return mNumValues;
 }
 
-virtual unsigned int GetValueOffset() const
-{
-    KRATOS_ERROR << "Method not implemented" << std::endl;
-}
-
 virtual unsigned int GetComponentOffset(std::size_t i) const
 {
     KRATOS_DEBUG_ERROR_IF(i >= mNumValues)
@@ -99,11 +94,6 @@ virtual unsigned int GetComponentOffset(std::size_t i) const
     << mNumValues << " components are stored." << std::endl;
 
     return mOffset + i;
-}
-
-virtual std::size_t GetComponentOffset(std::size_t i, std::size_t j) const
-{
-    KRATOS_ERROR << "Method not implemented" << std::endl;
 }
 
 virtual std::size_t ComponentIndex(std::size_t i, std::size_t j) const
@@ -197,10 +187,6 @@ void SampleDataPoint(const Geometry< Node<3> >& rGeometry, const Vector& rShapeF
 {
     *BufferIterator = mGetter(rGeometry,rShapeFunctions,rShapeDerivatives);
     ++BufferIterator;
-}
-
-unsigned int GetValueOffset() const override {
-    return this->GetOffset();
 }
 
 void OutputHeader(

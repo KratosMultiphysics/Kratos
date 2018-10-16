@@ -50,9 +50,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-  */
+/// Main class for online statistics calculation.
+/** This class manages the definition, update and output of statistics calculated during a simulation.
+ *  It is intended to be stored as a ProcessInfo variable and called at specific points during the
+ *  simulation procedure.
+ *  @see IntegrationPointStatisticsProcess for an implementation using this to compute statistics at the mesh integration points.
+ */
 class StatisticsRecord
 {
 public:
@@ -78,34 +81,51 @@ public:
     {}
 
     ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
     ///@name Operations
     ///@{
 
+    /// Add one first order statistic to be tracked during the simulation.
+    /** @param[in] pResult pointer to the statistic quantity.
+     */
     void AddResult(StatisticsSampler::Pointer pResult);
 
+    /// Add one second or higher order statistic to be tracked during the simulation.
+    /** @param[in] pResult pointer to the statistic quantity.
+     */
     void AddHigherOrderStatistic(StatisticsSampler::Pointer pResult);
 
+    /// Initialize elemental storage for the tracked statistics.
+    /** Note that all results should be added before calling this.
+     *  @param rElements List of elements whose integration points will be used to record statistics.
+     */
     void InitializeStorage(ModelPart::ElementsContainerType& rElements);
 
+    /// Record a new sample point.
+    /** This function expects InitializeStorage to have been called in advance.
+     *  Normal usage will be to call this once for time step (or every time a new measurement is available).
+     *  It is also assumed that the elements will call the UpdateStatistics method of this class internally.
+     *  @see FluidElement for an example of use.
+     *  @param rModelPart ModelPart containing the elements where statistics are recorded.
+     */
     void SampleIntegrationPointResults(ModelPart& rModelPart);
 
+    /// Update statistics for a single element.
+    /** This function should be called by elements supporting statistics calculation on integration points.
+     *  @see FluidElement for an example of use.
+     *  @param rElement The element.
+     */
     void UpdateStatistics(Element* pElement);
 
-    std::vector<double> OutputForTest(ModelPart::ElementsContainerType& rElements) const;
-
+    /// Output recorded statistics to a comma-separated value file.
+    /** @param[in] rModelPart The model part instance where statistics are recorded.
+     *  @param[in] rOutputFileName Base name for the output file.
+     *  The .csv extension (and in MPI the rank) will be automatically appended to the provided file name.
+     */
     void PrintToFile(const ModelPart &rModelPart, const std::string& rOutputFileName) const;
 
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
+    /// Output current values of all recorded quantities as a vector of doubles.
+    /** Provided for debug and testing purposes ONLY. */
+    std::vector<double> OutputForTest(ModelPart::ElementsContainerType& rElements) const;
 
     ///@}
     ///@name Input and output
@@ -124,40 +144,6 @@ public:
 
     /// Print object's data.
     virtual void PrintData(std::ostream &rOStream) const {}
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
 
     ///@}
 
@@ -191,22 +177,6 @@ private:
     void save(Serializer& rSerializer) const {}
 
     void load(Serializer& rSerializer) {}
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
 
     ///@}
     ///@name Un accessible methods
