@@ -56,8 +56,9 @@ namespace Kratos
     void Model::DeleteModelPart( const std::string ModelPartName  ) 
     {
         KRATOS_TRY
-        
-        mRootModelPartMap.erase(ModelPartName);
+
+        if(this->HasModelPart(ModelPartName))
+            mRootModelPartMap.erase(ModelPartName);
         //NOTE: the corresponding variable list should NOT be removed
 
         KRATOS_CATCH("")
