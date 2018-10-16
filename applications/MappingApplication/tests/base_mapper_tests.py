@@ -126,9 +126,13 @@ class BaseMapperTests(MapperTestsBase):
 
         self.__ExecuteMapperTests(mapper_settings, values_file_name)
 
-    def _test_NearestElementMapper_volume(self): # TODO Implement
+    def test_NearestElementMapper_volume(self): # TODO Implement
+        # NOTE: the full ModelPart can not be used bcs it contains
+        # BOTH, elements and conditions, which is not allowed!
         mapper_settings = KratosMultiphysics.Parameters("""{
-            "mapper_type": "nearest_element"
+            "mapper_type": "nearest_element",
+            "interface_submodel_part_origin": "Parts_domain_tri",
+            "interface_submodel_part_destination": "Parts_domain_quad"
         }""")
         values_file_name = "nearest_element_volume"
 
