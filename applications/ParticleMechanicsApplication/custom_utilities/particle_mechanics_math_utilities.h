@@ -496,9 +496,9 @@ public:
 
         if(!(is_converged))
         {
-            std::cout<<"########################################################"<<std::endl;
-            std::cout<<"Max_Iterations exceed in Jacobi-Seidel-Iteration (eigenvectors)"<<std::endl;
-            std::cout<<"########################################################"<<std::endl;
+            KRATOS_INFO("ParticleMechanicsMathUtilities")<<"########################################################"<<std::endl;
+            KRATOS_INFO("ParticleMechanicsMathUtilities")<<"Max_Iterations exceed in Jacobi-Seidel-Iteration (eigenvectors)"<<std::endl;
+            KRATOS_INFO("ParticleMechanicsMathUtilities")<<"########################################################"<<std::endl;
         }
 
         for(unsigned int i=0; i< Help.size1(); i++)
@@ -530,7 +530,7 @@ public:
     {
 
         if(A.size1()!=3 || A.size2()!=3)
-            std::cout<<" GIVEN MATRIX IS NOT 3x3  eigenvectors calculation "<<std::endl;
+            KRATOS_ERROR<<" GIVEN MATRIX IS NOT 3x3  eigenvectors calculation "<<std::endl;
 
         Vector e(3);
         noalias(e) = ZeroVector(3);
