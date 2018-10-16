@@ -137,38 +137,32 @@ private:
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
-#pragma omp parallel
+#pragma omp for
+        for (int i = 0; i < static_cast<int>(r_elements.size()); ++i)
         {
-            ModelPart::ElementIterator elements_begin;
-            ModelPart::ElementIterator elements_end;
-            OpenMPUtils::PartitionedIterators(r_elements, elements_begin, elements_end);
-            int k = OpenMPUtils::ThisThread();
+            const auto it = r_elements.begin() + i;
+            const int k = OpenMPUtils::ThisThread();
+            Element::GeometryType& r_geom = it->GetGeometry();
 
-            for (auto it = elements_begin; it != elements_end; ++it)
-            {
-                Element::GeometryType& r_geom = it->GetGeometry();
+            if (HasActiveNodes(r_geom) == false)
+                continue;
 
-                if (HasActiveNodes(r_geom) == false)
-                    continue;
+            it->CalculateSensitivityMatrix(rVariable, sensitivity_matrix[k], r_process_info);
 
-                it->CalculateSensitivityMatrix(rVariable, sensitivity_matrix[k], r_process_info);
+            mpResponseFunction->CalculatePartialSensitivity(
+                *it, rVariable, sensitivity_matrix[k], partial_sensitivity[k], r_process_info);
 
-                mpResponseFunction->CalculatePartialSensitivity(
-                    *it, rVariable, sensitivity_matrix[k],
-                    partial_sensitivity[k], r_process_info);
+            it->GetValuesVector(adjoint_vector[k]);
 
-                it->GetValuesVector(adjoint_vector[k]);
+            if (local_sensitivity[k].size() != sensitivity_matrix[k].size1())
+                local_sensitivity[k].resize(sensitivity_matrix[k].size1(), false);
 
-                if (local_sensitivity[k].size() != sensitivity_matrix[k].size1())
-                    local_sensitivity[k].resize(sensitivity_matrix[k].size1(), false);
+            noalias(local_sensitivity[k]) =
+                ScalingFactor * (prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                                 partial_sensitivity[k]);
 
-                noalias(local_sensitivity[k]) =
-                    ScalingFactor * (prod(sensitivity_matrix[k], adjoint_vector[k]) +
-                                     partial_sensitivity[k]);
-
-                AssembleNodalSolutionStepSensitivityContribution(
-                    rVariable, local_sensitivity[k], r_geom);
-            }
+            AssembleNodalSolutionStepSensitivityContribution(
+                rVariable, local_sensitivity[k], r_geom);
         }
 
         KRATOS_CATCH("");
@@ -189,38 +183,32 @@ private:
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
-#pragma omp parallel
+#pragma omp for
+        for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i)
         {
-            ModelPart::ConditionIterator conditions_begin;
-            ModelPart::ConditionIterator conditions_end;
-            OpenMPUtils::PartitionedIterators(r_conditions, conditions_begin, conditions_end);
-            int k = OpenMPUtils::ThisThread();
+            const auto it = r_conditions.begin() + i;
+            const int k = OpenMPUtils::ThisThread();
+            Condition::GeometryType& r_geom = it->GetGeometry();
 
-            for (auto it = conditions_begin; it != conditions_end; ++it)
-            {
-                Condition::GeometryType& r_geom = it->GetGeometry();
+            it->CalculateSensitivityMatrix(rVariable, sensitivity_matrix[k], r_process_info);
 
-                it->CalculateSensitivityMatrix(rVariable, sensitivity_matrix[k], r_process_info);
+            if (sensitivity_matrix[k].size1() == 0 || HasActiveNodes(r_geom) == false)
+                continue;
 
-                if (sensitivity_matrix[k].size1() == 0 || HasActiveNodes(r_geom) == false)
-                    continue;
+            mpResponseFunction->CalculatePartialSensitivity(
+                *it, rVariable, sensitivity_matrix[k], partial_sensitivity[k], r_process_info);
 
-                mpResponseFunction->CalculatePartialSensitivity(
-                    *it, rVariable, sensitivity_matrix[k],
-                    partial_sensitivity[k], r_process_info);
+            it->GetValuesVector(adjoint_vector[k]);
 
-                it->GetValuesVector(adjoint_vector[k]);
+            if (local_sensitivity[k].size() != sensitivity_matrix[k].size1())
+                local_sensitivity[k].resize(sensitivity_matrix[k].size1(), false);
 
-                if (local_sensitivity[k].size() != sensitivity_matrix[k].size1())
-                    local_sensitivity[k].resize(sensitivity_matrix[k].size1(), false);
+            noalias(local_sensitivity[k]) =
+                ScalingFactor * (prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                                 partial_sensitivity[k]);
 
-                noalias(local_sensitivity[k]) =
-                    ScalingFactor * (prod(sensitivity_matrix[k], adjoint_vector[k]) +
-                                     partial_sensitivity[k]);
-
-                AssembleNodalSolutionStepSensitivityContribution(
-                    rVariable, local_sensitivity[k], r_geom);
-            }
+            AssembleNodalSolutionStepSensitivityContribution(
+                rVariable, local_sensitivity[k], r_geom);
         }
 
         KRATOS_CATCH("");
@@ -245,7 +233,8 @@ private:
         unsigned int index = 0;
         for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
         {
-            if (rGeom[i_node].GetValue(UPDATE_SENSITIVITIES))
+            const auto& r_node = rGeom[i_node];
+            if (r_node.GetValue(UPDATE_SENSITIVITIES))
             {
                 double& r_sensitivity = rGeom[i_node].FastGetSolutionStepValue(rVariable);
                 rGeom[i_node].SetLock();
@@ -264,7 +253,8 @@ private:
         unsigned int index = 0;
         for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
         {
-            if (rGeom[i_node].GetValue(UPDATE_SENSITIVITIES))
+            const auto& r_node = rGeom[i_node];
+            if (r_node.GetValue(UPDATE_SENSITIVITIES))
             {
                 array_1d<double, 3>& r_sensitivity =
                     rGeom[i_node].FastGetSolutionStepValue(rVariable);
