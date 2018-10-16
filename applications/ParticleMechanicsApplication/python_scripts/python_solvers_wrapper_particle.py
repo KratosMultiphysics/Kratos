@@ -16,8 +16,8 @@ def CreateSolver(model, custom_settings):
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        if (solver_type == "StaticSolver" or solver_type == "Static" or solver_type ==  "static"
-            solver_type == "DynamicSolver" or solver_type == "Dynamic" or solver_type ==  "dynamic"
+        if (solver_type == "StaticSolver" or solver_type == "Static" or solver_type ==  "static" or
+            solver_type == "DynamicSolver" or solver_type == "Dynamic" or solver_type ==  "dynamic" or
             solver_type == "QuasiStaticSolver" or solver_type == "Quasi-static" or solver_type ==  "quasi-static"):
 
             time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
