@@ -23,6 +23,7 @@ from design_logger_vtk import DesignLoggerVTK
 from value_logger_steepest_descent import ValueLoggerSteepestDescent
 from value_logger_penalized_projection import ValueLoggerPenalizedProjection
 from value_logger_trust_region import ValueLoggerTrustRegion
+from value_logger_bead_optimization import ValueLoggerBeadOptimization
 
 # ==============================================================================
 def CreateDataLogger( ModelPartController, Communicator, OptimizationSettings ):
@@ -51,6 +52,8 @@ class DataLogger():
             return ValueLoggerPenalizedProjection( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "trust_region":
             return ValueLoggerTrustRegion( self.Communicator, self.OptimizationSettings )
+        elif AlgorithmName == "bead_optimization":
+            return ValueLoggerBeadOptimization( self.Communicator, self.OptimizationSettings )
         else:
             raise NameError("The following optimization algorithm not supported by the response logger (name may be misspelled): " + AlgorithmName)
 
