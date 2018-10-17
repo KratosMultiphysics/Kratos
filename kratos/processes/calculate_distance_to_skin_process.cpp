@@ -59,12 +59,62 @@ namespace Kratos
 	void CalculateDistanceToSkinProcess<TDim>::CalculateDistances(
 		std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
 	{
-		// Base class elemental distance computation
-		CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDistances(rIntersectedObjects);
+		// Compute the discontinuous (elemental) distance field
+		const bool use_base_elemental_distance = false;
+		if (use_base_elemental_distance) {
+			// Use the base class elemental distance computation (includes plane optimization)
+			CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDistances(rIntersectedObjects);
+		} else {
+			// Use a naive elemental distance computation (without plane optimization)
+			this->CalculateElementalDistances(rIntersectedObjects);
+		}
 		// Get the minimum elemental distance value for each node
 		this->CalculateNodalDistances();
 		// Perform raycasting to sign the previous distance field
 		this->CalculateRayDistances();
+	}
+
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::CalculateElementalDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
+	{
+		const int number_of_elements = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
+		auto& r_elements = (CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
+
+		#pragma omp parallel for schedule(dynamic)
+		for (int i = 0; i < number_of_elements; ++i) {
+			Element &r_element = *(r_elements[i]);
+			PointerVector<GeometricalObject>& r_element_intersections = rIntersectedObjects[i]; 
+
+			// Check if the element has intersections
+			if (r_element_intersections.empty()) {
+				r_element.Set(TO_SPLIT, false);
+			} else {
+				// This function assumes tetrahedra element and triangle intersected object as input at this moment
+				constexpr int number_of_tetrahedra_points = TDim + 1;
+				constexpr double epsilon = std::numeric_limits<double>::epsilon();
+				Vector &elemental_distances = r_element.GetValue(ELEMENTAL_DISTANCES);
+
+				if (elemental_distances.size() != number_of_tetrahedra_points){
+					elemental_distances.resize(number_of_tetrahedra_points, false);
+				}
+
+				for (int i = 0; i < number_of_tetrahedra_points; i++) {
+					elemental_distances[i] = this->CalculateDistanceToNode(r_element.GetGeometry()[i], r_element_intersections, epsilon);
+				}
+
+				bool has_positive_distance = false;
+				bool has_negative_distance = false;
+				for (int i = 0; i < number_of_tetrahedra_points; i++){
+					if (elemental_distances[i] > epsilon) {
+						has_positive_distance = true;
+					} else {
+						has_negative_distance = true;
+					}
+				}
+
+				r_element.Set(TO_SPLIT, has_positive_distance && has_negative_distance);
+			}
+		}
 	}
 
 	template<std::size_t TDim>

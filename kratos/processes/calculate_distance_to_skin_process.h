@@ -98,6 +98,16 @@ public:
     void CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects) override;
 
     /**
+     * @brief Computes the discontinuous elemental distance
+     * This method firstly computes the elemental distances. The base discontinuous
+     * distance class is not used in this case since a naive elemental distance 
+     * (avoiding the complexities implemented in the base class) is enough to serve
+     * as base to compute the continuous distance field.
+     * @param rIntersectedObjects array containing pointers to the intersecting objects
+     */
+    void CalculateElementalDistances(std::vector<PointerVector<GeometricalObject>> &rIntersectedObjects);
+
+    /**
      * @brief Calculate the nodal distance for a given node
      * Given a list of the objects intersecting an element, this method computes the
      * minimum distance for a given node of such element. This is done by computing the
