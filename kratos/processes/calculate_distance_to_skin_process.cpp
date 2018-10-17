@@ -338,7 +338,7 @@ namespace Kratos
 			ray_point2[2] = 0.0;
 		}
 
-		for (object_container_type::iterator i_object = objects->begin(); i_object != objects->end(); i_object++){
+		for (object_container_type::iterator i_object = objects->begin(); i_object != objects->end(); ++i_object){
 			double intersection[3]={0.0, 0.0, 0.0};
 			int is_intersected = ComputeRayIntersection((*i_object)->GetGeometry(), ray_point1, ray_point2, intersection);
 			if (is_intersected == 1){ // There is an intersection but not coplanar

@@ -2,7 +2,6 @@
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
-import math
 import os
 
 def GetFilePath(fileName):
@@ -102,7 +101,7 @@ class TestCalculateDistanceToSkin(KratosUnittest.TestCase):
         KratosMultiphysics.CalculateDistanceToSkinProcess3D(model_part, skin_model_part).Execute()
 
         # Print results (left it here for debugging)
-        from gid_output_process import GiDOutputProcess
+        # from gid_output_process import GiDOutputProcess
         # gid_output = GiDOutputProcess(
         #     model_part,
         #     "test_naca_0012_calculate_distance_to_skin_3d_output",
