@@ -83,6 +83,12 @@ namespace Kratos
     // For Mapping
     KRATOS_CREATE_VARIABLE(int,MAPPING_ID);
 
+    // For auxiliary operations
+    KRATOS_CREATE_VARIABLE(double,SCALAR_VARIABLE);
+    KRATOS_CREATE_VARIABLE(double,SCALAR_VARIABLE_MAPPED);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE);
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE_MAPPED);
+
     // Eof variables
 
     KratosShapeOptimizationApplication::KratosShapeOptimizationApplication() :
@@ -144,6 +150,12 @@ namespace Kratos
 
         // For mapping
         KRATOS_REGISTER_VARIABLE(MAPPING_ID);
+
+        // For auxiliary operations
+        KRATOS_REGISTER_VARIABLE(SCALAR_VARIABLE);
+        KRATOS_REGISTER_VARIABLE(SCALAR_VARIABLE_MAPPED);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VECTOR_VARIABLE_MAPPED);
 
         // Register conditions
         KRATOS_REGISTER_CONDITION( "ShapeOptimizationCondition3D3N", mShapeOptimizationCondition3D3N );
