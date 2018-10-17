@@ -58,10 +58,7 @@ public:
     NearestElementInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                 const IndexType SourceLocalSystemIndex,
                                 const IndexType SourceRank)
-        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank)
-    {
-
-    }
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank) {}
 
     MapperInterfaceInfo::Pointer Create() const override
     {
@@ -72,9 +69,10 @@ public:
                                         const IndexType SourceLocalSystemIndex,
                                         const IndexType SourceRank=0) const override
     {
-        return Kratos::make_shared<NearestElementInterfaceInfo>(rCoordinates,
-                                                                SourceLocalSystemIndex,
-                                                                SourceRank);
+        return Kratos::make_shared<NearestElementInterfaceInfo>(
+            rCoordinates,
+            SourceLocalSystemIndex,
+            SourceRank);
     }
 
     void ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject,
@@ -83,17 +81,20 @@ public:
     void ProcessSearchResultForApproximation(const InterfaceObject::Pointer& rpInterfaceObject,
                                              const double NeighborDistance) override;
 
-    void GetValue(std::vector<int>& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+    void GetValue(std::vector<int>& rValue,
+                  const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
     {
         rValue = mNodeIds;
     }
 
-    void GetValue(std::vector<double>& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+    void GetValue(std::vector<double>& rValue,
+                  const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
     {
         rValue = mShapeFunctionValues;
     }
 
-    void GetValue(double& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+    void GetValue(double& rValue,
+                  const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
     {
         rValue = mClosestProjectionDistance;
     }
@@ -128,12 +129,9 @@ class NearestElementLocalSystem : public MapperLocalSystem
 {
 public:
 
-    NearestElementLocalSystem() { }
+    NearestElementLocalSystem() {}
 
-    NearestElementLocalSystem(NodePointerType pNode) : mpNode(pNode)
-    {
-
-    }
+    NearestElementLocalSystem(NodePointerType pNode) : mpNode(pNode) {}
 
     MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
     {

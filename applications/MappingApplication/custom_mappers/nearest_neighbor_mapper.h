@@ -51,13 +51,12 @@ class NearestNeighborInterfaceInfo : public MapperInterfaceInfo
 public:
 
     /// Default constructor.
-    NearestNeighborInterfaceInfo() {} // TODO needed? I think so, for serializetion...
+    NearestNeighborInterfaceInfo() {}
 
     NearestNeighborInterfaceInfo(const CoordinatesArrayType& rCoordinates,
-                                const IndexType SourceLocalSystemIndex,
-                                const IndexType SourceRank)
-        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank)
-    { }
+                                 const IndexType SourceLocalSystemIndex,
+                                 const IndexType SourceRank)
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank) {}
 
     MapperInterfaceInfo::Pointer Create() const override
     {
@@ -68,19 +67,23 @@ public:
                                         const IndexType SourceLocalSystemIndex,
                                         const IndexType SourceRank=0) const override
     {
-        return Kratos::make_shared<NearestNeighborInterfaceInfo>(rCoordinates,
-                                                                SourceLocalSystemIndex,
-                                                                SourceRank);
+        return Kratos::make_shared<NearestNeighborInterfaceInfo>(
+            rCoordinates,
+            SourceLocalSystemIndex,
+            SourceRank);
     }
 
-    void ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject, const double NeighborDistance) override;
+    void ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject,
+                             const double NeighborDistance) override;
 
-    void GetValue(int& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+    void GetValue(int& rValue,
+                  const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
     {
         rValue = mNearestNeighborId;
     }
 
-    void GetValue(double& rValue, const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
+    void GetValue(double& rValue,
+                  const InfoType ValueType=MapperInterfaceInfo::InfoType::Dummy) const override
     {
         rValue = mNearestNeighborDistance;
     }
@@ -111,9 +114,9 @@ class NearestNeighborLocalSystem : public MapperLocalSystem
 {
 public:
 
-    NearestNeighborLocalSystem() { }
+    NearestNeighborLocalSystem() {}
 
-    NearestNeighborLocalSystem(NodePointerType pNode) : mpNode(pNode) { }
+    NearestNeighborLocalSystem(NodePointerType pNode) : mpNode(pNode) {}
 
     MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
     {
