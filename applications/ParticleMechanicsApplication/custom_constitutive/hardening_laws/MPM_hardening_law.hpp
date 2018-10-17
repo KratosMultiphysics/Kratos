@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:		BSD License
-//					Kratos default license: kratos/license.txt
+//					    Kratos default license: kratos/license.txt
 //
 //  Main authors:    Bodhinanda Chandra
 //
@@ -57,6 +57,32 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMHardeningLaw
 {
 public:
 
+    struct Parameters
+    {
+    private:
+
+          double        mRateFactor;
+
+          const double* mpDeltaTime;
+
+    public:
+
+          //Set Parameters
+          void SetRateFactor  (double rRateFactor)         { mRateFactor = rRateFactor;     };
+          void SetDeltaTime   (const double& rDeltaTime)   { mpDeltaTime = &rDeltaTime;     };
+
+          //Get Parameters
+          const double& GetRateFactor  () const { return  mRateFactor;   };
+          const double& GetDeltaTime   () const { return *mpDeltaTime;   };
+
+          void print() const
+          {
+            KRATOS_INFO << " RateFactor " << mRateFactor  << std::endl;
+            KRATOS_INFO << " DeltaTime  " << *mpDeltaTime << std::endl;
+          }
+
+    };
+
 	  ///@name Type Definitions
     ///@{
 
@@ -106,21 +132,21 @@ public:
     ///@name Operations
     ///@{
     void InitializeMaterial (const Properties& rMaterialProperties)
-	{
-	  SetProperties(rMaterialProperties);
-	}
+    {
+      SetProperties(rMaterialProperties);
+    }
 
 
     void SetProperties (const Properties& rMaterialProperties)
-	{
-	  mpProperties = (PropertiesPointer)(&rMaterialProperties);
-	}
+    {
+      mpProperties = (PropertiesPointer)(&rMaterialProperties);
+    }
 
 
     const Properties& GetProperties()
-	{
-	  return *mpProperties;
-	}
+    {
+      return *mpProperties;
+    }
 
 
     virtual double& CalculateHardening(double &rHardening, const Parameters& rValues){ return rHardening; };
