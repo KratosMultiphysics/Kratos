@@ -139,6 +139,7 @@
             "reference_file_name"   : "mmg_lagrangian_test/beam2D_line_load_test_result.sol",
             "output_file_name"      : "mmg_lagrangian_test/beam2D_line_load_test_step=10.sol",
             "dimension"             : 2,
+            "decimal_places"        : 5,
             "comparison_type"       : "sol_file"
         }
     }

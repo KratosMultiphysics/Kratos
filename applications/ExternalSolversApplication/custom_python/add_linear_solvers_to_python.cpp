@@ -11,15 +11,14 @@
 //
 
 // System includes
-
-// External includes
 #include <complex>
 
+// External includes
 
 // Project includes
+#include "python/add_linear_solvers_to_python.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "python/add_linear_solvers_to_python.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/direct_solver.h"

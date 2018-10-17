@@ -1518,6 +1518,9 @@ int ModelPart::Check(ProcessInfo& rCurrentProcessInfo) const
         err = elem_iterator->Check(rCurrentProcessInfo);
     for (ConditionConstantIterator condition_iterator = ConditionsBegin(); condition_iterator != ConditionsEnd(); condition_iterator++)
         err = condition_iterator->Check(rCurrentProcessInfo);
+    for (MasterSlaveConstraintConstantIteratorType constraint_iterator = MasterSlaveConstraintsBegin(); 
+            constraint_iterator != MasterSlaveConstraintsEnd(); constraint_iterator++)
+        err = constraint_iterator->Check(rCurrentProcessInfo);
     return err;
     KRATOS_CATCH("");
 }
@@ -1548,7 +1551,7 @@ void ModelPart::PrintData(std::ostream& rOStream) const
     rOStream << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++)
     {
-        rOStream << "    Mesh " << i << " : " << std::endl;
+        rOStream << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, "    ");
     }
     rOStream << std::endl;
@@ -1581,7 +1584,7 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
     rOStream << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++)
     {
-        rOStream << PrefixString << "    Mesh " << i << " : " << std::endl;
+        rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, PrefixString + "    ");
     }
 

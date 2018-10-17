@@ -236,6 +236,24 @@ public:
         return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
+	/**
+     * @brief This method returns true if the yield
+	 * surfacecompares with the tension tield stress
+     */
+    static bool IsWorkingWithTensionThreshold()
+    {
+        return true;
+    }
+
+	/**
+     * @brief This method returns the scaling factor of the
+     * yield surface
+	 * surfacecompares with the tension tield stress
+     */
+    static double GetScaleFactorTension(const Properties& rMaterialProperties)
+    {
+        return 1.0;
+    }		
     ///@}
     ///@name Access
     ///@{

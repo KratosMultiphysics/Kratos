@@ -19,6 +19,7 @@ def Factory(settings, Model):
 
 class SimplifiedNodalContactProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
+        KratosMultiphysics.Process.__init__(self)
         self.settings = settings;
         self.Model = Model
 
