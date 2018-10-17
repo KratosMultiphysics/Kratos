@@ -48,7 +48,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class LinearSolverFactoryBase
+ * @class LinearSolverFactory
  * @ingroup KratosCore
  * @brief Here we add the functions needed for the registration of linear solvers
  * @details Defines the base linear solver factory
@@ -58,17 +58,17 @@ namespace Kratos
  * @param TLocalSpace The dense space definition
  */
 template< typename TSparseSpace, typename TLocalSpace>
-class LinearSolverFactoryBase
+class LinearSolverFactory
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// The definition of the custom class
-    typedef LinearSolverFactoryBase<TSparseSpace,TLocalSpace> FactoryType;
+    typedef LinearSolverFactory<TSparseSpace,TLocalSpace> FactoryType;
 
-    /// Pointer definition of LinearSolverFactoryBase
-    KRATOS_CLASS_POINTER_DEFINITION(LinearSolverFactoryBase );
+    /// Pointer definition of LinearSolverFactory
+    KRATOS_CLASS_POINTER_DEFINITION(LinearSolverFactory );
 
     ///@}
     ///@name Life Cycle
@@ -116,7 +116,7 @@ protected:
      */
     virtual typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer CreateHelper(Kratos::Parameters Settings)  const
     {
-        KRATOS_ERROR << "Calling the base class LinearSolverFactoryBase" << std::endl;
+        KRATOS_ERROR << "Calling the base class LinearSolverFactory" << std::endl;
     }
 
     ///@}
@@ -134,9 +134,9 @@ protected:
 /// output stream function
 template< typename TSparseSpace, typename TLocalSpace>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const LinearSolverFactoryBase<TSparseSpace, TLocalSpace>& rThis)
+                                  const LinearSolverFactory<TSparseSpace, TLocalSpace>& rThis)
 {
-    rOStream << "LinearSolverFactoryBase" << std::endl;
+    rOStream << "LinearSolverFactory" << std::endl;
 
     return rOStream;
 }

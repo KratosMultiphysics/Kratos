@@ -33,7 +33,7 @@ namespace Kratos
 
 
 template <typename TSparseSpace, typename TLocalSpace, typename TLinearSolverType>
-class LinearSolverFactory : public LinearSolverFactoryBase<TSparseSpace,TLocalSpace>
+class StandardLinearSolverFactory : public LinearSolverFactory<TSparseSpace,TLocalSpace>
 {
 protected:
 
@@ -56,9 +56,9 @@ protected:
 /// output stream function
 template <typename TSparseSpace, typename TLocalSpace, typename TLinearSolverType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const LinearSolverFactory<TSparseSpace,TLocalSpace,TLinearSolverType>& rThis)
+                                  const StandardLinearSolverFactory<TSparseSpace,TLocalSpace,TLinearSolverType>& rThis)
 {
-    rOStream << "LinearSolverFactory" << std::endl;
+    rOStream << "StandardLinearSolverFactory" << std::endl;
     return rOStream;
 }
 

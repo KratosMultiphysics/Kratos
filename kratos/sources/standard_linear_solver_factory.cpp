@@ -84,34 +84,34 @@ namespace Kratos
 
         typedef ScalingSolver<SpaceType,  LocalSpaceType> ScalingSolverType;
 
-        typedef LinearSolverFactoryBase<SpaceType,  LocalSpaceType> LinearSolverFactoryBaseType;
-        typedef LinearSolverFactoryBase<ComplexSpaceType,  ComplexLocalSpaceType> ComplexLinearSolverFactoryBaseType;
+        typedef LinearSolverFactory<SpaceType,  LocalSpaceType> LinearSolverFactoryType;
+        typedef LinearSolverFactory<ComplexSpaceType,  ComplexLocalSpaceType> ComplexLinearSolverFactoryType;
 
         //NOTE: here we must create persisting objects for the linear solvers
-        static auto CGSolverFactory = LinearSolverFactory<SpaceType,LocalSpaceType,CGSolverType>();
-        static auto BICGSTABSolverFactory = LinearSolverFactory<SpaceType,LocalSpaceType,BICGSTABSolverType>();
-        static auto DeflatedCGSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,DeflatedCGSolverType>();
-        static auto SkylineLUFactorizationSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,SkylineLUFactorizationSolverType>();
-//         static auto MixedUPLinearSolverFactory = LinearSolverFactory<SpaceType,LocalSpaceType,MixedUPLinearSolverType>();
-        static auto TFQMRSolverFactory = LinearSolverFactory<SpaceType,LocalSpaceType,TFQMRSolverType>();
-        static auto AMGCLSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,AMGCLSolverType>();
-        static auto AMGCL_NS_SolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,AMGCL_NS_SolverType>();
-        static auto ScalingSolverFactory= LinearSolverFactory<SpaceType,LocalSpaceType,ScalingSolverType>();
-        static auto SkylineLUComplexSolverFactory = LinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, SkylineLUComplexSolverType>();
+        static auto CGSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,CGSolverType>();
+        static auto BICGSTABSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,BICGSTABSolverType>();
+        static auto DeflatedCGSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,DeflatedCGSolverType>();
+        static auto SkylineLUFactorizationSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,SkylineLUFactorizationSolverType>();
+//         static auto MixedUPStandardLinearSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,MixedUPLinearSolverType>();
+        static auto TFQMRSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,TFQMRSolverType>();
+        static auto AMGCLSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,AMGCLSolverType>();
+        static auto AMGCL_NS_SolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,AMGCL_NS_SolverType>();
+        static auto ScalingSolverFactory= StandardLinearSolverFactory<SpaceType,LocalSpaceType,ScalingSolverType>();
+        static auto SkylineLUComplexSolverFactory = StandardLinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, SkylineLUComplexSolverType>();
 
         //registration of linear solvers
-//         KratosComponents<LinearSolverFactoryBaseType>::Add("LinearSolver", LinearSolverFactory<SpaceType,LocalSpaceType,LinearSolverType>());
-        KratosComponents<LinearSolverFactoryBaseType>::Add("CGSolver", CGSolverFactory);
-        KratosComponents<LinearSolverFactoryBaseType>::Add("BICGSTABSolver", BICGSTABSolverFactory);
-        KratosComponents<LinearSolverFactoryBaseType>::Add("DeflatedCGSolver", DeflatedCGSolverFactory);
-        KratosComponents<LinearSolverFactoryBaseType>::Add("TFQMRSolver", TFQMRSolverFactory);
-        KratosComponents<LinearSolverFactoryBaseType>::Add("SkylineLUFactorizationSolver",SkylineLUFactorizationSolverFactory );
-        KratosComponents<LinearSolverFactoryBaseType>::Add("AMGCL", AMGCLSolverFactory);
-        KratosComponents<LinearSolverFactoryBaseType>::Add("AMGCLSolver", AMGCLSolverFactory); //registered with two different names
-        KratosComponents<LinearSolverFactoryBaseType>::Add("AMGCL_NS_Solver",AMGCL_NS_SolverFactory );
-        KratosComponents<LinearSolverFactoryBaseType>::Add("ScalingSolver",ScalingSolverFactory );
-        KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("SkylineLUComplexSolver", SkylineLUComplexSolverFactory);
-        KratosComponents<ComplexLinearSolverFactoryBaseType>::Add("complex_skyline_lu_solver", SkylineLUComplexSolverFactory); // NOTE: Name duplicated for retrocompatibility
+//         KratosComponents<LinearSolverFactoryType>::Add("LinearSolver", StandardLinearSolverFactory<SpaceType,LocalSpaceType,LinearSolverType>());
+        KratosComponents<LinearSolverFactoryType>::Add("CGSolver", CGSolverFactory);
+        KratosComponents<LinearSolverFactoryType>::Add("BICGSTABSolver", BICGSTABSolverFactory);
+        KratosComponents<LinearSolverFactoryType>::Add("DeflatedCGSolver", DeflatedCGSolverFactory);
+        KratosComponents<LinearSolverFactoryType>::Add("TFQMRSolver", TFQMRSolverFactory);
+        KratosComponents<LinearSolverFactoryType>::Add("SkylineLUFactorizationSolver",SkylineLUFactorizationSolverFactory );
+        KratosComponents<LinearSolverFactoryType>::Add("AMGCL", AMGCLSolverFactory);
+        KratosComponents<LinearSolverFactoryType>::Add("AMGCLSolver", AMGCLSolverFactory); //registered with two different names
+        KratosComponents<LinearSolverFactoryType>::Add("AMGCL_NS_Solver",AMGCL_NS_SolverFactory );
+        KratosComponents<LinearSolverFactoryType>::Add("ScalingSolver",ScalingSolverFactory );
+        KratosComponents<ComplexLinearSolverFactoryType>::Add("SkylineLUComplexSolver", SkylineLUComplexSolverFactory);
+        KratosComponents<ComplexLinearSolverFactoryType>::Add("complex_skyline_lu_solver", SkylineLUComplexSolverFactory); // NOTE: Name duplicated for retrocompatibility
 
     };
 

@@ -123,7 +123,7 @@ public:
         if(!settings.Has("solver_type"))
             KRATOS_ERROR << "solver_type must be specified to construct the ScalingSolver" << std::endl;
 
-        mp_linear_solver = LinearSolverFactoryBase<TSparseSpaceType,TDenseSpaceType>().CreateSolver(settings );
+        mp_linear_solver = LinearSolverFactory<TSparseSpaceType,TDenseSpaceType>().CreateSolver(settings );
         msymmetric_scaling = true;
         
         KRATOS_CATCH("")

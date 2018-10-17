@@ -85,20 +85,20 @@ void  AddLinearSolversToPython(pybind11::module& m)
     //////////////////////////////////////////////////////////////7
     //HERE THE TOOLS TO REGISTER LINEAR SOLVERS
 
-    typedef LinearSolverFactoryBase< SpaceType, LocalSpaceType > LinearSolverFactoryBaseType;
-    typedef LinearSolverFactoryBase< ComplexSpaceType, ComplexLocalSpaceType > ComplexLinearSolverFactoryBaseType;
+    typedef LinearSolverFactory< SpaceType, LocalSpaceType > LinearSolverFactoryType;
+    typedef LinearSolverFactory< ComplexSpaceType, ComplexLocalSpaceType > ComplexLinearSolverFactoryType;
     typedef PreconditionerFactoryBase< SpaceType, LocalSpaceType > PreconditionerFactoryBaseType;
 
-    class_<LinearSolverFactoryBaseType, LinearSolverFactoryBaseType::Pointer>(m, "LinearSolverFactoryBase")
+    class_<LinearSolverFactoryType, LinearSolverFactoryType::Pointer>(m, "LinearSolverFactory")
      .def( init< >() )
-     .def("CreateSolver",&LinearSolverFactoryBaseType::CreateSolver)
-     .def("Has",&LinearSolverFactoryBaseType::Has)
+     .def("CreateSolver",&LinearSolverFactoryType::CreateSolver)
+     .def("Has",&LinearSolverFactoryType::Has)
     ;
 
-    class_<ComplexLinearSolverFactoryBaseType, ComplexLinearSolverFactoryBaseType::Pointer>(m, "ComplexLinearSolverFactoryBase")
+    class_<ComplexLinearSolverFactoryType, ComplexLinearSolverFactoryType::Pointer>(m, "ComplexLinearSolverFactory")
      .def( init< >() )
-     .def("CreateSolver",&ComplexLinearSolverFactoryBaseType::CreateSolver)
-     .def("Has",&ComplexLinearSolverFactoryBaseType::Has)
+     .def("CreateSolver",&ComplexLinearSolverFactoryType::CreateSolver)
+     .def("Has",&ComplexLinearSolverFactoryType::Has)
     ;
 
     class_<PreconditionerFactoryBaseType, PreconditionerFactoryBaseType::Pointer >(m, "PreconditionerFactoryBase")
