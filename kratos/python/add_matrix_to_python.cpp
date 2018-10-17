@@ -85,6 +85,8 @@ void  AddMatrixToPython(pybind11::module& m)
 	matrix_binder.def("fill_identity", [](DenseMatrix<double>& self) { self.fill_identity(); });
 #else
 	matrix_binder.def(init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
+	matrix_binder.def("fill", [](DenseMatrix<double>& self, const typename DenseMatrix<double>::value_type value) { noalias(self) = DenseMatrix<double>(self.size1(),self.size2(),value); });
+	matrix_binder.def("fill_identity", [](DenseMatrix<double>& self) { noalias(self) = IdentityMatrix(self.size1()); });
 #endif // KRATOS_USE_AMATRIX
     matrix_binder.def(init<const DenseMatrix<double>& >());
     matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const Vector& v){ return Vector(prod(m1,v));}, is_operator());
