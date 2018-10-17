@@ -363,12 +363,6 @@ public:
      */
     void TransferDataToCoarseLevel();
 
-    /* TODO: debug and move to AssignUniqueModelPArtCollectionTagUtility */
-    StringVectorType RecursiveGetSubModelPartNames(ModelPart& rThisModelPart, std::string Prefix = "");
-
-    /* TODO: debug and move to AssignUniqueModelPArtCollectionTagUtility */
-    ModelPart& RecursiveGetSubModelPart(ModelPart& rThisModelPart, std::string FullName);
-
     /**
      * @brief InitializeCoarseModelPart
      * @param rNames Is the vector containing the sub model part names

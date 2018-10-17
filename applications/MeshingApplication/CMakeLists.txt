@@ -36,15 +36,15 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refine_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/meshing_flags.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_error_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/integration_values_extrapolation_to_nodes_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/integration_values_extrapolation_to_nodes_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/multi_scale_refining_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
 )
 else(${INCLUDE_MMG} MATCHES ON)
 set( KRATOS_MESHING_APPLICATION_SOURCES    
@@ -57,13 +57,13 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refine_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/meshing_flags.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_error_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/integration_values_extrapolation_to_nodes_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/integration_values_extrapolation_to_nodes_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/multi_scale_refining_process.cpp
 )
 endif(${INCLUDE_MMG} MATCHES ON)

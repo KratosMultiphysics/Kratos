@@ -68,7 +68,6 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
     // Get the model part hierarchy
     StringVectorType sub_model_parts_names;
     sub_model_parts_names = mrCoarseModelPart.GetSubModelPartNames();
-    // sub_model_parts_names = RecursiveGetSubModelPartNames(mrCoarseModelPart);
 
     // Initialize the refined model part
     InitializeRefinedModelPart(sub_model_parts_names);
@@ -154,41 +153,6 @@ void MultiScaleRefiningProcess::ExecuteCoarsening()
 }
 
 
-MultiScaleRefiningProcess::StringVectorType MultiScaleRefiningProcess::RecursiveGetSubModelPartNames(
-    ModelPart& rThisModelPart,
-    std::string Prefix
-    )
-{
-    StringVectorType names = rThisModelPart.GetSubModelPartNames();
-    if (!Prefix.empty())
-        Prefix += ".";
-    
-    for (auto& name : names)
-    {
-        ModelPart& sub_model_part = rThisModelPart.GetSubModelPart(name);
-        auto sub_names = this->RecursiveGetSubModelPartNames(sub_model_part, Prefix + name);
-        name.insert(0, Prefix);
-        for (auto sub_name : sub_names)
-            names.push_back(sub_name);
-    }
-
-    return names;
-}
-
-
-ModelPart& MultiScaleRefiningProcess::RecursiveGetSubModelPart(ModelPart& rThisModelPart, std::string FullName)
-{
-    std::istringstream iss(FullName);
-    std::string token;
-    if (std::getline(iss, token, '.'))
-    {
-        ModelPart& aux_model_part = rThisModelPart.GetSubModelPart(token);
-        return RecursiveGetSubModelPart(aux_model_part, iss.str());
-    }
-    return rThisModelPart;
-}
-
-
 void MultiScaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart)
 {
     // Copy all the tables and properties
@@ -198,7 +162,6 @@ void MultiScaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceMode
     // Get the model part hierarchy
     StringVectorType sub_model_parts_names;
     sub_model_parts_names = rReferenceModelPart.GetSubModelPartNames();
-    // sub_model_parts_names = RecursiveGetSubModelPartNames(mrCoarseModelPart);
 
     // Copy the hierarchy to the refined model part
     for (auto name : sub_model_parts_names)
