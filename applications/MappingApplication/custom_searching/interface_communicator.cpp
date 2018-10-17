@@ -41,8 +41,6 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
 
     const double increase_factor = 4.0;
     IndexType num_iteration = 1;
-    bool last_iteration = (max_search_iterations == 1) ? true : false; // true in case only one search iteration is conducted // TODO needed???
-
     InitializeSearch(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
 
     // First Iteration is done outside the search loop bcs it has
@@ -55,8 +53,6 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
 
     while (++num_iteration <= max_search_iterations && !AllNeighborsFound(rComm)) {
         mSearchRadius *= increase_factor;
-
-        if (num_iteration == max_search_iterations) last_iteration = true; // TODO test if this works...
 
         KRATOS_WARNING_IF("Mapper", mEchoLevel >= 2 && rComm.MyPID() == 0)
             << "search radius was increased, another search iteration is conducted | "
@@ -246,7 +242,7 @@ void InterfaceCommunicator::ConductLocalSearch()
     if (num_interface_obj_bin > 0) { // this partition has a bin structure
         InterfaceObjectConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
         std::vector<double> neighbor_distances(num_interface_obj_bin);
-        auto interface_obj = Kratos::make_shared<InterfaceObject>(array_1d<double, 3>(0.0));
+        auto interface_obj(Kratos::make_shared<InterfaceObject>(array_1d<double, 3>(0.0)));
 
         for (auto& r_interface_infos_rank : (*mpMapperInterfaceInfosContainer)) { // loop the ranks
             // #pragma omp parallel for // TODO this requires to make some things thread-local!
