@@ -589,6 +589,18 @@ private:
 
 }; // Class Mapper
 
+/// output stream function
+template<class TSparseSpace, class TDenseSpace>
+inline std::ostream & operator << (
+    std::ostream& rOStream,
+    const Mapper<TSparseSpace, TDenseSpace>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << " : " << std::endl;
+    rThis.PrintData(rOStream);
+    return rOStream;
+}
+
 }  // namespace Kratos.
 
 #endif // KRATOS_MAPPER_H_INCLUDED  defined

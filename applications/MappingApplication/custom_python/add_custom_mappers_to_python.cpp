@@ -119,10 +119,11 @@ void (Mapper<TSparseSpace, TDenseSpace>::*pInverseMapVectorOptions)(const Variab
 template<class TSparseSpace, class TDenseSpace>
 void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
 {
+    typedef Mapper<TSparseSpace, TDenseSpace> MapperType;
     namespace py = pybind11;
     // Exposing the base class of the Mappers to Python, but without constructor
     const auto mapper
-        = py::class_< Mapper<TSparseSpace, TDenseSpace>, typename Mapper<TSparseSpace, TDenseSpace>::Pointer >(m, rName.c_str())
+        = py::class_< MapperType, typename MapperType::Pointer >(m, rName.c_str())
             .def("UpdateInterface",  UpdateInterfaceWithoutArgs<TSparseSpace, TDenseSpace>)
             .def("UpdateInterface",  UpdateInterfaceWithOptions<TSparseSpace, TDenseSpace>)
             .def("UpdateInterface",  UpdateInterfaceWithSearchRadius<TSparseSpace, TDenseSpace>)
@@ -131,13 +132,13 @@ void ExposeMapperToPython(pybind11::module& m, const std::string& rName)
             .def("InverseMap",       InverseMapWithoutOptionsScalar<TSparseSpace, TDenseSpace>)
             .def("InverseMap",       InverseMapWithoutOptionsVector<TSparseSpace, TDenseSpace>)
 
-            .def("UpdateInterface",  &Mapper<TSparseSpace, TDenseSpace>::UpdateInterface)
+            .def("UpdateInterface",  &MapperType::UpdateInterface)
             .def("Map",              pMapScalarOptions<TSparseSpace, TDenseSpace>)
             .def("Map",              pMapVectorOptions<TSparseSpace, TDenseSpace>)
             .def("InverseMap",       pInverseMapScalarOptions<TSparseSpace, TDenseSpace>)
             .def("InverseMap",       pInverseMapVectorOptions<TSparseSpace, TDenseSpace>)
 
-            .def("__repr__",         &Mapper<TSparseSpace, TDenseSpace>::Info)
+            .def("__str__",          KRATOS_DEF_PYTHON_STR(MapperType))
             ;
 
     // Adding the flags that can be used for mapping

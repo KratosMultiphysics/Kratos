@@ -232,17 +232,6 @@ void Mapper<TSparseSpace, TDenseSpace>::PrintPairingInfo()
     }
 }
 
-// /// input stream function
-// inline std::istream & operator >> (std::istream& rIStream, Mapper& rThis);
-
-// /// output stream function
-// inline std::ostream & operator << (std::ostream& rOStream, const Mapper& rThis) {
-//   rThis.PrintInfo(rOStream);
-//   rOStream << " : " << std::endl;
-//   rThis.PrintData(rOStream);
-//   return rOStream;
-// }
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 template class Mapper< MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType >;
