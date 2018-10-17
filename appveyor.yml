@@ -42,7 +42,9 @@ install:
 
 # Scripts to run before build
 before_build:
-  - cmd: cd C:\projects\kratos\applications\DelaunayMeshingApplication\external_modules
+  - cmd: cd C:\projects\kratos\applications\DelaunayMeshingApplication
+  - cmd: mkdir external_modules
+  - cmd: cd external_modules
   - cmd: curl -fsS -o tetgen.zip https://github.com/PFEM/tetgen/archive/0f0c1c95388d9a515e2383533c6b4f18524d9e76.zip
   - cmd: 7z e tetgen.zip
   - cmd: cd C:\projects\kratos\cmake_build
