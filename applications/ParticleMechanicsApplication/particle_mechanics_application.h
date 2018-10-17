@@ -20,7 +20,6 @@
 #include <iostream>
 
 // External includes
-#include "solid_mechanics_application.h"
 #include "particle_mechanics_application_variables.h"
 
 // Project includes
