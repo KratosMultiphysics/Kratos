@@ -101,7 +101,7 @@ public:
     /**
      * Map types to locate nodes in the mesh
      */
-    typedef std::unordered_map<IndexType, NodeType::Pointer> IndexNodeMapType;
+    // typedef std::unordered_map<IndexType, NodeType::Pointer> IndexNodeMapType;
 
     /**
      * Maps for AssignUniqueModelPartCollectionTagUtility
@@ -331,7 +331,7 @@ public:
 
     NodesArrayType mRefinedInterfaceContainer;
 
-    IndexNodeMapType mCoarseToRefinedNodesMap; /// Mapping from coarse to refined
+    // IndexNodeMapType mCoarseToRefinedNodesMap; /// Mapping from coarse to refined
 
     std::string mRefinedInterfaceName;
     std::string mInterfaceConditionName;
