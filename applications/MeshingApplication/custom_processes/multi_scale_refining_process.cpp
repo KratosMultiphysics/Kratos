@@ -389,7 +389,6 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
                 new_node->SetId(++rNodeId);
                 mrRefinedModelPart.AddNode(new_node);
                 mCoarseToRefinedNodesMap[coarse_node->Id()] = new_node;
-                mRefinedToCoarseNodesMap[rNodeId] = *coarse_node.base();
                 new_node->Set(TO_REFINE, false);
                 new_node->GetValue(FATHER_NODES).resize(0);
                 new_node->GetValue(FATHER_NODES).push_back( NodeType::WeakPointer(*coarse_node.base()) );
@@ -440,7 +439,6 @@ void MultiScaleRefiningProcess::IdentifyParentNodesToErase()
                     coarse_node->Set(MeshingFlags::TO_COARSEN, true);
                     coarse_node->Set(MeshingFlags::REFINED, false);
                     mCoarseToRefinedNodesMap.erase(search);
-                    mRefinedToCoarseNodesMap.erase(search->second->Id());
                 }
             }
         }

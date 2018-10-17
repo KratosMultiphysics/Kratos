@@ -332,7 +332,6 @@ public:
     NodesArrayType mRefinedInterfaceContainer;
 
     IndexNodeMapType mCoarseToRefinedNodesMap; /// Mapping from coarse to refined
-    IndexNodeMapType mRefinedToCoarseNodesMap; /// Mapping from refined to coarse
 
     std::string mRefinedInterfaceName;
     std::string mInterfaceConditionName;
