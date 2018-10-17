@@ -173,81 +173,8 @@ public:
 
 
     /// Execute method is used to execute the AssignScalarVariableToEntitiesProcess algorithms.
-    void Execute()  override
-    {
+    void Execute()  override;
 
-        KRATOS_TRY
-
-        if( mEntity == EntityType::NODES ){
-
-          if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
-          {
-            typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-            component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
-            AssignValueToNodes< component_type, double>(var_component , mdouble_value);
-          }
-          else if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
-          {
-            AssignValueToNodes<>(KratosComponents< Variable<double> >::Get(mvariable_name), mdouble_value);
-          }
-          else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
-          {
-            AssignValueToNodes<>(KratosComponents< Variable<int> >::Get(mvariable_name) , mint_value);
-          }
-          else if( KratosComponents< Variable<bool> >::Has( mvariable_name ) ) //case of bool variable
-          {
-            AssignValueToNodes<>(KratosComponents< Variable<bool> >::Get(mvariable_name), mbool_value);
-          }
-          else
-          {
-            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
-          }
-
-        }
-        else if( mEntity == EntityType::CONDITIONS ) {
-
-          if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
-          {
-            AssignValueToConditions<>(KratosComponents< Variable<double> >::Get(mvariable_name), mdouble_value);
-          }
-          else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
-          {
-            AssignValueToConditions<>(KratosComponents< Variable<int> >::Get(mvariable_name) , mint_value);
-          }
-          else if( KratosComponents< Variable<bool> >::Has( mvariable_name ) ) //case of bool variable
-          {
-            AssignValueToConditions<>(KratosComponents< Variable<bool> >::Get(mvariable_name), mbool_value);
-          }
-          else
-          {
-            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
-          }
-
-        }
-        else if( mEntity == EntityType::ELEMENTS ) {
-
-          if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
-          {
-            AssignValueToElements<>(KratosComponents< Variable<double> >::Get(mvariable_name), mdouble_value);
-          }
-          else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
-          {
-            AssignValueToElements<>(KratosComponents< Variable<int> >::Get(mvariable_name) , mint_value);
-          }
-          else if( KratosComponents< Variable<bool> >::Has( mvariable_name ) ) //case of bool variable
-          {
-            AssignValueToElements<>(KratosComponents< Variable<bool> >::Get(mvariable_name), mbool_value);
-          }
-          else
-          {
-            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
-          }
-
-        }
-
-        KRATOS_CATCH("");
-
-    }
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
@@ -287,37 +214,7 @@ public:
 
     /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
-    void ExecuteFinalize() override
-    {
-
-        KRATOS_TRY
-
-        if( mEntity == EntityType::CONDITIONS ){
-
-          if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
-          {
-            double double_value = 0;
-            AssignValueToConditions<>(KratosComponents< Variable<double> >::Get(mvariable_name), double_value);
-          }
-          else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
-          {
-            int int_value = 0;
-            AssignValueToConditions<>(KratosComponents< Variable<int> >::Get(mvariable_name), int_value);
-          }
-          else if( KratosComponents< Variable<bool> >::Has( mvariable_name ) ) //case of bool variable
-          {
-            bool bool_value = !mbool_value;
-            AssignValueToConditions<>(KratosComponents< Variable<bool> >::Get(mvariable_name), bool_value);
-          }
-          else
-          {
-            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
-          }
-        }
-
-        KRATOS_CATCH("")
-
-    }
+    void ExecuteFinalize() override;
 
 
     ///@}
@@ -449,6 +346,28 @@ protected:
         rNode.FastGetSolutionStepValue(rVariable) /= value;
     }
 
+
+    // override for the bool type (only direct assign)
+    // void AddAssignValue(ModelPart::NodeType& rNode, const Variable<bool>& rVariable, const bool& value)
+    // {
+    //   rNode.FastGetSolutionStepValue(rVariable) = value;
+    // }
+
+    // void SubtractAssignValue(ModelPart::NodeType& rNode, const Variable<bool>& rVariable, const bool& value)
+    // {
+    //   rNode.FastGetSolutionStepValue(rVariable) = value;
+    // }
+
+    // void MultiplyAssignValue(ModelPart::NodeType& rNode, const Variable<bool>& rVariable, const bool& value)
+    // {
+    //   rNode.FastGetSolutionStepValue(rVariable) = value;
+    // }
+
+    // void DivideAssignValue(ModelPart::NodeType& rNode, const Variable<bool>& rVariable, const bool& value)
+    // {
+    //   rNode.FastGetSolutionStepValue(rVariable) = value;
+    // }
+
     // elements and conditions
 
     template< class TEntityType, class TVarType, class TDataType >
@@ -533,8 +452,30 @@ protected:
       rEntity.SetValue(rVariable,DividedValue);
     }
 
+    // override for the bool type (only direct assign)
+    // template<class TEntityType>
+    // void AddAssignValue(TEntityType& rEntity, const Variable<bool>& rVariable, const bool& value)
+    // {
+    //   this->DirectAssignValue(rEntity,rVariable,value);
+    // }
 
+    // template<class TEntityType>
+    // void SubtractAssignValue(TEntityType& rEntity, const Variable<bool>& rVariable, const bool& value)
+    // {
+    //   this->DirectAssignValue(rEntity,rVariable,value);
+    // }
 
+    // template<class TEntityType>
+    // void MultiplyAssignValue(TEntityType& rEntity, const Variable<bool>& rVariable, const bool value)
+    // {
+    //   this->DirectAssignValue(rEntity,rVariable,value);
+    // }
+
+    // template<class TEntityType>
+    // void DivideAssignValue(TEntityType& rEntity, const Variable<bool>& rVariable, const bool& value)
+    // {
+    //   this->DirectAssignValue(rEntity,rVariable,value);
+    // }
 
     template< class TMethodPointerType >
     TMethodPointerType GetAssignmentMethod()
@@ -591,75 +532,13 @@ private:
     ///@{
 
     template< class TVarType, class TDataType >
-    void AssignValueToNodes(TVarType& rVariable, const TDataType value)
-    {
-        const int nnodes = mrModelPart.Nodes().size();
-
-        typedef void (AssignScalarVariableToEntitiesProcess::*AssignmentMethodPointer) (ModelPart::NodeType&, const TVarType&, const TDataType&);
-
-        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
-
-        if(nnodes != 0)
-        {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh().NodesBegin();
-
-            #pragma omp parallel for
-            for(int i = 0; i<nnodes; i++)
-            {
-                ModelPart::NodesContainerType::iterator it = it_begin + i;
-
-                (this->*AssignmentMethod)(*it, rVariable, value);
-            }
-        }
-    }
+    void AssignValueToNodes(const TVarType& rVariable, const TDataType value);
 
     template< class TVarType, class TDataType >
-    void AssignValueToConditions(TVarType& rVariable, const TDataType value)
-    {
-        const int nconditions = mrModelPart.GetMesh().Conditions().size();
-
-        typedef void (AssignScalarVariableToEntitiesProcess::*AssignmentMethodPointer) (ModelPart::ConditionType&, const TVarType&, const TDataType&);
-
-        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
-
-        if(nconditions != 0)
-        {
-            ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
-
-            #pragma omp parallel for
-            for(int i = 0; i<nconditions; i++)
-            {
-                ModelPart::ConditionsContainerType::iterator it = it_begin + i;
-
-                (this->*AssignmentMethod)(*it, rVariable, value);
-            }
-        }
-    }
+    void AssignValueToConditions(const TVarType& rVariable, const TDataType value);
 
     template< class TVarType, class TDataType >
-    void AssignValueToElements(TVarType& rVariable, const TDataType value)
-    {
-        const int nelements = mrModelPart.GetMesh().Elements().size();
-
-        typedef void (AssignScalarVariableToEntitiesProcess::*AssignmentMethodPointer) (ModelPart::ElementType&, const TVarType&, const TDataType&);
-
-        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
-
-        if(nelements != 0)
-        {
-            ModelPart::ElementsContainerType::iterator it_begin = mrModelPart.GetMesh().ElementsBegin();
-
-            #pragma omp parallel for
-            for(int i = 0; i<nelements; i++)
-            {
-                ModelPart::ElementsContainerType::iterator it = it_begin + i;
-
-                (this->*AssignmentMethod)(*it, rVariable, value);
-            }
-        }
-    }
-
-
+    void AssignValueToElements(const TVarType& rVariable, const TDataType value);
 
     ///@}
     ///@name Private Operations
@@ -689,7 +568,6 @@ private:
 
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
