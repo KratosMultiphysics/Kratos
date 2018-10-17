@@ -65,10 +65,6 @@ UniformRefinementUtility<TDim>::UniformRefinementUtility(ModelPart& rModelPart) 
 
     mStepDataSize = mrModelPart.GetNodalSolutionStepDataSize();
     mBufferSize = mrModelPart.GetBufferSize();
-
-    // Compute the sub model part maps
-    // SubModelPartsListUtility colors_utility(mrModelPart);
-    // colors_utility.ComputeSubModelPartsList(mNodesColorMap, mCondColorMap, mElemColorMap, mColors);
 }
 
 
@@ -181,10 +177,6 @@ void UniformRefinementUtility<TDim>::RemoveRefinedEntities(Flags ThisFlag)
     {
         if (node->Is(ThisFlag))
         {
-            // auto search = mNodesColorMap.find(node->Id());
-            // if (search != mNodesColorMap.end())
-            //     mNodesColorMap.erase(search);
-
             for (NodesInEdgeMapType::iterator pair = mNodesMap.begin(); pair != mNodesMap.end(); pair++)
             {
                 if (node->Id() == pair->second)
@@ -198,26 +190,6 @@ void UniformRefinementUtility<TDim>::RemoveRefinedEntities(Flags ThisFlag)
             }
         }
     }
-
-    // for (ModelPart::ElementIterator elem = mrModelPart.ElementsBegin(); elem < mrModelPart.ElementsEnd(); elem++)
-    // {
-    //     if (elem->Is(ThisFlag))
-    //     {
-    //         auto search = mElemColorMap.find(elem->Id());
-    //         if (search != mElemColorMap.end())
-    //             mElemColorMap.erase(search);
-    //     }
-    // }
-
-    // for (ModelPart::ConditionIterator cond = mrModelPart.ConditionsBegin(); cond < mrModelPart.ConditionsEnd(); cond++)
-    // {
-    //     if (cond->Is(ThisFlag))
-    //     {
-    //     auto search = mCondColorMap.find(cond->Id());
-    //     if (search != mCondColorMap.end())
-    //         mCondColorMap.erase(search);
-    //     }
-    // }
 
     // Remove the entities
     mrModelPart.RemoveNodesFromAllLevels(ThisFlag);
@@ -285,7 +257,6 @@ void UniformRefinementUtility<TDim>::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(3);
             for (auto edge : geom.Edges())
                 middle_nodes[i_edge++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
-            // AddNodesToSubModelParts(middle_nodes, mElemColorMap[i_element->Id()]);
 
             // Create the sub elements
             PointerVector<NodeType> sub_element_nodes(3);
@@ -303,7 +274,6 @@ void UniformRefinementUtility<TDim>::ExecuteDivision(
             for (auto edge : geom.Edges())
                 middle_nodes[i_edge++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
             middle_nodes[4] = GetNodeInFace(geom, step_divisions_level, rTagNodes);
-            // AddNodesToSubModelParts(middle_nodes, mElemColorMap[i_element->Id()]);
 
             // Create the sub elements
             PointerVector<NodeType> sub_element_nodes(4);
@@ -340,7 +310,6 @@ void UniformRefinementUtility<TDim>::ExecuteDivision(
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
         {
             NodeType::Pointer middle_node = GetNodeInEdge(geom, step_divisions_level, rTagNodes);
-            // AddNodeToSubModelParts(middle_node, mCondColorMap[i_condition->Id()]);
 
             // Create the sub conditions
             PointerVector<NodeType> sub_condition_nodes(2);
@@ -646,19 +615,6 @@ void UniformRefinementUtility<TDim>::CreateElement(
         // Store the father element pointer
         sub_element->SetValue(FATHER_ELEMENT, pOriginElement->GetValue(FATHER_ELEMENT));
 
-        // // Add the element to the sub model parts
-        // IndexType key = mElemColorMap[pOriginElement->Id()];
-        // if (key != 0)  // NOTE: key==0 is the main model part
-        // {
-        //     for (std::string sub_name : mColors[key])
-        //     {
-        //         ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
-        //         sub_model_part.AddElement(sub_element);
-        //     }
-        // }
-        // // Store the condition Id on the unique tag map
-        // mElemColorMap[sub_element->Id()] = key;
-
         // Store the created element on the tags map in order to later add it to the sub model parts
         IndexType tag = mElementsTags[pOriginElement->Id()];
         rTagElems[tag].push_back(sub_element->Id());
@@ -686,19 +642,6 @@ void UniformRefinementUtility<TDim>::CreateCondition(
         // Set the refinement level
         int& this_cond_level = sub_condition->GetValue(NUMBER_OF_DIVISIONS);
         this_cond_level = rNumberOfDivisions;
-
-        // // Add the conditions to the sub model parts
-        // IndexType key = mCondColorMap[pOriginCondition->Id()];
-        // if (key != 0)  // NOTE: key==0 is the main model part
-        // {
-        //     for (std::string sub_name : mColors[key])
-        //     {
-        //         ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
-        //         sub_model_part.AddCondition(sub_condition);
-        //     }
-        // }
-        // // Store the condition Id on the unique tag map
-        // mCondColorMap[sub_condition->Id()] = key;
 
         // Store the created condition on the tags map in order to later add it to the sub model parts
         IndexType tag = mConditionsTags[pOriginCondition->Id()];
@@ -834,48 +777,6 @@ PointerVector<NodeType> UniformRefinementUtility<TDim>::GetSubQuadrilateralNodes
 
     return sub_quadrilateral_nodes;
 }
-
-
-/// Add a node to the sub model parts specified by the tag
-// template<unsigned int TDim>
-// void UniformRefinementUtility<TDim>::AddNodeToSubModelParts(
-//     NodeType::Pointer pNode,
-//     IndexType Tag
-//     )
-// {
-//     if (Tag != 0)  // NOTE: Tag==0 is the main model part
-//     {
-//         for (auto sub_name : mColors[Tag])
-//         {
-//             ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
-//             sub_model_part.AddNode(pNode);
-//         }
-//     }
-//     // Store the node Id on the unique tag map
-//     mNodesColorMap[pNode->Id()] = Tag;
-// }
-
-
-/// Add a node to the sub model parts specified by the tag
-// template<unsigned int TDim>
-// void UniformRefinementUtility<TDim>::AddNodesToSubModelParts(
-//     std::vector<NodeType::Pointer>& rThisNodes,
-//     IndexType Tag
-//     )
-// {
-//     if (Tag != 0)  // NOTE: Tag==0 is the main model part
-//     {
-//         for (auto sub_name : mColors[Tag])
-//         {
-//             ModelPart& sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrModelPart, sub_name);
-//             for (auto node : rThisNodes)
-//                 sub_model_part.AddNode(node);
-//         }
-//     }
-//     // Store the node Id on the unique tag map
-//     for (auto node : rThisNodes)
-//         mNodesColorMap[node->Id()] = Tag;
-// }
 
 
 template class UniformRefinementUtility<2>;

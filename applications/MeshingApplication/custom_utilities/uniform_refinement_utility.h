@@ -252,11 +252,6 @@ private:
     IndexType mBufferSize;           /// The buffer size
     NodeType::DofsContainerType mDofs;  /// Storage for the dof of the node
 
-    std::unordered_map<IndexType,IndexType> mNodesColorMap;
-    std::unordered_map<IndexType,IndexType> mCondColorMap;
-    std::unordered_map<IndexType,IndexType> mElemColorMap;
-    std::unordered_map<IndexType,std::vector<std::string>> mColors;    /// Where the sub model parts IDs are stored
-
     NodesInEdgeMapType mNodesMap;              /// Where the father nodes IDs are stored
     NodesInFaceMapType mNodesInFaceMap;        /// Where the father nodes IDs are stored
 
@@ -452,18 +447,6 @@ private:
         const Geometry<NodeType>& rGeom,
         std::vector<NodeType::Pointer>& rMiddleNodes
         );
-
-    /**
-     * @brief AddNodeToSubModelParts adds a node to the sub model parts specified by a tag
-     * TODO: improve this function with Model
-     */
-    void AddNodeToSubModelParts(NodeType::Pointer pNode, IndexType Tag);
-
-    /**
-     * @brief AddNodeToSubModelParts adds the nodes to the sub model parts specified by a tag
-     * TODO: improve this function with Model
-     */
-    void AddNodesToSubModelParts(std::vector<NodeType::Pointer>& rThisNodes, IndexType Tag);
 
     ///@}
     ///@name Private  Access
