@@ -53,7 +53,9 @@ class AssignFlagProcess(KratosMultiphysics.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.value = settings["value"].GetBool()
-        self.entities = settings["entities"]
+        self.entities = []
+        for i in range(settings["entities"].size()):
+            self.entities.append[settings["entities"][i].GetString()]
 
         # Construct a variable_utils object to speedup fixing
         self.flag_utils = KratosMultiphysics.VariableUtils()
@@ -79,12 +81,12 @@ class AssignFlagProcess(KratosMultiphysics.Process):
 
             self.step_is_active = True
             
-            for i in range(self.entities.size()):
-                if (self.entities[i].GetString() == "nodes"):
+            for i in range(len(self.entities)):
+                if (self.entities[i] == "nodes"):
                     self.flag_utils.SetFlag(self.flag, self.value, self.model_part.Nodes)
-                elif (self.entities[i].GetString() == "conditions"):
+                elif (self.entities[i] == "conditions"):
                     self.flag_utils.SetFlag(self.flag, self.value, self.model_part.Conditions)
-                elif (self.entities[i].GetString() == "elements"):
+                elif (self.entities[i] == "elements"):
                     self.flag_utils.SetFlag(self.flag, self.value, self.model_part.Elements)
-                elif (self.entities[i].GetString() == "model_part"):
+                elif (self.entities[i] == "model_part"):
                     self.model_part.Set(self.flag, self.value)
