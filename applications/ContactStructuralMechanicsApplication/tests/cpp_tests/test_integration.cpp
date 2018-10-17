@@ -18,6 +18,7 @@
 #include "testing/testing.h"
 #include "spaces/ublas_space.h"
 #include "includes/properties.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
 
