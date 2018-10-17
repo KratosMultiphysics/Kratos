@@ -28,7 +28,7 @@ namespace Testing {
 KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite)
 {
     Model model;
-    ModelPart& model_part = model.CreateModelPart("Main",2);
+    ModelPart& model_part = model.CreateModelPart("Main",3);
 
     // Variables addition
     model_part.AddNodalSolutionStepVariable(DENSITY); // TODO: To be removed once the element migration is finally finished (the old embedded elements still use nodal density and viscosity)
