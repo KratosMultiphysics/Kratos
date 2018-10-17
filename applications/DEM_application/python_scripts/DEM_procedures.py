@@ -1311,7 +1311,7 @@ class MultifileList(object):
 
 class DEMIo(object):
 
-    def __init__(self, model, DEM_parameters, post_path):
+    def __init__(self, DEM_parameters, post_path, all_model_parts):
 
         self.post_path = post_path
         self.mixed_model_part = model.CreateModelPart("Mixed_Part")
