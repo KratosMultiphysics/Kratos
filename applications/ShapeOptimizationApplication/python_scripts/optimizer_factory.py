@@ -24,9 +24,25 @@ import communicator_factory
 import algorithm_factory
 
 # ==============================================================================
-def CreateOptimizer(optimization_settings, optimization_mdpa, external_analyzer=EmptyAnalyzer()):
+def CreateOptimizer(optimization_settings, model, external_analyzer=EmptyAnalyzer()):
 
-    model_part_controller = model_part_controller_factory.CreateController(optimization_settings, optimization_mdpa)
+    default_settings = Parameters("""
+    {
+        "model_settings" : { },
+        "objectives" : [ ],
+        "constraints" : [ ],
+        "design_variables" : { },
+        "optimization_algorithm" : { },
+        "output" : { }
+    }""")
+
+    for key in default_settings.keys():
+        if not optimization_settings.Has(key):
+            raise RuntimeError("CreateOptimizer: Required setting '{}' missing in 'optimization_settings'!".format(key))
+
+    optimization_settings.ValidateAndAssignDefaults(default_settings)
+
+    model_part_controller = model_part_controller_factory.CreateController(optimization_settings["model_settings"], model)
 
     analyzer = analyzer_factory.CreateAnalyzer(optimization_settings, model_part_controller, external_analyzer)
 
