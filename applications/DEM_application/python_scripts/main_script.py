@@ -544,7 +544,7 @@ class Solution(object):
             del self.DEM_inlet
 
     def SetGraphicalOutput(self):
-        self.demio = DEM_procedures.DEMIo(self.DEM_parameters, self.post_path, self.all_model_parts)
+        self.demio = DEM_procedures.DEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
         if self.DEM_parameters["post_vtk_option"].GetBool():
             import dem_vtk_output
             self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
