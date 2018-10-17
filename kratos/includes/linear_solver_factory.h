@@ -107,7 +107,7 @@ public:
 
     ///@}
 protected:
-    ///@name Private Operators
+    ///@name Protected Operators
     ///@{
 
     /**

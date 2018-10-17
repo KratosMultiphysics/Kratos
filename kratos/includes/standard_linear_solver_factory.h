@@ -30,25 +30,51 @@
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
 
+///@}
+///@name Type Definitions
+///@{
 
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/**
+ * @class StandardLinearSolverFactory
+ * @ingroup KratosCore
+ * @brief Here we add the functions needed for the registration of linear solvers
+ * @details Defines the standard linear solver factory
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ * @param TSparseSpace The sparse space definition
+ * @param TLocalSpace The dense space definition
+ * @param TLinearSolverType The linear solver type
+ */
 template <typename TSparseSpace, typename TLocalSpace, typename TLinearSolverType>
-class StandardLinearSolverFactory : public LinearSolverFactory<TSparseSpace,TLocalSpace>
+class StandardLinearSolverFactory
+    : public LinearSolverFactory<TSparseSpace,TLocalSpace>
 {
 protected:
 
     typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer CreateHelper(Kratos::Parameters settings) const override
     {
-
-        if(settings.Has("scaling") && settings["scaling"].GetBool() == true)
-        {
+        if(settings.Has("scaling") && settings["scaling"].GetBool()) {
             auto pinner_solver = typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer(new TLinearSolverType(settings));
 
             return typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer(
                        new ScalingSolver<TSparseSpace,TLocalSpace>(pinner_solver, true));
 
-        }
-        else
+        } else
             return typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer(new TLinearSolverType(settings));
     }
 };
