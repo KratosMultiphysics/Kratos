@@ -26,8 +26,8 @@ class SolutionDEM(main_script.Solution):
         self.gravities_filename = self.nvidia_flex_parameters["gravity_parameters"]["gravities_filename"].GetString()
         self.list_of_gravities = []
         self.gravity_iterator_position = 0
-        self.time_at_last_gravity_change = 0.0
         self.stop_signal = False
+        self.time_of_last_gravity_shift = 0.0
 
     def Initialize(self):
         super(SolutionDEM, self).Initialize()
@@ -42,10 +42,14 @@ class SolutionDEM(main_script.Solution):
 
     def SolverSolve(self):
         super(SolutionDEM, self).SolverSolve()
+        self._ChangeGravityIfNecessary()
+        
+    def _ChangeGravityIfNecessary(self):
         if self.changing_gravity_option:
-            if NvidiaFlexPreUtilities().CheckIfItsTimeToChangeGravity(self.spheres_model_part, self.time_at_last_gravity_change, self.velocity_threshold_for_gravity_change, self.min_time_between_gravity_changes, self.max_time_between_gravity_changes):
+            if NvidiaFlexPreUtilities().CheckIfItsTimeToChangeGravity(self.spheres_model_part, self.time_of_last_gravity_shift, self.velocity_threshold_for_gravity_change, self.min_time_between_gravity_changes, self.max_time_between_gravity_changes):
                 #TODO: utility of max_time_between_gravity_changes??
                 self._ChangeGravity()
+        print(self.time_of_last_gravity_shift)
 
     def _ReadFileWithGravities(self):
         print("Reading gravity values from columns 3 to 5, starting from 0, from file " + self.gravities_filename + "...")
@@ -82,7 +86,7 @@ class SolutionFlex(SolutionDEM):
         self.dt = flex_delta_time
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, flex_delta_time)
         self.number_of_steps_until_flex_update = self.nvidia_flex_parameters["number_of_steps_until_flex_update"].GetInt()
-
+        
     def Run(self):
         self.nvidia_flex_wrapper = FlexWrapper(self.spheres_model_part, self.rigid_face_model_part, self.creator_destructor, self.nvidia_flex_parameters["physics_parameters"])
         super(SolutionFlex, self).Run()
@@ -98,9 +102,7 @@ class SolutionFlex(SolutionDEM):
 
         self.nvidia_flex_wrapper.SolveTimeSteps(self.dt, 1) #DO NOT CHANGE THIS 1, OR INSTABILITIES MAY APPEAR
         self.nvidia_flex_wrapper.TransferDataFromFlexToKratos()
-        if self.changing_gravity_option:
-            if NvidiaFlexPreUtilities().CheckIfItsTimeToChangeGravity(self.spheres_model_part, self.time_at_last_gravity_change, self.velocity_threshold_for_gravity_change, self.min_time_between_gravity_changes, self.max_time_between_gravity_changes):
-                self._ChangeGravity()
+        self._ChangeGravityIfNecessary()
 
     def _CheckNvidiaParameters(self):
         min_time_step = 1e-3

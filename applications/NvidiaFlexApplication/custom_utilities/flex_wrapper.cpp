@@ -33,7 +33,7 @@ namespace Kratos {
                             mrParticleCreatorDestructor(rParticleCreatorDestructor),
                             mInputParameters(physics_parameters) {
 
-        mMaxparticles = 100000; //10000;
+        mMaxparticles = 200000; //10000;
         // a setting of -1 means Flex will use the device specified in the NVIDIA control panel
         mInitDesc.deviceIndex = -1;
         mInitDesc.enableExtensions = true;
@@ -307,7 +307,7 @@ namespace Kratos {
         mFlexParameters.particleCollisionMargin = mFlexParameters.radius * 0.05f; //0.5f; //0.05f;
         mFlexParameters.collisionDistance = mFlexParameters.radius * 0.5f;
         mFlexParameters.shapeCollisionMargin = mFlexParameters.collisionDistance * 0.05f; //1.0f; // * 0.05f;
-        mFlexParameters.sleepThreshold = 0.001f; //0.005f //OK? //0.0f;
+        mFlexParameters.sleepThreshold = 0.0f; //0.005f //OK? //0.0f;
         mFlexParameters.shockPropagation = 0.0f;
 
         mFlexParameters.maxSpeed = 100.0f; //FLT_MAX;
