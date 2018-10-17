@@ -15,7 +15,6 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 #include "includes/standard_linear_solver_factory.h"
@@ -31,36 +30,8 @@
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "spaces/ublas_space.h"
 
-#include "linear_solvers/preconditioner.h"
-#include "linear_solvers/diagonal_preconditioner.h"
-#include "linear_solvers/ilu0_preconditioner.h"
-#include "linear_solvers/ilu_preconditioner.h"
-
 namespace Kratos
 {
-    void RegisterPreconditioners()
-    {
-        typedef TUblasSparseSpace<double> SpaceType;
-        typedef TUblasDenseSpace<double> LocalSpaceType;
-
-        typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
-        typedef DiagonalPreconditioner<SpaceType,  LocalSpaceType> DiagonalPreconditionerType;
-        typedef ILU0Preconditioner<SpaceType,  LocalSpaceType> ILU0PreconditionerType;
-        typedef ILUPreconditioner<SpaceType,  LocalSpaceType> ILUPreconditionerType;
-
-        //NOTE: here we must create persisting objects for the linear solvers
-        static auto PreconditionerF = PreconditionerFactory<SpaceType,LocalSpaceType,PreconditionerType>();
-        static auto DiagonalPreconditionerFactory = PreconditionerFactory<SpaceType,LocalSpaceType,DiagonalPreconditionerType>();
-        static auto ILU0Factory= PreconditionerFactory<SpaceType,LocalSpaceType,ILU0PreconditionerType>();
-        static auto ILUFactory= PreconditionerFactory<SpaceType,LocalSpaceType,ILUPreconditionerType>();
-
-        //registration of linear solvers
-        KRATOS_REGISTER_PRECONDITIONER("None", PreconditionerF);
-        KRATOS_REGISTER_PRECONDITIONER("DiagonalPreconditioner", DiagonalPreconditionerFactory);
-        KRATOS_REGISTER_PRECONDITIONER("ILU0Preconditioner", ILU0Factory);
-        KRATOS_REGISTER_PRECONDITIONER("ILUPreconditioner",ILUFactory );
-    };
-
     void RegisterLinearSolvers()
     {
         typedef TUblasSparseSpace<double> SpaceType;
@@ -108,9 +79,5 @@ namespace Kratos
         KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("complex_skyline_lu_solver", SkylineLUComplexSolverFactory); // NOTE: Name duplicated for retrocompatibility
 
     };
-
-
-
-
 } // Namespace Kratos
 

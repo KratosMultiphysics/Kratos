@@ -17,22 +17,15 @@
 #define  KRATOS_LINEAR_SOLVER_H_INCLUDED
 
 
-
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
 
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "reorderer.h"
 #include "includes/model_part.h"
-
 
 namespace Kratos
 {

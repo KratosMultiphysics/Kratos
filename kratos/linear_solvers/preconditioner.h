@@ -22,9 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
-#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -396,74 +394,6 @@ inline std::ostream& operator << (std::ostream& OStream,
     return OStream;
 }
 ///@}
-
-
-template< typename TSparseSpace, typename TlocalSpace>
-class PreconditionerFactoryBase
-{
-public:
-    KRATOS_CLASS_POINTER_DEFINITION(PreconditionerFactoryBase );
-
-    virtual typename Preconditioner<TSparseSpace,TlocalSpace>::Pointer CreatePreconditioner(const std::string preconditioner_type)
-    {
-        if(KratosComponents< PreconditionerFactoryBase<TSparseSpace,TlocalSpace> >::Has( preconditioner_type )== false)
-        {
-        KRATOS_ERROR << "trying to construct a preconditioner with type preconditioner_type= " << preconditioner_type << std::endl <<
-                         "which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
-                         KratosComponents< PreconditionerFactoryBase<TSparseSpace,TlocalSpace> >() << std::endl;
-        }
-        const auto& aux = KratosComponents< PreconditionerFactoryBase<TSparseSpace,TlocalSpace> >::Get( preconditioner_type );
-        return aux.CreateHelper();
-    }
-protected:
-    virtual typename Preconditioner<TSparseSpace,TlocalSpace>::Pointer CreateHelper()  const
-    {
-        KRATOS_ERROR << "calling the base class PreconditionerFactoryBase" << std::endl;
-    }
-};
-
-/// output stream function
-template< typename TSparseSpace, typename TlocalSpace>
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const PreconditionerFactoryBase<TSparseSpace, TlocalSpace>& rThis)
-{
-    rOStream << "PreconditionerFactoryBase" << std::endl;
-
-    return rOStream;
-}
-
-
-template <typename TSparseSpace, typename TlocalSpace, typename TPreconditionerType>
-class PreconditionerFactory : public PreconditionerFactoryBase<TSparseSpace,TlocalSpace>
-{
-protected:
-
-    typename Preconditioner<TSparseSpace,TlocalSpace>::Pointer CreateHelper() const override
-    {
-            return typename Preconditioner<TSparseSpace,TlocalSpace>::Pointer(new TPreconditionerType());
-    }
-};
-
-/// output stream function
-template <typename TSparseSpace, typename TlocalSpace, typename TPreconditionerType>
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const PreconditionerFactory<TSparseSpace,TlocalSpace,TPreconditionerType>& rThis)
-{
-    rOStream << "PreconditionerFactory" << std::endl;
-
-    return rOStream;
-}
-
-typedef TUblasSparseSpace<double> SparseSpaceType;
-typedef TUblasDenseSpace<double> LocalSparseSpaceType;
-
-typedef PreconditionerFactoryBase<SparseSpaceType, LocalSparseSpaceType> PreconditionerFactoryBaseType;
-
-#ifdef KRATOS_REGISTER_PRECONDITIONER
-#undef KRATOS_REGISTER_PRECONDITIONER
-#endif
-#define KRATOS_REGISTER_PRECONDITIONER(name, reference) \
-    KratosComponents<PreconditionerFactoryBaseType>::Add(name, reference);
 
 }  // namespace Kratos.
 

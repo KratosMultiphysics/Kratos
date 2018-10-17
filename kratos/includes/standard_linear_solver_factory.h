@@ -14,18 +14,14 @@
 #if !defined(KRATOS_STANDARD_LINEAR_SOLVER_FACTORY_H_INCLUDED )
 #define  KRATOS_STANDARD_LINEAR_SOLVER_FACTORY_H_INCLUDED
 
-
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
-#include "linear_solvers/preconditioner.h"
 #include "linear_solvers/scaling_solver.h"
 
 namespace Kratos
@@ -64,6 +60,13 @@ template <typename TSparseSpace, typename TLocalSpace, typename TLinearSolverTyp
 class StandardLinearSolverFactory
     : public LinearSolverFactory<TSparseSpace,TLocalSpace>
 {
+    ///@name Type Definitions
+    ///@{
+
+    /// The definition of the preconditioner
+    typedef LinearSolver<TSparseSpace,TLocalSpace> LinearSolverType;
+
+    ///@}
 protected:
     ///@name Protected Operators
     ///@{
@@ -72,16 +75,15 @@ protected:
      * @brief This method is an auxiliar method to create a new solver
      * @return The pointer to the solver of interest
      */
-    typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer CreateHelper(Kratos::Parameters settings) const override
+    typename LinearSolverType::Pointer CreateHelper(Kratos::Parameters settings) const override
     {
         if(settings.Has("scaling") && settings["scaling"].GetBool()) {
-            auto pinner_solver = typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer(new TLinearSolverType(settings));
+            auto pinner_solver = typename LinearSolverType::Pointer(new TLinearSolverType(settings));
 
-            return typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer(
-                       new ScalingSolver<TSparseSpace,TLocalSpace>(pinner_solver, true));
+            return typename LinearSolverType::Pointer(new ScalingSolver<TSparseSpace,TLocalSpace>(pinner_solver, true));
 
         } else
-            return typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer(new TLinearSolverType(settings));
+            return typename LinearSolverType::Pointer(new TLinearSolverType(settings));
     }
     ///@}
 };
@@ -107,7 +109,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 ///@name Input and output
 
-void RegisterPreconditioners();
 void RegisterLinearSolvers();
 
 ///@}

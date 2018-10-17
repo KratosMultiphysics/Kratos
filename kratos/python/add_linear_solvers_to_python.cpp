@@ -44,7 +44,8 @@
 #include "linear_solvers/rayleigh_quotient_iteration_eigenvalue_solver.h"
 #include "linear_solvers/deflated_gmres_solver.h"
 
-#include "includes/standard_linear_solver_factory.h"
+#include "includes/linear_solver_factory.h"
+#include "includes/preconditioner_factory.h"
 
 namespace Kratos
 {
@@ -87,7 +88,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
 
     typedef LinearSolverFactory< SpaceType, LocalSpaceType > LinearSolverFactoryType;
     typedef LinearSolverFactory< ComplexSpaceType, ComplexLocalSpaceType > ComplexLinearSolverFactoryType;
-    typedef PreconditionerFactoryBase< SpaceType, LocalSpaceType > PreconditionerFactoryBaseType;
+    typedef PreconditionerFactory< SpaceType, LocalSpaceType > PreconditionerFactoryType;
 
     class_<LinearSolverFactoryType, LinearSolverFactoryType::Pointer>(m, "LinearSolverFactory")
      .def( init< >() )
@@ -101,9 +102,9 @@ void  AddLinearSolversToPython(pybind11::module& m)
      .def("Has",&ComplexLinearSolverFactoryType::Has)
     ;
 
-    class_<PreconditionerFactoryBaseType, PreconditionerFactoryBaseType::Pointer >(m, "PreconditionerFactoryBase")
+    class_<PreconditionerFactoryType, PreconditionerFactoryType::Pointer >(m, "PreconditionerFactory")
      .def( init< >() )
-     .def("CreatePreconditioner",&PreconditionerFactoryBaseType::CreatePreconditioner)
+     .def("CreatePreconditioner",&PreconditionerFactoryType::CreatePreconditioner)
     ;
 
     typedef TLinearSolverType<std::complex<double>> ComplexLinearSolverType;

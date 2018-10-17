@@ -15,12 +15,15 @@
 #if !defined(KRATOS_TFQMR_SOLVER_H_INCLUDED )
 #define  KRATOS_TFQMR_SOLVER_H_INCLUDED
 
+// System includes
+#include <math.h>
+
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
-#include <math.h>
+#include "includes/preconditioner_factory.h"
 
 namespace Kratos
 {
@@ -60,7 +63,7 @@ public:
     TFQMRSolver(Parameters settings ) : BaseType(settings) 
     {
         if(settings.Has("preconditioner_type"))
-            BaseType::SetPreconditioner( PreconditionerFactoryBase<TSparseSpaceType,TDenseSpaceType>().CreatePreconditioner(settings["preconditioner_type"].GetString()) );
+            BaseType::SetPreconditioner( PreconditionerFactory<TSparseSpaceType,TDenseSpaceType>().CreatePreconditioner(settings["preconditioner_type"].GetString()) );
     }
     TFQMRSolver(Parameters settings,typename TPreconditionerType::Pointer pNewPreconditioner) : BaseType(settings) {}
 

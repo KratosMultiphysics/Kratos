@@ -14,17 +14,14 @@
 #if !defined(KRATOS_BICGSTAB_SOLVER_H_INCLUDED )
 #define  KRATOS_BICGSTAB_SOLVER_H_INCLUDED
 
-
-
 // System includes
-
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
-
+#include "includes/preconditioner_factory.h"
 
 namespace Kratos
 {
@@ -92,7 +89,7 @@ public:
         BaseType(settings)
     {
         if(settings.Has("preconditioner_type"))
-            BaseType::SetPreconditioner( PreconditionerFactoryBase<TSparseSpaceType,TDenseSpaceType>().CreatePreconditioner(settings["preconditioner_type"].GetString()) );
+            BaseType::SetPreconditioner( PreconditionerFactory<TSparseSpaceType,TDenseSpaceType>().CreatePreconditioner(settings["preconditioner_type"].GetString()) );
     }
 
     /// Copy constructor.
