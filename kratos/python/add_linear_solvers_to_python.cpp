@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "python/add_equation_systems_to_python.h"
+#include "python/add_linear_solvers_to_python.h"
 #include "linear_solvers/cg_solver.h"
 #include "linear_solvers/deflated_cg_solver.h"
 #include "linear_solvers/bicgstab_solver.h"
@@ -43,9 +43,6 @@
 #include "linear_solvers/power_iteration_highest_eigenvalue_solver.h"
 #include "linear_solvers/rayleigh_quotient_iteration_eigenvalue_solver.h"
 #include "linear_solvers/deflated_gmres_solver.h"
-
-#include "includes/linear_solver_factory.h"
-#include "includes/preconditioner_factory.h"
 
 namespace Kratos
 {
@@ -83,34 +80,9 @@ void  AddLinearSolversToPython(pybind11::module& m)
     typedef RayleighQuotientIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> RayleighQuotientIterationEigenvalueSolverType;
     typedef DeflatedGMRESSolver<SpaceType,  LocalSpaceType> DeflatedGMRESSolverType;
 
-    //////////////////////////////////////////////////////////////7
-    //HERE THE TOOLS TO REGISTER LINEAR SOLVERS
-
-    typedef LinearSolverFactory< SpaceType, LocalSpaceType > LinearSolverFactoryType;
-    typedef LinearSolverFactory< ComplexSpaceType, ComplexLocalSpaceType > ComplexLinearSolverFactoryType;
-    typedef PreconditionerFactory< SpaceType, LocalSpaceType > PreconditionerFactoryType;
-
-    class_<LinearSolverFactoryType, LinearSolverFactoryType::Pointer>(m, "LinearSolverFactory")
-     .def( init< >() )
-     .def("Create",&LinearSolverFactoryType::Create)
-     .def("Has",&LinearSolverFactoryType::Has)
-    ;
-
-    class_<ComplexLinearSolverFactoryType, ComplexLinearSolverFactoryType::Pointer>(m, "ComplexLinearSolverFactory")
-     .def( init< >() )
-     .def("Create",&ComplexLinearSolverFactoryType::Create)
-     .def("Has",&ComplexLinearSolverFactoryType::Has)
-    ;
-
-    class_<PreconditionerFactoryType, PreconditionerFactoryType::Pointer >(m, "PreconditionerFactory")
-     .def( init< >() )
-     .def("Create",&PreconditionerFactoryType::Create)
-    ;
-
     typedef TLinearSolverType<std::complex<double>> ComplexLinearSolverType;
     typedef TDirectSolverType<std::complex<double>> ComplexDirectSolverType;
     typedef SkylineLUCustomScalarSolver<ComplexSpaceType, ComplexLocalSpaceType> ComplexSkylineLUSolverType;
-
 
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
     void (LinearSolverType::*pointer_to_solve_eigen)(LinearSolverType::SparseMatrixType& rK, LinearSolverType::SparseMatrixType& rM,LinearSolverType::DenseVectorType& Eigenvalues, LinearSolverType::DenseMatrixType& Eigenvectors) = &LinearSolverType::Solve;
