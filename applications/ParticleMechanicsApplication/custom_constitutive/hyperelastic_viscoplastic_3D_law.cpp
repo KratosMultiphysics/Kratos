@@ -16,6 +16,7 @@
 #include <cmath>
 
 // External includes
+#include "solid_mechanics_application_variables.h"
 
 // Project includes
 #include "includes/properties.h"
@@ -111,13 +112,13 @@ double& HyperElasticViscoplastic3DLaw::GetValue( const Variable<double>& rThisVa
 {
 
 
-    if (rThisVariable==PLASTIC_STRAIN)
+    if (rThisVariable==MP_EQUIVALENT_PLASTIC_STRAIN)
     {
         const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
         rValue=InternalVariables.EquivalentPlasticStrain;
     }
 
-    if (rThisVariable==DELTA_PLASTIC_STRAIN)
+    if (rThisVariable==MP_DELTA_PLASTIC_STRAIN)
     {
         const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
         rValue=InternalVariables.DeltaPlasticStrain;
