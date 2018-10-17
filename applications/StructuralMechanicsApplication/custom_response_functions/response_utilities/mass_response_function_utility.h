@@ -120,13 +120,7 @@ public:
 
 		// Incremental computation of total mass
 		for (auto& elem_i : mrModelPart.Elements())
-		{
-			double elem_density = elem_i.GetProperties()[DENSITY];
-
-			// Compute mass according to element dimension
-			double elem_volume = GetElementVolume(elem_i);
-			total_mass +=  elem_density*elem_volume;
-		}
+			total_mass += GetElementMass(elem_i);
 
 		return total_mass;
 
@@ -159,11 +153,9 @@ public:
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
-				double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 				// Compute mass according to element dimension
-				double elem_volume = GetElementVolume(ng_elem_i);
-				mass_before_fd +=  elem_density*elem_volume;
+				mass_before_fd += GetElementMass(ng_elem_i);
 			}
 
 			// Compute sensitivities using finite differencing in the three spatial direction
@@ -175,11 +167,9 @@ public:
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
-				double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 				// Compute mass according to element dimension
-				double elem_volume = GetElementVolume(ng_elem_i);
-				mass_after_fd +=  elem_density*elem_volume;
+				mass_after_fd += GetElementMass(ng_elem_i);
 			}
 			gradient[0] = (mass_after_fd - mass_before_fd) / mDelta;
 			node_i.X() -= mDelta;
@@ -190,11 +180,9 @@ public:
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
-				double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 				// Compute mass according to element dimension
-				double elem_volume = GetElementVolume(ng_elem_i);
-				mass_after_fd +=  elem_density*elem_volume;
+				mass_after_fd += GetElementMass(ng_elem_i);
 			}
 			gradient[1] = (mass_after_fd - mass_before_fd) / mDelta;
 			node_i.Y() -= mDelta;
@@ -205,11 +193,9 @@ public:
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
-				double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
 				// Compute mass according to element dimension
-				double elem_volume = GetElementVolume(ng_elem_i);
-				mass_after_fd +=  elem_density*elem_volume;
+				mass_after_fd += GetElementMass(ng_elem_i);
 			}
 			gradient[2] = (mass_after_fd - mass_before_fd) / mDelta;
 			node_i.Z() -= mDelta;
@@ -252,15 +238,18 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	double GetElementVolume(Element& element)
+	double GetElementMass(Element& element)
 	{
 		Element::GeometryType& geometry = element.GetGeometry();
 		if (geometry.LocalSpaceDimension() == 3)
-			return geometry.Volume();
+			return geometry.Volume()*element.GetProperties()[DENSITY];
 		else if (geometry.LocalSpaceDimension() == 2)
-			return geometry.Area()*element.GetProperties()[THICKNESS];
+			return geometry.Area()*element.GetProperties()[THICKNESS]*element.GetProperties()[DENSITY];
 		else if (geometry.LocalSpaceDimension() == 1)
-			return geometry.Length()*element.GetProperties()[CROSS_AREA];
+			return geometry.Length()*element.GetProperties()[CROSS_AREA]*element.GetProperties()[DENSITY];
+		else if (geometry.LocalSpaceDimension() == 0){
+			return element.GetValue(NODAL_MASS);
+		}
 		else
 			KRATOS_ERROR << "Invalid local dimension found in element!" << std::endl;
 	}
