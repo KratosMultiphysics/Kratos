@@ -1,0 +1,73 @@
+{
+    "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"           : 3,
+            "model_part_name"       : "plate",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "plate"
+            },
+            "design_surface_sub_model_part_name" : "design_surface",
+            "damping" : {
+                "apply_damping" : false
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
+        "objectives" : [{
+            "identifier" : "strain_energy",
+            "type"       : "minimization",
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "response_type"          : "strain_energy",
+                "primal_settings"        : "analysis_parameters.json",
+                "gradient_mode"          : "semi_analytic",
+                "step_size"              : 1e-7,
+                "consider_discretization": false
+            },
+            "project_gradient_on_surface_normals" : false
+        }],
+        "constraints" : [],
+        "design_variables" : {
+            "type"                           : "vertex_morphing",
+            "filter" : {
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 0.075,
+                "max_nodes_in_filter_radius" : 10000,
+                "matrix_free_filtering"      : false
+            }
+        },
+        "optimization_algorithm" : {
+            "name"                        : "bead_optimization",
+            "bead_height"                 : 0.025,
+            "bead_direction_mode"         : 2,
+            "gradient_ratio"              : 0.1,
+            "max_outer_iterations"        : 200,
+            "max_inner_iterations"        : 50,
+            "min_inner_iterations"        : 30,
+            "inner_iteration_tolerance"   : 1e-2,
+            "outer_iteration_tolerance"   : 1e-1,
+            "line_search" : {
+                "line_search_type"           : "manual_stepping",
+                "normalize_search_direction" : true,
+                "step_size"                  : 0.3
+            }
+        },
+        "output" : {
+            "output_directory"        : "Optimization_Results",
+            "design_history_filename" : "design_history",
+            "response_log_filename"   : "response_log",
+            "design_output_mode"      : "WriteDesignSurface",
+            "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
+                                          "DF1DX",
+                                          "DF1DX_MAPPED",
+                                          "CONTROL_POINT_CHANGE",
+                                          "SHAPE_UPDATE",
+                                          "SHAPE_CHANGE" ],
+            "output_format" : {
+                "name" : "gid"
+            }
+        }
+    }
+}
