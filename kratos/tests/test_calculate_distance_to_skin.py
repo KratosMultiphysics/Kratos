@@ -26,7 +26,7 @@ class TestCalculateDistanceToSkin(KratosUnittest.TestCase):
         parameters.AddEmptyValue("element_name").SetString("Element2D3N")
         parameters.AddEmptyValue("condition_name").SetString("Condition2D2N")
         parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
-        parameters.AddEmptyValue("number_of_divisions").SetInt(41)
+        parameters.AddEmptyValue("number_of_divisions").SetInt(100)
 
         KratosMultiphysics.StructuredMeshGeneratorProcess(problem_domain, model_part, parameters).Execute()
 
@@ -37,32 +37,37 @@ class TestCalculateDistanceToSkin(KratosUnittest.TestCase):
         # Call the CalculateDistanceToSkinProcess()
         KratosMultiphysics.CalculateDistanceToSkinProcess2D(model_part, skin_model_part).Execute()
 
+        # Check results
+        self.assertAlmostEqual(model_part.GetNode(6012).GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.0126082)
+        self.assertAlmostEqual(model_part.GetNode(6013).GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.0023298)
+        self.assertAlmostEqual(model_part.GetNode(6114).GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.003659)
+
         # Print results (left it here for debugging)
-        from gid_output_process import GiDOutputProcess
-        gid_output = GiDOutputProcess(
-            model_part,
-            "test_naca_0012_calculate_distance_to_skin_output",
-            KratosMultiphysics.Parameters("""{
-                "result_file_configuration": {
-                    "gidpost_flags": {
-                        "GiDPostMode": "GiD_PostAscii",
-                        "WriteDeformedMeshFlag": "WriteUndeformed",
-                        "WriteConditionsFlag": "WriteConditions",
-                        "MultiFileFlag": "SingleFile"
-                    },
-                    "file_label": "time",
-                    "output_control_type": "step",
-                    "output_frequency": 1.0,
-                    "body_output": true,
-                    "nodal_results": ["DISTANCE"]
-                }
-            }"""))
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
+        # from gid_output_process import GiDOutputProcess
+        # gid_output = GiDOutputProcess(
+        #     model_part,
+        #     "test_naca_0012_calculate_distance_to_skin_output",
+        #     KratosMultiphysics.Parameters("""{
+        #         "result_file_configuration": {
+        #             "gidpost_flags": {
+        #                 "GiDPostMode": "GiD_PostAscii",
+        #                 "WriteDeformedMeshFlag": "WriteUndeformed",
+        #                 "WriteConditionsFlag": "WriteConditions",
+        #                 "MultiFileFlag": "SingleFile"
+        #             },
+        #             "file_label": "time",
+        #             "output_control_type": "step",
+        #             "output_frequency": 1.0,
+        #             "body_output": true,
+        #             "nodal_results": ["DISTANCE"]
+        #         }
+        #     }"""))
+        # gid_output.ExecuteInitialize()
+        # gid_output.ExecuteBeforeSolutionLoop()
+        # gid_output.ExecuteInitializeSolutionStep()
+        # gid_output.PrintOutput()
+        # gid_output.ExecuteFinalizeSolutionStep()
+        # gid_output.ExecuteFinalize()
 
     def test_naca_0012_calculate_distance_to_skin_3d(self):
         # Set the problem domain using the structured mesh generator process
@@ -84,7 +89,7 @@ class TestCalculateDistanceToSkin(KratosUnittest.TestCase):
         parameters.AddEmptyValue("element_name").SetString("Element3D4N")
         parameters.AddEmptyValue("condition_name").SetString("Condition3D3N")
         parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
-        parameters.AddEmptyValue("number_of_divisions").SetInt(200)
+        parameters.AddEmptyValue("number_of_divisions").SetInt(26)
 
         KratosMultiphysics.StructuredMeshGeneratorProcess(problem_domain, model_part, parameters).Execute()
 
@@ -95,32 +100,37 @@ class TestCalculateDistanceToSkin(KratosUnittest.TestCase):
         # Call the CalculateDistanceToSkinProcess()
         KratosMultiphysics.CalculateDistanceToSkinProcess3D(model_part, skin_model_part).Execute()
 
+        # Check results
+        self.assertAlmostEqual(model_part.GetNode(20806).GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.013241)
+        self.assertAlmostEqual(model_part.GetNode(20778).GetSolutionStepValue(KratosMultiphysics.DISTANCE), -0.048802)
+        self.assertAlmostEqual(model_part.GetNode(20805).GetSolutionStepValue(KratosMultiphysics.DISTANCE), 0.0086715)
+
         # Print results (left it here for debugging)
-        from gid_output_process import GiDOutputProcess
-        gid_output = GiDOutputProcess(
-            model_part,
-            "test_naca_0012_calculate_distance_to_skin_3d_output",
-            KratosMultiphysics.Parameters("""{
-                "result_file_configuration": {
-                    "gidpost_flags": {
-                        "GiDPostMode": "GiD_PostAscii",
-                        "WriteDeformedMeshFlag": "WriteUndeformed",
-                        "WriteConditionsFlag": "WriteConditions",
-                        "MultiFileFlag": "SingleFile"
-                    },
-                    "file_label": "time",
-                    "output_control_type": "step",
-                    "output_frequency": 1.0,
-                    "body_output": true,
-                    "nodal_results": ["DISTANCE"]
-                }
-            }"""))
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
+        # from gid_output_process import GiDOutputProcess
+        # gid_output = GiDOutputProcess(
+        #     model_part,
+        #     "test_naca_0012_calculate_distance_to_skin_3d_output",
+        #     KratosMultiphysics.Parameters("""{
+        #         "result_file_configuration": {
+        #             "gidpost_flags": {
+        #                 "GiDPostMode": "GiD_PostAscii",
+        #                 "WriteDeformedMeshFlag": "WriteUndeformed",
+        #                 "WriteConditionsFlag": "WriteConditions",
+        #                 "MultiFileFlag": "SingleFile"
+        #             },
+        #             "file_label": "time",
+        #             "output_control_type": "step",
+        #             "output_frequency": 1.0,
+        #             "body_output": true,
+        #             "nodal_results": ["DISTANCE"]
+        #         }
+        #     }"""))
+        # gid_output.ExecuteInitialize()
+        # gid_output.ExecuteBeforeSolutionLoop()
+        # gid_output.ExecuteInitializeSolutionStep()
+        # gid_output.PrintOutput()
+        # gid_output.ExecuteFinalizeSolutionStep()
+        # gid_output.ExecuteFinalize()
         
 if __name__ == '__main__':
     domain_size = 2
