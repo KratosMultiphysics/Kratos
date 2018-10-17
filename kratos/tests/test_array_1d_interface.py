@@ -17,31 +17,17 @@ class TestArray1DInterface(KratosUnittest.TestCase):
         model_part.CreateNewCondition("Condition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
         return model_part
 
-    def test_SetArrayValueFromPython_Array3(self):
+    def test_SetNodalArrayValueFromPython_Array3(self):
         model_part = self.CreateModelPart()
         node = model_part.GetNode(1)
 
-        u = KM.Array3([1,2,3])
-        node.SetValue(KM.VORTICITY,u)
+        self._ValidAssignments(node)
 
-    def test_SetArrayValueFromPython_Array3_Implicit(self):
+    def test_SetNodalArrayValueFromPython_WrongInput(self):
         model_part = self.CreateModelPart()
         node = model_part.GetNode(1)
 
-        node.SetValue(KM.VORTICITY,[1,2,3])
-        node.SetValue(KM.VORTICITY,KM.Vector([1,2,3]))
-
-    def test_SetArrayValueFromPython_WrongInput(self):
-        model_part = self.CreateModelPart()
-        node = model_part.GetNode(1)
-
-        # Implicit conversion from wrong-size vector
-        with self.assertRaisesRegex(TypeError, ".*incompatible function arguments.*"):
-            node.SetValue(KM.VORTICITY,KM.Vector([1,2,3,4]))
-
-        # Implicit conversion from wrong-size list
-        with self.assertRaisesRegex(TypeError, ".*incompatible function arguments.*"):
-            node.SetValue(KM.VORTICITY,[1,2,3,4])
+        self._InvalidAssignments(node)
 
     def test_SetNodalArraySolutionStepValueFromPython_Array3(self):
         model_part = self.CreateModelPart()
@@ -141,6 +127,8 @@ class TestArray1DInterface(KratosUnittest.TestCase):
             self.assertEqual(l[i],value[i])
 
     def _InvalidAssignments(self, tested_object):
+        # Note: the expected behavior is to obtain a pybind-defined TypeError complaining about "incompatible function arguments".
+        # However, in debug compilations ublas may detect size inconsistencies first and throw a ValueError (bad argument) instead.
 
         # Forbidden implicit conversion from wrong-size Array
         with self.assertRaisesRegex(TypeError, ".*incompatible function arguments.*"):
@@ -148,12 +136,12 @@ class TestArray1DInterface(KratosUnittest.TestCase):
             tested_object.SetValue(KM.VORTICITY, u)
 
         # Forbidden implicit conversion from wrong-size Vector
-        with self.assertRaisesRegex(ValueError, ".*bad argument*"):
+        with self.assertRaises((TypeError,ValueError)):
             v = KM.Vector([1,2,3,4])
             tested_object.SetValue(KM.VORTICITY, v)
 
         # Forbidden implicit conversion from wrong-size list
-        with self.assertRaisesRegex(ValueError, ".*bad argument*"):
+        with self.assertRaises((TypeError,ValueError)):
             l = [1,2,3,4]
             tested_object.SetValue(KM.VORTICITY, l)
 
