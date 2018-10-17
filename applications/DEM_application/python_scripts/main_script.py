@@ -93,7 +93,6 @@ class Solution(object):
         self.p_count = self.p_frequency
 
         self.solver = self.SetSolver()
-
         self.Setdt()
         self.SetFinalTime()
 
@@ -263,6 +262,8 @@ class Solution(object):
         #self.analytic_model_part.AddElements(analytic_particle_ids)
 
     def Initialize(self):
+        self.step = 0
+        self.time = 0.0
 
         self.AddVariables()
 
@@ -298,8 +299,8 @@ class Solution(object):
 
         #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the self.spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.z
         max_Id = self.procedures.FindMaxNodeIdAccrossModelParts(self.creator_destructor, self.all_model_parts)
-
-        self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)
+        #self.creator_destructor.SetMaxNodeId(max_Id)
+        self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)  #TODO check functionalities
 
         #Strategy Initialization
         #-------------os.chdir(self.main_path)
@@ -422,7 +423,7 @@ class Solution(object):
             self.time = self.time + self.dt
             self.step += 1
 
-            self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step)
+            self.UpdateTimeInModelParts()
 
             self.BeforeSolveOperations(self.time)
 
@@ -473,6 +474,12 @@ class Solution(object):
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
 
+
+    def UpdateTimeInModelParts(self):
+        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.dt, self.step)
+
+    def UpdateTimeInOneModelPart(self):
+        pass
 
     def SolverSolve(self):
         self.solver.Solve()

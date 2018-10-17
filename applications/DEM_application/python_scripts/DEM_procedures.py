@@ -1378,8 +1378,8 @@ class DEMIo(object):
         else:
             self.PostCharacteristicLength = self.DEM_parameters["PostCharacteristicLength"].GetBool()
 
-        #self.PostFaceNormalImpactVelocity = getattr(self.DEM_parameters, "PostFaceNormalImpactVelocity", 0)
-        #self.PostFaceTangentialImpactVelocity = getattr(self.DEM_parameters, "PostFaceTangentialImpactVelocity", 0)
+        #self.PostFaceNormalImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostFaceNormalImpactVelocity", 0)
+        #self.PostFaceTangentialImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostFaceTangentialImpactVelocity", 0)
 
         if not "PostBoundingBox" in self.DEM_parameters.keys():
             self.PostBoundingBox = 0
