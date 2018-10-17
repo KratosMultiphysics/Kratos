@@ -51,7 +51,9 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestNodalGradient1, KratosNodalGradientFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -129,7 +131,9 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestNodalGradient2, KratosNodalGradientFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);

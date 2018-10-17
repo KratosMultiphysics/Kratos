@@ -135,9 +135,11 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(DisplacementLinearStrategy, KratosCoreStrategiesFastSuite) 
         {
+            Model current_model;
+
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            ModelPart& model_part = current_model.CreateModelPart("Main");
             
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
@@ -173,9 +175,11 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(DisplacementNRStrategy, KratosCoreStrategiesFastSuite) 
         {
+            Model current_model;
+            
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            ModelPart& model_part = current_model.CreateModelPart("Main");
             
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );

@@ -140,8 +140,8 @@ class MultifileList(object):
 
 class DEMIo(DEM_procedures.DEMIo):
 
-    def __init__(self, DEM_parameters, post_path):
-        super(DEMIo,self).__init__(DEM_parameters, post_path)
+    def __init__(self, model, DEM_parameters, post_path, all_model_parts):
+        super(DEMIo,self).__init__(model, DEM_parameters, post_path, all_model_parts)
 
     def AddMpiVariables(self):
         self.spheres_variables.append(PARTITION_INDEX)

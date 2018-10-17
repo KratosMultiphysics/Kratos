@@ -140,7 +140,8 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(ComputeBodyFittedDrag, FluidDynamicsApplicationFastSuite)
 		{
             // Create a test element inside a modelpart
-			ModelPart model_part("Main", 3);
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTestModelPart(model_part);
             Element::Pointer p_element = model_part.pGetElement(1);
 
@@ -173,7 +174,8 @@ namespace Kratos {
             bool is_embedded = true;
 
             // Create a test element inside a modelpart
-			ModelPart model_part("Main", 3);
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTestModelPart(model_part, is_embedded);
             Element::Pointer p_element = model_part.pGetElement(1);
 

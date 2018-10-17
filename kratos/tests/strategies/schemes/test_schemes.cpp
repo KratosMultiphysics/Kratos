@@ -101,9 +101,11 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(DisplacementNewmarkSchemeTest, KratosCoreSchemesFastSuite) 
         {
+            Model current_model;
+
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            ModelPart& model_part = current_model.CreateModelPart("Main");
             
             typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedNewmarkDisplacementSchemeType() );
@@ -164,9 +166,11 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(DisplacementBossakSchemeTest, KratosCoreSchemesFastSuite) 
         {
+            Model current_model;
+
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            ModelPart& model_part = current_model.CreateModelPart("Main");
             
             typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedBossakDisplacementSchemeType() );
@@ -227,9 +231,11 @@ namespace Kratos
         
         KRATOS_TEST_CASE_IN_SUITE(DisplacementBDF2SchemeTest, KratosCoreSchemesFastSuite) 
         {
+            Model current_model;
+            
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            ModelPart& model_part = current_model.CreateModelPart("Main");
             
             typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDFDisplacementSchemeType;
             SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedBDFDisplacementSchemeType(2) );

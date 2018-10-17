@@ -29,8 +29,8 @@ typedef Node<3> NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(SkinDetectionProcess, KratosCoreFastSuite)
 {
-    ModelPart model_part("test_model_part");
-    model_part.SetBufferSize(2);
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("test_model_part",2);
 
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);;
 

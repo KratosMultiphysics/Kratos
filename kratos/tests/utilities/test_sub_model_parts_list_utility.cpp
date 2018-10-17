@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
@@ -38,8 +39,10 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsListUtility, KratosCoreFastSuite)
         {
+            
             // Creating the reference model part and the relative submodelparts non alphabetically ordered
-            ModelPart first_model_part("Main");
+            Model current_model;
+            ModelPart& first_model_part = current_model.CreateModelPart("Main");
             ModelPart* p_first_sub_modelpart_1 = &first_model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart* p_first_sub_modelpart_2 = &first_model_part.CreateSubModelPart("ASubModelPart2");
             ModelPart* p_first_sub_modelpart_3 = &first_model_part.CreateSubModelPart("ZSubModelPart3");
@@ -106,7 +109,7 @@ namespace Kratos
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Creating the second model part
-            ModelPart second_model_part("Main");
+            ModelPart& second_model_part = current_model.CreateModelPart("SecondMain");
             second_model_part.CreateSubModelPart("BSubModelPart1");
             second_model_part.CreateSubModelPart("ASubModelPart2");
             second_model_part.CreateSubModelPart("ZSubModelPart3");
@@ -173,7 +176,8 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityWithSublevels, KratosCoreFastSuite)
         {
             // Creating the reference model part and the relative submodelparts
-            ModelPart first_model_part("Main");
+            Model current_model;
+            ModelPart& first_model_part = current_model.CreateModelPart("Main");
             ModelPart* p_first_sub_modelpart_1 = &first_model_part.CreateSubModelPart("BSubModelPart1");
             ModelPart* p_first_sub_modelpart_1a = &p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
             ModelPart* p_first_sub_modelpart_1b = &p_first_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");
@@ -246,7 +250,7 @@ namespace Kratos
             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Creating the second model part
-            ModelPart second_model_part("Main");
+            ModelPart& second_model_part = current_model.CreateModelPart("SecondMain");
             ModelPart* p_second_sub_modelpart_1 = &second_model_part.CreateSubModelPart("BSubModelPart1");
             p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1a");
             p_second_sub_modelpart_1->CreateSubModelPart("SubModelPart1b");

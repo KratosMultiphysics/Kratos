@@ -24,8 +24,10 @@ namespace Kratos
 
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3Horizontal, KratosCoreFastSuite)
 		{
+			Model current_model;
+
 			// Generate a model part with the previous
-			ModelPart base_model_part("Triangle");
+			ModelPart& base_model_part = current_model.CreateModelPart("Triangle");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data
@@ -167,8 +169,10 @@ namespace Kratos
 
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3Vertical, KratosCoreFastSuite)
 		{
+			Model current_model;
+
 			// Generate a model part with the previous
-			ModelPart base_model_part("Triangle");
+			ModelPart& base_model_part = current_model.CreateModelPart("Triangle");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data
@@ -309,8 +313,10 @@ namespace Kratos
 
 		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3NoDivision, KratosCoreFastSuite)
 		{
+			Model current_model;
+			
 			// Generate a model part with the previous
-			ModelPart base_model_part("Triangle");
+			ModelPart& base_model_part = current_model.CreateModelPart("Triangle");
 			base_model_part.AddNodalSolutionStepVariable(DISTANCE);
 
 			// Fill the model part geometry data

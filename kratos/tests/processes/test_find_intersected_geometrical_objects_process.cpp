@@ -23,6 +23,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcess, KratosCoreFastSuite)
 		{
+			Model current_model;
 
 			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
 			Node<3>::Pointer p_point2(new Node<3>(2, 10.00, 0.00, 0.00));
@@ -41,8 +42,8 @@ namespace Kratos {
                 "element_name": "Element3D4N"
             }  )");
 
-			ModelPart volume_part("Volume");
-			ModelPart skin_part("Boundaries");
+			ModelPart& volume_part = current_model.CreateModelPart("Volume");
+			ModelPart& skin_part = current_model.CreateModelPart("Boundaries");
 			skin_part.CreateNewNode(1, 1., .2, 0.);
 			skin_part.CreateNewNode(2, 1., .1, .5);
 			skin_part.CreateNewNode(3, 1., .1, 0.);
@@ -60,9 +61,10 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(FindIntersectedElementsProcessNoIntersection, KratosCoreFastSuite)
 		{
+			Model current_model;
 			
 			// Generate the tetrahedron element
-			ModelPart volume_part("Volume");
+			ModelPart& volume_part = current_model.CreateModelPart("Volume");
 			volume_part.CreateNewNode(34, 0.865646, 0.657938, 0.222985);
 			volume_part.CreateNewNode(58, 0.770744, 0.570027, 0.204129);
 			volume_part.CreateNewNode(73, 0.860052, 0.477371, 0.22713);
@@ -71,7 +73,7 @@ namespace Kratos {
 			volume_part.CreateNewElement("Element3D4N", 139, {34, 58, 73, 96}, p_properties_0);
 
 			// Generate the skin model part
-			ModelPart skin_part("Boundaries");
+			ModelPart& skin_part = current_model.CreateModelPart("Boundaries");
 			skin_part.CreateNewNode(662, 0.766593, 0.532174, 0.275516);
 			skin_part.CreateNewNode(723, 0.793214, 0.506089, 0.308981);
 			skin_part.CreateNewNode(737, 0.794158, 0.544627, 0.315665);
