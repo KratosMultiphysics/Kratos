@@ -105,7 +105,9 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
         is_inside = ProjectIntoVolume(p_geom, point_to_proj, local_coords, proj_dist);
     }
     else {
-        KRATOS_ERROR << "not implemented" << std::endl;
+        is_inside = false;
+        KRATOS_WARNING_ONCE("NearestElementMapper") << "Unsupported type of geometry,"
+            << "trying to use an approximation (Nearest Neighbor)" << std::endl;
     }
 
     Vector shape_function_values;
@@ -132,7 +134,6 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
         }
     }
 }
-
 
 void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject::Pointer& rpInterfaceObject,
                                                                       const double NeighborDistance)
@@ -179,7 +180,7 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
             }
         }
 
-        if (found_idx == -1) { // this means that no valid project {
+        if (found_idx == -1) { // no valid projection exists => using an approximation
             for (IndexType i=0; i<mInterfaceInfos.size(); ++i) {
                 // now the approximations are being checked
                 if (mInterfaceInfos[i]->GetIsApproximation()) {
