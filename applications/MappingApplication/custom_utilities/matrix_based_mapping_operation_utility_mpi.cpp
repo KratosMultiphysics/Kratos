@@ -14,6 +14,7 @@
 //  Framework for Non-Matching Grid Mapping"
 
 // System includes
+#include<unordered_set>
 
 // External includes
 
@@ -33,31 +34,19 @@ typedef MatrixBasedMappingOperationUtility<SparseSpaceType, DenseSpaceType> Util
 typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 
-void ConstructRowColIdVectors(UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems,
-                              std::vector<int>& rRowEquationIdsVector,
-                              std::vector<int>& rColEquationIdsVector)
+void ConstructRowColIdSets(UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems,
+                           std::unordered_set<int>& rRowEquationIds,
+                           std::unordered_set<int>& rColEquationIds)
 {
-    // TODO improve this!
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
 
-    for (auto& rp_local_sys : rMapperLocalSystems)
-    {
+    for (auto& rp_local_sys : rMapperLocalSystems) {
         rp_local_sys->EquationIdVectors(origin_ids, destination_ids);
 
-        rRowEquationIdsVector.reserve( rRowEquationIdsVector.size() + destination_ids.size() );
-        rRowEquationIdsVector.insert( rRowEquationIdsVector.end(), destination_ids.begin(), destination_ids.end() );
-        rColEquationIdsVector.reserve( rColEquationIdsVector.size() + origin_ids.size() );
-        rColEquationIdsVector.insert( rColEquationIdsVector.end(), origin_ids.begin(), origin_ids.end() );
+        rRowEquationIds.insert(destination_ids.begin(), destination_ids.end());
+        rColEquationIds.insert(origin_ids.begin(), origin_ids.end());
     }
-    rRowEquationIdsVector.shrink_to_fit();
-    rColEquationIdsVector.shrink_to_fit(); // TODO remove ...?
-
-    // "Uniqueify" the vectors
-    std::sort( rRowEquationIdsVector.begin(), rRowEquationIdsVector.end() );
-    rRowEquationIdsVector.erase( std::unique( rRowEquationIdsVector.begin(), rRowEquationIdsVector.end() ), rRowEquationIdsVector.end() );
-    std::sort( rColEquationIdsVector.begin(), rColEquationIdsVector.end() );
-    rColEquationIdsVector.erase( std::unique( rColEquationIdsVector.begin(), rColEquationIdsVector.end() ), rColEquationIdsVector.end() );
 }
 
 void ConstructMatrixStructure(Epetra_FECrsGraph& rGraph,
@@ -137,7 +126,6 @@ void UtilityType::BuildMappingSystem(
     ModelPart& rModelPartDestination,
     MapperLocalSystemPointerVector& rMapperLocalSystems) const
 {
-    // big TODO what if the rank doesn't have local nodes ... ?
     if (rModelPartOrigin.GetCommunicator().MyPID() == 0)
         std::cout << "\nENTERING the Matrix and Vector Assembly" << std::endl;
 
@@ -164,13 +152,13 @@ void UtilityType::BuildMappingSystem(
     }
 
     // Construct vectors containing all the equation ids of rows and columns this processor contributes to
-    std::vector<int> row_equation_ids; // using number of nodes as size estimation
-    std::vector<int> col_equation_ids;
-
-    row_equation_ids.reserve(num_local_nodes_dest*2);
-    col_equation_ids.reserve(num_local_nodes_orig*2);
-
-    ConstructRowColIdVectors(rMapperLocalSystems, row_equation_ids, col_equation_ids);
+    std::unordered_set<int> row_equation_ids_set;
+    std::unordered_set<int> col_equation_ids_set;
+    ConstructRowColIdSets(rMapperLocalSystems, row_equation_ids_set, col_equation_ids_set);
+    std::vector<int> row_equation_ids(row_equation_ids_set.begin(), row_equation_ids_set.end());
+    std::vector<int> col_equation_ids(col_equation_ids_set.begin(), col_equation_ids_set.end());
+    std::sort(row_equation_ids.begin(), row_equation_ids.end());
+    std::sort(col_equation_ids.begin(), col_equation_ids.end());
 
     // ***** Creating the maps for the MappingMatrix and the SystemVectors *****
     const Epetra_MpiComm epetra_comm(MPI_COMM_WORLD);
