@@ -1201,7 +1201,7 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
   }
 
   BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix;
-  if (this->mIterationCount == 1)
+  if (this->mIterationCount <= 1)
     transformation_matrix = this->CalculateInitialLocalCS();
   else
     this->AssembleSmallInBigMatrix(this->mLocalRotationMatrix,
