@@ -32,6 +32,7 @@
 #include "utilities/variable_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_processes/total_structural_mass_process.h"
 
 // ==============================================================================
 
@@ -117,10 +118,12 @@ public:
 
 		// Variables
 		double total_mass = 0.0;
+		const std::size_t domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
 		// Incremental computation of total mass
-		for (auto& elem_i : mrModelPart.Elements())
-			total_mass += GetElementMass(elem_i);
+		for (auto& elem_i : mrModelPart.Elements()){
+			total_mass += TotalStructuralMassProcess::CalculateElementMass(elem_i, domain_size);
+		}
 
 		return total_mass;
 
@@ -138,6 +141,7 @@ public:
 		// First gradients are initialized
 		VariableUtils().SetToZero_VectorVar(SHAPE_SENSITIVITY, mrModelPart.Nodes());
 
+		const std::size_t domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
 		// Start process to identify element neighbors for every node
 		FindNodalNeighboursProcess neighorFinder = FindNodalNeighboursProcess(mrModelPart, 10, 10);
@@ -155,7 +159,7 @@ public:
 				Element& ng_elem_i = ng_elem[i];
 
 				// Compute mass according to element dimension
-				mass_before_fd += GetElementMass(ng_elem_i);
+				mass_before_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
 			}
 
 			// Compute sensitivities using finite differencing in the three spatial direction
@@ -164,41 +168,47 @@ public:
 			// Apply pertubation in X-direction and recompute total mass of all neighbor elements
 			double mass_after_fd = 0.0;
 			node_i.X() += mDelta;
+			node_i.X0() += mDelta;
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
 
 				// Compute mass according to element dimension
-				mass_after_fd += GetElementMass(ng_elem_i);
+				mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
 			}
 			gradient[0] = (mass_after_fd - mass_before_fd) / mDelta;
 			node_i.X() -= mDelta;
+			node_i.X0() -= mDelta;
 
 			// Apply pertubation in Y-direction and recompute total mass of all neighbor elements
 			mass_after_fd = 0.0;
 			node_i.Y() += mDelta;
+			node_i.Y0() += mDelta;
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
 
 				// Compute mass according to element dimension
-				mass_after_fd += GetElementMass(ng_elem_i);
+				mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
 			}
 			gradient[1] = (mass_after_fd - mass_before_fd) / mDelta;
 			node_i.Y() -= mDelta;
+			node_i.Y0() -= mDelta;
 
 			// Apply pertubation in Z-direction and recompute total mass of all neighbor elements
 			mass_after_fd = 0.0;
 			node_i.Z() += mDelta;
+			node_i.Z0() += mDelta;
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
 
 				// Compute mass according to element dimension
-				mass_after_fd += GetElementMass(ng_elem_i);
+				mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
 			}
 			gradient[2] = (mass_after_fd - mass_before_fd) / mDelta;
 			node_i.Z() -= mDelta;
+			node_i.Z0() -= mDelta;
 
 			// Compute sensitivity
 			noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = gradient;
@@ -235,23 +245,6 @@ public:
 			// apply scaling
 			node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY) /= scaling_factor;
 		}
-	}
-
-	// --------------------------------------------------------------------------
-	double GetElementMass(Element& element)
-	{
-		Element::GeometryType& geometry = element.GetGeometry();
-		if (geometry.LocalSpaceDimension() == 3)
-			return geometry.Volume()*element.GetProperties()[DENSITY];
-		else if (geometry.LocalSpaceDimension() == 2)
-			return geometry.Area()*element.GetProperties()[THICKNESS]*element.GetProperties()[DENSITY];
-		else if (geometry.LocalSpaceDimension() == 1)
-			return geometry.Length()*element.GetProperties()[CROSS_AREA]*element.GetProperties()[DENSITY];
-		else if (geometry.LocalSpaceDimension() == 0){
-			return element.GetValue(NODAL_MASS);
-		}
-		else
-			KRATOS_ERROR << "Invalid local dimension found in element!" << std::endl;
 	}
 
 	// ==============================================================================
