@@ -107,6 +107,15 @@ public:
     typedef std::map<EdgeKeyType, IndexType> NodesInEdgeMapType;
     typedef std::unordered_map<FaceKeyType, IndexType, KeyHasherRange<FaceKeyType>, KeyComparorRange<FaceKeyType>> NodesInFaceMapType;
 
+    /**
+     * Map types for the AssignUniqueModelPartCollectionTagUtility
+     */
+    typedef std::vector<IndexType> IndexVectorType;
+    typedef std::vector<std::string> StringVectorType;
+    typedef std::unordered_map<IndexType, IndexType> IndexIndexMapType;
+    typedef std::unordered_map<IndexType, IndexVectorType> IndexIndexVectorMapType;
+    typedef std::unordered_map<IndexType, StringVectorType> IndexStringVectorMapType;
+
     /// Pointer definition of UniformRefinementUtility
     KRATOS_CLASS_POINTER_DEFINITION(UniformRefinementUtility);
 
@@ -251,6 +260,11 @@ private:
     NodesInEdgeMapType mNodesMap;              /// Where the father nodes IDs are stored
     NodesInFaceMapType mNodesInFaceMap;        /// Where the father nodes IDs are stored
 
+    IndexIndexMapType mNodesTags;
+    IndexIndexMapType mElementsTags;
+    IndexIndexMapType mConditionsTags;
+    IndexStringVectorMapType mCollections;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -264,26 +278,45 @@ private:
      * @brief ExecuteDivision executes the refinement once
      * @detail Only the entities with NUMBER_OF_DIVISIONS = rDivision are refined to rDivision+1
      * @param rDivision The flag
+     * @param rTagNodes The map with the vector of Id's associated to the tag
+     * @param rTagElems The map with the vector of Id's associated to the tag
+     * @param rTagConds The map with the vector of Id's associated to the tag
      */
-    void ExecuteDivision(const int& rDivision);
+    void ExecuteDivision(
+        const int& rDivision,
+        IndexIndexVectorMapType& rTagNodes,
+        IndexIndexVectorMapType& rTagElems,
+        IndexIndexVectorMapType& rTagConds
+        );
 
     /**
      * @brief CreateNodeInEdge creates a node at the middle point of an edge
-     * @detail If the middle node does not exist, creates a new one and set the nodal values. Otherwise, do nothing
+     * @detail If the middle node does not exist, creates a new one and set the
+     * nodal values. Otherwise, do nothing
      * @param rEdge The edge containing the two father nodes
      * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
+     * @param rNodeKey The pair of Id's of the edge nodes
+     * @param rTagNodes The map 
      */
     typename NodeType::Pointer CreateNodeInEdge(
         const EdgeType& rEdge,
         const int& rNumberOfDivisions,
-        const EdgeKeyType& rNodeKey);
+        const EdgeKeyType& rNodeKey,
+        IndexIndexVectorMapType& rTagNodes
+        );
 
     /**
      * @brief GetNodeInEdge gets the middle node on an edge and return a pointer to it
      * @detail CreateNodeInEdge should be executed before to ensure the node existance
      * @param rEdge The edge containing the two father nodes
+     * @param rNumberOfDivisions
+     * @param rTagNodes  The map with the vector of Id's associated to the tag
      */
-    typename NodeType::Pointer GetNodeInEdge(const EdgeType& rEdge, const int& rNumberOfDivisions);
+    typename NodeType::Pointer GetNodeInEdge(
+        const EdgeType& rEdge,
+        const int& rNumberOfDivisions,
+        IndexIndexVectorMapType& rTagNodes
+        );
 
     /**
      * @brief CreateNodeInFace creates a node at the middle point of a face
@@ -294,14 +327,20 @@ private:
     typename NodeType::Pointer CreateNodeInFace(
         const FaceType& rFace,
         const int& rNumberOfDivisions,
-        const FaceKeyType& rNodeKey);
+        const FaceKeyType& rNodeKey,
+        IndexIndexVectorMapType& rTagNodes
+        );
 
     /**
      * @brief GetNodeInFace gets the node inside a face
      * @detail If the middle node does not exist, create a new one and returns a pointer to it
      * @param rFace The face containing the father nodes 
      */
-    typename NodeType::Pointer GetNodeInFace(const FaceType& rFace, const int& rNumberOfDivisions);
+    typename NodeType::Pointer GetNodeInFace(
+        const FaceType& rFace,
+        const int& rNumberOfDivisions,
+        IndexIndexVectorMapType& rTagNodes
+        );
 
     /**
      * @brief CalculateNodalStepData calculates the nodal data as the mean of the father nodes
@@ -356,7 +395,8 @@ private:
     void CreateElement(
         ElementsArrayType::iterator pOriginElement,
         PointerVector<NodeType>& rThisNodes,
-        const int& rNumberOfDivisions
+        const int& rNumberOfDivisions,
+        IndexIndexVectorMapType& rTagElems
         );
 
     /**
@@ -368,7 +408,8 @@ private:
     void CreateCondition(
         ConditionsArrayType::iterator pOriginCondition,
         PointerVector<NodeType>& rThisNodes,
-        const int& rNumberOfDivisions
+        const int& rNumberOfDivisions,
+        IndexIndexVectorMapType& rTagConds
         );
 
     /**
@@ -385,7 +426,8 @@ private:
         );
 
     /**
-     * @brief GetSubTriangleNodes gets the connectivity of a sub-triangle inside a geometry and the new nodes
+     * @brief GetSubTriangleNodes gets the connectivity of a sub-triangle inside a
+     * geometry and the new nodes
      * @param Position The index which defines the sub-triangle
      * @param rGeom The original geometry
      * @param rMiddleNode The nodes which divides the original geometry
@@ -398,7 +440,8 @@ private:
         );
 
     /**
-     * @brief GetSubQuadrilateralNodes gets the connectivity of a sub-quadrilateral inside a geometry and the new nodes
+     * @brief GetSubQuadrilateralNodes gets the connectivity of a sub-quadrilateral inside
+     * a geometry and the new nodes
      * @param Position The index which defines the sub-quadrilateral
      * @param rGeom The original geometry
      * @param rMiddleNode The node which divides the original geometry
