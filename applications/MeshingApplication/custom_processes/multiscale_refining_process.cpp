@@ -380,16 +380,12 @@ void MultiscaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
         auto coarse_node = nodes_begin + i;
         if (coarse_node->Is(TO_REFINE))
         {
-            // auto search = mCoarseToRefinedNodesMap.find(coarse_node->Id());
-            // if (search == mCoarseToRefinedNodesMap.end())
             if (coarse_node->IsNot(MeshingFlags::REFINED))
             {
-                // NodeType::Pointer new_node = mrRefinedModelPart.CreateNewNode(++rNodeId, *coarse_node);
                 coarse_node->Set(NEW_ENTITY, true);
                 NodeType::Pointer new_node = coarse_node->Clone();
                 new_node->SetId(++rNodeId);
                 mrRefinedModelPart.AddNode(new_node);
-                // mCoarseToRefinedNodesMap[coarse_node->Id()] = new_node;
                 new_node->Set(TO_REFINE, false);
                 new_node->GetValue(FATHER_NODES).resize(0);
                 new_node->GetValue(FATHER_NODES).push_back( NodeType::WeakPointer(*coarse_node.base()) );
@@ -416,7 +412,6 @@ void MultiscaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
             auto coarse_node = nodes_begin + i;
             if (coarse_node->Is(NEW_ENTITY))
                 refined_sub_model_part.AddNode(coarse_node->GetValue(SLAVE_NODE));
-                // refined_sub_model_part.AddNode(mCoarseToRefinedNodesMap[coarse_node->Id()]);
         }
     }
 }
@@ -433,8 +428,6 @@ void MultiscaleRefiningProcess::IdentifyParentNodesToErase()
         auto coarse_node = nodes_begin + i;
         if (coarse_node->IsNot(TO_REFINE))
         {
-            // auto search = mCoarseToRefinedNodesMap.find(coarse_node->Id());
-            // if (search != mCoarseToRefinedNodesMap.end())
             if (coarse_node->Is(MeshingFlags::REFINED))
             {
                 // We need to ensure the refined mesh does not has dependencies
@@ -443,7 +436,6 @@ void MultiscaleRefiningProcess::IdentifyParentNodesToErase()
                     coarse_node->Set(MeshingFlags::TO_COARSEN, true);
                     coarse_node->Set(MeshingFlags::REFINED, false);
                     coarse_node->SetValue(SLAVE_NODE, nullptr);
-                    // mCoarseToRefinedNodesMap.erase(search);
                 }
             }
         }
@@ -581,11 +573,7 @@ void MultiscaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, Index
         {
             Geometry<NodeType>::PointsArrayType p_elem_nodes;
             for (IndexType node = 0; node < number_of_nodes; node++)
-            {
-                // IndexType node_id = coarse_elem->GetGeometry()[node].Id();
-                // p_elem_nodes.push_back(mCoarseToRefinedNodesMap[node_id]);
                 p_elem_nodes.push_back(coarse_elem->GetGeometry()[node].GetValue(SLAVE_NODE));
-            }
 
             Element::Pointer aux_elem = coarse_elem->Clone(++rElemId, p_elem_nodes);
             mrRefinedModelPart.AddElement(aux_elem);
@@ -635,11 +623,7 @@ void MultiscaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, Ind
         {
             Geometry<NodeType>::PointsArrayType p_cond_nodes;
             for (IndexType node = 0; node < number_of_nodes; node++)
-            {
-                // IndexType node_id = coarse_cond->GetGeometry()[node].Id();
-                // p_cond_nodes.push_back(mCoarseToRefinedNodesMap[node_id]);
                 p_cond_nodes.push_back(coarse_cond->GetGeometry()[node].GetValue(SLAVE_NODE));
-            }
 
             Condition::Pointer aux_cond = coarse_cond->Clone(++rCondId, p_cond_nodes);
             mrRefinedModelPart.AddCondition(aux_cond);
