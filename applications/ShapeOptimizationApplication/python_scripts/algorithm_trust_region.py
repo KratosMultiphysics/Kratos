@@ -68,7 +68,6 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
         self.model_part_controller.InitializeMeshController()
-        self.mapper.InitializeMapping()
         self.analyzer.InitializeBeforeOptimizationLoop()
         self.data_logger.InitializeDataLogging()
 
@@ -169,8 +168,9 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         # Mapping
         nodal_variable_mapped = KratosGlobals.GetVariable("DF1DX_MAPPED")
-        self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
-        self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
+        self.mapper.InitializeMapping()
+        self.mapper.InverseMap(nodal_variable, nodal_variable_mapped)
+        self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
 
         # Damping
         self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable_mapped)
@@ -194,8 +194,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             # Mapping
             nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
-            self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
-            self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
+            self.mapper.InverseMap(nodal_variable, nodal_variable_mapped)
+            self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
 
             # Damping
             self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable_mapped)

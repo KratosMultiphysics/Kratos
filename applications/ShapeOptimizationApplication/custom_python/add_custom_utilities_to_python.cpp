@@ -50,20 +50,20 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     class_<MapperVertexMorphing >(m, "MapperVertexMorphing")
         .def(init<ModelPart&, Parameters>())
         .def("InitializeMapping", &MapperVertexMorphing::InitializeMapping)
-        .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
+        .def("InverseMap", &MapperVertexMorphing::InverseMap)
+        .def("Map", &MapperVertexMorphing::Map)
         ;
     class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
         .def(init<ModelPart&, Parameters>())
         .def("InitializeMapping", &MapperVertexMorphingMatrixFree::InitializeMapping)
-        .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
+        .def("InverseMap", &MapperVertexMorphingMatrixFree::InverseMap)
+        .def("Map", &MapperVertexMorphingMatrixFree::Map)
         ;
     class_<MapperVertexMorphingImprovedIntegration >(m, "MapperVertexMorphingImprovedIntegration")
         .def(init<ModelPart&, Parameters>())
         .def("InitializeMapping", &MapperVertexMorphingImprovedIntegration::InitializeMapping)
-        .def("MapToDesignSpace", &MapperVertexMorphingImprovedIntegration::MapToDesignSpace)
-        .def("MapToGeometrySpace", &MapperVertexMorphingImprovedIntegration::MapToGeometrySpace)
+        .def("InverseMap", &MapperVertexMorphingImprovedIntegration::InverseMap)
+        .def("Map", &MapperVertexMorphingImprovedIntegration::Map)
         ;
 
     // ================================================================
