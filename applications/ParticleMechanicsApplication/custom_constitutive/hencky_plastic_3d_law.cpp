@@ -93,13 +93,13 @@ bool HenckyElasticPlastic3DLaw::Has( const Variable<Matrix>& rThisVariable )
 
 double& HenckyElasticPlastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
-    if (rThisVariable==DELTA_PLASTIC_STRAIN)
+    if (rThisVariable==MP_DELTA_PLASTIC_STRAIN)
     {
         const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
         rValue=InternalVariables.DeltaPlasticStrain;
     }
     
-    if (rThisVariable==PLASTIC_STRAIN)
+    if (rThisVariable==MP_EQUIVALENT_PLASTIC_STRAIN)
     {
         const MPMFlowRule::InternalVariables& InternalVariables = mpMPMFlowRule->GetInternalVariables();
         rValue=InternalVariables.EquivalentPlasticStrain;
