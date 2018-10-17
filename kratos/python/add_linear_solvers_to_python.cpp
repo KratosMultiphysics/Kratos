@@ -92,19 +92,19 @@ void  AddLinearSolversToPython(pybind11::module& m)
 
     class_<LinearSolverFactoryType, LinearSolverFactoryType::Pointer>(m, "LinearSolverFactory")
      .def( init< >() )
-     .def("CreateSolver",&LinearSolverFactoryType::CreateSolver)
+     .def("Create",&LinearSolverFactoryType::Create)
      .def("Has",&LinearSolverFactoryType::Has)
     ;
 
     class_<ComplexLinearSolverFactoryType, ComplexLinearSolverFactoryType::Pointer>(m, "ComplexLinearSolverFactory")
      .def( init< >() )
-     .def("CreateSolver",&ComplexLinearSolverFactoryType::CreateSolver)
+     .def("Create",&ComplexLinearSolverFactoryType::Create)
      .def("Has",&ComplexLinearSolverFactoryType::Has)
     ;
 
     class_<PreconditionerFactoryType, PreconditionerFactoryType::Pointer >(m, "PreconditionerFactory")
      .def( init< >() )
-     .def("CreatePreconditioner",&PreconditionerFactoryType::CreatePreconditioner)
+     .def("Create",&PreconditionerFactoryType::Create)
     ;
 
     typedef TLinearSolverType<std::complex<double>> ComplexLinearSolverType;

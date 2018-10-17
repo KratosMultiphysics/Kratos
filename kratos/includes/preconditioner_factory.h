@@ -99,7 +99,7 @@ public:
      * @brief This method creates a new solver
      * @return The pointer to the solver of interest
      */
-    virtual typename PreconditionerType::Pointer CreatePreconditioner(const std::string& rPreconditionerType)
+    virtual typename PreconditionerType::Pointer Create(const std::string& rPreconditionerType)
     {
         if(Has( rPreconditionerType ) == false) {
             KRATOS_ERROR << "Trying to construct a preconditioner with type preconditioner_type= " << rPreconditionerType << std::endl <<

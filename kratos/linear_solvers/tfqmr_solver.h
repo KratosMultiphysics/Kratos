@@ -63,7 +63,7 @@ public:
     TFQMRSolver(Parameters settings ) : BaseType(settings) 
     {
         if(settings.Has("preconditioner_type"))
-            BaseType::SetPreconditioner( PreconditionerFactory<TSparseSpaceType,TDenseSpaceType>().CreatePreconditioner(settings["preconditioner_type"].GetString()) );
+            BaseType::SetPreconditioner( PreconditionerFactory<TSparseSpaceType,TDenseSpaceType>().Create(settings["preconditioner_type"].GetString()) );
     }
     TFQMRSolver(Parameters settings,typename TPreconditionerType::Pointer pNewPreconditioner) : BaseType(settings) {}
 

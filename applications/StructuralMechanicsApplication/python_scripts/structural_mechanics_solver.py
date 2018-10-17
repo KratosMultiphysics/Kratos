@@ -428,9 +428,9 @@ class MechanicalSolver(PythonSolver):
     def _create_linear_solver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         if KratosMultiphysics.ComplexLinearSolverFactory().Has(linear_solver_configuration["solver_type"].GetString()):
-            return KratosMultiphysics.ComplexLinearSolverFactory().CreateSolver(linear_solver_configuration)
+            return KratosMultiphysics.ComplexLinearSolverFactory().Create(linear_solver_configuration)
         else:
-            return KratosMultiphysics.LinearSolverFactory().CreateSolver(linear_solver_configuration)
+            return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()

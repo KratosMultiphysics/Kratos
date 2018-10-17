@@ -7,6 +7,6 @@ def ConstructSolver(configuration):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     if KratosMultiphysics.ComplexLinearSolverFactory().Has(configuration["solver_type"].GetString()):
-        return KratosMultiphysics.ComplexLinearSolverFactory().CreateSolver(configuration)
+        return KratosMultiphysics.ComplexLinearSolverFactory().Create(configuration)
     else:
-        return KratosMultiphysics.LinearSolverFactory().CreateSolver(configuration)
+        return KratosMultiphysics.LinearSolverFactory().Create(configuration)
