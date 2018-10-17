@@ -57,7 +57,7 @@
 #include "includes/deprecated_variables.h"
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
-#include "includes/linear_solver_factory.h"
+#include "includes/standard_linear_solver_factory.h"
 
 #include "includes/kratos_flags.h"
 #include "utilities/indirect_scalar.h"

@@ -38,7 +38,7 @@
 #endif
 
 #include "externalsolvers_application.h"
-#include "includes/linear_solver_factory.h"
+#include "includes/standard_linear_solver_factory.h"
 
 namespace Kratos
 {

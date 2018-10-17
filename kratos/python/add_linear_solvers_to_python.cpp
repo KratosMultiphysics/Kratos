@@ -44,7 +44,7 @@
 #include "linear_solvers/rayleigh_quotient_iteration_eigenvalue_solver.h"
 #include "linear_solvers/deflated_gmres_solver.h"
 
-#include "includes/linear_solver_factory.h"
+#include "includes/standard_linear_solver_factory.h"
 
 namespace Kratos
 {
