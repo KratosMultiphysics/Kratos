@@ -197,9 +197,9 @@ namespace Kratos
 
     ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin();
 
-    for(unsigned int i = 0; i<in.numberofsegments; i++)
+    for(int i = 0; i<in.numberofsegments; i++)
       in.segmentmarkerlist[i] = 0;
-    
+
     int base = 0;
     for(unsigned int i = 0; i<rModelPart.Conditions().size(); i++)
       {
@@ -207,7 +207,7 @@ namespace Kratos
 	in.segmentlist[base]   = rGeometry[0].Id();
 	in.segmentlist[base+1] = rGeometry[1].Id();
 	//std::cout<<" Facet["<<i<<"]: ("<<in.segmentlist[base]<<" "<<in.segmentlist[base+1]<<")"<<std::endl;
-                
+
 	base+=2;
       }
 
@@ -256,4 +256,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-

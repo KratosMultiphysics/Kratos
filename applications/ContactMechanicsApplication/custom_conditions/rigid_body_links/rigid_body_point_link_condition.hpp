@@ -57,7 +57,7 @@ class RigidBodyPointLinkCondition
   typedef Quaternion<double>             QuaternionType;
   typedef Node<3>::DofsContainerType  DofsContainerType;
   typedef GeometryData::SizeType               SizeType;
-  
+
   ///@{
   // Counted pointer of RigidBodyPointLinkCondition
   KRATOS_CLASS_POINTER_DEFINITION( RigidBodyPointLinkCondition );
@@ -177,7 +177,7 @@ class RigidBodyPointLinkCondition
    * if the condition needs to perform any operation before any calculation is done
    * the condition variables will be initialized and set using this method
    */
-  void Initialize();
+  void Initialize() override;
 
   /**
    * Called at the beginning of each iteration
@@ -407,7 +407,7 @@ class RigidBodyPointLinkCondition
    * Get element size from the dofs
    */
   virtual SizeType GetDofsSize();
-  
+
   /**
    * Calculation of an SkewSymmetricTensor from a vector
    */
@@ -462,12 +462,12 @@ class RigidBodyPointLinkCondition
 
   friend class Serializer;
 
-  virtual void save( Serializer& rSerializer ) const
+  void save( Serializer& rSerializer ) const override
   {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
   }
 
-  virtual void load( Serializer& rSerializer )
+  void load( Serializer& rSerializer ) override
   {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
   }

@@ -12,6 +12,8 @@
 // External includes
 
 // Project includes
+#include "geometries/point_2d.h"
+#include "geometries/point_3d.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 
@@ -31,8 +33,8 @@ namespace Kratos {
     mAxisymContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
     mThermalContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
     mAxisymThermalContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
-    mRigidBodyPointLinkCondition2D1N( 0, Kratos::make_shared< Point3D<Node<3> >( Condition::GeometryType::PointsArrayType(1))),
-    mRigidBodyPointLinkCondition3D1N( 0, Kratos::make_shared< Point3D<Node<3> >( Condition::GeometryType::PointsArrayType(1)))
+    mRigidBodyPointLinkCondition2D1N( 0, Kratos::make_shared< Point3D<Node<3> > >( Condition::GeometryType::PointsArrayType(1))),
+    mRigidBodyPointLinkCondition3D1N( 0, Kratos::make_shared< Point3D<Node<3> > >( Condition::GeometryType::PointsArrayType(1)))
 
   {}
 
@@ -126,7 +128,7 @@ namespace Kratos {
       KRATOS_REGISTER_VARIABLE( HEAT_CONDUCTIVITY )
 
       //solution
-      KRATOS_REGISTER_VARIABLE(SEGREGATED_STEP)    
+      KRATOS_REGISTER_VARIABLE(SEGREGATED_STEP)
       KRATOS_REGISTER_VARIABLE(CONTACT_STEP_TIME)
 
       }

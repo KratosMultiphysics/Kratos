@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/rigid_body_point_link_condition.hpp"
+#include "custom_conditions/rigid_body_links/rigid_body_point_link_condition.hpp"
 
 #include "contact_mechanics_application_variables.h"
 
@@ -59,7 +59,7 @@ RigidBodyPointLinkCondition::RigidBodyPointLinkCondition( RigidBodyPointLinkCond
 //***********************************************************************************
 Condition::Pointer RigidBodyPointLinkCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-  return Kratos::make_shared<RigidBodyPointLinkCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties));
+  return Kratos::make_shared<RigidBodyPointLinkCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -1280,7 +1280,6 @@ void RigidBodyPointLinkCondition::CalculateAndAddForces(VectorType& rRightHandSi
   //Set variables from the slave linked elements (deformable elements)
   //Get the internal forces and the external forces, compute the residual
   //Predict the lagrange multiplier due to the link and add it to the forces
-  const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
   const SizeType dofs_size = this->GetDofsSize();
 

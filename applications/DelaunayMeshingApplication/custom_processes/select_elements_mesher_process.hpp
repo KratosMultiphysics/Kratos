@@ -479,9 +479,9 @@ class SelectElementsMesherProcess
     //reset domain flags in nodes before new assignment
     if( rModelPart.Is(FLUID) ){
       //reset domain flags in nodes before new assignment
-      unsigned int count_rigid = 0;
-      unsigned int count_free_surface = 0;
-      unsigned int count_positive_pressure = 0;
+      unsigned int count_rigid;
+      unsigned int count_free_surface;
+      unsigned int count_positive_pressure;
       for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; ++i_elem)
       {
         PointsArrayType& vertices=i_elem->GetGeometry().Points();
