@@ -11,9 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_LINEAR_SOLVER_FACTORY_H_INCLUDED )
-#define  KRATOS_LINEAR_SOLVER_FACTORY_H_INCLUDED
-
+#if !defined(KRATOS_STANDARD_LINEAR_SOLVER_FACTORY_H_INCLUDED )
+#define  KRATOS_STANDARD_LINEAR_SOLVER_FACTORY_H_INCLUDED
 
 
 // System includes
@@ -24,6 +23,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/preconditioner.h"
 #include "linear_solvers/scaling_solver.h"
@@ -62,28 +62,9 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void RegisterPreconditioners();
 void RegisterLinearSolvers();
 
-
-
-
-
 }  // namespace Kratos.
 
-#endif // KRATOS_LINEAR_SOLVER_FACTORY_H_INCLUDED  defined 
+#endif // KRATOS_STANDARD_LINEAR_SOLVER_FACTORY_H_INCLUDED  defined
