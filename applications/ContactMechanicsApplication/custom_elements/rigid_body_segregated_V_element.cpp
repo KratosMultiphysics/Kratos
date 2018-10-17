@@ -129,7 +129,7 @@ void RigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult
   if ( rResult.size() != dofs_size )
     rResult.resize(dofs_size, false);
 
-  switch(mStepVariable)
+  switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
   {
     case VELOCITY_STEP:
       {
@@ -527,7 +527,7 @@ void RigidBodySegregatedVElement::GetTimeIntegrationParameters(double& rP0,doubl
   rP0 = rCurrentProcessInfo[NEWMARK_GAMMA] / DeltaTime *rCurrentProcessInfo[NEWMARK_BETA];
   rP1 = (1.0/ ( DeltaTime * DeltaTime * rCurrentProcessInfo[NEWMARK_BETA] ));
   rP2 = ( DeltaTime * rCurrentProcessInfo[NEWMARK_GAMMA] );
-      
+
   KRATOS_CATCH("")
 }
 
