@@ -125,10 +125,13 @@ public:
 
     virtual double& CalculateHardening(double &rHardening, const Parameters& rValues){ return rHardening; };
 
+    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const double rTemperature = 0.0) {return rHardening; };
+
+    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const Variable<double>& rThisVariable) {return rHardening;};
+    
     virtual double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues){ return rIsotropicHardening; };
 
     virtual double& CalculateKinematicHardening(double &rKinematicHardening, const Parameters& rValues){ return rKinematicHardening; };
-
 
     virtual double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues){ return rDeltaHardening; };
 
@@ -138,9 +141,6 @@ public:
 
     virtual double& CalculateDeltaThermalHardening(double &rDeltaThermalHardening, const Parameters& rValues){ return rDeltaThermalHardening; };
 
-    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const double rTemperature = 0.0) {return rHardening; };
-
-    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const Variable<double>& rThisVariable) {return rHardening;};
     ///@}
     ///@name Access
     ///@{
@@ -154,15 +154,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
-    // /// Turn back information as a string.
-    // virtual std::string Info() const;
-
-    // /// Print information about this object.
-    // virtual void PrintInfo(std::ostream& rOStream) const;
-
-    // /// Print object's data.
-    // virtual void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
@@ -186,10 +177,6 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-
-    virtual double CalculateThermalReferenceEffect(const double &rTemperature){ return 1; };
-
-    virtual double CalculateThermalCurrentEffect(const double &rTemperature){ return 1; };
 
     ///@}
     ///@name Protected Operations
