@@ -75,7 +75,7 @@ protected:
      * @brief This method is an auxiliar method to create a new solver
      * @return The pointer to the solver of interest
      */
-    typename LinearSolverType::Pointer CreateHelper(Kratos::Parameters settings) const override
+    typename LinearSolverType::Pointer CreateSolver(Kratos::Parameters settings) const override
     {
         if(settings.Has("scaling") && settings["scaling"].GetBool()) {
             auto pinner_solver = typename LinearSolverType::Pointer(new TLinearSolverType(settings));

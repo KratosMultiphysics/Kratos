@@ -76,7 +76,7 @@ protected:
      * @brief This method is an auxiliar method to create a new solver
      * @return The pointer to the solver of interest
      */
-    typename PreconditionerType::Pointer CreateHelper() const override
+    typename PreconditionerType::Pointer CreatePreconditioner() const override
     {
         return typename PreconditionerType::Pointer(new TPreconditionerType());
     }

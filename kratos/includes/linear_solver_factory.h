@@ -103,7 +103,7 @@ public:
                          KratosComponents< FactoryType >() << std::endl;
         }
         const auto& aux = KratosComponents< FactoryType >::Get( Settings["solver_type"].GetString()  );
-        return aux.CreateHelper( Settings );
+        return aux.CreateSolver( Settings );
     }
 
     ///@}
@@ -115,7 +115,7 @@ protected:
      * @brief This method is an auxiliar method to create a new solver
      * @return The pointer to the solver of interest
      */
-    virtual typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer CreateHelper(Kratos::Parameters Settings)  const
+    virtual typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer CreateSolver(Kratos::Parameters Settings)  const
     {
         KRATOS_ERROR << "Calling the base class LinearSolverFactory" << std::endl;
     }

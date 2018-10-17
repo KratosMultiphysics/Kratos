@@ -107,7 +107,7 @@ public:
                          KratosComponents< FactoryType >() << std::endl;
         }
         const auto& aux = KratosComponents< FactoryType >::Get( rPreconditionerType );
-        return aux.CreateHelper();
+        return aux.CreatePreconditioner();
     }
     ///@}
 protected:
@@ -118,7 +118,7 @@ protected:
      * @brief This method is an auxiliar method to create a new solver
      * @return The pointer to the solver of interest
      */
-    virtual typename PreconditionerType::Pointer CreateHelper()  const
+    virtual typename PreconditionerType::Pointer CreatePreconditioner()  const
     {
         KRATOS_ERROR << "calling the base class PreconditionerFactory" << std::endl;
     }
