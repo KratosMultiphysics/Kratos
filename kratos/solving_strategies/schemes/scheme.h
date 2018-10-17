@@ -817,23 +817,6 @@ public:
     }
 
     /**
-     * @brief Functions totally analogous to the precedent but applied to the "constraint" objects
-     * @param pCurrentCondition The constraint to compute
-     * @param rSlaveEquationIds The ID's of the constraint degrees of freedom (slave)
-     * @param rMasterEquationIds The ID's of the constraint degrees of freedom (master)
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    virtual void Constraint_EquationId(
-        MasterSlaveConstraint::Pointer pCurrentConstraint,
-        Element::EquationIdVectorType& rSlaveEquationIds,
-        Element::EquationIdVectorType& rMasterEquationIds,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        (pCurrentConstraint)->EquationIdVector(rSlaveEquationIds, rMasterEquationIds, rCurrentProcessInfo);
-    }
-
-    /**
      * @brief Function that returns the list of Degrees of freedom to be assembled in the system for a Given element
      * @param pCurrentElement The element to compute
      * @param ElementalDofList The list containing the element degrees of freedom
@@ -861,23 +844,6 @@ public:
         )
     {
         pCurrentCondition->GetDofList(ConditionDofList, rCurrentProcessInfo);
-    }
-
-    /**
-     * @brief Function that returns the list of Degrees of freedom to be assembled in the system for a Given constraint
-     * @param pCurrentConstraint The constraint to compute
-     * @param rSlaveDofList The list containing the constraint degrees of freedom (slave)
-     * @param rMasterDofList The list containing the constraint degrees of freedom (master)
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    virtual void GetConstraintDofList(
-        MasterSlaveConstraint::Pointer pCurrentConstraint,
-        Element::DofsVectorType& rSlaveDofList,
-        Element::DofsVectorType& rMasterDofList,
-        const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        pCurrentConstraint->GetDofList(rSlaveDofList, rMasterDofList, rCurrentProcessInfo);
     }
 
     ///@}

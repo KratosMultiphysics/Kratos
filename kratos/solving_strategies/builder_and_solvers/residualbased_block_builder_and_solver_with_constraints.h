@@ -271,7 +271,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                 const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
                 // gets list of Dof involved on every element
-                pScheme->GetConstraintDofList(*(it.base()), ElementalDofList, AuxiliarDofList, CurrentProcessInfo);
+                it->GetDofList(ElementalDofList, AuxiliarDofList, CurrentProcessInfo);
                 dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
                 dofs_aux_list[this_thread_id].insert(AuxiliarDofList.begin(), AuxiliarDofList.end());
 
@@ -597,7 +597,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         for (int iii = 0; iii < nconstraints; iii++)
         {
             auto i_constraint = rModelPart.MasterSlaveConstraints().begin() + iii;
-            pScheme->Constraint_EquationId(*(i_constraint.base()), ids, aux_ids, rModelPart.GetProcessInfo());
+            i_constraint->EquationIdVector(ids, aux_ids, rModelPart.GetProcessInfo());
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
