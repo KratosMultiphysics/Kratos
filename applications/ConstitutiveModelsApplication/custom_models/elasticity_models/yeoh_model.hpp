@@ -104,23 +104,23 @@ namespace Kratos
 
 
 
-    virtual int Check(const Properties& rMaterialProperties,
+    virtual int Check(const Properties& rProperties,
 		      const ProcessInfo& rCurrentProcessInfo)
     {
       KRATOS_TRY
 
-      HyperElasticModel::Check(rMaterialProperties,rCurrentProcessInfo);
+      HyperElasticModel::Check(rProperties,rCurrentProcessInfo);
 
-      if( C10.Key() == 0 || rMaterialProperties[C10] <= 0.00 )
+      if( C10.Key() == 0 || rProperties[C10] <= 0.00 )
 	KRATOS_ERROR << "C10 has an invalid key or value" << std::endl;
 
-      if( C20.Key() == 0 || rMaterialProperties[C20] <= 0.00 )
+      if( C20.Key() == 0 || rProperties[C20] <= 0.00 )
 	KRATOS_ERROR << "C20 has an invalid key or value" << std::endl;
 
-      if( C30.Key() == 0 || rMaterialProperties[C30] <= 0.00 )
+      if( C30.Key() == 0 || rProperties[C30] <= 0.00 )
 	KRATOS_ERROR << "C30 has an invalid key or value" << std::endl;
 
-      if( BULK_MODULUS.Key() == 0 || rMaterialProperties[BULK_MODULUS] <= 0.00 )
+      if( BULK_MODULUS.Key() == 0 || rProperties[BULK_MODULUS] <= 0.00 )
 	KRATOS_ERROR << "BULK_MODULUS has an invalid key or value" << std::endl;
 
       KRATOS_CATCH(" ")
