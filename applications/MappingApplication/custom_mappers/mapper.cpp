@@ -176,12 +176,6 @@ void Mapper<TSparseSpace, TDenseSpace>::UpdateInterfaceInternal(Kratos::Flags Ma
     else BuildMappingMatrix(MappingOptions);
 }
 
-
-// template<class TSparseSpace, class TDenseSpace> template<typename T>
-// void Mapper<TSparseSpace, TDenseSpace>::TestFunction(T someParam)
-// {
-
-// }
 /***********************************************************************************/
 /* PRIVATE Methods */
 /***********************************************************************************/

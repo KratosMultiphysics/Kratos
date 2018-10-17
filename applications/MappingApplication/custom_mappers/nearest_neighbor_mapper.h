@@ -57,9 +57,7 @@ public:
                                 const IndexType SourceLocalSystemIndex,
                                 const IndexType SourceRank)
         : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank)
-    {
-
-    }
+    { }
 
     MapperInterfaceInfo::Pointer Create() const override
     {
@@ -107,7 +105,6 @@ private:
         rSerializer.load("NearestNeighborId", mNearestNeighborId);
         rSerializer.load("NearestNeighborDistance", mNearestNeighborDistance);
     }
-
 };
 
 class NearestNeighborLocalSystem : public MapperLocalSystem
@@ -116,10 +113,7 @@ public:
 
     NearestNeighborLocalSystem() { }
 
-    NearestNeighborLocalSystem(NodePointerType pNode) : mpNode(pNode)
-    {
-
-    }
+    NearestNeighborLocalSystem(NodePointerType pNode) : mpNode(pNode) { }
 
     MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
     {
@@ -154,7 +148,6 @@ private:
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
-
 template<class TSparseSpace, class TDenseSpace>
 class NearestNeighborMapper : public Mapper<TSparseSpace, TDenseSpace>
 {
@@ -178,28 +171,24 @@ public:
     ///@name Life Cycle
     ///@{
 
+    // Default constructor, needed for registration
     NearestNeighborMapper(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination)
-                          : Mapper<TSparseSpace, TDenseSpace>(rModelPartOrigin,
-                                   rModelPartDestination) {}
+                          : Mapper<TSparseSpace, TDenseSpace>(
+                              rModelPartOrigin,
+                              rModelPartDestination) {}
 
     NearestNeighborMapper(ModelPart& rModelPartOrigin,
                           ModelPart& rModelPartDestination,
                           Parameters JsonParameters)
-                          : Mapper<TSparseSpace, TDenseSpace>(rModelPartOrigin,
-                                   rModelPartDestination,
-                                   JsonParameters)
+                          : Mapper<TSparseSpace, TDenseSpace>(
+                              rModelPartOrigin,
+                              rModelPartDestination,
+                              JsonParameters)
     {
         // The Initialize function has to be called here bcs it internally calls virtual
         // functions that would not exist yet if it was called from the BaseClass!
         this->Initialize();
-
-
-        // mpMapperCommunicator->InitializeOrigin(MapperUtilities::Node_Coords);
-        // mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
-        // mpMapperCommunicator->Initialize();
-
-        // mpInverseMapper.reset(); // explicitly specified to be safe
     }
 
     /// Destructor.
@@ -214,12 +203,13 @@ public:
     ///@{
 
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
-                          ModelPart& rModelPartDestination,
-                          Parameters JsonParameters) override
+                                  ModelPart& rModelPartDestination,
+                                  Parameters JsonParameters) override
     {
-        return Kratos::make_unique<NearestNeighborMapper<TSparseSpace, TDenseSpace>>(rModelPartOrigin,
-                                                          rModelPartDestination,
-                                                          JsonParameters);
+        return Kratos::make_unique<NearestNeighborMapper<TSparseSpace, TDenseSpace>>(
+            rModelPartOrigin,
+            rModelPartDestination,
+            JsonParameters);
     }
 
     ///@}

@@ -106,6 +106,7 @@ public:
     ///@name Life Cycle
     ///@{
 
+    // Default constructor, needed for registration
     Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination) :
         mrModelPartOrigin(rModelPartOrigin),
         mrModelPartDestination(rModelPartDestination),
@@ -258,17 +259,22 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
     ModelPart& mrModelPartOrigin;
     ModelPart& mrModelPartDestination;
 
     Parameters mGeneralMapperSettings;
 
+    // utilities needed by the mapper
     MappingOperationUtilityPointerType mpMappingOperationUtility;
     InterfacePreprocessorPointerType mpInterfacePreprocessor;
     InterfaceCommunicatorPointerType mpIntefaceCommunicator;
     MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
 
     // The mapping matrix and the corresponding vectors
+    // size of mpQo: num-nodes origin
+    // size of mpQd: num-nodes destination
+    // size of mpMdo: num-nodes destination x num-nodes origin
     TSystemMatrixUniquePointerType mpMdo;
     TSystemVectorUniquePointerType mpQo;
     TSystemVectorUniquePointerType mpQd;
@@ -284,10 +290,10 @@ protected:
     ///@{
 
     // Constructor, can only be called by derived classes (actual mappers)
+    // Mappers should only be constructed through the MapperFactory
     Mapper(ModelPart& rModelPartOrigin,
            ModelPart& rModelPartDestination,
            Parameters MapperSettings);
-
 
     /**
      * This function can be overridden by derived Mappers to do sth different
@@ -363,13 +369,13 @@ protected:
                              Kratos::Flags MappingOptions,
                              const bool UseTranspose)
     {
-        auto const& var_x_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_X");
-        auto const& var_y_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_Y");
-        auto const& var_z_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_Z");
+        const auto& var_x_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_X");
+        const auto& var_y_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_Y");
+        const auto& var_z_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + "_Z");
 
-        auto const& var_x_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_X");
-        auto const& var_y_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_Y");
-        auto const& var_z_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_Z");
+        const auto& var_x_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_X");
+        const auto& var_y_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_Y");
+        const auto& var_z_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + "_Z");
 
         // X-Component
         mpMappingOperationUtility->InitializeMappingStep(
@@ -494,14 +500,14 @@ private:
         ValidateMapperSpecificSettings(AllMapperSettings);
 
         Parameters default_settings = Parameters( R"({
-            "search_radius"     : -1.0,
-            "search_iterations" : 3,
-            "echo_level"        : 0
+            "search_radius"            : -1.0,
+            "search_iterations"        : 3,
+            "echo_level"               : 0,
+            "mapper_specific_settings" : {}
         })");
 
         mGeneralMapperSettings.ValidateAndAssignDefaults(default_settings);
     }
-
 
     template< typename TDataType >
     void TMap(const Variable<TDataType>& rOriginVariable,
@@ -511,14 +517,12 @@ private:
     {
         CheckForConservative(MappingOptions);
 
-        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE))
-        {
+        if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
             MappingOptions.Reset(MapperFlags::USE_TRANSPOSE); // TODO test this!!!
             const bool use_transpose = true;
             TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions, use_transpose);
         }
-        else
-        {
+        else {
             KRATOS_DEBUG_ERROR_IF_NOT(mpMappingOperationUtility)<< "mpMappingOperationUtility "
                 << "is a nullptr" << std::endl;
 
@@ -526,12 +530,6 @@ private:
                         rDestinationVariable,
                         MappingOptions,
                         UseTranspose);
-
-            // mpMappingOperationUtility->ExecuteMapping(
-            //     *mpMdo, *mpQo, *mpQd,
-            //     mrModelPartOrigin, mrModelPartDestination,
-            //     rOriginVariable, rDestinationVariable,
-            //     MappingOptions, UseTranspose);
         }
     }
 

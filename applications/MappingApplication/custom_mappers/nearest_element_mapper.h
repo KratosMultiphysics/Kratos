@@ -189,28 +189,24 @@ public:
     ///@name Life Cycle
     ///@{
 
+    // Default constructor, needed for registration
     NearestElementMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination)
-                         : Mapper<TSparseSpace, TDenseSpace>(rModelPartOrigin,
-                                  rModelPartDestination) {}
+                         : Mapper<TSparseSpace, TDenseSpace>(
+                             rModelPartOrigin,
+                             rModelPartDestination) {}
 
     NearestElementMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination,
                          Parameters JsonParameters)
-                         : Mapper<TSparseSpace, TDenseSpace>(rModelPartOrigin,
-                                  rModelPartDestination,
-                                  JsonParameters)
+                         : Mapper<TSparseSpace, TDenseSpace>(
+                             rModelPartOrigin,
+                             rModelPartDestination,
+                             JsonParameters)
     {
         // The Initialize function has to be called here bcs it internally calls virtual
         // functions that would not exist yet if it was called from the BaseClass!
         this->Initialize();
-
-
-        // mpMapperCommunicator->InitializeOrigin(MapperUtilities::Condition_Center);
-        // mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
-        // mpMapperCommunicator->Initialize();
-
-        // mpInverseMapper.reset(); // explicitly specified to be safe
     }
 
     /// Destructor.
@@ -230,9 +226,10 @@ public:
                           ModelPart& rModelPartDestination,
                           Parameters JsonParameters) override
     {
-        return Kratos::make_unique<NearestElementMapper<TSparseSpace, TDenseSpace>>(rModelPartOrigin,
-                                                         rModelPartDestination,
-                                                         JsonParameters);
+        return Kratos::make_unique<NearestElementMapper<TSparseSpace, TDenseSpace>>(
+            rModelPartOrigin,
+            rModelPartDestination,
+            JsonParameters);
     }
 
 
