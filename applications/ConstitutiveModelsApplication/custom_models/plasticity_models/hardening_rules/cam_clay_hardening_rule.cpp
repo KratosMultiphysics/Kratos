@@ -71,15 +71,15 @@ namespace Kratos
     KRATOS_TRY
 
     const ModelDataType & rModelData = rVariables.GetModelData();
-    const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
+    const Properties& rProperties = rModelData.GetProperties();
 
     // get values
     const double & rVolumetricPlasticDeformation = rVariables.GetInternalVariables()[1];
 
     // Set constitutive parameters
-    const double & rFirstPreconsolidationPressure = rMaterialProperties[PRE_CONSOLIDATION_STRESS];
-    const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
-    const double & rOtherSlope = rMaterialProperties[NORMAL_COMPRESSION_SLOPE];
+    const double & rFirstPreconsolidationPressure = rProperties[PRE_CONSOLIDATION_STRESS];
+    const double & rSwellingSlope = rProperties[SWELLING_SLOPE];
+    const double & rOtherSlope = rProperties[NORMAL_COMPRESSION_SLOPE];
 
 
     rHardening = -rFirstPreconsolidationPressure*(std::exp (-rVolumetricPlasticDeformation/(rOtherSlope-rSwellingSlope)) ) ;
@@ -98,12 +98,12 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const ModelDataType & rModelData = rVariables.GetModelData();
-    const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
+    const ModelDataType & rModelData    = rVariables.GetModelData();
+    const Properties& rProperties       = rModelData.GetProperties();
     const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
 
-    const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
-    const double & rOtherSlope = rMaterialProperties[NORMAL_COMPRESSION_SLOPE];
+    const double & rSwellingSlope = rProperties[SWELLING_SLOPE];
+    const double & rOtherSlope = rProperties[NORMAL_COMPRESSION_SLOPE];
 
 
     double MeanStress = 0.0;
