@@ -71,7 +71,7 @@ class Procedures(DEM_procedures.Procedures):
     def FindMaxNodeIdInModelPart(self, model_part):
 
         node_max = super(Procedures,self).FindMaxNodeIdInModelPart(model_part)
-        node_max_gath = mpi.allgather(mpi.world,node_max)
+        node_max_gath = mpi.allgather_int(mpi.world,node_max)
         total_max = reduce(lambda x,y: max(x,y), node_max_gath)
         return total_max
 

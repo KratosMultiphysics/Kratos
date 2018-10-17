@@ -30,6 +30,9 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     ModelPart& model_part = model.CreateModelPart("Main",2);
 
     // Variables addition
+    model_part.AddNodalSolutionStepVariable(DENSITY); // TODO: To be removed once the element migration is finally finished (the old embedded elements still use nodal density and viscosity)
+    model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY); // TODO: To be removed once the element migration is finally finished (the old embedded elements still use nodal density and viscosity)
+    model_part.AddNodalSolutionStepVariable(REACTION);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     model_part.AddNodalSolutionStepVariable(DYNAMIC_TAU);
     model_part.AddNodalSolutionStepVariable(SOUND_VELOCITY);
@@ -38,6 +41,9 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
     model_part.AddNodalSolutionStepVariable(DISTANCE);
     model_part.AddNodalSolutionStepVariable(ACCELERATION);
+    model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+    model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
 
     // For VMS comparison
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
@@ -92,6 +98,8 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     Element::Pointer p_element = model_part.pGetElement(1);
 
     for(unsigned int i=0; i<3; i++){
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(DENSITY) = p_properties->GetValue(DENSITY); // TODO: To be removed once the element migration is finally finished (the old embedded elements still use nodal density and viscosity)
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = p_properties->GetValue(DYNAMIC_VISCOSITY); // TODO: To be removed once the element migration is finally finished (the old embedded elements still use nodal density and viscosity)
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 2) = 0.0;
