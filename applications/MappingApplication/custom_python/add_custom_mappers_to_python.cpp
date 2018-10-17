@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "includes/define_python.h"
 #include "custom_python/add_custom_mappers_to_python.h"
 #include "custom_mappers/mapper.h"
 #include "custom_utilities/mapper_factory.h"
