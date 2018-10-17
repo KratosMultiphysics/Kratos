@@ -385,5 +385,5 @@ class Solution(object):
 
 
 if __name__ == "__main__":
-    model = Model()
+    model = KratosMultiphysics.Model()
     Solution(model).Run()
