@@ -78,9 +78,6 @@ class AssignFlagProcess(KratosMultiphysics.Process):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         if(self.interval.IsInInterval(current_time)):
-
-            self.step_is_active = True
-            
             for i in range(len(self.entities)):
                 if (self.entities[i] == "nodes"):
                     self.flag_utils.SetFlag(self.flag, self.value, self.model_part.Nodes)
