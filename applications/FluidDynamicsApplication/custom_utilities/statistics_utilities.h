@@ -32,25 +32,10 @@ namespace Kratos
 ///@addtogroup FluidDynamicsApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
+/// Base class for statistical measurements.
 class StatisticsSampler
 {
 public:
@@ -60,14 +45,27 @@ KRATOS_CLASS_POINTER_DEFINITION(StatisticsSampler);
 typedef Matrix::iterator1 IntegrationPointDataView;
 typedef Matrix::const_iterator2 IntegrationPointDataViewIterator;
 
-StatisticsSampler(unsigned int NumValues):
+/// Define a new StatisticsSampler instance.
+/** Note that this is the base class, unless you are implementing a new statistic,
+ *  you should work with derived classes directly.
+ *  @param NumValues Number of different quantities (components) to be managed.
+ */
+StatisticsSampler(std::size_t NumValues):
     mNumValues(NumValues),
     mOffset(0)
 {}
 
+/// Destructor
 virtual ~StatisticsSampler() {}
 
-// For first-order statistics: read data directly
+/// For first-order statistics: read data directly.
+/** To be implemented in derived classes.
+ *  Note that the BufferIterator argument will be advanced during the call.
+ *  @param[in] rGeometry The geometry for the element that contains the point where statistics are sampled.
+ *  @param[in] rShapeFunctions Local values of elemental shape functions at the sampling point.
+ *  @param[in] rShapeDerivatives Local values of elemental shape function gradients at the sampling point.
+ *  @param BufferIterator Iterator pointing to the start of the storage of the statistics managed by this class.
+ */
 virtual void SampleDataPoint(
     const Geometry< Node<3> >& rGeometry,
     const Vector& rShapeFunctions,
@@ -75,7 +73,14 @@ virtual void SampleDataPoint(
     std::vector<double>::iterator& BufferIterator)
 {}
 
-// For higher-order statistics: operate on lower order data
+/// For higher-order statistics: operate on lower order data.
+/** To be implemented in derived classes.
+ *  Note that the BufferIterator argument will be advanced during the call.
+ *  @param BufferIterator Iterator pointing to the start of the storage of the statistics managed by this class.
+ *  @param[in] rCurrentStatistics Container of last known values for recorded quantities at this sampling point.
+ *  @param[in] rNewMeasurement Container of new measurements for recorded quantities at this sampling point.
+ *  @param[in] NumberOfMeasurements Total number of realizations measured at the sampling point (including the current one).
+ */
 virtual void SampleDataPoint(
     std::vector<double>::iterator& BufferIterator,
     const StatisticsSampler::IntegrationPointDataView& rCurrentStatistics,
@@ -83,11 +88,13 @@ virtual void SampleDataPoint(
     const std::size_t NumberOfMeasurements)
 {}
 
-unsigned int GetSize() const {
+/// Number of quantities managed by this statistic.
+std::size_t GetSize() const {
     return mNumValues;
 }
 
-virtual unsigned int GetComponentOffset(std::size_t i) const
+/// Offset (from the start of the space allocated to this statistic) for the storage of component i.
+virtual std::size_t GetComponentOffset(std::size_t i) const
 {
     KRATOS_DEBUG_ERROR_IF(i >= mNumValues)
     << "Trying to access component index " << i << ", but only "
@@ -96,20 +103,31 @@ virtual unsigned int GetComponentOffset(std::size_t i) const
     return mOffset + i;
 }
 
+/// Helper returning the correct argument in calls to GetComponentOffset for matrix quantities.
 virtual std::size_t ComponentIndex(std::size_t i, std::size_t j) const
 {
     return i*mNumValues + j;
 }
 
+/// Offset (from the start of the statistics container) to the first component stored by this statistic.
 std::size_t GetOffset() const
 {
     return mOffset;
 }
 
+/// Assign a new offset (from the start of the statistics container) to the first component stored by this statistic.
 void SetOffset(std::size_t Offset) {
     mOffset = Offset;
 }
 
+/// Write results managed by this class to output buffer.
+/** This function is called when printing to a file.
+ *  Note that the rDataBuffer argument will be advanced during the call.
+ *  @param rOutStream stream for the output file.
+ *  @param rDataBuffer Iterator pointing to the data managed by this statistic.
+ *  @param SampleSize Number of measured realizations for the recorded quantity.
+ *  @param rSeparator Separator for the output csv file (for example a comma or semicolon).
+ */
 virtual void OutputResult(
     std::ofstream& rOutStream,
     IntegrationPointDataViewIterator& rDataBuffer,
@@ -122,6 +140,11 @@ virtual void OutputResult(
     }
 }
 
+/// Write header for the output file.
+/** This function is called when printing to a file.
+ *  @param rOutStream stream for the output file.
+ *  @param rSeparator Separator for the output csv file (for example a comma or semicolon).
+ */
 virtual void OutputHeader(
     std::ofstream& rOutStream,
     const std::string& rSeparator) const
@@ -129,11 +152,18 @@ virtual void OutputHeader(
     rOutStream << rSeparator;
 }
 
+/// Post-process internal data to produce the final value of the statistical result.
+/** In most cases, this corresponds to dividing by sample size.
+ */
 virtual double Finalize(double Value, std::size_t SampleSize) const
 {
     return Value / SampleSize;
 }
 
+/// Get the string associated one of the components of this statistic.
+/** This is used to obtain the "name" for the statistic to be printed in the output file header.
+ *  @param[in] ComponentIndex index of the required component.
+ */
 std::string GetTag(std::size_t ComponentIndex) const
 {
     KRATOS_DEBUG_ERROR_IF(ComponentIndex >= mNumValues)
@@ -170,11 +200,20 @@ StatisticsSampler():
 
 };
 
+/// This class manages the computation of the average of a scalar quantity.
 class ScalarAverageSampler: public StatisticsSampler
 {
 public:
 
-ScalarAverageSampler(std::function<double(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter,const std::string& Tag):
+/// Initialize a sampler for a scalar average quantity.
+/** @param Getter Helper function to evaluate the quantity of interest.
+ *  @param Tag Name to identify the quantity on result files.
+ *  @see Internals::MakeSamplerAtLocalCoordinate for the definition of the Getter argument.
+ */
+ScalarAverageSampler(
+    std::function<double(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter,
+    const std::string& Tag)
+    :
     StatisticsSampler(1),
     mGetter(Getter)
 {
@@ -202,12 +241,24 @@ std::function<double(const Geometry< Node<3> >& rGeometry, const Vector& rShapeF
 
 };
 
+
+/// This class manages the computation of the average of a vector quantity.
 template< class VectorType >
 class VectorAverageSampler: public StatisticsSampler
 {
 public:
 
-VectorAverageSampler(std::function<VectorType(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter, unsigned int VectorSize, std::vector<std::string>& Tags):
+/// Initialize a sampler for a vector average quantity.
+/** @param Gettr Helper function to evaluate the quantity of interest.
+ *  @param VectorSize Number of components of the vector.
+ *  @param Tags Names to identify each of the components on result files.
+ *  @see Internals::MakeSamplerAtLocalCoordinate for the definition of the Getter argument.
+ */
+VectorAverageSampler(
+    std::function<VectorType(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter,
+    std::size_t VectorSize,
+    std::vector<std::string>& Tags)
+    :
     StatisticsSampler(VectorSize),
     mGetter(Getter)
 {
@@ -242,10 +293,16 @@ private:
 std::function<VectorType(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> mGetter;
 };
 
+/// This class manages the computation of the (co)variance between two given quantities (scalar or vector).
 class VarianceSampler : public StatisticsSampler
 {
 public:
 
+/// Initialize a sampler for the (co)variance between two given quantities.
+/** Note that online recording of a variance requires also recording the averages of each quantity.
+ *  @param pQuantity1 Sampler for the average of the first quantity of the variance.
+ *  @param pQuantity2 Sampler for the average of the second quantity of the variance.
+ */
 VarianceSampler(const StatisticsSampler::Pointer pQuantity1, const StatisticsSampler::Pointer pQuantity2):
     StatisticsSampler(pQuantity1->GetSize() * pQuantity2->GetSize()),
     mpQuantity1(pQuantity1),
@@ -321,10 +378,19 @@ const StatisticsSampler::Pointer mpQuantity2;
 
 };
 
+/// This class manages the computation of the variance for a given quantity.
+/** It is essentially intended as a substitution of VarianceSampler for vector quantities.
+ *  It takes advantage of the fact that variance(ui,uj) = variance(uj,ui), reducing
+ *  the number of values to be tracked.
+ */
 class SymmetricVarianceSampler: public VarianceSampler
 {
 public:
 
+/// Initialize a sampler for the variance of a vecor quantity.
+/** Note that online recording of a variance requires also recording the average of the corresponding quantity.
+ *  @param pQuantity1 Sampler for the average of the quantity of interest.
+ */
 SymmetricVarianceSampler(const StatisticsSampler::Pointer pQuantity1):
     VarianceSampler(pQuantity1, pQuantity1, ((pQuantity1->GetSize()+1) * pQuantity1->GetSize()) / 2)
 {}
@@ -380,10 +446,22 @@ void OutputHeader(
 
 };
 
+/// This class manages the computation of the (co)variance when one or both variables are Vector components.
+/** Note that it is only prepared to accept scalar or vector component arguments, for full vectors, use
+ *  the general VarianceSampler.
+ */
 class ComponentwiseVarianceSampler: public VarianceSampler
 {
 public:
 
+/// Initialize a sampler for the (co)variance between two given quantities.
+/** Note that online recording of a variance requires also recording the averages of each quantity.
+ *  When using this class with a scalar quantity, pass 0 as its ComponentIndex.
+ *  @param pQuantity1 Sampler for the average of the first quantity of the variance.
+ *  @param ComponentIndex1 Index of the component of pQuantity1 to be used in the (co)variance.
+ *  @param pQuantity2 Sampler for the average of the second quantity of the variance.
+ *  @param ComponentIndex2 Index of the component of pQuantity2 to be used in the (co)variance.
+ */
 ComponentwiseVarianceSampler(
     const StatisticsSampler::Pointer pQuantity1,
     std::size_t ComponentIndex1,
@@ -429,11 +507,32 @@ std::size_t mComponent2;
 
 };
 
-
+/// This class manages the computation of third order moments of scalars or vector components.
+/** Note that, since vector correlations quickly involve a lot of cross-components (up to 27 in 3D),
+ *  support is only provided for single-valued quantities (that is, combinations of scalars or vector components).
+ */
 class ThirdOrderCorrelationSampler : public StatisticsSampler
 {
 public:
 
+/// Initialize a sampler for the third order moment involving three given quantities.
+/** Note that online recording of a third order statistic requires
+ *  recording the averages of each quantity and the covariances for each pair.
+ *  When using this class with a scalar quantity, pass 0 as its ComponentIndex.
+ *  For variances, use pVarianceij->GetComponentIndex() to obtain the corresponding VarianceComponent argument.
+ *  @param pQuantity1 Sampler for the average of the first quantity of the third order moment.
+ *  @param ComponentIndex1 Index of the component of pQuantity1 to be used in calculation.
+ *  @param pQuantity2 Sampler for the average of the second quantity of the third order moment.
+ *  @param ComponentIndex2 Index of the component of pQuantity2 to be used in calculation.
+ *  @param pQuantity3 Sampler for the average of the third quantity of the third order moment.
+ *  @param ComponentIndex3 Index of the component of pQuantity3 to be used in calculation.
+ *  @param pVariance12 Sampler for the covariance of the first and second quantities.
+ *  @param VarianceComponent12 Index of the component of pVariance12 to be used in calculation.
+ *  @param pVariance13 Sampler for the covariance of the first and third quantities.
+ *  @param VarianceComponent13 Index of the component of pVariance13 to be used in calculation.
+ *  @param pVariance23 Sampler for the covariance of the second and third quantities.
+ *  @param VarianceComponent23 Index of the component of pVariance23 to be used in calculation.
+ */
 ThirdOrderCorrelationSampler(
     const StatisticsSampler::Pointer pQuantity1,
     const std::size_t QuantityComponent1,
@@ -546,7 +645,6 @@ const std::size_t mVarianceComponent23;
 
 namespace Internals {
 
-
 class MakeSamplerAtLocalCoordinate {
 public:
     static std::function<double(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> ValueGetter(Variable<double>& rVariable) {
@@ -619,10 +717,6 @@ public:
 
 ///@}
 
-///@name Type Definitions
-///@{
-
-///@}
 ///@name Input and output
 ///@{
 
