@@ -65,7 +65,13 @@ class StandardLinearSolverFactory
     : public LinearSolverFactory<TSparseSpace,TLocalSpace>
 {
 protected:
+    ///@name Protected Operators
+    ///@{
 
+    /**
+     * @brief This method is an auxiliar method to create a new solver
+     * @return The pointer to the solver of interest
+     */
     typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer CreateHelper(Kratos::Parameters settings) const override
     {
         if(settings.Has("scaling") && settings["scaling"].GetBool()) {
@@ -77,7 +83,17 @@ protected:
         } else
             return typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer(new TLinearSolverType(settings));
     }
+    ///@}
 };
+
+///@}
+
+///@name Type Definitions
+///@{
+
+///@}
+///@name Input and output
+///@{
 
 /// output stream function
 template <typename TSparseSpace, typename TLocalSpace, typename TLinearSolverType>
@@ -88,8 +104,13 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
+///@}
+///@name Input and output
+
 void RegisterPreconditioners();
 void RegisterLinearSolvers();
+
+///@}
 
 }  // namespace Kratos.
 
