@@ -47,6 +47,7 @@
 //#include "solving_strategies/convergencecriterias/displacement_criteria.h"
 //
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
+#include "custom_strategies/convergencecriterias/trilinos_residual_criteria.h"
 #include "custom_strategies/convergencecriterias/trilinos_up_criteria.h"
 
 //teuchos parameter list
@@ -101,8 +102,8 @@ void  AddConvergenceCriterias(pybind11::module& m)
             (m,"TrilinosUPCriteria")
             .def(init< double, double, double, double >());
 
-    class_< ResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
-            typename ResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
+    class_< TrilinosResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
+            typename TrilinosResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
             TrilinosConvergenceCriteria >
             (m,"TrilinosResidualCriteria")
             .def(init< TrilinosSparseSpaceType::DataType, TrilinosSparseSpaceType::DataType >());

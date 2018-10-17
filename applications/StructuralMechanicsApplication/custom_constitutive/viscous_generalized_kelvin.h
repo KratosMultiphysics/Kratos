@@ -52,6 +52,7 @@ namespace Kratos
  *                  |---[----|
  *                   Damper C
  *
+ * @param TElasticBehaviourLaw Defines the elastic behaviour of the constitutive law (can be hyperelastic or just linear elastic, or any desired elastic behaviour)
  * @author Alejandro Cornejo&  Lucia Barbu
  */
 
