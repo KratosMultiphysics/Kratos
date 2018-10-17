@@ -52,9 +52,9 @@ namespace Kratos
  * @details Defines the standard preconditioner factory
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
- * @param TSparseSpace The sparse space definition
- * @param TLocalSpace The dense space definition
- * @param TPreconditionerType The precondioner type
+ * @tparam TSparseSpace The sparse space definition
+ * @tparam TLocalSpace The dense space definition
+ * @tparam TPreconditionerType The precondioner type
  */
 template <typename TSparseSpace, typename TLocalSpace, typename TPreconditionerType>
 class StandardPreconditionerFactory

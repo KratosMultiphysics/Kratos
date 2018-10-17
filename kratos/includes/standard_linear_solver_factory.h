@@ -52,9 +52,9 @@ namespace Kratos
  * @details Defines the standard linear solver factory
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
- * @param TSparseSpace The sparse space definition
- * @param TLocalSpace The dense space definition
- * @param TLinearSolverType The linear solver type
+ * @tparam TSparseSpace The sparse space definition
+ * @tparam TLocalSpace The dense space definition
+ * @tparam TLinearSolverType The linear solver type
  */
 template <typename TSparseSpace, typename TLocalSpace, typename TLinearSolverType>
 class StandardLinearSolverFactory
