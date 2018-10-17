@@ -24,6 +24,7 @@
 #include "includes/kratos_components.h"
 #include "includes/shared_pointers.h"
 #include "linear_solvers/linear_solver.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -142,6 +143,27 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
+typedef TUblasSparseSpace<double> SparseSpaceType;
+typedef TUblasDenseSpace<double> LocalSparseSpaceType;
+
+typedef LinearSolverFactory<SparseSpaceType,  LocalSparseSpaceType> LinearSolverFactoryType;
+
+#ifdef KRATOS_REGISTER_LINEAR_SOLVER
+#undef KRATOS_REGISTER_LINEAR_SOLVER
+#endif
+#define KRATOS_REGISTER_LINEAR_SOLVER(name, reference) \
+    KratosComponents<LinearSolverFactoryType>::Add(name, reference);
+
+typedef TUblasSparseSpace<std::complex<double>> ComplexSparseSpaceType;
+typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSparseSpaceType;
+
+typedef LinearSolverFactory<ComplexSparseSpaceType,  ComplexLocalSparseSpaceType> ComplexLinearSolverFactoryType;
+
+#ifdef KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER
+#undef KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER
+#endif
+#define KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER(name, reference) \
+    KratosComponents<ComplexLinearSolverFactoryType>::Add(name, reference);
 
 }  // namespace Kratos.
 

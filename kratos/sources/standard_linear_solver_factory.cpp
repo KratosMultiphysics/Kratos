@@ -43,8 +43,6 @@ namespace Kratos
         typedef TUblasSparseSpace<double> SpaceType;
         typedef TUblasDenseSpace<double> LocalSpaceType;
 
-        typedef PreconditionerFactoryBase<SpaceType,  LocalSpaceType> PreconditionerFactoryBaseType;
-
         typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
         typedef DiagonalPreconditioner<SpaceType,  LocalSpaceType> DiagonalPreconditionerType;
         typedef ILU0Preconditioner<SpaceType,  LocalSpaceType> ILU0PreconditionerType;
@@ -57,11 +55,10 @@ namespace Kratos
         static auto ILUFactory= PreconditionerFactory<SpaceType,LocalSpaceType,ILUPreconditionerType>();
 
         //registration of linear solvers
-        KratosComponents<PreconditionerFactoryBaseType>::Add("None", PreconditionerF);
-        KratosComponents<PreconditionerFactoryBaseType>::Add("DiagonalPreconditioner", DiagonalPreconditionerFactory);
-        KratosComponents<PreconditionerFactoryBaseType>::Add("ILU0Preconditioner", ILU0Factory);
-        KratosComponents<PreconditionerFactoryBaseType>::Add("ILUPreconditioner",ILUFactory );
-
+        KRATOS_REGISTER_PRECONDITIONER("None", PreconditionerF);
+        KRATOS_REGISTER_PRECONDITIONER("DiagonalPreconditioner", DiagonalPreconditionerFactory);
+        KRATOS_REGISTER_PRECONDITIONER("ILU0Preconditioner", ILU0Factory);
+        KRATOS_REGISTER_PRECONDITIONER("ILUPreconditioner",ILUFactory );
     };
 
     void RegisterLinearSolvers()
@@ -84,9 +81,6 @@ namespace Kratos
 
         typedef ScalingSolver<SpaceType,  LocalSpaceType> ScalingSolverType;
 
-        typedef LinearSolverFactory<SpaceType,  LocalSpaceType> LinearSolverFactoryType;
-        typedef LinearSolverFactory<ComplexSpaceType,  ComplexLocalSpaceType> ComplexLinearSolverFactoryType;
-
         //NOTE: here we must create persisting objects for the linear solvers
         static auto CGSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,CGSolverType>();
         static auto BICGSTABSolverFactory = StandardLinearSolverFactory<SpaceType,LocalSpaceType,BICGSTABSolverType>();
@@ -100,18 +94,18 @@ namespace Kratos
         static auto SkylineLUComplexSolverFactory = StandardLinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType, SkylineLUComplexSolverType>();
 
         //registration of linear solvers
-//         KratosComponents<LinearSolverFactoryType>::Add("LinearSolver", StandardLinearSolverFactory<SpaceType,LocalSpaceType,LinearSolverType>());
-        KratosComponents<LinearSolverFactoryType>::Add("CGSolver", CGSolverFactory);
-        KratosComponents<LinearSolverFactoryType>::Add("BICGSTABSolver", BICGSTABSolverFactory);
-        KratosComponents<LinearSolverFactoryType>::Add("DeflatedCGSolver", DeflatedCGSolverFactory);
-        KratosComponents<LinearSolverFactoryType>::Add("TFQMRSolver", TFQMRSolverFactory);
-        KratosComponents<LinearSolverFactoryType>::Add("SkylineLUFactorizationSolver",SkylineLUFactorizationSolverFactory );
-        KratosComponents<LinearSolverFactoryType>::Add("AMGCL", AMGCLSolverFactory);
-        KratosComponents<LinearSolverFactoryType>::Add("AMGCLSolver", AMGCLSolverFactory); //registered with two different names
-        KratosComponents<LinearSolverFactoryType>::Add("AMGCL_NS_Solver",AMGCL_NS_SolverFactory );
-        KratosComponents<LinearSolverFactoryType>::Add("ScalingSolver",ScalingSolverFactory );
-        KratosComponents<ComplexLinearSolverFactoryType>::Add("SkylineLUComplexSolver", SkylineLUComplexSolverFactory);
-        KratosComponents<ComplexLinearSolverFactoryType>::Add("complex_skyline_lu_solver", SkylineLUComplexSolverFactory); // NOTE: Name duplicated for retrocompatibility
+//         KRATOS_REGISTER_LINEAR_SOLVER("LinearSolver", StandardLinearSolverFactory<SpaceType,LocalSpaceType,LinearSolverType>());
+        KRATOS_REGISTER_LINEAR_SOLVER("CGSolver", CGSolverFactory);
+        KRATOS_REGISTER_LINEAR_SOLVER("BICGSTABSolver", BICGSTABSolverFactory);
+        KRATOS_REGISTER_LINEAR_SOLVER("DeflatedCGSolver", DeflatedCGSolverFactory);
+        KRATOS_REGISTER_LINEAR_SOLVER("TFQMRSolver", TFQMRSolverFactory);
+        KRATOS_REGISTER_LINEAR_SOLVER("SkylineLUFactorizationSolver",SkylineLUFactorizationSolverFactory );
+        KRATOS_REGISTER_LINEAR_SOLVER("AMGCL", AMGCLSolverFactory);
+        KRATOS_REGISTER_LINEAR_SOLVER("AMGCLSolver", AMGCLSolverFactory); //registered with two different names
+        KRATOS_REGISTER_LINEAR_SOLVER("AMGCL_NS_Solver",AMGCL_NS_SolverFactory );
+        KRATOS_REGISTER_LINEAR_SOLVER("ScalingSolver",ScalingSolverFactory );
+        KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("SkylineLUComplexSolver", SkylineLUComplexSolverFactory);
+        KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("complex_skyline_lu_solver", SkylineLUComplexSolverFactory); // NOTE: Name duplicated for retrocompatibility
 
     };
 

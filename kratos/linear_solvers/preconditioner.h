@@ -14,21 +14,17 @@
 #if !defined(KRATOS_PRECONDITIONER_H_INCLUDED )
 #define  KRATOS_PRECONDITIONER_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
-
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -458,6 +454,16 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
+typedef TUblasSparseSpace<double> SparseSpaceType;
+typedef TUblasDenseSpace<double> LocalSparseSpaceType;
+
+typedef PreconditionerFactoryBase<SparseSpaceType, LocalSparseSpaceType> PreconditionerFactoryBaseType;
+
+#ifdef KRATOS_REGISTER_PRECONDITIONER
+#undef KRATOS_REGISTER_PRECONDITIONER
+#endif
+#define KRATOS_REGISTER_PRECONDITIONER(name, reference) \
+    KratosComponents<PreconditionerFactoryBaseType>::Add(name, reference);
 
 }  // namespace Kratos.
 
