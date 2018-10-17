@@ -24,6 +24,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/properties.h"
+#include "input_output/logger.h"
 
 
 namespace Kratos
@@ -77,8 +78,8 @@ public:
 
           void print() const
           {
-            KRATOS_INFO << " RateFactor " << mRateFactor  << std::endl;
-            KRATOS_INFO << " DeltaTime  " << *mpDeltaTime << std::endl;
+            KRATOS_INFO("MPMHardeningLaw.Parameters") << " RateFactor " << mRateFactor  << std::endl;
+            KRATOS_INFO("MPMHardeningLaw.Parameters") << " DeltaTime  " << *mpDeltaTime << std::endl;
           }
 
     };
