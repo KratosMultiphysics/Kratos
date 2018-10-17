@@ -19,6 +19,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/kernel.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "geometries/quadrilateral_2d_4.h"

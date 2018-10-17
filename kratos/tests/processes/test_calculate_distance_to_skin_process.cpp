@@ -13,6 +13,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/checks.h"
 #include "includes/gid_io.h"
 #include "geometries/hexahedra_3d_8.h"

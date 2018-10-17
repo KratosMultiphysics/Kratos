@@ -18,6 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "processes/find_nodal_neighbours_process.h"

@@ -14,11 +14,11 @@
 #include <limits>
 
 // External includes
-#include <boost/numeric/ublas/matrix.hpp>
-
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
+
 
 // Utility includes
 #include "includes/define.h"

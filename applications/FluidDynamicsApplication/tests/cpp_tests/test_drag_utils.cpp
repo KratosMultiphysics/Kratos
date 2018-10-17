@@ -18,6 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 

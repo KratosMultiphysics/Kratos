@@ -16,6 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/kratos_flags.h"
 #include "geometries/triangle_3d_3.h"
 

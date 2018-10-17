@@ -18,6 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/tetrahedra_mesh_edge_swapping_process.h"
 #include "processes/find_nodal_neighbours_process.h"

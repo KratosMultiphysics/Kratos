@@ -13,6 +13,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/checks.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "processes/structured_mesh_generator_process.h"
