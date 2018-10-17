@@ -153,7 +153,7 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
              model_part.GetProperties()[0])
 
         for i, elem in enumerate(model_part.Elements):
-            if i > nr_elements/2: # prescribing only half of the elements with LOCAL_AXIS_2!
+            if i > (nr_elements/2 -1): # prescribing only half of the elements with LOCAL_AXIS_2!
                 break
             angle_around_x_axis = i*25*math.pi/180 # radians, every 25 degree
             vec_comp_y = math.sin(angle_around_x_axis)
