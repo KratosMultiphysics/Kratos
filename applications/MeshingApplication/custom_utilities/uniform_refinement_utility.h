@@ -11,8 +11,8 @@
 //
 
 
-#if !defined( KRATOS_UNIFORM_REFINE_UTILITY_H_INCLUDED )
-#define KRATOS_UNIFORM_REFINE_UTILITY_H_INCLUDED
+#if !defined( KRATOS_UNIFORM_REFINEMENT_UTILITY_H_INCLUDED )
+#define KRATOS_UNIFORM_REFINEMENT_UTILITY_H_INCLUDED
 
 
 // System includes
@@ -66,7 +66,7 @@ namespace Kratos
  *  If a higher refinement is needed, the utility can be called recursively.
  */
 template<unsigned int TDim>
-class UniformRefineUtility
+class UniformRefinementUtility
 {
 public:
     ///@name Type Definitions
@@ -107,18 +107,18 @@ public:
     typedef std::map<EdgeKeyType, IndexType> NodesInEdgeMapType;
     typedef std::unordered_map<FaceKeyType, IndexType, KeyHasherRange<FaceKeyType>, KeyComparorRange<FaceKeyType>> NodesInFaceMapType;
 
-    /// Pointer definition of UniformRefineUtility
-    KRATOS_CLASS_POINTER_DEFINITION(UniformRefineUtility);
+    /// Pointer definition of UniformRefinementUtility
+    KRATOS_CLASS_POINTER_DEFINITION(UniformRefinementUtility);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    UniformRefineUtility(ModelPart& rModelPart);
+    UniformRefinementUtility(ModelPart& rModelPart);
 
     /// Destructor.
-    virtual ~UniformRefineUtility();
+    virtual ~UniformRefinementUtility();
 
 
     ///@}
@@ -437,15 +437,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //UniformRefineUtility& operator=(UniformRefineUtility const& rOther);
+    //UniformRefinementUtility& operator=(UniformRefinementUtility const& rOther);
 
     /// Copy constructor.
-    UniformRefineUtility(UniformRefineUtility const& rOther);
+    UniformRefinementUtility(UniformRefinementUtility const& rOther);
 
 
     ///@}
 
-}; // Class UniformRefineUtility
+}; // Class UniformRefinementUtility
 
 ///@}
 
@@ -461,12 +461,12 @@ private:
 /// input stream function
 template<unsigned int TDim>
 inline std::istream& operator >> (std::istream& rIStream,
-                UniformRefineUtility<TDim>& rThis);
+                UniformRefinementUtility<TDim>& rThis);
 
 /// output stream function
 template<unsigned int TDim>
 inline std::ostream& operator << (std::ostream& rOStream,
-                const UniformRefineUtility<TDim>& rThis)
+                const UniformRefinementUtility<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -480,4 +480,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_UNIFORM_REFINE_UTILITY_H_INCLUDED  defined
+#endif // KRATOS_UNIFORM_REFINEMENT_UTILITY_H_INCLUDED  defined

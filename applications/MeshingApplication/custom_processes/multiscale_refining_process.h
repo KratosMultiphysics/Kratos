@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined( KRATOS_MULTI_SCALE_REFINING_PROCESS_H_INCLUDED )
-#define KRATOS_MULTI_SCALE_REFINING_PROCESS_H_INCLUDED
+#if !defined( KRATOS_MULTISCALE_REFINING_PROCESS_H_INCLUDED )
+#define KRATOS_MULTISCALE_REFINING_PROCESS_H_INCLUDED
 
 
 // System includes
@@ -26,7 +26,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/variable_utils.h"
-#include "custom_utilities/uniform_refine_utility.h"
+#include "custom_utilities/uniform_refinement_utility.h"
 
 
 namespace Kratos {
@@ -66,7 +66,7 @@ namespace Kratos {
  *     INTERFACE
  *     INSIDE
  */
-class MultiScaleRefiningProcess : public Process
+class MultiscaleRefiningProcess : public Process
 {
 public:
 
@@ -112,14 +112,14 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of MultiScaleRefiningProcess
-    KRATOS_CLASS_POINTER_DEFINITION(MultiScaleRefiningProcess);
+    /// Pointer definition of MultiscaleRefiningProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MultiscaleRefiningProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    MultiScaleRefiningProcess(
+    MultiscaleRefiningProcess(
         ModelPart& rThisCoarseModelPart,
         ModelPart& rThisRefinedModelPart,
         ModelPart& rThisVisualizationModelPart,
@@ -127,7 +127,7 @@ public:
         );
 
     /// Destructor.
-    ~MultiScaleRefiningProcess() override = default;
+    ~MultiscaleRefiningProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -258,7 +258,7 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "MultiScaleRefiningProcess";
+        return "MultiscaleRefiningProcess";
     }
 
     /// Print information about this object.
@@ -327,7 +327,7 @@ public:
     int mDivisionsAtSubscale;
     IndexType mStepDataSize;
 
-    UniformRefineUtility<2> mUniformRefinement; /// The utility to perform the refinement
+    UniformRefinementUtility<2> mUniformRefinement; /// The utility to perform the refinement
 
     NodesArrayType mRefinedInterfaceContainer;
 
@@ -541,14 +541,14 @@ public:
     ///@{
 
     /// Assignment operator.
-    // MultiScaleRefiningProcess& operator=(MultiScaleRefiningProcess const& rOther);
+    // MultiscaleRefiningProcess& operator=(MultiscaleRefiningProcess const& rOther);
 
     /// Copy constructor.
-    // MultiScaleRefiningProcess(MultiScaleRefiningProcess const& rOther);
+    // MultiscaleRefiningProcess(MultiscaleRefiningProcess const& rOther);
 
     ///@}
 
-}; // Class MultiScaleRefiningProcess
+}; // Class MultiscaleRefiningProcess
 
 ///@}
 
@@ -561,11 +561,11 @@ public:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  MultiScaleRefiningProcess& rThis);
+                                  MultiscaleRefiningProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const MultiScaleRefiningProcess& rThis)
+                                  const MultiscaleRefiningProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -577,4 +577,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MULTI_SCALE_REFINING_PROCESS_H_INCLUDED
+#endif // KRATOS_MULTISCALE_REFINING_PROCESS_H_INCLUDED

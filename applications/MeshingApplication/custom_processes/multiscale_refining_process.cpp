@@ -18,7 +18,7 @@
 
 
 // Project includes
-#include "custom_processes/multi_scale_refining_process.h"
+#include "custom_processes/multiscale_refining_process.h"
 #include "geometries/point.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "utilities/sub_model_parts_list_utility.h"
@@ -27,7 +27,7 @@
 namespace Kratos
 {
 
-MultiScaleRefiningProcess::MultiScaleRefiningProcess(
+MultiscaleRefiningProcess::MultiscaleRefiningProcess(
     ModelPart& rThisCoarseModelPart,
     ModelPart& rThisRefinedModelPart,
     ModelPart& rThisVisualizationModelPart,
@@ -77,7 +77,7 @@ MultiScaleRefiningProcess::MultiScaleRefiningProcess(
 }
 
 
-void MultiScaleRefiningProcess::Check()
+void MultiscaleRefiningProcess::Check()
 {
     KRATOS_TRY
 
@@ -92,7 +92,7 @@ void MultiScaleRefiningProcess::Check()
 }
 
 
-void MultiScaleRefiningProcess::ExecuteRefinement()
+void MultiscaleRefiningProcess::ExecuteRefinement()
 {
     // Initialize the maps
     IndexIndexMapType node_tag, elem_tag, cond_tag;
@@ -136,7 +136,7 @@ void MultiScaleRefiningProcess::ExecuteRefinement()
 }
 
 
-void MultiScaleRefiningProcess::ExecuteCoarsening()
+void MultiscaleRefiningProcess::ExecuteCoarsening()
 {
     IdentifyParentNodesToErase();
     IdentifyElementsToErase();
@@ -153,7 +153,7 @@ void MultiScaleRefiningProcess::ExecuteCoarsening()
 }
 
 
-void MultiScaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart)
+void MultiscaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart)
 {
     // Copy all the tables and properties
     AddAllTablesToModelPart(rReferenceModelPart, rNewModelPart);
@@ -177,7 +177,7 @@ void MultiScaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceMode
 }
 
 
-void MultiScaleRefiningProcess::InitializeCoarseModelPart()
+void MultiscaleRefiningProcess::InitializeCoarseModelPart()
 {
     // Create a model part to store the interface boundary conditions
     if (mrCoarseModelPart.HasSubModelPart(mRefinedInterfaceName))
@@ -191,7 +191,7 @@ void MultiScaleRefiningProcess::InitializeCoarseModelPart()
 }
 
 
-void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorType& rNames)
+void MultiscaleRefiningProcess::InitializeRefinedModelPart(const StringVectorType& rNames)
 {
     // Increase the refinement level
     int subscale_index = mrCoarseModelPart.GetValue(SUBSCALE_INDEX);
@@ -212,7 +212,7 @@ void MultiScaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
 }
 
 
-void MultiScaleRefiningProcess::InitializeVisualizationModelPart(const StringVectorType& rNames)
+void MultiscaleRefiningProcess::InitializeVisualizationModelPart(const StringVectorType& rNames)
 {
     // Create a model part to store the interface boundary conditions
     mrVisualizationModelPart.CreateSubModelPart(mRefinedInterfaceName);
@@ -230,7 +230,7 @@ void MultiScaleRefiningProcess::InitializeVisualizationModelPart(const StringVec
 }
 
 
-void MultiScaleRefiningProcess::UpdateVisualizationAfterRefinement()
+void MultiscaleRefiningProcess::UpdateVisualizationAfterRefinement()
 {
     // Remove the refined elements and conditions to substitute them by the refined ones
     mrVisualizationModelPart.RemoveElementsFromAllLevels(MeshingFlags::REFINED);
@@ -255,7 +255,7 @@ void MultiScaleRefiningProcess::UpdateVisualizationAfterRefinement()
 }
 
 
-void MultiScaleRefiningProcess::UpdateVisualizationAfterCoarsening()
+void MultiscaleRefiningProcess::UpdateVisualizationAfterCoarsening()
 {
     // Remove the coarsened entities
     mrVisualizationModelPart.RemoveNodesFromAllLevels(TO_ERASE);
@@ -270,7 +270,7 @@ void MultiScaleRefiningProcess::UpdateVisualizationAfterCoarsening()
 }
 
 
-void MultiScaleRefiningProcess::AddVariablesToRefinedModelPart()
+void MultiscaleRefiningProcess::AddVariablesToRefinedModelPart()
 {
     auto variables_list = mrCoarseModelPart.GetNodalSolutionStepVariablesList();
 
@@ -281,7 +281,7 @@ void MultiScaleRefiningProcess::AddVariablesToRefinedModelPart()
 }
 
 
-void MultiScaleRefiningProcess::AddAllPropertiesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart)
+void MultiscaleRefiningProcess::AddAllPropertiesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart)
 {
     const IndexType nprop = rOriginModelPart.NumberOfProperties();
     ModelPart::PropertiesContainerType::iterator prop_begin = rOriginModelPart.PropertiesBegin();
@@ -294,7 +294,7 @@ void MultiScaleRefiningProcess::AddAllPropertiesToModelPart(ModelPart& rOriginMo
 }
 
 
-void MultiScaleRefiningProcess::AddAllTablesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart)
+void MultiscaleRefiningProcess::AddAllTablesToModelPart(ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart)
 {
     const IndexType ntables = rOriginModelPart.NumberOfTables();
     ModelPart::TablesContainerType::iterator table_begin = rOriginModelPart.TablesBegin();
@@ -307,7 +307,7 @@ void MultiScaleRefiningProcess::AddAllTablesToModelPart(ModelPart& rOriginModelP
 }
 
 
-void MultiScaleRefiningProcess::MarkElementsFromNodalFlag()
+void MultiscaleRefiningProcess::MarkElementsFromNodalFlag()
 {
     const int nelems = static_cast<int>(mrCoarseModelPart.Elements().size());
     ModelPart::ElementsContainerType::iterator elem_begin = mrCoarseModelPart.ElementsBegin();
@@ -338,7 +338,7 @@ void MultiScaleRefiningProcess::MarkElementsFromNodalFlag()
 }
 
 
-void MultiScaleRefiningProcess::MarkConditionsFromNodalFlag()
+void MultiscaleRefiningProcess::MarkConditionsFromNodalFlag()
 {
     const int nconds = static_cast<int>(mrCoarseModelPart.Conditions().size());
     ModelPart::ConditionsContainerType::iterator cond_begin = mrCoarseModelPart.ConditionsBegin();
@@ -369,7 +369,7 @@ void MultiScaleRefiningProcess::MarkConditionsFromNodalFlag()
 }
 
 
-void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
+void MultiscaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
 {
     const int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
@@ -419,7 +419,7 @@ void MultiScaleRefiningProcess::CloneNodesToRefine(IndexType& rNodeId)
 }
 
 
-void MultiScaleRefiningProcess::IdentifyParentNodesToErase()
+void MultiscaleRefiningProcess::IdentifyParentNodesToErase()
 {
     const int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
     ModelPart::NodesContainerType::iterator nodes_begin = mrCoarseModelPart.NodesBegin();
@@ -446,7 +446,7 @@ void MultiScaleRefiningProcess::IdentifyParentNodesToErase()
 }
 
 
-void MultiScaleRefiningProcess::IdentifyElementsToErase()
+void MultiscaleRefiningProcess::IdentifyElementsToErase()
 {
     // Identify the parent elements to coarse
     const int nelems_coarse = static_cast<int>(mrCoarseModelPart.Elements().size());
@@ -486,7 +486,7 @@ void MultiScaleRefiningProcess::IdentifyElementsToErase()
 }
 
 
-void MultiScaleRefiningProcess::IdentifyConditionsToErase()
+void MultiscaleRefiningProcess::IdentifyConditionsToErase()
 {
     // Identify the parent conditions  to coarse
     const int nconds_coarse = static_cast<int>(mrCoarseModelPart.Conditions().size());
@@ -526,7 +526,7 @@ void MultiScaleRefiningProcess::IdentifyConditionsToErase()
 }
 
 
-void MultiScaleRefiningProcess::IdentifyRefinedNodesToErase()
+void MultiscaleRefiningProcess::IdentifyRefinedNodesToErase()
 {
     const IndexType nelems = mrRefinedModelPart.Elements().size();
     if (nelems != 0) // just avoiding segfault in case of an empty coarse model part
@@ -557,7 +557,7 @@ void MultiScaleRefiningProcess::IdentifyRefinedNodesToErase()
 }
 
 
-void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, IndexIndexMapType& rElemTag)
+void MultiscaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, IndexIndexMapType& rElemTag)
 {
     const int nelems = static_cast<int>(mrCoarseModelPart.Elements().size());
     ModelPart::ElementsContainerType::iterator elements_begin = mrCoarseModelPart.ElementsBegin();
@@ -610,7 +610,7 @@ void MultiScaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, Index
 }
 
 
-void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, IndexIndexMapType& rCondTag)
+void MultiscaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, IndexIndexMapType& rCondTag)
 {
     const int nconds = static_cast<int>(mrCoarseModelPart.Conditions().size());
     ModelPart::ConditionsContainerType::iterator conditions_begin = mrCoarseModelPart.ConditionsBegin();
@@ -663,7 +663,7 @@ void MultiScaleRefiningProcess::CreateConditionsToRefine(IndexType& rCondId, Ind
 }
 
 
-void MultiScaleRefiningProcess::FinalizeRefinement()
+void MultiscaleRefiningProcess::FinalizeRefinement()
 {
     /// Coarse model part
     // Resetting the nodes flags
@@ -704,7 +704,7 @@ void MultiScaleRefiningProcess::FinalizeRefinement()
     }
 }
 
-void MultiScaleRefiningProcess::FinalizeCoarsening()
+void MultiscaleRefiningProcess::FinalizeCoarsening()
 {
     /// Coarse model part
     // Resetting the nodes flags
@@ -736,7 +736,7 @@ void MultiScaleRefiningProcess::FinalizeCoarsening()
 }
 
 
-void MultiScaleRefiningProcess::IdentifyCurrentInterface()
+void MultiscaleRefiningProcess::IdentifyCurrentInterface()
 {
     // Resetting the flag
     int nnodes = static_cast<int>(mrCoarseModelPart.Nodes().size());
@@ -771,7 +771,7 @@ void MultiScaleRefiningProcess::IdentifyCurrentInterface()
 }
 
 
-void MultiScaleRefiningProcess::UpdateRefinedInterface()
+void MultiscaleRefiningProcess::UpdateRefinedInterface()
 {
     mRefinedInterfaceContainer.clear();
 
@@ -792,7 +792,7 @@ void MultiScaleRefiningProcess::UpdateRefinedInterface()
 }
 
 
-void MultiScaleRefiningProcess::TransferLastStepToCoarseModelPart()
+void MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart()
 {
     ModelPart::NodeIterator refined_begin = mrRefinedModelPart.NodesBegin();
     for (int i = 0; i < static_cast<int>(mrRefinedModelPart.Nodes().size()); i++)
@@ -810,7 +810,7 @@ void MultiScaleRefiningProcess::TransferLastStepToCoarseModelPart()
 }
 
 
-void MultiScaleRefiningProcess::GetLastId(
+void MultiscaleRefiningProcess::GetLastId(
     IndexType& rNodesId,
     IndexType& rElemsId,
     IndexType& rCondsId)

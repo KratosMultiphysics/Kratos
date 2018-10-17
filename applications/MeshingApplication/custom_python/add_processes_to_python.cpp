@@ -27,7 +27,7 @@
 // #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
 #include "custom_processes/integration_values_extrapolation_to_nodes_process.h"
-#include "custom_processes/multi_scale_refining_process.h"
+#include "custom_processes/multiscale_refining_process.h"
 // #include "custom_processes/set_h_map_process.h"
 // #include "custom_processes/embedded_mesh_locator_process.h"
 
@@ -134,26 +134,26 @@ void  AddProcessesToPython(pybind11::module& m)
         ;
 
         /* MULTI SCALE PROCESS */
-        class_<MultiScaleRefiningProcess, MultiScaleRefiningProcess::Pointer, Process>(m, "MultiScaleRefiningProcess")
+        class_<MultiscaleRefiningProcess, MultiscaleRefiningProcess::Pointer, Process>(m, "MultiscaleRefiningProcess")
         .def(init<ModelPart&, ModelPart&, ModelPart&>())
         .def(init<ModelPart&, ModelPart&, ModelPart&, Parameters>())
-        .def("ExecuteRefinement", &MultiScaleRefiningProcess::ExecuteRefinement)
-        .def("ExecuteCoarsening", &MultiScaleRefiningProcess::ExecuteCoarsening)
-        .def("InitializeNewModelPart", &MultiScaleRefiningProcess::InitializeNewModelPart)
-        .def("TransferLastStepToCoarseModelPart", &MultiScaleRefiningProcess::TransferLastStepToCoarseModelPart)
-        .def("TransferSubstepToRefinedInterface", &MultiScaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<double>>)
-        .def("TransferSubstepToRefinedInterface", &MultiScaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,3>>>)
-        .def("TransferSubstepToRefinedInterface", &MultiScaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,4>>>)
-        .def("TransferSubstepToRefinedInterface", &MultiScaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,6>>>)
-        .def("TransferSubstepToRefinedInterface", &MultiScaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,9>>>)
-        .def("FixRefinedInterface", &MultiScaleRefiningProcess::FixRefinedInterface<Variable<double>>)
-        .def("FixRefinedInterface", &MultiScaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>)
-        .def("FixRefinedInterface", &MultiScaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,4>>>>)
-        .def("FixRefinedInterface", &MultiScaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,6>>>>)
-        .def("FixRefinedInterface", &MultiScaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,9>>>>)
-        .def("GetCoarseModelPart", &MultiScaleRefiningProcess::GetCoarseModelPart)
-        .def("GetRefinedModelPart", &MultiScaleRefiningProcess::GetRefinedModelPart)
-        .def("GetVisualizationModelPart", &MultiScaleRefiningProcess::GetVisualizationModelPart)
+        .def("ExecuteRefinement", &MultiscaleRefiningProcess::ExecuteRefinement)
+        .def("ExecuteCoarsening", &MultiscaleRefiningProcess::ExecuteCoarsening)
+        .def("InitializeNewModelPart", &MultiscaleRefiningProcess::InitializeNewModelPart)
+        .def("TransferLastStepToCoarseModelPart", &MultiscaleRefiningProcess::TransferLastStepToCoarseModelPart)
+        .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<double>>)
+        .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,3>>>)
+        .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,4>>>)
+        .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,6>>>)
+        .def("TransferSubstepToRefinedInterface", &MultiscaleRefiningProcess::TransferSubstepToRefinedInterface<Variable<array_1d<double,9>>>)
+        .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<Variable<double>>)
+        .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>>)
+        .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,4>>>>)
+        .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,6>>>>)
+        .def("FixRefinedInterface", &MultiscaleRefiningProcess::FixRefinedInterface<VariableComponent<VectorComponentAdaptor<array_1d<double,9>>>>)
+        .def("GetCoarseModelPart", &MultiscaleRefiningProcess::GetCoarseModelPart)
+        .def("GetRefinedModelPart", &MultiscaleRefiningProcess::GetRefinedModelPart)
+        .def("GetVisualizationModelPart", &MultiscaleRefiningProcess::GetVisualizationModelPart)
         ;
 
         /* MMG PROCESS */

@@ -22,7 +22,7 @@
 #include "meshing_application.h"
 
 // Utilities
-#include "custom_utilities/uniform_refine_utility.h"
+#include "custom_utilities/uniform_refinement_utility.h"
 
 namespace Kratos
 {
@@ -128,8 +128,8 @@ namespace Kratos
 
             // Execute the utility
             int refinement_level = 2;
-            UniformRefineUtility<2> uniform_refine_utility(this_model_part);
-            uniform_refine_utility.Refine(refinement_level);
+            UniformRefinementUtility<2> uniform_refinement(this_model_part);
+            uniform_refinement.Refine(refinement_level);
 
             // Check the number of entities in the main model part
             unsigned int final_nodes = (std::pow(2,refinement_level)+1) * ((0.5*initial_nodes[0]-1)*std::pow(2,refinement_level)+1);
@@ -237,8 +237,8 @@ namespace Kratos
 
             // Execute the utility
             int refinement_level = 3;
-            UniformRefineUtility<2> uniform_refine_utility(this_model_part);
-            uniform_refine_utility.Refine(refinement_level);
+            UniformRefinementUtility<2> uniform_refinement(this_model_part);
+            uniform_refinement.Refine(refinement_level);
 
             // Check the number of entities in the main model part
             unsigned int final_nodes = (std::pow(2,refinement_level)+1) * ((0.5*initial_nodes[0]-1)*std::pow(2,refinement_level)+1);

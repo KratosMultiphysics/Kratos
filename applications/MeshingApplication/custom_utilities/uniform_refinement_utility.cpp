@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
-#include "uniform_refine_utility.h"
+#include "uniform_refinement_utility.h"
 #include "utilities/sub_model_parts_list_utility.h"
 
 
@@ -28,7 +28,7 @@ namespace Kratos
 {
 /// Default constructor
 template< unsigned int TDim>
-UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart) :
+UniformRefinementUtility<TDim>::UniformRefinementUtility(ModelPart& rModelPart) :
     mrModelPart(rModelPart)
 {
     // Initialize the member variables storing the Id
@@ -74,26 +74,26 @@ UniformRefineUtility<TDim>::UniformRefineUtility(ModelPart& rModelPart) :
 
 /// Destructor
 template< unsigned int TDim>
-UniformRefineUtility<TDim>::~UniformRefineUtility() {}
+UniformRefinementUtility<TDim>::~UniformRefinementUtility() {}
 
 
 /// Turn back information as a string.
 template< unsigned int TDim>
-std::string UniformRefineUtility<TDim>::Info() const {
+std::string UniformRefinementUtility<TDim>::Info() const {
     return "Uniform refine utility.";
 }
 
 
 /// Print information about this object.
 template< unsigned int TDim>
-void UniformRefineUtility<TDim>::PrintInfo(std::ostream& rOStream) const {
+void UniformRefinementUtility<TDim>::PrintInfo(std::ostream& rOStream) const {
     rOStream << "Uniform refine utility.";
 }
 
 
 /// Print object's data.
 template< unsigned int TDim>
-void UniformRefineUtility<TDim>::PrintData(std::ostream& rOStream) const {
+void UniformRefinementUtility<TDim>::PrintData(std::ostream& rOStream) const {
     rOStream << "Uniform refine utility constructed with:\n";
     rOStream << "   Model part: " << mrModelPart.Info() << "\n";
 }
@@ -101,10 +101,10 @@ void UniformRefineUtility<TDim>::PrintData(std::ostream& rOStream) const {
 
 /// Execute the refinement until the final number of divisions level is reached
 template< unsigned int TDim>
-void UniformRefineUtility<TDim>::Refine(int& rFinalRefinementLevel)
+void UniformRefinementUtility<TDim>::Refine(int& rFinalRefinementLevel)
 {
     if (mrModelPart.Nodes().size() == 0)
-        KRATOS_WARNING("UniformrefineUtility") << "Attempting to refine an empty model part" << std::endl;
+        KRATOS_WARNING("UniformRefinementUtility") << "Attempting to refine an empty model part" << std::endl;
     else
         mDofs = mrModelPart.NodesBegin()->GetDofs();
     // Get the lowest refinement level
@@ -126,7 +126,7 @@ void UniformRefineUtility<TDim>::Refine(int& rFinalRefinementLevel)
 
 /// Set the custom ids which will be used to create new entities
 template<unsigned int TDim>
-void UniformRefineUtility<TDim>::SetCustomIds(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId)
+void UniformRefinementUtility<TDim>::SetCustomIds(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId)
 {
     // Set the id
     mLastNodeId = rNodeId;
@@ -137,7 +137,7 @@ void UniformRefineUtility<TDim>::SetCustomIds(IndexType& rNodeId, IndexType& rEl
 
 /// Get the last id of the created nodes, elements and conditions
 template<unsigned int TDim>
-void UniformRefineUtility<TDim>::GetLastCreatedIds(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId)
+void UniformRefinementUtility<TDim>::GetLastCreatedIds(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId)
 {
     // Get the id
     rNodeId = mLastNodeId;
@@ -148,7 +148,7 @@ void UniformRefineUtility<TDim>::GetLastCreatedIds(IndexType& rNodeId, IndexType
 
 /// Remove the refined entities
 template< unsigned int TDim>
-void UniformRefineUtility<TDim>::RemoveRefinedEntities(Flags ThisFlag)
+void UniformRefinementUtility<TDim>::RemoveRefinedEntities(Flags ThisFlag)
 {
     // Clear the maps
     for (ModelPart::NodeIterator node = mrModelPart.NodesBegin(); node < mrModelPart.NodesEnd(); node++)
@@ -202,7 +202,7 @@ void UniformRefineUtility<TDim>::RemoveRefinedEntities(Flags ThisFlag)
 
 /// Execute the refinement once
 template< unsigned int TDim>
-void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
+void UniformRefinementUtility<TDim>::ExecuteDivision(const int& rDivision)
 {
     // Initialize the auxiliary arrays for the elements and conditions to refine
     ElementsArrayType elements_to_refine;
@@ -331,7 +331,7 @@ void UniformRefineUtility<TDim>::ExecuteDivision(const int& rDivision)
 
 /// Get the middle node on an edge
 template <unsigned int TDim>
-typename NodeType::Pointer UniformRefineUtility<TDim>::GetNodeInEdge(
+typename NodeType::Pointer UniformRefinementUtility<TDim>::GetNodeInEdge(
     const EdgeType& rEdge,
     const int& rNumberOfDivisions
 )
@@ -360,7 +360,7 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::GetNodeInEdge(
 
 /// Create a middle node on an edge. If the node does not exist, it creates one
 template <unsigned int TDim>
-typename NodeType::Pointer UniformRefineUtility<TDim>::CreateNodeInEdge(
+typename NodeType::Pointer UniformRefinementUtility<TDim>::CreateNodeInEdge(
     const EdgeType& rEdge,
     const int& rNumberOfDivisions,
     const EdgeKeyType& rNodeKey
@@ -398,7 +398,7 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::CreateNodeInEdge(
 
 /// Get the middle node on a face defined by four nodes. If the node does not exist, it creates one
 template< unsigned int TDim>
-typename NodeType::Pointer UniformRefineUtility<TDim>::GetNodeInFace(
+typename NodeType::Pointer UniformRefinementUtility<TDim>::GetNodeInFace(
     const FaceType& rFace,
     const int& rNumberOfDivisions
 )
@@ -427,7 +427,7 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::GetNodeInFace(
 
 /// Get the middle node on a face defined by four nodes. If the node does not exist, it creates one
 template< unsigned int TDim>
-typename NodeType::Pointer UniformRefineUtility<TDim>::CreateNodeInFace(
+typename NodeType::Pointer UniformRefinementUtility<TDim>::CreateNodeInFace(
     const FaceType& rFace,
     const int& rNumberOfDivisions,
     const FaceKeyType& rNodeKey
@@ -465,7 +465,7 @@ typename NodeType::Pointer UniformRefineUtility<TDim>::CreateNodeInFace(
 
 /// Compute the nodal data of a node
 template< unsigned int TDim >
-void UniformRefineUtility<TDim>::CalculateNodalStepData(
+void UniformRefinementUtility<TDim>::CalculateNodalStepData(
     NodeType::Pointer pNewNode,
     const NodeType::Pointer pNode0,
     const NodeType::Pointer pNode1
@@ -497,7 +497,7 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
 
 /// Compute the nodal data of a node
 template< unsigned int TDim >
-void UniformRefineUtility<TDim>::CalculateNodalStepData(
+void UniformRefinementUtility<TDim>::CalculateNodalStepData(
     NodeType::Pointer pNewNode,
     const NodeType::Pointer pNode0,
     const NodeType::Pointer pNode1,
@@ -538,7 +538,7 @@ void UniformRefineUtility<TDim>::CalculateNodalStepData(
 
 /// Add the father nodes which does not exist in the current father nodes
 template<unsigned int TDim>
-void UniformRefineUtility<TDim>::AddOtherFatherNodes(
+void UniformRefinementUtility<TDim>::AddOtherFatherNodes(
     WeakPointerVector<NodeType>& rThisFatherNodes,
     std::vector<double>& rThisFatherWeights,
     WeakPointerVector<NodeType>& rOtherFatherNodes,
@@ -576,7 +576,7 @@ void UniformRefineUtility<TDim>::AddOtherFatherNodes(
 
 /// Create a sub element
 template<unsigned int TDim>
-void UniformRefineUtility<TDim>::CreateElement(
+void UniformRefinementUtility<TDim>::CreateElement(
     ElementsArrayType::iterator pOriginElement,
     PointerVector<NodeType>& rThisNodes,
     const int& rNumberOfDivisions
@@ -614,7 +614,7 @@ void UniformRefineUtility<TDim>::CreateElement(
 
 /// Create a sub condition
 template<unsigned int TDim>
-void UniformRefineUtility<TDim>::CreateCondition(
+void UniformRefinementUtility<TDim>::CreateCondition(
     ConditionsArrayType::iterator pOriginCondition,
     PointerVector<NodeType>& rThisNodes,
     const int& rNumberOfDivisions
@@ -649,7 +649,7 @@ void UniformRefineUtility<TDim>::CreateCondition(
 
 /// Return the nodes defining the i-subline
 template<unsigned int TDim>
-PointerVector<NodeType> UniformRefineUtility<TDim>::GetSubLineNodes(
+PointerVector<NodeType> UniformRefinementUtility<TDim>::GetSubLineNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
     NodeType::Pointer& rMiddleNode
@@ -680,7 +680,7 @@ PointerVector<NodeType> UniformRefineUtility<TDim>::GetSubLineNodes(
 
 /// Return the nodes defining the i-subtriangle
 template<unsigned int TDim>
-PointerVector<NodeType> UniformRefineUtility<TDim>::GetSubTriangleNodes(
+PointerVector<NodeType> UniformRefinementUtility<TDim>::GetSubTriangleNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
     std::vector<NodeType::Pointer>& rMiddleNodes
@@ -726,7 +726,7 @@ PointerVector<NodeType> UniformRefineUtility<TDim>::GetSubTriangleNodes(
 
 /// Return the nodes defining the i-subquadrilateral
 template<unsigned int TDim>
-PointerVector<NodeType> UniformRefineUtility<TDim>::GetSubQuadrilateralNodes(
+PointerVector<NodeType> UniformRefinementUtility<TDim>::GetSubQuadrilateralNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
     std::vector<NodeType::Pointer>& rMiddleNodes
@@ -777,7 +777,7 @@ PointerVector<NodeType> UniformRefineUtility<TDim>::GetSubQuadrilateralNodes(
 
 /// Add a node to the sub model parts specified by the tag
 template<unsigned int TDim>
-void UniformRefineUtility<TDim>::AddNodeToSubModelParts(
+void UniformRefinementUtility<TDim>::AddNodeToSubModelParts(
     NodeType::Pointer pNode,
     IndexType Tag
     )
@@ -797,7 +797,7 @@ void UniformRefineUtility<TDim>::AddNodeToSubModelParts(
 
 /// Add a node to the sub model parts specified by the tag
 template<unsigned int TDim>
-void UniformRefineUtility<TDim>::AddNodesToSubModelParts(
+void UniformRefinementUtility<TDim>::AddNodesToSubModelParts(
     std::vector<NodeType::Pointer>& rThisNodes,
     IndexType Tag
     )
@@ -817,6 +817,6 @@ void UniformRefineUtility<TDim>::AddNodesToSubModelParts(
 }
 
 
-template class UniformRefineUtility<2>;
+template class UniformRefinementUtility<2>;
 
 }  // namespace Kratos.
