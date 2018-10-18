@@ -19,6 +19,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "processes/mesh_coarsening_process.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/find_nodal_neighbours_process.h"

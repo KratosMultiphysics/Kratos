@@ -14,7 +14,7 @@
 // Project includes
 #include "includes/process_info.h"
 #include "testing/testing.h"
-
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "processes/skin_detection_process.h"

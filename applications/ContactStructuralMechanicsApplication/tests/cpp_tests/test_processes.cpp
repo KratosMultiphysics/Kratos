@@ -15,6 +15,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "contact_structural_mechanics_application_variables.h"
 
 /* Processes */

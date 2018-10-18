@@ -462,6 +462,15 @@ public:
         return mData.GetValue(rThisVariable);
     }
 
+    /**
+     * @brief Get Data with GetValue and the Variable to get
+     * @param rThisVariable The variable to get
+     */
+    template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable) const
+    {
+        return mData.GetValue(rThisVariable);
+    }
+
 protected:
     ///@name Protected static Member Variables
     ///@{

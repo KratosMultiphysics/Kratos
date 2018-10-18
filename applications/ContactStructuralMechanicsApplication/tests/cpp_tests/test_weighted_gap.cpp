@@ -16,6 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/kratos_flags.h"
 #include "includes/mapping_variables.h"
 #include "contact_structural_mechanics_application.h"

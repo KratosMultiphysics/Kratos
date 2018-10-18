@@ -18,6 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 
@@ -51,6 +52,7 @@ namespace Kratos {
             rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
             rModelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
             rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+            rModelPart.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
 
             // Process info creation
             double delta_time = 0.1;

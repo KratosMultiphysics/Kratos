@@ -16,7 +16,7 @@
 // Project includes
 #include "includes/process_info.h"
 #include "testing/testing.h"
-
+#include "containers/model.h"
 // Application includes
 
 // Constitutive law
