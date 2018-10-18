@@ -12,20 +12,23 @@
 //
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part.h"
 
 namespace Kratos {
     namespace Testing {
 
-        KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
-        {
-            ModelPart model_part("Main");
+		KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
+		{
+			Model current_model;
 
-            model_part.CreateSubModelPart("Inlet1");
-            model_part.CreateSubModelPart("Inlet2");
-            model_part.CreateSubModelPart("Outlet");
-            model_part.CreateSubModelPart("AnotherOutlet");
+			ModelPart& model_part = current_model.CreateModelPart("Main");
+ 
+			model_part.CreateSubModelPart("Inlet1");
+			model_part.CreateSubModelPart("Inlet2");
+			model_part.CreateSubModelPart("Outlet");
+			model_part.CreateSubModelPart("AnotherOutlet");
 
             std::size_t id = 1;
             for(auto i_SubModelPart = model_part.SubModelPartsBegin() ; i_SubModelPart != model_part.SubModelPartsEnd() ; i_SubModelPart++){
@@ -37,9 +40,11 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Outlet").NumberOfNodes(), 1);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ModelPartAddNodalSolutionStepVariable, KratosCoreFastSuite)
-        {
-            ModelPart model_part("Main");
+		KRATOS_TEST_CASE_IN_SUITE(ModelPartAddNodalSolutionStepVariable, KratosCoreFastSuite)
+		{
+			Model current_model;
+
+			ModelPart& model_part = current_model.CreateModelPart("Main");
 
             model_part.AddNodalSolutionStepVariable(VELOCITY);
 
@@ -51,9 +56,10 @@ namespace Kratos {
             model_part.AddNodalSolutionStepVariable(VELOCITY); // Adding the same Variable twice is fine bcs it wont do anything
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ModelPartHasNodalSolutionStepVariable, KratosCoreFastSuite)
-        {
-            ModelPart model_part("Main");
+		KRATOS_TEST_CASE_IN_SUITE(ModelPartHasNodalSolutionStepVariable, KratosCoreFastSuite)
+		{
+			Model current_model;
+			ModelPart& model_part = current_model.CreateModelPart("Main");
 
             model_part.AddNodalSolutionStepVariable(VELOCITY);
 

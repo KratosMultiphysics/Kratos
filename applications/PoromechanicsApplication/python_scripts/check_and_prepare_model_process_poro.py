@@ -9,6 +9,7 @@ def Factory(settings, Model):
 ## All the processes python should be derived from "Process"
 class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
     def __init__(self, main_model_part, Parameters ):
+        KratosMultiphysics.Process.__init__(self)
         self.main_model_part = main_model_part
 
         self.computing_model_part_name  = Parameters["computing_model_part_name"].GetString()

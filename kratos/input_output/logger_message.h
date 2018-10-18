@@ -19,6 +19,7 @@
 
 // System includes
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <map>
 #include <chrono>
@@ -40,10 +41,10 @@ namespace Kratos
 		///@{
 
 		/// LoggerMessage class holdes message and the properties of the message.
-		/** LoggerMessage holds the origin of the message, severity, level and 
+		/** LoggerMessage holds the origin of the message, severity, level and
 			the category of it.
 			Most of the methods are defined in header to be inlined in order to
-			increase the performance. 
+			increase the performance.
 		*/
 		class KRATOS_API(KRATOS_CORE) LoggerMessage
 		{
@@ -78,10 +79,10 @@ namespace Kratos
 			///@{
 
 
-			LoggerMessage(std::string const& TheLabel) 
+			LoggerMessage(std::string const& TheLabel)
 				: mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS) {}
 
-			LoggerMessage(LoggerMessage const& Other) 
+			LoggerMessage(LoggerMessage const& Other)
 				: mLabel(Other.mLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mCategory(Other.mCategory) {}
 
 			/// Destructor.
@@ -135,7 +136,7 @@ namespace Kratos
 			std::size_t GetLevel() const {
 				return mLevel;
             }
-            
+
             void SetLocation(CodeLocation const& TheLocation) {
 				mLocation = TheLocation;
 			}
@@ -185,7 +186,7 @@ namespace Kratos
 			/// Print object's data.
 			virtual void PrintData(std::ostream& rOStream) const;
 
-			
+
 			/// string stream function
 			template<class StreamValueType>
 			LoggerMessage& operator << (StreamValueType const& rValue)
@@ -203,7 +204,7 @@ namespace Kratos
 
 			/// char stream function
             LoggerMessage& operator << (const char * rString);
-            
+
             /// Location stream function
 			LoggerMessage& operator << (CodeLocation const& TheLocation);
 
