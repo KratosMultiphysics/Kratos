@@ -33,7 +33,7 @@ namespace Kratos
  * to large displacements elasticity.
  */
 
-class HyperElastic3DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HyperElastic3DLaw
     : public ConstitutiveLaw
 {
 protected:
@@ -178,21 +178,6 @@ public:
                                const Vector& rShapeFunctionsValues ,
                                const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * Computes the material response:
-     * PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK1 (Parameters & rValues) override;
-
-    /**
-     * Computes the material response:
-     * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK2 (Parameters & rValues) override;
 
     /**
      * Computes the material response:
@@ -211,22 +196,6 @@ public:
      */
     void CalculateMaterialResponseCauchy (Parameters & rValues) override;
 
-
-    /**
-      * Updates the material response:
-      * Cauchy stresses and Internal Variables
-      * @param rValues
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponsePK1 (Parameters & rValues) override;
-
-    /**
-      * Updates the material response:
-      * Cauchy stresses and Internal Variables
-      * @param rValues
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponsePK2 (Parameters & rValues) override;
 
     /**
       * Updates the material response:
@@ -329,24 +298,6 @@ protected:
                           StressMeasure rStressMeasure,
                           Vector& rStressVector);
 
-   /**
-     * Calculates the isochoric stress vector
-     * @param rElasticVariables
-     * matrix is to be generated for
-     * @param rStressMeasure measure of stress to be calculated
-     * @param rIsoStressVector vector where the stress result is stored
-     */
-    virtual void CalculateIsochoricStress( const MaterialResponseVariables & rElasticVariables,
-                                           StressMeasure rStressMeasure,
-					   Vector& rIsoStressVector);
-
-    /**
-     * Calculates the volumetric stress vector
-     * @param rElasticResponseVariables the material variables
-     * @param rVolStressVector vector where the stress result is stored
-     */
-    virtual void CalculateVolumetricStress( const MaterialResponseVariables & rElasticVariables,
-                                            Vector& rVolStressVector );
 
     /**
      * Calculates the constitutive matrix
@@ -369,63 +320,12 @@ protected:
 
 
     /**
-     * Calculates the isochoric constitutive matrix
-     * @param rElasticVariables
-     * @param rIsoStressVector the isochoric stress vector
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						       const Matrix & rIsoStressMatrix,
-						       Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Constitutive isochoric component
-     */
-    double& IsochoricConstitutiveComponent( double & rCabcd,
-                                            const MaterialResponseVariables& rElasticVariables,
-                                            const Matrix & rIsoStressMatrix,
-                                            const unsigned int& a, const unsigned int& b,
-                                            const unsigned int& c, const unsigned int& d);
-
-    /**
-     * Calculates the volumetric constitutive matrix
-     * @param rElasticVariables
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-							Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Constitutive volumetric component
-     */
-
-    double& VolumetricConstitutiveComponent( double & rCabcd,
-					     const MaterialResponseVariables& rElasticVariables,
-					     const Vector& rFactors,
-					     const unsigned int& a, const unsigned int& b,
-					     const unsigned int& c, const unsigned int& d);
-
-
-    /**
      * Calculates HyperElasticLaw Factor for the Neo-Hookean model
      * @param rElasticResponseVariables the material variables
      * @param rFactor the calculated factor to be returned
      */
     virtual double& CalculateVolumetricFactor (const MaterialResponseVariables & rElasticVariables,
 					       double & rFactor);
-
-
-    /**
-     * Calculates the Pressure of the domain (element)
-     * @param rElasticResponseVariables the material variables
-     * @param rPressure the calculated pressure to be returned
-     */
-    virtual double& CalculateVolumetricPressure (const MaterialResponseVariables & rElasticVariables,
-						 double & rPressure);
 
 
     /**
@@ -438,22 +338,12 @@ protected:
 
 
     /**
-     * Calculates the Temperature of the domain (element)
-     * @param rElementGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
-     * @param rTemperature the calculated temperature to be returned
-     */
-    virtual double& CalculateDomainTemperature (const MaterialResponseVariables & rElasticVariables,
-						double & rTemperature);
-
-    /**
      * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 1 in the diagonal
      * if the matrix passed is 3D is does nothing
      * if the matrix passed is bigger or smaller throws an error
      * @param rMatrix : usually the DeformationGradientF
      */
     Matrix& Transform2DTo3D (Matrix& rMatrix);
-
 
 
     /**
@@ -508,17 +398,17 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-	rSerializer.save("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
-	rSerializer.save("mDeterminantF0",mDeterminantF0);
-	rSerializer.save("mStrainEnergy",mStrainEnergy);
+        rSerializer.save("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
+        rSerializer.save("mDeterminantF0",mDeterminantF0);
+        rSerializer.save("mStrainEnergy",mStrainEnergy);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
-	rSerializer.load("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
-	rSerializer.load("mDeterminantF0",mDeterminantF0);
-	rSerializer.load("mStrainEnergy",mStrainEnergy);
+        rSerializer.load("mInverseDeformationGradientF0",mInverseDeformationGradientF0);
+        rSerializer.load("mDeterminantF0",mDeterminantF0);
+        rSerializer.load("mStrainEnergy",mStrainEnergy);
     }
 
 
