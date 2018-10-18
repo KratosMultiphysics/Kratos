@@ -51,9 +51,9 @@ template< class TContainerType, class TVariableType >
 void SetValueHelperFunction1(
     TContainerType& rProperties,
     const TVariableType& rVar,
-    const typename TVariableType::Type& Data)
+    const typename TVariableType::Type& rData)
 {
-    rProperties.SetValue(rVar,Data);
+    rProperties.SetValue(rVar,rData);
 }
 
 PropertiesContainerType& GetSubProperties1(Properties& rProperties)
@@ -79,14 +79,14 @@ void SetArrayValue(
     const Variable<array_1d<double,3>>& rVar,
     const std::vector<double>& rData)
 {
-    if(Data.size() != 3)
-        KRATOS_ERROR << "attempting to construct an array<double,3> by passing a list with wrong size. Input size is " << Data.size() << std::endl;
+    if(rData.size() != 3)
+        KRATOS_ERROR << "attempting to construct an array<double,3> by passing a list with wrong size. Input size is " << rData.size() << std::endl;
 
     array_1d<double,3> tmp;
     for(unsigned int i=0;i<3; ++i)
-        tmp[i] = Data[i];
+        tmp[i] = rData[i];
 
-    el.SetValue(rVar,tmp);
+    rProperties.SetValue(rVar,tmp);
 }
 
 void SetVectorValue(
@@ -94,11 +94,11 @@ void SetVectorValue(
     const Variable<Vector>& rVar,
     const std::vector<double>& rData)
 {
-    Vector tmp(Data.size());
+    Vector tmp(rData.size());
     for(unsigned int i=0;i<tmp.size(); ++i)
-        tmp[i] = Data[i];
+        tmp[i] = rData[i];
 
-    el.SetValue(rVar,tmp);
+    rProperties.SetValue(rVar,tmp);
 }
 
 template< class TContainerType, class TVariableType >
@@ -113,9 +113,9 @@ void SetTableHelperFunction1(
     TContainerType& rContainer,
     const XVariableType& XVar,
     const YVariableType& YVar,
-    const typename Properties::TableType& Data)
+    const typename Properties::TableType& rData)
 {
-    rContainer.SetTable(XVar, YVar, Data);
+    rContainer.SetTable(XVar, YVar, rData);
 }
 
 template< class TContainerType, class XVariableType, class YVariableType>
