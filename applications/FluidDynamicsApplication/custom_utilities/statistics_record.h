@@ -151,8 +151,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static std::vector<double> mUpdateBuffer;
-    #pragma omp threadprivate(mUpdateBuffer)
+    std::vector< std::vector<double> > mUpdateBuffer;
 
     ///@}
     ///@name Member Variables

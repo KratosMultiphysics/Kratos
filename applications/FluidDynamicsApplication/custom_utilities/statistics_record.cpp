@@ -1,6 +1,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "containers/variable.h"
+#include "utilities/openmp_utils.h"
 
 #include "statistics_record.h"
 #include "statistics_data.h"
@@ -41,7 +42,12 @@ void StatisticsRecord::AddHigherOrderStatistic(StatisticsSampler::Pointer pResul
 
 void StatisticsRecord::InitializeStorage(ModelPart::ElementsContainerType& rElements)
 {
-    mUpdateBuffer.resize(mDataBufferSize);
+    mUpdateBuffer.resize(OpenMPUtils::GetNumThreads());
+    #pragma omp parallel
+    {
+        unsigned int k = OpenMPUtils::ThisThread();
+        mUpdateBuffer[k].resize(mDataBufferSize);
+    }
 
     // Note: this should be done on a serial loop to avoid race conditions.
     for (auto it_element = rElements.begin(); it_element != rElements.end(); ++it_element)
@@ -57,8 +63,11 @@ void StatisticsRecord::SampleIntegrationPointResults(ModelPart& rModelPart)
 
     ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
     std::vector<double> dummy;
-    for( auto it_elem = rModelPart.ElementsBegin(); it_elem != rModelPart.ElementsEnd(); ++it_elem)
+    int number_of_elements = rModelPart.GetCommunicator().LocalMesh().Elements().size();
+    #pragma omp parallel for
+    for( int i = 0; i < number_of_elements; i++)
     {
+        auto it_elem = rModelPart.ElementsBegin() + i;
         it_elem->GetValueOnIntegrationPoints(UPDATE_STATISTICS,dummy,r_process_info);
     }
 }
@@ -70,7 +79,7 @@ void StatisticsRecord::UpdateStatistics(Element* pElement)
     << " does not have TURBULENCE_STATISTICS_DATA defined." << std::endl;
 
     auto &r_elemental_statistics = pElement->GetValue(TURBULENCE_STATISTICS_DATA);
-    r_elemental_statistics.UpdateMeasurement(*pElement, mAverageData, mHigherOrderData, mUpdateBuffer, mRecordedSteps);
+    r_elemental_statistics.UpdateMeasurement(*pElement, mAverageData, mHigherOrderData, mUpdateBuffer[OpenMPUtils::ThisThread()], mRecordedSteps);
 }
 
 std::vector<double> StatisticsRecord::OutputForTest(ModelPart::ElementsContainerType& rElements) const
@@ -145,7 +154,5 @@ KRATOS_CREATE_VARIABLE( StatisticsRecord::Pointer, STATISTICS_CONTAINER)
 
 //TODO move somewhere else
 KRATOS_CREATE_VARIABLE( StatisticsData, TURBULENCE_STATISTICS_DATA)
-
-std::vector<double> StatisticsRecord::mUpdateBuffer = std::vector<double>();
 
 }
