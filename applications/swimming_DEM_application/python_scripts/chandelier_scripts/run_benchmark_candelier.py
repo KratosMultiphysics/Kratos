@@ -58,8 +58,9 @@ varying_parameters = dict()
 varying_parameters['FinalTime'] = 1
 
 def RunCase(varying_parameters, name):
+    model = Model()
     parameters = Parameters(json.dumps(varying_parameters))
-    with script.Solution(candelier_algorithm, parameters) as test:
+    with script.Solution(model, candelier_algorithm, parameters) as test:
         error_names.append(name)
         errors.append(test.Run())
 

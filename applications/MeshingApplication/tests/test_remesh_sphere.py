@@ -14,7 +14,8 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
         # We create the model part
-        main_model_part = KratosMultiphysics.ModelPart("MainModelPart")
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("MainModelPart")
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 1.0)
@@ -125,9 +126,6 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         check_files.ExecuteFinalizeSolutionStep()
         check_files.ExecuteFinalize()
 
-        model = KratosMultiphysics.Model()
-        model.AddModelPart(main_model_part)
-
         import from_json_check_result_process
 
         check_parameters = KratosMultiphysics.Parameters("""
@@ -139,7 +137,8 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         }
         """)
 
-        check = from_json_check_result_process.FromJsonCheckResultProcess(model, check_parameters)
+        check_parameters["input_file_name"].SetString(file_path + "/" + check_parameters["input_file_name"].GetString())
+        check = from_json_check_result_process.FromJsonCheckResultProcess(current_model, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
@@ -156,7 +155,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         #}
         #""")
 
-        #out = json_output_process.JsonOutputProcess(model, out_parameters)
+        #out = json_output_process.JsonOutputProcess(current_model, out_parameters)
         #out.ExecuteInitialize()
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()
@@ -165,7 +164,8 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
         # We create the model part
-        main_model_part = KratosMultiphysics.ModelPart("MainModelPart")
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("MainModelPart")
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 1.0)
@@ -258,9 +258,6 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         check_files.ExecuteFinalizeSolutionStep()
         check_files.ExecuteFinalize()
 
-        model = KratosMultiphysics.Model()
-        model.AddModelPart(main_model_part)
-
         import from_json_check_result_process
 
         check_parameters = KratosMultiphysics.Parameters("""
@@ -272,7 +269,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         }
         """)
 
-        check = from_json_check_result_process.FromJsonCheckResultProcess(model, check_parameters)
+        check = from_json_check_result_process.FromJsonCheckResultProcess(current_model, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
