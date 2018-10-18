@@ -1,0 +1,104 @@
+GiD Post Results File 1.0
+GaussPoints "quad4_element_gp" ElemType Quadrilateral
+Number Of Gauss Points: 4
+Natural Coordinates: Given
+-0.57735 -0.57735
+0.57735 -0.57735
+0.57735 0.57735
+-0.57735 0.57735
+End GaussPoints
+Result "LOCAL_AXIS_1" "Kratos" 0 Vector OnGaussPoints "quad4_element_gp"
+Values
+1 1 0 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+2 1 0 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+3 1 0 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+4 1 0 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+End Values
+Result "LOCAL_AXIS_2" "Kratos" 0 Vector OnGaussPoints "quad4_element_gp"
+Values
+1 -0 1 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+2 -0 1 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+3 -0 1 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+4 -0 1 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+End Values
+Result "LOCAL_AXIS_3" "Kratos" 0 Vector OnGaussPoints "quad4_element_gp"
+Values
+1 0 -0 1
+ 0 0 0
+ 0 0 0
+ 0 0 0
+2 0 -0 1
+ 0 0 0
+ 0 0 0
+ 0 0 0
+3 0 -0 1
+ 0 0 0
+ 0 0 0
+ 0 0 0
+4 0 -0 1
+ 0 0 0
+ 0 0 0
+ 0 0 0
+End Values
+Result "LOCAL_MATERIAL_AXIS_1" "Kratos" 0 Vector OnGaussPoints "quad4_element_gp"
+Values
+1 1 0 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+2 0.906308 0.422618 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+3 0.642788 0.766044 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+4 0.258819 0.965926 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+End Values
+Result "LOCAL_MATERIAL_AXIS_2" "Kratos" 0 Vector OnGaussPoints "quad4_element_gp"
+Values
+1 0 1 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+2 -0.422618 0.906308 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+3 -0.766044 0.642788 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+4 -0.965926 0.258819 0
+ 0 0 0
+ 0 0 0
+ 0 0 0
+End Values

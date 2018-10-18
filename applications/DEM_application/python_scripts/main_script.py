@@ -53,8 +53,9 @@ class Solution(object):
     def GetMainPath(self):
         return os.getcwd()
 
-    def __init__(self):
+    def __init__(self, model):
 
+        self.model = model
         self.main_path = self.GetMainPath()
         self.LoadParametersFile()
         self.solver_strategy = self.SetSolverStrategy()
@@ -98,12 +99,12 @@ class Solution(object):
         self.SetFinalTime()
 
     def CreateModelParts(self):
-        self.spheres_model_part = ModelPart("SpheresPart")
-        self.rigid_face_model_part = ModelPart("RigidFacePart")
-        self.cluster_model_part = ModelPart("ClusterPart")
-        self.DEM_inlet_model_part = ModelPart("DEMInletPart")
-        self.mapping_model_part = ModelPart("MappingPart")
-        self.contact_model_part = ModelPart("ContactPart")
+        self.spheres_model_part = self.model.CreateModelPart("SpheresPart")
+        self.rigid_face_model_part = self.model.CreateModelPart("RigidFacePart")
+        self.cluster_model_part = self.model.CreateModelPart("ClusterPart")
+        self.DEM_inlet_model_part = self.model.CreateModelPart("DEMInletPart")
+        self.mapping_model_part = self.model.CreateModelPart("MappingPart")
+        self.contact_model_part = self.model.CreateModelPart("ContactPart")
 
         mp_list = []
         mp_list.append(self.spheres_model_part)
@@ -552,11 +553,10 @@ class Solution(object):
             del self.DEM_inlet
 
     def SetGraphicalOutput(self):
-        self.demio = DEM_procedures.DEMIo(self.DEM_parameters, self.post_path, self.all_model_parts)
-        if "post_vtk_option" in self.DEM_parameters.keys():
-            if self.DEM_parameters["post_vtk_option"].GetBool():
-                import dem_vtk_output
-                self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
+        self.demio = DEM_procedures.DEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
+        if self.DEM_parameters["post_vtk_option"].GetBool():
+            import dem_vtk_output
+            self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
     def GraphicalOutputInitialize(self):
         self.demio.Initialize(self.DEM_parameters)
@@ -593,4 +593,5 @@ class Solution(object):
 
 
 if __name__ == "__main__":
-    Solution().Run()
+    model = Model()
+    Solution(model).Run()

@@ -32,9 +32,10 @@ class TestFactory(KratosUnittest.TestCase):
             # To avoid many prints
             if (ProjectParameters["problem_data"]["echo_level"].GetInt() == 0):
                 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-
-            self.test = MainFluidPFEM.Solution(self.file_parameters)
-            #self.test = MainFluidPFEM.Solution(self.file_parameters,self.file_name)
+                
+            model= KratosMultiphysics.Model()
+            self.test = MainFluidPFEM.Solution(model,self.file_parameters)
+            #self.test = MainFluidPFEM.Solution(model,self.file_parameters,self.file_name)
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
