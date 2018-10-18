@@ -22,6 +22,7 @@
 #include "custom_elements/structural_meshmoving_element.h"
 #include "custom_utilities/move_mesh_utilities.h"
 #include "includes/model_part.h"
+#include "containers/model.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
@@ -117,7 +118,12 @@ public:
     KRATOS_CATCH("")
   }
 
-  virtual ~StructuralMeshMovingStrategy() {}
+  virtual ~StructuralMeshMovingStrategy()
+  {
+    Model& owner_model = mpmesh_model_part->GetOwnerModel();
+    std::string name = mpmesh_model_part->Name();
+    owner_model.DeleteModelPart(name);
+  }
 
   void Initialize() override {}
 
@@ -135,7 +141,7 @@ public:
         BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
     if (mcalculate_mesh_velocities == true)
-        MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part.get(), mtime_order,
+        MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order,
                                                    delta_time);
     MoveMeshUtilities::MoveMesh(
         mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
@@ -214,7 +220,7 @@ private:
   /*@} */
   /**@name Member Variables */
   /*@{ */
-  std::unique_ptr<ModelPart> mpmesh_model_part;
+  ModelPart* mpmesh_model_part;
 
   typename BaseType::Pointer mstrategy;
   typename TBuilderAndSolverType::Pointer mpbulider_and_solver;

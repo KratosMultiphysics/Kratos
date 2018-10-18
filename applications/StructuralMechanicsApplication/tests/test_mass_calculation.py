@@ -9,7 +9,7 @@ from math import sqrt, sin, cos, pi, exp, atan
 class TestMassCalculation(KratosUnittest.TestCase):
     def setUp(self):
         pass
-
+    
     def _add_dofs(self,mp):
         # Adding dofs AND their corresponding reactions
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
@@ -116,7 +116,8 @@ class TestMassCalculation(KratosUnittest.TestCase):
     def test_nodal_mass(self):
         dim = 3
         nr_nodes = 4
-        mp = KratosMultiphysics.ModelPart("structural_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("structural_part")
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
         self._add_variables(mp)
 
@@ -156,7 +157,8 @@ class TestMassCalculation(KratosUnittest.TestCase):
         dim = 3
         nr_nodes = 11
         nr_elements = nr_nodes-1
-        mp = KratosMultiphysics.ModelPart("structural_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("structural_part")
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
         self._add_variables(mp)
         self._apply_beam_material_properties(mp,dim)
@@ -194,7 +196,8 @@ class TestMassCalculation(KratosUnittest.TestCase):
 
     def test_shell_mass(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("structural_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("structural_part")
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
         mp.SetBufferSize(2)
 
@@ -220,7 +223,8 @@ class TestMassCalculation(KratosUnittest.TestCase):
 
     def test_orthotropic_shell_mass(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("structural_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("structural_part")
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
         mp.SetBufferSize(2)
 
@@ -246,7 +250,8 @@ class TestMassCalculation(KratosUnittest.TestCase):
 
     def test_solid_mass(self):
         dim = 2
-        mp = KratosMultiphysics.ModelPart("structural_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("structural_part")
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = dim
         mp.SetBufferSize(2)
         self._add_variables(mp)

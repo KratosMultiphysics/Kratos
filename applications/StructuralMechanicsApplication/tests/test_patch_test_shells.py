@@ -126,8 +126,8 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         self.assertAlmostEqual(rot[2], rotation_results[2], 10)
 
 
-    def execute_shell_test(self, element_name, displacement_results, rotation_results, do_post_processing):
-        mp = KratosMultiphysics.ModelPart("solid_part")
+    def execute_shell_test(self, current_model,element_name, displacement_results, rotation_results, do_post_processing):
+        mp = current_model.CreateModelPart("solid_part")
         mp.SetBufferSize(2)
 
         self._add_variables(mp)
@@ -159,9 +159,11 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         displacement_results = [0.0002324779832 , -0.0002233435997 , 0.0002567143455]
         rotation_results     = [0.0003627433341 , -0.0001926662603 , -0.0004682681704]
 
-        self.execute_shell_test(element_name,
-                                displacement_results,
-                                rotation_results,
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
+                                displacement_results, 
+                                rotation_results, 
                                 False) # Do PostProcessing for GiD?
 
 
@@ -170,9 +172,11 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         displacement_results = [7.18997182e-05 , -0.0001572802804 , 0.0005263940488]
         rotation_results     = [0.0003316612014 , -0.0002798472414 , 5.141506e-07]
 
-        self.execute_shell_test(element_name,
-                                displacement_results,
-                                rotation_results,
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
+                                displacement_results, 
+                                rotation_results, 
                                 False) # Do PostProcessing for GiD?
 
 
@@ -181,9 +185,11 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         displacement_results = [0.0021909310921 , -0.0021683746759 , 0.0007191338749]
         rotation_results     = [0.0028191154606 , 0.0008171818407 , -0.0069146010725]
 
-        self.execute_shell_test(element_name,
-                                displacement_results,
-                                rotation_results,
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
+                                displacement_results, 
+                                rotation_results, 
                                 False) # Do PostProcessing for GiD?
 
 
@@ -192,9 +198,11 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         displacement_results = [0.0003572969872 , -0.0006341259132 , 0.00127807995001]
         rotation_results     = [0.0012082600485 , -0.0004098356773 , -0.0011673798349]
 
-        self.execute_shell_test(element_name,
-                                displacement_results,
-                                rotation_results,
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
+                                displacement_results, 
+                                rotation_results, 
                                 False) # Do PostProcessing for GiD?
 
 
