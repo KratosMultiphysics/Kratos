@@ -45,6 +45,8 @@
 //---constitutive laws
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_UP_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plane_strain_UP_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
@@ -90,6 +92,14 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     class_< HyperElasticPlaneStrain2DLaw, typename HyperElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
     (m, "HyperElasticPlaneStrain2DLaw").def(init<>() )
     ;
+
+    class_< HyperElasticUP3DLaw, typename HyperElasticUP3DLaw::Pointer, ConstitutiveLaw >
+      (m, "HyperElasticUP3DLaw").def(init<>() )
+      ;
+
+    class_< HyperElasticPlaneStrainUP2DLaw, typename HyperElasticPlaneStrainUP2DLaw::Pointer, ConstitutiveLaw >
+      (m, "HyperElasticPlaneStrainUP2DLaw").def(init<>() )
+      ;
 
     // Hencky Mohr Coulomb
     class_< HenckyMCPlasticPlaneStrain2DLaw, typename HenckyMCPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >

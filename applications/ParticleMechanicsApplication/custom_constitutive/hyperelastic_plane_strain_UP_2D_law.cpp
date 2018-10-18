@@ -26,7 +26,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-HyperElasticUPPlaneStrain2DLaw::HyperElasticUPPlaneStrain2DLaw()
+HyperElasticPlaneStrainUP2DLaw::HyperElasticPlaneStrainUP2DLaw()
     : HyperElasticUP3DLaw()
 {
 
@@ -35,7 +35,7 @@ HyperElasticUPPlaneStrain2DLaw::HyperElasticUPPlaneStrain2DLaw()
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-HyperElasticUPPlaneStrain2DLaw::HyperElasticUPPlaneStrain2DLaw(const HyperElasticUPPlaneStrain2DLaw& rOther)
+HyperElasticPlaneStrainUP2DLaw::HyperElasticPlaneStrainUP2DLaw(const HyperElasticPlaneStrainUP2DLaw& rOther)
     : HyperElasticUP3DLaw(rOther)
 {
 }
@@ -43,15 +43,15 @@ HyperElasticUPPlaneStrain2DLaw::HyperElasticUPPlaneStrain2DLaw(const HyperElasti
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer HyperElasticUPPlaneStrain2DLaw::Clone() const
+ConstitutiveLaw::Pointer HyperElasticPlaneStrainUP2DLaw::Clone() const
 {
-    return Kratos::make_shared<HyperElasticUPPlaneStrain2DLaw>(*this);
+    return Kratos::make_shared<HyperElasticPlaneStrainUP2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-HyperElasticUPPlaneStrain2DLaw::~HyperElasticUPPlaneStrain2DLaw()
+HyperElasticPlaneStrainUP2DLaw::~HyperElasticPlaneStrainUP2DLaw()
 {
 }
 
@@ -60,7 +60,7 @@ HyperElasticUPPlaneStrain2DLaw::~HyperElasticUPPlaneStrain2DLaw()
 //***********************COMPUTE TOTAL STRAIN*****************************************
 //************************************************************************************
 
-void HyperElasticUPPlaneStrain2DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+void HyperElasticPlaneStrainUP2DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
         Vector& rStrainVector )
 {
 
@@ -76,7 +76,7 @@ void HyperElasticUPPlaneStrain2DLaw::CalculateGreenLagrangeStrain( const Matrix 
 //***********************COMPUTE TOTAL STRAIN*****************************************
 //************************************************************************************
 
-void HyperElasticUPPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+void HyperElasticPlaneStrainUP2DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
         Vector& rStrainVector )
 {
 
@@ -98,7 +98,7 @@ void HyperElasticUPPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix & rLef
 //************************************************************************************
 
 
-void HyperElasticUPPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
+void HyperElasticPlaneStrainUP2DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
 									   const Matrix & rIsoStressMatrix,
 									   Matrix& rConstitutiveMatrix)
 {
@@ -121,7 +121,7 @@ void HyperElasticUPPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const
 //************************************************************************************
 
 
-void HyperElasticUPPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
+void HyperElasticPlaneStrainUP2DLaw::CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
 									    Matrix& rConstitutiveMatrix)
 
 {
@@ -148,7 +148,7 @@ void HyperElasticUPPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix (cons
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
-void HyperElasticUPPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
+void HyperElasticPlaneStrainUP2DLaw::GetLawFeatures(Features& rFeatures)
 {
     	//Set the type of law
 	rFeatures.mOptions.Set( PLANE_STRAIN_LAW );

@@ -35,7 +35,7 @@ namespace Kratos
  * to large displacements elasticity.
  */
 
-class HyperElasticUPPlaneStrain2DLaw : public HyperElasticUP3DLaw
+class HyperElasticPlaneStrainUP2DLaw : public HyperElasticUP3DLaw
 {
 public:
     /**
@@ -45,10 +45,10 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
     /**
-     * Counted pointer of HyperElasticUPPlaneStrain2DLaw
+     * Counted pointer of HyperElasticPlaneStrainUP2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticUPPlaneStrain2DLaw );
+    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticPlaneStrainUP2DLaw );
 
     /**
      * Life Cycle
@@ -57,7 +57,7 @@ public:
     /**
      * Default constructor.
      */
-    HyperElasticUPPlaneStrain2DLaw();
+    HyperElasticPlaneStrainUP2DLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -68,20 +68,20 @@ public:
     /**
      * Copy constructor.
      */
-    HyperElasticUPPlaneStrain2DLaw (const HyperElasticUPPlaneStrain2DLaw& rOther);
+    HyperElasticPlaneStrainUP2DLaw (const HyperElasticPlaneStrainUP2DLaw& rOther);
 
 
     /**
      * Assignment operator.
      */
 
-    //HyperElasticUPPlaneStrain2DLaw& operator=(const HyperElasticUPPlaneStrain2DLaw& rOther);
+    //HyperElasticPlaneStrainUP2DLaw& operator=(const HyperElasticPlaneStrainUP2DLaw& rOther);
 
 
     /**
      * Destructor.
      */
-    ~HyperElasticUPPlaneStrain2DLaw() override;
+    ~HyperElasticPlaneStrainUP2DLaw() override;
 
     /**
      * Operators
@@ -228,6 +228,6 @@ private:
 
 
 
-}; // Class HyperElasticUPPlaneStrain2DLaw
+}; // Class HyperElasticPlaneStrainUP2DLaw
 }  // namespace Kratos.
 #endif // KRATOS_HYPERELASTIC_PLANE_STRAIN_UP_2D_LAW_H_INCLUDED  defined
