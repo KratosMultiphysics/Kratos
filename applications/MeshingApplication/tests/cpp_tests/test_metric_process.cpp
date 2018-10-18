@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
