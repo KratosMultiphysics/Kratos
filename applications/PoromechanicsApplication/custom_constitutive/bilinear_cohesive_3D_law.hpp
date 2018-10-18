@@ -107,30 +107,36 @@ protected:
     virtual void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
 
-    virtual void ComputeEquivalentStrain(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement);
+    virtual void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
-    virtual void ComputeEquivalentStrainContact(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement);
-
-
-    virtual void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& JointStrength,
-                                                        const double& DamageThreshold,const double& CriticalDisplacement);
-
-    virtual void ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                            const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
+    virtual void ComputeEquivalentStrainContact(ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
 
-    virtual void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,const double& JointStrength,
-                                                        const double& DamageThreshold,const double& CriticalDisplacement);
+    virtual void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,
+                                                    ConstitutiveLawVariables& rVariables,
+                                                    Parameters& rValues);
 
-    virtual void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                            const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
+    virtual void ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,
+                                                            ConstitutiveLawVariables& rVariables,
+                                                            Parameters& rValues);
 
 
-    virtual void ComputeStressVector(Vector& rStressVector,const Vector& StrainVector,const double& JointStrength,
-                                                const double& DamageThreshold,const double& CriticalDisplacement);
+    virtual void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,
+                                                    ConstitutiveLawVariables& rVariables,
+                                                    Parameters& rValues);
 
-    virtual void ComputeStressVectorContact(Vector& rStressVector,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                        const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
+    virtual void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,
+                                                            ConstitutiveLawVariables& rVariables,
+                                                            Parameters& rValues);
+
+
+    virtual void ComputeStressVector(Vector& rStressVector,
+                                        ConstitutiveLawVariables& rVariables,
+                                        Parameters& rValues);
+
+    virtual void ComputeStressVectorContact(Vector& rStressVector,
+                                            ConstitutiveLawVariables& rVariables,
+                                            Parameters& rValues);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

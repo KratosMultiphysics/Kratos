@@ -18,6 +18,7 @@
 
 // Application includes
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
+#include "poromechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -32,71 +33,86 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Default Constructor
-    BilinearCohesive2DLaw();
+    BilinearCohesive2DLaw()
+    {
+    }
+
+    ConstitutiveLaw::Pointer Clone() const override
+    {
+        return Kratos::make_shared<BilinearCohesive2DLaw>(BilinearCohesive2DLaw(*this));
+    }
 
     // Copy Constructor
-    BilinearCohesive2DLaw (const BilinearCohesive2DLaw& rOther);
+    BilinearCohesive2DLaw (const BilinearCohesive2DLaw& rOther) : BilinearCohesive3DLaw(rOther)
+    {
+    }
 
     // Destructor
-    ~BilinearCohesive2DLaw() override;
+    ~BilinearCohesive2DLaw() override
+    {
+    }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void GetLawFeatures(Features& rFeatures) override;
-        
-    ConstitutiveLaw::Pointer Clone() const override;
-    
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
 
     // Member Variables
-        
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ComputeEquivalentStrain(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement) override;
-    
-    void ComputeEquivalentStrainContact(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement) override;
-    
-    
-    void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& JointStrength,
-                                                        const double& DamageThreshold,const double& CriticalDisplacement) override;
+    void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
-    void ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                            const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement) override;
-                                      
-                                                            
-    void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,const double& JointStrength,
-                                                        const double& DamageThreshold,const double& CriticalDisplacement) override;
+    void ComputeEquivalentStrainContact(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
-    void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                            const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement) override;
-                                                            
-                                                            
-    void ComputeStressVector(Vector& rStressVector,const Vector& StrainVector,const double& JointStrength,
-                                                const double& DamageThreshold,const double& CriticalDisplacement) override;
-    
-    void ComputeStressVectorContact(Vector& rStressVector,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                        const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement) override;
+
+    void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,
+                                            ConstitutiveLawVariables& rVariables,
+                                            Parameters& rValues) override;
+
+    void ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,
+                                                    ConstitutiveLawVariables& rVariables,
+                                                    Parameters& rValues) override;
+
+
+    void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,
+                                                ConstitutiveLawVariables& rVariables,
+                                                Parameters& rValues) override;
+
+    void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,
+                                                        ConstitutiveLawVariables& rVariables,
+                                                        Parameters& rValues) override;
+
+
+    void ComputeStressVector(Vector& rStressVector,
+                                ConstitutiveLawVariables& rVariables,
+                                Parameters& rValues) override;
+
+    void ComputeStressVectorContact(Vector& rStressVector,
+                                        ConstitutiveLawVariables& rVariables,
+                                        Parameters& rValues) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    
+
     // Serialization
-    
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BilinearCohesive3DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BilinearCohesive3DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
 }; // Class BilinearCohesive2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_BILINEAR_COHESIVE_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_BILINEAR_COHESIVE_2D_LAW_H_INCLUDED  defined

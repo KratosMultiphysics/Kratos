@@ -14,14 +14,12 @@
 #define  KRATOS_EXPONENTIAL_COHESIVE_3D_LAW_H_INCLUDED
 
 // System includes
-#include <cmath>
 
 // Project includes
 #include "includes/serializer.h"
-// #include "includes/constitutive_law.h"
-#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 
 // Application includes
+#include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
@@ -83,34 +81,41 @@ protected:
 
     // Member Variables
 
-    double mStateVariable;
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    virtual void ComputeEquivalentStrain(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement);
-
-    virtual void ComputeEquivalentStrainContact(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement);
+    void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
 
-    virtual void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& JointStrength,
-                                                        const double& DamageThreshold,const double& CriticalDisplacement);
+    void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
-    virtual void ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                            const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
+    void ComputeEquivalentStrainContact(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
 
-    virtual void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,const double& JointStrength,
-                                                        const double& DamageThreshold,const double& CriticalDisplacement);
+    void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,
+                                            ConstitutiveLawVariables& rVariables,
+                                            Parameters& rValues) override;
 
-    virtual void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                            const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
+    void ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,
+                                                    ConstitutiveLawVariables& rVariables,
+                                                    Parameters& rValues) override;
 
 
-    virtual void ComputeStressVector(Vector& rStressVector,const Vector& StrainVector,const double& JointStrength,
-                                                const double& DamageThreshold,const double& CriticalDisplacement);
+    void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,
+                                                ConstitutiveLawVariables& rVariables,
+                                                Parameters& rValues) override;
 
-    virtual void ComputeStressVectorContact(Vector& rStressVector,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                        const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
+    void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,
+                                                        ConstitutiveLawVariables& rVariables,
+                                                        Parameters& rValues) override;
+
+
+    void ComputeStressVector(Vector& rStressVector,
+                                ConstitutiveLawVariables& rVariables,
+                                Parameters& rValues) override;
+
+    void ComputeStressVectorContact(Vector& rStressVector,
+                                        ConstitutiveLawVariables& rVariables,
+                                        Parameters& rValues) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
