@@ -92,7 +92,13 @@ public:
   virtual void Map(const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace) = 0;
 
   // --------------------------------------------------------------------------
+  virtual void Map(const Variable<double> &rNodalVariable, const Variable<double> &rNodalVariableInGeometrySpace) = 0;
+
+  // --------------------------------------------------------------------------
   virtual void InverseMap(const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace) = 0;
+
+  // --------------------------------------------------------------------------
+  virtual void InverseMap(const Variable<double> &rNodalVariable, const Variable<double> &rNodalVariableInDesignSpace) = 0;
 
   // --------------------------------------------------------------------------
   virtual void Finalize(){};

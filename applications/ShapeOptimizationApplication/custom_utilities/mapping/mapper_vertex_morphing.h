@@ -136,7 +136,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void Map( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable)
+    void Map( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable) override
     {
         if (mIsMappingInitialized == false)
             Initialize();
@@ -182,7 +182,39 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void InverseMap( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable)
+    void Map( const Variable<double> &rVariable, const Variable<double> &rMappedVariable) override
+    {
+        if (mIsMappingInitialized == false)
+            Initialize();
+
+        BuiltinTimer mapping_time;
+        std::cout << "\n> Starting mapping of " << rVariable.Name() << "..." << std::endl;
+
+        // Prepare vectors for mapping
+        mXValuesOrigin.clear();
+        mXValuesDestination.clear();
+
+        for(auto& node_i : mrOriginMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+            mXValuesOrigin[i] = node_i.FastGetSolutionStepValue(rVariable);
+        }
+
+        // Perform mapping
+        noalias(mXValuesDestination) = prod(mMappingMatrix,mXValuesOrigin);
+
+        // Assign results to nodal variable
+        for(auto& node_i : mrDestinationMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+            node_i.FastGetSolutionStepValue(rMappedVariable) = mXValuesDestination[i];
+        }
+
+        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void InverseMap( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable) override
     {
         if (mIsMappingInitialized == false)
             Initialize();
@@ -233,6 +265,44 @@ public:
             node_vector(1) = mYValuesOrigin[i];
             node_vector(2) = mZValuesOrigin[i];
             node_i.FastGetSolutionStepValue(rMappedVariable) = node_vector;
+        }
+
+        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void InverseMap(const Variable<double> &rVariable, const Variable<double> &rMappedVariable) override
+    {
+        if (mIsMappingInitialized == false)
+            Initialize();
+
+        BuiltinTimer mapping_time;
+        std::cout << "\n> Starting inverse mapping of " << rVariable.Name() << "..." << std::endl;
+
+        // Prepare vectors for mapping
+        mXValuesOrigin.clear();
+        mXValuesDestination.clear();
+
+        for(auto& node_i : mrDestinationMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+            mXValuesDestination[i] = node_i.FastGetSolutionStepValue(rVariable);
+        }
+
+        // Perform mapping
+        if(mMapperSettings["apply_consistent_mapping"].GetBool())
+        {
+            KRATOS_ERROR_IF(mOriginNodeNumber != mDestinationNodeNumber) << "Consisten mapping requires matching origin and destination model part.";
+            noalias(mXValuesOrigin) = prod(mMappingMatrix,mXValuesDestination);
+        }
+        else
+            SparseSpaceType::TransposeMult(mMappingMatrix,mXValuesDestination,mXValuesOrigin);
+
+        // Assign results to nodal variable
+        for(auto& node_i : mrOriginMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+            node_i.FastGetSolutionStepValue(rMappedVariable) = mXValuesOrigin[i];
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
