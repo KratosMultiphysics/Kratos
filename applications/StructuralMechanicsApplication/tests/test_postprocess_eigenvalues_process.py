@@ -51,9 +51,9 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
 
     def test_PostprocessEigenvaluesProcess(self):
         test_model = KratosMultiphysics.Model()
-        model_part = KratosMultiphysics.ModelPart("Structure")
+        model_part = test_model.CreateModelPart("Structure")
         comp_model_part = model_part.CreateSubModelPart("computing_domain")
-        test_model.AddModelPart(model_part) # TODO this will become model.CreateModelPart() or sth similar
+
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)

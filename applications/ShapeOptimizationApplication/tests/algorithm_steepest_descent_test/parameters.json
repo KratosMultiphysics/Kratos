@@ -10,6 +10,21 @@
         "echo_level"      : 0
     },
     "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"              : 3,
+            "model_part_name"          : "structure",
+            "model_import_settings"    : {
+                "input_type"       : "mdpa",
+                "input_filename"   : "structure"
+            },
+            "design_surface_sub_model_part_name" : "design_surface",
+            "damping" : {
+                "apply_damping" : false
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : false
+            }
+        },
         "objectives" : [{
             "identifier" : "mass",
             "type"       : "minimization",
@@ -19,9 +34,9 @@
                 "material_import_settings" :{
                     "materials_filename": "materials.json"
                 },
+                "model_part_name"   : "structure",
                 "model_import_settings"    : {
-                    "input_type"       : "use_input_model_part",
-                    "input_filename"   : "structure"
+                    "input_type"       : "use_input_model_part"
                 },
                 "gradient_mode"          : "finite_differencing",
                 "step_size"              : 1e-6,
@@ -32,20 +47,11 @@
         "constraints" : [],
         "design_variables" : {
             "type"                               : "vertex_morphing",
-            "optimization_model_part_name"       : "structure",
-            "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 2.0,
                 "max_nodes_in_filter_radius" : 10000,
                 "matrix_free_filtering"      : false
-            },
-            "damping" : {
-                "perform_damping" : false
-            },
-            "mesh_motion" : {
-                "apply_mesh_solver" : false
             }
         },
         "optimization_algorithm" : {

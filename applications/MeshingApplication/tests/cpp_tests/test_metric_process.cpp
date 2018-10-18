@@ -236,8 +236,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(LevelSetMetricProcess1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -287,8 +287,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(LevelSetMetricProcess2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -343,8 +343,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(HessianMetricProcess1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -390,8 +390,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(HessianMetricProcess2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -441,8 +441,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(SPRMetricProcess1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -506,8 +506,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(SPRMetricProcess2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);

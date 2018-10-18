@@ -24,19 +24,20 @@ from mesh_moving_analysis import MeshMovingAnalysis
 # # ==============================================================================
 class MeshControllerWithSolver(MeshController) :
     # --------------------------------------------------------------------------
-    def __init__(self, MeshSolverSettings, OptimizationModelPart):
+    def __init__(self, MeshSolverSettings, model):
         default_settings = Parameters("""
         {
             "apply_mesh_solver" : true,
-            "problem_data" : {
-                "echo_level" : 0,
-                "time_step" : 1.1,
-                "start_time" : 0.0,
-                "end_time" : 1.0,
-                "parallel_type" : "OpenMP"
-            },
             "solver_settings" : {
                 "solver_type" : "mesh_solver_structural_similarity",
+                "model_part_name"       : "",
+                "model_import_settings"              : {
+                    "input_type"     : "use_input_model_part"
+                },
+                "time_stepping" : {
+                    "time_step"       : 1.0
+                },
+                "domain_size"     : 3,
                 "linear_solver_settings" : {
                     "solver_type" : "AMGCL",
                     "smoother_type":"ilu0",
@@ -48,43 +49,40 @@ class MeshControllerWithSolver(MeshController) :
                 },
                 "compute_reactions"         : false,
                 "calculate_mesh_velocities" : false
-            }
+            },
+            "boundary_conditions_process_list" : []
         }""")
         self.MeshSolverSettings = MeshSolverSettings
         self.MeshSolverSettings.ValidateAndAssignDefaults(default_settings)
 
-        self.MeshSolverSettings["problem_data"].AddEmptyValue("domain_size")
-        self.MeshSolverSettings["problem_data"]["domain_size"].SetInt(OptimizationModelPart.ProcessInfo[DOMAIN_SIZE])
+        if not MeshSolverSettings.Has("problem_data"):
+            self.__AddDefaultProblemData(self.MeshSolverSettings)
+        else:
+            print("::[MeshControllerWithSolver]::WARNING: using custom problem data for mesh motion.")
 
-        self.MeshSolverSettings["problem_data"].AddEmptyValue("model_part_name")
-        self.MeshSolverSettings["problem_data"]["model_part_name"].SetString(OptimizationModelPart.Name)
+        self.OptimizationModelPart = model[self.MeshSolverSettings["solver_settings"]["model_part_name"].GetString()]
 
-        self.OptimizationModelPart = OptimizationModelPart
-
-        model = Model()
-        model.AddModelPart(self.OptimizationModelPart)
+        if self.MeshSolverSettings["boundary_conditions_process_list"].size() == 0:
+            self.__FixWholeSurface(self.OptimizationModelPart, self.MeshSolverSettings)
+            self.has_automatic_boundary_process = True
+        else:
+            self.has_automatic_boundary_process = False
 
         self._mesh_moving_analysis = MeshMovingAnalysis(model, self.MeshSolverSettings)
 
     # --------------------------------------------------------------------------
     def Initialize(self):
+        if self.has_automatic_boundary_process:
+            GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes("auto_surface_nodes")
+
         self._mesh_moving_analysis.Initialize()
 
     # --------------------------------------------------------------------------
-    def UpdateMeshAccordingInputVariable(self, InputVariable):
+    def UpdateMeshAccordingInputVariable(self, variable):
         print("\n> Starting to update the mesh...")
         startTime = timer.time()
 
-        VariableUtils().SetToZero_VectorVar(MESH_DISPLACEMENT,self.OptimizationModelPart.Nodes)
-
-        sub_model_part_name = "surface_nodes"
-        GeometryUtilities(self.OptimizationModelPart).ExtractBoundaryNodes(sub_model_part_name)
-        surface_nodes = self.OptimizationModelPart.GetSubModelPart(sub_model_part_name).Nodes
-
-        VariableUtils().ApplyFixity(MESH_DISPLACEMENT_X, True, surface_nodes)
-        VariableUtils().ApplyFixity(MESH_DISPLACEMENT_Y, True, surface_nodes)
-        VariableUtils().ApplyFixity(MESH_DISPLACEMENT_Z, True, surface_nodes)
-        VariableUtils().CopyVectorVar(SHAPE_UPDATE, MESH_DISPLACEMENT, surface_nodes)
+        VariableUtils().CopyVectorVar(variable, MESH_DISPLACEMENT, self.OptimizationModelPart.Nodes)
 
         time_before_mesh_update = self.OptimizationModelPart.ProcessInfo.GetValue(TIME)
 

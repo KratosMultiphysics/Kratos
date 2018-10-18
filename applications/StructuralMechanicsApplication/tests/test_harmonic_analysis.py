@@ -87,8 +87,8 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,mp)
 
-    def _create_2dof_geometry(self, stiffness, mass, damping=0):
-        mp = KratosMultiphysics.ModelPart("mdof")
+    def _create_2dof_geometry(self, current_model, stiffness, mass, damping=0):
+        mp = current_model.CreateModelPart("mdof")
         self._add_variables(mp)
         self._apply_material_properties(mp)
 
@@ -120,6 +120,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         return mp
 
     def test_undamped_mdof_harmonic(self):
+        current_model = KratosMultiphysics.Model()
         #analytic solution taken from Humar - Dynamics of Structures p. 675
 
         #material properties
@@ -127,7 +128,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         mass = 2.0
 
         #create the model
-        mp = self._create_2dof_geometry(stiffness, mass)
+        mp = self._create_2dof_geometry(current_model, stiffness, mass)
 
         #solve the eigenproblem
         self._solve_eigen(mp)
@@ -156,6 +157,8 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             exfreq = exfreq + df
 
     def test_damped_mdof_harmonic(self):
+        current_model = KratosMultiphysics.Model()        
+        
         #analytic solution taken from Humar - Dynamics of Structures p. 677
 
         #material properties
@@ -164,7 +167,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         damping = 0.1
 
         #create the model
-        mp = self._create_2dof_geometry(stiffness, mass, damping)
+        mp = self._create_2dof_geometry(current_model,stiffness, mass, damping)
 
         #solve the eigenproblem
         self._solve_eigen(mp)
@@ -215,7 +218,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             import KratosMultiphysics.HDF5Application as HDF5Application
         except ImportError as e:
             self.skipTest("HDF5Application not found: Skipping harmonic analysis mdpa test")
-
+        
         import structural_mechanics_analysis
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             #run simulation and write to hdf5 file

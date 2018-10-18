@@ -44,7 +44,7 @@ void MoveMesh(const ModelPart::NodesContainerType &rNodes);
 
 void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType &rNodes);
 
-std::unique_ptr<ModelPart> GenerateMeshPart(ModelPart &rModelPart,
+ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);
 
 void UpdateReferenceMesh(ModelPart &rModelPart);
