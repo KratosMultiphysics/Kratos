@@ -30,7 +30,7 @@ namespace Kratos
 /// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
 /** This function assigns a value to a variable belonging to all of the nodes in a given mesh
 */
-class AssignScalarVariableToEntitiesProcess : public Process
+class KRATOS_API(SOLID_MECHANICS_APPLICATION) AssignScalarVariableToEntitiesProcess : public Process
 {
 public:
     ///@name Type Definitions
