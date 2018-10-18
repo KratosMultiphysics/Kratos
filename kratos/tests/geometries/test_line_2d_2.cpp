@@ -77,13 +77,13 @@ namespace Testing {
         Point::Pointer point_1 = Point::Pointer(new Point(0.5, 0.5, 0.0));
         Point::Pointer point_2 = Point::Pointer(new Point(0.5, -0.5, 0.0));
         auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
-        KRATOS_CHECK(geom->HasIntersection(geom_2));
+        KRATOS_CHECK(geom_1->HasIntersection(*geom_2));
     }
 
     /**
      * Test a box inside a line HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionBoxInside, KratosCoreGeometriesFastSuite) { // TODO: Complete
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionBoxInside, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitXDirectionLine2D2();
         Point point_1(0.25, -0.1, 0.0);
         Point point_2(0.75, 0.1, 0.0);

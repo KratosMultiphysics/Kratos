@@ -898,7 +898,7 @@ public:
      */
     bool HasIntersection(const BaseType& rOtherGeometry) override
     {
-        const double tolerance = std::numeric_limits<double>::epsilon()
+        const double tolerance = std::numeric_limits<double>::epsilon();
         // We get the local points
         const TPointType& first_point  = BaseType::GetPoint(0); //p1
         const TPointType& second_point = BaseType::GetPoint(1); //p2
@@ -915,7 +915,7 @@ public:
         return (0.0-tolerance<=t) && (t<=1.0+tolerance);
     }
 
-    /** Test intersection of the geometry with a box
+    /** Test intersection of the geometry with a box (AABB)
      * Tests the intersection of the geometry with
      * a 3D box defined by rLowPoint and rHighPoint
      *
@@ -925,20 +925,44 @@ public:
      */
     bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
     {
-        bool has_intersection = false;
+        const double tolerance = std::numeric_limits<double>::epsilon();
         // We get the local points
         const TPointType& first_point  = BaseType::GetPoint(0);
         const TPointType& second_point = BaseType::GetPoint(1);
-        // Check if point one is inside the bounding box
-        has_intersection = has_intersection || (
-                                    ( (first_point[0] >= rLowPoint[0] && first_point[0] <= rHighPoint[0])
-                                        && (first_point[1] >= rLowPoint[1] && first_point[1] <= rHighPoint[1]) ) // IF the first point is inside the box
-                                    ||
-                                    ( (second_point[0] >= rLowPoint[0] && second_point[0] <= rHighPoint[0])
-                                        && (second_point[1] >= rLowPoint[1] && second_point[1] <= rHighPoint[1]) ) // IF the second point is inside the box
-                                );
 
-        return has_intersection;
+        if (    // If one of the point is inside the box then there is an intersection. If none is inside then we check further.
+                ( (first_point[0] >= rLowPoint[0] && first_point[0] <= rHighPoint[0])
+                    && (first_point[1] >= rLowPoint[1] && first_point[1] <= rHighPoint[1]) ) // IF the first point is inside the box
+                ||
+                  ( (second_point[0] >= rLowPoint[0] && second_point[0] <= rHighPoint[0])
+                    && (second_point[1] >= rLowPoint[1] && second_point[1] <= rHighPoint[1]) ) // IF the second point is inside the box
+            )
+            return true;
+
+        double high_x = rHighPoint[0]; double high_y = rHighPoint[1];
+        double low_x = rLowPoint[0];   double low_y = rLowPoint[1];
+
+        double slope = (second_point[1] - first_point[1]) / ( second_point[0] - first_point[0] );
+
+        // Intersection with left vertical line of the box that is x = low_x
+        double y_1 = slope*( low_x - first_point[0] ) + first_point[1];
+        if(y_1 >= low_y - tolerance && y_1 <= high_y+tolerance) // If y intersection is between two y bounds there is an intersection
+            return true;
+        // Intersection with right vertical line of the box that is x = high_x
+        double y_2 = slope*( high_x - first_point[0] ) + first_point[1];
+        if(y_2 >= low_y - tolerance && y_2 <= high_y+tolerance) // If y intersection is between two y bounds there is an intersection
+            return true;
+        // Intersection with bottom horizontal line of the box that is y = low_y
+        double x_1 = first_point[0] + ( (low_y - first_point[1]) / slope );
+        if(x_1 >= low_x-tolerance && x_1 <= high_x+tolerance) // If x intersection is between two x bounds there is an intersection
+            return true;
+        // Intersection with top horizontal line of the box that is y = high_y
+        double x_2 = first_point[0] + ( (high_y - first_point[1]) / slope );
+        if(x_2 >= low_x-tolerance && x_2 <= high_x+tolerance) // If x intersection is between two x bounds there is an intersection
+            return true;
+
+
+        return false;
     }
 
 
