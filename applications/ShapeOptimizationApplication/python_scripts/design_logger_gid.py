@@ -28,19 +28,20 @@ class DesignLoggerGID( DesignLogger ):
     # --------------------------------------------------------------------------
     def __init__( self, model_part_controller, optimization_settings ):
         self.output_settings = optimization_settings["output"]
-        default_gid_settings = Parameters("""
+        default_gid_output_format_settings = Parameters("""
         {
             "name"              : "gid",
             "gid_configuration" : {
                 "result_file_configuration" : {
-                    "gidpost_flags"         : {
-                        "GiDPostMode"       : "GiD_PostBinary"
-                    },
-                    "output_frequency": 1.0
+                    "gidpost_flags" : { }
                 }
             }
         }""")
-        self.output_settings["output_format"].RecursivelyValidateAndAssignDefaults(default_gid_settings)
+
+        output_format = self.output_settings["output_format"]
+        output_format.ValidateAndAssignDefaults(default_gid_output_format_settings)
+        output_format["gid_configuration"].ValidateAndAssignDefaults(default_gid_output_format_settings["gid_configuration"])
+        output_format["gid_configuration"]["result_file_configuration"].ValidateAndAssignDefaults(default_gid_output_format_settings["gid_configuration"]["result_file_configuration"])
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.design_surface = model_part_controller.GetDesignSurface()
