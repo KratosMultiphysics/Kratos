@@ -100,40 +100,4 @@ class MeshControllerWithSolver(MeshController) :
     def Finalize(self):
         self._mesh_moving_analysis.Finalize()
 
-    # --------------------------------------------------------------------------
-    @staticmethod
-    def __AddDefaultProblemData(mesh_solver_settings):
-        problem_data = Parameters("""{
-            "echo_level" : 0,
-            "start_time" : 0.0,
-            "end_time" : 1.0,
-            "parallel_type" : "OpenMP"
-        }""")
-
-        mesh_solver_settings.AddValue("problem_data", problem_data)
-
-    # --------------------------------------------------------------------------
-    @staticmethod
-    def __FixWholeSurface(optimization_model_part, mesh_solver_settings):
-        optimization_model_part.CreateSubModelPart("auto_surface_nodes")
-
-        auto_process_settings = Parameters(
-            """
-            {
-                "python_module" : "fix_vector_variable_process",
-                "kratos_module" : "KratosMultiphysics",
-                "help"          : "This process fixes the selected components of a given vector variable without modifying the value of the variable.",
-                "process_name"  : "FixVectorVariableProcess",
-                "Parameters"    : {
-                    "model_part_name"      : \""""+str(optimization_model_part.Name)+""".auto_surface_nodes",
-                    "variable_name"        : "MESH_DISPLACEMENT",
-                    "constrained"          : [true,true,true]
-                }
-            }
-            """)
-
-        print("Add automatic process to fix the whole surface to mesh motion solver:")
-        print(auto_process_settings)
-        mesh_solver_settings["boundary_conditions_process_list"].Append(auto_process_settings)
-
 # ==============================================================================

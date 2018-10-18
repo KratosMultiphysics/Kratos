@@ -49,7 +49,8 @@ variables_dictionary = {"PRESSURE": PRESSURE,
                         "DISTANCE": DISTANCE, }
 
 # defining a model part for the fluid
-fluid_model_part = ModelPart("FluidPart")
+model = Model()
+fluid_model_part = model.CreateModelPart("FluidPart")
 
 if "REACTION" in ProjectParameters.nodal_results:
     fluid_model_part.AddNodalSolutionStepVariable(REACTION)
@@ -315,7 +316,7 @@ fluid_solver.Initialize()
 print("fluid solver created")
 
 
-cut_model_part = ModelPart("CutPart");
+cut_model_part = model.CreateModelPart("CutPart");
 if(ProjectParameters.VolumeOutput):
     # mesh to be printed (single mesh case)
     if ProjectParameters.GiDMultiFileFlag == "Single":

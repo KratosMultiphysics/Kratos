@@ -17,7 +17,7 @@ class Algorithm(BaseAlgorithm):
 
     def SetFluidAlgorithm(self):
         import pfem_fluid_ready_for_dem_coupling as fluid_solution
-        self.fluid_solution = fluid_solution.Solution()
+        self.fluid_solution = fluid_solution.Solution(self.model)
         self.fluid_solution.main_path = self.main_path
 
     def SetCouplingParameters(self, varying_parameters):
@@ -48,7 +48,7 @@ class Algorithm(BaseAlgorithm):
         self.all_model_parts.Add(self.fluid_model_part, "FluidPart")
 
         # defining a model part for the mixed part
-        self.all_model_parts.Add(ModelPart("MixedPart"))
+        self.all_model_parts.Add(self.model.CreateModelPart("MixedPart"))
 
         self.mixed_model_part = self.all_model_parts.Get('MixedPart')
 

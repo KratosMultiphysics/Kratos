@@ -11,9 +11,9 @@ BaseAlgorithm = main_script.Solution
 
 class Solution(BaseAlgorithm):
 
-    def __init__(self, pp):
+    def __init__(self, model, pp):
         self.pp = pp
-        super(Solution, self).__init__()
+        super(Solution, self).__init__(model)
 
     def LoadParametersFile(self):
         self.DEM_parameters = self.pp.CFD_DEM
