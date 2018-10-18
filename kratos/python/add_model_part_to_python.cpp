@@ -20,6 +20,7 @@
 
 // Project includes
 #include "includes/define_python.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "python/add_model_part_to_python.h"
 #include "includes/process_info.h"
@@ -726,8 +727,18 @@ void AddModelPartToPython(pybind11::module& m)
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
     class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")
-        .def(init<std::string const&>())
-        .def(init<>())
+        .def(init([](const std::string& name) { 
+                    KRATOS_WARNING("DEPRECATION") << "************************************************************" << std::endl;
+                    KRATOS_WARNING("DEPRECATION") << "USING OLD DEPRECATED CONSTRUCTOR OF MODELPART" << std::endl;
+                    KRATOS_WARNING("DEPRECATION") << "THIS WILL BE REMOVED ON NOV 1 2018" << std::endl;
+                    KRATOS_WARNING("DEPRECATION") << "the call to ModelPart(" << name << " ) " << std::endl;
+                    KRATOS_WARNING("DEPRECATION") << "should be substituted by current_model.CreateModelPart(" << name << ") " << std::endl;
+                    KRATOS_WARNING("DEPRECATION") << "************************************************************" << std::endl;
+                    static Model static_model; //NOT NICE! to be removed!!
+                    return std::make_shared<ModelPart>(name, static_model);
+                }
+            )
+        ) //TODO: REMOVE! THIS IS JUST UNTIL NOV 1 2018
         .def_property("Name", GetModelPartName, SetModelPartName)
         //  .def_property("ProcessInfo", GetProcessInfo, SetProcessInfo)
         .def_property("ProcessInfo", pointer_to_get_process_info, pointer_to_set_process_info)
@@ -865,6 +876,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AddElements",AddElementsByIds)
         .def("GetParentModelPart", &ModelPart::GetParentModelPart, return_value_policy::reference_internal)
         .def("GetRootModelPart", &ModelPart::GetRootModelPart, return_value_policy::reference_internal)
+        .def("GetOwnerModel", &ModelPart::GetOwnerModel, return_value_policy::reference_internal)
         .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },
                                         [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; })
 
