@@ -400,6 +400,24 @@ public:
     {
         return mSubPropertiesList;
     }
+    
+    /**
+     * @brief This method returns the tables
+     * @return The whole lis of tables
+     */
+    TablesContainerType& Tables()
+    {
+        return mTables;
+    }
+
+    /**
+     * @brief This method returns the tables (constant)
+     * @return The whole lis of tables
+     */
+    TablesContainerType const& Tables() const
+    {
+        return mTables;
+    }
 
     /**
      * @brief This method returns the whole list of subproperties (constant)

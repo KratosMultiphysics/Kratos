@@ -84,6 +84,7 @@ class GiDOutputProcess(Process):
                     }
 
     def __init__(self,model_part,file_name,param = None):
+        Process.__init__(self)
 
         if param is None:
             param = self.defaults

@@ -42,6 +42,7 @@ namespace Kratos {
 			modelPart.SetBufferSize(3);
 
 			// Variables addition
+			modelPart.AddNodalSolutionStepVariable(DISTANCE);
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
 			modelPart.AddNodalSolutionStepVariable(DENSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
@@ -50,6 +51,7 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
 
 			// Process info creation
 			double delta_time = 0.1;
@@ -151,6 +153,7 @@ namespace Kratos {
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
 			modelPart.AddNodalSolutionStepVariable(DENSITY);
+			modelPart.AddNodalSolutionStepVariable(REACTION);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
 			modelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
@@ -159,6 +162,7 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
 			modelPart.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
 
 			// Process info creation
 			double delta_time = 0.1;
@@ -247,13 +251,13 @@ namespace Kratos {
 			KRATOS_CHECK_NEAR(condRHS(1),  0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(2),  0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(3),  0.0034375, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(4), -0.00583333, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(5),  0.0141667, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(6), -0.0025, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(4),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(5),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(6),  0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(7),  0.0115625, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(8), -0.0065625, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(9),  0.0159375, tolerance);
-			KRATOS_CHECK_NEAR(condRHS(10), -0.0028125, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(8),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(9),  0.0, tolerance);
+			KRATOS_CHECK_NEAR(condRHS(10), 0.0, tolerance);
 			KRATOS_CHECK_NEAR(condRHS(11), 0.0111458, tolerance);
 		}
 	} // namespace Testing
