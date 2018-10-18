@@ -19,7 +19,7 @@
 // Project includes
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 
-#include "solid_mechanics_application_variables.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -67,7 +67,6 @@ LinearElasticPlaneStrain2DLaw::~LinearElasticPlaneStrain2DLaw()
 void LinearElasticPlaneStrain2DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
         Vector& rStrainVector )
 {
-
     //E= 0.5*(FT*F-1)
     rStrainVector[0] = 0.5 * ( rRightCauchyGreen( 0, 0 ) - 1.00 );
     rStrainVector[1] = 0.5 * ( rRightCauchyGreen( 1, 1 ) - 1.00 );
@@ -83,7 +82,6 @@ void LinearElasticPlaneStrain2DLaw::CalculateGreenLagrangeStrain( const Matrix &
 void LinearElasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
         Vector& rStrainVector )
 {
-
     // e= 0.5*(1-invbT*invb)
     Matrix InverseLeftCauchyGreen ( 2 , 2 );
     double det_b=0;
@@ -93,8 +91,6 @@ void LinearElasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix & rLeft
     rStrainVector[0] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 0, 0 ) );
     rStrainVector[1] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 1, 1 ) );
     rStrainVector[2] = -InverseLeftCauchyGreen( 0, 1 );
-
-
 }
 
 
@@ -141,7 +137,6 @@ void LinearElasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 	rFeatures.mSpaceDimension = WorkingSpaceDimension();
 
 }
-
 
 
 } // Namespace Kratos

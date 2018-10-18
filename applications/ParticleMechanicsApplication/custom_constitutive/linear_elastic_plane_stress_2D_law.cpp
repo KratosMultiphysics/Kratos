@@ -19,7 +19,7 @@
 // Project includes
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 
-#include "solid_mechanics_application_variables.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -88,7 +88,7 @@ void LinearElasticPlaneStress2DLaw::CalculateLinearElasticMatrix( Matrix& rConst
 
 void LinearElasticPlaneStress2DLaw::GetLawFeatures(Features& rFeatures)
 {
-    	//Set the type of law
+    //Set the type of law
 	rFeatures.mOptions.Set( PLANE_STRESS_LAW );
 	rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
 	rFeatures.mOptions.Set( ISOTROPIC );
