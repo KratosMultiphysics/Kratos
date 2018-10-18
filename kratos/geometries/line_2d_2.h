@@ -890,6 +890,57 @@ public:
         return false;
     }
 
+    /** Test the intersection with another geometry
+     *  Test if this geometry intersects with other line_2d_2
+     *
+     * @param  rOtherGeometry Geometry to intersect with
+     * @return True if the geometries intersect, False in any other case.
+     */
+    virtual bool HasIntersection(const BaseType& rOtherGeometry) override
+    {
+        // We get the local points
+        const TPointType& first_point  = BaseType::GetPoint(0); //p1
+        const TPointType& second_point = BaseType::GetPoint(1); //p2
+
+        // We get the other line's points
+        const TPointType& first_point_other  = *rOtherGeometry(0); //p3
+        const TPointType& second_point_other = *rOtherGeometry(1); //p4
+
+        // parametric coordinate of intersection on current line
+        double t = ( (first_point[0]-first_point_other[0])*(first_point_other[1] - second_point_other[1]) - (first_point[1]-first_point_other[1])*(first_point_other[0]-second_point_other[0]) )
+                    /
+                   ( (first_point[0]-second_point[0])*(first_point_other[1] - second_point_other[1]) - (first_point[1]-second_point[1])*(first_point_other[0]-second_point_other[0]) );
+
+        return (0.0<=t) && (t<=1.0);
+    }
+
+    /** Test intersection of the geometry with a box
+     * Tests the intersection of the geometry with
+     * a 3D box defined by rLowPoint and rHighPoint
+     *
+     * @param  rLowPoint  Lower point of the box to test the intersection
+     * @param  rHighPoint Higher point of the box to test the intersection
+     * @return            True if the geometry intersects the box, False in any other case.
+     */
+    virtual bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
+    {
+        bool has_intersection = false;
+        // We get the local points
+        const TPointType& first_point  = BaseType::GetPoint(0);
+        const TPointType& second_point = BaseType::GetPoint(1);
+        // Check if point one is inside the bounding box
+        has_intersection = has_intersection || (
+                                    ( (first_point[0] >= rLowPoint[0] && first_point[0] <= rHighPoint[0])
+                                        && (first_point[1] >= rLowPoint[1] && first_point[1] <= rHighPoint[1]) ) // IF the first point is inside the box
+                                    ||
+                                    ( (second_point[0] >= rLowPoint[0] && second_point[0] <= rHighPoint[0])
+                                        && (second_point[1] >= rLowPoint[1] && second_point[1] <= rHighPoint[1]) ) // IF the second point is inside the box
+                                );
+
+        return has_intersection;
+    }
+
+
     /**
      * Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
