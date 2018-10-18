@@ -95,14 +95,14 @@ namespace Kratos
     const double& rEquivalentPlasticStrain = rVariables.GetInternalVariables()[0];
 
     //linear hardening properties
-    const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
-    double  YieldStress                    = rMaterialProperties[YIELD_STRESS];
-    double  KinematicHardeningConstant     = rMaterialProperties[KINEMATIC_HARDENING_MODULUS];
+    const Properties& rProperties      = rModelData.GetProperties();
+    double  YieldStress                = rProperties[YIELD_STRESS];
+    double  KinematicHardeningConstant = rProperties[KINEMATIC_HARDENING_MODULUS];
 
     //exponential saturation properties
-    double  K_reference         =  rMaterialProperties[REFERENCE_HARDENING_MODULUS];
-    double  K_infinity          =  rMaterialProperties[INFINITY_HARDENING_MODULUS];
-    const double& Delta         =  rMaterialProperties[HARDENING_EXPONENT];
+    double  K_reference         =  rProperties[REFERENCE_HARDENING_MODULUS];
+    double  K_infinity          =  rProperties[INFINITY_HARDENING_MODULUS];
+    const double& Delta         =  rProperties[HARDENING_EXPONENT];
 
 
     double ThermalFactor        = this->CalculateThermalReferenceEffect(rVariables,ThermalFactor);
@@ -136,7 +136,7 @@ namespace Kratos
     const ModelDataType& rModelData = rVariables.GetModelData();
 
     //linear hardening properties
-    double  KinematicHardeningConstant  =  rModelData.GetMaterialProperties()[KINEMATIC_HARDENING_MODULUS];
+    double  KinematicHardeningConstant  =  rModelData.GetProperties()[KINEMATIC_HARDENING_MODULUS];
 
     double ThermalFactor        = this->CalculateThermalCurrentEffect(rVariables,ThermalFactor);
     KinematicHardeningConstant *= ThermalFactor;
@@ -180,13 +180,13 @@ namespace Kratos
     const double& rEquivalentPlasticStrain = rVariables.GetInternalVariables()[0];
 
     //linear hardening properties
-    const Properties& rMaterialProperties  =  rModelData.GetMaterialProperties();
-    double  KinematicHardeningConstant     =  rMaterialProperties[KINEMATIC_HARDENING_MODULUS];
+    const Properties& rProperties       =  rModelData.GetProperties();
+    double  KinematicHardeningConstant  =  rProperties[KINEMATIC_HARDENING_MODULUS];
 
     //exponential saturation properties
-    double  K_reference           =  rMaterialProperties[REFERENCE_HARDENING_MODULUS];
-    double  K_infinity            =  rMaterialProperties[INFINITY_HARDENING_MODULUS];
-    const double& Delta           =  rMaterialProperties[HARDENING_EXPONENT];
+    double  K_reference           =  rProperties[REFERENCE_HARDENING_MODULUS];
+    double  K_infinity            =  rProperties[INFINITY_HARDENING_MODULUS];
+    const double& Delta           =  rProperties[HARDENING_EXPONENT];
 
     double ThermalFactor        = this->CalculateThermalReferenceEffect(rVariables,ThermalFactor);
     K_reference                *= ThermalFactor;

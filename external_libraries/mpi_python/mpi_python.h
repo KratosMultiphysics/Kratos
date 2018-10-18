@@ -17,6 +17,7 @@
 
 // System includes
 #include <vector>
+#include <numeric>
 #include "mpi.h"
 
 // External includes
@@ -112,12 +113,6 @@ private:
 class PythonMPI
 {
 public:
-
-    enum MPI_Operation {
-        MAX,
-        MIN,
-        SUM
-    };
 
 	/// Default constructor.
 	/** Initializes MPI if required and defines a wrapper for MPI_COMM_WORLD,
@@ -220,7 +215,7 @@ public:
 	 * Broadcasting a value to all ranks
 	 * @param rComm A communicator object.
 	 * @param LocalValue The local value to be sent in the gather.
-	 * @param RankToBroacastFrom The MPI rank of the process where the valued will be broadcasted from.
+	 * @param RankToBroacastFrom The MPI rank of the process where the values will be broadcasted from.
 	 * @return The broadcasted value on all ranks
 	 */
 	template<class TValueType>
@@ -228,7 +223,7 @@ public:
                          TValueType LocalValue,
                          const int RankToBroacastFrom)
 	{
-        // Determime data type
+        // Determine data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
         MPI_Bcast(&LocalValue, 1, DataType, RankToBroacastFrom, rComm.GetMPIComm());
@@ -241,7 +236,7 @@ public:
 	 * Perform a reduction given an MPI_Op-Type
 	 * @param rComm A communicator object.
 	 * @param LocalValue The local value to be sent in the gather.
-	 * @param RankToReduceOn The MPI rank of the process where the valued will be gathered.
+	 * @param RankToReduceOn The MPI rank of the process where the values will be gathered.
 	 * @param MPI_Operation The MPI_Op to be used for the reduction
 	 * @return The reduced value on the for the RankToReduceOn thread
 	 */
@@ -249,16 +244,43 @@ public:
     TValueType reduce(PythonMPIComm& rComm,
                       const TValueType LocalValue,
                       const int RankToReduceOn,
-                      const MPI_Operation MpiOp)
+                      const MPI_Op MpiOp)
 	{
-		// Determime data type
+		// Determine data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
         TValueType result_val;
         MPI_Reduce(&LocalValue, &result_val, 1, DataType,
-                   GetMPIOpType(MpiOp), RankToReduceOn, rComm.GetMPIComm());
+                   MpiOp, RankToReduceOn, rComm.GetMPIComm());
 
         return result_val;
+    }
+
+    /// Wrapper for MPI_Reduce to compute the maximum number on a rank
+	template<class TValueType>
+    TValueType max(PythonMPIComm& rComm,
+                   const TValueType LocalValue,
+                   const int RankToReduceOn)
+	{
+        return reduce(rComm, LocalValue, RankToReduceOn, MPI_MAX);
+    }
+
+    /// Wrapper for MPI_Reduce to compute the minimum number on a rank
+	template<class TValueType>
+    TValueType min(PythonMPIComm& rComm,
+                   const TValueType LocalValue,
+                   const int RankToReduceOn)
+	{
+        return reduce(rComm, LocalValue, RankToReduceOn, MPI_MIN);
+    }
+
+    /// Wrapper for MPI_Reduce to compute the sum of number on a rank
+	template<class TValueType>
+    TValueType sum(PythonMPIComm& rComm,
+                   const TValueType LocalValue,
+                   const int RankToReduceOn)
+	{
+        return reduce(rComm, LocalValue, RankToReduceOn, MPI_SUM);
     }
 
 	/// Perform a MPI_Allreduce operation.
@@ -272,16 +294,126 @@ public:
 	template<class TValueType>
     TValueType allreduce(PythonMPIComm& rComm,
                          const TValueType LocalValue,
-                         const MPI_Operation MpiOp)
+                         const MPI_Op MpiOp)
 	{
-		// Determime data type
+		// Determine data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
         TValueType result_val;
         MPI_Allreduce(&LocalValue, &result_val, 1, DataType,
-                      GetMPIOpType(MpiOp), rComm.GetMPIComm());
+                      MpiOp, rComm.GetMPIComm());
 
         return result_val;
+    }
+
+	/// Wrapper for MPI_Allreduce to compute the maximum number on all ranks
+	template<class TValueType>
+    TValueType max_all(PythonMPIComm& rComm,
+                   const TValueType LocalValue)
+	{
+        return allreduce(rComm, LocalValue, MPI_MAX);
+    }
+
+    /// Wrapper for MPI_Allreduce to compute the minimum number on all ranks
+	template<class TValueType>
+    TValueType min_all(PythonMPIComm& rComm,
+                   const TValueType LocalValue)
+	{
+        return allreduce(rComm, LocalValue, MPI_MIN);
+    }
+
+    /// Wrapper for MPI_Allreduce to compute the sum of numbers on all ranks
+	template<class TValueType>
+    TValueType sum_all(PythonMPIComm& rComm,
+                   const TValueType LocalValue)
+	{
+        return allreduce(rComm, LocalValue, MPI_SUM);
+    }
+
+	/// Perform a MPI_Scatter operation.
+	/**
+	 * Scattering a vector of values from the RankToScatterFrom process.
+	 * @param rComm A communicator object.
+	 * @param rLocalValues The local values to be scattered.
+	 * @param RankToScatterFrom The MPI rank of the process where the values will be scattered from.
+	 * @return The local value that was scattered
+	 */
+    template<class TValueType>
+	TValueType scatter(PythonMPIComm& rComm,
+                       const std::vector<TValueType>& rLocalValues,
+                       const int RankToScatterFrom)
+    {
+        // Determine data type
+        const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
+        int rank, size;
+        MPI_Comm_rank(rComm.GetMPIComm(), &rank);
+        MPI_Comm_size(rComm.GetMPIComm(), &size);
+        if (rank == RankToScatterFrom && rLocalValues.size() != size)
+            throw std::runtime_error("Wrong number of values to Scatter!");
+        TValueType receive_val;
+        // Communicate
+        MPI_Scatter(rLocalValues.data(), 1, DataType, &receive_val,
+                    1, DataType, RankToScatterFrom, rComm.GetMPIComm());
+        return receive_val;
+    }
+
+	/// Perform a MPI_Scatterv operation.
+	/**
+	 * Scattering a number of vector with values from the RankToScatterFrom process.
+	 * @param rComm A communicator object.
+	 * @param rLocalValues The local values to be scattered.
+	 * @param RankToScatterFrom The MPI rank of the process where the values will be scattered from.
+	 * @return The vector of values that was scattered
+	 */
+    template<class TValueType>
+	std::vector<TValueType> scatterv(PythonMPIComm& rComm,
+                                     const std::vector<std::vector<TValueType>>& rLocalValues,
+                                     const int RankToScatterFrom)
+    {
+        // Determine data type
+        const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
+        int rank, size;
+        MPI_Comm_rank(rComm.GetMPIComm(), &rank);
+        MPI_Comm_size(rComm.GetMPIComm(), &size);
+        if (rank == RankToScatterFrom && rLocalValues.size() != size)
+            throw std::runtime_error("Wrong number of values to Scatter!");
+
+        std::vector<TValueType> send_buffer;
+        std::vector<int> send_sizes(size);
+        std::vector<int> displs(size);
+
+        if (rank == RankToScatterFrom)
+        {
+            for (int i=0; i<size; ++i) {
+                send_sizes[i] = rLocalValues[i].size();
+            }
+            // no padding is applied in the buffer
+            const int sum_values = std::accumulate(send_sizes.begin(), send_sizes.end(), 0);
+            send_buffer.resize(sum_values);
+
+            int counter = 0;
+            for (int i=0; i<size; ++i) {
+                displs[i] = counter;
+                for (int j=0; j<send_sizes[i]; ++j) {
+                    send_buffer[counter] = rLocalValues[i][j];
+                    ++counter;
+                }
+            }
+        }
+
+        // Communicate how much data each rank will receive
+        int recv_count;
+        MPI_Scatter(send_sizes.data(), 1, MPI_INT, &recv_count,
+                    1, MPI_INT, RankToScatterFrom, rComm.GetMPIComm());
+
+        std::vector<TValueType> scattered_vals(recv_count);
+
+        // Communicate
+        MPI_Scatterv(send_buffer.data(), send_sizes.data(), displs.data(),
+                     DataType, scattered_vals.data(), recv_count,
+                     DataType, RankToScatterFrom, rComm.GetMPIComm());
+
+        return scattered_vals;
     }
 
 	/// Perform a MPI_Gather operation.
@@ -289,7 +421,7 @@ public:
 	 * Provide a std::vector containing all local values to the RankToGatherOn process.
 	 * @param rComm A communicator object.
 	 * @param LocalValue The local value to be sent in the gather.
-	 * @param RankToGatherOn The MPI rank of the process where the valued will be gathered.
+	 * @param RankToGatherOn The MPI rank of the process where the values will be gathered.
 	 * @return A std::vector containing the local values in all processes, sorted by rank,
      * for the RankToGatherOn thread, an empty std::vector for other processes
 	 */
@@ -298,7 +430,7 @@ public:
                                    const TValueType LocalValue,
                                    const int RankToGatherOn)
     {
-        // Determime data type
+        // Determine data type
         const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
         int rank, size;
@@ -317,7 +449,7 @@ public:
         return global_values;
     }
 
-    /// Perform an MPI_Gather operation.
+    /// Perform an MPI_Gatherv operation.
     /**
      * Provide a std::vector containing all local values to the RankToGatherOn process.
      * @param rComm A communicator object.
@@ -331,7 +463,7 @@ public:
                                    const std::vector<TValueType>& rLocalValues,
                                    const int RankToGatherOn)
     {
-        // Determime data type
+        // Determine data type
         const MPI_Datatype DataType = this->GetMPIDatatype(TValueType());
 
         int recv_block_size = 1;
@@ -392,7 +524,7 @@ public:
     std::vector<TValueType> allgather(PythonMPIComm& rComm,
                                       const TValueType LocalValue)
     {
-        // Determime data type
+        // Determine data type
         const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
         int size;
@@ -418,18 +550,6 @@ private:
     /// An auxiliary function to determine the MPI_Datatype corresponding to a given C type
     template<class T>
     inline MPI_Datatype GetMPIDatatype(const T& Value);
-
-    /// An auxiliary function to determine the MPI_Op corresponding to a given Enum type
-    /// This is necessary bcs MPI_Op cannot be directly exposed to Python
-    inline MPI_Op GetMPIOpType(const MPI_Operation MPIOpEnum)
-    {
-        switch(MPIOpEnum) {
-	        case MAX: return MPI_MAX;
-	        case MIN: return MPI_MIN;
-	        case SUM: return MPI_SUM;
-        	default: break;
-        }
-    }
 
 	int mArgc;
 

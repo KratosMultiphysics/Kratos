@@ -359,16 +359,16 @@ if __name__ == '__main__':
     test.setUp()
     test.distance = 0.25
     test.slip_flag = False
-    test.print_output = False
-    test.print_reference_values = False
-    test.work_folder = "EmbeddedCouette2DTest"
-    test.reference_file = "reference_couette_embedded_2D"
-    test.settings = "EmbeddedCouette2DTestParameters.json"
+    test.print_output = True
+    test.print_reference_values = True
+    test.work_folder = "EmbeddedCouette3DTest"
+    test.reference_file = "reference_couette_development_3D"
+    test.settings = "EmbeddedDevelopmentCouette3DTestParameters.json"
     test.setUpProblem()
     test.setUpDistanceField()
     if (test.slip_flag):
         test.setUpSlipInitialCondition()
-        test.setUpSLipBoundaryConditions()
+        test.setUpSlipBoundaryConditions()
     else:
         test.setUpNoSlipInitialCondition()
         test.setUpNoSlipBoundaryConditions()
