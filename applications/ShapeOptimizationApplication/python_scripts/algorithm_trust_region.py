@@ -55,7 +55,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.design_surface = model_part_controller.GetDesignSurface()
 
-        self.mapper = mapper_factory.CreateMapper(self.design_surface, optimization_settings["design_variables"]["filter"])
+        self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, optimization_settings["design_variables"]["filter"])
         self.data_logger = data_logger_factory.CreateDataLogger(model_part_controller, communicator, optimization_settings)
 
         self.optimization_utilities = OptimizationUtilities(self.design_surface, optimization_settings)

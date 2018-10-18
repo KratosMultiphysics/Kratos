@@ -51,7 +51,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
         self.DesignSurface = ModelPartController.GetDesignSurface()
 
-        self.Mapper = mapper_factory.CreateMapper(self.DesignSurface, OptimizationSettings["design_variables"]["filter"])
+        self.Mapper = mapper_factory.CreateMapper(self.DesignSurface, self.DesignSurface, OptimizationSettings["design_variables"]["filter"])
         self.DataLogger = data_logger_factory.CreateDataLogger(ModelPartController, Communicator, OptimizationSettings)
 
         self.OptimizationUtilities = OptimizationUtilities(self.DesignSurface, OptimizationSettings)
