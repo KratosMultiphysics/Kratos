@@ -218,7 +218,7 @@ protected:
         TElementData& rData,
         VectorType& rRHS) override;
 
-    void AddBoundaryIntegral(
+    void AddBoundaryTraction(
         TElementData& rData,
         const Vector& rUnitNormal,
         MatrixType& rLHS,

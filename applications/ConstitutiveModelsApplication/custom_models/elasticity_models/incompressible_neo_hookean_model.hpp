@@ -105,12 +105,11 @@ namespace Kratos
     /**
      * Check
      */
-    int Check(const Properties& rMaterialProperties,
-		      const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
 
-      IsochoricNeoHookeanModel::Check(rMaterialProperties,rCurrentProcessInfo);
+      IsochoricNeoHookeanModel::Check(rProperties,rCurrentProcessInfo);
 
       return 0;
 

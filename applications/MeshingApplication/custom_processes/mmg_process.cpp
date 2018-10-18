@@ -23,6 +23,7 @@
 
 // Project includes
 #include "custom_processes/mmg_process.h"
+#include "containers/model.h"
 #include "utilities/sub_model_parts_list_utility.h"
 #include "utilities/variable_utils.h"
 // We indlude the internal variable interpolation process
@@ -546,8 +547,8 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
     }
 
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
-
-    ModelPart r_old_model_part;
+    Model& owner_model = mrThisModelPart.GetOwnerModel();
+    ModelPart& r_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
 
     // First we empty the model part
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
@@ -812,6 +813,9 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
         InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(r_old_model_part, mrThisModelPart, mThisParameters["internal_variables_parameters"]);
         InternalVariablesInterpolation.Execute();
     }
+
+    // We remove the auxiliar old model part
+    owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");
 }
 
 /***********************************************************************************/
@@ -1307,9 +1311,6 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition0(
     bool SkipCreation
     )
 {
-    // Sometimes MMG creates conditions where there are not, then we skip
-    if (mpRefCondition[PropId] == nullptr) return nullptr;
-
     // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
@@ -1317,6 +1318,9 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition0(
 
     if (MMG2D_Get_edge(mmgMesh, &edge_0, &edge_1, &PropId, &is_ridge, &IsRequired) != 1 )
         exit(EXIT_FAILURE);
+
+	// Sometimes MMG creates conditions where there are not, then we skip
+	if (mpRefCondition[PropId] == nullptr) return p_condition;
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (edge_0 == 0) SkipCreation = true;
@@ -1345,9 +1349,6 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition0(
     bool SkipCreation
     )
 {
-    // Sometimes MMG creates conditions where there are not, then we skip
-    if (mpRefCondition[PropId] == nullptr) return nullptr;
-
     // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
@@ -1355,6 +1356,9 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition0(
 
     if (MMG3D_Get_triangle(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &PropId, &IsRequired) != 1 )
         exit(EXIT_FAILURE);
+
+	// Sometimes MMG creates conditions where there are not, then we skip
+	if (mpRefCondition[PropId] == nullptr) return p_condition;
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (vertex_0 == 0) SkipCreation = true;
@@ -1385,9 +1389,6 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMGS>::CreateCondition0(
     bool SkipCreation
     )
 {
-    // Sometimes MMG creates conditions where there are not, then we skip
-    if (mpRefCondition[PropId] == nullptr) return nullptr;
-
     // We create the default one
     ConditionType::Pointer p_condition = nullptr;
 
@@ -1395,6 +1396,9 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMGS>::CreateCondition0(
 
     if (MMGS_Get_edge(mmgMesh, &edge_0, &edge_1, &PropId, &is_ridge, &IsRequired) != 1 )
         exit(EXIT_FAILURE);
+
+	// Sometimes MMG creates conditions where there are not, then we skip
+	if (mpRefCondition[PropId] == nullptr) return p_condition;
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (edge_0 == 0) SkipCreation = true;
@@ -1443,6 +1447,9 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition1(
 
     if (MMG3D_Get_quadrilateral(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &PropId, &IsRequired) != 1 )
         exit(EXIT_FAILURE);
+
+	// Sometimes MMG creates conditions where there are not, then we skip
+	if (mpRefCondition[PropId] == nullptr) return p_condition;
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (vertex_0 == 0) SkipCreation = true;
@@ -1496,6 +1503,9 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement0(
     if (MMG2D_Get_triangle(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &PropId, &IsRequired) != 1 )
         exit(EXIT_FAILURE);
 
+	// Sometimes MMG creates elements where there are not, then we skip
+	if (mpRefElement[PropId] == nullptr) return p_element;
+
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (vertex_0 == 0) SkipCreation = true;
     if (vertex_1 == 0) SkipCreation = true;
@@ -1531,6 +1541,9 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement0(
 
     if (MMG3D_Get_tetrahedron(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &PropId, &IsRequired) != 1 )
         exit(EXIT_FAILURE);
+
+	// Sometimes MMG creates elements where there are not, then we skip
+	if (mpRefElement[PropId] == nullptr) return p_element;
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (vertex_0 == 0) SkipCreation = true;
@@ -1569,6 +1582,9 @@ ElementType::Pointer MmgProcess<MMGLibray::MMGS>::CreateElement0(
 
     if (MMGS_Get_triangle(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &PropId, &IsRequired) != 1 )
         exit(EXIT_FAILURE);
+
+	// Sometimes MMG creates elements where there are not, then we skip
+	if (mpRefElement[PropId] == nullptr) return p_element;
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (vertex_0 == 0) SkipCreation = true;
@@ -1619,6 +1635,9 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement1(
 
     if (MMG3D_Get_prism(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &vertex_4, &vertex_5, &PropId, &IsRequired) != 1 )
         exit(EXIT_FAILURE);
+
+	// Sometimes MMG creates elements where there are not, then we skip
+	if (mpRefElement[PropId] == nullptr) return p_element;
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (vertex_0 == 0) SkipCreation = true;
@@ -2784,7 +2803,9 @@ void MmgProcess<TMMGLibray>::AssignAndClearAuxiliarSubModelPartForFlags()
 template<MMGLibray TMMGLibray>
 void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
 {
-    ModelPart auxiliar_model_part("auxiliar_thing");
+    Model& owner_model = mrThisModelPart.GetOwnerModel();
+    ModelPart& auxiliar_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Auxiliar", mrThisModelPart.GetBufferSize());
+    ModelPart& copy_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old_Copy", mrThisModelPart.GetBufferSize());
 
     Properties::Pointer p_prop_1 = auxiliar_model_part.pGetProperties(1);
     Properties::Pointer p_prop_2 = auxiliar_model_part.pGetProperties(2);
@@ -2803,7 +2824,6 @@ void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModel
         it_elem->SetProperties(p_prop_1);
     }
     // Old model part
-    ModelPart copy_old_model_part("old_model_part_copy");
     FastTransferBetweenModelPartsProcess transfer_process_old = FastTransferBetweenModelPartsProcess(copy_old_model_part, rOldModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
     transfer_process_current.Set(MODIFIED); // We replicate, not transfer
     transfer_process_old.Execute();
@@ -2839,6 +2859,10 @@ void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModel
     gid_io.WriteMesh(auxiliar_model_part.GetMesh());
     gid_io.FinalizeMesh();
     gid_io.InitializeResults(label, auxiliar_model_part.GetMesh());
+
+    // Remove auxiliar model parts
+    owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Auxiliar");
+    owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old_Copy");
 }
 
 /***********************************************************************************/

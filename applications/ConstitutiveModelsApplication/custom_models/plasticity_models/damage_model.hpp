@@ -120,14 +120,14 @@ namespace Kratos
     /**
      * Initialize member data
      */
-    void InitializeMaterial(const Properties& rMaterialProperties) override
+    void InitializeMaterial(const Properties& rProperties) override
     {
       KRATOS_TRY
 
       double& rDamageThreshold  = mInternal.Variables[0];
 
       //damage threshold properties
-      rDamageThreshold =  rMaterialProperties[DAMAGE_THRESHOLD];
+      rDamageThreshold =  rProperties[DAMAGE_THRESHOLD];
 
       KRATOS_CATCH(" ")
     }
