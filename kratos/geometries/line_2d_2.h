@@ -923,7 +923,7 @@ public:
      * @param  rHighPoint Higher point of the box to test the intersection
      * @return            True if the geometry intersects the box, False in any other case.
      */
-    virtual bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) override
     {
         bool has_intersection = false;
         // We get the local points
@@ -948,7 +948,7 @@ public:
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
-    virtual CoordinatesArrayType& PointLocalCoordinates(
+    CoordinatesArrayType& PointLocalCoordinates(
             CoordinatesArrayType& rResult,
             const CoordinatesArrayType& rPoint
             ) override
