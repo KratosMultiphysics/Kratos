@@ -76,9 +76,7 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
 
     template <typename TExpressionType, std::size_t TCategory>
     Matrix(AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other)
-        : base_type(Other) {
-            KRATOS_DEBUG_ERROR_IF(Other.expression().check_aliasing(data(), data()+size())) << "Aliasing found in constructing Matrix";
-        }
+        : base_type(Other) {}
 
     template <typename TExpressionType>
     Matrix(AMatrix::MatrixExpression<TExpressionType, AMatrix::row_major_access> const& Other)
