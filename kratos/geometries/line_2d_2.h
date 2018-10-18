@@ -940,7 +940,8 @@ public:
             return true;
 
         double high_x = rHighPoint[0]; double high_y = rHighPoint[1];
-        double low_x = rLowPoint[0];   double low_y = rLowPoint[1];
+        const double low_x = rLowPoint[0];   
+        const double low_y = rLowPoint[1];
 
         double slope = (second_point[1] - first_point[1]) / ( second_point[0] - first_point[0] );
 
