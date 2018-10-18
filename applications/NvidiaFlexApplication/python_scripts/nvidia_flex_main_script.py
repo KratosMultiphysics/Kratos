@@ -27,7 +27,6 @@ class SolutionDEM(main_script.Solution):
         self.list_of_gravities = []
         self.gravity_iterator_position = 0
         self.stop_signal = False
-        
 
     def Initialize(self):
         super(SolutionDEM, self).Initialize()
