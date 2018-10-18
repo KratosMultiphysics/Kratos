@@ -939,19 +939,19 @@ public:
             )
             return true;
 
-        const double high_x = rHighPoint[0]; 
+        const double high_x = rHighPoint[0];
         const double high_y = rHighPoint[1];
-        const double low_x = rLowPoint[0];   
+        const double low_x = rLowPoint[0];
         const double low_y = rLowPoint[1];
 
         double slope = (second_point[1] - first_point[1]) / ( second_point[0] - first_point[0] );
 
         // Intersection with left vertical line of the box that is x = low_x
-      const double y_1 = slope*( low_x - first_point[0] ) + first_point[1];
+        const double y_1 = slope*( low_x - first_point[0] ) + first_point[1];
         if(y_1 >= low_y - tolerance && y_1 <= high_y+tolerance) // If y intersection is between two y bounds there is an intersection
             return true;
         // Intersection with right vertical line of the box that is x = high_x
-        double y_2 = slope*( high_x - first_point[0] ) + first_point[1];
+        const double y_2 = slope*( high_x - first_point[0] ) + first_point[1];
         if(y_2 >= low_y - tolerance && y_2 <= high_y+tolerance) // If y intersection is between two y bounds there is an intersection
             return true;
         // Intersection with bottom horizontal line of the box that is y = low_y
@@ -959,7 +959,7 @@ public:
         if(x_1 >= low_x-tolerance && x_1 <= high_x+tolerance) // If x intersection is between two x bounds there is an intersection
             return true;
         // Intersection with top horizontal line of the box that is y = high_y
-       const double x_2 = first_point[0] + ( (high_y - first_point[1]) / slope );
+        const double x_2 = first_point[0] + ( (high_y - first_point[1]) / slope );
         if(x_2 >= low_x-tolerance && x_2 <= high_x+tolerance) // If x intersection is between two x bounds there is an intersection
             return true;
 
