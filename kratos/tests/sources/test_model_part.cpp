@@ -88,131 +88,139 @@ namespace Kratos {
     {
         Model current_model;
 
-        ModelPart& model_part = current_model.CreateModelPart("Main");
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
-        model_part.CreateSubModelPart("Inlet1");
-        model_part.CreateSubModelPart("Inlet2");
-        model_part.CreateSubModelPart("Outlet");
-        model_part.CreateSubModelPart("AnotherOutlet");
+        r_model_part.CreateSubModelPart("Inlet1");
+        r_model_part.CreateSubModelPart("Inlet2");
+        r_model_part.CreateSubModelPart("Outlet");
+        r_model_part.CreateSubModelPart("AnotherOutlet");
 
         std::size_t id = 1;
-        for(auto i_SubModelPart = model_part.SubModelPartsBegin() ; i_SubModelPart != model_part.SubModelPartsEnd() ; i_SubModelPart++){
+        for(auto i_SubModelPart = r_model_part.SubModelPartsBegin() ; i_SubModelPart != r_model_part.SubModelPartsEnd() ; i_SubModelPart++){
             i_SubModelPart->CreateNewNode(id++, 0.00,0.00,0.00);
         }
 
-        KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), 4);
-        KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Inlet1").NumberOfNodes(), 1);
-        KRATOS_CHECK_EQUAL(model_part.GetSubModelPart("Outlet").NumberOfNodes(), 1);
+        KRATOS_CHECK_EQUAL(r_model_part.NumberOfNodes(), 4);
+        KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("Inlet1").NumberOfNodes(), 1);
+        KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("Outlet").NumberOfNodes(), 1);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartAddNodalSolutionStepVariable, KratosCoreFastSuite)
     {
         Model current_model;
 
-        ModelPart& model_part = current_model.CreateModelPart("Main");
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
-        model_part.AddNodalSolutionStepVariable(VELOCITY);
+        r_model_part.AddNodalSolutionStepVariable(VELOCITY);
 
-        model_part.CreateNewNode(123, 0.00,0.00,0.00);
+        r_model_part.CreateNewNode(123, 0.00,0.00,0.00);
 
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.AddNodalSolutionStepVariable(PRESSURE),
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(r_model_part.AddNodalSolutionStepVariable(PRESSURE),
             "Error: Attempting to add the variable \"PRESSURE\" to the model part with name \"Main\" which is not empty");
 
-        model_part.AddNodalSolutionStepVariable(VELOCITY); // Adding the same Variable twice is fine bcs it wont do anything
+        r_model_part.AddNodalSolutionStepVariable(VELOCITY); // Adding the same Variable twice is fine bcs it wont do anything
     }
 
-		KRATOS_TEST_CASE_IN_SUITE(ModelPartHasNodalSolutionStepVariable, KratosCoreFastSuite)
-		{
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartHasNodalSolutionStepVariable, KratosCoreFastSuite)
+    {
         Model current_model;
-        ModelPart& model_part = current_model.CreateModelPart("Main");
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
 
-        model_part.AddNodalSolutionStepVariable(VELOCITY);
+        r_model_part.AddNodalSolutionStepVariable(VELOCITY);
 
-        KRATOS_CHECK(model_part.HasNodalSolutionStepVariable(VELOCITY));
-        KRATOS_CHECK_IS_FALSE(model_part.HasNodalSolutionStepVariable(PRESSURE));
+        KRATOS_CHECK(r_model_part.HasNodalSolutionStepVariable(VELOCITY));
+        KRATOS_CHECK_IS_FALSE(r_model_part.HasNodalSolutionStepVariable(PRESSURE));
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElements, KratosCoreFastSuite)
     {
-        ModelPart model_part("Main");
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
         // Fill model part
-        GenerateGenericModelPart(model_part);
+        GenerateGenericModelPart(r_model_part);
 
         // Set flags
-        model_part.pGetElement(1)->Set(TO_ERASE, true);
-        model_part.pGetElement(2)->Set(TO_ERASE, true);
+        r_model_part.pGetElement(1)->Set(TO_ERASE, true);
+        r_model_part.pGetElement(2)->Set(TO_ERASE, true);
 
         // Call method
-        model_part.RemoveElements(TO_ERASE);
+        r_model_part.RemoveElements(TO_ERASE);
 
         // Check results
-        KRATOS_CHECK(model_part.NumberOfNodes() == 6);
-        KRATOS_CHECK(model_part.NumberOfElements() == 2);
-        KRATOS_CHECK(model_part.NumberOfConditions() == 4);
+        KRATOS_CHECK(r_model_part.NumberOfNodes() == 6);
+        KRATOS_CHECK(r_model_part.NumberOfElements() == 2);
+        KRATOS_CHECK(r_model_part.NumberOfConditions() == 4);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElementsAndBelongings, KratosCoreFastSuite)
     {
-        ModelPart model_part("Main");
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
         // Fill model part
-        GenerateGenericModelPart(model_part);
+        GenerateGenericModelPart(r_model_part);
 
         // Set flags
-        model_part.pGetElement(1)->Set(TO_ERASE, true);
-        model_part.pGetElement(2)->Set(TO_ERASE, true);
+        r_model_part.pGetElement(1)->Set(TO_ERASE, true);
+        r_model_part.pGetElement(2)->Set(TO_ERASE, true);
 
         // Call method
-        auto aux_util = AuxiliarModelPartUtilities(model_part);
+        auto aux_util = AuxiliarModelPartUtilities(r_model_part);
         aux_util.RemoveElementsAndBelongings(TO_ERASE);
 
         // Check results
-        KRATOS_CHECK(model_part.NumberOfNodes() == 4);
-        KRATOS_CHECK(model_part.NumberOfElements() == 2);
-        KRATOS_CHECK(model_part.NumberOfConditions() == 2);
+        KRATOS_CHECK(r_model_part.NumberOfNodes() == 4);
+        KRATOS_CHECK(r_model_part.NumberOfElements() == 2);
+        KRATOS_CHECK(r_model_part.NumberOfConditions() == 2);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveConditions, KratosCoreFastSuite)
     {
-        ModelPart model_part("Main");
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
         // Fill model part
-        GenerateGenericModelPart(model_part);
+        GenerateGenericModelPart(r_model_part);
 
         // Set flags
-        model_part.pGetCondition(1)->Set(TO_ERASE, true);
-        model_part.pGetCondition(2)->Set(TO_ERASE, true);
+        r_model_part.pGetCondition(1)->Set(TO_ERASE, true);
+        r_model_part.pGetCondition(2)->Set(TO_ERASE, true);
 
         // Call method
-        model_part.RemoveConditions(TO_ERASE);
+        r_model_part.RemoveConditions(TO_ERASE);
 
         // Check results
-        KRATOS_CHECK(model_part.NumberOfNodes() == 6);
-        KRATOS_CHECK(model_part.NumberOfConditions() == 2);
-        KRATOS_CHECK(model_part.NumberOfElements() == 4);
+        KRATOS_CHECK(r_model_part.NumberOfNodes() == 6);
+        KRATOS_CHECK(r_model_part.NumberOfConditions() == 2);
+        KRATOS_CHECK(r_model_part.NumberOfElements() == 4);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveConditionsAndBelongings, KratosCoreFastSuite)
     {
-        ModelPart model_part("Main");
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
         // Fill model part
-        GenerateGenericModelPart(model_part);
+        GenerateGenericModelPart(r_model_part);
 
         // Set flags
-        model_part.pGetCondition(1)->Set(TO_ERASE, true);
-        model_part.pGetCondition(2)->Set(TO_ERASE, true);
+        r_model_part.pGetCondition(1)->Set(TO_ERASE, true);
+        r_model_part.pGetCondition(2)->Set(TO_ERASE, true);
 
         // Call method
-        auto aux_util = AuxiliarModelPartUtilities(model_part);
+        auto aux_util = AuxiliarModelPartUtilities(r_model_part);
         aux_util.RemoveConditionsAndBelongings(TO_ERASE);
 
         // Check results
-        KRATOS_CHECK(model_part.NumberOfNodes() == 3);
-        KRATOS_CHECK(model_part.NumberOfConditions() == 2);
-        KRATOS_CHECK(model_part.NumberOfElements() == 2);
+        KRATOS_CHECK(r_model_part.NumberOfNodes() == 3);
+        KRATOS_CHECK(r_model_part.NumberOfConditions() == 2);
+        KRATOS_CHECK(r_model_part.NumberOfElements() == 2);
     }
 }  // namespace Testing.
 }  // namespace Kratos.
