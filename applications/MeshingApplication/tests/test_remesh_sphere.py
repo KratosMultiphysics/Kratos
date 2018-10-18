@@ -1,3 +1,4 @@
+
 # We import the libraies
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
@@ -269,6 +270,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         }
         """)
 
+        check_parameters["input_file_name"].SetString(file_path + "/" + check_parameters["input_file_name"].GetString())
         check = from_json_check_result_process.FromJsonCheckResultProcess(current_model, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
