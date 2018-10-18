@@ -123,7 +123,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         if (missing_external_dependencies is True):
             self.skipTest("{} is not available".format(missing_application))
         self._prepare_test("materials_with_subproperties.json")
-        KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.Model)
+        KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
         self._check_results_with_subproperties()
 
 if __name__ == '__main__':
