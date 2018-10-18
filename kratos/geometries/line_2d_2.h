@@ -896,7 +896,7 @@ public:
      * @param  rOtherGeometry Geometry to intersect with
      * @return True if the geometries intersect, False in any other case.
      */
-    virtual bool HasIntersection(const BaseType& rOtherGeometry) override
+    bool HasIntersection(const BaseType& rOtherGeometry) override
     {
         const double tolerance = std::numeric_limits<double>::epsilon()
         // We get the local points
@@ -948,7 +948,7 @@ public:
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
-    CoordinatesArrayType& PointLocalCoordinates(
+    virtual CoordinatesArrayType& PointLocalCoordinates(
             CoordinatesArrayType& rResult,
             const CoordinatesArrayType& rPoint
             ) override
