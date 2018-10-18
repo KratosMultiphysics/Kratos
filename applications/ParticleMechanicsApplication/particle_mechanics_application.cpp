@@ -187,9 +187,15 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
 
         // Registering Constitutive Laws
+        // CL: Linear Elastic laws
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DLaw", mHyperElastic3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStress2DLaw", mHyperElasticPlaneStrain2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrain2DLaw", mHyperElasticPlaneStrainUP2DLaw);
         // CL: Hyperelastic laws
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElastic3DLaw", mHyperElastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrain2DLaw", mHyperElasticPlaneStrain2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticUP3DLaw", mHyperElasticUP3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrainUP2DLaw", mHyperElasticPlaneStrainUP2DLaw);
         // CL: Mohr Coulomb
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlastic3DLaw", mHenckyMCPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlasticPlaneStrain2DLaw", mHenckyMCPlasticPlaneStrain2DLaw);

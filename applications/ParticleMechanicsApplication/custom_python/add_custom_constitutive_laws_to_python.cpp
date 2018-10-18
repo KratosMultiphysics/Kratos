@@ -43,6 +43,9 @@
 #include "custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.hpp"
 
 //---constitutive laws
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_UP_3D_law.hpp"
@@ -84,6 +87,19 @@ void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
+    // Linear Elastic laws
+    class_< LinearElastic3DLaw, typename LinearElastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElastic3DLaw").def(init<>() )
+    ;
+
+    class_< LinearElasticPlaneStress2DLaw, typename LinearElasticPlaneStress2DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElasticPlaneStress2DLaw").def(init<>() )
+    ;
+
+    class_< LinearElasticPlaneStrain2DLaw, typename LinearElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElasticPlaneStrain2DLaw").def(init<>() )
+    ;
+    
     // Hyperelastic laws
     class_< HyperElastic3DLaw, typename HyperElastic3DLaw::Pointer, ConstitutiveLaw >
     (m, "HyperElastic3DLaw").def(init<>() )
@@ -94,12 +110,12 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     ;
 
     class_< HyperElasticUP3DLaw, typename HyperElasticUP3DLaw::Pointer, ConstitutiveLaw >
-      (m, "HyperElasticUP3DLaw").def(init<>() )
-      ;
+    (m, "HyperElasticUP3DLaw").def(init<>() )
+    ;
 
     class_< HyperElasticPlaneStrainUP2DLaw, typename HyperElasticPlaneStrainUP2DLaw::Pointer, ConstitutiveLaw >
-      (m, "HyperElasticPlaneStrainUP2DLaw").def(init<>() )
-      ;
+    (m, "HyperElasticPlaneStrainUP2DLaw").def(init<>() )
+    ;
 
     // Hencky Mohr Coulomb
     class_< HenckyMCPlasticPlaneStrain2DLaw, typename HenckyMCPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >

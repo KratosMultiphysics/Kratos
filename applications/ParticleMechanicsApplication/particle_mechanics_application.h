@@ -45,6 +45,9 @@
 #include "custom_elements/updated_lagrangian_quadrilateral.hpp"
 
 //---constitutive laws
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_UP_3D_law.hpp"
@@ -225,6 +228,10 @@ private:
     const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D4N;
 
     // Constitutive laws
+    // CL: Linear Elastic laws
+    const LinearElastic3DLaw                                mLinearElastic3DLaw;
+    const LinearElasticPlaneStress2DLaw                     mLinearElasticPlaneStress2DLaw;
+    const LinearElasticPlaneStrain2DLaw                     mLinearElasticPlaneStrain2DLaw;
     // CL: Hyperelastic laws
     const HyperElastic3DLaw                                 mHyperElastic3DLaw;
     const HyperElasticPlaneStrain2DLaw                      mHyperElasticPlaneStrain2DLaw;
