@@ -6,7 +6,6 @@ message("**** configuring KratosParticleMechanicsApplication ****")
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 
 ## generate variables with the sources
 set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
@@ -22,6 +21,8 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_quadrilateral.cpp
 
 	###constitutive laws
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_3D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plane_strain_2D_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_3d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_plane_strain_2d_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_UP_3d_law.cpp
@@ -58,7 +59,7 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 
 ###############################################################
 pybind11_add_module(KratosParticleMechanicsApplication MODULE THIN_LTO ${KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES})
-target_link_libraries(KratosParticleMechanicsApplication PUBLIC KratosCore KratosSolidMechanicsCore)
+target_link_libraries(KratosParticleMechanicsApplication PUBLIC KratosCore)
 set_target_properties(KratosParticleMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "PARTICLE_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")
 
