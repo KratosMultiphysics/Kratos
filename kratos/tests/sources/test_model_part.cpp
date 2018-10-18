@@ -69,23 +69,27 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartHasNodalSolutionStepVariable, KratosCoreFastS
 
 KRATOS_TEST_CASE_IN_SUITE(ModelPartEmptyName, KratosCoreFastSuite)
 {
+    Model current_model;
+
     // Constructor with name
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(ModelPart model_part(""),
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart(""),
         "Error: Please don't use empty names (\"\") when creating a ModelPart");
 
     // Constructor with name and bufferSize
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(ModelPart model_part("", 2),
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("", 2),
         "Error: Please don't use empty names (\"\") when creating a ModelPart");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ModelPartNameContainingPoint, KratosCoreFastSuite)
 {
+    Model current_model;
+
     // Constructor with name
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(ModelPart model_part("name.other"),
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("name.other"),
         "Error: Please don't use names containing (\".\") when creating a ModelPart");
 
     // Constructor with name and bufferSize
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(ModelPart model_part("name.other", 2),
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("name.other", 2),
         "Error: Please don't use names containing (\".\") when creating a ModelPart");
 }
 }
