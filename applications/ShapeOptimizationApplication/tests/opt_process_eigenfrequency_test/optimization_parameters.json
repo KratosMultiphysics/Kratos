@@ -41,12 +41,12 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "type"                               : "vertex_morphing",
+            "type"  : "vertex_morphing",
             "filter" : {
-                "filter_function_type"       : "linear",
-                "filter_radius"              : 0.3,
-                "max_nodes_in_filter_radius" : 10000,
-                "matrix_free_filtering"      : true
+                "filter_function_type"        : "linear",
+                "filter_radius"               : 0.3,
+                "max_nodes_in_filter_radius"  : 1000,
+                "apply_matrix_free_filtering" : true
             }
         },
         "optimization_algorithm" : {

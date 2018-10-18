@@ -26,7 +26,6 @@
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
-#include "shape_optimization_application.h"
 #include "mapper_base.h"
 #include "filter_function.h"
 
@@ -71,6 +70,7 @@ public:
     typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
     typedef std::vector<double>::iterator DoubleVectorIterator;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    typedef array_1d<double,3> array_3d;
 
     // Type definitions for linear algebra including sparse systems
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
@@ -89,13 +89,12 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphing( ModelPart& designSurface, Parameters mapper_settings )
-        : mrDesignSurface( designSurface ),
-          mNumberOfDesignVariables(designSurface.Nodes().size()),
-          mFilterType( mapper_settings["filter_function_type"].GetString() ),
-          mFilterRadius( mapper_settings["filter_radius"].GetDouble() ),
-          mMaxNumberOfNeighbors( mapper_settings["max_nodes_in_filter_radius"].GetInt() ),
-          mConsistentBackwardMapping (mapper_settings["consistent_mapping_to_geometry_space"].GetBool() )
+    MapperVertexMorphing( ModelPart& rOriginiMdpa, ModelPart& rDestinationMdpa, Parameters MapperSettings )
+        : mrOriginMdpa(rOriginiMdpa),
+          mrDestinationMdpa(rDestinationMdpa),
+          mOriginNodeNumber(rOriginiMdpa.Nodes().size()),
+          mDestinationNodeNumber(rDestinationMdpa.Nodes().size()),
+          mMapperSettings(MapperSettings)
     {
     }
 
@@ -114,44 +113,201 @@ public:
     ///@{
 
     // --------------------------------------------------------------------------
-    void InitializeMapping() override
+    void Initialize() override
     {
-        CreateListOfNodesOfDesignSurface();
-        CreateFilterFunction();
-        InitializeMappingVariables();
-        AssignMappingIds();
+        BuiltinTimer timer;
+        std::cout << "> Starting initialization of mapping..." << std::endl;
+
+        if (mIsMappingInitialized == false)
+        {
+            CreateListOfNodesInOriginMdpa();
+            CreateFilterFunction();
+            InitializeMappingVariables();
+            AssignMappingIds();
+        }
+
+        InitializeComputationOfMappingMatrix();
+        CreateSearchTreeWithAllNodesInOriginMdpa();
+        ComputeMappingMatrix();
+
+        mIsMappingInitialized = true;
+
+        std::cout << "> Finished initialization of mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
-    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace ) override
+    void Map( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable) override
     {
-        BuiltinTimer mapping_time;
-        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
+        if (mIsMappingInitialized == false)
+            Initialize();
 
-        ComputeMappingMatrixIfNecessary();
-        PrepareVectorsForMappingToDesignSpace( rNodalVariable );
-        if (mConsistentBackwardMapping)
-            MultiplyVectorsWithConsistentBackwardMappingMatrix();
+        BuiltinTimer mapping_time;
+        std::cout << "\n> Starting mapping of " << rVariable.Name() << "..." << std::endl;
+
+        // Prepare vectors for mapping
+        mXValuesOrigin.clear();
+        mYValuesOrigin.clear();
+        mZValuesOrigin.clear();
+        mXValuesDestination.clear();
+        mYValuesDestination.clear();
+        mZValuesDestination.clear();
+
+        for(auto& node_i : mrOriginMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+            array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rVariable);
+            mXValuesOrigin[i] = nodal_variable[0];
+            mYValuesOrigin[i] = nodal_variable[1];
+            mZValuesOrigin[i] = nodal_variable[2];
+        }
+
+        // Perform mapping
+        noalias(mXValuesDestination) = prod(mMappingMatrix,mXValuesOrigin);
+        noalias(mYValuesDestination) = prod(mMappingMatrix,mYValuesOrigin);
+        noalias(mZValuesDestination) = prod(mMappingMatrix,mZValuesOrigin);
+
+        // Assign results to nodal variable
+        for(auto& node_i : mrDestinationMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+
+            Vector node_vector = ZeroVector(3);
+            node_vector(0) = mXValuesDestination[i];
+            node_vector(1) = mYValuesDestination[i];
+            node_vector(2) = mZValuesDestination[i];
+            node_i.FastGetSolutionStepValue(rMappedVariable) = node_vector;
+        }
+
+        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void Map( const Variable<double> &rVariable, const Variable<double> &rMappedVariable) override
+    {
+        if (mIsMappingInitialized == false)
+            Initialize();
+
+        BuiltinTimer mapping_time;
+        std::cout << "\n> Starting mapping of " << rVariable.Name() << "..." << std::endl;
+
+        // Prepare vectors for mapping
+        mXValuesOrigin.clear();
+        mXValuesDestination.clear();
+
+        for(auto& node_i : mrOriginMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+            mXValuesOrigin[i] = node_i.FastGetSolutionStepValue(rVariable);
+        }
+
+        // Perform mapping
+        noalias(mXValuesDestination) = prod(mMappingMatrix,mXValuesOrigin);
+
+        // Assign results to nodal variable
+        for(auto& node_i : mrDestinationMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+            node_i.FastGetSolutionStepValue(rMappedVariable) = mXValuesDestination[i];
+        }
+
+        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void InverseMap( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable) override
+    {
+        if (mIsMappingInitialized == false)
+            Initialize();
+
+        BuiltinTimer mapping_time;
+        std::cout << "\n> Starting inverse mapping of " << rVariable.Name() << "..." << std::endl;
+
+        // Prepare vectors for mapping
+        mXValuesOrigin.clear();
+        mYValuesOrigin.clear();
+        mZValuesOrigin.clear();
+        mXValuesDestination.clear();
+        mYValuesDestination.clear();
+        mZValuesDestination.clear();
+
+        for(auto& node_i : mrDestinationMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+            array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rVariable);
+            mXValuesDestination[i] = nodal_variable[0];
+            mYValuesDestination[i] = nodal_variable[1];
+            mZValuesDestination[i] = nodal_variable[2];
+        }
+
+        // Perform mapping
+        if(mMapperSettings["apply_consistent_mapping"].GetBool())
+        {
+            KRATOS_ERROR_IF(mOriginNodeNumber != mDestinationNodeNumber) << "Consisten mapping requires matching origin and destination model part.";
+
+            noalias(mXValuesOrigin) = prod(mMappingMatrix,mXValuesDestination);
+            noalias(mYValuesOrigin) = prod(mMappingMatrix,mYValuesDestination);
+            noalias(mZValuesOrigin) = prod(mMappingMatrix,mZValuesDestination);
+        }
         else
-            MultiplyVectorsWithTransposeMappingMatrix();
-        AssignResultingDesignVectorsToNodalVariable( rNodalVariableInDesignSpace );
+        {
+            SparseSpaceType::TransposeMult(mMappingMatrix,mXValuesDestination,mXValuesOrigin);
+            SparseSpaceType::TransposeMult(mMappingMatrix,mYValuesDestination,mYValuesOrigin);
+            SparseSpaceType::TransposeMult(mMappingMatrix,mZValuesDestination,mZValuesOrigin);
+        }
 
-        std::cout << "> Time needed for mapping: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
+        // Assign results to nodal variable
+        for(auto& node_i : mrOriginMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+
+            Vector node_vector = ZeroVector(3);
+            node_vector(0) = mXValuesOrigin[i];
+            node_vector(1) = mYValuesOrigin[i];
+            node_vector(2) = mZValuesOrigin[i];
+            node_i.FastGetSolutionStepValue(rMappedVariable) = node_vector;
+        }
+
+        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
-    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace ) override
+    void InverseMap(const Variable<double> &rVariable, const Variable<double> &rMappedVariable) override
     {
+        if (mIsMappingInitialized == false)
+            Initialize();
+
         BuiltinTimer mapping_time;
-        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
+        std::cout << "\n> Starting inverse mapping of " << rVariable.Name() << "..." << std::endl;
 
-        ComputeMappingMatrixIfNecessary();
-        PrepareVectorsForMappingToGeometrySpace( rNodalVariable );
-        MultiplyVectorsWithMappingMatrix();
-        AssignResultingGeometryVectorsToNodalVariable( rNodalVariableInGeometrySpace );
+        // Prepare vectors for mapping
+        mXValuesOrigin.clear();
+        mXValuesDestination.clear();
 
-        std::cout << "> Time needed for mapping: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
+        for(auto& node_i : mrDestinationMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+            mXValuesDestination[i] = node_i.FastGetSolutionStepValue(rVariable);
+        }
+
+        // Perform mapping
+        if(mMapperSettings["apply_consistent_mapping"].GetBool())
+        {
+            KRATOS_ERROR_IF(mOriginNodeNumber != mDestinationNodeNumber) << "Consisten mapping requires matching origin and destination model part.";
+            noalias(mXValuesOrigin) = prod(mMappingMatrix,mXValuesDestination);
+        }
+        else
+            SparseSpaceType::TransposeMult(mMappingMatrix,mXValuesDestination,mXValuesOrigin);
+
+        // Assign results to nodal variable
+        for(auto& node_i : mrOriginMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+            node_i.FastGetSolutionStepValue(rMappedVariable) = mXValuesOrigin[i];
+        }
+
+        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
+
     // --------------------------------------------------------------------------
 
     ///@}
@@ -169,19 +325,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    virtual std::string Info() const
     {
         return "MapperVertexMorphing";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "MapperVertexMorphing";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
     }
 
@@ -203,8 +359,11 @@ protected:
     ///@{
 
     // Initialized by class constructor
-    ModelPart& mrDesignSurface;
+    ModelPart& mrOriginMdpa;
+    ModelPart& mrDestinationMdpa;
     FilterFunction::Pointer mpFilterFunction;
+    Parameters mMapperSettings;
+    bool mIsMappingInitialized = false;
 
     ///@}
     ///@name Protected Operators
@@ -248,23 +407,18 @@ private:
     ///@{
 
     // Initialized by class constructor
-    const unsigned int mNumberOfDesignVariables;
-    std::string mFilterType;
-    double mFilterRadius;
-    unsigned int mMaxNumberOfNeighbors;
-    bool mConsistentBackwardMapping;
+    const unsigned int mOriginNodeNumber;
+    const unsigned int mDestinationNodeNumber;
 
     // Variables for spatial search
     unsigned int mBucketSize = 100;
-    NodeVector mListOfNodesOfDesignSurface;
+    NodeVector mListOfNodesInOriginMdpa;
     KDTree::Pointer mpSearchTree;
 
     // Variables for mapping
     SparseMatrixType mMappingMatrix;
-    Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;
-    Vector x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
-    double mControlSum = -1.0;
-    bool is_initial_computation_of_mapping_matrix = true;
+    Vector mXValuesOrigin, mYValuesOrigin, mZValuesOrigin;
+    Vector mXValuesDestination, mYValuesDestination, mZValuesDestination;
 
     ///@}
     ///@name Private Operators
@@ -276,95 +430,90 @@ private:
     ///@{
 
     // --------------------------------------------------------------------------
-    void CreateListOfNodesOfDesignSurface()
+    void CreateListOfNodesInOriginMdpa()
     {
-        mListOfNodesOfDesignSurface.resize(mNumberOfDesignVariables);
+        mListOfNodesInOriginMdpa.resize(mOriginNodeNumber);
         int counter = 0;
-        for (ModelPart::NodesContainerType::iterator node_it = mrDesignSurface.NodesBegin(); node_it != mrDesignSurface.NodesEnd(); ++node_it)
+        for (ModelPart::NodesContainerType::iterator node_it = mrOriginMdpa.NodesBegin(); node_it != mrOriginMdpa.NodesEnd(); ++node_it)
         {
             NodeTypePointer pnode = *(node_it.base());
-            mListOfNodesOfDesignSurface[counter++] = pnode;
+            mListOfNodesInOriginMdpa[counter++] = pnode;
         }
     }
 
     // --------------------------------------------------------------------------
     void CreateFilterFunction()
     {
-        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
+        std::string filter_type = mMapperSettings["filter_function_type"].GetString();
+        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+
+        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
     }
 
     // --------------------------------------------------------------------------
     void InitializeMappingVariables()
     {
-        mMappingMatrix.resize(mNumberOfDesignVariables,mNumberOfDesignVariables,false);
+        mMappingMatrix.resize(mDestinationNodeNumber,mOriginNodeNumber,false);
         mMappingMatrix.clear();
 
-        x_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
-        y_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
-        z_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
+        mXValuesOrigin.resize(mOriginNodeNumber,0.0);
+        mYValuesOrigin.resize(mOriginNodeNumber,0.0);
+        mZValuesOrigin.resize(mOriginNodeNumber,0.0);
 
-        x_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
-        y_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
-        z_variables_in_geometry_space.resize(mNumberOfDesignVariables,0.0);
+        mXValuesDestination.resize(mDestinationNodeNumber,0.0);
+        mYValuesDestination.resize(mDestinationNodeNumber,0.0);
+        mZValuesDestination.resize(mDestinationNodeNumber,0.0);
     }
 
     // --------------------------------------------------------------------------
     void AssignMappingIds()
     {
         unsigned int i = 0;
-        for(auto& node_i : mrDesignSurface.Nodes())
+        for(auto& node_i : mrOriginMdpa.Nodes())
             node_i.SetValue(MAPPING_ID,i++);
+
+        i = 0;
+        for(auto& node_i : mrDestinationMdpa.Nodes())
+            node_i.SetValue(MAPPING_ID,i++);
+    }
+
+    // --------------------------------------------------------------------------
+    void CreateSearchTreeWithAllNodesInOriginMdpa()
+    {
+        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesInOriginMdpa.begin(), mListOfNodesInOriginMdpa.end(), mBucketSize));
     }
 
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
     {
-        BuiltinTimer timer;
-        std::cout << "> Computing mapping matrix to perform mapping..." << std::endl;
+        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+        unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
-        CreateSearchTreeWithAllNodesOnDesignSurface();
-        ComputeEntriesOfMappingMatrix();
-
-        std::cout << "> Mapping matrix computed in: " << timer.ElapsedSeconds() << " s" << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
-    void CreateSearchTreeWithAllNodesOnDesignSurface()
-    {
-        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
-    }
-
-    // --------------------------------------------------------------------------
-    void ComputeEntriesOfMappingMatrix()
-    {
-        for(auto& node_i : mrDesignSurface.Nodes())
+        for(auto& node_i : mrDestinationMdpa.Nodes())
         {
-            NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
-            std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
+            NodeVector neighbor_nodes( max_number_of_neighbors );
+            std::vector<double> resulting_squared_distances( max_number_of_neighbors );
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             mFilterRadius,
+                                                                             filter_radius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
-                                                                             mMaxNumberOfNeighbors );
+                                                                             max_number_of_neighbors );
+
+
 
             std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
 
-            ThrowWarningIfMaxNodeNeighborsReached( node_i, number_of_neighbors );
+            if(number_of_neighbors >= max_number_of_neighbors)
+                std::cout << "\n> WARNING!!!!! For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
+
             ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
             FillMappingMatrixWithWeights( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
         }
     }
 
     // --------------------------------------------------------------------------
-    void ThrowWarningIfMaxNodeNeighborsReached( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
-    {
-        if(number_of_neighbors >= mMaxNumberOfNeighbors)
-            std::cout << "\n> WARNING!!!!! For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
-    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node,
+    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& origin_node,
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
@@ -373,7 +522,7 @@ private:
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( design_node.Coordinates(), neighbor_node.Coordinates() );
+            double weight = mpFilterFunction->compute_weight( origin_node.Coordinates(), neighbor_node.Coordinates() );
 
             list_of_weights[neighbor_itr] = weight;
             sum_of_weights += weight;
@@ -381,146 +530,23 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void FillMappingMatrixWithWeights(  ModelPart::NodeType& design_node,
+    void FillMappingMatrixWithWeights(  ModelPart::NodeType& origin_node,
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
                                         double& sum_of_weights )
     {
-        unsigned int row_id = design_node.GetValue(MAPPING_ID);
+
+
+        unsigned int row_id = origin_node.GetValue(MAPPING_ID);
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
             int collumn_id = neighbor_node.GetValue(MAPPING_ID);
 
+
             double weight = list_of_weights[neighbor_itr] / sum_of_weights;
             mMappingMatrix.insert_element(row_id,collumn_id,weight);
-        }
-    }
-
-    // --------------------------------------------------------------------------
-    void ComputeMappingMatrixIfNecessary()
-    {
-        if(is_initial_computation_of_mapping_matrix || HasGeometryChanged())
-        {
-            is_initial_computation_of_mapping_matrix = false;
-
-            InitializeComputationOfMappingMatrix();
-            ComputeMappingMatrix();
-        }
-    }
-
-    // --------------------------------------------------------------------------
-    void PrepareVectorsForMappingToDesignSpace( const Variable<array_3d> &rNodalVariable )
-    {
-        x_variables_in_design_space.clear();
-        y_variables_in_design_space.clear();
-        z_variables_in_design_space.clear();
-        x_variables_in_geometry_space.clear();
-        y_variables_in_geometry_space.clear();
-        z_variables_in_geometry_space.clear();
-
-        for(auto& node_i : mrDesignSurface.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-            array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rNodalVariable);
-            x_variables_in_geometry_space[i] = nodal_variable[0];
-            y_variables_in_geometry_space[i] = nodal_variable[1];
-            z_variables_in_geometry_space[i] = nodal_variable[2];
-        }
-    }
-
-    // --------------------------------------------------------------------------
-    void PrepareVectorsForMappingToGeometrySpace( const Variable<array_3d> &rNodalVariable )
-    {
-        x_variables_in_design_space.clear();
-        y_variables_in_design_space.clear();
-        z_variables_in_design_space.clear();
-        x_variables_in_geometry_space.clear();
-        y_variables_in_geometry_space.clear();
-        z_variables_in_geometry_space.clear();
-
-        for(auto& node_i : mrDesignSurface.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-            array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rNodalVariable);
-            x_variables_in_design_space[i] = nodal_variable[0];
-            y_variables_in_design_space[i] = nodal_variable[1];
-            z_variables_in_design_space[i] = nodal_variable[2];
-        }
-    }
-
-    // --------------------------------------------------------------------------
-    void MultiplyVectorsWithTransposeMappingMatrix()
-    {
-        SparseSpaceType::TransposeMult(mMappingMatrix,x_variables_in_geometry_space,x_variables_in_design_space);
-        SparseSpaceType::TransposeMult(mMappingMatrix,y_variables_in_geometry_space,y_variables_in_design_space);
-        SparseSpaceType::TransposeMult(mMappingMatrix,z_variables_in_geometry_space,z_variables_in_design_space);
-    }
-
-    // --------------------------------------------------------------------------
-    void MultiplyVectorsWithConsistentBackwardMappingMatrix()
-    {
-        // for the case of matching grids in geometry and design space, use the forward mapping matrix
-        noalias(x_variables_in_design_space) = prod(mMappingMatrix,x_variables_in_geometry_space);
-        noalias(y_variables_in_design_space) = prod(mMappingMatrix,y_variables_in_geometry_space);
-        noalias(z_variables_in_design_space) = prod(mMappingMatrix,z_variables_in_geometry_space);
-    }
-
-    // --------------------------------------------------------------------------
-    void MultiplyVectorsWithMappingMatrix()
-    {
-        noalias(x_variables_in_geometry_space) = prod(mMappingMatrix,x_variables_in_design_space);
-        noalias(y_variables_in_geometry_space) = prod(mMappingMatrix,y_variables_in_design_space);
-        noalias(z_variables_in_geometry_space) = prod(mMappingMatrix,z_variables_in_design_space);
-    }
-
-    // --------------------------------------------------------------------------
-    void AssignResultingDesignVectorsToNodalVariable( const Variable<array_3d> &rNodalVariable )
-    {
-        for(auto& node_i : mrDesignSurface.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-
-            Vector node_vector = ZeroVector(3);
-            node_vector(0) = x_variables_in_design_space[i];
-            node_vector(1) = y_variables_in_design_space[i];
-            node_vector(2) = z_variables_in_design_space[i];
-            node_i.FastGetSolutionStepValue(rNodalVariable) = node_vector;
-        }
-    }
-
-    // --------------------------------------------------------------------------
-    void AssignResultingGeometryVectorsToNodalVariable( const Variable<array_3d> &rNodalVariable )
-    {
-        for(auto& node_i : mrDesignSurface.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-
-            Vector node_vector = ZeroVector(3);
-            node_vector(0) = x_variables_in_geometry_space[i];
-            node_vector(1) = y_variables_in_geometry_space[i];
-            node_vector(2) = z_variables_in_geometry_space[i];
-            node_i.FastGetSolutionStepValue(rNodalVariable) = node_vector;
-        }
-    }
-
-    // --------------------------------------------------------------------------
-    bool HasGeometryChanged()
-    {
-        double sumOfAllCoordinates = 0.0;
-        for(auto& node_i : mrDesignSurface.Nodes())
-        {
-            array_3d& coord = node_i.Coordinates();
-            sumOfAllCoordinates += std::abs(coord[0]) + std::abs(coord[1]) + std::abs(coord[2]);
-        }
-
-        if(mControlSum == sumOfAllCoordinates)
-            return false;
-        else
-        {
-            mControlSum = sumOfAllCoordinates;
-            return true;
         }
     }
 

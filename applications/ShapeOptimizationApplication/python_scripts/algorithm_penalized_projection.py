@@ -53,7 +53,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
         self.DesignSurface = ModelPartController.GetDesignSurface()
 
-        self.Mapper = mapper_factory.CreateMapper(self.DesignSurface, OptimizationSettings["design_variables"]["filter"])
+        self.Mapper = mapper_factory.CreateMapper(self.DesignSurface, self.DesignSurface, OptimizationSettings["design_variables"]["filter"])
         self.DataLogger = data_logger_factory.CreateDataLogger(ModelPartController, Communicator, OptimizationSettings)
 
         self.OptimizationUtilities = OptimizationUtilities(self.DesignSurface, OptimizationSettings)
@@ -75,7 +75,6 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.relativeTolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
         self.ModelPartController.InitializeMeshController()
-        self.Mapper.InitializeMapping()
         self.Analyzer.InitializeBeforeOptimizationLoop()
         self.DataLogger.InitializeDataLogging()
 
@@ -161,8 +160,9 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):
-        self.Mapper.MapToDesignSpace(DF1DX, DF1DX_MAPPED)
-        self.Mapper.MapToDesignSpace(DC1DX, DC1DX_MAPPED)
+        self.Mapper.Initialize()
+        self.Mapper.InverseMap(DF1DX, DF1DX_MAPPED)
+        self.Mapper.InverseMap(DC1DX, DC1DX_MAPPED)
 
     # --------------------------------------------------------------------------
     def __isConstraintActive(self, constraintValue):
@@ -175,7 +175,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __mapDesignUpdateToGeometrySpace(self):
-        self.Mapper.MapToGeometrySpace(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
+        self.Mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
