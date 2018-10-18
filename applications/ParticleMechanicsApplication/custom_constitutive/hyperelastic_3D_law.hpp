@@ -286,6 +286,14 @@ protected:
     virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
                                          Vector& rStrainVector );
 
+    /**
+     * Calculates the Temperature of the domain (element)
+     * @param rElementGeometry the element geometry
+     * @param rShapeFunctions the element shape functions
+     * @param rTemperature the calculated temperature to be returned
+     */
+    virtual double& CalculateDomainTemperature (const MaterialResponseVariables & rElasticVariables,
+						double & rTemperature);
 
     /**
      * Calculates the stress vector
@@ -297,6 +305,25 @@ protected:
     void CalculateStress( const MaterialResponseVariables& rElasticVariables,
                           StressMeasure rStressMeasure,
                           Vector& rStressVector);
+
+    /**
+     * Calculates the volumetric stress vector
+     * @param rElasticResponseVariables the material variables
+     * @param rVolStressVector vector where the stress result is stored
+     */
+    virtual void CalculateVolumetricStress( const MaterialResponseVariables & rElasticVariables,
+                                            Vector& rVolStressVector );
+
+    /**
+     * Calculates the isochoric stress vector
+     * @param rElasticVariables
+     * matrix is to be generated for
+     * @param rStressMeasure measure of stress to be calculated
+     * @param rIsoStressVector vector where the stress result is stored
+     */
+    virtual void CalculateIsochoricStress( const MaterialResponseVariables & rElasticVariables,
+                                           StressMeasure rStressMeasure,
+					   Vector& rIsoStressVector);
 
 
     /**
@@ -312,11 +339,53 @@ protected:
     /**
      * Constitutive component
      */
-
     double& ConstitutiveComponent( double & rCabcd,
                                    const MaterialResponseVariables& rElasticVariables,
                                    const unsigned int& a, const unsigned int& b,
                                    const unsigned int& c, const unsigned int& d);
+
+
+    /**
+     * Calculates the volumetric constitutive matrix
+     * @param rElasticVariables
+     * matrix is to be generated for
+     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
+     */
+    virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
+							Matrix& rConstitutiveMatrix);
+
+
+    /**
+     * Constitutive volumetric component
+     */
+
+    double& VolumetricConstitutiveComponent( double & rCabcd,
+					     const MaterialResponseVariables& rElasticVariables,
+					     const Vector& rFactors,
+					     const unsigned int& a, const unsigned int& b,
+					     const unsigned int& c, const unsigned int& d);
+
+
+    /**
+     * Calculates the isochoric constitutive matrix
+     * @param rElasticVariables
+     * @param rIsoStressVector the isochoric stress vector
+     * matrix is to be generated for
+     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
+     */
+    virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
+						       const Matrix & rIsoStressMatrix,
+						       Matrix& rConstitutiveMatrix);
+
+
+    /**
+     * Constitutive isochoric component
+     */
+    double& IsochoricConstitutiveComponent( double & rCabcd,
+                                            const MaterialResponseVariables& rElasticVariables,
+                                            const Matrix & rIsoStressMatrix,
+                                            const unsigned int& a, const unsigned int& b,
+                                            const unsigned int& c, const unsigned int& d);
 
 
     /**
@@ -326,6 +395,15 @@ protected:
      */
     virtual double& CalculateVolumetricFactor (const MaterialResponseVariables & rElasticVariables,
 					       double & rFactor);
+
+
+    /**
+     * Calculates the Pressure of the domain (element)
+     * @param rElasticResponseVariables the material variables
+     * @param rPressure the calculated pressure to be returned
+     */
+    virtual double& CalculateVolumetricPressure (const MaterialResponseVariables & rElasticVariables,
+						 double & rPressure);
 
 
     /**

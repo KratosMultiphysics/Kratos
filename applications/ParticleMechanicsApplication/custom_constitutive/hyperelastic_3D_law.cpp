@@ -367,6 +367,32 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
 }
 
 
+//******************************* COMPUTE DOMAIN TEMPERATURE  ************************
+//************************************************************************************
+
+
+double &  HyperElastic3DLaw::CalculateDomainTemperature (const MaterialResponseVariables & rElasticVariables,
+								double & rTemperature)
+{
+
+    // Temperature from nodes
+    const GeometryType& DomainGeometry = rElasticVariables.GetElementGeometry();
+    const Vector& ShapeFunctionsValues = rElasticVariables.GetShapeFunctionsValues();
+    const unsigned int number_of_nodes = DomainGeometry.size();
+
+    // Default Value
+    rTemperature=0;
+
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    {
+        if( DomainGeometry[j].SolutionStepsDataHas(TEMPERATURE) )
+            rTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(TEMPERATURE);
+    }
+
+    return rTemperature;
+}
+
+
 //***************************** COMPUTE VOLUMETRIC FACTOR ****************************
 //************************************************************************************
 
@@ -380,6 +406,32 @@ double & HyperElastic3DLaw::CalculateVolumetricFactor (const MaterialResponseVar
 
 }
 
+
+//***************************** COMPUTE VOLUMETRIC PRESSURE  *************************
+//************************************************************************************
+
+
+double & HyperElastic3DLaw::CalculateVolumetricPressure (const MaterialResponseVariables & rElasticVariables,
+							 double & rPressure)
+{
+    double BulkModulus = rElasticVariables.LameLambda + (2.0/3.0) * rElasticVariables.LameMu;
+
+    //Mechanical volumetric factor:
+    double Factor = 0;
+    Factor = this->CalculateVolumetricFactor( rElasticVariables, Factor );
+
+    //Thermal volumetric factor:
+    double DeltaTemperature     = 0;
+    double CurrentTemperature   = 0;
+
+    CurrentTemperature = this->CalculateDomainTemperature(rElasticVariables, CurrentTemperature);
+    DeltaTemperature   = CurrentTemperature - rElasticVariables.ReferenceTemperature;
+
+    Factor            += 3.0 * rElasticVariables.ThermalExpansionCoefficient * ( (1.0 - std::log(rElasticVariables.DeterminantF)) / (rElasticVariables.DeterminantF) ) * DeltaTemperature;
+    rPressure = BulkModulus * Factor;
+
+    return rPressure;
+}
 
 
 //************************* COMPUTE VOLUMETRIC PRESSURE FACTORS***********************
@@ -437,6 +489,54 @@ void HyperElastic3DLaw::CalculateStress( const MaterialResponseVariables & rElas
 }
 
 
+//******************************* COMPUTE VOLUMETRIC STRESS  *************************
+//************************************************************************************
+
+void HyperElastic3DLaw::CalculateVolumetricStress(const MaterialResponseVariables & rElasticVariables,
+						  Vector& rVolStressVector )
+{
+
+    Matrix VolStressMatrix ( 3 , 3 );
+
+    double Pressure = 0;
+    Pressure = this->CalculateVolumetricPressure (rElasticVariables, Pressure);
+
+    VolStressMatrix = rElasticVariables.DeterminantF * Pressure * rElasticVariables.CauchyGreenMatrix;
+    rVolStressVector = MathUtils<double>::StressTensorToVector(VolStressMatrix,rVolStressVector.size());
+
+}
+
+
+//******************************* COMPUTE ISOCHORIC STRESS  **************************
+//************************************************************************************
+void HyperElastic3DLaw::CalculateIsochoricStress( const MaterialResponseVariables & rElasticVariables,
+						  StressMeasure rStressMeasure,
+						  Vector& rIsoStressVector )
+{
+
+    Matrix IsoStressMatrix ( 3, 3 );
+
+    //note.- rElasticVariables.traceCG is "traceCG"
+    if(rStressMeasure == StressMeasure_PK2)
+    {
+        //rElasticVariables.CauchyGreenMatrix is InverseRightCauchyGreen
+        //2.-Incompressible part of the 2nd Piola Kirchhoff Stress Matrix
+        IsoStressMatrix  = (rElasticVariables.Identity - (rElasticVariables.traceCG/3.0)*rElasticVariables.CauchyGreenMatrix );
+        IsoStressMatrix *= rElasticVariables.LameMu*pow(rElasticVariables.DeterminantF,(-2.0/3.0));
+    }
+
+    if(rStressMeasure == StressMeasure_Kirchhoff)
+    {
+        //rElasticVariables.CauchyGreenMatrix is LeftCauchyGreen
+        //2.-Incompressible part of the Kirchhoff Stress Matrix
+        IsoStressMatrix  = (rElasticVariables.CauchyGreenMatrix - (rElasticVariables.traceCG/3.0)*rElasticVariables.Identity );
+        IsoStressMatrix *= rElasticVariables.LameMu*pow(rElasticVariables.DeterminantF,(-2.0/3.0));
+    }
+
+    rIsoStressVector = MathUtils<double>::StressTensorToVector(IsoStressMatrix,rIsoStressVector.size());
+}
+
+
 //***********************COMPUTE ALGORITHMIC CONSTITUTIVE MATRIX**********************
 //************************************************************************************
 
@@ -479,6 +579,91 @@ double& HyperElastic3DLaw::ConstitutiveComponent(double & rCabcd,
     //1.Elastic constitutive tensor component:
     rCabcd =(rElasticVariables.LameLambda*auxiliar1*rElasticVariables.CauchyGreenMatrix(a,b)*rElasticVariables.CauchyGreenMatrix(c,d));
     rCabcd+=((2*rElasticVariables.LameMu-rElasticVariables.LameLambda*auxiliar2)*0.5*(rElasticVariables.CauchyGreenMatrix(a,c)*rElasticVariables.CauchyGreenMatrix(b,d)+rElasticVariables.CauchyGreenMatrix(a,d)*rElasticVariables.CauchyGreenMatrix(b,c)));
+
+    return rCabcd;
+}
+
+
+//***********************COMPUTE VOLUMETRIC CONSTITUTIVE MATRIX***********************
+//************************************************************************************
+
+void HyperElastic3DLaw::CalculateVolumetricConstitutiveMatrix ( const MaterialResponseVariables & rElasticVariables,
+								Matrix& rConstitutiveMatrix)
+{
+    rConstitutiveMatrix.clear();
+
+    Vector Factors(3);
+    noalias(Factors) = ZeroVector(3);
+    Factors = this->CalculateVolumetricPressureFactors( rElasticVariables, Factors );
+
+    for(unsigned int i=0; i<6; i++)
+    {
+        for(unsigned int j=0; j<6; j++)
+        {
+            rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, Factors,
+                                          this->msIndexVoigt3D6C[i][0], this->msIndexVoigt3D6C[i][1], this->msIndexVoigt3D6C[j][0], this->msIndexVoigt3D6C[j][1]);
+        }
+    }
+
+}
+
+//********************CONSTITUTIVE MATRIX VOLUMETRIC COMPONENT************************
+//************************************************************************************
+
+
+double& HyperElastic3DLaw::VolumetricConstitutiveComponent(double & rCabcd,
+							   const MaterialResponseVariables & rElasticVariables,
+							   const Vector & rFactors,
+							   const unsigned int& a, const unsigned int& b,
+							   const unsigned int& c, const unsigned int& d)
+{
+
+    //Volumetric part of the hyperelastic constitutive tensor component: (J²-1)/2  -  (ln(J)/J)
+    //1.Volumetric Elastic constitutive tensor component:
+    rCabcd  = rFactors[0]*(rElasticVariables.CauchyGreenMatrix(a,b)*rElasticVariables.CauchyGreenMatrix(c,d));
+    rCabcd -= rFactors[1]*(0.5*(rElasticVariables.CauchyGreenMatrix(a,c)*rElasticVariables.CauchyGreenMatrix(b,d)+rElasticVariables.CauchyGreenMatrix(a,d)*rElasticVariables.CauchyGreenMatrix(b,c)));
+    rCabcd *= rFactors[2];
+
+    return rCabcd;
+}
+
+//***********************COMPUTE ISOCHORIC CONSTITUTIVE MATRIX************************
+//************************************************************************************
+
+void HyperElastic3DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
+							      const Matrix & rIsoStressMatrix,
+							      Matrix& rConstitutiveMatrix)
+{
+    rConstitutiveMatrix.clear();
+
+    for(unsigned int i=0; i<6; i++)
+    {
+        for(unsigned int j=0; j<6; j++)
+        {
+            rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rIsoStressMatrix,
+                                          this->msIndexVoigt3D6C[i][0], this->msIndexVoigt3D6C[i][1], this->msIndexVoigt3D6C[j][0], this->msIndexVoigt3D6C[j][1]);
+        }
+    }
+}
+
+
+//********************CONSTITUTIVE MATRIX ISOCHORIC COMPONENT*************************
+//************************************************************************************
+
+double& HyperElastic3DLaw::IsochoricConstitutiveComponent(double & rCabcd,
+							  const MaterialResponseVariables & rElasticVariables,
+							  const Matrix & rIsoStressMatrix,
+							  const unsigned int& a, const unsigned int& b,
+							  const unsigned int& c, const unsigned int& d)
+{
+
+    //Isochoric part of the hyperelastic constitutive tensor component
+    //note.- rElasticVariables.traceCG is "traceCG_bar"
+    rCabcd  = (1.0/3.0)*(rElasticVariables.CauchyGreenMatrix(a,b)*rElasticVariables.CauchyGreenMatrix(c,d));
+    rCabcd -= (0.5*(rElasticVariables.CauchyGreenMatrix(a,c)*rElasticVariables.CauchyGreenMatrix(b,d)+rElasticVariables.CauchyGreenMatrix(a,d)*rElasticVariables.CauchyGreenMatrix(b,c)));
+    rCabcd *= rElasticVariables.traceCG * rElasticVariables.LameMu;
+    rCabcd += (rElasticVariables.CauchyGreenMatrix(c,d)*rIsoStressMatrix(a,b) + rIsoStressMatrix(c,d)*rElasticVariables.CauchyGreenMatrix(a,b));
+    rCabcd *= (-2.0/3.0);
 
     return rCabcd;
 }
