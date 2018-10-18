@@ -13,7 +13,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/model_part.h"
+#include "containers/model.h"
 #include "includes/cfd_variables.h"
 
 #include "fluid_dynamics_application_variables.h"
@@ -48,14 +48,11 @@ void TestStatisticsUtilitiesInitializeModelPart(
 
     for (unsigned int i = 0; i < 4; i++) {
         Node<3>& r_node = r_geometry[i];
-        r_node.FastGetSolutionStepValue(PRESSURE) = 10.0; // * r_node.Id();
-        r_node.FastGetSolutionStepValue(VELOCITY_X) = 1.0;//r_node.Id() + 5.0;
-        r_node.FastGetSolutionStepValue(VELOCITY_Y) = 2.0;//r_node.Id() + 5.0;
-        r_node.FastGetSolutionStepValue(VELOCITY_Z) = 3.0;//r_node.Id() + 5.0;
+        r_node.FastGetSolutionStepValue(PRESSURE) = 10.0;
+        r_node.FastGetSolutionStepValue(VELOCITY_X) = 1.0;
+        r_node.FastGetSolutionStepValue(VELOCITY_Y) = 2.0;
+        r_node.FastGetSolutionStepValue(VELOCITY_Z) = 3.0;
     }
-
-    // Element data
-    r_element.SetValue(C_SMAGORINSKY,0.16);
 
     // ProcessInfo
     rModelPart.GetProcessInfo().SetValue(OSS_SWITCH,1);
@@ -63,20 +60,17 @@ void TestStatisticsUtilitiesInitializeModelPart(
     // Loop starts at 1 because you need one less clone than time steps
     for (unsigned int i = 1; i < BufferSize; i++) {
         rModelPart.CloneTimeStep(i * DeltaTime);
-
-/*        for (unsigned int j = 0; j < 4; j++) {
-            Node<3>& r_node = r_geometry[j];
-            r_node.FastGetSolutionStepValue(PRESSURE) += float(i);
-            r_node.FastGetSolutionStepValue(VELOCITY_Y) = r_node.Id() + i;
-        }*/
     }
 }
 
 } // namespace internals
 
 KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastSuite) {
-    ModelPart model_part("TestModelPart");
-    Internals::TestStatisticsUtilitiesInitializeModelPart(model_part, 0.1 ,2);
+
+    Model model;
+    unsigned int buffer_size = 2;
+    ModelPart& model_part = model.CreateModelPart("TestModelPart", buffer_size);
+    Internals::TestStatisticsUtilitiesInitializeModelPart(model_part, 0.1 , buffer_size);
 
     StatisticsRecord::Pointer p_turbulence_statistics = Kratos::make_shared<StatisticsRecord>();
     auto average_pressure_getter = Kratos::Internals::MakeSamplerAtLocalCoordinate::ValueGetter(PRESSURE);
@@ -112,8 +106,10 @@ KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesUsage, FluidDynamicsApplicationFastS
 }
 
 KRATOS_TEST_CASE_IN_SUITE(StatisticUtilitiesSecondThirdOrder, FluidDynamicsApplicationFastSuite) {
-    ModelPart model_part("TestModelPart");
-    Internals::TestStatisticsUtilitiesInitializeModelPart(model_part, 0.1 ,2);
+    Model model;
+    unsigned int buffer_size = 2;
+    ModelPart& model_part = model.CreateModelPart("TestModelPart", buffer_size);
+    Internals::TestStatisticsUtilitiesInitializeModelPart(model_part, 0.1 , buffer_size);
 
     StatisticsRecord::Pointer p_turbulence_statistics = Kratos::make_shared<StatisticsRecord>();
     auto average_pressure_getter = Kratos::Internals::MakeSamplerAtLocalCoordinate::ValueGetter(PRESSURE);
