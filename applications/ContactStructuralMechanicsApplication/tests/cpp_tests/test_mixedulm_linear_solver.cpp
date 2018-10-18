@@ -16,6 +16,7 @@
 
 /* Project includes */
 #include "testing/testing.h"
+#include "containers/model.h"
 
 /* Utility includes */
 #include "includes/define.h"
@@ -61,25 +62,23 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
             
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
             LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
             
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
             
-            model_part.SetBufferSize(3);
-            
-            model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            
-            NodeType::Pointer pnode1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-            NodeType::Pointer pnode2 = model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
             pnode2->Set(INTERFACE, true);
             pnode2->Set(MASTER, true);
             pnode2->Set(SLAVE, false);
-            NodeType::Pointer pnode3 = model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
             pnode3->Set(INTERFACE, true);
             pnode3->Set(ACTIVE, true);
             pnode3->Set(MASTER, false);
@@ -132,7 +131,7 @@ namespace Kratos
             psolver->Solve(A, ref_Dx, b);
             
             // We solve the block system
-            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, model_part);
+            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
            
             for (std::size_t i = 0; i < system_size; ++i) {
@@ -147,29 +146,29 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
             
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
             LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
             
-            model_part.SetBufferSize(3);
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
             
-            model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            
-            NodeType::Pointer pnode1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-            NodeType::Pointer pnode2 = model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+
             pnode2->Set(INTERFACE, true);
             pnode2->Set(MASTER, true);
             pnode2->Set(SLAVE, false);
-            NodeType::Pointer pnode3 = model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
             pnode3->Set(INTERFACE, true);
             pnode3->Set(ACTIVE, false);
             pnode3->Set(MASTER, false);
             pnode3->Set(SLAVE, true);
-            NodeType::Pointer pnode4 = model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
             pnode4->Set(INTERFACE, true);
             pnode4->Set(ACTIVE, true);
             pnode4->Set(MASTER, false);
@@ -224,7 +223,7 @@ namespace Kratos
             psolver->Solve(A, ref_Dx, b);
             
             // We solve the block system
-            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, model_part);
+            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
             
             for (std::size_t i = 0; i < system_size; ++i) {
@@ -239,26 +238,24 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-6;
             
-            ModelPart model_part("Main");
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
             
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
             LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
             
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
             
-            model_part.SetBufferSize(3);
-            
-            model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            
-            NodeType::Pointer pnode1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-            NodeType::Pointer pnode3 = model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
             pnode3->Set(INTERFACE, true);
             pnode3->Set(ACTIVE, true);
             pnode3->Set(MASTER, false);
             pnode3->Set(SLAVE, true);
-            NodeType::Pointer pnode2 = model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
             pnode2->Set(INTERFACE, true);
             pnode2->Set(MASTER, true);
             pnode2->Set(SLAVE, false);
@@ -338,7 +335,7 @@ namespace Kratos
             psolver->Solve(A, ref_Dx, b);
             
             // We solve the block system
-            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, model_part);
+            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
            
             for (std::size_t i = 0; i < system_size; ++i) {
@@ -354,25 +351,23 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-5;
             
-            ModelPart model_part("Main");
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
             
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
             LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
             
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
             
-            model_part.SetBufferSize(3);
-            
-            model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            
-            NodeType::Pointer pnode1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-            NodeType::Pointer pnode2 = model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
             pnode2->Set(INTERFACE, true);
             pnode2->Set(MASTER, true);
             pnode2->Set(SLAVE, false);
-            NodeType::Pointer pnode3 = model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
             pnode3->Set(INTERFACE, true);
             pnode3->Set(ACTIVE, true);
             pnode3->Set(MASTER, false);
@@ -434,7 +429,7 @@ namespace Kratos
             psolver->Solve(A, ref_Dx, b);
             
             // We solve the block system
-            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, model_part);
+            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
            
             for (std::size_t i = 0; i < system_size; ++i) {
@@ -449,26 +444,24 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-5;
             
-            ModelPart model_part("Main");
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
             
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
             LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
             
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
             
-            model_part.SetBufferSize(3);
-            
-            model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            
-            NodeType::Pointer pnode1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-            NodeType::Pointer pnode3 = model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
             pnode3->Set(INTERFACE, true);
             pnode3->Set(ACTIVE, true);
             pnode3->Set(MASTER, false);
             pnode3->Set(SLAVE, true);
-            NodeType::Pointer pnode2 = model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
             pnode2->Set(INTERFACE, true);
             pnode2->Set(MASTER, true);
             pnode2->Set(SLAVE, false);
@@ -572,7 +565,7 @@ namespace Kratos
             psolver->Solve(A, ref_Dx, b);
             
             // We solve the block system
-            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, model_part);
+            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
            
             for (std::size_t i = 0; i < system_size; ++i) {
@@ -588,24 +581,24 @@ namespace Kratos
         {
             constexpr double tolerance = 5e-2;
             
-            ModelPart model_part("Main");
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
             
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
             LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
             
-            model_part.SetBufferSize(3);
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
             
-            model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            
-            NodeType::Pointer pnode1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-            NodeType::Pointer pnode2 = model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+
             pnode2->Set(INTERFACE, true);
             pnode2->Set(MASTER, true);
             pnode2->Set(SLAVE, false);
-            NodeType::Pointer pnode3 = model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
             pnode3->Set(INTERFACE, true);
             pnode3->Set(ACTIVE, true);
             pnode3->Set(MASTER, false);
@@ -675,7 +668,7 @@ namespace Kratos
             psolver->Solve(A, ref_Dx, b);
             
             // We solve the block system
-            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, model_part);
+            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
 
             for (std::size_t i = 0; i < system_size; ++i) {
@@ -690,26 +683,24 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-3;
             
-            ModelPart model_part("Main");
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
             
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
             LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
             
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
             
-            model_part.SetBufferSize(3);
-            
-            model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            
-            NodeType::Pointer pnode1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-            NodeType::Pointer pnode3 = model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
             pnode3->Set(INTERFACE, true);
             pnode3->Set(ACTIVE, true);
             pnode3->Set(MASTER, false);
             pnode3->Set(SLAVE, true);
-            NodeType::Pointer pnode2 = model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
             pnode2->Set(INTERFACE, true);
             pnode2->Set(MASTER, true);
             pnode2->Set(SLAVE, false);
@@ -837,7 +828,7 @@ namespace Kratos
             psolver->Solve(A, ref_Dx, b);
             
             // We solve the block system
-            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, model_part);
+            pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
             
             for (std::size_t i = 0; i < system_size; ++i) {
@@ -852,38 +843,37 @@ namespace Kratos
         {
             constexpr double tolerance = 1e-3;
             
-            ModelPart model_part("Main");
+            Model this_model;
+            ModelPart& r_model_part = this_model.CreateModelPart("Main", 3);
             
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
 //             Parameters empty_parameters =  Parameters(R"({})");
 //             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new AMGCLSolverType(empty_parameters) );
             LinearSolverType::Pointer pmixed_solver = LinearSolverType::Pointer( new MixedULMLinearSolverType(psolver) );
             
-            model_part.SetBufferSize(3);
+            r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+            r_model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
             
-            model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            model_part.AddNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER);
-            
-            NodeType::Pointer pnode1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-            NodeType::Pointer pnode2 = model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode1 = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode2 = r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0);
             pnode2->Set(INTERFACE, true);
             pnode2->Set(ACTIVE, true);
             pnode2->Set(MASTER, false);
             pnode2->Set(SLAVE, true);
-            NodeType::Pointer pnode3 = model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode3 = r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
             pnode3->Set(INTERFACE, true);
             pnode3->Set(ACTIVE, true);
             pnode3->Set(MASTER, false);
             pnode3->Set(SLAVE, true);
-            NodeType::Pointer pnode4 = model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode4 = r_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
             pnode4->Set(INTERFACE, true);
             pnode4->Set(MASTER, true);
             pnode4->Set(SLAVE, false);
-            NodeType::Pointer pnode5 = model_part.CreateNewNode(5, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode5 = r_model_part.CreateNewNode(5, 0.0, 0.0, 0.0);
             pnode5->Set(INTERFACE, true);
             pnode5->Set(MASTER, true);
             pnode5->Set(SLAVE, false);
-            NodeType::Pointer pnode6 = model_part.CreateNewNode(6, 0.0, 0.0, 0.0);
+            NodeType::Pointer pnode6 = r_model_part.CreateNewNode(6, 0.0, 0.0, 0.0);
             
             pnode1->AddDof(DISPLACEMENT_X);
             pnode1->AddDof(DISPLACEMENT_Y);
@@ -951,7 +941,7 @@ namespace Kratos
                 psolver->Solve(A, ref_Dx, b);
                 
                 // We solve the block system
-                pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, model_part);
+                pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
                 pmixed_solver->Solve(A, Dx, b);
                 
                 for (std::size_t i = 0; i < system_size; ++i) {

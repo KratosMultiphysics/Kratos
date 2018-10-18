@@ -15,8 +15,8 @@ class TestDynamicSearch(KratosUnittest.TestCase):
     def _dynamic_search_tests(self, input_filename, num_nodes):
         KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
-        self.main_model_part = KM.ModelPart("Structure")
-        self.main_model_part.SetBufferSize(2)
+        self.model = KM.Model()
+        self.main_model_part = self.model.CreateModelPart("Structure", 2)
 
         ## Creation of the Kratos model (build sub_model_parts or submeshes)
         self.StructureModel = {"Structure": self.main_model_part}

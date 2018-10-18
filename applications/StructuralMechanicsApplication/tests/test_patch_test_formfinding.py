@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestFormfinding(KratosUnittest.TestCase):
     def setUp(self):
         pass
-
+    
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -98,8 +98,8 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
 
 
 
-    def execute_formfinding_test(self, element_name, displacement_results, do_post_processing):
-        mp = KratosMultiphysics.ModelPart("solid_part")
+    def execute_formfinding_test(self, current_model, element_name, displacement_results, do_post_processing):
+        mp = current_model.CreateModelPart("solid_part")
         mp.SetBufferSize(2)
 
         self._add_variables(mp)
@@ -126,7 +126,9 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
         element_name = "PreStressMembraneElement3D3N"
         displacement_results = [-0.3853903940829765 , -0.2299393888361787 , -2.213110569935068]
 
-        self.execute_formfinding_test(element_name,
+        current_model = KratosMultiphysics.Model()
+
+        self.execute_formfinding_test(current_model,element_name,
                                 displacement_results,
                                 False) # Do PostProcessing for GiD?
 
