@@ -172,6 +172,163 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrain, K
 }
 
 /**
+* Check the correct calculation of the integrated stress with the CL's in small strain
+*/
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticitySmallStrain, KratosStructuralMechanicsFastSuite)
+{
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> MC;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> VM;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>> DP;
+    typedef GenericSmallStrainIsotropicPlasticity<GenericConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<TrescaPlasticPotential<6>>>> T;
+
+    ConstitutiveLaw::Parameters cl_parameters;
+    Properties material_properties;
+    Vector stress_vector, strain_vector;
+
+    Model current_model;
+    ModelPart& test_model_part = current_model.CreateModelPart("Main");
+
+    NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    NodeType::Pointer p_node_4 = test_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+
+    Tetrahedra3D4<NodeType> Geom = Tetrahedra3D4<NodeType>(p_node_1, p_node_2, p_node_3, p_node_4);
+
+    stress_vector = ZeroVector(6);
+    strain_vector = ZeroVector(6);
+    strain_vector[0] = 0.0;
+    strain_vector[1] = 0.0;
+    strain_vector[2] = -8.0e-5;
+    strain_vector[3] = 0.0;
+    strain_vector[4] = 0.0;
+    strain_vector[5] = -1.6941e-21;
+
+    material_properties.SetValue(YOUNG_MODULUS, 210e9);
+    material_properties.SetValue(POISSON_RATIO, 0.22);
+    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 3.0e6);
+    material_properties.SetValue(YIELD_STRESS_TENSION, 3.0e6);
+    material_properties.SetValue(FRICTION_ANGLE, 32.0);
+    material_properties.SetValue(DILATANCY_ANGLE, 16.0);
+    material_properties.SetValue(SOFTENING_TYPE, 1);
+    material_properties.SetValue(FRACTURE_ENERGY, 1000.0);
+    material_properties.SetValue(HARDENING_CURVE, 0);
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=cl_parameters.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    cl_parameters.SetElementGeometry(Geom);
+    cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
+    cl_parameters.SetMaterialProperties(material_properties);
+    cl_parameters.SetStrainVector(strain_vector);
+    cl_parameters.SetStressVector(stress_vector);
+    Matrix const_matrix;
+    cl_parameters.SetConstitutiveMatrix(const_matrix);
+
+    // Create the CL's
+    MC MohrCoulombCL = MC();
+    VM VonMisesCL = VM();
+    DP DruckerPragerCL = DP();
+    T TrescaCL = T();
+
+    Matrix MCres = ZeroMatrix(6, 6);
+    MCres(0, 1) = 6.7623e+10;
+    MCres(0, 2) = 6.7623e+10;
+    MCres(1, 0) = 6.7623e+10;
+    MCres(1, 1) = 2.39754e+11;
+    MCres(1, 2) = 6.7623e+10;
+    MCres(2, 0) = 6.7623e+10;
+    MCres(2, 1) = 6.7623e+10;
+    MCres(2, 2) = 2.39754e+11;
+    MCres(3, 3) = 8.60656e+10;
+    MCres(4, 4) = 8.60656e+10;
+
+    Matrix VMres = ZeroMatrix(6, 6);
+    VMres(0, 0) = 2.39754e+11;
+    VMres(0, 1) = 6.7623e+10;
+    VMres(0, 2) = 6.7623e+10;
+    VMres(1, 0) = 6.7623e+10;
+    VMres(1, 1) = 2.39754e+11;
+    VMres(1, 2) = 6.7623e+10;
+    VMres(2, 0) = 6.7623e+10;
+    VMres(2, 1) = 6.7623e+10;
+    VMres(2, 2) = 2.39754e+11;
+    VMres(3, 3) = 8.60656e+10;
+    VMres(4, 4) = 8.60656e+10;
+
+    Matrix DPres = ZeroMatrix(6, 6);
+    DPres(0, 0) = 2.39754e+11;
+    DPres(0, 1) = 6.7623e+10;
+    DPres(0, 2) = 6.7623e+10;
+    DPres(1, 0) = 6.7623e+10;
+    DPres(1, 1) = 2.39754e+11;
+    DPres(1, 2) = 6.7623e+10;
+    DPres(2, 0) = 6.7623e+10;
+    DPres(2, 1) = 6.7623e+10;
+    DPres(2, 2) = 2.39754e+11;
+    DPres(3, 3) = 8.60656e+10;
+    DPres(4, 4) = 8.60656e+10;
+    DPres(5, 5) = 8.60656e+10;
+
+    Matrix Tres = ZeroMatrix(6, 6);
+    Tres(0, 0) = 2.39754e+11;
+    Tres(0, 1) = 6.7623e+10;
+    Tres(0, 2) = 6.7623e+10;
+    Tres(1, 0) = 6.7623e+10;
+    Tres(1, 1) = 2.39754e+11;
+    Tres(1, 2) = 6.7623e+10;
+    Tres(2, 0) = 6.7623e+10;
+    Tres(2, 1) = 6.7623e+10;
+    Tres(2, 2) = 2.39754e+11;
+    Tres(3, 3) = 8.60656e+10;
+    Tres(4, 4) = 8.60656e+10;
+
+    Matrix TestMC, TestVM, TestDP, TestT;
+
+    // Mohr Coulomb
+    ConstitutiveLaw::Parameters cl_parameters_MC(cl_parameters);
+    MohrCoulombCL.CalculateMaterialResponseCauchy(cl_parameters_MC);
+    TestMC = cl_parameters_MC.GetConstitutiveMatrix();
+
+    // Von Mises
+    ConstitutiveLaw::Parameters cl_parameters_VM(cl_parameters);
+    VonMisesCL.CalculateMaterialResponseCauchy(cl_parameters_VM);
+    TestVM = cl_parameters_VM.GetConstitutiveMatrix();
+
+    // Drucker Pragger
+    ConstitutiveLaw::Parameters cl_parameters_DP(cl_parameters);
+    DruckerPragerCL.CalculateMaterialResponseCauchy(cl_parameters_DP);
+    TestDP = cl_parameters_DP.GetConstitutiveMatrix();
+
+    // Tresca
+    ConstitutiveLaw::Parameters cl_parameters_T(cl_parameters);
+    TrescaCL.CalculateMaterialResponseCauchy(cl_parameters_T);
+    TestT = cl_parameters_T.GetConstitutiveMatrix();
+
+    //Check the results
+    const double tolerance = 1.0e-4;
+    for (std::size_t i = 0; i < 6 ; i++) {
+        for (std::size_t j = 0; j < 6 ; j++) {
+            KRATOS_CHECK(!std::isnan(TestMC(i, j)));
+            if (std::abs(MCres(i, j)) > 0.0)
+                KRATOS_CHECK_LESS_EQUAL(std::abs((MCres(i, j) - TestMC(i, j))/MCres(i, j)), tolerance);
+            KRATOS_CHECK(!std::isnan(VMres(i, j)));
+            if (std::abs(VMres(i, j)) > 0.0)
+                KRATOS_CHECK_LESS_EQUAL(std::abs((VMres(i, j) - TestVM(i, j))/VMres(i, j)), tolerance);
+            KRATOS_CHECK(!std::isnan(DPres(i, j)));
+            if (std::abs(DPres(i, j)) > 0.0)
+                KRATOS_CHECK_LESS_EQUAL(std::abs((DPres(i, j) - TestDP(i, j))/DPres(i, j)), tolerance);
+            KRATOS_CHECK(!std::isnan(TestT(i, j)));
+            if (std::abs(Tres(i, j)) > 0.0)
+                KRATOS_CHECK_LESS_EQUAL(std::abs((Tres(i, j) - TestT(i, j))/Tres(i, j)), tolerance);
+        }
+    }
+}
+
+/**
 * Check the correct calculation of the integrated stress with the CL's in finite strain
 */
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKirchoff, KratosStructuralMechanicsFastSuite)
