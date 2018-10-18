@@ -142,7 +142,7 @@ class lgmres {
 
             params()
                 : M(30), K(3), always_reset(true), store_Av(true),
-                  pside(preconditioner::side::right), maxiter(100), tol(1e-8),
+                  pside(preconditioner::side::left), maxiter(100), tol(1e-8),
                   abstol(std::numeric_limits<scalar_type>::min())
             { }
 
