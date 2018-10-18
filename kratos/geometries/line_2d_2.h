@@ -957,7 +957,7 @@ public:
         if(x_1 >= low_x-tolerance && x_1 <= high_x+tolerance) // If x intersection is between two x bounds there is an intersection
             return true;
         // Intersection with top horizontal line of the box that is y = high_y
-        double x_2 = first_point[0] + ( (high_y - first_point[1]) / slope );
+       const double x_2 = first_point[0] + ( (high_y - first_point[1]) / slope );
         if(x_2 >= low_x-tolerance && x_2 <= high_x+tolerance) // If x intersection is between two x bounds there is an intersection
             return true;
 
