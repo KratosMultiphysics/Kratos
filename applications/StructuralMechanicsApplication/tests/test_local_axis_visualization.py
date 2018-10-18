@@ -118,7 +118,8 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
         self.__ExecuteBeamTest()
 
     def __ExecuteShellTest(self):
-        model_part = KratosMultiphysics.ModelPart(self.element_name)
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart(self.element_name)
 
         CreateShellNodes(model_part, self.element_name)
         CreateShellElements(model_part, self.element_name)
@@ -135,7 +136,8 @@ class TestLocalAxisVisualization(KratosUnittest.TestCase):
         CheckResults(reference_file_name, output_file_name)
 
     def __ExecuteBeamTest(self):
-        model_part = KratosMultiphysics.ModelPart(self.element_name)
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart(self.element_name)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 

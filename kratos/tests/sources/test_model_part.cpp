@@ -12,6 +12,7 @@
 //
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part.h"
 
@@ -20,8 +21,10 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
 		{
-			ModelPart model_part("Main");
+			Model current_model;
 
+			ModelPart& model_part = current_model.CreateModelPart("Main");
+ 
 			model_part.CreateSubModelPart("Inlet1");
 			model_part.CreateSubModelPart("Inlet2");
 			model_part.CreateSubModelPart("Outlet");
@@ -39,7 +42,9 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelPartAddNodalSolutionStepVariable, KratosCoreFastSuite)
 		{
-			ModelPart model_part("Main");
+			Model current_model;
+
+			ModelPart& model_part = current_model.CreateModelPart("Main");
 
             model_part.AddNodalSolutionStepVariable(VELOCITY);
 
@@ -53,7 +58,8 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelPartHasNodalSolutionStepVariable, KratosCoreFastSuite)
 		{
-			ModelPart model_part("Main");
+			Model current_model;
+			ModelPart& model_part = current_model.CreateModelPart("Main");
 
             model_part.AddNodalSolutionStepVariable(VELOCITY);
 
