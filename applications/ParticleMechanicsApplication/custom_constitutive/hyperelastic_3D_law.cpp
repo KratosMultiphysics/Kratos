@@ -833,7 +833,7 @@ Matrix& HyperElastic3DLaw::Transform2DTo3D (Matrix& rMatrix)
     }
     else if(rMatrix.size1() != 3 && rMatrix.size2() != 3)
     {
-        KRATOS_THROW_ERROR( std::invalid_argument,"Matrix Dimensions are not correct ", "" )
+        KRATOS_ERROR << "Matrix Dimensions are not correct !" << std::endl;
     }
 
     return rMatrix;
@@ -876,19 +876,13 @@ int HyperElastic3DLaw::Check(const Properties& rMaterialProperties,
                              const ProcessInfo& rCurrentProcessInfo)
 {
 
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
-        KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ", "" )
+    KRATOS_ERROR_IF (YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00) << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
 
     const double& nu = rMaterialProperties[POISSON_RATIO];
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
 
-    if(POISSON_RATIO.Key() == 0 || check==true)
-        KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero invalid value ", "" )
-
-
-    if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00)
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero or invalid value ", "" )
-
+    KRATOS_ERROR_IF (POISSON_RATIO.Key() == 0 || check==true) << "POISSON_RATIO has Key zero invalid value " << std::endl;
+    KRATOS_ERROR_IF (DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00) << "DENSITY has Key zero or invalid value " << std::endl;
 
     return 0;
 

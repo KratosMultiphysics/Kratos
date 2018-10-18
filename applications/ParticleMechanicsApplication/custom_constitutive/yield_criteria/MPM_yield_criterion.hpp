@@ -53,18 +53,14 @@ namespace Kratos
 class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 {
     public:
+        struct Parameters
+        {
+        private:
 
+        const double* mpStressNorm;
+        MPMHardeningLaw::Parameters HardeningParameters;
 
-	struct Parameters
-	{
-	private:
-
-	  const double* mpStressNorm;
-	  MPMHardeningLaw::Parameters HardeningParameters;
-
-	public:
-
-
+        public:
 	  //Set Parameters
 	  void SetStressNorm  (const double& rStressNorm)  { mpStressNorm = &rStressNorm; };
 
@@ -96,8 +92,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
         /// Default constructor.
         MPMYieldCriterion()
 	{
-	  //KRATOS_THROW_ERROR( std::logic_error, "calling the default constructor in MPMYieldCriterion ... illegal operation!!", "" )
-	};
+        };
 
 
         /// Initialization constructor.
@@ -116,8 +111,8 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
         /// Assignment operator.
         MPMYieldCriterion& operator=(MPMYieldCriterion const& rOther)
 	{
-		mpHardeningLaw = rOther.mpHardeningLaw;
-		return *this;
+        mpHardeningLaw = rOther.mpHardeningLaw;
+        return *this;
 	}
 
 
@@ -171,14 +166,14 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 
         virtual double& CalculateStateFunction(double & rStateFunction, const Parameters& rVariables)
 	{
-		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in MPMYieldCriterion ... illegal operation!!", "" )
+		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
 
 		return rStateFunction;
 	};
 
         virtual double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const Parameters& rVariables)
 	{
-		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in MPMYieldCriterion ... illegal operation!!", "" )
+		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
 
 		return rDeltaStateFunction;
 	};
@@ -186,7 +181,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 
         virtual double& CalculatePlasticDissipation(double & rPlasticDissipation, const Parameters& rVariables)
 	{
-		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in MPMYieldCriterion ... illegal operation!!", "" )
+		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
 
 		return rPlasticDissipation;
 	};
@@ -194,7 +189,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 
         virtual double& CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rVariables)
 	{
-		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in MPMYieldCriterion ... illegal operation!!", "" )
+		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
 
 		return rDeltaPlasticDissipation;
 	};
@@ -202,7 +197,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 
         virtual double& CalculateImplexPlasticDissipation(double & rPlasticDissipation, const Parameters& rVariables)
 	{
-		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in MPMYieldCriterion ... illegal operation!!", "" )
+		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
 
 		return rPlasticDissipation;
 	};
@@ -210,7 +205,7 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
 
         virtual double& CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rVariables)
 	{
-		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in MPMYieldCriterion ... illegal operation!!", "" )
+		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
 
 		return rDeltaPlasticDissipation;
 	};
@@ -218,42 +213,42 @@ class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) MPMYieldCriterion
         // Calculate Yield Condition
         virtual double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables)
 	{
-		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in MPMYieldCriterion ... illegal operation!!", "" )
+		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
 
 		return rStateFunction;
 	};
-	
+
         virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha)
 	{
-		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in MPMYieldCriterion ... illegal operation!!", "" )
+		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
 
         };
 
         virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha, const double& rBeta)
 	{
-		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in MPMYieldCriterion ... illegal operation!!", "" )
+		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
 
         };
 
 	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative)
 	{
-		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in MPMYieldCriterion ... illegal operation!!", "" )
+		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
 
         };
 
 	virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const double& rAlpha)
 	{
-		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in MPMYieldCriterion ... illegal operation!!", "" )
+		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
         };
 
         virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const double& rAlpha, const double& rBeta)
 	{
-		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in MPMYieldCriterion ... illegal operation!!", "" )
+		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
         };
 
         virtual void CalculateYieldFunctionSecondDerivative(const Vector& rPrincipalStress, Vector& rSecondDerivative)
 	{
-		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in MPMYieldCriterion ... illegal operation!!", "" )
+		KRATOS_ERROR << "Calling the base class function in MPMYieldCriterion ... illegal operation!!" << std::endl;
         };
 
 
