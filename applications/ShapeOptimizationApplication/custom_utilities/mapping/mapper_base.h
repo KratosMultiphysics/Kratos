@@ -86,16 +86,16 @@ public:
   ///@{
 
   // --------------------------------------------------------------------------
-  virtual void InitializeMapping(){};
-
-  // --------------------------------------------------------------------------
-  virtual void InverseMap(const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace) = 0;
+  virtual void Initialize(){};
 
   // --------------------------------------------------------------------------
   virtual void Map(const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace) = 0;
 
   // --------------------------------------------------------------------------
-  virtual void FinalizeMapping(){};
+  virtual void InverseMap(const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace) = 0;
+
+  // --------------------------------------------------------------------------
+  virtual void Finalize(){};
 
   // --------------------------------------------------------------------------
 

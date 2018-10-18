@@ -168,7 +168,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         # Mapping
         nodal_variable_mapped = KratosGlobals.GetVariable("DF1DX_MAPPED")
-        self.mapper.InitializeMapping()
+        self.mapper.Initialize()
         self.mapper.InverseMap(nodal_variable, nodal_variable_mapped)
         self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
 

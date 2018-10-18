@@ -90,7 +90,7 @@ public:
     ///@{
 
     // --------------------------------------------------------------------------
-    void InitializeMapping() override
+    void Initialize() override
     {
         if (mIsMappingInitialized == false)
         {
@@ -98,7 +98,7 @@ public:
             FindNeighbourConditions();
         }
 
-        MapperVertexMorphing::InitializeMapping();
+        MapperVertexMorphing::Initialize();
     }
     // --------------------------------------------------------------------------
 

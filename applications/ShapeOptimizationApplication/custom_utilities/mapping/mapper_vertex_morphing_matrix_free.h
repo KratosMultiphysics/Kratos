@@ -112,7 +112,7 @@ public:
     ///@{
 
     // --------------------------------------------------------------------------
-    void InitializeMapping() override
+    void Initialize() override
     {
         BuiltinTimer timer;
         std::cout << "> Starting initialization of mapping..." << std::endl;
@@ -135,7 +135,7 @@ public:
     void InverseMap( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableMapped ) override
     {
         if (mIsMappingInitialized == false)
-            InitializeMapping();
+            Initialize();
 
         BuiltinTimer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
@@ -166,7 +166,7 @@ public:
     void Map( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableMapped ) override
     {
         if (mIsMappingInitialized == false)
-            InitializeMapping();
+            Initialize();
 
         BuiltinTimer mapping_time;
         std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;

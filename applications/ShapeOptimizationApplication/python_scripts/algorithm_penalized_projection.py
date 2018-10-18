@@ -160,7 +160,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):
-        self.Mapper.InitializeMapping()
+        self.Mapper.Initialize()
         self.Mapper.InverseMap(DF1DX, DF1DX_MAPPED)
         self.Mapper.InverseMap(DC1DX, DC1DX_MAPPED)
 

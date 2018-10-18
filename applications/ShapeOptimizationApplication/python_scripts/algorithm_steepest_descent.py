@@ -141,7 +141,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):
-        self.Mapper.InitializeMapping()
+        self.Mapper.Initialize()
         self.Mapper.InverseMap(DF1DX, DF1DX_MAPPED)
 
     # --------------------------------------------------------------------------

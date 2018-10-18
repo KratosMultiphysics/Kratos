@@ -49,21 +49,21 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // ================================================================
     class_<MapperVertexMorphing >(m, "MapperVertexMorphing")
         .def(init<ModelPart&, Parameters>())
-        .def("InitializeMapping", &MapperVertexMorphing::InitializeMapping)
-        .def("InverseMap", &MapperVertexMorphing::InverseMap)
+        .def("Initialize", &MapperVertexMorphing::Initialize)
         .def("Map", &MapperVertexMorphing::Map)
+        .def("InverseMap", &MapperVertexMorphing::InverseMap)
         ;
     class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
         .def(init<ModelPart&, Parameters>())
-        .def("InitializeMapping", &MapperVertexMorphingMatrixFree::InitializeMapping)
-        .def("InverseMap", &MapperVertexMorphingMatrixFree::InverseMap)
+        .def("Initialize", &MapperVertexMorphingMatrixFree::Initialize)
         .def("Map", &MapperVertexMorphingMatrixFree::Map)
+        .def("InverseMap", &MapperVertexMorphingMatrixFree::InverseMap)
         ;
     class_<MapperVertexMorphingImprovedIntegration >(m, "MapperVertexMorphingImprovedIntegration")
         .def(init<ModelPart&, Parameters>())
-        .def("InitializeMapping", &MapperVertexMorphingImprovedIntegration::InitializeMapping)
-        .def("InverseMap", &MapperVertexMorphingImprovedIntegration::InverseMap)
+        .def("Initialize", &MapperVertexMorphingImprovedIntegration::Initialize)
         .def("Map", &MapperVertexMorphingImprovedIntegration::Map)
+        .def("InverseMap", &MapperVertexMorphingImprovedIntegration::InverseMap)
         ;
 
     // ================================================================
