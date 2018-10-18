@@ -56,7 +56,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class MapperVertexMorphingGeneralized
+class MapperVertexMorphingGeneralized : public Mapper
 {
 public:
     ///@name Type Definitions
@@ -116,41 +116,56 @@ public:
     // --------------------------------------------------------------------------
     void Initialize() override
     {
-        CreateListOfNodesInOriginMdpa();
-        CreateFilterFunction();
-        InitializeMappingVariables();
-        AssignMappingIds();
+        BuiltinTimer timer;
+        std::cout << "> Starting initialization of mapping..." << std::endl;
+
+        if (mIsMappingInitialized == false)
+        {
+            CreateListOfNodesInOriginMdpa();
+            CreateFilterFunction();
+            InitializeMappingVariables();
+            AssignMappingIds();
+        }
+
         InitializeComputationOfMappingMatrix();
+        CreateSearchTreeWithAllNodesInOriginMdpa();
         ComputeMappingMatrix();
+
+        mIsMappingInitialized = true;
+
+        std::cout << "> Finished initialization of mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
     void Map( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable)
     {
+        if (mIsMappingInitialized == false)
+            Initialize();
+
         BuiltinTimer mapping_time;
-        std::cout << "\n> Starting mapping of vector variable..." << std::endl;
+        std::cout << "\n> Starting mapping of " << rVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
-        x_values_in_original_mdpa.clear();
-        y_values_in_original_mdpa.clear();
-        z_values_in_original_mdpa.clear();
-        x_values_in_destination_mdpa.clear();
-        y_values_in_destination_mdpa.clear();
-        z_values_in_destination_mdpa.clear();
+        mXValuesOrigin.clear();
+        mYValuesOrigin.clear();
+        mZValuesOrigin.clear();
+        mXValuesDestination.clear();
+        mYValuesDestination.clear();
+        mZValuesDestination.clear();
 
         for(auto& node_i : mrOriginMdpa.Nodes())
         {
             int i = node_i.GetValue(MAPPING_ID);
             array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rVariable);
-            x_values_in_original_mdpa[i] = nodal_variable[0];
-            y_values_in_original_mdpa[i] = nodal_variable[1];
-            z_values_in_original_mdpa[i] = nodal_variable[2];
+            mXValuesOrigin[i] = nodal_variable[0];
+            mYValuesOrigin[i] = nodal_variable[1];
+            mZValuesOrigin[i] = nodal_variable[2];
         }
 
         // Perform mapping
-        noalias(x_values_in_destination_mdpa) = prod(mMappingMatrix,x_values_in_original_mdpa);
-        noalias(y_values_in_destination_mdpa) = prod(mMappingMatrix,y_values_in_original_mdpa);
-        noalias(z_values_in_destination_mdpa) = prod(mMappingMatrix,z_values_in_original_mdpa);
+        noalias(mXValuesDestination) = prod(mMappingMatrix,mXValuesOrigin);
+        noalias(mYValuesDestination) = prod(mMappingMatrix,mYValuesOrigin);
+        noalias(mZValuesDestination) = prod(mMappingMatrix,mZValuesOrigin);
 
         // Assign results to nodal variable
         for(auto& node_i : mrDestinationMdpa.Nodes())
@@ -158,71 +173,45 @@ public:
             int i = node_i.GetValue(MAPPING_ID);
 
             Vector node_vector = ZeroVector(3);
-            node_vector(0) = x_values_in_destination_mdpa[i];
-            node_vector(1) = y_values_in_destination_mdpa[i];
-            node_vector(2) = z_values_in_destination_mdpa[i];
+            node_vector(0) = mXValuesDestination[i];
+            node_vector(1) = mYValuesDestination[i];
+            node_vector(2) = mZValuesDestination[i];
             node_i.FastGetSolutionStepValue(rMappedVariable) = node_vector;
         }
 
-        std::cout << "> Time needed for mapping of vector variable: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
-    void Map( const Variable<double> &rVariable, const Variable<double> &rMappedVariable)
-    {
-        BuiltinTimer mapping_time;
-        std::cout << "\n> Starting mapping of scalar variable..." << std::endl;
-
-        // Prepare vectors for mapping
-        x_values_in_original_mdpa.clear();
-        x_values_in_destination_mdpa.clear();
-
-        for(auto& node_i : mrOriginMdpa.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-            x_values_in_original_mdpa[i] = node_i.FastGetSolutionStepValue(rVariable);
-        }
-
-        // Perform mapping
-        noalias(x_values_in_destination_mdpa) = prod(mMappingMatrix,x_values_in_original_mdpa);
-
-        // Assign results to nodal variable
-        for(auto& node_i : mrDestinationMdpa.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-            node_i.FastGetSolutionStepValue(rMappedVariable) = x_values_in_destination_mdpa[i];
-        }
-
-        std::cout << "> Time needed for mapping of scalar variable: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
+        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
     void InverseMap( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable)
     {
+        if (mIsMappingInitialized == false)
+            Initialize();
+
         BuiltinTimer mapping_time;
-        std::cout << "\n> Starting inverse mapping of vector variable..." << std::endl;
+        std::cout << "\n> Starting inverse mapping of " << rVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
-        x_values_in_original_mdpa.clear();
-        y_values_in_original_mdpa.clear();
-        z_values_in_original_mdpa.clear();
-        x_values_in_destination_mdpa.clear();
-        y_values_in_destination_mdpa.clear();
-        z_values_in_destination_mdpa.clear();
+        mXValuesOrigin.clear();
+        mYValuesOrigin.clear();
+        mZValuesOrigin.clear();
+        mXValuesDestination.clear();
+        mYValuesDestination.clear();
+        mZValuesDestination.clear();
 
         for(auto& node_i : mrDestinationMdpa.Nodes())
         {
             int i = node_i.GetValue(MAPPING_ID);
             array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rVariable);
-            x_values_in_destination_mdpa[i] = nodal_variable[0];
-            y_values_in_destination_mdpa[i] = nodal_variable[1];
-            z_values_in_destination_mdpa[i] = nodal_variable[2];
+            mXValuesDestination[i] = nodal_variable[0];
+            mYValuesDestination[i] = nodal_variable[1];
+            mZValuesDestination[i] = nodal_variable[2];
         }
 
         // Perform mapping
-        SparseSpaceType::TransposeMult(mMappingMatrix,x_values_in_destination_mdpa,x_values_in_original_mdpa);
-        SparseSpaceType::TransposeMult(mMappingMatrix,y_values_in_destination_mdpa,y_values_in_original_mdpa);
-        SparseSpaceType::TransposeMult(mMappingMatrix,z_values_in_destination_mdpa,z_values_in_original_mdpa);
+        SparseSpaceType::TransposeMult(mMappingMatrix,mXValuesDestination,mXValuesOrigin);
+        SparseSpaceType::TransposeMult(mMappingMatrix,mYValuesDestination,mYValuesOrigin);
+        SparseSpaceType::TransposeMult(mMappingMatrix,mZValuesDestination,mZValuesOrigin);
 
         // Assign results to nodal variable
         for(auto& node_i : mrOriginMdpa.Nodes())
@@ -230,49 +219,13 @@ public:
             int i = node_i.GetValue(MAPPING_ID);
 
             Vector node_vector = ZeroVector(3);
-            node_vector(0) = x_values_in_original_mdpa[i];
-            node_vector(1) = y_values_in_original_mdpa[i];
-            node_vector(2) = z_values_in_original_mdpa[i];
+            node_vector(0) = mXValuesOrigin[i];
+            node_vector(1) = mYValuesOrigin[i];
+            node_vector(2) = mZValuesOrigin[i];
             node_i.FastGetSolutionStepValue(rMappedVariable) = node_vector;
         }
 
-        std::cout << "> Time needed for inverse mapping of vector variable: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
-    void InverseMap( const Variable<double> &rVariable, const Variable<double> &rMappedVariable)
-    {
-        BuiltinTimer mapping_time;
-        std::cout << "\n> Starting inverse mapping of scalar variable..." << std::endl;
-
-        // Prepare vectors for mapping
-        x_values_in_original_mdpa.clear();
-        x_values_in_destination_mdpa.clear();
-
-        for(auto& node_i : mrDestinationMdpa.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-            x_values_in_destination_mdpa[i] = node_i.FastGetSolutionStepValue(rVariable);
-        }
-
-        // Perform mapping
-        SparseSpaceType::TransposeMult(mMappingMatrix,x_values_in_destination_mdpa,x_values_in_original_mdpa);
-
-        // Assign results to nodal variable
-        for(auto& node_i : mrOriginMdpa.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-            node_i.FastGetSolutionStepValue(rMappedVariable) =  x_values_in_original_mdpa[i];
-        }
-
-        std::cout << "> Time needed for inverse mapping of scalar variable: " << mapping_time.ElapsedSeconds() << " s" << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
-    void UpdateMappingMatrix()
-    {
-        InitializeComputationOfMappingMatrix();
-        ComputeMappingMatrix();
+        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -385,8 +338,9 @@ private:
 
     // Variables for mapping
     SparseMatrixType mMappingMatrix;
-    Vector x_values_in_original_mdpa, y_values_in_original_mdpa, z_values_in_original_mdpa;
-    Vector x_values_in_destination_mdpa, y_values_in_destination_mdpa, z_values_in_destination_mdpa;
+    Vector mXValuesOrigin, mYValuesOrigin, mZValuesOrigin;
+    Vector mXValuesDestination, mYValuesDestination, mZValuesDestination;
+    bool mIsMappingInitialized = false;
 
     ///@}
     ///@name Private Operators
@@ -421,13 +375,13 @@ private:
         mMappingMatrix.resize(mDestinationNodeNumber,mOriginNodeNumber,false);
         mMappingMatrix.clear();
 
-        x_values_in_original_mdpa.resize(mOriginNodeNumber,0.0);
-        y_values_in_original_mdpa.resize(mOriginNodeNumber,0.0);
-        z_values_in_original_mdpa.resize(mOriginNodeNumber,0.0);
+        mXValuesOrigin.resize(mOriginNodeNumber,0.0);
+        mYValuesOrigin.resize(mOriginNodeNumber,0.0);
+        mZValuesOrigin.resize(mOriginNodeNumber,0.0);
 
-        x_values_in_destination_mdpa.resize(mDestinationNodeNumber,0.0);
-        y_values_in_destination_mdpa.resize(mDestinationNodeNumber,0.0);
-        z_values_in_destination_mdpa.resize(mDestinationNodeNumber,0.0);
+        mXValuesDestination.resize(mDestinationNodeNumber,0.0);
+        mYValuesDestination.resize(mDestinationNodeNumber,0.0);
+        mZValuesDestination.resize(mDestinationNodeNumber,0.0);
     }
 
     // --------------------------------------------------------------------------
@@ -443,25 +397,13 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void ComputeMappingMatrix()
-    {
-        BuiltinTimer timer;
-        std::cout << "> Computing mapping matrix to perform mapping..." << std::endl;
-
-        CreateSearchTreeWithAllNodesInOriginMdpa();
-        ComputeEntriesOfMappingMatrix();
-
-        std::cout << "> Mapping matrix computed in: " << timer.ElapsedSeconds() << " s" << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
     void CreateSearchTreeWithAllNodesInOriginMdpa()
     {
         mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesInOriginMdpa.begin(), mListOfNodesInOriginMdpa.end(), mBucketSize));
     }
 
     // --------------------------------------------------------------------------
-    void ComputeEntriesOfMappingMatrix()
+    void ComputeMappingMatrix()
     {
         for(auto& node_i : mrDestinationMdpa.Nodes())
         {
