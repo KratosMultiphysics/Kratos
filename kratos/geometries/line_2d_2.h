@@ -944,7 +944,9 @@ public:
         const double low_x = rLowPoint[0];   
         const double low_y = rLowPoint[1];
 
-        double slope = (second_point[1] - first_point[1]) / ( second_point[0] - first_point[0] );
+        const double denominator = ( second_point[0] - first_point[0] );
+        const double numerator = (second_point[1] - first_point[1]);
+        const double slope = std::abs(denominator) > tolerance ? std::abs(numerator) > tolerance ? numerator / denominator : 1.0e-12 : 1.0e12;
 
         // Intersection with left vertical line of the box that is x = low_x
       const double y_1 = slope*( low_x - first_point[0] ) + first_point[1];
