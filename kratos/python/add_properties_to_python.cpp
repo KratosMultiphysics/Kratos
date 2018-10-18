@@ -79,14 +79,14 @@ void SetArrayValue(
     const Variable<array_1d<double,3>>& rVar,
     const std::vector<double>& rData)
 {
-    if(rData.size() != 3)
-        KRATOS_ERROR << "Attempting to construct an array<double,3> by passing a list with wrong size. Input size is " << rData.size() << std::endl;
+    if(Data.size() != 3)
+        KRATOS_ERROR << "attempting to construct an array<double,3> by passing a list with wrong size. Input size is " << Data.size() << std::endl;
 
     array_1d<double,3> tmp;
-    for(IndexType i=0;i<3; ++i)
-        tmp[i] = rData[i];
+    for(unsigned int i=0;i<3; ++i)
+        tmp[i] = Data[i];
 
-    rProperties.SetValue(rVar,tmp);
+    el.SetValue(rVar,tmp);
 }
 
 void SetVectorValue(
@@ -94,11 +94,11 @@ void SetVectorValue(
     const Variable<Vector>& rVar,
     const std::vector<double>& rData)
 {
-    Vector tmp(rData.size());
-    for(IndexType i=0;i<tmp.size(); ++i)
-        tmp[i] = rData[i];
+    Vector tmp(Data.size());
+    for(unsigned int i=0;i<tmp.size(); ++i)
+        tmp[i] = Data[i];
 
-    rProperties.SetValue(rVar,tmp);
+    el.SetValue(rVar,tmp);
 }
 
 template< class TContainerType, class TVariableType >
@@ -200,6 +200,7 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("HasVariables", &Properties::HasVariables)
     .def("HasTables", &Properties::HasTables)
     .def("IsEmpty", &Properties::IsEmpty)
+    .def("__str__", KRATOS_DEF_PYTHON_STR(Properties))
     .def("NumberOfSubproperties", &Properties::NumberOfSubproperties)
     .def("AddSubProperty", &Properties::AddSubProperty)
     .def("GetSubProperty", GetSubProperty1)

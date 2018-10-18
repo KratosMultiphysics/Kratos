@@ -983,6 +983,30 @@ public:
     }
 
     /**
+     * @brief This computes a orthonormal basis from a given vector
+     * @param a First resulting vector
+     * @param b Second resulting vector
+     * @param c The input vector
+     * @note Orthonormal basis taken from: http://orbit.dtu.dk/files/126824972/onb_frisvad_jgt2012_v2.pdf
+     */
+    template< class T1, class T2 , class T3>
+    static inline void OrthonormalBasis(const T1& c,T2& a,T3& b ){
+        KRATOS_DEBUG_ERROR_IF_NOT(norm_2(c) < 1.0) << "Input should be a normal vector" << std::endl;
+        a[0] = 1.0 - std::pow(c[0], 2)/(1.0 + c[2]);
+        a[1] = - (c[0] * c[1])/(1.0 + c[2]);
+        a[2] = - c[0];
+        const double norm_a = norm_2(a);
+        KRATOS_DEBUG_ERROR_IF_NOT(norm_a < std::numeric_limits<double>::epsilon()) << "Zero norm of the vector" << std::endl;
+        a /= norm_a;
+        b[0] = - (c[0] * c[1])/(1.0 + c[2]);
+        b[1] = 1.0 - std::pow(c[1], 2)/(1.0 + c[2]);
+        b[2] = -c[1];
+        const double norm_b = norm_2(b);
+        KRATOS_DEBUG_ERROR_IF_NOT(norm_b < std::numeric_limits<double>::epsilon()) << "Zero norm of the vector" << std::endl;
+        b /= norm_b;
+    }
+
+    /**
      * Computes the angle between two vectors in 3D
      * @param v1 First input vector
      * @param v2 Second input vector
@@ -1336,44 +1360,47 @@ public:
      * while they are stored into the matrix
      * @param rStrainVector the given strain vector
      * @return the corresponding strain tensor in matrix form
+     * @tparam TVector The vector type considered
+     * @tparam TMatrixType The matrix returning type
      */
-
-    static inline MatrixType StrainVectorToTensor( const VectorType& rStrainVector)
+    template<class TVector, class TMatrixType = MatrixType>
+    static inline TMatrixType StrainVectorToTensor( const TVector& rStrainVector)
     {
         KRATOS_TRY
-        Matrix StrainTensor;
+
+        TMatrixType strain_tensor;
 
         if (rStrainVector.size()==3) {
-            StrainTensor.resize(2,2, false);
-            StrainTensor(0,0) = rStrainVector[0];
-            StrainTensor(0,1) = 0.5*rStrainVector[2];
-            StrainTensor(1,0) = 0.5*rStrainVector[2];
-            StrainTensor(1,1) = rStrainVector[1];
+            strain_tensor.resize(2,2, false);
+            strain_tensor(0,0) = rStrainVector(0);
+            strain_tensor(0,1) = 0.5*rStrainVector(2);
+            strain_tensor(1,0) = 0.5*rStrainVector(2);
+            strain_tensor(1,1) = rStrainVector(1);
         } else if (rStrainVector.size()==4) {
-            StrainTensor.resize(3,3, false);
-            StrainTensor(0,0) = rStrainVector[0];
-            StrainTensor(0,1) = 0.5*rStrainVector[3];
-            StrainTensor(0,2) = 0;
-            StrainTensor(1,0) = 0.5*rStrainVector[3];
-            StrainTensor(1,1) = rStrainVector[1];
-            StrainTensor(1,2) = 0;
-            StrainTensor(2,0) = 0;
-            StrainTensor(2,1) = 0;
-            StrainTensor(2,2) = rStrainVector[2];
+            strain_tensor.resize(3,3, false);
+            strain_tensor(0,0) = rStrainVector(0);
+            strain_tensor(0,1) = 0.5*rStrainVector(3);
+            strain_tensor(0,2) = 0;
+            strain_tensor(1,0) = 0.5*rStrainVector(3);
+            strain_tensor(1,1) = rStrainVector(1);
+            strain_tensor(1,2) = 0;
+            strain_tensor(2,0) = 0;
+            strain_tensor(2,1) = 0;
+            strain_tensor(2,2) = rStrainVector(2);
         } else if (rStrainVector.size()==6) {
-            StrainTensor.resize(3,3, false);
-            StrainTensor(0,0) = rStrainVector[0];
-            StrainTensor(0,1) = 0.5*rStrainVector[3];
-            StrainTensor(0,2) = 0.5*rStrainVector[5];
-            StrainTensor(1,0) = 0.5*rStrainVector[3];
-            StrainTensor(1,1) = rStrainVector[1];
-            StrainTensor(1,2) = 0.5*rStrainVector[4];
-            StrainTensor(2,0) = 0.5*rStrainVector[5];
-            StrainTensor(2,1) = 0.5*rStrainVector[4];
-            StrainTensor(2,2) = rStrainVector[2];
+            strain_tensor.resize(3,3, false);
+            strain_tensor(0,0) = rStrainVector(0);
+            strain_tensor(0,1) = 0.5*rStrainVector(3);
+            strain_tensor(0,2) = 0.5*rStrainVector(5);
+            strain_tensor(1,0) = 0.5*rStrainVector(3);
+            strain_tensor(1,1) = rStrainVector(1);
+            strain_tensor(1,2) = 0.5*rStrainVector(4);
+            strain_tensor(2,0) = 0.5*rStrainVector(5);
+            strain_tensor(2,1) = 0.5*rStrainVector(4);
+            strain_tensor(2,2) = rStrainVector(2);
         }
 
-        return StrainTensor;
+        return strain_tensor;
 
         KRATOS_CATCH("");
     }
