@@ -939,7 +939,8 @@ public:
             )
             return true;
 
-        double high_x = rHighPoint[0]; double high_y = rHighPoint[1];
+        const double high_x = rHighPoint[0]; 
+        const double high_y = rHighPoint[1];
         const double low_x = rLowPoint[0];   
         const double low_y = rLowPoint[1];
 
