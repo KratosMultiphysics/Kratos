@@ -185,15 +185,6 @@ public:
                                const Vector& rShapeFunctionsValues,
                                const ProcessInfo& rCurrentProcessInfo) override;
 
-
-    /**
-     * Computes the material response:
-     * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues
-     * @see   Parameters
-     */
-    //virtual void CalculateMaterialResponsePK2 (Parameters & rValues);
-
     /**
      * Computes the material response:
      * Kirchhoff stresses and algorithmic ConstitutiveMatrix
@@ -257,9 +248,6 @@ protected:
     ///@{
 
 
-    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
-        in a pullback fashion
-    */
     void GetDomainPressure( double& rPressure, const MaterialResponseVariables& rElasticVariables);
 
     virtual Matrix SetConstitutiveMatrixToAppropiateDimension(Matrix& rConstitutiveMatrix, const Matrix& rElastoPlasticTangentMatrix);
@@ -270,9 +258,6 @@ protected:
 
     virtual void CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen,const double& rAlpha, Matrix& rElastoPlasticMatrix, const MaterialResponseVariables& rElasticVariables);
 
-    //virtual void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-    //MPMFlowRule::RadialReturnVariables & rReturnMappingVariables,
-    //Matrix& rConstitutiveMatrix);
     double& TensorComponent(double & rCabcd,
                             const Matrix& rMA, const Matrix& rMB,
                             const unsigned int& a, const unsigned int& b,
@@ -308,37 +293,6 @@ protected:
 
     virtual Matrix CalculateEigenbases(const MPMFlowRule::RadialReturnVariables& rReturnMappingVariables, Matrix& rEigenbasesMatrix);
 
-    //virtual void CalculateElastoPlasticTangentMatrix( const FlowRule::RadialReturnVariables & rReturnMappingVariables,
-    //const Matrix& rTrialElasticLeftCauchyGreen, const Matrix& rStressMatrix,
-    //Matrix& rElastoPlasticTangentMatrix, Matrix& rConsistentMatrix );
-
-    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
-        in the actual configuration
-    */
-
-    //double& PlasticConstitutiveComponent( double & rCabcd,
-    //const MaterialResponseVariables& rElasticVariables,
-    //const Matrix & rIsoStressMatrix,
-    //const MPMFlowRule::PlasticFactors & rScalingFactors,
-    //const unsigned int& a, const unsigned int& b,
-    //const unsigned int& c, const unsigned int& d);
-
-
-    /**
-     * Calculates the isochoric stress vector
-     * @param rElasticVariables
-     * matrix is to be generated for
-     * @param rStressMeasure measure of stress to be calculated
-     * @param rIsoStressMatrix matrix where the stress result is stored
-     * @param rIsoStressVector vector where the stress result is stored
-     */
-    //virtual void CalculatePlasticIsochoricStress( MaterialResponseVariables & rElasticVariables,
-    //MPMFlowRule::RadialReturnVariables & rReturnMappingVariables,
-    //StressMeasure rStressMeasure,
-    //Matrix& rIsoStressMatrix,
-    //Vector& rIsoStressVector);
-
-
 
 
     Vector& GetStressVectorFromMatrix(const Matrix& rStressMatrix,
@@ -351,14 +305,6 @@ protected:
 
     virtual void CalculatePrincipalStressTrial(const MaterialResponseVariables & rElasticVariables,Parameters & rValues, const MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
             Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix);
-
-    /**
-     * This function is designed to be called when before the material response
-     * to check if all needed parameters for the constitutive are initialized
-     * @param Parameters
-     * @return
-     */
-    bool CheckParameters(Parameters& rValues) override;
 
 
 private:
