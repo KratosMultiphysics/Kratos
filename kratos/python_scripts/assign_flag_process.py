@@ -55,7 +55,7 @@ class AssignFlagProcess(KratosMultiphysics.Process):
         self.value = settings["value"].GetBool()
         self.entities = []
         for i in range(settings["entities"].size()):
-            self.entities.append[settings["entities"][i].GetString()]
+            self.entities.append(settings["entities"][i].GetString())
 
         # Construct a variable_utils object to speedup fixing
         self.flag_utils = KratosMultiphysics.VariableUtils()
