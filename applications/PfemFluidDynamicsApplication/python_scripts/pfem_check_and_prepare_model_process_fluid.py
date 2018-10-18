@@ -137,15 +137,21 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
             for solid_part in solid_body_model_parts:
 
-                self.SetMaterialPropertiesToSolidNodes(solid_part)
+                set_solid_material_process=KratosPfemFluid.SetMaterialPropertiesToSolidNodes(solid_part)
+                set_solid_material_process.Execute()
+                #self.SetMaterialPropertiesToSolidNodes(solid_part)
 
             entity_type = "Nodes"
             for fluid_part in fluid_body_model_parts:
 
-                self.SetMaterialPropertiesToFluidNodes(fluid_part)
+                set_fluid_material_process=KratosPfemFluid.SetMaterialPropertiesToFluidNodes(fluid_part)
+                set_fluid_material_process.Execute()
+                #self.SetMaterialPropertiesToFluidNodes(fluid_part)
 
                 for rigid_part in rigid_body_model_parts:
-                    self.SetMaterialPropertiesToRigidNodes(rigid_part,fluid_part)
+                    set_rigid_material_process=KratosPfemFluid.SetMaterialPropertiesFromFluidToRigidNodes(rigid_part,fluid_part)
+                    set_rigid_material_process.Execute()
+                    #self.SetMaterialPropertiesToRigidNodes(rigid_part,fluid_part)
                     transfer_process = KratosSolid.TransferEntitiesProcess(fluid_part,rigid_part,entity_type,transfer_flags)
                     transfer_process.Execute()
 
@@ -232,7 +238,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         print(" Main Model Part", self.main_model_part )
 
     def SetMaterialPropertiesToRigidNodes(self,rigid_model_part,fluid_model_part):
-        count=0
         for elem in fluid_model_part.Elements:
 
             density = elem.Properties.GetValue(KratosMultiphysics.DENSITY)
@@ -274,7 +279,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             break
 
         for nn in rigid_model_part.Nodes:
-            count+=1
             nn.SetSolutionStepValue(KratosMultiphysics.BULK_MODULUS,bulk_modulus)
             nn.SetSolutionStepValue(KratosMultiphysics.DENSITY,density)
             nn.SetSolutionStepValue(KratosMultiphysics.DYNAMIC_VISCOSITY,viscosity)
@@ -293,7 +297,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
 
     def SetMaterialPropertiesToFluidNodes(self,model_part):
-        count=0
         for elem in model_part.Elements:
 
             density = elem.Properties.GetValue(KratosMultiphysics.DENSITY)
@@ -334,7 +337,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             break
 
         for nn in model_part.Nodes:
-            count+=1
             nn.SetSolutionStepValue(KratosMultiphysics.BULK_MODULUS,bulk_modulus)
             nn.SetSolutionStepValue(KratosMultiphysics.DENSITY,density)
             nn.SetSolutionStepValue(KratosMultiphysics.DYNAMIC_VISCOSITY,viscosity)
@@ -353,7 +355,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
 
     def SetMaterialPropertiesToSolidNodes(self,model_part):
-        count=0
         for elem in model_part.Elements:
 
             density = elem.Properties.GetValue(KratosMultiphysics.DENSITY)
@@ -362,7 +363,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             break
 
         for nn in model_part.Nodes:
-            count+=1
             nn.SetSolutionStepValue(KratosMultiphysics.YOUNG_MODULUS,young_modulus)
             nn.SetSolutionStepValue(KratosMultiphysics.DENSITY,density)
             nn.SetSolutionStepValue(KratosMultiphysics.POISSON_RATIO,poisson_ratio)

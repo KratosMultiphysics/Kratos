@@ -25,7 +25,6 @@
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/math_utils.h"
-#include "custom_processes/set_active_flag_process.hpp"
 
 ///VARIABLES used:
 //Data:     
