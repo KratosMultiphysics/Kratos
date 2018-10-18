@@ -21,6 +21,7 @@
 #include "includes/kratos_flags.h"
 #include "includes/gid_io.h"
 #include "meshing_application.h"
+#include "containers/model.h"
 
 /* Processes */
 #include "processes/compute_nodal_gradient_process.h"
