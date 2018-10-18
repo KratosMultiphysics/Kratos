@@ -130,6 +130,7 @@ public:
         }
 
         InitializeComputationOfMappingMatrix();
+        CreateSearchTreeWithAllNodesInOriginMdpa();
         ComputeMappingMatrix();
 
         mIsMappingInitialized = true;
@@ -138,13 +139,59 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void InverseMap( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableMapped ) override
+    void Map( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable ) override
     {
         if (mIsMappingInitialized == false)
             Initialize();
 
         BuiltinTimer mapping_time;
-        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
+        std::cout << "\n> Starting mapping of " << rVariable.Name() << "..." << std::endl;
+
+        // Prepare vectors for mapping
+        mXValuesOrigin.clear();
+        mYValuesOrigin.clear();
+        mZValuesOrigin.clear();
+        mXValuesDestination.clear();
+        mYValuesDestination.clear();
+        mZValuesDestination.clear();
+
+        for(auto& node_i : mrOriginMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+            array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rVariable);
+            mXValuesOrigin[i] = nodal_variable[0];
+            mYValuesOrigin[i] = nodal_variable[1];
+            mZValuesOrigin[i] = nodal_variable[2];
+        }
+
+        // Perform mapping
+        noalias(mXValuesDestination) = prod(mMappingMatrix,mXValuesOrigin);
+        noalias(mYValuesDestination) = prod(mMappingMatrix,mYValuesOrigin);
+        noalias(mZValuesDestination) = prod(mMappingMatrix,mZValuesOrigin);
+
+        // Assign results to nodal variable
+        for(auto& node_i : mrDestinationMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+
+            Vector node_vector = ZeroVector(3);
+            node_vector(0) = mXValuesDestination[i];
+            node_vector(1) = mYValuesDestination[i];
+            node_vector(2) = mZValuesDestination[i];
+            node_i.FastGetSolutionStepValue(rMappedVariable) = node_vector;
+        }
+
+        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void InverseMap( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable ) override
+    {
+        if (mIsMappingInitialized == false)
+            Initialize();
+
+        BuiltinTimer mapping_time;
+        std::cout << "\n> Starting inverse mapping of " << rVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mXValuesOrigin.clear();
@@ -157,7 +204,7 @@ public:
         for(auto& node_i : mrDestinationMdpa.Nodes())
         {
             int i = node_i.GetValue(MAPPING_ID);
-            array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rNodalVariable);
+            array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rVariable);
             mXValuesDestination[i] = nodal_variable[0];
             mYValuesDestination[i] = nodal_variable[1];
             mZValuesDestination[i] = nodal_variable[2];
@@ -186,53 +233,7 @@ public:
             node_vector(0) = mXValuesOrigin[i];
             node_vector(1) = mYValuesOrigin[i];
             node_vector(2) = mZValuesOrigin[i];
-            node_i.FastGetSolutionStepValue(rNodalVariableMapped) = node_vector;
-        }
-
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
-    void Map( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableMapped ) override
-    {
-        if (mIsMappingInitialized == false)
-            Initialize();
-
-        BuiltinTimer mapping_time;
-        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
-
-        // Prepare vectors for mapping
-        mXValuesOrigin.clear();
-        mYValuesOrigin.clear();
-        mZValuesOrigin.clear();
-        mXValuesDestination.clear();
-        mYValuesDestination.clear();
-        mZValuesDestination.clear();
-
-        for(auto& node_i : mrOriginMdpa.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-            array_3d& nodal_variable = node_i.FastGetSolutionStepValue(rNodalVariable);
-            mXValuesOrigin[i] = nodal_variable[0];
-            mYValuesOrigin[i] = nodal_variable[1];
-            mZValuesOrigin[i] = nodal_variable[2];
-        }
-
-        // Perform mapping
-        noalias(mXValuesDestination) = prod(mMappingMatrix,mXValuesOrigin);
-        noalias(mYValuesDestination) = prod(mMappingMatrix,mYValuesOrigin);
-        noalias(mZValuesDestination) = prod(mMappingMatrix,mZValuesOrigin);
-
-        // Assign results to nodal variable
-        for(auto& node_i : mrDestinationMdpa.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-
-            Vector node_vector = ZeroVector(3);
-            node_vector(0) = mXValuesDestination[i];
-            node_vector(1) = mYValuesDestination[i];
-            node_vector(2) = mZValuesDestination[i];
-            node_i.FastGetSolutionStepValue(rNodalVariableMapped) = node_vector;
+            node_i.FastGetSolutionStepValue(rMappedVariable) = node_vector;
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
@@ -403,20 +404,13 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void ComputeMappingMatrix()
-    {
-        CreateSearchTreeWithAllNodesInOriginMdpa();
-        ComputeEntriesOfMappingMatrix();
-    }
-
-    // --------------------------------------------------------------------------
     void CreateSearchTreeWithAllNodesInOriginMdpa()
     {
         mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesInOriginMdpa.begin(), mListOfNodesInOriginMdpa.end(), mBucketSize));
     }
 
     // --------------------------------------------------------------------------
-    void ComputeEntriesOfMappingMatrix()
+    void ComputeMappingMatrix()
     {
         for(auto& node_i : mrDestinationMdpa.Nodes())
         {

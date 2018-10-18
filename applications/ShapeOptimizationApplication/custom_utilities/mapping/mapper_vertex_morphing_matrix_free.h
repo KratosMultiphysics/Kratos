@@ -132,51 +132,20 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void InverseMap( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableMapped ) override
+    void Map( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable ) override
     {
         if (mIsMappingInitialized == false)
             Initialize();
 
         BuiltinTimer mapping_time;
-        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;
-
-        // Prepare vectors for mapping
-        mXValuesOrigin.clear();
-        mYValuesOrigin.clear();
-        mZValuesOrigin.clear();
-
-        InverseMapVariableComponentwise( rNodalVariable );
-
-        // Assign results to nodal variable
-        for(auto& node_i : mrOriginMdpa.Nodes())
-        {
-            int i = node_i.GetValue(MAPPING_ID);
-
-            Vector node_vector = ZeroVector(3);
-            node_vector(0) = mXValuesOrigin[i];
-            node_vector(1) = mYValuesOrigin[i];
-            node_vector(2) = mZValuesOrigin[i];
-            node_i.FastGetSolutionStepValue(rNodalVariableMapped) = node_vector;
-        }
-
-        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
-    void Map( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableMapped ) override
-    {
-        if (mIsMappingInitialized == false)
-            Initialize();
-
-        BuiltinTimer mapping_time;
-        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
+        std::cout << "\n> Starting mapping of " << rVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
         mXValuesDestination.clear();
         mYValuesDestination.clear();
         mZValuesDestination.clear();
 
-        MapVariableComponentwise( rNodalVariable );
+        MapVariableComponentwise( rVariable );
 
         // Assign results to nodal variable
         for(auto& node_i : mrDestinationMdpa.Nodes())
@@ -187,7 +156,38 @@ public:
             node_vector(0) = mXValuesDestination[i];
             node_vector(1) = mYValuesDestination[i];
             node_vector(2) = mZValuesDestination[i];
-            node_i.FastGetSolutionStepValue(rNodalVariableMapped) = node_vector;
+            node_i.FastGetSolutionStepValue(rMappedVariable) = node_vector;
+        }
+
+        std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void InverseMap( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable ) override
+    {
+        if (mIsMappingInitialized == false)
+            Initialize();
+
+        BuiltinTimer mapping_time;
+        std::cout << "\n> Starting inverse mapping of " << rVariable.Name() << "..." << std::endl;
+
+        // Prepare vectors for mapping
+        mXValuesOrigin.clear();
+        mYValuesOrigin.clear();
+        mZValuesOrigin.clear();
+
+        InverseMapVariableComponentwise( rVariable );
+
+        // Assign results to nodal variable
+        for(auto& node_i : mrOriginMdpa.Nodes())
+        {
+            int i = node_i.GetValue(MAPPING_ID);
+
+            Vector node_vector = ZeroVector(3);
+            node_vector(0) = mXValuesOrigin[i];
+            node_vector(1) = mYValuesOrigin[i];
+            node_vector(2) = mZValuesOrigin[i];
+            node_i.FastGetSolutionStepValue(rMappedVariable) = node_vector;
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
@@ -356,7 +356,7 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void MapVariableComponentwise( const Variable<array_3d>& rNodalVariable )
+    void MapVariableComponentwise( const Variable<array_3d>& rVariable )
     {
         for(auto& node_i : mrDestinationMdpa.Nodes())
         {
@@ -373,12 +373,12 @@ private:
 
             ThrowWarningIfMaxNodeNeighborsReached( node_i, number_of_neighbors );
             ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-            PerformLocalMapping( rNodalVariable, node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+            PerformLocalMapping( rVariable, node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
         }
     }
 
     // --------------------------------------------------------------------------
-    void InverseMapVariableComponentwise( const Variable<array_3d>& rNodalVariable )
+    void InverseMapVariableComponentwise( const Variable<array_3d>& rVariable )
     {
         for(auto& node_i : mrDestinationMdpa.Nodes())
         {
@@ -395,7 +395,7 @@ private:
 
             ThrowWarningIfMaxNodeNeighborsReached( node_i, number_of_neighbors );
             ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
-            PerformLocalTransposeMapping( rNodalVariable, node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
+            PerformLocalTransposeMapping( rVariable, node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
         }
     }
 
@@ -424,14 +424,14 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void PerformLocalTransposeMapping( const Variable<array_3d>& rNodalVariable,
+    void PerformLocalTransposeMapping( const Variable<array_3d>& rVariable,
                                        ModelPart::NodeType& design_node,
                                        NodeVector& neighbor_nodes,
                                        unsigned int number_of_neighbors,
                                        std::vector<double>& list_of_weights,
                                        double& sum_of_weights )
     {
-        array_3d& nodal_variable = design_node.FastGetSolutionStepValue(rNodalVariable);
+        array_3d& nodal_variable = design_node.FastGetSolutionStepValue(rVariable);
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
@@ -446,7 +446,7 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void PerformLocalMapping( const Variable<array_3d>& rNodalVariable,
+    void PerformLocalMapping( const Variable<array_3d>& rVariable,
                               ModelPart::NodeType& design_node,
                               NodeVector& neighbor_nodes,
                               unsigned int number_of_neighbors,
@@ -459,7 +459,7 @@ private:
             double weight = list_of_weights[neighbor_itr] / sum_of_weights;
 
             ModelPart::NodeType& node_j = *neighbor_nodes[neighbor_itr];
-            array_3d& nodal_variable = node_j.FastGetSolutionStepValue(rNodalVariable);
+            array_3d& nodal_variable = node_j.FastGetSolutionStepValue(rVariable);
 
             mXValuesDestination[design_node_mapping_id] += weight*nodal_variable[0];
             mYValuesDestination[design_node_mapping_id] += weight*nodal_variable[1];
