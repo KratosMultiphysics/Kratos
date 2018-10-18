@@ -24,15 +24,17 @@ def GetFilePath(fileName):
 class TestMaterialsInput(KratosUnittest.TestCase):
 
     def _prepare_test(self, input_file = "materials.json"):
-        self.model_part = KratosMultiphysics.ModelPart("Main")
+        # Define a Model
+        self.current_model = KratosMultiphysics.Model()
+        
+        self.model_part = self.current_model.CreateModelPart("Main")
+
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         self.model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read")) #reusing the file that is already in the directory
         self.model_part_io.ReadModelPart(self.model_part)
 
-        # Define a Model
-        self.Model = KratosMultiphysics.Model()
-        self.Model.AddModelPart(self.model_part)
+
 
         self.test_settings = KratosMultiphysics.Parameters("""
         {
@@ -47,13 +49,13 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
     def _check_results(self):
         #test if the element properties are assigned correctly to the elements and conditions
-        for elem in self.Model["Inlets"].Elements:
+        for elem in self.current_model["Inlets"].Elements:
             self.assertEqual(elem.Properties.Id, 1)
-        for cond in self.Model["Inlets"].Conditions:
+        for cond in self.current_model["Inlets"].Conditions:
             self.assertEqual(cond.Properties.Id, 1)
-        for elem in self.Model["Outlet"].Elements:
+        for elem in self.current_model["Outlet"].Elements:
             self.assertEqual(elem.Properties.Id, 2)
-        for cond in self.Model["Outlet"].Conditions:
+        for cond in self.current_model["Outlet"].Conditions:
             self.assertEqual(cond.Properties.Id, 2)
 
         #test that the properties are read correctly
@@ -104,7 +106,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
             self.skipTest("{} is not available".format(missing_application))
         self._prepare_test()
         import read_materials_process
-        read_materials_process.Factory(self.test_settings,self.Model)
+        read_materials_process.Factory(self.test_settings,self.current_model)
         self._check_results()
 
     def test_input_cpp(self):
@@ -112,7 +114,8 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         if (missing_external_dependencies is True):
             self.skipTest("{} is not available".format(missing_application))
         self._prepare_test()
-        KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.Model)
+
+        KratosMultiphysics.ReadMaterialsUtility(self.test_settings, self.current_model)
         self._check_results()
 
     def test_input_with_subproperties_cpp(self):

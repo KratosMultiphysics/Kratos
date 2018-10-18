@@ -13,6 +13,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/checks.h"
 #include "includes/gid_io.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -24,6 +25,7 @@ namespace Kratos {
 
 	  KRATOS_TEST_CASE_IN_SUITE(HorizontalPlaneDistanceProcess, KratosCoreFastSuite)
 	  {
+		  Model current_model;
 
 		  // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
           Node<3>::Pointer p_point1 = Kratos::make_shared<Node<3>>(1, 0.00, 0.00, 0.00);
@@ -43,14 +45,14 @@ namespace Kratos {
                 "element_name":     "Element3D4N"
             })");
 
-		  ModelPart volume_part("Volume");
+		  ModelPart& volume_part = current_model.CreateModelPart("Volume");
 		  volume_part.AddNodalSolutionStepVariable(VELOCITY);
 		  volume_part.AddNodalSolutionStepVariable(DISTANCE);
 		  volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 		  StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
 
 		  // Generate the skin
-		  ModelPart skin_part("Skin");
+		  ModelPart& skin_part = current_model.CreateModelPart("Skin");
 		  skin_part.AddNodalSolutionStepVariable(VELOCITY);
 		  skin_part.CreateNewNode(901, 0.0, 0.0, 2.0);
 		  skin_part.CreateNewNode(902, 10.0, 0.0, 2.0);
@@ -72,6 +74,7 @@ namespace Kratos {
 
 	  KRATOS_TEST_CASE_IN_SUITE(HorizontalPlaneZeroDistanceProcess, KratosCoreFastSuite)
 	  {
+		  Model current_model;
 
 		  // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
 		  Node<3>::Pointer p_point1 = Kratos::make_shared<Node<3>>(1, 0.00, 0.00, 0.00);
@@ -91,14 +94,14 @@ namespace Kratos {
                 "element_name":     "Element3D4N"
             })");
 
-		  ModelPart volume_part("Volume");
+		  ModelPart& volume_part = current_model.CreateModelPart("Volume");
 		  volume_part.AddNodalSolutionStepVariable(VELOCITY);
 		  volume_part.AddNodalSolutionStepVariable(DISTANCE);
 		  volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 		  StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
 
 		  // Generate the skin
-		  ModelPart skin_part("Skin");
+		  ModelPart& skin_part = current_model.CreateModelPart("Skin");
 		  skin_part.AddNodalSolutionStepVariable(VELOCITY);
 		  skin_part.CreateNewNode(901, 0.0, 0.0, 5.0);
 		  skin_part.CreateNewNode(902, 10.0, 0.0, 5.0);
@@ -121,6 +124,7 @@ namespace Kratos {
 
 	  KRATOS_TEST_CASE_IN_SUITE(TetrahedraInCubeDistanceProcess, KratosCoreFastSuite)
 	  {
+		  Model current_model;
 
 		  // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
 		  Node<3>::Pointer p_point1 = Kratos::make_shared<Node<3>>(1, 0.00, 0.00, 0.00);
@@ -140,14 +144,14 @@ namespace Kratos {
                 "element_name":     "Element3D4N"
             })");
 
-		  ModelPart volume_part("Volume");
+		  ModelPart& volume_part = current_model.CreateModelPart("Volume");
 		  volume_part.AddNodalSolutionStepVariable(VELOCITY);
 		  volume_part.AddNodalSolutionStepVariable(DISTANCE);
 		  volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
 		  StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
 
 		  // Generate the skin
-		  ModelPart skin_part("Skin");
+		  ModelPart& skin_part = current_model.CreateModelPart("Skin");
 		  skin_part.AddNodalSolutionStepVariable(VELOCITY);
 		  skin_part.CreateNewNode(901, 2.0, 2.0, 2.0);
 		  skin_part.CreateNewNode(902, 6.0, 2.0, 2.0);
@@ -181,8 +185,9 @@ namespace Kratos {
 
 	  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3IntersectionDistanceProcess, KratosCoreFastSuite)
 	  {
+		  Model current_model;
 
-		  ModelPart volume_part("Volume");
+		  ModelPart& volume_part = current_model.CreateModelPart("Volume");
 		  volume_part.AddNodalSolutionStepVariable(DISTANCE);
 		  volume_part.CreateNewNode(1, 1.00, 1.00, -10.00);
 		  volume_part.CreateNewNode(2, 1.00, 1.00, 10.00);
@@ -193,7 +198,7 @@ namespace Kratos {
 		  volume_part.CreateNewElement("Element3D4N", 1, { 1,2,3,4 }, p_properties);
 
 		  // Generate the skin
-		  ModelPart skin_part("Skin");
+		  ModelPart& skin_part = current_model.CreateModelPart("Skin");
 		  skin_part.AddNodalSolutionStepVariable(VELOCITY);
 		  skin_part.CreateNewNode(11, 0.0, 0.0, 2.0);
 		  skin_part.CreateNewNode(12, 12.0, 0.0, 2.0);
@@ -212,8 +217,9 @@ namespace Kratos {
 
 	  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra5IntersectionDistanceProcess, KratosCoreFastSuite)
 	  {
+		  Model current_model;
 
-		  ModelPart volume_part("Volume");
+		  ModelPart& volume_part = current_model.CreateModelPart("Volume");
 		  volume_part.AddNodalSolutionStepVariable(DISTANCE);
 		  volume_part.CreateNewNode(1, 2.50, 2.50, 0.00);
 		  volume_part.CreateNewNode(2, 2.50, 2.50, 2.50);
@@ -224,7 +230,7 @@ namespace Kratos {
 		  volume_part.CreateNewElement("Element3D4N", 1, { 1,2,3,4 }, p_properties);
 
 		  // Generate the skin
-		  ModelPart skin_part("Skin");
+		  ModelPart& skin_part = current_model.CreateModelPart("Skin");
 		  skin_part.AddNodalSolutionStepVariable(VELOCITY);
 		  skin_part.CreateNewNode(901, 2.0, 2.0, 2.0);
 		  skin_part.CreateNewNode(902, 6.0, 2.0, 2.0);

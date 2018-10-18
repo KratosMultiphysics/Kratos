@@ -11,12 +11,11 @@ def _GetModelPart(model, solver_settings):
     #TODO can be removed once model is fully available
     model_part_name = solver_settings["model_part_name"].GetString()
     if not model.HasModelPart(model_part_name):
-        model_part = ModelPart(model_part_name)
+        model_part = model.CreateModelPart(model_part_name, 2)
         domain_size = solver_settings["domain_size"].GetInt()
         if domain_size < 0:
             raise Exception('Please specify a "domain_size" >= 0!')
         model_part.ProcessInfo.SetValue(DOMAIN_SIZE, domain_size)
-        model.AddModelPart(model_part)
     else:
         model_part = model.GetModelPart(model_part_name)
 
@@ -198,8 +197,7 @@ class MassResponseFunction(ResponseFunctionBase):
         model_part_name = response_settings["model_part_name"].GetString()
         input_type = response_settings["model_import_settings"]["input_type"].GetString()
         if input_type == "mdpa":
-            self.model_part = ModelPart(model_part_name)
-            self.model.AddModelPart(self.model_part)
+            self.model_part = self.model.CreateModelPart(model_part_name, 2)
             self.model_part_needs_to_be_imported = True
         elif input_type == "use_input_model_part":
             self.model_part = self.model.GetModelPart(model_part_name)
