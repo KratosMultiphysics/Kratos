@@ -88,6 +88,7 @@ void TotalStructuralMassProcess::Execute()
     KRATOS_TRY
 
     const std::size_t domain_size = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    double total_mass = 0.0;
 
     // Now we iterate over the elements to calculate the total mass
     ElementsArrayType& elements_array = mrThisModelPart.GetCommunicator().LocalMesh().Elements();
@@ -95,11 +96,11 @@ void TotalStructuralMassProcess::Execute()
     // Making this loop omp-parallel requires locking all the geometries & nodes, which
     // is most probably not worth the effort
     for(auto& elem_i : elements_array){
-        const double element_mass = CalculateElementMass(elem_i, domain_size);
-        elem_i.SetValue(NODAL_MASS, element_mass);
+        total_mass += CalculateElementMass(elem_i, domain_size);
     }
 
-    const double total_mass = VariableUtils().SumElementScalarVariable(NODAL_MASS, mrThisModelPart);
+    // sum up across partitions
+    mrThisModelPart.GetCommunicator().SumAll(total_mass);
 
     std::stringstream info_stream;
     info_stream << "Total Mass of ModelPart \"" << mrThisModelPart.Name() << "\"";
