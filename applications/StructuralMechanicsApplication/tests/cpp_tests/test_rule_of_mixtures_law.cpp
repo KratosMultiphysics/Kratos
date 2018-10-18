@@ -167,11 +167,6 @@ Parameters GetThreeLayersParameters()
 
 void Create3DGeometryHexahedra(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string ElementName = "SmallDisplacementElement3D8N")
 {
-    Model this_model;
-    this_model.AddModelPart(&rThisModelPart);
-
-    rThisModelPart.SetBufferSize(2);
-
     rThisModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
 
     auto& process_info = rThisModelPart.GetProcessInfo();
@@ -181,7 +176,7 @@ void Create3DGeometryHexahedra(ModelPart& rThisModelPart, std::size_t NumberOfLa
     Parameters parameters = NumberOfLayers == 2 ? GetTwoLayersParameters() : GetThreeLayersParameters();
 
     // Read properties
-    auto read_util = ReadMaterialsUtility(this_model);
+    auto read_util = ReadMaterialsUtility(rThisModelPart.GetOwnerModel());
     read_util.ReadMaterials(parameters);
 
     // Create nodes and elements
@@ -221,11 +216,6 @@ void Create3DGeometryHexahedra(ModelPart& rThisModelPart, std::size_t NumberOfLa
 
 void Create3DGeometryTetrahedra(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string ElementName = "SmallDisplacementElement3D4N")
 {
-    Model this_model;
-    this_model.AddModelPart(&rThisModelPart);
-
-    rThisModelPart.SetBufferSize(2);
-
     rThisModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
 
     auto& process_info = rThisModelPart.GetProcessInfo();
@@ -235,7 +225,7 @@ void Create3DGeometryTetrahedra(ModelPart& rThisModelPart, std::size_t NumberOfL
     Parameters parameters = NumberOfLayers == 2 ? GetTwoLayersParameters() : GetThreeLayersParameters();
 
     // Read properties
-    auto read_util = ReadMaterialsUtility(this_model);
+    auto read_util = ReadMaterialsUtility(rThisModelPart.GetOwnerModel());
     read_util.ReadMaterials(parameters);
 
     // Create nodes and elements
@@ -367,7 +357,8 @@ void Create3DGeometryTetrahedra(ModelPart& rThisModelPart, std::size_t NumberOfL
 */
 KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, KratosStructuralMechanicsFastSuite)
 {
-    ModelPart model_part("Main");
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 2);
     Create3DGeometryHexahedra(model_part);
 
     const array_1d<double, 3> zero = ZeroVector(3);
@@ -407,7 +398,8 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, Krat
 */
 KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, KratosStructuralMechanicsFastSuite)
 {
-    ModelPart model_part("Main");
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 2);
     Create3DGeometryHexahedra(model_part, 3);
 
     const array_1d<double, 3> zero = ZeroVector(3);
@@ -447,7 +439,8 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, Kr
 */
 KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, KratosStructuralMechanicsFastSuite)
 {
-    ModelPart model_part("Main");
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 2);
     Create3DGeometryTetrahedra(model_part);
 
     const array_1d<double, 3> zero = ZeroVector(3);
@@ -487,7 +480,8 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, Kra
 */
 KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronThreeLayers, KratosStructuralMechanicsFastSuite)
 {
-    ModelPart model_part("Main");
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 2);
     Create3DGeometryTetrahedra(model_part, 3);
 
     const array_1d<double, 3> zero = ZeroVector(3);
