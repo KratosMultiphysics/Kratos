@@ -85,14 +85,12 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingMatrixFree( ModelPart& rModelPart, Parameters MapperSettings )
-        : mrOriginMdpa( rModelPart ),
-          mrDestinationMdpa( rModelPart ),
-          mOriginNodeNumber( rModelPart.Nodes().size() ),
-          mDestinationNodeNumber( rModelPart.Nodes().size() ),
-          mFilterType( MapperSettings["filter_function_type"].GetString() ),
-          mFilterRadius( MapperSettings["filter_radius"].GetDouble() ),
-          mMaxNumberOfNeighbors( MapperSettings["max_nodes_in_filter_radius"].GetInt() )
+    MapperVertexMorphingMatrixFree( ModelPart& rOriginMdpa, ModelPart& rDestinationMdpa, Parameters MapperSettings )
+        : mrOriginMdpa( rOriginMdpa ),
+          mrDestinationMdpa( rDestinationMdpa ),
+          mOriginNodeNumber( rOriginMdpa.Nodes().size() ),
+          mDestinationNodeNumber( rDestinationMdpa.Nodes().size() ),
+          mMapperSettings( MapperSettings )
     {
     }
 
@@ -285,9 +283,7 @@ private:
     ModelPart& mrDestinationMdpa;
     const unsigned int mOriginNodeNumber;
     const unsigned int mDestinationNodeNumber;
-    std::string mFilterType;
-    double mFilterRadius;
-    unsigned int mMaxNumberOfNeighbors;
+    Parameters mMapperSettings;
     FilterFunction::Pointer mpFilterFunction;
 
     // Variables for spatial search
@@ -324,7 +320,10 @@ private:
     // --------------------------------------------------------------------------
     void CreateFilterFunction()
     {
-        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
+        std::string filter_type = mMapperSettings["filter_function_type"].GetString();
+        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+
+        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
     }
 
     // --------------------------------------------------------------------------
@@ -358,20 +357,25 @@ private:
     // --------------------------------------------------------------------------
     void MapVariableComponentwise( const Variable<array_3d>& rVariable )
     {
+        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+        unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
+
         for(auto& node_i : mrDestinationMdpa.Nodes())
         {
-            NodeVector neighbor_nodes(mMaxNumberOfNeighbors);
-            std::vector<double> resulting_squared_distances(mMaxNumberOfNeighbors);
+            NodeVector neighbor_nodes(max_number_of_neighbors);
+            std::vector<double> resulting_squared_distances(max_number_of_neighbors);
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             mFilterRadius,
+                                                                             filter_radius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
-                                                                             mMaxNumberOfNeighbors );
+                                                                             max_number_of_neighbors );
 
             std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
 
-            ThrowWarningIfMaxNodeNeighborsReached( node_i, number_of_neighbors );
+            if(number_of_neighbors >= max_number_of_neighbors)
+                std::cout << "\n> WARNING!!!!! For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
+
             ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
             PerformLocalMapping( rVariable, node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
         }
@@ -380,30 +384,28 @@ private:
     // --------------------------------------------------------------------------
     void InverseMapVariableComponentwise( const Variable<array_3d>& rVariable )
     {
+        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+        unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
+
         for(auto& node_i : mrDestinationMdpa.Nodes())
         {
-            NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
-            std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
+            NodeVector neighbor_nodes( max_number_of_neighbors );
+            std::vector<double> resulting_squared_distances( max_number_of_neighbors );
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             mFilterRadius,
+                                                                             filter_radius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
-                                                                             mMaxNumberOfNeighbors );
+                                                                             max_number_of_neighbors );
 
             std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
 
-            ThrowWarningIfMaxNodeNeighborsReached( node_i, number_of_neighbors );
+            if(number_of_neighbors >= max_number_of_neighbors)
+                std::cout << "\n> WARNING!!!!! For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
+
             ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
             PerformLocalTransposeMapping( rVariable, node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
         }
-    }
-
-    // --------------------------------------------------------------------------
-    void ThrowWarningIfMaxNodeNeighborsReached( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
-    {
-        if(number_of_neighbors >= mMaxNumberOfNeighbors)
-            std::cout << "\n> WARNING!!!!! For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
     }
 
     // --------------------------------------------------------------------------

@@ -26,7 +26,6 @@
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/builtin_timer.h"
 #include "spaces/ublas_space.h"
-#include "shape_optimization_application.h"
 #include "mapper_base.h"
 #include "filter_function.h"
 
@@ -71,6 +70,7 @@ public:
     typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
     typedef std::vector<double>::iterator DoubleVectorIterator;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    typedef array_1d<double,3> array_3d;
 
     // Type definitions for linear algebra including sparse systems
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
@@ -89,15 +89,12 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphing( ModelPart& rModelPart, Parameters MapperSettings )
-        : mrOriginMdpa( rModelPart ),
-          mrDestinationMdpa( rModelPart ),
-          mOriginNodeNumber(rModelPart.Nodes().size()),
-          mDestinationNodeNumber(rModelPart.Nodes().size()),
-          mFilterType( MapperSettings["filter_function_type"].GetString() ),
-          mFilterRadius( MapperSettings["filter_radius"].GetDouble() ),
-          mMaxNumberOfNeighbors( MapperSettings["max_nodes_in_filter_radius"].GetInt() ),
-          mConsistentBackwardMapping (MapperSettings["consistent_mapping_to_geometry_space"].GetBool() )
+    MapperVertexMorphing( ModelPart& rOriginiMdpa, ModelPart& rDestinationMdpa, Parameters MapperSettings )
+        : mrOriginMdpa(rOriginiMdpa),
+          mrDestinationMdpa(rDestinationMdpa),
+          mOriginNodeNumber(rOriginiMdpa.Nodes().size()),
+          mDestinationNodeNumber(rDestinationMdpa.Nodes().size()),
+          mMapperSettings(MapperSettings)
     {
     }
 
@@ -139,7 +136,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void Map( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable ) override
+    void Map( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable)
     {
         if (mIsMappingInitialized == false)
             Initialize();
@@ -185,7 +182,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void InverseMap( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable ) override
+    void InverseMap( const Variable<array_3d> &rVariable, const Variable<array_3d> &rMappedVariable)
     {
         if (mIsMappingInitialized == false)
             Initialize();
@@ -211,8 +208,10 @@ public:
         }
 
         // Perform mapping
-        if (mConsistentBackwardMapping)
+        if(mMapperSettings["apply_consistent_mapping"].GetBool())
         {
+            KRATOS_ERROR_IF(mOriginNodeNumber != mDestinationNodeNumber) << "Consisten mapping requires matching origin and destination model part.";
+
             noalias(mXValuesOrigin) = prod(mMappingMatrix,mXValuesDestination);
             noalias(mYValuesOrigin) = prod(mMappingMatrix,mYValuesDestination);
             noalias(mZValuesOrigin) = prod(mMappingMatrix,mZValuesDestination);
@@ -256,19 +255,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    virtual std::string Info() const
     {
         return "MapperVertexMorphing";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "MapperVertexMorphing";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {
     }
 
@@ -289,9 +288,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    // Initialized by class constructor
     ModelPart& mrOriginMdpa;
     ModelPart& mrDestinationMdpa;
     FilterFunction::Pointer mpFilterFunction;
+    Parameters mMapperSettings;
     bool mIsMappingInitialized = false;
 
     ///@}
@@ -338,10 +339,6 @@ private:
     // Initialized by class constructor
     const unsigned int mOriginNodeNumber;
     const unsigned int mDestinationNodeNumber;
-    std::string mFilterType;
-    double mFilterRadius;
-    unsigned int mMaxNumberOfNeighbors;
-    bool mConsistentBackwardMapping;
 
     // Variables for spatial search
     unsigned int mBucketSize = 100;
@@ -377,7 +374,10 @@ private:
     // --------------------------------------------------------------------------
     void CreateFilterFunction()
     {
-        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
+        std::string filter_type = mMapperSettings["filter_function_type"].GetString();
+        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+
+        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
     }
 
     // --------------------------------------------------------------------------
@@ -401,6 +401,10 @@ private:
         unsigned int i = 0;
         for(auto& node_i : mrOriginMdpa.Nodes())
             node_i.SetValue(MAPPING_ID,i++);
+
+        i = 0;
+        for(auto& node_i : mrDestinationMdpa.Nodes())
+            node_i.SetValue(MAPPING_ID,i++);
     }
 
     // --------------------------------------------------------------------------
@@ -412,43 +416,43 @@ private:
     // --------------------------------------------------------------------------
     void ComputeMappingMatrix()
     {
+        double filter_radius = mMapperSettings["filter_radius"].GetDouble();
+        unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
+
         for(auto& node_i : mrDestinationMdpa.Nodes())
         {
-            NodeVector neighbor_nodes( mMaxNumberOfNeighbors );
-            std::vector<double> resulting_squared_distances( mMaxNumberOfNeighbors );
+            NodeVector neighbor_nodes( max_number_of_neighbors );
+            std::vector<double> resulting_squared_distances( max_number_of_neighbors );
             unsigned int number_of_neighbors = mpSearchTree->SearchInRadius( node_i,
-                                                                             mFilterRadius,
+                                                                             filter_radius,
                                                                              neighbor_nodes.begin(),
                                                                              resulting_squared_distances.begin(),
-                                                                             mMaxNumberOfNeighbors );
+                                                                             max_number_of_neighbors );
+
+
 
             std::vector<double> list_of_weights( number_of_neighbors, 0.0 );
             double sum_of_weights = 0.0;
 
-            ThrowWarningIfMaxNodeNeighborsReached( node_i, number_of_neighbors );
+            if(number_of_neighbors >= max_number_of_neighbors)
+                std::cout << "\n> WARNING!!!!! For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
+
             ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
             FillMappingMatrixWithWeights( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
         }
     }
 
     // --------------------------------------------------------------------------
-    void ThrowWarningIfMaxNodeNeighborsReached( ModelPart::NodeType& given_node, unsigned int number_of_neighbors )
-    {
-        if(number_of_neighbors >= mMaxNumberOfNeighbors)
-            std::cout << "\n> WARNING!!!!! For node " << given_node.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << mMaxNumberOfNeighbors << " nodes) reached!" << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
-    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& node_of_interest,
-                                                NodeVector& neighbor_nodes,
-                                                unsigned int number_of_neighbors,
-                                                std::vector<double>& list_of_weights,
-                                                double& sum_of_weights )
+    virtual void ComputeWeightForAllNeighbors(  ModelPart::NodeType& origin_node,
+                                        NodeVector& neighbor_nodes,
+                                        unsigned int number_of_neighbors,
+                                        std::vector<double>& list_of_weights,
+                                        double& sum_of_weights )
     {
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( node_of_interest.Coordinates(), neighbor_node.Coordinates() );
+            double weight = mpFilterFunction->compute_weight( origin_node.Coordinates(), neighbor_node.Coordinates() );
 
             list_of_weights[neighbor_itr] = weight;
             sum_of_weights += weight;
@@ -456,17 +460,20 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void FillMappingMatrixWithWeights(  ModelPart::NodeType& node_of_interest,
+    void FillMappingMatrixWithWeights(  ModelPart::NodeType& origin_node,
                                         NodeVector& neighbor_nodes,
                                         unsigned int number_of_neighbors,
                                         std::vector<double>& list_of_weights,
                                         double& sum_of_weights )
     {
-        unsigned int row_id = node_of_interest.GetValue(MAPPING_ID);
+
+
+        unsigned int row_id = origin_node.GetValue(MAPPING_ID);
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
             int collumn_id = neighbor_node.GetValue(MAPPING_ID);
+
 
             double weight = list_of_weights[neighbor_itr] / sum_of_weights;
             mMappingMatrix.insert_element(row_id,collumn_id,weight);

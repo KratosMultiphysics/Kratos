@@ -67,10 +67,8 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingImprovedIntegration( ModelPart& rModelPart, Parameters MapperSettings )
-        : MapperVertexMorphing(rModelPart, MapperSettings),
-          mSpecifiedIntegrationMethod(MapperSettings["integration"]["integration_method"].GetString()),
-          mNumberOfGaussPoints( MapperSettings["integration"]["number_of_gauss_points"].GetInt())
+    MapperVertexMorphingImprovedIntegration( ModelPart& rOriginMdpa, ModelPart& rDestinationMdpa, Parameters MapperSettings )
+        : MapperVertexMorphing(rOriginMdpa, rDestinationMdpa, MapperSettings)
     {
     }
 
@@ -187,8 +185,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mSpecifiedIntegrationMethod;
-    int mNumberOfGaussPoints;
     Element::IntegrationMethod mElementIntegrationMethod;
     bool mAreaWeightedNodeSum;
     std::vector<double> nodalAreas;
@@ -205,29 +201,32 @@ private:
     // --------------------------------------------------------------------------
     void SetIntegrationMethod()
     {
-        if (mSpecifiedIntegrationMethod.compare("area_weighted_sum") == 0)
+        std::string specified_integration_method = mMapperSettings["integration_method"].GetString();
+        int number_of_gauss_points = mMapperSettings["number_of_gauss_points"].GetInt();
+
+        if (specified_integration_method.compare("area_weighted_sum") == 0)
             mAreaWeightedNodeSum = true;
-        else if (mSpecifiedIntegrationMethod.compare("gauss_integration") == 0)
+        else if (specified_integration_method.compare("gauss_integration") == 0)
         {
             mAreaWeightedNodeSum = false;
-            if (mNumberOfGaussPoints == 1)
+            if (number_of_gauss_points == 1)
                 mElementIntegrationMethod = GeometryData::GI_GAUSS_1;
-            else if (mNumberOfGaussPoints == 2)
+            else if (number_of_gauss_points == 2)
                 mElementIntegrationMethod = GeometryData::GI_GAUSS_2;
-            else if (mNumberOfGaussPoints == 3)
+            else if (number_of_gauss_points == 3)
                 mElementIntegrationMethod = GeometryData::GI_GAUSS_3;
-            else if (mNumberOfGaussPoints == 4)
+            else if (number_of_gauss_points == 4)
                 mElementIntegrationMethod = GeometryData::GI_GAUSS_4;
-            else if (mNumberOfGaussPoints == 5)
+            else if (number_of_gauss_points == 5)
                 mElementIntegrationMethod = GeometryData::GI_GAUSS_5;
             else
             {
-                std::cout << "\n> mNumberOfGaussPoints: " << mNumberOfGaussPoints << " not valid! USING DEFAULT: 2 " << std::endl;
+                std::cout << "\n> number_of_gauss_points: " << number_of_gauss_points << " not valid! USING DEFAULT: 2 " << std::endl;
                 mElementIntegrationMethod = GeometryData::GI_GAUSS_2;
             }
         }
         else{
-            std::cout << "\n> Integration method " << mSpecifiedIntegrationMethod << " unknown!" << std::endl;
+            std::cout << "\n> Integration method " << specified_integration_method << " unknown!" << std::endl;
             exit(-1);
         }
     }
