@@ -898,6 +898,7 @@ public:
      */
     virtual bool HasIntersection(const BaseType& rOtherGeometry) override
     {
+        const double tolerance = std::numeric_limits<double>::epsilon()
         // We get the local points
         const TPointType& first_point  = BaseType::GetPoint(0); //p1
         const TPointType& second_point = BaseType::GetPoint(1); //p2
@@ -911,7 +912,7 @@ public:
                     /
                    ( (first_point[0]-second_point[0])*(first_point_other[1] - second_point_other[1]) - (first_point[1]-second_point[1])*(first_point_other[0]-second_point_other[0]) );
 
-        return (0.0<=t) && (t<=1.0);
+        return (0.0-tolerance<=t) && (t<=1.0+tolerance);
     }
 
     /** Test intersection of the geometry with a box
