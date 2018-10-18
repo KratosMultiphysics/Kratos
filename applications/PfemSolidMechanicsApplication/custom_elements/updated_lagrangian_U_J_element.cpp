@@ -134,7 +134,7 @@ namespace Kratos
 
       NewElement.SetData(this->GetData());
       NewElement.SetFlags(this->GetFlags());
-      
+
       return Element::Pointer( new UpdatedLagrangianUJElement(NewElement) );
    }
 
@@ -293,26 +293,24 @@ namespace Kratos
 
    }
 
-   // ************************************************************************************
-   // GetDofsSize()
-   unsigned int UpdatedLagrangianUJElement::GetDofsSize()
+   // **************************************************************************
+   // **************************************************************************
+
+   UpdatedLagrangianUJElement::SizeType UpdatedLagrangianUJElement::GetDofsSize()
    {
       KRATOS_TRY
 
       const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
       const SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
-      unsigned int size = number_of_nodes * dimension + number_of_nodes; //usual size for U-P elements
-
-      return size;
+      return number_of_nodes * dimension + number_of_nodes; //usual size for U-P elements
 
       KRATOS_CATCH( "" )
    }
 
-
-
    // **************************************************************************
    // **************************************************************************
+
    void UpdatedLagrangianUJElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
@@ -333,7 +331,7 @@ namespace Kratos
          if ( fabs(Values[0]) > 1e-6)
             mElementStabilizationNumber *= Values[0];
       }
-   
+
       this->Set(SolidElement::FINALIZED_STEP, false);
 
       KRATOS_CATCH( "" );
@@ -457,7 +455,7 @@ namespace Kratos
             //to take in account previous step writing
             if( this->Is(SolidElement::FINALIZED_STEP) ){
                this->GetHistoricalVariables(Variables,PointNumber);
-            }		
+            }
 
             //set general variables to constitutivelaw parameters
             this->SetElementData(Variables,Values,PointNumber);
@@ -467,11 +465,11 @@ namespace Kratos
             Matrix ElementalFT = Variables.H;
 
             // AND NOW IN THE OTHER WAY
-            Matrix m; double d; 
+            Matrix m; double d;
             this->ComputeConstitutiveVariables( Variables, m, d);
 
             Variables.H = m;
-            Variables.detH = d; 
+            Variables.detH = d;
             Values.SetDeformationGradientF( Variables.H);
             Values.SetDeterminantF( Variables.detH );
 
@@ -500,7 +498,7 @@ namespace Kratos
          if( GetProperties().Has(PERMEABILITY) ){
             Permeability = GetProperties()[PERMEABILITY];
          }
-         double WaterDensity = 0; 
+         double WaterDensity = 0;
          if( GetProperties().Has(DENSITY_WATER) ){
             WaterDensity = GetProperties()[DENSITY_WATER];
          }
@@ -508,15 +506,15 @@ namespace Kratos
          // GEOMETRY PARAMETERS
          const unsigned int& integration_points_number = mConstitutiveLawVector.size();
          const unsigned int& dimension       = GetGeometry().WorkingSpaceDimension();
-         const unsigned int& number_of_nodes = GetGeometry().size(); 
+         const unsigned int& number_of_nodes = GetGeometry().size();
 
          // Get DN_DX
-         ElementDataType Variables; 
+         ElementDataType Variables;
          this->InitializeElementData( Variables, rCurrentProcessInfo);
 
          Matrix K = ZeroMatrix( dimension, dimension);
          for (unsigned int i = 0; i < dimension; i++)
-            K(i,i) = Permeability;  // this is only one of the two cases. 
+            K(i,i) = Permeability;  // this is only one of the two cases.
 
          for (unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++)
          {
@@ -530,7 +528,7 @@ namespace Kratos
                }
                const double & rWaterPressure = GetGeometry()[i].FastGetSolutionStepValue( WATER_PRESSURE );
                for (unsigned int iDim = 0; iDim < dimension; iDim++) {
-                  GradP(iDim) += Variables.DN_DX(i, iDim) * rWaterPressure; 
+                  GradP(iDim) += Variables.DN_DX(i, iDim) * rWaterPressure;
                }
             }
 
@@ -538,7 +536,7 @@ namespace Kratos
             GradP(dimension-1) -= 10.0 * WaterDensity;
 
             // finally
-            GradP  = prod( K, GradP); 
+            GradP  = prod( K, GradP);
             // Manual resize
             Vector ResizedVector = ZeroVector(3);
             for (unsigned int i = 0; i < dimension; i++) {
@@ -547,7 +545,7 @@ namespace Kratos
             rOutput[PointNumber] = ResizedVector;
 
          }
-      } 
+      }
       else {
          LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
       }
@@ -561,7 +559,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      if (rVariable == CAUCHY_STRESS_TENSOR) 
+      if (rVariable == CAUCHY_STRESS_TENSOR)
       {
          //create and initialize element variables:
          ElementDataType Variables;
@@ -586,7 +584,7 @@ namespace Kratos
             //to take in account previous step writing
             if( this->Is(SolidElement::FINALIZED_STEP) ){
                this->GetHistoricalVariables(Variables,PointNumber);
-            }		
+            }
 
             //set general variables to constitutivelaw parameters
             this->SetElementData(Variables,Values,PointNumber);
@@ -596,11 +594,11 @@ namespace Kratos
             Matrix ElementalFT = Variables.H;
 
             // AND NOW IN THE OTHER WAY
-            Matrix m; double d; 
+            Matrix m; double d;
             this->ComputeConstitutiveVariables( Variables, m, d);
 
             Variables.H = m;
-            Variables.detH = d; 
+            Variables.detH = d;
             Values.SetDeformationGradientF( Variables.H);
             Values.SetDeterminantF( Variables.detH );
 
@@ -623,7 +621,7 @@ namespace Kratos
 
          CalculateOnIntegrationPoints( CAUCHY_STRESS_TENSOR, rOutput, rCurrentProcessInfo);
 
-         if ( GetGeometry()[0].HasDofFor( WATER_PRESSURE) ) 
+         if ( GetGeometry()[0].HasDofFor( WATER_PRESSURE) )
          {
             const unsigned int number_of_nodes = GetGeometry().size();
             //create and initialize element variables:
@@ -643,7 +641,7 @@ namespace Kratos
                }
 
                for (unsigned int i = 0; i < 3; i++)
-                  rOutput[PointNumber](i,i) += WaterPressure; 
+                  rOutput[PointNumber](i,i) += WaterPressure;
 
             }
          }
@@ -672,7 +670,7 @@ namespace Kratos
          {
             rOutput[PointNumber] = mDeterminantF0[PointNumber];
          }
-      
+
       }
       else if ( rVariable == POROSITY)
       {
@@ -683,7 +681,7 @@ namespace Kratos
          if ( rOutput.size() != mConstitutiveLawVector.size() )
             rOutput.resize( mConstitutiveLawVector.size() );
 
-         std::vector<double>  DetF0; 
+         std::vector<double>  DetF0;
          GetValueOnIntegrationPoints( DETERMINANT_F, DetF0, rCurrentProcessInfo);
 
          if (rOutput.size() != integration_points_number)
@@ -721,10 +719,10 @@ namespace Kratos
             {
                rOutput[PointNumber] = Permeability ;
             }
-            return; 
+            return;
          }
 
-         std::vector<double>  Porosity; 
+         std::vector<double>  Porosity;
          GetValueOnIntegrationPoints( POROSITY, Porosity, rCurrentProcessInfo);
          double PorosityInitial = GetProperties()[INITIAL_POROSITY];
          double initialVoidRatio = PorosityInitial / (1.0 - PorosityInitial);
@@ -734,7 +732,7 @@ namespace Kratos
          for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
          {
             double voidRatio = Porosity[PointNumber] / ( 1.0 - Porosity[PointNumber]);
-            rOutput[PointNumber] = Constant * pow( voidRatio, 3.0) / (1.0 + voidRatio); 
+            rOutput[PointNumber] = Constant * pow( voidRatio, 3.0) / (1.0 + voidRatio);
             if ( rOutput[PointNumber] < Permeability / 1000.0) {
                rOutput[PointNumber] = Permeability /1000.0;
             }
@@ -850,7 +848,7 @@ namespace Kratos
    ////************************************************************************************
 
    void UpdatedLagrangianUJElement::FinalizeStepVariables( ElementDataType & rVariables, const double& rPointNumber )
-   { 
+   {
       KRATOS_TRY
 
       //update internal (historical) variables
@@ -1097,7 +1095,7 @@ namespace Kratos
       rVariables.detF = 1.0;
 
       //contribution of the internal and external forces
-      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
       // operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
       CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
@@ -1201,7 +1199,7 @@ namespace Kratos
       VectorType Fh=rRightHandSideVector;
 
 
-      double consistent; 
+      double consistent;
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
          for ( unsigned int j = 0; j < number_of_nodes; j++ )
@@ -1248,9 +1246,9 @@ namespace Kratos
       unsigned int indexp = dimension;
 
       //use of this variable for the complete parameter: (deffault: 4)
-      double AlphaStabilization  = 4.0; 
+      double AlphaStabilization  = 4.0;
       double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_J];
-      AlphaStabilization *= StabilizationFactor; 
+      AlphaStabilization *= StabilizationFactor;
 
       const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
       const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];
@@ -1260,12 +1258,12 @@ namespace Kratos
 
       AlphaStabilization=(AlphaStabilization/(LameMu));
 
-      AlphaStabilization *= BulkModulus;  
+      AlphaStabilization *= BulkModulus;
 
       if (YoungModulus < 0.00001)
       {
          AlphaStabilization = 4.0 * StabilizationFactor ;
-         AlphaStabilization *= mElementStabilizationNumber; 
+         AlphaStabilization *= mElementStabilizationNumber;
       }
 
       if ( dimension == 2) {
@@ -1321,7 +1319,7 @@ namespace Kratos
       Matrix ConstitutiveMatrix = rVariables.ConstitutiveMatrix;
 
       unsigned int voigtsize = 3;
-      if (dimension == 3) 
+      if (dimension == 3)
          voigtsize = 6;
 
       Matrix DeviatoricTensor(voigtsize,voigtsize);
@@ -1354,7 +1352,7 @@ namespace Kratos
       const unsigned int MatSize = dimension*number_of_nodes;
       MatrixType Kuu(MatSize,MatSize);
 
-      noalias( Kuu ) = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( ConstitutiveMatrix, rVariables.B ) ) ); 
+      noalias( Kuu ) = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( ConstitutiveMatrix, rVariables.B ) ) );
 
 
       unsigned int indexi = 0;
@@ -1396,7 +1394,7 @@ namespace Kratos
 
       Matrix ConstitutiveMatrix = rVariables.ConstitutiveMatrix;
       unsigned int voigtsize = 3;
-      if (dimension == 3) 
+      if (dimension == 3)
          voigtsize = 6;
 
 
@@ -1408,16 +1406,16 @@ namespace Kratos
 
       Vector ConstVector(voigtsize);
       noalias( ConstVector) = prod( ConstitutiveMatrix, Identity);
-      ConstVector /= dimension_double; 
+      ConstVector /= dimension_double;
 
-      ConstVector += ( 2.0/dimension_double-1.0) * rVariables.StressVector; 
+      ConstVector += ( 2.0/dimension_double-1.0) * rVariables.StressVector;
 
       double ElementJacobian = 0.0;
 
       for ( unsigned int i = 0; i <  number_of_nodes ; i++)
          ElementJacobian += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * rVariables.N[i] ;
 
-      ConstVector /= ElementJacobian; 
+      ConstVector /= ElementJacobian;
 
       Vector KuJ(number_of_nodes*dimension);
       noalias( KuJ ) = prod( trans( rVariables.B), (ConstVector) );
@@ -1558,7 +1556,7 @@ namespace Kratos
 
       //contributions to stiffness matrix calculated on the reference configuration
       unsigned int indexpi = dimension;
-      double consistent; 
+      double consistent;
 
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -1608,9 +1606,9 @@ namespace Kratos
       double consistent = 1.0;
 
       //use of this variable for the complete parameter: (deffault: 4)
-      double AlphaStabilization  = 4.0; 
+      double AlphaStabilization  = 4.0;
       double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_J];
-      AlphaStabilization *= StabilizationFactor; 
+      AlphaStabilization *= StabilizationFactor;
 
       const double& YoungModulus          = GetProperties()[YOUNG_MODULUS];
       const double& PoissonCoefficient    = GetProperties()[POISSON_RATIO];
@@ -1625,7 +1623,7 @@ namespace Kratos
       if (YoungModulus < 0.00001)
       {
          AlphaStabilization = 4.0 * StabilizationFactor ;
-         AlphaStabilization *= mElementStabilizationNumber; 
+         AlphaStabilization *= mElementStabilizationNumber;
       }
 
       if ( dimension == 2) {
@@ -1647,7 +1645,7 @@ namespace Kratos
                   consistent = 3.0 * AlphaStabilization;
             }
 
-            rLeftHandSideMatrix(indexpi,indexpj) -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF);  
+            rLeftHandSideMatrix(indexpi,indexpj) -= consistent * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
 
             indexpj += (dimension + 1);
          }
@@ -1869,11 +1867,11 @@ namespace Kratos
          Matrix ElementalFT = Variables.H;
 
          // AND NOW IN THE OTHER WAY
-         Matrix m; double d; 
+         Matrix m; double d;
          this->ComputeConstitutiveVariables( Variables, m, d);
 
          Variables.H = m;
-         Variables.detH = d; 
+         Variables.detH = d;
          Values.SetDeformationGradientF( Variables.H);
          Values.SetDeterminantF( Variables.detH );
 
@@ -1897,7 +1895,7 @@ namespace Kratos
 
       this->Set(SolidElement::FINALIZED_STEP, true);
 
-      
+
       KRATOS_CATCH( "" )
    }
    ////************************************************************************************
@@ -1947,11 +1945,11 @@ namespace Kratos
          Matrix ElementalFT = Variables.H;
 
          // AND NOW IN THE OTHER WAY
-         Matrix m; double d; 
+         Matrix m; double d;
          this->ComputeConstitutiveVariables( Variables, m, d);
 
          Variables.H = m;
-         Variables.detH = d; 
+         Variables.detH = d;
          Values.SetDeformationGradientF( Variables.H);
          Values.SetDeterminantF( Variables.detH );
 
@@ -1998,7 +1996,7 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().size();
 
       rDetFT = 0;
-      for (unsigned int i = 0; i < number_of_nodes; i++) 
+      for (unsigned int i = 0; i < number_of_nodes; i++)
          rDetFT += GetGeometry()[i].GetSolutionStepValue( JACOBIAN ) * rVariables.N[i];
 
       rFT = rVariables.H;
@@ -2024,7 +2022,7 @@ namespace Kratos
 
       double detF0 = 0;
       unsigned int step = 1;
-      if ( this->Is(SolidElement::FINALIZED_STEP) ) 
+      if ( this->Is(SolidElement::FINALIZED_STEP) )
          step = 0;
       for ( unsigned int i = 0; i < number_of_nodes; i++)
          detF0 += GetGeometry()[i].GetSolutionStepValue( JACOBIAN, step ) * rVariables.N[i];

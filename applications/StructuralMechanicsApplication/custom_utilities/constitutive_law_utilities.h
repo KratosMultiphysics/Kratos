@@ -276,7 +276,39 @@ class ConstitutiveLawUtilities
         const BoundedVectorType& rStressVector
         );
 
+    /**
+     * @brief This method calculates the projection operator
+     * and calculates the Projection Operator
+     * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
+     * Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
+     * Materials" - M. Cervera and C. Tesei.
+     * @param rStrainVector The Strain Vector
+     * @param rProjectionOperator The projection operator
+     */
+    static void CalculateProjectionOperator(
+        const Vector& rStrainVector,
+        MatrixType& rProjectionOperator
+        );
+
+    /**
+     * @brief This method performs Spectral Decomposition of the Stress Vector/Tensor
+     * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
+     * Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
+     * Materials" - M. Cervera and C. Tesei.
+     * @param rStressVector The Stress Vector
+     * @param rStressVectorTension The Stress Vector
+     * @param rStressVectorCompression The Stress Vector
+     * @param rMatrixTension The Stress Vector
+     * @param rMatrixCompression The Stress Vector
+     */
+    static void SpectralDecomposition(
+        const array_1d<double, VoigtSize>& rStressVector,
+        array_1d<double, VoigtSize>& rStressVectorTension,
+        array_1d<double, VoigtSize>& rStressVectorCompression
+        );
+
   private:
+
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos
 #endif /* KRATOS_CONSTITUTIVE_LAW_UTILITIES defined */
