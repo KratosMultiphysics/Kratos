@@ -31,7 +31,8 @@ double GetFromProperty(const Properties& rThisProperties, Variable<double>& rVar
         return 0.0;
 }
 
-double TotalStructuralMassProcess::CalculateElementMass(Element& rElement, const std::size_t DomainSize ){
+double TotalStructuralMassProcess::CalculateElementMass(Element& rElement, const std::size_t DomainSize)
+{
     // We get the element geometry
     GeometryType& r_this_geometry = rElement.GetGeometry();
     const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
@@ -49,8 +50,9 @@ double TotalStructuralMassProcess::CalculateElementMass(Element& rElement, const
     double element_mass = 0.0;
 
     if (local_space_dimension == 0) { // POINT MASSES
-        if (rElement.Has(NODAL_MASS))
+        if (rElement.Has(NODAL_MASS)) {
             element_mass = rElement.GetValue(NODAL_MASS);
+        }
     } else if (local_space_dimension == 1) { // BEAM CASE
         const double density = GetFromProperty(this_properties,DENSITY);
         const double area = GetFromProperty(this_properties,CROSS_AREA);

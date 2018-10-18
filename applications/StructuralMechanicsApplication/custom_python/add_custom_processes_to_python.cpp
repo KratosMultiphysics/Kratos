@@ -16,7 +16,6 @@
 
 // Project includes
 #include "custom_python/add_custom_processes_to_python.h"
-#include "includes/model_part.h"
 #include "structural_mechanics_application_variables.h"
 
 //Processes
@@ -43,6 +42,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     class_<TotalStructuralMassProcess, TotalStructuralMassProcess::Pointer, Process>(m,"TotalStructuralMassProcess")
         .def(init<ModelPart&>())
+        .def_static("CalculateElementMass", &TotalStructuralMassProcess::CalculateElementMass);
         ;
 
     class_<SolidShellThickComputeProcess, SolidShellThickComputeProcess::Pointer, Process>(m,"SolidShellThickComputeProcess")
@@ -66,14 +66,14 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     //SPR_ERROR
     class_<SPRErrorProcess<2>, SPRErrorProcess<2>::Pointer, Process >(m, "SPRErrorProcess2D")
-    .def(init<ModelPart&>())
-    .def(init<ModelPart&, Parameters>())
-    ;
+        .def(init<ModelPart&>())
+        .def(init<ModelPart&, Parameters>())
+        ;
 
     class_<SPRErrorProcess<3>, SPRErrorProcess<3>::Pointer, Process >(m, "SPRErrorProcess3D")
-    .def(init<ModelPart&>())
-    .def(init<ModelPart&, Parameters>())
-    ;
+        .def(init<ModelPart&>())
+        .def(init<ModelPart&, Parameters>())
+        ;
 
     class_<ImposeRigidMovementProcess, ImposeRigidMovementProcess::Pointer, Process>(m, "ImposeRigidMovementProcess")
         .def(init<ModelPart&>())
