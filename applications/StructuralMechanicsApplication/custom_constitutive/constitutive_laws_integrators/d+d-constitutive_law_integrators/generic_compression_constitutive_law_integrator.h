@@ -58,7 +58,7 @@ namespace Kratos
  * @author Alejandro Cornejo 
  */
 template <class TYieldSurfaceType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericCompressionConstitutiveLawIntegratorDplusDminusDamage
+class GenericCompressionConstitutiveLawIntegratorDplusDminusDamage
 {
   public:
 
@@ -311,18 +311,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericCompressionConstitutiv
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 
