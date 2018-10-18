@@ -15,6 +15,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 
@@ -27,8 +28,8 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite)
 {
-    ModelPart model_part("Main");
-    model_part.SetBufferSize(3);
+    Model model;
+    ModelPart& model_part = model.CreateModelPart("Main",3);
 
     // Variables addition
     model_part.AddNodalSolutionStepVariable(DENSITY); // TODO: To be removed once the element migration is finally finished (the old embedded elements still use nodal density and viscosity)
