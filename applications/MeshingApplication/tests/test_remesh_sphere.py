@@ -270,7 +270,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         }
         """)
 
-        check_parameters["input_file_name"].SetString(file_path + "/" + check_parameters["input_file_name"].GetString())
+        check_parameters["input_file_name"].SetString(os.path.join(file_path, check_parameters["input_file_name"].GetString()))
         check = from_json_check_result_process.FromJsonCheckResultProcess(current_model, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
