@@ -29,7 +29,6 @@ namespace Kratos {
         .def(init<>())
         .def(init<ModelPart&>())
         .def("RemoveSpheresInitiallyIndentedWithFEM", &NvidiaFlexPreUtilities::RemoveSpheresInitiallyIndentedWithFEM)
-        .def("CheckIfItsTimeToChangeGravity", &NvidiaFlexPreUtilities::CheckIfItsTimeToChangeGravity)
         ;
 
         }

@@ -27,11 +27,12 @@ class SolutionDEM(main_script.Solution):
         self.list_of_gravities = []
         self.gravity_iterator_position = 0
         self.stop_signal = False
-        self.time_of_last_gravity_shift = 0.0
+        
 
     def Initialize(self):
         super(SolutionDEM, self).Initialize()
         self.creator_destructor.DestroyParticlesOutsideBoundingBox(self.spheres_model_part) #TODO: why this?
+        self.stationarity_checker = StationarityChecker()
         if self.changing_gravity_option:
             self._ReadFileWithGravities()
             if not self.list_of_gravities:
@@ -46,7 +47,7 @@ class SolutionDEM(main_script.Solution):
         
     def _ChangeGravityIfNecessary(self):
         if self.changing_gravity_option:
-            if NvidiaFlexPreUtilities().CheckIfItsTimeToChangeGravity(self.spheres_model_part, self.time_of_last_gravity_shift, self.velocity_threshold_for_gravity_change, self.min_time_between_gravity_changes, self.max_time_between_gravity_changes):
+            if self.stationarity_checker.CheckIfItsTimeToChangeGravity(self.spheres_model_part, self.velocity_threshold_for_gravity_change, self.min_time_between_gravity_changes, self.max_time_between_gravity_changes):
                 #TODO: utility of max_time_between_gravity_changes??
                 self._ChangeGravity()
 

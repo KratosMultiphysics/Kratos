@@ -68,45 +68,6 @@ class NvidiaFlexPreUtilities
         }
     }
 
-    bool CheckIfItsTimeToChangeGravity(ModelPart& rSpheresModelPart,
-                                       double& time_of_last_gravity_shift,
-                                       const double velocity_threshold_for_gravity_change,
-                                       const double min_time_between_changes,
-                                       const double max_time_between_changes) {
-
-        const double& current_time = rSpheresModelPart.GetProcessInfo()[TIME];
-        
-        static double last_time_gravity_changed = 0.0;
-        
-        if (current_time < last_time_gravity_changed + min_time_between_changes) return false;
-        if (current_time > last_time_gravity_changed + max_time_between_changes) {
-            last_time_gravity_changed  = current_time;
-            return true;
-        }
-        
-        /*if (current_time < time_of_last_gravity_shift + min_time_between_changes) return false;
-        if (current_time > time_of_last_gravity_shift + max_time_between_changes) {
-            time_of_last_gravity_shift  = current_time;
-            return true;
-        }*/
-
-        const size_t number_of_nodes = rSpheresModelPart.Nodes().size();
-        double max_squared_velocity = 0.0;
-        for (size_t i = 0; i < number_of_nodes; i++) {
-            
-            const auto node_it = rSpheresModelPart.Nodes().begin() + i;
-            auto& vel = node_it->FastGetSolutionStepValue(VELOCITY);
-            const double node_i_squared_velocity_module = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
-            if (node_i_squared_velocity_module > max_squared_velocity) max_squared_velocity = node_i_squared_velocity_module;
-        }
-
-        if (max_squared_velocity < velocity_threshold_for_gravity_change * velocity_threshold_for_gravity_change) {
-            //time_of_last_gravity_shift  = current_time;
-            last_time_gravity_changed  = current_time;
-            return true;
-        } else return false;
-    }
-
     /// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
     virtual std::string Info() const
