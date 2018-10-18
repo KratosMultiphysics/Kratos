@@ -945,7 +945,7 @@ public:
         double slope = (second_point[1] - first_point[1]) / ( second_point[0] - first_point[0] );
 
         // Intersection with left vertical line of the box that is x = low_x
-        double y_1 = slope*( low_x - first_point[0] ) + first_point[1];
+      const double y_1 = slope*( low_x - first_point[0] ) + first_point[1];
         if(y_1 >= low_y - tolerance && y_1 <= high_y+tolerance) // If y intersection is between two y bounds there is an intersection
             return true;
         // Intersection with right vertical line of the box that is x = high_x
