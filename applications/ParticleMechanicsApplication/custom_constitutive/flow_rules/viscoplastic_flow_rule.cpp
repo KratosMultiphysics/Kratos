@@ -1,10 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:            Duan Wenjie $
-//   Date:                $Date:                March 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Duan Wenjie
 //
+
 
 // System includes
 #include <string>
@@ -82,7 +87,7 @@ bool ViscoplasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rRetu
 
     mInternalVariables.EquivalentPlasticStrainOld  = mInternalVariables.EquivalentPlasticStrain;
 
-    mInternalVariables.DeltaPlasticStrain          = sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
+    mInternalVariables.DeltaPlasticStrain          = std::sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
 
     mInternalVariables.EquivalentPlasticStrain    += mInternalVariables.DeltaPlasticStrain;
 
@@ -164,32 +169,32 @@ bool ViscoplasticFlowRule::CalculateConsistencyCondition( RadialReturnVariables&
 
 
     double Hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(Hardening,NewHardeningParameters);
-    double StateFunction = (Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)*pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-sqrt(2.0/3.0) * Hardening;
+    double StateFunction = (Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)*std::pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-std::sqrt(2.0/3.0) * Hardening;
 
 //    std::cout << "Qtrail:" << Qtrail << std::endl;
 //    std::cout << "OldTrialStateFunction:" << rReturnMappingVariables.TrialStateFunction << std::endl;
 //    std::cout << "StateFunction:" << StateFunction << std::endl;
 //    std::cin.get();
 
-    while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
+    while ( std::abs(StateFunction)>=Tolerance && iter<=MaxIterations)
     {
         //Calculate Delta State Function:
         //DeltaStateFunction = mpYieldCriterion->CalculateDeltaStateFunction( DeltaStateFunction, rCriterionParameters );
         double DeltaHardening = mpYieldCriterion->GetHardeningLaw().CalculateDeltaHardening(Hardening,NewHardeningParameters);
-        DeltaStateFunction = -(2.0*G+RateSensitivity*mu*(Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)/(mu*rReturnMappingVariables.DeltaGamma+dt))*pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-2.0/3.0 * DeltaHardening;
+        DeltaStateFunction = -(2.0*G+RateSensitivity*mu*(Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)/(mu*rReturnMappingVariables.DeltaGamma+dt))*std::pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-2.0/3.0 * DeltaHardening;
         //Calculate DeltaGamma:
         DeltaDeltaGamma  = -StateFunction/DeltaStateFunction;
         rReturnMappingVariables.DeltaGamma += DeltaDeltaGamma;
 
         //Update Equivalent Plastic Strain:
-        rPlasticVariables.DeltaPlasticStrain       = sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
+        rPlasticVariables.DeltaPlasticStrain       = std::sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
         rPlasticVariables.EquivalentPlasticStrain  = rPlasticVariables.EquivalentPlasticStrainOld + rPlasticVariables.DeltaPlasticStrain;
 
         //Calculate State Function:
         NewHardeningParameters.SetEquivalentPlasticStrain(rPlasticVariables.EquivalentPlasticStrain);
         NewHardeningParameters.SetDeltaGamma(rReturnMappingVariables.DeltaGamma);
         Hardening = mpYieldCriterion->GetHardeningLaw().CalculateHardening(Hardening,NewHardeningParameters);
-        StateFunction = (Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)*pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-sqrt(2.0/3.0) * Hardening;
+        StateFunction = (Qtrail-2.0*G*rReturnMappingVariables.DeltaGamma)*std::pow((dt/(mu*rReturnMappingVariables.DeltaGamma+dt)),RateSensitivity)-std::sqrt(2.0/3.0) * Hardening;
 
         iter++;
 //        std::cout << "Iter:" << iter << std::endl;

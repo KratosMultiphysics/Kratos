@@ -34,6 +34,9 @@ namespace Kratos {
     std::cout << "Initializing KratosConstitutiveModelsApplication... " << std::endl;
 
     //Register Variables (variables created in constitutive_models_application_variables.cpp)
+    KRATOS_REGISTER_VARIABLE(TEMPERATURE_VARIABLE)
+    KRATOS_REGISTER_VARIABLE(PRESSURE_VARIABLE)
+    KRATOS_REGISTER_VARIABLE(PROPERTIES_LAYOUT)
 
     //specific constitutive models variables must be REGISTERED here
 

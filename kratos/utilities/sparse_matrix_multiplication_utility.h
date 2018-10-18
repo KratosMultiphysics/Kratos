@@ -533,7 +533,7 @@ public:
         const SizeType size_system_2 = rB.size2();
 
         if (rA.size1() != size_system_2 || rA.size2() != size_system_1 ) {
-            rA.resize(size_system_2, size_system_1);
+            rA.resize(size_system_2, size_system_1, false);
         }
 
         IndexVectorType new_a_ptr(size_system_2 + 1, 0);

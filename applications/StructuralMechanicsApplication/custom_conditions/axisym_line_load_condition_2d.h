@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_AXISYM_LINE_LOAD_CONDITION_2D_H_INCLUDED )
@@ -163,7 +163,7 @@ private:
      */
     double GetIntegrationWeight(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber,
+        const SizeType PointNumber,
         const double detJ
         ) override;
 

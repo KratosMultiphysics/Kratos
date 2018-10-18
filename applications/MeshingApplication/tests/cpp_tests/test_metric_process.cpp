@@ -28,12 +28,12 @@
 #include "custom_processes/metrics_levelset_process.h"
 #include "custom_processes/metrics_error_process.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
-        
+
         void GiDIODebugMetric(ModelPart& ThisModelPart)
         {
             GidIO<> gid_io("TEST_METRIC", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
@@ -46,9 +46,10 @@ namespace Kratos
             gid_io.InitializeResults(label, ThisModelPart.GetMesh());
             gid_io.WriteNodalResults(DISTANCE, ThisModelPart.Nodes(), label, 0);
             gid_io.WriteNodalResults(DISTANCE_GRADIENT, ThisModelPart.Nodes(), label, 0);
-            gid_io.WriteNodalResultsNonHistorical(MMG_METRIC, ThisModelPart.Nodes(), label);
+            gid_io.WriteNodalResultsNonHistorical(METRIC_TENSOR_2D, ThisModelPart.Nodes(), label);
+//             gid_io.WriteNodalResultsNonHistorical(METRIC_TENSOR_3D, ThisModelPart.Nodes(), label); // NOTE: 6 components not suported, update
         }
-      
+
         void GiDIODebugMetricSPR(ModelPart& ThisModelPart)
         {
             GidIO<> gid_io("TEST_METRIC_SPR", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
@@ -63,9 +64,10 @@ namespace Kratos
             gid_io.PrintOnGaussPoints(ERROR_INTEGRATION_POINT, ThisModelPart, label);
             gid_io.PrintOnGaussPoints(CAUCHY_STRESS_VECTOR, ThisModelPart, label);
             gid_io.PrintOnGaussPoints(STRAIN_ENERGY, ThisModelPart, label);
-            gid_io.WriteNodalResultsNonHistorical(MMG_METRIC, ThisModelPart.Nodes(), label);
+            gid_io.WriteNodalResultsNonHistorical(METRIC_TENSOR_2D, ThisModelPart.Nodes(), label);
+//             gid_io.WriteNodalResultsNonHistorical(METRIC_TENSOR_3D, ThisModelPart.Nodes(), label); // NOTE: 6 components not suported, update
         }
-        
+
         void Create2DGeometry(ModelPart& ThisModelPart, const std::string& ElementName)
         {
             Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
@@ -227,122 +229,122 @@ namespace Kratos
             Element::Pointer p_elem_11 = ThisModelPart.CreateNewElement(ElementName, 12, tetrahedra_11, p_elem_prop);
         }
 
-        /** 
+        /**
         * Checks the correct work of the level set metric process
-        * Test triangle 
+        * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestLevelSetMetricProcess1, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(LevelSetMetricProcess1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
-            
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
+
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
             this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
-            
+
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
-            
+
             Create2DGeometry(this_model_part, "Element2D3N");
-            
+
             // Set DISTANCE and other variables
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
                 it_node->FastGetSolutionStepValue(NODAL_H) = 1.0;
-                it_node->SetValue(MMG_METRIC, ZeroVector(3));
+                it_node->SetValue(METRIC_TENSOR_2D, ZeroVector(3));
             }
-                         
+
             typedef ComputeNodalGradientProcess<2, Variable<double>, Historical> GradientType;
             GradientType gradient_process = GradientType(this_model_part, DISTANCE, DISTANCE_GRADIENT, NODAL_AREA);
             gradient_process.Execute();
-            
+
             // Compute metric
             ComputeLevelSetSolMetricProcess<2> level_set_process = ComputeLevelSetSolMetricProcess<2>(this_model_part);
             level_set_process.Execute();
-            
-//             // DEBUG         
+
+//             // DEBUG
 //             GiDIODebugMetric(this_model_part);
-            
+
             const double tolerance = 1.0e-4;
-            Vector ref_metric(3);
+            array_1d<double, 3> ref_metric;
             ref_metric[0] = 100;
-            ref_metric[1] = 0;
-            ref_metric[2] = 100;
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(1)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(5)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(6)->GetValue(MMG_METRIC) - ref_metric), tolerance);
+            ref_metric[1] = 100;
+            ref_metric[2] = 0;
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
         }
-        
-        /** 
+
+        /**
         * Checks the correct work of the nodal gradient compute
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestLevelSetMetricProcess2, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(LevelSetMetricProcess2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
-            
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
+
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
             this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
-            
+
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
             Create3DGeometry(this_model_part, "Element3D4N");
-            
+
             // Set DISTANCE and other variables
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
                 it_node->FastGetSolutionStepValue(NODAL_H) = 1.0;
-                it_node->SetValue(MMG_METRIC, ZeroVector(6));
+                it_node->SetValue(METRIC_TENSOR_3D, ZeroVector(6));
             }
-                      
+
             // Compute gradient
             typedef ComputeNodalGradientProcess<3, Variable<double>, Historical> GradientType;
             GradientType gradient_process = GradientType(this_model_part, DISTANCE, DISTANCE_GRADIENT, NODAL_AREA);
             gradient_process.Execute();
-            
+
             // Compute metric
             ComputeLevelSetSolMetricProcess<3> level_set_process = ComputeLevelSetSolMetricProcess<3>(this_model_part);
             level_set_process.Execute();
-            
-//             // DEBUG         
+
+//             // DEBUG
 //             GiDIODebugMetric(this_model_part);
-            
+
             const double tolerance = 1.0e-4;
-            Vector ref_metric = ZeroVector(6);
+            array_1d<double, 6> ref_metric = ZeroVector(6);
             ref_metric[0] = 100;
-            ref_metric[3] = 100;
-            ref_metric[5] = 100;
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(1)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(5)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(9)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(10)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(11)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(12)->GetValue(MMG_METRIC) - ref_metric), tolerance);
+            ref_metric[1] = 100;
+            ref_metric[2] = 100;
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(9)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(10)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(11)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(12)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
         }
-        
+
         /**
         * Checks the correct work of the hessian metric process
         * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestHessianMetricProcess1, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(HessianMetricProcess1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -360,7 +362,7 @@ namespace Kratos
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
                 it_node->FastGetSolutionStepValue(NODAL_H) = 1.0;
-                it_node->SetValue(MMG_METRIC, ZeroVector(3));
+                it_node->SetValue(METRIC_TENSOR_2D, ZeroVector(3));
             }
 
             // Compute metric
@@ -371,14 +373,14 @@ namespace Kratos
 //             GiDIODebugMetric(this_model_part);
 
             const double tolerance = 1.0e-4;
-            Vector ref_metric(3);
+            array_1d<double, 3> ref_metric;
             ref_metric[0] = 100;
-            ref_metric[1] = 0;
-            ref_metric[2] = 100;
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(1)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(5)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(6)->GetValue(MMG_METRIC) - ref_metric), tolerance);
+            ref_metric[1] = 100;
+            ref_metric[2] = 0;
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_2D) - ref_metric), tolerance);
         }
 
         /**
@@ -386,10 +388,10 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestHessianMetricProcess2, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(HessianMetricProcess2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
 
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -407,7 +409,7 @@ namespace Kratos
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISTANCE) = (it_node->X() == 1.0) ? 0.0 : 1.0;
                 it_node->FastGetSolutionStepValue(NODAL_H) = 1.0;
-                it_node->SetValue(MMG_METRIC, ZeroVector(6));
+                it_node->SetValue(METRIC_TENSOR_3D, ZeroVector(6));
             }
 
             // Compute metric
@@ -418,37 +420,37 @@ namespace Kratos
 //             GiDIODebugMetric(this_model_part);
 
             const double tolerance = 1.0e-4;
-            Vector ref_metric = ZeroVector(6);
+            array_1d<double, 6> ref_metric = ZeroVector(6);
             ref_metric[0] = 100;
-            ref_metric[3] = 100;
-            ref_metric[5] = 100;
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(1)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(5)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(9)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(10)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(11)->GetValue(MMG_METRIC) - ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(12)->GetValue(MMG_METRIC) - ref_metric), tolerance);
+            ref_metric[1] = 100;
+            ref_metric[2] = 100;
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(1)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(5)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(9)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(10)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(11)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(12)->GetValue(METRIC_TENSOR_3D) - ref_metric), tolerance);
         }
 
         /**
         * Checks the correct work of the SPR metric process
-        * Test triangle 
+        * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSPRMetricProcess1, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SPRMetricProcess1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
-            
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
+
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            
+
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
-            
+
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
@@ -464,16 +466,16 @@ namespace Kratos
                 ielem.Initialize();
                 ielem.InitializeSolutionStep(process_info);
             }
-            
+
             // Set DISPLACEMENT_X and other variables
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISPLACEMENT_X) = (it_node->X() == 1.0) ? 0.5 : 0.0;
                 it_node->Coordinates()[0] += (it_node->X() == 1.0) ? 0.5 : 0.0;
                 it_node->FastGetSolutionStepValue(NODAL_H) = 1.0;
-                it_node->SetValue(MMG_METRIC, ZeroVector(3));
+                it_node->SetValue(METRIC_TENSOR_2D, ZeroVector(3));
             }
-            
+
             // Compute error
             process_info[ERROR_OVERALL] = 0.122409;
             process_info[ENERGY_NORM_OVERALL] = 0.257196;
@@ -483,37 +485,37 @@ namespace Kratos
             // Compute metric
             MetricErrorProcess<2> metric_process = MetricErrorProcess<2>(this_model_part);
             metric_process.Execute();
-            
+
 //             // DEBUG
 //             GiDIODebugMetricSPR(this_model_part);
-            
-            const double tolerance = 1.0e-4;
-            Vector ref_metric(3);
-            ref_metric[0] = 246.507;
-            ref_metric[1] = 0;
-            ref_metric[2] = 246.507;
 
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
+            const double tolerance = 1.0e-4;
+            array_1d<double, 3> ref_metric(3);
+            ref_metric[0] = 246.507;
+            ref_metric[1] = 246.507;
+            ref_metric[2] = 0;
+
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(2)->GetValue(METRIC_TENSOR_2D) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(METRIC_TENSOR_2D) - ref_metric)/norm_2(ref_metric), tolerance);
         }
-        
-        /** 
+
+        /**
         * Checks the correct work of the nodal SPR compute
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSPRMetricProcess2, KratosMeshingApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SPRMetricProcess2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
-            
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
+
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            
+
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
-            
+
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
@@ -529,16 +531,16 @@ namespace Kratos
                 ielem.Initialize();
                 ielem.InitializeSolutionStep(process_info);
             }
-            
+
             // Set DISPLACEMENT_X and other variables
             for (std::size_t i_node = 0; i_node < this_model_part.Nodes().size(); ++i_node) {
                 auto it_node = this_model_part.Nodes().begin() + i_node;
                 it_node->FastGetSolutionStepValue(DISPLACEMENT_X) = (it_node->X() == 1.0) ? 0.5 : 0.0;
                 it_node->Coordinates()[0] += (it_node->X() == 1.0) ? 0.5 : 0.0;
                 it_node->FastGetSolutionStepValue(NODAL_H) = 1.0;
-                it_node->SetValue(MMG_METRIC, ZeroVector(6));
+                it_node->SetValue(METRIC_TENSOR_3D, ZeroVector(6));
             }
-                      
+
             // Compute error
             process_info[ERROR_OVERALL] = 0.0223607;
             process_info[ENERGY_NORM_OVERALL] = 0.148492;
@@ -553,15 +555,15 @@ namespace Kratos
 //             GiDIODebugMetricSPR(this_model_part);
 
             const double tolerance = 1.0e-4;
-            Vector ref_metric = ZeroVector(6);
+            array_1d<double, 6> ref_metric = ZeroVector(6);
             ref_metric[0] = 4190.45;
-            ref_metric[3] = 4190.45;
-            ref_metric[5] = 4190.45;
+            ref_metric[1] = 4190.45;
+            ref_metric[2] = 4190.45;
 
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(MMG_METRIC) - 0.4807502774165066 * ref_metric)/norm_2(0.4807502774165066 * ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(6)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(7)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(8)->GetValue(MMG_METRIC) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(3)->GetValue(METRIC_TENSOR_3D) - 0.4807502774165066 * ref_metric)/norm_2(0.4807502774165066 * ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(6)->GetValue(METRIC_TENSOR_3D) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(7)->GetValue(METRIC_TENSOR_3D) - ref_metric)/norm_2(ref_metric), tolerance);
+            KRATOS_CHECK_LESS_EQUAL(norm_2(this_model_part.pGetNode(8)->GetValue(METRIC_TENSOR_3D) - ref_metric)/norm_2(ref_metric), tolerance);
         }
     } // namespace Testing
 }  // namespace Kratos.

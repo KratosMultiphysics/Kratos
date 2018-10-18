@@ -13,7 +13,9 @@ def GetFilePath(fileName):
 class TestProcesses(KratosUnittest.TestCase):
 
     def test_assign_processes(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -165,10 +167,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         for node in model_part.Nodes:
             self.assertFalse(node.IsFixed(DISPLACEMENT_X))
@@ -338,7 +338,9 @@ class TestProcesses(KratosUnittest.TestCase):
             process.ExecuteFinalizeSolutionStep()
 
     def test_rotated_system(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -371,10 +373,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         model_part.CloneTimeStep(3.0)
 
@@ -395,7 +395,9 @@ class TestProcesses(KratosUnittest.TestCase):
 
 
     def test_assign_scalar_value_to_conditions(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
@@ -428,10 +430,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
@@ -442,7 +442,9 @@ class TestProcesses(KratosUnittest.TestCase):
 
 
     def test_assign_scalar_field_to_conditions(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
@@ -465,10 +467,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         model_part.CloneTimeStep(5.0)
 
@@ -485,7 +485,8 @@ class TestProcesses(KratosUnittest.TestCase):
                 i=i+1
 
     def test_assign_scalar_field_scalar_variable_to_conditions(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
@@ -508,10 +509,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         model_part.CloneTimeStep(5.0)
 
@@ -522,9 +521,11 @@ class TestProcesses(KratosUnittest.TestCase):
         for cond in model_part.Conditions:
             v = cond.GetValue(PRESSURE)
             self.assertEqual(v,t)
-            
+
     def test_assign_scalar_field_component_to_conditions(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
 
@@ -547,10 +548,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         model_part.CloneTimeStep(5.0)
 
@@ -563,7 +562,9 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(v[0],t)
 
     def test_find_nodal_h_process(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(NODAL_H)
         model_part_io = ModelPartIO(GetFilePath("test_processes"))
         model_part_io.ReadModelPart(model_part)
@@ -575,7 +576,9 @@ class TestProcesses(KratosUnittest.TestCase):
         self.assertEqual(model_part.GetNode(len(model_part.Nodes)).GetSolutionStepValue(NODAL_H), 0.5)
 
     def test_assign_acceleration_to_nodes(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -604,10 +607,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         ################### here we are within the interval
         model_part.CloneTimeStep(3.0)
@@ -685,7 +686,9 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 0.0)
 
     def test_assign_vector_variable_to_conditions(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+
+        model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
 
         model_part.CreateNewNode(1,0.5,0.5,0.5)
@@ -711,12 +714,10 @@ class TestProcesses(KratosUnittest.TestCase):
                     }
                 ]
             }
-            """)
-
-        Model = {"Main":model_part}
-
+            """)    
+ 
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         ################### here we are within the interval
         model_part.CloneTimeStep(3.0)
@@ -750,7 +751,8 @@ class TestProcesses(KratosUnittest.TestCase):
             process.ExecuteFinalizeSolutionStep()
 
     def test_point_output_process_node(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -797,10 +799,11 @@ class TestProcesses(KratosUnittest.TestCase):
 
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
-        kratos_utils.DeleteDirectoryIfExisting(os.path.join("test_parent_folder","test_parent_folder"))
+        kratos_utils.DeleteDirectoryIfExisting("test_parent_folder")
 
     def test_point_output_process_element(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -846,7 +849,8 @@ class TestProcesses(KratosUnittest.TestCase):
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_point_output_process_condition(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -895,7 +899,8 @@ class TestProcesses(KratosUnittest.TestCase):
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_point_output_process_restart(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -956,8 +961,72 @@ class TestProcesses(KratosUnittest.TestCase):
 
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
+    def test_point_output_process_restart_with_restart_time_no_found(self):
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        reference_file_name = GetFilePath("point_output_process_ref_files/node_output_restart_time_not_found_ref.dat")
+
+        # note that we are comparing the same file as for without restart
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "point_output_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "PointOutputProcess",
+                        "Parameters"            : {
+                            "position"         : [0.5, 0.25, 0.0],
+                            "model_part_name"  : "Main",
+                            "output_file_settings": {
+                                "file_name"   : "point_output_restart_time_not_found"
+                            },
+                            "output_variables" : ["DISPLACEMENT", "VISCOSITY", "ACCELERATION"],
+                            "entity_type"      : "node"
+                        }
+                    },{
+                        "python_module"  : "compare_two_files_check_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "CompareTwoFilesCheckProcess",
+                        "Parameters"            : {
+                            "reference_file_name"   : "",
+                            "output_file_name"      : "point_output_restart_time_not_found.dat",
+                            "comparison_type"       : "dat_file"
+                        }
+                    } ]
+        }""")
+
+        settings["process_list"][1]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+
+        # From this file we copy some lines into a new file , which will be used as basis for the restart
+        ref_file_name = settings["process_list"][1]["Parameters"]["reference_file_name"].GetString()
+        ref_file_name = os.path.abspath(ref_file_name) # making it work independent of OS
+
+        # here we create a dat file from a "previous run"
+        out_file_name = settings["process_list"][0]["Parameters"]["output_file_settings"]["file_name"].GetString()
+        out_file_name += ".dat"
+
+        with open(ref_file_name, 'r') as ref_file, open(out_file_name, 'w') as out_file:
+            for line in ref_file:
+                out_file.write(line)
+                if line.startswith("3.15"): # the previous run "stopped" at T=3.1
+                    break
+
+        model_part.ProcessInfo[IS_RESTARTED] = True
+        model_part.ProcessInfo[TIME] = 2.15 # the new run "starts" at T=2.15, wich will not match any value
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+
     def test_point_output_process_failed_restart(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -1008,7 +1077,8 @@ class TestProcesses(KratosUnittest.TestCase):
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_multiple_point_output_process(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -1078,7 +1148,8 @@ class TestProcesses(KratosUnittest.TestCase):
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
     def test_line_output_process(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(ACCELERATION)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -1147,6 +1218,177 @@ class TestProcesses(KratosUnittest.TestCase):
 
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
+    def test_fix_processes(self):
+        model_part = ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(VELOCITY)
+        model_part.AddNodalSolutionStepVariable(VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(DENSITY)
+        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        #reset all data
+        for node in model_part.Nodes:
+            node.Free(DISPLACEMENT_X)
+            node.Free(DISPLACEMENT_Y)
+            node.Free(DISPLACEMENT_Z)
+            node.Free(VELOCITY_X)
+            node.Free(VELOCITY_Y)
+            node.Free(VELOCITY_Z)
+            node.SetSolutionStepValue(DENSITY,0,0.0)
+            node.SetSolutionStepValue(VISCOSITY,0,0.0)
+            node.SetSolutionStepValue(DISPLACEMENT_X,0,0.0)
+            node.SetSolutionStepValue(DISPLACEMENT_Y,0,0.0)
+            node.SetSolutionStepValue(DISPLACEMENT_Z,0,0.0)
+            node.SetSolutionStepValue(VELOCITY_X,0,0.0)
+            node.SetSolutionStepValue(VELOCITY_Y,0,0.0)
+            node.SetSolutionStepValue(VELOCITY_Z,0,0.0)
+
+        settings = Parameters(
+            """
+            {
+                "process_list" : [
+                    {
+                        "python_module" : "fix_scalar_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "FixScalarVariableProcess",
+                        "Parameters"    : {
+                            "model_part_name" : "Main",
+                            "variable_name"   : "VISCOSITY",
+                            "interval"        : [1.0, 2.0],
+                            "constrained"     : true
+                        }
+                    },
+                    {
+                        "python_module" : "fix_scalar_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "FixScalarVariableProcess",
+                        "Parameters"    : {
+                            "model_part_name" : "Main",
+                            "variable_name"   : "DENSITY",
+                            "interval"        : [3.0, 1e30]
+                        }
+                    },
+                    {
+                        "python_module" : "fix_scalar_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "FixScalarVariableProcess",
+                        "Parameters"    : {
+                            "model_part_name" : "Main",
+                            "variable_name"   : "DISPLACEMENT_X",
+                            "constrained"     : true
+                        }
+                    },
+                    {
+                        "python_module" : "fix_vector_variable_process",
+                        "kratos_module" : "KratosMultiphysics",
+                        "process_name"  : "FixVectorVariableProcess",
+                        "Parameters"    : {
+                            "model_part_name" : "Main",
+                            "variable_name"   : "DISPLACEMENT"
+                        }
+                    },
+                    {
+                        "python_module"   : "fix_vector_variable_process",
+                        "kratos_module"   : "KratosMultiphysics",
+                        "process_name"    : "FixVectorVariableProcess",
+                        "Parameters"      : {
+                            "model_part_name" : "Main",
+                            "variable_name"   : "VELOCITY",
+                            "constrained"     : [false, true, true]
+                        }
+                    }
+                ]
+                }
+            """
+            )
+
+        Model = {"Main":model_part}
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+
+        for node in model_part.Nodes:
+            self.assertFalse(node.IsFixed(DISPLACEMENT_X))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Z))
+
+        ############################################################
+        ##time = 1 - all active except DENSITY
+        model_part.CloneTimeStep(1.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        ##verify the result
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_X), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(DENSITY), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(VISCOSITY), 0.0)
+            self.assertFalse(node.IsFixed(DENSITY))
+            self.assertTrue(node.IsFixed(VISCOSITY))
+            self.assertTrue(node.IsFixed(DISPLACEMENT_X))
+            self.assertTrue(node.IsFixed(DISPLACEMENT_Y))
+            self.assertTrue(node.IsFixed(DISPLACEMENT_Z))
+            self.assertFalse(node.IsFixed(VELOCITY_X))
+            self.assertTrue(node.IsFixed(VELOCITY_Y))
+            self.assertTrue(node.IsFixed(VELOCITY_Z))
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+        ##verify the result
+        for node in model_part.Nodes:
+            self.assertFalse(node.IsFixed(DENSITY))
+            self.assertFalse(node.IsFixed(VISCOSITY))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_X))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Z))
+            self.assertFalse(node.IsFixed(VELOCITY_X))
+            self.assertFalse(node.IsFixed(VELOCITY_Y))
+            self.assertFalse(node.IsFixed(VELOCITY_Z))
+
+        ############################################################
+        ##time = 3 - all active except VISCOSITY
+        model_part.CloneTimeStep(3.0)
+
+        for node in model_part.Nodes:
+            self.assertFalse(node.IsFixed(VELOCITY_X))
+            self.assertFalse(node.IsFixed(VELOCITY_Y))
+            self.assertFalse(node.IsFixed(VELOCITY_Z))
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        ##verify the result
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_X), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(VELOCITY_X), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(DENSITY), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(VISCOSITY), 0.0)
+            self.assertTrue(node.IsFixed(DENSITY))
+            self.assertFalse(node.IsFixed(VISCOSITY))
+            self.assertTrue(node.IsFixed(DISPLACEMENT_X))
+            self.assertTrue(node.IsFixed(DISPLACEMENT_Y))
+            self.assertTrue(node.IsFixed(DISPLACEMENT_Z))
+            self.assertFalse(node.IsFixed(VELOCITY_X))
+            self.assertTrue(node.IsFixed(VELOCITY_Y))
+            self.assertTrue(node.IsFixed(VELOCITY_Z))
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+        ##verify the result
+        for node in model_part.Nodes:
+            self.assertFalse(node.IsFixed(DENSITY))
+            self.assertFalse(node.IsFixed(VISCOSITY))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_X))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Y))
+            self.assertFalse(node.IsFixed(DISPLACEMENT_Z))
+            self.assertFalse(node.IsFixed(VELOCITY_X))
+            self.assertFalse(node.IsFixed(VELOCITY_Y))
+            self.assertFalse(node.IsFixed(VELOCITY_Z))
 
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[TIME]
@@ -1160,10 +1402,9 @@ def SetNodalValuesForPointOutputProcesses(model_part):
         node.SetSolutionStepValue(VISCOSITY, time**2 + 1.038)
 
 def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time):
-    Model = {"Main":model_part}
-
+    current_model = model_part.GetOwnerModel()
     import process_factory
-    list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(
+    list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(
         settings["process_list"] )
 
     for process in list_of_processes:

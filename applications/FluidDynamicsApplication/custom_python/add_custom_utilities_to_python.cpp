@@ -15,11 +15,14 @@
 // System includes
 
 // External includes
+#ifdef KRATOS_USE_AMATRIX
+#include "boost/numeric/ublas/matrix.hpp" // for the sparse space dense vector
+#endif // KRATOS_USE_AMATRIX
 
 // Project includes
-#include "includes/model_part.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "processes/process.h"
+#include "includes/model_part.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -46,7 +49,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double> > SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
@@ -94,7 +97,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("AddPeriodicVariable",AddVariableComponent)
     ;
 
-    // Base settings 
+    // Base settings
     typedef SolverSettings<SparseSpaceType,LocalSpaceType,LinearSolverType> BaseSettingsType;
 
     class_ < BaseSettingsType >(m, "BaseSettingsType" );

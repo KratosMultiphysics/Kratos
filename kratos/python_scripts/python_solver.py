@@ -135,11 +135,11 @@ class PythonSolver(object):
         """This function imports the ModelPart
         """
         self.print_on_rank_zero("::[PythonSolver]::", "Reading model part.")
-        problem_path = os.getcwd()
-        input_filename = model_part_import_settings["input_filename"].GetString()
         input_type = model_part_import_settings["input_type"].GetString()
 
         if (input_type == "mdpa"):
+            problem_path = os.getcwd()
+            input_filename = model_part_import_settings["input_filename"].GetString()
             import_flags = KratosMultiphysics.ModelPartIO.READ
             if model_part_import_settings.Has("ignore_variables_not_in_solution_step_data"):
                 if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
@@ -157,6 +157,8 @@ class PythonSolver(object):
             from restart_utility import RestartUtility
             RestartUtility(model_part, self._GetRestartSettings(model_part_import_settings)).LoadRestart()
             self.print_on_rank_zero("::[PythonSolver]::", "Finished loading model part from restart file.")
+        elif(input_type == "use_input_model_part"):
+            pass
         else:
             raise Exception("Other model part input options are not yet implemented.")
         self.print_on_rank_zero("ModelPart", model_part)
