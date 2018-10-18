@@ -13,10 +13,12 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/checks.h"
-#include "includes/amatrix_interface.h"
-
 #ifdef KRATOS_USE_AMATRIX
 #ifdef KRATOS_DEBUG
+
+#include "includes/amatrix_interface.h"
+
+
 
 namespace Kratos {
 namespace Testing {
