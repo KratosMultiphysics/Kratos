@@ -104,7 +104,7 @@ public:
         const PointerVector<StatisticsSampler>& rStatisticsSamplers,
         const PointerVector<StatisticsSampler>& rHigherOrderStatistics,
         ValueContainerType& rUpdate,
-        std::size_t NumMeasurements)
+        const std::size_t NumMeasurements)
     {
         KRATOS_DEBUG_ERROR_IF(NumMeasurements == 0)
         << "Trying to update statistics, but providied number of recorded steps is zero" << std::endl;
@@ -154,7 +154,7 @@ public:
         const Element& rElement,
         const PointerVector<StatisticsSampler>& rRecordedStatistics,
         const PointerVector<StatisticsSampler>& rHigherOrderStatistics,
-        std::size_t NumberOfMeasurements,
+        const std::size_t NumberOfMeasurements,
         const std::string& rSeparator) const
     {
         const Geometry<Node<3>> &r_geometry = rElement.GetGeometry();
