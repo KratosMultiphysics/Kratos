@@ -140,9 +140,9 @@ public:
                 abs+=(Convergence(1,i))*(Convergence(1,i));
             }
 
-            delta= sqrt(delta);
+            delta= std::sqrt(delta);
 
-            abs=sqrt(abs);
+            abs=std::sqrt(abs);
 
             if(abs < zero)
                 abs=1.0;
@@ -158,7 +158,7 @@ public:
         {
             Result(i)= HelpA(i,i);
 
-            if(fabs(Result(i)) <zero)
+            if(std::abs(Result(i)) <zero)
                 Result(i)=0.0;
         }
 
@@ -191,7 +191,7 @@ public:
 
         const double q = (A(0,0) + A(1,1) + A(2,2)) / 3.0;
         const double p2 = (A(0,0) - q) * (A(0,0) - q) + (A(1,1) - q) * (A(1,1) - q) + (A(2,2) - q) * (A(2,2) - q) + 2.0 * p1;
-        const double p = sqrt(p2 / 6.0);
+        const double p = std::sqrt(p2 / 6.0);
 
         Matrix B(3,3);
         const double inv_p = 1.0/p;
@@ -288,14 +288,14 @@ public:
             for(int i=iteration; i<dim; i++)
                 normy += y(i)*y(i);
 
-            normy= sqrt(normy);
+            normy= std::sqrt(normy);
 
-            double l= sqrt((normy*(normy+fabs(y(iteration))))/2);
+            double l= std::sqrt((normy*(normy+std::abs(y(iteration))))/2);
 
             double k=0.0;
 
             if(y[iteration] !=0)
-                k= - y(iteration)/fabs(y(iteration))*normy;
+                k= - y(iteration)/std::abs(y(iteration))*normy;
             else
                 k= -normy;
 
@@ -411,9 +411,9 @@ public:
             {
                 for(unsigned int j=(i+1); j< Help.size2(); j++)
                 {
-                    if((fabs(Help(i,j)) > a ) && (fabs(Help(i,j)) > zero_tolerance))
+                    if((std::abs(Help(i,j)) > a ) && (std::abs(Help(i,j)) > zero_tolerance))
                     {
-                        a= fabs(Help(i,j));
+                        a= std::abs(Help(i,j));
 
                         index1= i;
                         index2= j;
@@ -432,17 +432,17 @@ public:
 
             double u=1.0;
 
-            if(fabs(gamma) > zero_tolerance && fabs(gamma)< (1/zero_tolerance))
+            if(std::abs(gamma) > zero_tolerance && std::abs(gamma)< (1/zero_tolerance))
             {
-                u= gamma/fabs(gamma)*1.0/(fabs(gamma)+sqrt(1.0+gamma*gamma));
+                u= gamma/std::abs(gamma)*1.0/(std::abs(gamma)+std::sqrt(1.0+gamma*gamma));
             }
             else
             {
-                if  (fabs(gamma)>= (1.0/zero_tolerance))
+                if  (std::abs(gamma)>= (1.0/zero_tolerance))
                     u= 0.5/gamma;
             }
 
-            double c= 1.0/(sqrt(1.0+u*u));
+            double c= 1.0/(std::sqrt(1.0+u*u));
 
             double s= c*u;
 
@@ -552,7 +552,7 @@ public:
             double scale = 0.0;
             double h = 0.0;
             for (int k = 0; k < i; k++) {
-                scale = scale + fabs(d[k]);
+                scale = scale + std::abs(d[k]);
             }
             if (scale == 0.0) {
                 e[i] = d[i-1];
@@ -561,14 +561,14 @@ public:
                     V(i,j) = 0.0;
                     V(j,i) = 0.0;
                 }
-            } 
+            }
             else {
                 for (int k = 0; k < i; k++) {
                     d[k] /= scale;
                     h += d[k] * d[k];
                 }
                 double f = d[i-1];
-                double g = sqrt(h);
+                double g = std::sqrt(h);
                 if (f > 0) {
                     g = -g;
                 }
@@ -610,7 +610,7 @@ public:
                     V(i,j) = 0.0;
                 }
             }
-            
+
             d[i] = h;
         }
 
@@ -637,7 +637,7 @@ public:
             for (int k = 0; k <= i; k++) {
                 V(k,i+1) = 0.0;
             }
-        } 
+        }
         for (int j = 0; j < 3; j++) {
             d[j] = V(2,j);
             V(2,j) = 0.0;
@@ -661,10 +661,10 @@ public:
         for (int l = 0; l < 3; l++) {
         // Find small subdiagonal element
 
-            tst1 = FIND_MAX(tst1,fabs(d[l]) + fabs(e[l]));
+            tst1 = FIND_MAX(tst1,std::abs(d[l]) + std::abs(e[l]));
             int m = l;
             while (m < 3) {
-                if (fabs(e[m]) <= eps*tst1) {
+                if (std::abs(e[m]) <= eps*tst1) {
                     break;
                 }
                 m++;
@@ -731,11 +731,11 @@ public:
 
                     // Check for convergence.
 
-                } while (fabs(e[l]) > eps*tst1);
+                } while (std::abs(e[l]) > eps*tst1);
             }
             d[l] = d[l] + f;
             e[l] = 0.0;
-        } 
+        }
 
         // Sort eigenvalues and corresponding vectors.
 
@@ -791,12 +791,12 @@ public:
         //initial error
         TDataType error = 1.0;
         int n = A.size2();
-        
+
         //setting V to identity matrix
         if( V.size1() != n )
             V.resize(n,n,false);
         noalias(V) = IdentityMatrix(n);
-        
+
         //calculation loop (as long as there is no convergence)
         //WARNING: iteration never exceeds
         while( error > error_tolerance )
@@ -1090,7 +1090,7 @@ public:
             for(unsigned int j=0; j< Tensor.size2(); j++)
                 result+= Tensor(i,j)*Tensor(i,j);
 
-        result= sqrt(result);
+        result= std::sqrt(result);
 
         return result;
     }
