@@ -9,9 +9,9 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 
 ## generate variables with the sources
-set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES     
-	${CMAKE_CURRENT_SOURCE_DIR}/particle_mechanics_application.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/particle_mechanics_application_variables.cpp 	
+set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/particle_mechanics_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/particle_mechanics_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/particle_mechanics_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
@@ -20,13 +20,8 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_UP.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_quadrilateral.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_UP_quadrilateral.cpp
-	##${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/your_new_element_2d.h
 
 	###constitutive laws
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_viscoplastic_3D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_viscoplastic_2D_plain_strain_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_3d_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_plane_strain_2d_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_UP_3d_law.cpp
@@ -39,7 +34,7 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_strain_softening_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_borja_cam_clay_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.cpp
-	
+
 	###yield criteria
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/yield_criteria/mc_yield_criterion.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/yield_criteria/modified_cam_clay_yield_criterion.cpp
@@ -47,14 +42,12 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	###yield criteria
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hardening_laws/exponential_strain_softening_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hardening_laws/cam_clay_hardening_law.cpp
-        
+
         ###flow rules
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/MPM_flow_rule.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/mc_plastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/viscoplastic_flow_rule.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.cpp
 
 	###conditions
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mpm_base_load_condition.cpp
@@ -73,7 +66,7 @@ set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosParticleMechanicsApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

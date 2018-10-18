@@ -180,16 +180,13 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MP_ALMANSI_STRAIN_VECTOR )
         KRATOS_REGISTER_VARIABLE( MP_CONSTITUTIVE_MATRIX )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_AUX )
-        
+
         // Registering grid node variable
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_MOMENTUM )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
 
         // Registering Constitutive Laws
-        // CL: Hyperelastic ViscoPlastic laws
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticViscoplastic3DLaw", mHyperElasticViscoplastic3DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticViscoplasticPlaneStrain2DLaw", mHyperElasticViscoplasticPlaneStrain2DLaw);
         // CL: Mohr Coulomb
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlastic3DLaw", mHenckyMCPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlasticPlaneStrain2DLaw", mHenckyMCPlasticPlaneStrain2DLaw);

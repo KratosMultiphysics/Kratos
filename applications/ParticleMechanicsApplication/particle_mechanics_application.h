@@ -28,7 +28,7 @@
 #include "includes/constitutive_law.h"
 #include "includes/kratos_application.h"
 
-#include "includes/condition.h"  
+#include "includes/condition.h"
 #include "includes/ublas_interface.h"
 
 #include "containers/flags.h"
@@ -45,8 +45,6 @@
 #include "custom_elements/updated_lagrangian_quadrilateral.hpp"
 
 //---constitutive laws
-#include "custom_constitutive/hyperelastic_viscoplastic_3D_law.hpp"
-#include "custom_constitutive/hyperelastic_viscoplastic_2D_plain_strain_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_UP_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_3D_law.hpp"
@@ -57,8 +55,6 @@
 #include "custom_constitutive/hencky_borja_cam_clay_3D_law.hpp"
 
 //---flow rules
-#include "custom_constitutive/flow_rules/viscoplastic_flow_rule.hpp"
-#include "custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.hpp"
@@ -77,7 +73,7 @@ namespace Kratos
 /// Short class definition.
 /**
  * This application features Elements, Conditions, Constitutive laws and Utilities
- * for particle mechanics problems. 
+ * for particle mechanics problems.
  * Currently developed methods are: (1) Material Point Method
  */
 class KratosParticleMechanicsApplication : public KratosApplication
@@ -214,13 +210,9 @@ private:
     const UpdatedLagrangian mUpdatedLagrangian2D3N;
     const UpdatedLagrangian mUpdatedLagrangian3D4N;
     const UpdatedLagrangianUP mUpdatedLagrangianUP2D3N;
-    //const UpdatedLagrangianUP mUpdatedLagrangianUP3D4N;
     const UpdatedLagrangianQuadrilateral mUpdatedLagrangian2D4N;
     const UpdatedLagrangianQuadrilateral mUpdatedLagrangian3D8N;
-    //const UpdatedLagrangianUPQuadrilateral mUpdatedLagrangianUP2D4N;
-    //const TotalLagrangian mTotalLagrangian2D3N;
-    //const TotalLagrangian mTotalLagrangian3D4N;
-    
+
     // Conditions
     const MPMPointLoadCondition mMPMPointLoadCondition2D1N;
     const MPMPointLoadCondition mMPMPointLoadCondition3D1N;
@@ -229,9 +221,6 @@ private:
     const MPMSurfaceLoadCondition3D mMPMSurfaceLoadCondition3D4N;
 
     // Constitutive laws
-    // CL: Hyperelastic ViscoPlastic laws
-    const HyperElasticViscoplastic3DLaw                     mHyperElasticViscoplastic3DLaw;
-    const HyperElasticViscoplasticPlaneStrain2DLaw          mHyperElasticViscoplasticPlaneStrain2DLaw;
     // CL: Mohr Coulomb
     const HenckyMCPlastic3DLaw                              mHenckyMCPlastic3DLaw;
     const HenckyMCPlasticPlaneStrain2DLaw                   mHenckyMCPlasticPlaneStrain2DLaw;
@@ -245,29 +234,17 @@ private:
     const HenckyBorjaCamClayPlasticPlaneStrain2DLaw         mHenckyBorjaCamClayPlasticPlaneStrain2DLaw;
 
     // Flow Rules
-    const ViscoplasticFlowRule                      mViscoplasticFlowRule;
-    const BinghamViscoplasticFlowRule               mBinghamViscoplasticFlowRule;
     const MCPlasticFlowRule                         mMCPlasticFlowRule;
     const MCStrainSofteningPlasticFlowRule          mMCStrainSofteningPlasticFlowRule;
     const BorjaCamClayPlasticFlowRule               mBorjaCamClayPlasticFlowRule;
-    //const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
-    //const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
-    //const IsotropicDamageFlowRule                 mIsotropicDamageFlowRule;
-    //const DruckerPragerFlowRule                   mDruckerPragerFlowRule;
 
     // Yield Criteria
     const MCYieldCriterion                          mMCYieldCriterion;
     const ModifiedCamClayYieldCriterion             mModifiedCamClayYieldCriterion;
-    //const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
-    //const SimoJuYieldCriterion                    mSimoJuYieldCriterion;
-    //const DruckerPragerYieldCriterion             mDruckerPragerYieldCriterion;
 
     // Hardening Laws
     const ExponentialStrainSofteningLaw             mExponentialStrainSofteningLaw;
     const CamClayHardeningLaw                       mCamClayHardeningLaw;
-    //const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
-    //const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
-    //const ExponentialDamageHardeningLaw           mExponentialDamageHardeningLaw;
 
     ///@}
     ///@name Private Operators
@@ -320,6 +297,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PARTICLE_MECHANICS_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_PARTICLE_MECHANICS_APPLICATION_H_INCLUDED  defined
 
 
