@@ -60,7 +60,7 @@ namespace Kratos
  * @author Lucia Barbu
  */
 template<class TPlasticPotentialType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainDruckerPragerYieldSurface
+class FiniteStrainDruckerPragerYieldSurface
 {
 public:
     ///@name Type Definitions
@@ -289,18 +289,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 

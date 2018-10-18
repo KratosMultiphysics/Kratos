@@ -59,7 +59,7 @@ namespace Kratos
  * @author Lucia Barbu
  */
 template <class TPlasticPotentialType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainModifiedMohrCoulombYieldSurface
+class FiniteStrainModifiedMohrCoulombYieldSurface
 {
   public:
     ///@name Type Definitions
@@ -284,18 +284,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainModifiedMohrCoulo
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 
