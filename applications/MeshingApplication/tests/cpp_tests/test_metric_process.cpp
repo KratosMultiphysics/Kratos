@@ -20,6 +20,7 @@
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
 #include "includes/gid_io.h"
+#include "containers/model.h"
 #include "meshing_application.h"
 
 /* Processes */
