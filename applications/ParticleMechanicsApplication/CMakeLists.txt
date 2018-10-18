@@ -23,10 +23,10 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	###constitutive laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plane_strain_2D_law.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_3d_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_plane_strain_2d_law.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_UP_3d_law.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_plane_strain_UP_2d_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_3D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_plane_strain_2D_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_UP_3D_law.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_plastic_plane_strain_UP_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_plane_strain_2D_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_plane_strain_UP_2D_law.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hencky_mc_3D_law.cpp

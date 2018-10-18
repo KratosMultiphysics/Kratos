@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/hencky_plastic_plane_strain_UP_2d_law.hpp"
+#include "custom_constitutive/hencky_plastic_plane_strain_UP_2D_law.hpp"
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
 
