@@ -11,15 +11,15 @@
 //
 
 
-#if !defined (KRATOS_HENCKY_PLASTIC_PLANE_STRAIN_UP_2D_LAW_H_INCLUDED)
-#define  KRATOS_HENCKY_PLASTIC_PLANE_STRAIN_UP_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_HENCKY_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED)
+#define       KRATOS_HENCKY_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/hencky_plastic_UP_3d_law.hpp"
+#include "custom_constitutive/hencky_plastic_3D_law.hpp"
 
 
 namespace Kratos
@@ -32,7 +32,7 @@ namespace Kratos
  * The functionality is limited to large displacements
  */
 
-class HenckyElasticPlasticPlaneStrainUP2DLaw : public HenckyElasticPlasticUP3DLaw
+class HenckyElasticPlasticPlaneStrain2DLaw : public HenckyElasticPlastic3DLaw
 {
 public:
     /**
@@ -42,7 +42,7 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
 
-    typedef MPMFlowRule::Pointer                MPMFlowRulePointer;
+    typedef MPMFlowRule::Pointer                FlowRulePointer;
     typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
     typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer            PropertiesPointer;
@@ -51,7 +51,7 @@ public:
      * Counted pointer of HyperElasticPlasticPlaneStrain2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(HenckyElasticPlasticPlaneStrainUP2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(HenckyElasticPlasticPlaneStrain2DLaw);
 
     /**
      * Life Cycle
@@ -60,15 +60,15 @@ public:
     /**
      * Default constructor.
      */
-    HenckyElasticPlasticPlaneStrainUP2DLaw();
+    HenckyElasticPlasticPlaneStrain2DLaw();
 
 
-    HenckyElasticPlasticPlaneStrainUP2DLaw(MPMFlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
+    HenckyElasticPlasticPlaneStrain2DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
      */
-    HenckyElasticPlasticPlaneStrainUP2DLaw (const HenckyElasticPlasticPlaneStrainUP2DLaw& rOther);
+    HenckyElasticPlasticPlaneStrain2DLaw (const HenckyElasticPlasticPlaneStrain2DLaw& rOther);
 
 
     /**
@@ -86,7 +86,7 @@ public:
     /**
      * Destructor.
      */
-    ~HenckyElasticPlasticPlaneStrainUP2DLaw() override;
+    ~HenckyElasticPlasticPlaneStrain2DLaw() override;
 
     /**
      * Operators
@@ -113,7 +113,7 @@ public:
     };
 
 
-    void GetLawFeatures(Features& rFeatures) override;
+
     /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
@@ -180,9 +180,9 @@ protected:
 
     Vector SetStressMatrixToAppropiateVectorDimension(Vector& rStressVector, const Matrix& rStressMatrix) override;
 
-    //virtual void CalculateHenckyMainStrain(const Matrix& rCauchyGreeMatrix,
-    //FlowRule::RadialReturnVariables& rReturnMappingVariables,
-    //Vector& rMainStrain);
+    void CalculateHenckyMainStrain(const Matrix& rCauchyGreeMatrix,
+                                   MPMFlowRule::RadialReturnVariables& rReturnMappingVariables,
+                                   Vector& rMainStrain) override;
 private:
 
     ///@name Static Member Variables
@@ -217,17 +217,17 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlasticUP3DLaw )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlasticUP3DLaw )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlastic3DLaw )
     }
 
 
 
 }; // Class HyperElasticPlasticPlaneStrain2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HYPERELASTIC_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED defined
+#endif // KRATOS_HENCKY_PLASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED defined
 

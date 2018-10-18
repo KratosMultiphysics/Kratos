@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/hencky_plastic_3d_law.hpp"
+#include "custom_constitutive/hencky_plastic_3D_law.hpp"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
 #include "particle_mechanics_application.h"
 
