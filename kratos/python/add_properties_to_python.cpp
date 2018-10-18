@@ -121,8 +121,6 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("Has", HasHelperFunction_Element< Properties, Variable< array_1d<double, 3> > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
-    .def("__setitem__", [](Properties& self, const Variable<array_1d<double, 3> > & rV, const Vector& rValue){self.SetValue(rV, array_1d<double,3>(rValue));} )
-    .def("SetValue", [](Properties& self, const Variable<array_1d<double, 3> > & rV, const Vector& rValue){self.SetValue(rV, array_1d<double,3>(rValue));} )
 //     .def("SetValue", SetArrayValue)
 
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< Vector > >)
