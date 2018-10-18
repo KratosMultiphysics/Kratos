@@ -28,7 +28,6 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
-#include "custom_utilities/mapping/mapper_vertex_morphing_generalized.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
@@ -49,29 +48,22 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // For perfoming the mapping according to Vertex Morphing
     // ================================================================
     class_<MapperVertexMorphing >(m, "MapperVertexMorphing")
-        .def(init<ModelPart&, Parameters>())
+        .def(init<ModelPart&, ModelPart&, Parameters>())
         .def("Initialize", &MapperVertexMorphing::Initialize)
         .def("Map", &MapperVertexMorphing::Map)
         .def("InverseMap", &MapperVertexMorphing::InverseMap)
         ;
     class_<MapperVertexMorphingMatrixFree >(m, "MapperVertexMorphingMatrixFree")
-        .def(init<ModelPart&, Parameters>())
+        .def(init<ModelPart&, ModelPart&, Parameters>())
         .def("Initialize", &MapperVertexMorphingMatrixFree::Initialize)
         .def("Map", &MapperVertexMorphingMatrixFree::Map)
         .def("InverseMap", &MapperVertexMorphingMatrixFree::InverseMap)
         ;
     class_<MapperVertexMorphingImprovedIntegration >(m, "MapperVertexMorphingImprovedIntegration")
-        .def(init<ModelPart&, Parameters>())
+        .def(init<ModelPart&, ModelPart&, Parameters>())
         .def("Initialize", &MapperVertexMorphingImprovedIntegration::Initialize)
         .def("Map", &MapperVertexMorphingImprovedIntegration::Map)
         .def("InverseMap", &MapperVertexMorphingImprovedIntegration::InverseMap)
-        ;
-
-    class_<MapperVertexMorphingGeneralized >(m, "MapperVertexMorphingGeneralized")
-        .def(init<ModelPart&, ModelPart&, Parameters>())
-        .def("Initialize", &MapperVertexMorphingGeneralized::Initialize)
-        .def("Map", &MapperVertexMorphingGeneralized::Map)
-        .def("InverseMap", &MapperVertexMorphingGeneralized::InverseMap)
         ;
 
     // ================================================================
