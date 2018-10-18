@@ -6,6 +6,7 @@ import math
 
 
 class TestVectorInterface(KratosUnittest.TestCase):
+    
 
     def test_range(self):
         a = Vector(4)
