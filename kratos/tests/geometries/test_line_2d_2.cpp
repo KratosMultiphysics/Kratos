@@ -30,7 +30,6 @@ namespace Testing {
   /// Factory functions
 
   /** Generates a point type sample Line2D2N
-   * Generates a point type right triangle with origin in the origin and leg size 1.
    * @return  Pointer to a Line2D2N
    */
   Line2D2<Point>::Pointer GeneratePointsUnitXDirectionLine2D2() {
@@ -40,8 +39,16 @@ namespace Testing {
     ));
   }
 
+  /** Generates a point type sample Line2D2N
+   * @return  Pointer to a Line2D2N
+   */
+  Line2D2<Point>::Pointer GeneratePointsUnitYDirectionLine2D2() {
+    return Line2D2<Point>::Pointer(new Line2D2<Point>(
+      Point::Pointer(new Point(0.0, 0.0, 0.0)),
+      Point::Pointer(new Point(0.0, 1.0, 0.0))
+    ));
+  }
   /** Generates a point type sample Line2D2N.
-   * Generates a point type right triangle with origin in the origin and leg size 1.
    * @return  Pointer to a Line2D2N
    */
   Line2D2<Point>::Pointer GenerateLine2D2WithPoints(Point::Pointer rPointOne, Point::Pointer rPointTwo ) {
@@ -83,7 +90,7 @@ namespace Testing {
     /**
      * Test a box inside a line HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionBoxInside, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionBoxInsideX, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitXDirectionLine2D2();
         Point point_1(0.25, -0.1, 0.0);
         Point point_2(0.75, 0.1, 0.0);
@@ -91,7 +98,16 @@ namespace Testing {
     }
 
     /**
-     * Test a non overlaping box and triangle HasIntersection
+     * Test a box inside a line HasIntersection
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionBoxInsideY, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsUnitYDirectionLine2D2();
+        Point point_1(-0.1,0.25, 0.0);
+        Point point_2(0.1, 0.75, 0.0);
+        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
+    }
+    /**
+     * Test a non overlaping box HasIntersection
      */
     KRATOS_TEST_CASE_IN_SUITE(Line2D2NoIntersectionBox, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsUnitXDirectionLine2D2();
