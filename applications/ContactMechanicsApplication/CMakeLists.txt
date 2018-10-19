@@ -70,6 +70,7 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_CORE
 
 	## rigid body links
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_links/rigid_body_point_link_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_links/rigid_body_point_link_segregated_V_condition.cpp
 
 	##elements
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp

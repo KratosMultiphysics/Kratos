@@ -67,7 +67,7 @@
 #include "custom_friction/hardening_coulomb_friction_law.hpp"
 
 // rigid body links
-#include "custom_conditions/rigid_body_links/rigid_body_point_link_condition.hpp"
+#include "custom_conditions/rigid_body_links/rigid_body_point_link_segregated_V_condition.hpp"
 
 // Core applications
 #include "contact_mechanics_application_variables.h"
@@ -164,7 +164,7 @@ public:
 		rOStream << "Conditions:" << std::endl;
 		KratosComponents<Condition>().PrintData(rOStream);
         }
-        
+
 
 	///@}
 	///@name Friends
@@ -249,13 +249,15 @@ private:
         const HydraulicAxisymRigidContactPenalty2DCondition mHydraulicAxisymRigidContactPenalty2DCondition;
 
         //friction laws
-        const FrictionLaw                                                        mFrictionLaw;
-        const CoulombAdhesionFrictionLaw                          mCoulombAdhesionFrictionLaw;
-        const HardeningCoulombFrictionLaw                        mHardeningCoulombFrictionLaw;
+        const FrictionLaw                                                           mFrictionLaw;
+        const CoulombAdhesionFrictionLaw                             mCoulombAdhesionFrictionLaw;
+        const HardeningCoulombFrictionLaw                           mHardeningCoulombFrictionLaw;
 
-        const RigidBodyPointLinkCondition                    mRigidBodyPointLinkCondition2D1N;
-        const RigidBodyPointLinkCondition                    mRigidBodyPointLinkCondition3D1N;
+        const RigidBodyPointLinkCondition                       mRigidBodyPointLinkCondition2D1N;
+        const RigidBodyPointLinkCondition                       mRigidBodyPointLinkCondition3D1N;
 
+        const RigidBodyPointLinkSegregatedVCondition mRigidBodyPointLinkSegregatedVCondition2D1N;
+        const RigidBodyPointLinkSegregatedVCondition mRigidBodyPointLinkSegregatedVCondition3D1N;
 
 	///@}
 	///@name Private Operators

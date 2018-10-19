@@ -7,19 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_RIGID_BODY_POINT_LINK_CONDITION_H_INCLUDED )
-#define  KRATOS_RIGID_BODY_POINT_LINK_CONDITION_H_INCLUDED
+#if !defined(KRATOS_RIGID_BODY_POINT_LINK_SEGREGATED_V_CONDITION_H_INCLUDED )
+#define  KRATOS_RIGID_BODY_POINT_LINK_SEGREGATED_V_CONDITION_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/condition.h"
-#include "includes/variables.h"
-#include "includes/element.h"
-
-#include "utilities/quaternion.h"
+#include "custom_conditions/rigid_body_links/rigid_body_point_link_condition.hpp"
 
 namespace Kratos
 {
@@ -44,8 +40,8 @@ namespace Kratos
  * Implements a Contact Point Load definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
-class RigidBodyPointLinkCondition
-    : public Condition
+class RigidBodyPointLinkSegregatedVCondition
+    : public RigidBodyPointLinkCondition
 {
  public:
 
@@ -59,88 +55,26 @@ class RigidBodyPointLinkCondition
   typedef GeometryData::SizeType               SizeType;
 
   ///@{
-  // Counted pointer of RigidBodyPointLinkCondition
-  KRATOS_CLASS_POINTER_DEFINITION( RigidBodyPointLinkCondition );
+
+  // Counted pointer of RigidBodyPointLinkSegregatedVCondition
+  KRATOS_CLASS_POINTER_DEFINITION( RigidBodyPointLinkSegregatedVCondition );
+
+  enum StepType{VELOCITY_STEP = 0, PRESSURE_STEP = 1};
+
   ///@}
-
- protected:
-
-
-  /**
-   * Flags related to the condition computation
-   */
-  KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_RHS_VECTOR);
-  KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_LHS_MATRIX);
-
-  /**
-   * Parameters to be used in the Condition as they are.
-   */
-  typedef struct
-  {
-    Flags             Options;               //calculation options
-    int               SlaveNode;
-    int               SlaveDofs;
-
-    Vector            Distance;
-    Matrix            SkewSymDistance;
-
-    Vector            LagrangeMultipliers;
-
-    ElementType::Pointer  pSlaveElement;
-
-  } GeneralVariables;
-
-  /**
-   * This struct is used in the component wise calculation only
-   * is defined here and is used to declare a member variable in the component wise condition
-   * private pointers can only be accessed by means of set and get functions
-   * this allows to set and not copy the local system variables
-   */
-
-  struct LocalSystemComponents
-  {
-   private:
-
-    //for calculation local system with compacted LHS and RHS
-    MatrixType *mpLeftHandSideMatrix;
-    VectorType *mpRightHandSideVector;
-
-   public:
-
-    //calculation flags
-    Flags  CalculationFlags;
-
-    /**
-     * sets the value of a specified pointer variable
-     */
-    void SetLeftHandSideMatrix( MatrixType& rLeftHandSideMatrix ) { mpLeftHandSideMatrix = &rLeftHandSideMatrix; };
-    void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
-
-    /**
-     * returns the value of a specified pointer variable
-     */
-    MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
-    VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
-
-  };
-
-
- public:
-
-
   ///@name Life Cycle
   ///@{
 
   /// Default constructor.
-  RigidBodyPointLinkCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+  RigidBodyPointLinkSegregatedVCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-  RigidBodyPointLinkCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+  RigidBodyPointLinkSegregatedVCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
   /// Copy constructor
-  RigidBodyPointLinkCondition( RigidBodyPointLinkCondition const& rOther);
+  RigidBodyPointLinkSegregatedVCondition( RigidBodyPointLinkSegregatedVCondition const& rOther);
 
   /// Destructor
-  virtual ~RigidBodyPointLinkCondition();
+  virtual ~RigidBodyPointLinkSegregatedVCondition();
 
   ///@}
   ///@name Operators
@@ -181,24 +115,10 @@ class RigidBodyPointLinkCondition
   void Initialize() override;
 
   /**
-   * Called at the beginning of each iteration
-   */
-  void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-  /**
-   * Called at the end of each iteration
-   */
-  void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-  /**
    * Called at the beginning of each solution step
    */
   void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-  /**
-   * Called at the end of each solution step
-   */
-  void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
   //************* GETTING METHODS
 
@@ -286,23 +206,6 @@ class RigidBodyPointLinkCondition
   void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
                                      ProcessInfo& rCurrentProcessInfo) override;
 
-  /**
-   * this is called during the assembling process in order
-   * to calculate the condition mass matrix
-   * @param rMassMatrix: the condition mass matrix
-   * @param rCurrentProcessInfo: the current process info instance
-   */
-  void CalculateMassMatrix(MatrixType& rMassMatrix,
-                           ProcessInfo& rCurrentProcessInfo) override;
-
-  /**
-   * this is called during the assembling process in order
-   * to calculate the condition damping matrix
-   * @param rDampingMatrix: the condition damping matrix
-   * @param rCurrentProcessInfo: the current process info instance
-   */
-  void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                              ProcessInfo& rCurrentProcessInfo) override;
 
   /**
    * This function provides the place to perform checks on the completeness of the input.
@@ -335,6 +238,8 @@ class RigidBodyPointLinkCondition
   ///@name Protected member Variables
   ///@{
 
+  StepType mStepVariable;
+
   ///@}
   ///@name Protected Operators
   ///@{
@@ -344,84 +249,21 @@ class RigidBodyPointLinkCondition
   ///@{
 
   /**
-   * Initialize System Matrices
+   * Sets process information to set member variables like mStepVariable
    */
-  virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-                                        VectorType& rRightHandSideVector,
-                                        const SizeType& rSlaveElementSize,
-                                        Flags& rCalculationFlags);
-  /**
-   * Initialize General Variables
-   */
-  virtual void InitializeGeneralVariables(GeneralVariables& rVariables,
-                                          ProcessInfo& rCurrentProcessInfo);
-  /**
-   * Calculates the condition contributions
-   */
-  virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-                                        LocalSystemComponents& rLinkedSystem,
-                                        ElementType::Pointer& rSlaveElement,
-                                        ProcessInfo& rCurrentProcessInfo);
-  /**
-   * Calculation and addition of the matrices of the LHS
-   */
-  virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-                                  LocalSystemComponents& rLinkedSystem,
-                                  GeneralVariables& rVariables);
-  /**
-   * Calculation and addition of the vectors of the RHS
-   */
-  virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-                                  LocalSystemComponents& rLinkedSystem,
-                                  GeneralVariables& rVariables);
-  /**
-   * Calculation of the Link Stiffness Matrix
-   */
-  virtual void CalculateAndAddStiffness(MatrixType& rLeftHandSideMatrix,
-                                        MatrixType& rLinkedLeftHandSideMatrix,
-                                        GeneralVariables& rVariables);
-  /**
-   * Calculation of the Link Force Vector
-   */
-  virtual void CalculateAndAddForces(VectorType& rRightHandSideVector,
-                                     VectorType& rLinkedRightHandSideVector,
-                                     GeneralVariables& rVariables);
-  /**
-   * Assemble Local LHS
-   */
-  void AssembleLocalLHS(MatrixType& rLeftHandSideMatrix,
-                        const MatrixType& rLocalLeftHandSideMatrix,
-                        const SizeType& local_index,
-                        const SizeType& dofs_size,
-                        const SizeType& master_index);
-  /**
-   * Assemble Local LHS
-   */
-  void AssembleLocalRHS(VectorType& rRightHandSideVector,
-                        const VectorType& rLocalRightHandSideVector,
-                        const SizeType& local_index,
-                        const SizeType& dofs_size,
-                        const SizeType& master_index);
+  void SetProcessInformation(const ProcessInfo& rCurrentProcessInfo);
+
+
   /**
    * Get element size from the dofs
    */
-  virtual SizeType GetDofsSize();
+  SizeType GetDofsSize() override;
 
-  /**
-   * Calculation of an SkewSymmetricTensor from a vector
-   */
-  void VectorToSkewSymmetricTensor(const Vector& rVector,
-                                   Matrix& rSkewSymmetricTensor);
-  /**
-   * Write Matrix usint rows
-   */
-  void WriteMatrixInRows(std::string MatrixName,
-                         const MatrixType& rMatrix);
   ///@}
   ///@name Protected  Access
   ///@{
 
-  RigidBodyPointLinkCondition() {};
+  RigidBodyPointLinkSegregatedVCondition() {};
 
   ///@}
   ///@name Protected Inquiry
@@ -465,17 +307,16 @@ class RigidBodyPointLinkCondition
 
   void save( Serializer& rSerializer ) const override
   {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, RigidBodyPointLinkCondition )
   }
 
   void load( Serializer& rSerializer ) override
   {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, RigidBodyPointLinkCondition )
   }
 
-
-}; // class RigidBodyPointLinkCondition.
+}; // class RigidBodyPointLinkSegregatedVCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_RIGID_BODY_POINT_LINK_CONDITION_H_INCLUDED defined
+#endif // KRATOS_RIGID_BODY_POINT_LINK_SEGREGATED_V_CONDITION_H_INCLUDED defined
