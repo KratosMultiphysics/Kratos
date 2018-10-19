@@ -159,7 +159,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
      * @param rThreshold The maximum uniaxial stress of the linear behaviour
      * @param rPlasticDenominator The plasticity numerical value to obtain the pastic consistency factor
      * @param rYieldSurfaceDerivative The derivative of the yield surface
-     * @param rPlasicPotentialDerivative The derivative of the plastic potential
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
      * @param rPlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param rPlasticDeformationGradient The plastic deformation gradient
      * @param rValues Parameters of the constitutive law
@@ -173,7 +173,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         double& rThreshold,
         double& rPlasticDenominator,
         BoundedArrayType& rYieldSurfaceDerivative,
-        BoundedArrayType& rPlasicPotentialDerivative,
+        BoundedArrayType& rPlasticPotentialDerivative,
         double& rPlasticDissipation,
         Matrix& rPlasticDeformationGradient,
         ConstitutiveLaw::Parameters& rValues
@@ -198,11 +198,19 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         // Predictive deformation gradient
         Matrix predictive_deformation_gradient = rValues.GetDeformationGradientF();
 
+        // We compute Fe auxiliarly
+        MathUtils<double>::InvertMatrix(rPlasticDeformationGradient, inverse_plastic_deformation_gradient_increment, aux_det);
+        const Matrix elastic_deformation_matrix = prod(predictive_deformation_gradient, inverse_plastic_deformation_gradient_increment);
+
+        // With this we can compute the polar decomposition in order to compute the Ren+1
+        Matrix Re, Ue;
+        ConstitutiveLawUtilities<VoigtSize>::PolarDecomposition(elastic_deformation_matrix, Re, Ue);
+
         // Backward Euler
         while (iteration <= max_iter) {
             plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
 
-            noalias(plastic_deformation_gradient_increment) = IdentityMatrix(Dimension, Dimension) + plastic_consistency_factor_increment * MathUtils<double>::StrainVectorToTensor<BoundedArrayType, Matrix>(rPlasicPotentialDerivative);
+            noalias(plastic_deformation_gradient_increment) = YieldSurfaceType::CalculatePlasticDeformationGradientIncrement(rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re);
 
             // We check that the increment is not a zero matrix
             if (norm_frobenius(plastic_deformation_gradient_increment) < 1.0e-8) {
@@ -230,7 +238,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
             rConstitutiveLaw.CalculateValue(rValues, rStressVariable, aux_vector);
             noalias(rPredictiveStressVector) = aux_vector;
 
-            threshold_indicator = CalculatePlasticParameters(rPredictiveStressVector, rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative, rPlasicPotentialDerivative, rPlasticDissipation, delta_plastic_strain, rValues);
+            threshold_indicator = CalculatePlasticParameters(rPredictiveStressVector, rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative, rPlasticPotentialDerivative, rPlasticDissipation, delta_plastic_strain, rValues);
 
             if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 break;
@@ -286,6 +294,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         CalculateDerivativeYieldSurface(rPredictiveStressVector, deviator, J2, rYieldSurfaceDerivative, rValues);
         CalculateDerivativePlasticPotential(rPredictiveStressVector, deviator, J2, rDerivativePlasticPotential, rValues);
         CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor);
+
         CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor, rPlasticStrainIncrement, rPlasticDissipation, h_capa, rValues);
         CalculateEquivalentStressThreshold(rPlasticDissipation, tensile_indicator_factor, compression_indicator_factor, rThreshold, slope, rValues);
         CalculateHardeningParameter(rYieldSurfaceDerivative, slope, h_capa, hardening_parameter);

@@ -120,6 +120,24 @@ class FiniteStrainModifiedMohrCoulombYieldSurface
     ///@{
 
     /**
+     * @brief This computes the plastic deformation gradient increment
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
+     * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
+     * @param rRe The rotation decomposition of the elastic eformation
+     * @warning MC just works with small perturbations
+     */
+    static Matrix CalculatePlasticDeformationGradientIncrement(
+        const BoundedArrayType& rPlasticPotentialDerivative,
+        const double PlasticConsistencyFactorIncrement,
+        const Matrix& rRe
+        )
+    {
+        const Matrix plastic_deformation_gradient_increment  = IdentityMatrix(Dimension, Dimension) + PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedArrayType, Matrix>(rPlasticPotentialDerivative);
+
+        return plastic_deformation_gradient_increment;
+    }
+
+    /**
      * @brief This method the uniaxial equivalent stress
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The StrainVector vector

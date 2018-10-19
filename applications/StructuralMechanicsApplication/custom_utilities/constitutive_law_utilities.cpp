@@ -677,9 +677,9 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
 
 template<>
 void ConstitutiveLawUtilities<6>::SpectralDecomposition(
-    const array_1d<double, VoigtSize>& rStressVector,
-    array_1d<double, VoigtSize>& rStressVectorTension,
-    array_1d<double, VoigtSize>& rStressVectorCompression
+    const BoundedVectorType& rStressVector,
+    BoundedVectorType& rStressVectorTension,
+    BoundedVectorType& rStressVectorCompression
     )
 {
     rStressVectorTension     = ZeroVector(6);
@@ -717,9 +717,9 @@ void ConstitutiveLawUtilities<6>::SpectralDecomposition(
 
 template<>
 void ConstitutiveLawUtilities<3>::SpectralDecomposition(
-    const array_1d<double, VoigtSize>& rStressVector,
-    array_1d<double, VoigtSize>& rStressVectorTension,
-    array_1d<double, VoigtSize>& rStressVectorCompression
+    const BoundedVectorType& rStressVector,
+    BoundedVectorType& rStressVectorTension,
+    BoundedVectorType& rStressVectorCompression
     )
 {
     rStressVectorTension     = ZeroVector(3);
@@ -750,6 +750,45 @@ void ConstitutiveLawUtilities<3>::SpectralDecomposition(
     }
     rStressVectorCompression = rStressVector - rStressVectorTension;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformationGradientIncrement(
+    const BoundedVectorType& rPlasticPotentialDerivative,
+    const double PlasticConsistencyFactorIncrement,
+    const MatrixType& rRe
+    )
+{
+    // Define DeltaFp
+    MatrixType plastic_deformation_gradient_increment(Dimension, Dimension);
+
+    // Define plastic flow
+    const MatrixType plastic_flow = PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+
+    // Declare the different eigen decomposition matrices
+    BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
+
+    // We compute the exponential matrix
+    // Decompose matrix
+    MathUtils<double>::EigenSystem<Dimension>(plastic_flow, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 10);
+
+    // Calculate the eigenvalues of the E matrix
+    for (std::size_t i = 0; i < Dimension; ++i) {
+        eigen_values_matrix(i, i) = std::exp(eigen_values_matrix(i, i));
+    }
+
+    // Calculate exponential matrix
+    noalias(plastic_deformation_gradient_increment) = prod(trans(eigen_vectors_matrix), prod<Matrix>(eigen_values_matrix, eigen_vectors_matrix));
+
+    // Pre and post multiply by Re
+    plastic_deformation_gradient_increment = prod(plastic_deformation_gradient_increment, rRe);
+    plastic_deformation_gradient_increment = prod(trans(rRe), plastic_deformation_gradient_increment);
+
+    return plastic_deformation_gradient_increment;
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 

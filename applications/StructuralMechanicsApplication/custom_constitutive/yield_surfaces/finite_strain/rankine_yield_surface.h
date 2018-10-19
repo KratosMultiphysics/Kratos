@@ -120,6 +120,21 @@ public:
     ///@{
 
     /**
+     * @brief This computes the plastic deformation gradient increment
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
+     * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
+     * @param rRe The rotation decomposition of the elastic eformation
+     */
+    static Matrix CalculatePlasticDeformationGradientIncrement(
+        const BoundedArrayType& rPlasticPotentialDerivative,
+        const double PlasticConsistencyFactorIncrement,
+        const Matrix& rRe
+        )
+    {
+        return ConstitutiveLawUtilities<VoigtSize>::CalculateExponentialPlasticDeformationGradientIncrement(rPlasticPotentialDerivative, PlasticConsistencyFactorIncrement, rRe);
+    }
+
+    /**
      * @brief This method the uniaxial equivalent stress
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The StrainVector vector
