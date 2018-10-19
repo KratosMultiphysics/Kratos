@@ -6,7 +6,8 @@ import KratosMultiphysics
 class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
 
     def test_connectivity_preserve_modeler(self):
-        model_part1 = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+        model_part1 = current_model.CreateModelPart("Main")
         model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
         model_part1.CreateNewNode(1,0.0,0.1,0.2)
@@ -26,7 +27,9 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         model_part1.CreateNewCondition("Condition2D2N", 2, [2,4], model_part1.GetProperties()[1])
         sub1.AddConditions([2])
 
-        new_model_part = KratosMultiphysics.ModelPart("Other")
+        current_model = KratosMultiphysics.Model()
+        new_model_part = current_model.CreateModelPart("Other")
+
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "Condition2D2N")
 
@@ -66,7 +69,8 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertEqual(new_model_part.GetSubModelPart("sub1").Conditions[2].GetValue(KratosMultiphysics.TEMPERATURE), 0.0)
 
     def test_repeated_call(self):
-        model_part1 = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+        model_part1 = current_model.CreateModelPart("Main")
         model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
         model_part1.CreateNewNode(1,0.0,0.1,0.2)
@@ -84,10 +88,11 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         model_part1.CreateNewCondition("Condition2D2N", 2, [2,4], model_part1.GetProperties()[1])
         model_part1.CreateNewCondition("Condition2D2N", 1, [1,2], model_part1.GetProperties()[1])
         sub1.AddConditions([2])
-
-
-        new_model_part = KratosMultiphysics.ModelPart("New1")
-        new_model_part2 = KratosMultiphysics.ModelPart("New2")
+        
+        current_model = KratosMultiphysics.Model()
+        new_model_part = current_model.CreateModelPart("New1")
+        new_model_part2 = current_model.CreateModelPart("New2")
+        
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "Condition2D2N")
         self.assertEqual(len(model_part1.Nodes) , len(new_model_part.Nodes))
@@ -114,11 +119,12 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertEqual(len(model_part1.Elements) , len(new_model_part.Elements))
 
     def test_variable_list_merging(self):
-        model_part1 = KratosMultiphysics.ModelPart("mp1")
+        current_model = KratosMultiphysics.Model()
+        model_part1 = current_model.CreateModelPart("mp1")
         model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
-        model_part2 = KratosMultiphysics.ModelPart("mp1")
+        model_part2 = current_model.CreateModelPart("mp2")
         model_part2.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         model_part2.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
 

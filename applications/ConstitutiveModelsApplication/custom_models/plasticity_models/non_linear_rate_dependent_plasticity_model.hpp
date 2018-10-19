@@ -194,11 +194,11 @@ namespace Kratos
       // if(!converged)
       //   std::cout<<" ConstitutiveLaw did not converge on the rate dependent return mapping"<<std::endl;
 
-      const ModelDataType& rModelData        = rVariables.GetModelData();
-      const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
+      const ModelDataType& rModelData   = rVariables.GetModelData();
+      const double& rDeltaTime          = rModelData.GetProcessInfo()[DELTA_TIME];
 
-      const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
-      const double& rPlasticStrainRate       = rMaterialProperties[PLASTIC_STRAIN_RATE];
+      const Properties& rProperties     = rModelData.GetProperties();
+      const double& rPlasticStrainRate  = rProperties[PLASTIC_STRAIN_RATE];
 
 
       double MaterialDeltaPlasticStrain = rPlasticStrainRate * rDeltaTime;
@@ -247,11 +247,11 @@ namespace Kratos
       double& rDeltaGamma                  = rVariables.DeltaInternal.Variables[0];
 
 
-      const ModelDataType& rModelData        = rVariables.GetModelData();
-      const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
+      const ModelDataType& rModelData      = rVariables.GetModelData();
+      const double& rDeltaTime             = rModelData.GetProcessInfo()[DELTA_TIME];
 
-      const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
-      const double& rPlasticStrainRate       = rMaterialProperties[PLASTIC_STRAIN_RATE];
+      const Properties& rProperties        = rModelData.GetProperties();
+      const double& rPlasticStrainRate     = rProperties[PLASTIC_STRAIN_RATE];
 
 
       rEquivalentPlasticStrain = 0;
@@ -379,9 +379,9 @@ namespace Kratos
       //3.- Calculate thermal dissipation and delta thermal dissipation
       if( rDeltaGamma > 0 ){
 
-	const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
+	const Properties& rProperties  = rModelData.GetProperties();
 
-	const double& rPlasticStrainRate =rMaterialProperties[PLASTIC_STRAIN_RATE];
+	const double& rPlasticStrainRate =rProperties[PLASTIC_STRAIN_RATE];
 
 	double MaterialDeltaPlasticStrain = rPlasticStrainRate * rDeltaTime;
 

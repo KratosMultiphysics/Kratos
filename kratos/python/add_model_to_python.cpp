@@ -30,9 +30,12 @@ using namespace pybind11;
 
 void  AddModelToPython(pybind11::module& m)
 {
-    class_<Model, Model::Pointer >(m,"Model")
+    class_<Model >(m,"Model")
     .def(init<>())
-    .def("AddModelPart", &Model::AddModelPart)
+    .def("Reset", &Model::Reset)
+    .def("CreateModelPart", [&](Model& self, const std::string& Name){return &self.CreateModelPart(Name);}, return_value_policy::reference_internal )
+    .def("CreateModelPart", [&](Model& self, const std::string& Name, unsigned int BufferSize){return &self.CreateModelPart(Name, BufferSize);}, return_value_policy::reference_internal )
+    .def("DeleteModelPart", &Model::DeleteModelPart)
     .def("GetModelPart", &Model::GetModelPart, return_value_policy::reference_internal)
     .def("HasModelPart", &Model::HasModelPart)
     .def("__getitem__", &Model::GetModelPart, return_value_policy::reference_internal)

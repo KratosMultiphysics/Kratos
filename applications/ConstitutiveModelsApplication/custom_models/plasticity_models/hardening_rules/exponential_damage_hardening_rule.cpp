@@ -71,12 +71,12 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const ModelDataType& rModelData       = rVariables.GetModelData();
-    const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
-    const double& rFractureEnergy         = rMaterialProperties[FRACTURE_ENERGY];
-    const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];
-    const double& rCharacteristicSize     = rModelData.GetCharacteristicSize();
-    const double& rStateVariable          = rVariables.GetInternalVariables()[0];
+    const ModelDataType& rModelData    = rVariables.GetModelData();
+    const Properties& rProperties      = rModelData.GetProperties();
+    const double& rFractureEnergy      = rProperties[FRACTURE_ENERGY];
+    const double& rDamageThreshold     = rProperties[DAMAGE_THRESHOLD];
+    const double& rCharacteristicSize  = rModelData.GetCharacteristicSize();
+    const double& rStateVariable       = rVariables.GetInternalVariables()[0];
 
 
     double A = 1.0/(rFractureEnergy/(rCharacteristicSize*rDamageThreshold*rDamageThreshold)-0.5);
@@ -109,12 +109,12 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const ModelDataType& rModelData       = rVariables.GetModelData();
-    const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
-    const double& rFractureEnergy         = rMaterialProperties[FRACTURE_ENERGY];
-    const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];
-    const double& rCharacteristicSize     = rModelData.GetCharacteristicSize();
-    const double& rStateVariable          = rVariables.GetInternalVariables()[0];
+    const ModelDataType& rModelData    = rVariables.GetModelData();
+    const Properties& rProperties      = rModelData.GetProperties();
+    const double& rFractureEnergy      = rProperties[FRACTURE_ENERGY];
+    const double& rDamageThreshold     = rProperties[DAMAGE_THRESHOLD];
+    const double& rCharacteristicSize  = rModelData.GetCharacteristicSize();
+    const double& rStateVariable       = rVariables.GetInternalVariables()[0];
 
     double A = 1.0/(rFractureEnergy/(rCharacteristicSize*rDamageThreshold*rDamageThreshold)-0.5);
 

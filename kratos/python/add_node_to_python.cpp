@@ -161,18 +161,6 @@ void  AddNodeToPython(pybind11::module& m)
     IndexingUtility<NodeBinderType,NodeType,VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,Variable<Vector > >(node_binder);
     IndexingUtility<NodeBinderType,NodeType,Variable<Matrix > >(node_binder);
-    node_binder.def("SetValue", [](NodeType& node, const Variable<array_1d<double, 3> > & rV, const Vector& rValue){node.SetValue(rV, array_1d<double,3>(rValue));} );
-    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 3> > & rV, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,3>(rValue);} );
-    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 3> > & rV, typename NodeType::IndexType SolutionStepIndex, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,3>(rValue);} );
-    node_binder.def("SetValue", [](NodeType& node, const Variable<array_1d<double, 4> > & rV, const Vector& rValue){node.SetValue(rV, array_1d<double,4>(rValue));} );
-    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 4> > & rV, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,4>(rValue);} );
-    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 4> > & rV, typename NodeType::IndexType SolutionStepIndex, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,4>(rValue);} );
-    node_binder.def("SetValue", [](NodeType& node, const Variable<array_1d<double, 6> > & rV, const Vector& rValue){node.SetValue(rV, array_1d<double,6>(rValue));} );
-    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 6> > & rV, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,6>(rValue);} );
-    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 6> > & rV, typename NodeType::IndexType SolutionStepIndex, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,6>(rValue);} );
-    node_binder.def("SetValue", [](NodeType& node, const Variable<array_1d<double, 9> > & rV, const Vector& rValue){node.SetValue(rV, array_1d<double,9>(rValue));} );
-    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 9> > & rV, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,9>(rValue);} );
-    node_binder.def("SetSolutionStepValue", [](NodeType& node, const Variable<array_1d<double, 9> > & rV, typename NodeType::IndexType SolutionStepIndex, const Vector& rValue){node.GetSolutionStepValue(rV) = array_1d<double,9>(rValue);} );
 
     node_binder.def("GetBufferSize", &NodeType::GetBufferSize);
     node_binder.def("AddDof", NodeAddDof<Variable<double> >);
