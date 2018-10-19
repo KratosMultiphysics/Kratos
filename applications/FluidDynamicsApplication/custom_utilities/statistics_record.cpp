@@ -150,9 +150,4 @@ void StatisticsRecord::PrintToFile(const ModelPart& rModelPart, const std::strin
     stats_file.close();
 }
 
-KRATOS_CREATE_VARIABLE( StatisticsRecord::Pointer, STATISTICS_CONTAINER)
-
-//TODO move somewhere else
-KRATOS_CREATE_VARIABLE( StatisticsData, TURBULENCE_STATISTICS_DATA)
-
 }
