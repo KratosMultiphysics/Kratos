@@ -448,8 +448,6 @@ template <typename T> AMatrix::TransposeMatrix<T> trans(T& TheMatrix){ return AM
 
 template <typename TExpressionType> using vector_expression = AMatrix::MatrixExpression<TExpressionType,AMatrix::row_major_access>;
 
-template <typename TExpressionType> using MatrixRow = AMatrix::MatrixRow<TExpressionType>;
-
 
 template <typename TDataType>
 class KratosZeroMatrix

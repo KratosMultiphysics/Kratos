@@ -92,7 +92,11 @@ public:
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     /// Type for shape function values container
-    typedef MatrixRow< Matrix > ShapeFunctionsType;
+    #ifdef KRATOS_USE_AMATRIX
+    typedef AMatrix::MatrixRow< Matrix > ShapeFunctionsType;
+    #else
+    typedef boost::numeric::ublas::matrix_row< Matrix > ShapeFunctionsType;
+    #endif
 
     /// Type for a matrix containing the shape function gradients
     typedef Kratos::Matrix ShapeFunctionDerivativesType;
@@ -435,7 +439,7 @@ protected:
      * Such boundary integral must be implemented in all the fluid dynamics elements
      * deriving from this one in accordance to the formulation used. This method is
      * intended to be called from the derived elements to add the contribution of the
-     * tractions on the elemental cuts to enforce equilibrium. This means that what we
+     * tractions on the elemental cuts to enforce equilibrium. This means that what we 
      * call external traction is nothing but minus the base formulation boundary term.
      * @param rData Element data structure
      * @param rUnitNormal Outwards unit normal vector for the cut plane
