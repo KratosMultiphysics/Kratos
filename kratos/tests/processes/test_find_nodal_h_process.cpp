@@ -103,7 +103,7 @@ namespace Kratos
             Element::Pointer p_elem_3 = this_model_part.CreateNewElement("Element2D3N", 4, triangle_3, p_elem_prop);
                          
             // Compute NodalH
-            auto process = FindNodalHProcess<true>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
             
 //             // DEBUG         
@@ -250,7 +250,7 @@ namespace Kratos
             Element::Pointer p_elem_11 = this_model_part.CreateNewElement("Element3D4N", 12, tetrahedra_11, p_elem_prop);
                       
             // Compute NodalH
-            auto process = FindNodalHProcess<true>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
             
 //             // DEBUG         

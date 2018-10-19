@@ -19,6 +19,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
+#include "containers/model.h"
 #include "meshing_application.h"
 
 // Utilities
