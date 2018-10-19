@@ -19,8 +19,8 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/hencky_plastic_UP_3d_law.hpp"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
+#include "custom_constitutive/hencky_plastic_UP_3D_law.hpp"
+#include "custom_utilities/particle_mechanics_math_utilities.h"
 #include "particle_mechanics_application.h"
 
 namespace Kratos
@@ -132,7 +132,7 @@ void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialRe
 
     double tol = 1e-9;
     int iter = 100;
-    SolidMechanicsMathUtilities<double>::EigenVectors(rStressMatrix, eigen_vectors, eigen_values, tol, iter);
+    ParticleMechanicsMathUtilities<double>::EigenVectors(rStressMatrix, eigen_vectors, eigen_values, tol, iter);
 
     rStressMatrix.clear();
     for(unsigned int i=0; i<3; i++)
@@ -149,7 +149,7 @@ void HenckyElasticPlasticUP3DLaw::CorrectDomainPressure( Matrix& rStressMatrix, 
     for (unsigned int i = 0; i < 3; ++i)
         mean_pressure += rStressMatrix(i,i);
     mean_pressure /=3.0;
-    
+
     for (unsigned int i = 0; i < 3; ++i)
         rStressMatrix(i,i) -= mean_pressure;
 
@@ -181,7 +181,7 @@ void HenckyElasticPlasticUP3DLaw::GetDomainPressure( double& rPressure, const Ma
 void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const MPMFlowRule::RadialReturnVariables & rReturnMappingVariables, const Matrix& rNewElasticLeftCauchyGreen, const double& rAlpha, Matrix& rElastoPlasticTangentMatrix, const MaterialResponseVariables& rElasticVariables )
 {
     mpMPMFlowRule->ComputeElastoPlasticTangentMatrix( rReturnMappingVariables,  rNewElasticLeftCauchyGreen, rAlpha, rElastoPlasticTangentMatrix);
-    
+
     // Obtain the domain pressure
     double pressure;
     GetDomainPressure( pressure, rElasticVariables);
@@ -248,7 +248,7 @@ void HenckyElasticPlasticUP3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCa
         Vector& rStrainVector )
 {
     // E = 0.5*(1-invFT*invF) or e = 0.5*(1-inv(b))
-    
+
     // Calculating the inverse of the jacobian
     Matrix InverseLeftCauchyGreen ( 3, 3 );
     double det_b=0;
