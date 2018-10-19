@@ -24,8 +24,10 @@ namespace Testing {
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessHorizontalPlane2D, KratosCoreFastSuite)
     {
+        Model current_model;
+        
         // Generate the element
-        ModelPart fluid_part("Surface");
+        ModelPart &fluid_part = current_model.CreateModelPart("Surface");
         fluid_part.AddNodalSolutionStepVariable(DISTANCE);
         fluid_part.CreateNewNode(1, 0.0, 0.0, 0.0);
         fluid_part.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -35,7 +37,7 @@ namespace Testing {
 
         // Generate the skin
         const double plane_height = 0.5;
-        ModelPart skin_part("Skin");
+        ModelPart &skin_part = current_model.CreateModelPart("Skin");
         skin_part.CreateNewNode(1, -1.0, plane_height, 0.0);
         skin_part.CreateNewNode(2,  1.0, plane_height, 0.0);
         Properties::Pointer p_properties_1(new Properties(1));
@@ -54,8 +56,10 @@ namespace Testing {
 
     KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximation2D, KratosCoreFastSuite)
     {
+        Model current_model;
+
         // Generate the element
-        ModelPart fluid_part("Surface");
+        ModelPart &fluid_part = current_model.CreateModelPart("Surface");
         fluid_part.AddNodalSolutionStepVariable(DISTANCE);
         fluid_part.CreateNewNode(1, 0.0, 0.0, 0.0);
         fluid_part.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -65,7 +69,7 @@ namespace Testing {
 
         // Generate the skin
         const double plane_height = 0.5;
-        ModelPart skin_part("Skin");
+        ModelPart &skin_part = current_model.CreateModelPart("Skin");
         skin_part.CreateNewNode(1, -1.0, plane_height, 0.0);
         skin_part.CreateNewNode(2, 0.75, plane_height, 0.0);
         skin_part.CreateNewNode(3, 0.75, -1.0, 0.0);
