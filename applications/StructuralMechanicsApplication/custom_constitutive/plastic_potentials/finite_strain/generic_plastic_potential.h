@@ -59,7 +59,7 @@ different function is used, it is non-associated. For metals associated flow rul
  * @author Lucia Barbu
  */
 template <SizeType TVoigtSize = 6>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainGenericPlasticPotential
+class FiniteStrainGenericPlasticPotential
 {
   public:
     ///@name Type Definitions
@@ -216,18 +216,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 
