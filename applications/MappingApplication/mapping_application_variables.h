@@ -29,15 +29,7 @@
 
 namespace Kratos
 {
-    // typedef std::vector<MapperInterfaceInfo::Pointer> InterfaceInfoPointerVector;
-    // typedef std::vector<std::unique_ptr<MapperInterfaceInfo>> InterfaceInfoPointerVector;
-    // typedef Kratos::shared_ptr<std::vector<int>> InterfaceInfoPointerVector;
     KRATOS_DEFINE_APPLICATION_VARIABLE( MAPPING_APPLICATION, int, INTERFACE_EQUATION_ID ) // Has to be int bcs of MPI
-    // KRATOS_DEFINE_APPLICATION_VARIABLE( MAPPING_APPLICATION, InterfaceInfoPointerVector, INTERFACE_INFO )
-
-    // TODO
-    KRATOS_DEFINE_APPLICATION_VARIABLE( MAPPING_APPLICATION, double, NEIGHBOR_RANK)
-    KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( MAPPING_APPLICATION, NEIGHBOR_COORDINATES)
 }
 
 #endif	/* KRATOS_MAPPING_APPLICATION_VARIABLES_H_INCLUDED */
