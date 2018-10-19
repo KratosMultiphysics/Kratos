@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Alejandro Cornejo
@@ -257,7 +257,7 @@ void ConstitutiveLawUtilities<3>::CalculateThirdVector(
     rThirdVector[0] = rDeviator[1] * rDeviator[2] + J2thirds;
     rThirdVector[1] = rDeviator[0] * rDeviator[2] + J2thirds;
     rThirdVector[2] = rDeviator[0] * rDeviator[1] - std::pow(rDeviator[3], 2) + J2thirds;
-	rThirdVector[3] = -2.0 * rDeviator[3] * rDeviator[2];
+    rThirdVector[3] = -2.0 * rDeviator[3] * rDeviator[2];
 }
 
 /***********************************************************************************/
@@ -572,14 +572,14 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
 
     Vector auxiliar_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-		auxiliar_vector[0] = eigen_vectors_matrix(0, i);
-		auxiliar_vector[1] = eigen_vectors_matrix(1, i);
-		auxiliar_vector[2] = eigen_vectors_matrix(2, i);
+        auxiliar_vector[0] = eigen_vectors_matrix(0, i);
+        auxiliar_vector[1] = eigen_vectors_matrix(1, i);
+        auxiliar_vector[2] = eigen_vectors_matrix(2, i);
         eigen_vectors_container.push_back(auxiliar_vector);
     }
     
     Vector sigma_tension_vector;
-	Matrix sigma_tension_tensor;
+    Matrix sigma_tension_tensor;
     for (IndexType i = 0; i < Dimension; ++i) {
         if (eigen_values_matrix(i, i) > 0.0) {
             sigma_tension_tensor = outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
@@ -641,13 +641,13 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
 
     Vector auxiliar_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-		auxiliar_vector[0] = eigen_vectors_matrix(0, i);
-		auxiliar_vector[1] = eigen_vectors_matrix(1, i);
+        auxiliar_vector[0] = eigen_vectors_matrix(0, i);
+        auxiliar_vector[1] = eigen_vectors_matrix(1, i);
         eigen_vectors_container.push_back(auxiliar_vector);
     }
     
     Vector sigma_tension_vector;
-	Matrix sigma_tension_tensor;
+    Matrix sigma_tension_tensor;
     for (IndexType i = 0; i < Dimension; ++i) {
         if (eigen_values_matrix(i, i) > 0.0) {
             sigma_tension_tensor = outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
@@ -695,14 +695,14 @@ void ConstitutiveLawUtilities<6>::SpectralDecomposition(
     std::vector<Vector> eigen_vectors_container;
     Vector auxiliar_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-		auxiliar_vector[0] = eigen_vectors_matrix(0, i);
-		auxiliar_vector[1] = eigen_vectors_matrix(1, i);
-		auxiliar_vector[2] = eigen_vectors_matrix(2, i);
+        auxiliar_vector[0] = eigen_vectors_matrix(0, i);
+        auxiliar_vector[1] = eigen_vectors_matrix(1, i);
+        auxiliar_vector[2] = eigen_vectors_matrix(2, i);
         eigen_vectors_container.push_back(auxiliar_vector);
     }
 
     Vector sigma_tension_vector;
-	Matrix sigma_tension_tensor;
+    Matrix sigma_tension_tensor;
     for (IndexType i = 0; i < Dimension; ++i) {
         if (eigen_values_matrix(i, i) > 0.0) {
             sigma_tension_tensor = eigen_values_matrix(i, i) * outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
@@ -718,8 +718,8 @@ void ConstitutiveLawUtilities<6>::SpectralDecomposition(
 template<>
 void ConstitutiveLawUtilities<3>::SpectralDecomposition(
     const array_1d<double, VoigtSize>& rStressVector,
-	array_1d<double, VoigtSize>& rStressVectorTension,
-	array_1d<double, VoigtSize>& rStressVectorCompression
+    array_1d<double, VoigtSize>& rStressVectorTension,
+    array_1d<double, VoigtSize>& rStressVectorCompression
     )
 {
     rStressVectorTension     = ZeroVector(3);
@@ -735,13 +735,13 @@ void ConstitutiveLawUtilities<3>::SpectralDecomposition(
     std::vector<Vector> eigen_vectors_container;
     Vector auxiliar_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-		auxiliar_vector[0] = eigen_vectors_matrix(0, i);
-		auxiliar_vector[1] = eigen_vectors_matrix(1, i);
+        auxiliar_vector[0] = eigen_vectors_matrix(0, i);
+        auxiliar_vector[1] = eigen_vectors_matrix(1, i);
         eigen_vectors_container.push_back(auxiliar_vector);
     }
 
     Vector sigma_tension_vector;
-	Matrix sigma_tension_tensor;
+    Matrix sigma_tension_tensor;
     for (IndexType i = 0; i < Dimension; ++i) {
         if (eigen_values_matrix(i, i) > 0.0) {
             sigma_tension_tensor = eigen_values_matrix(i, i) * outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
