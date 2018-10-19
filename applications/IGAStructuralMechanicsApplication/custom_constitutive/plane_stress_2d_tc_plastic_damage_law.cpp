@@ -140,11 +140,17 @@ void PlaneStress2dTCPlasticDamageLaw::CalculateMaterialResponseInternal(
     solve_eig(rStressVector(0), rStressVector(2), rStressVector(2), rStressVector(1), V, d);
     m_eigen_values = d;
     m_eigen_vectors = V;
-    KRATOS_WATCH(rStressVector)
-    KRATOS_WATCH(d)
+    //KRATOS_WATCH(rStressVector)
+    //KRATOS_WATCH(d)
     Vector d_compression = ZeroVector(2);
     d_compression(0) = (d(0) - std::abs(d(0))) / 2;
     d_compression(1) = (d(1) - std::abs(d(1))) / 2;
+
+    if (d_compression(0)>1e-1)
+        KRATOS_WATCH(d_compression(0))
+    if (d_compression(1)>1e-1)
+        KRATOS_WATCH(d_compression(1))
+
 
     Vector d_tension = ZeroVector(2);
     d_tension(0) = (d(0) + std::abs(d(0))) / 2;
@@ -195,14 +201,14 @@ void PlaneStress2dTCPlasticDamageLaw::CalculateMaterialResponseInternal(
     Matrix supp1 = ZeroMatrix(2, 2);
     Matrix supp2 = ZeroMatrix(2, 2);
 
-    KRATOS_WATCH(damage_treshold_compression)
-    KRATOS_WATCH(m_treshold_compression_initial)
+    //KRATOS_WATCH(damage_treshold_compression)
+    //KRATOS_WATCH(m_treshold_compression_initial)
 
-    KRATOS_WATCH(damage_treshold_tension)
-        KRATOS_WATCH(m_treshold_tension_initial)
+    //KRATOS_WATCH(damage_treshold_tension)
+    //KRATOS_WATCH(m_treshold_tension_initial)
 
-    KRATOS_WATCH(d_compression)
-    KRATOS_WATCH(d_tension)
+    //KRATOS_WATCH(d_compression)
+    //KRATOS_WATCH(d_tension)
     for (int i = 0; i < 2; i++)
     {
         for (int j = 0; j < 2; j++)
@@ -233,7 +239,7 @@ void PlaneStress2dTCPlasticDamageLaw::CalculateMaterialResponseInternal(
         for (int j = 0; j < 2; j++)
         {
             //KRATOS_WATCH(D_compression)
-            //    KRATOS_WATCH(D_tension)
+            //KRATOS_WATCH(D_tension)
 
             //Stress2d(i,j)=(1-dn)*Dn[i][j]+(1-dp)*Dp[i][j];
             // 11/03/2013 Diego Talledo: Added Environmental Chemical Damage
@@ -250,8 +256,8 @@ void PlaneStress2dTCPlasticDamageLaw::CalculateMaterialResponseInternal(
         }
     }
 
-    KRATOS_WATCH(m_damage_c)
-    KRATOS_WATCH(m_damage_t)
+    //KRATOS_WATCH(m_damage_c)
+    //KRATOS_WATCH(m_damage_t)
 
     // calculation of stress tensor
     noalias(rStressVector) = (1.0 - m_damage_t)*stress_vector_tension
@@ -259,16 +265,16 @@ void PlaneStress2dTCPlasticDamageLaw::CalculateMaterialResponseInternal(
     rStressVector(2) = (1.0 - (1 - shear_retention_factor)*m_damage_t)*stress_vector_tension(2)
         + (1.0 - (1 - shear_retention_factor)*m_damage_c)*stress_vector_compression(2);
 
-    KRATOS_WATCH(rStressVector)
-    KRATOS_WATCH(Stress2d)
+    //KRATOS_WATCH(rStressVector)
+    //KRATOS_WATCH(Stress2d)
 
-    KRATOS_WATCH(D_compression)
-    KRATOS_WATCH(D_tension)
+    //KRATOS_WATCH(D_compression)
+    //KRATOS_WATCH(D_tension)
 
-    KRATOS_WATCH(d)
-    KRATOS_WATCH(V)
-    KRATOS_WATCH(p_matrix_compression)
-    KRATOS_WATCH(p_matrix_tension)
+    //KRATOS_WATCH(d)
+    //KRATOS_WATCH(V)
+    //KRATOS_WATCH(p_matrix_compression)
+    //KRATOS_WATCH(p_matrix_tension)
 
     Matrix Damage = (1-m_damage_t) * p_matrix_tension + (1-m_damage_c) * p_matrix_compression;
     Damage(0, 1) = (1 - (1 - shear_retention_factor) * m_damage_t) * p_matrix_tension(0, 1) 
@@ -276,8 +282,8 @@ void PlaneStress2dTCPlasticDamageLaw::CalculateMaterialResponseInternal(
     Damage(1, 0) = (1 - (1 - shear_retention_factor) * m_damage_t) * p_matrix_tension(1, 0) 
         + (1 - (1 - shear_retention_factor) * m_damage_c) * p_matrix_compression(1, 0);
 
-    KRATOS_WATCH(Damage)
-    KRATOS_WATCH(m_D0)
+    //KRATOS_WATCH(Damage)
+    //KRATOS_WATCH(m_D0)
 
     noalias(rConstitutiveLaw) = prod(Damage, m_D0);
     //// Second Secant Operator
@@ -327,18 +333,23 @@ void PlaneStress2dTCPlasticDamageLaw::InitializeMaterial(
 
     m_rate_biaxial_uniaxial = rMaterialProperties[RATE_BIAXIAL_UNIAXIAL];
 
+    m_beta = rMaterialProperties[BETA];
+
     m_compression_parameter_A = rMaterialProperties[COMPRESSION_PARAMETER_A];
     m_compression_parameter_B = rMaterialProperties[COMPRESSION_PARAMETER_B];
 
-    m_tension_parameter_A     = rMaterialProperties[TENSION_PARAMETER_A];
 
     m_E = rMaterialProperties[YOUNG_MODULUS];
     m_nu = rMaterialProperties[POISSON_RATIO];
 
-    m_beta = rMaterialProperties[BETA];
-
     m_Gf_t = rMaterialProperties[FRACTURE_ENERGY_TENSION];
     m_Gf_c = rMaterialProperties[FRACTURE_ENERGY_COMPRESSION];
+
+    double l_c = 0.5;
+
+    m_tension_parameter_A = 1 / ((1 - m_beta)*((m_Gf_t*m_E / (l_c*m_tensile_strength*m_tensile_strength)) - 0.5));//rMaterialProperties[TENSION_PARAMETER_A];
+
+    KRATOS_WATCH(m_tension_parameter_A)
 
     CalculateElasticityMatrix(m_D0);
 
@@ -348,20 +359,25 @@ void PlaneStress2dTCPlasticDamageLaw::InitializeMaterial(
 
     model = 2;
 
+    Vector d_tension = ZeroVector(2);
+    d_tension(0) = m_tensile_strength;
+
+    CalculateTresholdTension(d_tension, m_treshold_tension_initial);
+
     if (model == 1)
     {
         m_treshold_compression_initial = std::sqrt(std::sqrt(3.0)*(m_K - sqrt(2.0))*m_compressive_strength / 3);
-        m_treshold_tension_initial = sqrt(m_tensile_strength / sqrt(m_E));
+        //m_treshold_tension_initial = sqrt(m_tensile_strength / sqrt(m_E));
     }
     if (model == 2)
     {
         m_treshold_compression_initial = std::sqrt(std::sqrt(3.0)*(m_K - sqrt(2.0))*m_compressive_strength / 3);
-        m_treshold_tension_initial = std::sqrt(m_tensile_strength);
+        //m_treshold_tension_initial = std::sqrt(m_tensile_strength);
     }
     if (model == 3)
     {
         m_treshold_compression_initial = std::sqrt(3.0)*(m_K - std::sqrt(2.0))*m_compressive_strength / 3;
-        m_treshold_tension_initial = m_tensile_strength;
+        //m_treshold_tension_initial = m_tensile_strength;
     }
 
     m_treshold_tension = m_treshold_tension_initial;
@@ -641,7 +657,7 @@ void PlaneStress2dTCPlasticDamageLaw::CalculateTresholdCompression(
 
     if ((model == 1) || (model == 2))
     {
-        rTresholdCompression = std::sqrt(3.0)*(m_K*sigma_tau + sigma_tau);
+        rTresholdCompression = std::sqrt(3.0)*(m_K*sigma_oct + sigma_tau);
         if (rTresholdCompression >= 0)
             rTresholdCompression = std::sqrt(rTresholdCompression);
         else
@@ -649,7 +665,7 @@ void PlaneStress2dTCPlasticDamageLaw::CalculateTresholdCompression(
     }
     else if (model == 3)
     {
-        rTresholdCompression = std::sqrt(3.0)*(m_K*sigma_tau + sigma_tau);
+        rTresholdCompression = std::sqrt(3.0)*(m_K*sigma_oct + sigma_tau);
     }
 }
 /***********************************************************************************/
@@ -784,8 +800,10 @@ void PlaneStress2dTCPlasticDamageLaw::CalculateUniqueDamageCriterion(
     //KRATOS_WATCH(m_treshold_compression)
 
     //KRATOS_WATCH(g)
-    if (g > 1e-7)
+    if (g > 1e-2)
     {
+        KRATOS_WATCH(rTresholdTension)
+            KRATOS_WATCH(rTresholdCompression)
         double rho_Q = sqrt(rTresholdTension * rTresholdTension + rTresholdCompression * rTresholdCompression);
         double rho_P = m_treshold_tension * m_treshold_compression * std::sqrt((rTresholdCompression * rTresholdCompression + rTresholdTension * rTresholdTension)
             / ((rTresholdCompression * m_treshold_tension)*(rTresholdCompression * m_treshold_tension)
@@ -822,13 +840,18 @@ void PlaneStress2dTCPlasticDamageLaw::CalculateUniqueDamageCriterion(
             rDamageTresholdTension = std::sqrt((rDamageTresholdCompression * rDamageTresholdCompression * rTresholdTension * rTresholdTension)
                 / (rDamageTresholdCompression * rDamageTresholdCompression - rTresholdCompression * rTresholdCompression));
         }
+        KRATOS_WATCH(m_treshold_tension)
+        KRATOS_WATCH(rDamageTresholdTension)
+            KRATOS_WATCH(m_treshold_compression)
+        KRATOS_WATCH(rDamageTresholdCompression)
+        
     }
     else
     {
         rDamageTresholdTension = m_treshold_tension;
-        KRATOS_WATCH(m_treshold_compression)
-        KRATOS_WATCH(rTresholdCompression)
-        rDamageTresholdCompression = std::max( m_treshold_compression, rTresholdCompression);
+        //KRATOS_WATCH(m_treshold_compression)
+        //KRATOS_WATCH(rTresholdCompression)
+        rDamageTresholdCompression = m_treshold_compression;
     }
 }
 
