@@ -109,6 +109,7 @@ if(USE_COTIRE MATCHES ON)
     cotire(KratosMeshingApplication)
 endif(USE_COTIRE MATCHES ON)
 
+install(TARGETS KratosMeshingCore DESTINATION libs )
 install(TARGETS KratosMeshingApplication DESTINATION libs )
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
