@@ -261,7 +261,7 @@ protected:
   {
     KRATOS_TRY
 
-    const unsigned int dimension = (rModelPart.pGetMesh())->WorkingSpaceDimension();
+    const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
 
     if( rModelPart.NumberOfConditions() && this->CheckConditionsLocalSpace(rModelPart, dimension-1) ){
 
@@ -429,7 +429,6 @@ protected:
    * preferable in this case, as it performs the required communication.
    */
   void CalculateBoundaryNormals(ConditionsContainerType& rConditions)
-
   {
     KRATOS_TRY
 
@@ -618,7 +617,7 @@ protected:
   {
     KRATOS_TRY
 
-    const unsigned int dimension = (rModelPart.pGetMesh())->WorkingSpaceDimension();
+    const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
 
     //Reset normals
     ModelPart::NodesContainerType&    rNodes = rModelPart.Nodes();
@@ -769,7 +768,7 @@ protected:
   {
     KRATOS_TRY
 
-    const unsigned int dimension = (rModelPart.pGetMesh())->WorkingSpaceDimension();
+    const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
 
     if( rModelPart.NumberOfConditions() && this->CheckConditionsDimension(rModelPart, dimension-1) ){
 
@@ -818,7 +817,7 @@ protected:
   {
     KRATOS_TRY
 
-    const unsigned int dimension = (rModelPart.pGetMesh())->WorkingSpaceDimension();
+    const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
 
     ModelPart::NodesContainerType& rNodes = rModelPart.Nodes();
 
