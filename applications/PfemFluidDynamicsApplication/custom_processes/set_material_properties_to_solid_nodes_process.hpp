@@ -128,9 +128,9 @@ namespace Kratos
 	    const SizeType NumNodes = rGeom.PointsNumber();
 	    for (SizeType i = 0; i < NumNodes; ++i)
 	      {
-		rGeom[i].GetSolutionStepValue(YOUNG_MODULUS)=young_modulus;
-		rGeom[i].GetSolutionStepValue(DENSITY)=density;
-		rGeom[i].GetSolutionStepValue(POISSON_RATIO)=poisson_ratio;
+		rGeom[i].FastGetSolutionStepValue(YOUNG_MODULUS)=young_modulus;
+		rGeom[i].FastGetSolutionStepValue(DENSITY)=density;
+		rGeom[i].FastGetSolutionStepValue(POISSON_RATIO)=poisson_ratio;
 	      }
 
 	    
