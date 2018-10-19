@@ -27,8 +27,7 @@
 namespace Kratos
 {
 /// Default constructor
-template< unsigned int TDim>
-UniformRefinementUtility<TDim>::UniformRefinementUtility(ModelPart& rModelPart) :
+UniformRefinementUtility::UniformRefinementUtility(ModelPart& rModelPart) :
     mrModelPart(rModelPart)
 {
     // Initialize the member variables storing the Id
@@ -65,39 +64,35 @@ UniformRefinementUtility<TDim>::UniformRefinementUtility(ModelPart& rModelPart) 
 
     mStepDataSize = mrModelPart.GetNodalSolutionStepDataSize();
     mBufferSize = mrModelPart.GetBufferSize();
+    mDimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 }
 
 
 /// Destructor
-template< unsigned int TDim>
-UniformRefinementUtility<TDim>::~UniformRefinementUtility() {}
+UniformRefinementUtility::~UniformRefinementUtility() {}
 
 
 /// Turn back information as a string.
-template< unsigned int TDim>
-std::string UniformRefinementUtility<TDim>::Info() const {
+std::string UniformRefinementUtility::Info() const {
     return "Uniform refine utility.";
 }
 
 
 /// Print information about this object.
-template< unsigned int TDim>
-void UniformRefinementUtility<TDim>::PrintInfo(std::ostream& rOStream) const {
+void UniformRefinementUtility::PrintInfo(std::ostream& rOStream) const {
     rOStream << "Uniform refine utility.";
 }
 
 
 /// Print object's data.
-template< unsigned int TDim>
-void UniformRefinementUtility<TDim>::PrintData(std::ostream& rOStream) const {
+void UniformRefinementUtility::PrintData(std::ostream& rOStream) const {
     rOStream << "Uniform refine utility constructed with:\n";
     rOStream << "   Model part: " << mrModelPart.Info() << "\n";
 }
 
 
 /// Execute the refinement until the final number of divisions level is reached
-template< unsigned int TDim>
-void UniformRefinementUtility<TDim>::Refine(int& rFinalRefinementLevel)
+void UniformRefinementUtility::Refine(int& rFinalRefinementLevel)
 {
     if (mrModelPart.Nodes().size() == 0)
         KRATOS_WARNING("UniformRefinementUtility") << "Attempting to refine an empty model part" << std::endl;
@@ -147,8 +142,7 @@ void UniformRefinementUtility<TDim>::Refine(int& rFinalRefinementLevel)
 
 
 /// Set the custom ids which will be used to create new entities
-template<unsigned int TDim>
-void UniformRefinementUtility<TDim>::SetCustomIds(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId)
+void UniformRefinementUtility::SetCustomIds(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId)
 {
     // Set the id
     mLastNodeId = rNodeId;
@@ -158,8 +152,7 @@ void UniformRefinementUtility<TDim>::SetCustomIds(IndexType& rNodeId, IndexType&
 
 
 /// Get the last id of the created nodes, elements and conditions
-template<unsigned int TDim>
-void UniformRefinementUtility<TDim>::GetLastCreatedIds(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId)
+void UniformRefinementUtility::GetLastCreatedIds(IndexType& rNodeId, IndexType& rElemId, IndexType& rCondId)
 {
     // Get the id
     rNodeId = mLastNodeId;
@@ -169,8 +162,7 @@ void UniformRefinementUtility<TDim>::GetLastCreatedIds(IndexType& rNodeId, Index
 
 
 /// Remove the refined entities
-template< unsigned int TDim>
-void UniformRefinementUtility<TDim>::RemoveRefinedEntities(Flags ThisFlag)
+void UniformRefinementUtility::RemoveRefinedEntities(Flags ThisFlag)
 {
     // Clear the maps
     for (ModelPart::NodeIterator node = mrModelPart.NodesBegin(); node < mrModelPart.NodesEnd(); node++)
@@ -199,8 +191,7 @@ void UniformRefinementUtility<TDim>::RemoveRefinedEntities(Flags ThisFlag)
 
 
 /// Execute the refinement once
-template< unsigned int TDim>
-void UniformRefinementUtility<TDim>::ExecuteDivision(
+void UniformRefinementUtility::ExecuteDivision(
     const int& rDivision,
     IndexIndexVectorMapType& rTagNodes,
     IndexIndexVectorMapType& rTagElems,
@@ -334,8 +325,7 @@ void UniformRefinementUtility<TDim>::ExecuteDivision(
 
 
 /// Get the middle node on an edge
-template <unsigned int TDim>
-typename NodeType::Pointer UniformRefinementUtility<TDim>::GetNodeInEdge(
+typename NodeType::Pointer UniformRefinementUtility::GetNodeInEdge(
     const EdgeType& rEdge,
     const int& rNumberOfDivisions,
     IndexIndexVectorMapType& rTagNodes
@@ -364,8 +354,7 @@ typename NodeType::Pointer UniformRefinementUtility<TDim>::GetNodeInEdge(
 
 
 /// Create a middle node on an edge. If the node does not exist, it creates one
-template <unsigned int TDim>
-typename NodeType::Pointer UniformRefinementUtility<TDim>::CreateNodeInEdge(
+typename NodeType::Pointer UniformRefinementUtility::CreateNodeInEdge(
     const EdgeType& rEdge,
     const int& rNumberOfDivisions,
     const EdgeKeyType& rNodeKey,
@@ -408,8 +397,7 @@ typename NodeType::Pointer UniformRefinementUtility<TDim>::CreateNodeInEdge(
 
 
 /// Get the middle node on a face defined by four nodes. If the node does not exist, it creates one
-template< unsigned int TDim>
-typename NodeType::Pointer UniformRefinementUtility<TDim>::GetNodeInFace(
+typename NodeType::Pointer UniformRefinementUtility::GetNodeInFace(
     const FaceType& rFace,
     const int& rNumberOfDivisions,
     IndexIndexVectorMapType& rTagNodes
@@ -438,8 +426,7 @@ typename NodeType::Pointer UniformRefinementUtility<TDim>::GetNodeInFace(
 
 
 /// Get the middle node on a face defined by four nodes. If the node does not exist, it creates one
-template< unsigned int TDim>
-typename NodeType::Pointer UniformRefinementUtility<TDim>::CreateNodeInFace(
+typename NodeType::Pointer UniformRefinementUtility::CreateNodeInFace(
     const FaceType& rFace,
     const int& rNumberOfDivisions,
     const FaceKeyType& rNodeKey,
@@ -482,8 +469,7 @@ typename NodeType::Pointer UniformRefinementUtility<TDim>::CreateNodeInFace(
 
 
 /// Compute the nodal data of a node
-template< unsigned int TDim >
-void UniformRefinementUtility<TDim>::CalculateNodalStepData(
+void UniformRefinementUtility::CalculateNodalStepData(
     NodeType::Pointer pNewNode,
     const NodeType::Pointer pNode0,
     const NodeType::Pointer pNode1
@@ -514,8 +500,7 @@ void UniformRefinementUtility<TDim>::CalculateNodalStepData(
 
 
 /// Compute the nodal data of a node
-template< unsigned int TDim >
-void UniformRefinementUtility<TDim>::CalculateNodalStepData(
+void UniformRefinementUtility::CalculateNodalStepData(
     NodeType::Pointer pNewNode,
     const NodeType::Pointer pNode0,
     const NodeType::Pointer pNode1,
@@ -555,8 +540,7 @@ void UniformRefinementUtility<TDim>::CalculateNodalStepData(
 
 
 /// Add the father nodes which does not exist in the current father nodes
-template<unsigned int TDim>
-void UniformRefinementUtility<TDim>::AddOtherFatherNodes(
+void UniformRefinementUtility::AddOtherFatherNodes(
     WeakPointerVector<NodeType>& rThisFatherNodes,
     std::vector<double>& rThisFatherWeights,
     WeakPointerVector<NodeType>& rOtherFatherNodes,
@@ -593,8 +577,7 @@ void UniformRefinementUtility<TDim>::AddOtherFatherNodes(
 
 
 /// Create a sub element
-template<unsigned int TDim>
-void UniformRefinementUtility<TDim>::CreateElement(
+void UniformRefinementUtility::CreateElement(
     ElementsArrayType::iterator pOriginElement,
     PointerVector<NodeType>& rThisNodes,
     const int& rNumberOfDivisions,
@@ -624,8 +607,7 @@ void UniformRefinementUtility<TDim>::CreateElement(
 
 
 /// Create a sub condition
-template<unsigned int TDim>
-void UniformRefinementUtility<TDim>::CreateCondition(
+void UniformRefinementUtility::CreateCondition(
     ConditionsArrayType::iterator pOriginCondition,
     PointerVector<NodeType>& rThisNodes,
     const int& rNumberOfDivisions,
@@ -652,8 +634,7 @@ void UniformRefinementUtility<TDim>::CreateCondition(
 
 
 /// Return the nodes defining the i-subline
-template<unsigned int TDim>
-PointerVector<NodeType> UniformRefinementUtility<TDim>::GetSubLineNodes(
+PointerVector<NodeType> UniformRefinementUtility::GetSubLineNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
     NodeType::Pointer& rMiddleNode
@@ -683,8 +664,7 @@ PointerVector<NodeType> UniformRefinementUtility<TDim>::GetSubLineNodes(
 
 
 /// Return the nodes defining the i-subtriangle
-template<unsigned int TDim>
-PointerVector<NodeType> UniformRefinementUtility<TDim>::GetSubTriangleNodes(
+PointerVector<NodeType> UniformRefinementUtility::GetSubTriangleNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
     std::vector<NodeType::Pointer>& rMiddleNodes
@@ -729,8 +709,7 @@ PointerVector<NodeType> UniformRefinementUtility<TDim>::GetSubTriangleNodes(
 }
 
 /// Return the nodes defining the i-subquadrilateral
-template<unsigned int TDim>
-PointerVector<NodeType> UniformRefinementUtility<TDim>::GetSubQuadrilateralNodes(
+PointerVector<NodeType> UniformRefinementUtility::GetSubQuadrilateralNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
     std::vector<NodeType::Pointer>& rMiddleNodes
@@ -778,7 +757,5 @@ PointerVector<NodeType> UniformRefinementUtility<TDim>::GetSubQuadrilateralNodes
     return sub_quadrilateral_nodes;
 }
 
-
-template class UniformRefinementUtility<2>;
 
 }  // namespace Kratos.

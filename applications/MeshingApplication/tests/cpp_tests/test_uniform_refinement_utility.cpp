@@ -128,7 +128,7 @@ namespace Kratos
 
             // Execute the utility
             int refinement_level = 2;
-            UniformRefinementUtility<2> uniform_refinement(this_model_part);
+            UniformRefinementUtility uniform_refinement(this_model_part);
             uniform_refinement.Refine(refinement_level);
 
             // Check the number of entities in the main model part
@@ -237,7 +237,7 @@ namespace Kratos
 
             // Execute the utility
             int refinement_level = 3;
-            UniformRefinementUtility<2> uniform_refinement(this_model_part);
+            UniformRefinementUtility uniform_refinement(this_model_part);
             uniform_refinement.Refine(refinement_level);
 
             // Check the number of entities in the main model part

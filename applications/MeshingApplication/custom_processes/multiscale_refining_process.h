@@ -322,7 +322,7 @@ public:
     int mDivisionsAtSubscale;
     IndexType mStepDataSize;
 
-    UniformRefinementUtility<2> mUniformRefinement; /// The utility to perform the refinement
+    UniformRefinementUtility mUniformRefinement; /// The utility to perform the refinement
 
     NodesArrayType mRefinedInterfaceContainer;
 

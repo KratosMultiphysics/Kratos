@@ -65,7 +65,6 @@ namespace Kratos
  *  and tetrahedrons) to split the elements.
  *  If a higher refinement is needed, the utility can be called recursively.
  */
-template<unsigned int TDim>
 class UniformRefinementUtility
 {
 public:
@@ -244,6 +243,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;             /// The model part to refine
+    IndexType mDimension;
 
     IndexType mLastNodeId;           /// The node Id
     IndexType mLastElemId;           /// The element Id
@@ -485,14 +485,12 @@ private:
 
 
 /// input stream function
-template<unsigned int TDim>
 inline std::istream& operator >> (std::istream& rIStream,
-                UniformRefinementUtility<TDim>& rThis);
+                UniformRefinementUtility& rThis);
 
 /// output stream function
-template<unsigned int TDim>
 inline std::ostream& operator << (std::ostream& rOStream,
-                const UniformRefinementUtility<TDim>& rThis)
+                const UniformRefinementUtility& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
