@@ -174,21 +174,21 @@ namespace Kratos
 	OpenMPUtils::PartitionedIterators(mrRigidModelPart.Nodes(),NodeBegin,NodeEnd);
 	for ( ModelPart::NodeIterator iNode = NodeBegin; iNode != NodeEnd; ++iNode )
 	  {
-	    iNode->GetSolutionStepValue(BULK_MODULUS)=bulk_modulus;
-	    iNode->GetSolutionStepValue(DENSITY)=density;
-	    iNode->GetSolutionStepValue(DYNAMIC_VISCOSITY)=viscosity;
-	    iNode->GetSolutionStepValue(FLOW_INDEX)=flow_index;
-	    iNode->GetSolutionStepValue(YIELD_SHEAR)=yield_shear;
-	    iNode->GetSolutionStepValue(ADAPTIVE_EXPONENT)=adaptive_exponent;
-	    iNode->GetSolutionStepValue(STATIC_FRICTION)=static_friction;
-	    iNode->GetSolutionStepValue(DYNAMIC_FRICTION)=dynamic_friction;
-	    iNode->GetSolutionStepValue(INERTIAL_NUMBER_ZERO)=inertial_number_zero;
-	    iNode->GetSolutionStepValue(GRAIN_DIAMETER)=grain_diameter;
-	    iNode->GetSolutionStepValue(GRAIN_DENSITY)=grain_density;
-	    iNode->GetSolutionStepValue(REGULARIZATION_COEFFICIENT)=regularization_coefficient;
-	    iNode->GetSolutionStepValue(INERTIAL_NUMBER_ONE)=inertial_number_one;
-	    iNode->GetSolutionStepValue(INFINITE_FRICTION)=infinite_friction;
-	    iNode->GetSolutionStepValue(ALPHA_PARAMETER)=alpha_parameter;
+	    iNode->FastGetSolutionStepValue(BULK_MODULUS)=bulk_modulus;
+	    iNode->FastGetSolutionStepValue(DENSITY)=density;
+	    iNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY)=viscosity;
+	    iNode->FastGetSolutionStepValue(FLOW_INDEX)=flow_index;
+	    iNode->FastGetSolutionStepValue(YIELD_SHEAR)=yield_shear;
+	    iNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=adaptive_exponent;
+	    iNode->FastGetSolutionStepValue(STATIC_FRICTION)=static_friction;
+	    iNode->FastGetSolutionStepValue(DYNAMIC_FRICTION)=dynamic_friction;
+	    iNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO)=inertial_number_zero;
+	    iNode->FastGetSolutionStepValue(GRAIN_DIAMETER)=grain_diameter;
+	    iNode->FastGetSolutionStepValue(GRAIN_DENSITY)=grain_density;
+	    iNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT)=regularization_coefficient;
+	    iNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ONE)=inertial_number_one;
+	    iNode->FastGetSolutionStepValue(INFINITE_FRICTION)=infinite_friction;
+	    iNode->FastGetSolutionStepValue(ALPHA_PARAMETER)=alpha_parameter;
 	    
 	  }
 
