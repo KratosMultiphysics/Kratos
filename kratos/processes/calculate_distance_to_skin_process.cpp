@@ -202,7 +202,7 @@ namespace Kratos
         intersections_container_type intersections;
 
 		// Loop the x,y and z (3D) ray directions
-        for (int i_direction = 0; i_direction < TDim; i_direction++){
+        for (unsigned int i_direction = 0; i_direction < TDim; i_direction++){
 			// Initialize the current direction distance
 			distances[i_direction] = 1.0;
 
