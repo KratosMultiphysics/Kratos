@@ -256,16 +256,10 @@ class NavierStokesSolverMonolithic(FluidSolver):
 
         if (self.settings["turbulence_model"].GetString() == "None"):
             if self.settings["time_scheme"].GetString() == "bossak":
-                if self.settings["consider_periodic_conditions"].GetBool() == True:
-                    self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                                        self.settings["alpha"].GetDouble(),
-                                        self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
-                                        KratosCFD.PATCH_INDEX)
-                else:
-                    self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
-                                        self.settings["alpha"].GetDouble(),
-                                        self.settings["move_mesh_strategy"].GetInt(),
-                                        self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+                self.time_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+                                    self.settings["alpha"].GetDouble(),
+                                    self.settings["move_mesh_strategy"].GetInt(),
+                                    self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
             elif self.settings["time_scheme"].GetString() == "bdf2":
                 self.time_scheme = KratosCFD.GearScheme()
             elif self.settings["time_scheme"].GetString() == "steady":
@@ -277,8 +271,7 @@ class NavierStokesSolverMonolithic(FluidSolver):
             raise Exception("Turbulence models are not added yet.")
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:
-            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver,
-                                                                                KratosCFD.PATCH_INDEX)
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithConstraints(self.linear_solver)
         else:
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
