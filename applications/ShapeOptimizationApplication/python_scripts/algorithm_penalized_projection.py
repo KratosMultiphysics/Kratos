@@ -145,6 +145,9 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.ModelPartController.DampNodalVariableIfSpecified(DF1DX)
         self.ModelPartController.DampNodalVariableIfSpecified(DC1DX)
 
+        self.ModelPartController.ApplyCustomDampingToNodalSensitivityVariable(DF1DX)
+        self.ModelPartController.ApplyCustomDampingToNodalSensitivityVariable(DC1DX)
+
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.__mapSensitivitiesToDesignSpace()
@@ -158,6 +161,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.__mapDesignUpdateToGeometrySpace()
 
         self.ModelPartController.DampNodalVariableIfSpecified(SHAPE_UPDATE)
+
+        self.ModelPartController.ApplyCustomDampingToNodalUpdateVariable(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):

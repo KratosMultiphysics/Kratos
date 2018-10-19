@@ -131,6 +131,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
         self.ModelPartController.DampNodalVariableIfSpecified(DF1DX)
 
+        self.ModelPartController.ApplyCustomDampingToNodalSensitivityVariable(DF1DX)
+
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.__mapSensitivitiesToDesignSpace()
@@ -139,6 +141,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.__mapDesignUpdateToGeometrySpace()
 
         self.ModelPartController.DampNodalVariableIfSpecified(SHAPE_UPDATE)
+
+        self.ModelPartController.ApplyCustomDampingToNodalUpdateVariable(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):

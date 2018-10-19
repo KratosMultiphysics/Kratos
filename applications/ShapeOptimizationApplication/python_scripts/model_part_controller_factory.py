@@ -42,7 +42,8 @@ class ModelPartController:
                 "apply_mesh_solver" : false,
                 "solver_settings" : { },
                 "boundary_conditions_process_list" : []
-            }
+            },
+            "custom_damping" : []
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
@@ -65,6 +66,8 @@ class ModelPartController:
             from mesh_controller_basic_updating import MeshControllerBasicUpdating
             self.mesh_controller = MeshControllerBasicUpdating(self.optimization_model_part)
 
+        self.custom_damping_objects = [] #initialized after model import
+
         self._design_surface = None
         self._damping_utility = None
 
@@ -77,6 +80,18 @@ class ModelPartController:
 
         model_part_io = ModelPartIO(input_filename)
         model_part_io.ReadModelPart(self.optimization_model_part)
+
+        # initialize custom processes after the model part was imported!
+        for i in range(0, self.model_settings["custom_damping"].size()):
+            custom_damping = self.model_settings["custom_damping"][i]
+            python_module = __import__(custom_damping["python_module"].GetString())
+            self.custom_damping_objects.append(python_module.Factory(self.GetModel(), custom_damping))
+
+        # if self.optimization_model_part.HasSubModelPart("point_mass"):
+        #     nodal_mass_mdpa = self.optimization_model_part.GetSubModelPart("point_mass")
+        #     print("\n\n########ADD NODAL MASS TO \n {} \n".format(nodal_mass_mdpa))
+        #     for element in nodal_mass_mdpa.Elements:
+        #         element.SetValue(NODAL_MASS, 0.025)
 
     # --------------------------------------------------------------------------
     def InitializeMeshController(self):
@@ -116,6 +131,16 @@ class ModelPartController:
     def DampNodalVariableIfSpecified(self, variable):
         if self.model_settings["damping"]["apply_damping"].GetBool():
             self.__GetDampingUtility().DampNodalVariable(variable)
+
+    # --------------------------------------------------------------------------
+    def ApplyCustomDampingToNodalSensitivityVariable(self, variable):
+        for custom_damping in self.custom_damping_objects:
+            custom_damping.ApplyToNodalSensitivityVariable(variable)
+
+    # --------------------------------------------------------------------------
+    def ApplyCustomDampingToNodalUpdateVariable(self, variable):
+        for custom_damping in self.custom_damping_objects:
+            custom_damping.ApplyToNodalUpdateVariable(variable)
 
     # --------------------------------------------------------------------------
     def ComputeUnitSurfaceNormals(self):
