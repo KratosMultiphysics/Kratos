@@ -42,7 +42,7 @@
             "time_step"                : 0.01
         }
     },
-    "output_processes" : {
+    "_output_processes" : {
         "output_process_list" : [{
             "kratos_module"        : "KratosMultiphysics",
             "python_module"        : "gid_output_process",
