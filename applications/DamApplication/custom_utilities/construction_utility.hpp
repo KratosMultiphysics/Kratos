@@ -247,7 +247,10 @@ class ConstructionUtility
                     const unsigned int number_of_points = it_thermal->GetGeometry().PointsNumber();
                     for (unsigned int i = 0; i < number_of_points; ++i)
                     {
-                        it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION) = time_activation;
+                        if (it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION)==0)
+                        {
+                            it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION) = time_activation;
+                        }
                     }
                 }
             }
@@ -262,7 +265,6 @@ class ConstructionUtility
     {
         KRATOS_TRY;
 
-//         const int nelements = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).Elements().size();
         const int nnodes = mrThermalModelPart.GetSubModelPart(ThermalSubModelPartName).GetMesh(0).Nodes().size();
 
         int direction;
@@ -285,7 +287,7 @@ class ConstructionUtility
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 double coordinate_gravity_direction = it->Coordinates()[direction];
 
-                if ((coordinate_gravity_direction > previous_height) && (coordinate_gravity_direction <= (current_height+0.1)))
+                if ((coordinate_gravity_direction > previous_height) && (coordinate_gravity_direction <= (current_height+0.1)) && (it->Is(SOLID) == false))
                 {
                     it->FastGetSolutionStepValue(TEMPERATURE) = initial_temperature;
                 }
