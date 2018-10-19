@@ -11,6 +11,7 @@
 //
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/structured_mesh_generator_process.h"
@@ -29,7 +30,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfacePreprocessor_NodeBasedLocalSystems, KratosMap
 
     Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
-    ModelPart model_part("Generated");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
 
     Parameters mesher_parameters(R"(
     {
@@ -71,7 +73,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfacePreprocessor_UpdateInterface, KratosMappingAp
 
     Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
-    ModelPart model_part("Generated");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
 
     Parameters mesher_parameters(R"(
     {

@@ -11,6 +11,7 @@
 //
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part.h"
 #include "geometries/quadrilateral_2d_4.h"
@@ -49,7 +50,9 @@ void CreateNodesForMapping(ModelPart& rModelPart, const int NumNodes)
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds, KratosMappingApplicationSerialTestSuite)
 {
     const int num_nodes = 11;
-    ModelPart model_part("ForTest");
+
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
 
     CreateNodesForMapping(model_part, num_nodes);
 
@@ -66,7 +69,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_AssignInterfaceEquationIds, KratosMapp
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_ComputeBoundingBox, KratosMappingApplicationSerialTestSuite)
 {
-    ModelPart model_part("ForTest");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
+
     model_part.CreateNewNode(1, 0.2, 5.3, -8.3);
     model_part.CreateNewNode(2, 8.2, 25.3, 16.4);
     model_part.CreateNewNode(3, -9.2, -17.13, 1.5);
@@ -581,7 +586,8 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SerializingForMPI, KratosMappingApplic
 
     Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
-    ModelPart model_part("Generated");
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
 
     Parameters mesher_parameters(R"(
     {

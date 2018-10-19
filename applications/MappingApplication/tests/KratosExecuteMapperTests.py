@@ -51,7 +51,7 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
                                                                      "ModelPartNameOrigin",
                                                                      input_file_origin, 3,
                                                                      variable_list,
-                                                                     self.num_processors)
+                                                                     num_processors)
 
         self.model_part_destination = self.partition_and_read_model_part(self.model,
                                                                          "ModelPartNameDestination",
