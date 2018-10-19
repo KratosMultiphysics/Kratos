@@ -77,12 +77,13 @@ class DamConstructionUtility:
 
         time = self.mechanical_model_part.ProcessInfo[TIME]
         tol = self.mechanical_model_part.ProcessInfo[DELTA_TIME]*1e-10
+        time_unit_converter = self.mechanical_model_part.ProcessInfo[TIME_UNIT_CONVERTER]
 
         # Activation according the input file
         with open(self.construction_input_file_name,'r') as file_name3:
             for j, line in enumerate(file_name3):
                 file_3 = line.split(" ")
-                if ((len(file_3)) > 1 and ((time <=(float(file_3[0])+tol)) and (time >=(float(file_3[0])-tol)))):
+                if ((len(file_3)) > 1 and ((time <=(float(file_3[0])*time_unit_converter+tol)) and (time >=(float(file_3[0])*time_unit_converter-tol)))):
                     print("New phase has been activated...")
                     self.name_sub_thermal_part = "sub_Thermal_" + file_3[1]
                     self.name_sub_mechanical_part = "sub_Parts_" + file_3[1]

@@ -249,7 +249,7 @@ class ConstructionUtility
                     {
                         if (it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION)==0)
                         {
-                            it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION) = time_activation;
+                            it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION) = time_activation * mTimeUnitConverter;
                         }
                     }
                 }
@@ -740,7 +740,7 @@ class ConstructionUtility
 
         double time = mrThermalModelPart.GetProcessInfo()[TIME];
         time = time / mTimeUnitConverter;
-        double ambient_temp = mrTableAmbientTemp.GetValue(time - 1);
+        double ambient_temp = mrTableAmbientTemp.GetValue(time);
 
         if (size != 0)
         {
@@ -750,7 +750,7 @@ class ConstructionUtility
                 {
                     ModelPart::NodesContainerType::iterator it_thermal = it_begin_thermal + i;
 
-                    if (it_thermal->Id() == ConditionNodeIds[j])
+                    if ((it_thermal->Id() == ConditionNodeIds[j]) && (it_thermal->Is(SOLID) == false))
                     {
                         const double temp_current = it_thermal->FastGetSolutionStepValue(TEMPERATURE);
                         const double heat_flux = mH0 * (ambient_temp - temp_current);
