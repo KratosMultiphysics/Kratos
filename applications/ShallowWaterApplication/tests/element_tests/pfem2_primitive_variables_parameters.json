@@ -28,7 +28,6 @@
         "compute_reactions"        : false,
         "reform_dofs_at_each_step" : false,
         "move_mesh_flag"           : false,
-        "volume_model_part_name"   : "shallow_water_model",
         "linear_solver_settings"   : {
             "solver_type"      : "AMGCL",
             "smoother_type"    : "ilu0",
@@ -43,71 +42,82 @@
             "time_step"                : 0.01
         }
     },
-    "_output_configuration" : {
-        "result_file_configuration" : {
-            "gidpost_flags"         : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteElementsOnly",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "output_control_type"   : "step",
-            "output_frequency"      : 1,
-            "body_output"           : true,
-            "node_output"           : false,
-            "skin_output"           : false,
-            "plane_output"          : [],
-            "nodal_results"         : ["VELOCITY","HEIGHT","FREE_SURFACE_ELEVATION","BATHYMETRY"],
-            "gauss_point_results"   : []
-        },
-        "point_data_configuration"  :  []
+    "output_processes" : {
+        "output_process_list" : [{
+            "kratos_module"        : "KratosMultiphysics",
+            "python_module"        : "gid_output_process",
+            "process_name"         : "GidOutputProcess",
+            "Parameters"           : {
+                "model_part_name"        : "main_model_part",
+                "output_name"            : "element_tests/pfem2_primitive_variables",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"         : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteElementsOnly",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "output_control_type"   : "step",
+                        "output_frequency"      : 1,
+                        "body_output"           : true,
+                        "node_output"           : false,
+                        "skin_output"           : false,
+                        "plane_output"          : [],
+                        "nodal_results"         : ["VELOCITY","HEIGHT","FREE_SURFACE_ELEVATION","BATHYMETRY"],
+                        "gauss_point_results"   : []
+                    },
+                    "point_data_configuration"  :  []
+                }
+            }
+        }]
     },
     "processes" : {
-    "initial_conditions_process_list"   : [{
-        "python_module"   : "set_initial_water_level_process",
-        "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
-        "process_name"    : "SetInitialWaterLevelProcess",
-        "Parameters"      : {
-            "mesh_id"         : 0,
-            "model_part_name" : "main_model_part.Initial_water_level-auto-1",
-            "variable_name"   : "HEIGHT",
-            "value"           : "1"
-        }
-    }],
-    "boundary_conditions_process_list"  : [{
-        "python_module"   : "process_factory",
-        "kratos_module"   : "KratosMultiphysics",
-        "process_name"    : "ApplyConstantVectorValueProcess",
-        "Parameters"      : {
-            "model_part_name" : "main_model_part.Imposed_flux-auto-1",
-            "variable_name"   : "VELOCITY",
-            "modulus"         : 0.0,
-            "direction"       : [1.0, 0.0, 0.0],
-            "is_fixed_x"      : true,
-            "is_fixed_y"      : false
-        }
-    },{
-        "python_module"   : "process_factory",
-        "kratos_module"   : "KratosMultiphysics",
-        "process_name"    : "ApplyConstantVectorValueProcess",
-        "Parameters"      : {
-            "model_part_name" : "main_model_part.Imposed_flux-auto-2",
-            "variable_name"   : "VELOCITY",
-            "modulus"         : 0.0,
-            "direction"       : [6.123233995736766e-17, 1.0, 0.0],
-            "is_fixed_x"      : false,
-            "is_fixed_y"      : true
-        }
-    }],
-    "bathymetry_process_list"     : [{
-        "python_module"   : "set_bathymetry_process",
-        "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
-        "process_name"    : "SetBathymetryProcess",
-        "Parameters"      : {
-            "model_part_name" : "main_model_part.Body_Part-auto-1",
-            "variable_name"   : "BATHYMETRY",
-            "value"           : "z"
-        }
-    }]
+        "initial_conditions_process_list"   : [{
+            "python_module"   : "set_initial_water_level_process",
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "process_name"    : "SetInitialWaterLevelProcess",
+            "Parameters"      : {
+                "mesh_id"         : 0,
+                "model_part_name" : "main_model_part.Initial_water_level-auto-1",
+                "variable_name"   : "HEIGHT",
+                "value"           : "1"
+            }
+        }],
+        "boundary_conditions_process_list"  : [{
+            "python_module"   : "process_factory",
+            "kratos_module"   : "KratosMultiphysics",
+            "process_name"    : "ApplyConstantVectorValueProcess",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part.Imposed_flux-auto-1",
+                "variable_name"   : "VELOCITY",
+                "modulus"         : 0.0,
+                "direction"       : [1.0, 0.0, 0.0],
+                "is_fixed_x"      : true,
+                "is_fixed_y"      : false
+            }
+        },{
+            "python_module"   : "process_factory",
+            "kratos_module"   : "KratosMultiphysics",
+            "process_name"    : "ApplyConstantVectorValueProcess",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part.Imposed_flux-auto-2",
+                "variable_name"   : "VELOCITY",
+                "modulus"         : 0.0,
+                "direction"       : [6.123233995736766e-17, 1.0, 0.0],
+                "is_fixed_x"      : false,
+                "is_fixed_y"      : true
+            }
+        }],
+        "bathymetry_process_list"     : [{
+            "python_module"   : "set_bathymetry_process",
+            "kratos_module"   : "KratosMultiphysics.ShallowWaterApplication",
+            "process_name"    : "SetBathymetryProcess",
+            "Parameters"      : {
+                "model_part_name" : "main_model_part.Body_Part-auto-1",
+                "variable_name"   : "BATHYMETRY",
+                "value"           : "z"
+            }
+        }]
     }
 }
