@@ -54,17 +54,13 @@ namespace Kratos
 ///@{
 
 /// Base Class for all Mappers
-/** This is the base class for every mapper.
-* It contains the three pure virtual functions that have to be implemented by every mapper:
-* - Map: Basic function that maps a field from one ModelPart to another Modelpart
-*        Mapping Direction: Origin => Destionation
-* - InverseMap: This function does the opposite of the "Map" function
-*               Mapping Direction: Destination => Origin
-* - UpdateInterface: Called when the interface is changed. It recomputes the neighbors and
-*   other information related to the relations btw entities (node, elements,...) on the interfaces
-* It is also responsible for initializing the MapperCommunicator or the MapperMPICommuniator
-* For information abt the available echo_levels and the JSON default-parameters
-* look into the class description of the MapperCommunicator
+/** This is the base class for every mapper. This is the equivalent to a Kratos-SolvingStrategy.
+ * By default it solves the mapping-system Qd = Mdo * Qo, but it can be extended, using the same
+ * idea as the Solving-Strategies in Python
+ * It holds the basic helper-objects needed to do the mapping, e.g. searching, building the mapping-
+ * system and preparing the Interfaces
+ * Furthermore it manages the InverseMapper, which is the same mapper but with reversed input of
+ * ModelParts to map in the opposite direction
 */
 
 template<class TSparseSpace, class TDenseSpace>
@@ -125,6 +121,16 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+    * @brief Updates the mapping-system after the geometry/mesh has changed
+    * After changes in the topology (e.g. remeshing or sliding interfaces)
+    * the relations for the mapping have to be recomputed. This means that
+    * the search has to be conducted again and the mapping-system has to be
+    * rebuilt, hence this is expensive
+    * @param MappingOptions flags used to specify how the update has to be done
+    * @param SearchRadius search radius used for the search
+    * @author Philipp Bucher
+    */
     void UpdateInterface(Kratos::Flags MappingOptions, double SearchRadius)
     {
         // std::cout << "\n\n";
@@ -168,11 +174,22 @@ public:
         // std::cout << "\n\n";
 
         UpdateInterfaceInternal(MappingOptions, SearchRadius);
-        if (mInverseMapperIsInitialized)
+        if (mpInverseMapper) {
             mpInverseMapper->UpdateInterface(MappingOptions, SearchRadius);
+        }
     }
 
-    /* This function maps from Origin to Destination */
+    /**
+    * @brief Mapping from Origin to Destination, Scalar Variable
+    * Data is exchanged on the Interface, from the Origin-Modelpart
+    * to the Destination-ModelPart (the modelparts were specified in the
+    * construction Phase of the Mapper)
+    * @param rOriginVariable Variable on the Origin-ModelPart
+    * @param rDestinationVariable Variable on the Destination-ModelPart
+    * @param MappingOptions flags used to specify options for the mapping
+    * @see InverseMap
+    * @author Philipp Bucher
+    */
     virtual void Map(const Variable<double>& rOriginVariable,
                      const Variable<double>& rDestinationVariable,
                      Kratos::Flags MappingOptions)
@@ -180,7 +197,12 @@ public:
         TMap(rOriginVariable, rDestinationVariable, MappingOptions);
     }
 
-    /* This function maps from Origin to Destination */
+    /**
+    * @brief Mapping from Origin to Destination, Vector Variable
+    * Same as Map, but maps an array3-variable
+    * @see Map
+    * @author Philipp Bucher
+    */
     virtual void Map(const Variable< array_1d<double, 3> >& rOriginVariable,
                      const Variable< array_1d<double, 3> >& rDestinationVariable,
                      Kratos::Flags MappingOptions)
@@ -188,7 +210,18 @@ public:
         TMap(rOriginVariable, rDestinationVariable, MappingOptions);
     }
 
-    /* This function maps from Destination to Origin */
+    /**
+    * @brief Mapping from Destination to Origin, Scalar Variable
+    * Data is exchanged on the Interface, from the Destination-Modelpart
+    * to the Origin-ModelPart (the modelparts were specified in the
+    * construction Phase of the Mapper)
+    * It does the opposite of Map
+    * @param rOriginVariable Variable on the Origin-ModelPart
+    * @param rDestinationVariable Variable on the Destination-ModelPart
+    * @param MappingOptions flags used to specify options for the mapping
+    * @see Map
+    * @author Philipp Bucher
+    */
     virtual void InverseMap(const Variable<double>& rOriginVariable,
                             const Variable<double>& rDestinationVariable,
                             Kratos::Flags MappingOptions)
@@ -196,7 +229,12 @@ public:
         TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
     }
 
-    /* This function maps from Destination to Origin */
+    /**
+    * @brief Mapping from Destination to Origin, Vector Variable
+    * Same as InveseMap, but maps an array3-variable
+    * @see InverseMap
+    * @author Philipp Bucher
+    */
     virtual void InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
                             const Variable< array_1d<double, 3> >& rDestinationVariable,
                             Kratos::Flags MappingOptions)
@@ -204,17 +242,17 @@ public:
         TInverseMap(rOriginVariable, rDestinationVariable, MappingOptions);
     }
 
+    /**
+    * @brief Cloning the Mapper
+    * returns a clone of the current Mapper
+    * pure virtual, has to be implemented in every derived mapper,
+    * used in the creation of the Mappers
+    * @see MapperFactory
+    * @author Philipp Bucher
+    */
     virtual MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
-                                  ModelPart& rModelPartDestination,
-                                  Parameters JsonParameters) = 0;
-
-    // Developer function only being used if this class needs to be accessed from outside!
-    // can be overridden in case it is needed (e.g. for Mortar where Mdd != I !)
-    virtual double GetMappingMatrixEntry(const IndexType RowIndex, const IndexType ColumnIndex)
-    {
-        // return mpMappingOperationUtility->GetMappingMatrixEntry(RowIndex, ColumnIndex);
-        KRATOS_ERROR << "Not implemented" << std::endl;
-    }
+                                          ModelPart& rModelPartDestination,
+                                          Parameters JsonParameters) = 0;
 
     ///@}
     ///@name Access
@@ -315,30 +353,6 @@ protected:
         InitializeInverseMapper(); // Checks if it was initialized
         return mpInverseMapper;
     }
-
-    // template< typename T>
-    // void TestFunction(T someParam);
-
-    // TSystemMatrixType& GetMdo()
-    // {
-    //     TSystemMatrixType& rMdo = *mpMdo;
-
-    //     return rMdo;
-    // }
-
-    // TSystemVectorType& GetQo()
-    // {
-    //     TSystemVectorType& rQo = *mpQo;
-
-    //     return rQo;
-    // }
-
-    // TSystemVectorType& GetQd()
-    // {
-    //     TSystemVectorType& rQd = *mpQd;
-
-    //     return rQd;
-    // }
 
         /* This function maps from Destination to Origin */
     virtual void MapInternal(const Variable<double>& rOriginVariable,
@@ -469,9 +483,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mInverseMapperIsInitialized = false;
-
-    MapperUniquePointerType mpInverseMapper;
+    MapperUniquePointerType mpInverseMapper = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -483,13 +495,10 @@ private:
 
     void InitializeInverseMapper()
     {
-        if (!mInverseMapperIsInitialized)
-        {
+        if (!mpInverseMapper) {
             mpInverseMapper = Clone(mrModelPartDestination,
                                     mrModelPartOrigin,
                                     mGeneralMapperSettings); // TODO how to handle this ...? => some parameters wil be validated in the derived clases (Mappers)
-
-            mInverseMapperIsInitialized = true;
         }
     }
 

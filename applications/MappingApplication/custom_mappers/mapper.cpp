@@ -104,7 +104,6 @@ void Mapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos::Flags Mapping
 
     KRATOS_ERROR_IF_NOT(mpMappingOperationUtility) << "mpMappingOperationUtility is a nullptr!" << std::endl;
 
-    // this function can always be called, it won't do anything if the sizes are correct
     mpMappingOperationUtility->BuildMappingSystem(mpMdo, mpQo, mpQd,
                                                   mrModelPartOrigin,
                                                   mrModelPartDestination,
@@ -157,23 +156,22 @@ template<class TSparseSpace, class TDenseSpace>
 void Mapper<TSparseSpace, TDenseSpace>::UpdateInterfaceInternal(Kratos::Flags MappingOptions, double SearchRadius)
 {
     // Set the Flags according to the type of remeshing
-    if (MappingOptions.Is(MapperFlags::REMESHED))
-    {
-        if (MappingOptions.IsDefined(MapperFlags::ORIGIN_ONLY))
-        {
+    if (MappingOptions.Is(MapperFlags::REMESHED)) {
+        if (MappingOptions.IsDefined(MapperFlags::ORIGIN_ONLY)) {
             KRATOS_INFO("Mapper-UpdateInterface") << "If the domain is remeshed then "
                 << "setting \"ORIGIN_ONLY\" has no effect" << std::endl;
             MappingOptions.Reset(MapperFlags::ORIGIN_ONLY);
         }
-        if (MappingOptions.IsDefined(MapperFlags::DESTINATION_ONLY))
-        {
+        if (MappingOptions.IsDefined(MapperFlags::DESTINATION_ONLY)) {
             KRATOS_INFO("Mapper-UpdateInterface") << "If the domain is remeshed then "
                 << "setting \"DESTINATION_ONLY\" has no effect" << std::endl;
             MappingOptions.Reset(MapperFlags::DESTINATION_ONLY);
         }
         InitializeInterface(MappingOptions);
     }
-    else BuildMappingMatrix(MappingOptions);
+    else {
+        BuildMappingMatrix(MappingOptions);
+    }
 }
 
 /***********************************************************************************/
@@ -188,8 +186,7 @@ void Mapper<TSparseSpace, TDenseSpace>::ValidateInput(Parameters MapperSettings)
 
     mEchoLevel = MapperSettings["echo_level"].GetInt();
 
-    if (mGeneralMapperSettings["search_radius"].GetDouble() < 0.0)
-    {
+    if (mGeneralMapperSettings["search_radius"].GetDouble() < 0.0) {
         const double search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin,
                                         mrModelPartDestination,
                                         0);
@@ -210,18 +207,18 @@ void Mapper<TSparseSpace, TDenseSpace>::PrintPairingInfo()
     const int comm_rank = mrModelPartDestination.GetCommunicator().MyPID();
     std::stringstream warning_msg;
 
-    for (const auto& rp_local_sys : *mpMapperLocalSystems)
-    {
+    for (const auto& rp_local_sys : *mpMapperLocalSystems) {
         const auto pairing_status = rp_local_sys->GetPairingStatus();
 
-        if (pairing_status != MapperLocalSystem::PairingStatus::InterfaceInfoFound)
-        {
+        if (pairing_status != MapperLocalSystem::PairingStatus::InterfaceInfoFound) {
             warning_msg << rp_local_sys->PairingInfo(mEchoLevel, comm_rank);
 
-            if (pairing_status == MapperLocalSystem::PairingStatus::Approximation)
+            if (pairing_status == MapperLocalSystem::PairingStatus::Approximation) {
                 warning_msg << " is using an approximation";
-            else if (pairing_status == MapperLocalSystem::PairingStatus::NoInterfaceInfo)
+            }
+            else if (pairing_status == MapperLocalSystem::PairingStatus::NoInterfaceInfo) {
                 warning_msg << " has not found a neighbor";
+            }
 
             KRATOS_WARNING("Mapper") << warning_msg.str() << std::endl;
 
