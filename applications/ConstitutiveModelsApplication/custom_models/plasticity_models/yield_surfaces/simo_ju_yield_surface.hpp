@@ -109,7 +109,7 @@ namespace Kratos
       KRATOS_TRY
 
       const ModelDataType& rModelData = rVariables.GetModelData();
-      const double& StrengthRatio = rModelData.GetMaterialProperties()[STRENGTH_RATIO];
+      const double& StrengthRatio = rModelData.GetProperties()[STRENGTH_RATIO];
 
       const double& rStressNorm = rVariables.GetStressNorm();
       const double& rTheta      = rVariables.GetRateFactor();

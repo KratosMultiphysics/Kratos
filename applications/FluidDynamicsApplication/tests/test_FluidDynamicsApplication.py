@@ -86,6 +86,7 @@ def AssembleTestSuites():
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSensitivityMatrix'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testCylinder'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
+    nightSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
     nightSuite.addTest(HDF5IOTest('testInputOutput'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCavity'))
     nightSuite.addTest(FluidAnalysisTest('testSteadyCylinder'))

@@ -390,14 +390,14 @@ namespace Kratos
       const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
       const StrainMeasureType& rStrainMeasure = rModelData.GetStrainMeasure();
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){
 
 	const MatrixType& rTotalDeformationMatrix = rModelData.GetTotalDeformationMatrix();
 	MatrixType StressMatrixPart;
 	noalias( StressMatrixPart ) = prod( rTotalDeformationMatrix, rStressMatrix );
 	noalias( rStressMatrix )  = prod( StressMatrixPart, trans(rTotalDeformationMatrix) );
 
-	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Right || rStrainMeasure == ConstitutiveModelData::CauchyGreen_None){
+	if( rStrainMeasure == ConstitutiveModelData::StrainMeasureType::CauchyGreen_Right || rStrainMeasure == ConstitutiveModelData::StrainMeasureType::CauchyGreen_None){
 	  double I3 = 0;
 	  ConstitutiveModelUtilities::InvertMatrix3( rModelData.GetStrainMatrix(), rVariables.StrainMatrix, I3 );
 	}
@@ -406,9 +406,9 @@ namespace Kratos
 	}
 
       }
-      else if(  rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
+      else if(  rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){
 
-	if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left || rStrainMeasure == ConstitutiveModelData::CauchyGreen_None){
+	if( rStrainMeasure == ConstitutiveModelData::StrainMeasureType::CauchyGreen_Left || rStrainMeasure == ConstitutiveModelData::StrainMeasureType::CauchyGreen_None){
 	  rVariables.StrainMatrix = IdentityMatrix(3);
 	}
 	else{
@@ -440,7 +440,7 @@ namespace Kratos
       //working stress is Kirchhoff by default : transform stresses if working stress is PK2
       const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){
 
 	const MatrixType& rTotalDeformationMatrix = rModelData.GetTotalDeformationMatrix();
 	MatrixType StressMatrixPart;
