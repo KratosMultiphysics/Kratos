@@ -320,7 +320,7 @@ public:
     {
       KRATOS_TRY;
 
-      this->CalculateDisplacements();
+      this->CalculateDisplacementsAndPorosity();
       BaseType::MoveMesh();
       /* BoundaryNormalsCalculationUtilities BoundaryComputation; */
       /* BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel); */
@@ -429,7 +429,7 @@ public:
       // std::cout<<"rBDFCoeffs[2] is "<<rBDFCoeffs[2]<<std::endl;//1/(2*delta_t)
     }
 
-    void CalculateDisplacements()
+    void CalculateDisplacementsAndPorosity()
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -445,6 +445,10 @@ public:
 	  array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 	  array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
+    const double& currentFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION, 0);
+    const double& previousFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION, 1);
+    double& currentFluidFractionRate = (i)->FastGetSolutionStepValue(FLUID_FRACTION_RATE);
+
 	  /* if( i->IsFixed(DISPLACEMENT_X) == false ) */
 	    CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];
 
@@ -454,6 +458,7 @@ public:
 	  /* if( i->IsFixed(DISPLACEMENT_Z) == false ) */
 	    CurrentDisplacement[2] = 0.5* TimeStep *(CurrentVelocity[2]+PreviousVelocity[2]) + PreviousDisplacement[2];
 
+      currentFluidFractionRate = (currentFluidFraction - previousFluidFraction)/TimeStep;
         }
     }
 
