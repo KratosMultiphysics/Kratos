@@ -132,9 +132,8 @@ class FiniteStrainModifiedMohrCoulombYieldSurface
         const Matrix& rRe
         )
     {
-        const Matrix plastic_deformation_gradient_increment  = IdentityMatrix(Dimension, Dimension) + PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedArrayType, Matrix>(rPlasticPotentialDerivative);
-
-        return plastic_deformation_gradient_increment;
+//         return ConstitutiveLawUtilities<VoigtSize>::CalculateExponentialPlasticDeformationGradientIncrement(rPlasticPotentialDerivative, PlasticConsistencyFactorIncrement, rRe);
+        return ConstitutiveLawUtilities<VoigtSize>::CalculateLinearPlasticDeformationGradientIncrement(rPlasticPotentialDerivative, PlasticConsistencyFactorIncrement);
     }
 
     /**

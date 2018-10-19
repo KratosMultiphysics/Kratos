@@ -308,6 +308,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         );
 
     /**
+     * @brief This computes the linear plastic deformation gradient increment
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
+     * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
+     */
+    static MatrixType CalculateLinearPlasticDeformationGradientIncrement(
+        const BoundedVectorType& rPlasticPotentialDerivative,
+        const double PlasticConsistencyFactorIncrement
+        );
+
+    /**
      * @brief This computes the exponential plastic deformation gradient increment
      * @param rPlasticPotentialDerivative The derivative of the plastic potential
      * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow

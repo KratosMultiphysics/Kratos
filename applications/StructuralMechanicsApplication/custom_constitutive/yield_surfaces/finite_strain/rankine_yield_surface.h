@@ -131,7 +131,8 @@ public:
         const Matrix& rRe
         )
     {
-        return ConstitutiveLawUtilities<VoigtSize>::CalculateExponentialPlasticDeformationGradientIncrement(rPlasticPotentialDerivative, PlasticConsistencyFactorIncrement, rRe);
+//         return ConstitutiveLawUtilities<VoigtSize>::CalculateExponentialPlasticDeformationGradientIncrement(rPlasticPotentialDerivative, PlasticConsistencyFactorIncrement, rRe);
+        return ConstitutiveLawUtilities<VoigtSize>::CalculateLinearPlasticDeformationGradientIncrement(rPlasticPotentialDerivative, PlasticConsistencyFactorIncrement);
     }
 
     /**
