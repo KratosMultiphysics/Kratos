@@ -291,6 +291,15 @@ public:
         return mData;
     }
 
+    TablesContainerType& Tables()
+    {
+        return mTables;
+    }
+
+    TablesContainerType const& Tables() const
+    {
+        return mTables;
+    }
 
 
     ///@}

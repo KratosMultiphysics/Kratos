@@ -619,8 +619,8 @@ namespace Kratos
 
             bool converged = MathUtils<double>::EigenSystem<3>(mat33, vectormat33, eigenmat33);
 
-            BoundedMatrix<double, 3, 3> auxmat33 = prod(trans(vectormat33), eigenmat33);
-            auxmat33 = prod(auxmat33, vectormat33);
+            BoundedMatrix<double, 3, 3> othermat33 = prod(trans(vectormat33), eigenmat33);
+            BoundedMatrix<double, 3, 3> auxmat33 = prod(othermat33, vectormat33);
 
             for (unsigned int i = 0; i < 3; i++)
             {
@@ -765,6 +765,34 @@ namespace Kratos
 
             KRATOS_CHECK_EQUAL(c[2], 2.0);
             KRATOS_CHECK_EQUAL(d[2], 1.0);
+        }
+
+        /** Checks if it calculates the orthonormal base
+         * Checks if it calculates the orthonormal base
+         */
+
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsOrthonormalBasis, KratosCoreMathUtilsFastSuite)
+        {
+            array_1d<double, 3> a = ZeroVector(3);
+            a[1] = 1.0;
+
+            array_1d<double, 3>  b, c;
+
+            MathUtils<double>::OrthonormalBasisHughesMoeller(a, b, c);
+
+            KRATOS_CHECK_EQUAL(b[0], 1.0);
+            KRATOS_CHECK_EQUAL(c[2], -1.0);
+
+            MathUtils<double>::OrthonormalBasisFrisvad(a, b, c);
+
+            KRATOS_CHECK_EQUAL(b[0], 1.0);
+            KRATOS_CHECK_EQUAL(c[2], -1.0);
+
+            MathUtils<double>::OrthonormalBasisNaive(a, b, c);
+
+
+            KRATOS_CHECK_EQUAL(b[0], 1.0);
+            KRATOS_CHECK_EQUAL(c[2], -1.0);
         }
 
         /** Checks if it calculates the tensor product

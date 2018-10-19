@@ -2117,7 +2117,6 @@ namespace Kratos
 
             // reading nodal_value
             ReadVectorialValue(elemental_value);
-            ExtractValue(value, elemental_value);
 
             ModelPart::ElementIterator i_result = rThisElements.find(ReorderedElementId(id));
             if(i_result != rThisElements.end())
@@ -2235,7 +2234,6 @@ namespace Kratos
 
             // reading nodal_value
             ReadVectorialValue(conditional_value);
-            ExtractValue(value, conditional_value);
 
             ModelPart::ConditionIterator i_result = rThisConditions.find(ReorderedConditionId(id));
             if(i_result != rThisConditions.end())
