@@ -181,13 +181,6 @@ protected:
             const double &rYoungModulus,
             const double &rPoissonCoefficient );
 
-    /**
-      * This function is designed to be called when before the material response
-      * to check if all needed parameters for the constitutive are initialized
-      * @param Parameters
-      * @return
-      */
-    bool CheckParameters(Parameters& rValues) override;
 
     double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
 
