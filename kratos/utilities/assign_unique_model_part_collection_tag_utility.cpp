@@ -179,7 +179,7 @@ std::vector<std::string> AssignUniqueModelPartCollectionTagUtility::GetRecursive
         sub_model_parts_names.push_back(name);
         auto sub_names = GetRecursiveSubModelPartNames(sub_model_part, name);
         for (auto sub_name : sub_names)
-            names.push_back(sub_name);
+            sub_model_parts_names.push_back(sub_name);
     }
 
     return sub_model_parts_names;
@@ -205,7 +205,12 @@ ModelPart& AssignUniqueModelPartCollectionTagUtility::AuxGetSubModelPart(
 {
     std::string name;
     if (std::getline(rFullName, name, '.'))
-        return AuxGetSubModelPart(rThisModelPart.GetSubModelPart(name), rFullName);
+    {
+        if (rThisModelPart.Name() == name)
+            return AuxGetSubModelPart(rThisModelPart, rFullName);
+        else
+            return AuxGetSubModelPart(rThisModelPart.GetSubModelPart(name), rFullName);
+    }
     else
         return rThisModelPart;
 }
