@@ -166,21 +166,21 @@ namespace Kratos
 	    const SizeType NumNodes = rGeom.PointsNumber();
 	    for (SizeType i = 0; i < NumNodes; ++i)
 	      {
-		rGeom[i].GetSolutionStepValue(BULK_MODULUS)=bulk_modulus;
-		rGeom[i].GetSolutionStepValue(DENSITY)=density;
-		rGeom[i].GetSolutionStepValue(DYNAMIC_VISCOSITY)=viscosity;
-		rGeom[i].GetSolutionStepValue(FLOW_INDEX)=flow_index;
-		rGeom[i].GetSolutionStepValue(YIELD_SHEAR)=yield_shear;
-		rGeom[i].GetSolutionStepValue(ADAPTIVE_EXPONENT)=adaptive_exponent;
-		rGeom[i].GetSolutionStepValue(STATIC_FRICTION)=static_friction;
-		rGeom[i].GetSolutionStepValue(DYNAMIC_FRICTION)=dynamic_friction;
-		rGeom[i].GetSolutionStepValue(INERTIAL_NUMBER_ZERO)=inertial_number_zero;
-		rGeom[i].GetSolutionStepValue(GRAIN_DIAMETER)=grain_diameter;
-		rGeom[i].GetSolutionStepValue(GRAIN_DENSITY)=grain_density;
-		rGeom[i].GetSolutionStepValue(REGULARIZATION_COEFFICIENT)=regularization_coefficient;
-		rGeom[i].GetSolutionStepValue(INERTIAL_NUMBER_ONE)=inertial_number_one;
-		rGeom[i].GetSolutionStepValue(INFINITE_FRICTION)=infinite_friction;
-		rGeom[i].GetSolutionStepValue(ALPHA_PARAMETER)=alpha_parameter;
+		rGeom[i].FastGetSolutionStepValue(BULK_MODULUS)=bulk_modulus;
+		rGeom[i].FastGetSolutionStepValue(DENSITY)=density;
+		rGeom[i].FastGetSolutionStepValue(DYNAMIC_VISCOSITY)=viscosity;
+		rGeom[i].FastGetSolutionStepValue(FLOW_INDEX)=flow_index;
+		rGeom[i].FastGetSolutionStepValue(YIELD_SHEAR)=yield_shear;
+		rGeom[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=adaptive_exponent;
+		rGeom[i].FastGetSolutionStepValue(STATIC_FRICTION)=static_friction;
+		rGeom[i].FastGetSolutionStepValue(DYNAMIC_FRICTION)=dynamic_friction;
+		rGeom[i].FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO)=inertial_number_zero;
+		rGeom[i].FastGetSolutionStepValue(GRAIN_DIAMETER)=grain_diameter;
+		rGeom[i].FastGetSolutionStepValue(GRAIN_DENSITY)=grain_density;
+		rGeom[i].FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT)=regularization_coefficient;
+		rGeom[i].FastGetSolutionStepValue(INERTIAL_NUMBER_ONE)=inertial_number_one;
+		rGeom[i].FastGetSolutionStepValue(INFINITE_FRICTION)=infinite_friction;
+		rGeom[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=alpha_parameter;
 
 	      }
 
