@@ -72,8 +72,6 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
 
         # Create the process
         periodic_parameters = KratosMultiphysics.Parameters("""{}""")
-        periodic_parameters.AddValue("master_model_part_name", settings["first_model_part_name"])
-        periodic_parameters.AddValue("slave_model_part_name", settings["second_model_part_name"])
         periodic_parameters.AddValue("variable_names", settings["variable_names"])
         periodic_parameters.AddValue("center", settings["center"])
         periodic_parameters.AddValue("axis_of_rotation", settings["axis_of_rotation"])
@@ -81,7 +79,16 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         periodic_parameters.AddValue("dir_of_translation", settings["dir_of_translation"])
         periodic_parameters.AddValue("magnitude", settings["magnitude"])
 
-        self.periodic_bc_process = KratosMultiphysics.ApplyPeriodicConditionProcess(self.main_model_part, periodic_parameters)
+        master_model_part_name = main_model_part_name+"."+settings["first_model_part_name"].GetString()
+        slave_model_part_name = main_model_part_name+"."+settings["second_model_part_name"].GetString()
+        self.master_model_part = Model[master_model_part_name]
+        self.slave_model_part = Model[slave_model_part_name]
+        print(self.master_model_part)
+        print(self.slave_model_part)
+
+        self.periodic_bc_process = KratosMultiphysics.ApplyPeriodicConditionProcess(self.master_model_part,
+                                                                                    self.slave_model_part
+                                                                                               , periodic_parameters)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -90,7 +97,7 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         self.periodic_bc_process.ExecuteInitialize()
-        list_constraints = [i for i in range(0,len(self.main_model_part.MasterSlaveConstraints))]
+        list_constraints = [i for i in range(0,len(self.master_model_part.MasterSlaveConstraints))]
         self.computing_model_part.AddMasterSlaveConstraints(list_constraints)
 
     def ExecuteInitializeSolutionStep(self):

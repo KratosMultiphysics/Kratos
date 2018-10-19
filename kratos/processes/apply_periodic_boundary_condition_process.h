@@ -41,35 +41,32 @@ class ApplyPeriodicConditionProcess : public Process
     /// Pointer definition of ApplyPeriodicConditionProcess
     KRATOS_CLASS_POINTER_DEFINITION(ApplyPeriodicConditionProcess);
 
-    typedef Dof<double> *DofPointerType;
-    typedef Dof<double> DofType;
-
-    typedef ModelPart::VariableComponentType VariableComponentType;
+    typedef Dof<double>*                                    DofPointerType;
+    typedef Dof<double>                                     DofType;
+    typedef ModelPart::VariableComponentType                VariableComponentType;
     typedef KratosComponents<Variable<array_1d<double, 3>>> VectorVariableType;
-    typedef ProcessInfo ProcessInfoType;
-    typedef ProcessInfo::Pointer ProcessInfoPointerType;
-    typedef unsigned int IndexType;
-
-    typedef ModelPart::DoubleVariableType VariableType;
-    typedef ModelPart::NodeIterator NodeIterator;
-    typedef Element ElementType;
-    typedef Node<3> NodeType;
-    typedef Matrix MatrixType;
-    typedef Vector VectorType;
-    typedef Geometry<NodeType> GeometryType;
+    typedef ProcessInfo                                     ProcessInfoType;
+    typedef ProcessInfo::Pointer                            ProcessInfoPointerType;
+    typedef unsigned int                                    IndexType;
+    typedef ModelPart::DoubleVariableType                   VariableType;
+    typedef ModelPart::NodeIterator                         NodeIterator;
+    typedef Element                                         ElementType;
+    typedef Node<3>                                         NodeType;
+    typedef Matrix                                          MatrixType;
+    typedef Vector                                          VectorType;
+    typedef Geometry<NodeType>                              GeometryType;
 
     /**
      * @brief Constructor of the process to apply periodic boundary condition
      * @param rModelPart The main model part where the boundary conditions are applied.
      * @param rParameters parameters for the periodic condition to be applied
      */
-    ApplyPeriodicConditionProcess(ModelPart &rModelPart,
-                                  Parameters rParameters) : Process(Flags()), mrMainModelPart(rModelPart), mParameters(rParameters)
+    ApplyPeriodicConditionProcess(ModelPart &rMasterModelPart, ModelPart &rSlaveModelPart,
+                                  Parameters rParameters) : Process(Flags()), mrMasterModelPart(rMasterModelPart),
+                                   mrSlaveModelPart(rSlaveModelPart), mParameters(rParameters)
     {
         Parameters default_parameters(R"(
                                             {
-                                            "master_model_part_name":"default_master",
-                                            "slave_model_part_name":"default_slave",
                                             "variable_names":[],
                                             "center":[0,0,0],
                                             "axis_of_rotation":[0.0,0.0,0.0],
@@ -122,19 +119,22 @@ class ApplyPeriodicConditionProcess : public Process
     }
 
     /**
-     * @brief  Function to remove the common nodes slave and master modelparts from the slave modelpart
+     * @brief  Function to remove the common nodes of slave and master modelparts from the slave modelpart
      */
     void RemoveCommonNodesFromSlaveModelPart()
     {
-        ModelPart &r_slave_model_part = mrMainModelPart.GetSubModelPart(mParameters["slave_model_part_name"].GetString());
-        ModelPart &r_master_model_part = mrMainModelPart.GetSubModelPart(mParameters["master_model_part_name"].GetString());
-        for (auto& slave_node : r_slave_model_part.Nodes())
+        const int num_slave_nodes = mrSlaveModelPart.NumberOfNodes();
+        const ModelPart::NodeIterator it_slave_node_begin = mrSlaveModelPart.NodesBegin();
+        for(int i_node = 0; i_node<num_slave_nodes; ++i_node)
         {
-            auto iterator = r_master_model_part.Nodes().find(slave_node);
-            if(iterator != r_master_model_part.Nodes().end())
-                slave_node.Set(TO_ERASE);
+            ModelPart::NodeIterator it_slave_node = it_slave_node_begin;
+            std::advance(it_slave_node, i_node);
+            auto iterator = mrMasterModelPart.Nodes().find(it_slave_node->Id());
+            if(iterator != mrMasterModelPart.NodesEnd()){
+                it_slave_node->Set(TO_ERASE);
+            }
         }
-        r_slave_model_part.RemoveNodes(TO_ERASE);
+        mrSlaveModelPart.RemoveNodes(TO_ERASE);
     }
 
     /**
@@ -145,7 +145,7 @@ class ApplyPeriodicConditionProcess : public Process
         KRATOS_TRY;
         if (!mIsInitialized)
         {
-            ProcessInfoPointerType info = mrMainModelPart.pGetProcessInfo();
+            ProcessInfoPointerType info = mrMasterModelPart.pGetProcessInfo();
             int prob_dim = info->GetValue(DOMAIN_SIZE);
             // Rotate the master so it goes to the slave
             if (prob_dim == 2){
@@ -179,7 +179,8 @@ class ApplyPeriodicConditionProcess : public Process
   private:
     MatrixType mTransformationMatrix; // This can be either for rotating or for translating the slave geometry to Master geometry
     MatrixType mTransformationMatrixVariable; // This can be either for rotating or for translating the master variable to slave geometry
-    ModelPart &mrMainModelPart;       // the MainModelPart to which the master-slave constraints are added.
+    ModelPart &mrMasterModelPart;       // the master modelpart to which the master-slave constraints are added.
+    ModelPart &mrSlaveModelPart;
     Parameters mParameters;          // parameters
     ModelPart mpTransformedMasterModelPart; // This is new modelpart
     double mTheta;
@@ -198,10 +199,8 @@ class ApplyPeriodicConditionProcess : public Process
     void ApplyConstraintsForPeriodicConditions()
     {
         const double start_apply = OpenMPUtils::GetCurrentTime();
-        ModelPart &r_slave_model_part = mrMainModelPart.GetSubModelPart(mParameters["slave_model_part_name"].GetString());
         const int num_vars = mParameters["variable_names"].size();
-        ModelPart &r_master_model_part = mrMainModelPart.GetSubModelPart(mParameters["master_model_part_name"].GetString());
-        BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(r_master_model_part);
+        BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(mrMasterModelPart);
         bin_based_point_locator.UpdateSearchDatabase();
 
         // for bin based point locator
@@ -210,8 +209,8 @@ class ApplyPeriodicConditionProcess : public Process
 		typename BinBasedFastPointLocatorConditions<TDim>::ResultContainerType results(max_results);
         typename BinBasedFastPointLocatorConditions<TDim>::ResultIteratorType result_begin = results.begin();
 
-        const int num_slave_nodes = r_slave_model_part.NumberOfNodes();
-        const ModelPart::NodeIterator it_slave_node_begin = r_slave_model_part.NodesBegin();
+        const int num_slave_nodes = mrSlaveModelPart.NumberOfNodes();
+        const ModelPart::NodeIterator it_slave_node_begin = mrSlaveModelPart.NodesBegin();
 
         unsigned int num_slaves_found = 0;
 #pragma omp parallel for schedule(guided, 512)
@@ -220,11 +219,11 @@ class ApplyPeriodicConditionProcess : public Process
             Condition::Pointer p_host_cond;
             ModelPart::NodeIterator it_slave_node = it_slave_node_begin;
             std::advance(it_slave_node, i_node);
-            array_1d<double, 3 > rotated_slave_coordinates;
-            TransformNode(it_slave_node->Coordinates(), rotated_slave_coordinates);
+            array_1d<double, 3 > transformed_slave_coordinates;
+            TransformNode(it_slave_node->Coordinates(), transformed_slave_coordinates);
 
             // Finding the host element for this node
-            bool is_found = bin_based_point_locator.FindPointOnMesh(rotated_slave_coordinates, shape_function_values, p_host_cond, result_begin, max_results);
+            bool is_found = bin_based_point_locator.FindPointOnMesh(transformed_slave_coordinates, shape_function_values, p_host_cond, result_begin, max_results);
             if(is_found)
             {
                 ++num_slaves_found;
@@ -233,7 +232,7 @@ class ApplyPeriodicConditionProcess : public Process
                     const std::string var_name = mParameters["variable_names"][j].GetString();
                     // Checking if the variable is a vector variable
                     if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name + "_X"))
-                    {
+                    {   // TODO: Look for a better alternative to do this.
                         ConstraintSlaveNodeWithConditionForVectorVariable<TDim>(*it_slave_node, p_host_cond->GetGeometry() , shape_function_values, var_name);
                     } else if (KratosComponents<VariableType>::Has(var_name))
                     {
@@ -242,7 +241,7 @@ class ApplyPeriodicConditionProcess : public Process
                 }
             }
         }
-        KRATOS_ERROR_IF_NOT(num_slaves_found == r_slave_model_part.NumberOfNodes())<<"Periodic condition cannot be applied for all the nodes."<<std::endl;
+        KRATOS_WARNING_IF("",num_slaves_found != mrSlaveModelPart.NumberOfNodes())<<"Periodic condition cannot be applied for all the nodes."<<std::endl;
         const double end_apply = OpenMPUtils::GetCurrentTime();
         std::cout<<"Applying periodic boundary conditions took : "<<end_apply - start_apply<<" seconds." <<std::endl;
     }
@@ -266,8 +265,8 @@ class ApplyPeriodicConditionProcess : public Process
         IndexType master_index = 0;
         for (auto& master_node : rHostedGeometry)
         {
-                int current_num_constraint = mrMainModelPart.NumberOfMasterSlaveConstraints();
-                auto& actual_master_node = mrMainModelPart.GetNode(master_node.Id());
+                int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
+                auto& actual_master_node = mrMasterModelPart.GetNode(master_node.Id());
 
                 double master_weight = rWeights(master_index);
                 double constant_x(0.0), constant_y(0.0), constant_z(0.0);
@@ -278,19 +277,19 @@ class ApplyPeriodicConditionProcess : public Process
 
                 #pragma omp critical
                 {
-                    mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_x, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
-                    mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_y, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
-                    mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_z, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_x, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_y, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_z, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
 
-                    mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_x, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
-                    mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_y, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
-                    mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_z, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_x, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_y, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_z, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
 
                     if (TDim == 3)
                     {
-                        mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_x, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
-                        mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_y, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
-                        mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_z, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
+                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_x, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
+                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_y, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
+                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_z, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
                     }
                 }
 
@@ -315,16 +314,18 @@ class ApplyPeriodicConditionProcess : public Process
         IndexType master_index = 0;
         for (auto& master_node : rHostedGeometry)
         {
-            int current_num_constraint = mrMainModelPart.NumberOfMasterSlaveConstraints();
-            auto& actual_master_node = mrMainModelPart.GetNode(master_node.Id());
+            int current_num_constraint = mrMasterModelPart.NumberOfMasterSlaveConstraints();
+            auto& actual_master_node = mrMasterModelPart.GetNode(master_node.Id());
 
             double master_weight = rWeights(master_index);
-            mrMainModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var, rSalveNode, r_var, master_weight, 0.0);
+            #pragma omp critical
+            {
+                mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var, rSalveNode, r_var, master_weight, 0.0);
+            }
 
             master_index++;
         }
     }
-
 
     /**
      * @brief   Fuctions calculates the transformation matrix to account for the moving the two periodic condition modelparts together.
@@ -334,6 +335,7 @@ class ApplyPeriodicConditionProcess : public Process
         if (mType == "translation"){
             CalculateTranslationMatrix();
             CalculateTranslationMatrixVariable();
+            std::cout<<"mTransformationMatrixVariable :: "<<mTransformationMatrixVariable<<std::endl;
         }
         else if (mType == "rotation"){
             CalculateRotationMatrix();
@@ -349,15 +351,18 @@ class ApplyPeriodicConditionProcess : public Process
         mTransformationMatrix(0,0) = 1;
         mTransformationMatrix(0,1) = 0;
         mTransformationMatrix(0,2) = 0;
-        mTransformationMatrix(0,3) = mModulus * -1*mDirOfTranslation[0];
+        mTransformationMatrix(0,3) = -1*mModulus *mDirOfTranslation[0];
         mTransformationMatrix(1,0) = 0;
         mTransformationMatrix(1,1) = 1.0;
         mTransformationMatrix(1,2) = 0;
-        mTransformationMatrix(1,3) = mModulus * -1*mDirOfTranslation[1];
+        mTransformationMatrix(1,3) = -1*mModulus *mDirOfTranslation[1];
         mTransformationMatrix(2,0) = 0;
         mTransformationMatrix(2,1) = 0;
         mTransformationMatrix(2,2) = 1.0;
-        mTransformationMatrix(2,3) = mModulus * -1*mDirOfTranslation[2];
+        mTransformationMatrix(2,3) = -1*mModulus *mDirOfTranslation[2];
+        mTransformationMatrix(3,0) = 0.0;
+        mTransformationMatrix(3,1) = 0.0;
+        mTransformationMatrix(3,2) = 0.0;
         mTransformationMatrix(3,3) = 1.0;
     }
 
@@ -369,15 +374,18 @@ class ApplyPeriodicConditionProcess : public Process
         mTransformationMatrixVariable(0,0) = 1;
         mTransformationMatrixVariable(0,1) = 0;
         mTransformationMatrixVariable(0,2) = 0;
-        mTransformationMatrixVariable(0,3) = mModulus * mDirOfTranslation[0];
+        mTransformationMatrixVariable(0,3) = 0;
         mTransformationMatrixVariable(1,0) = 0;
         mTransformationMatrixVariable(1,1) = 1.0;
         mTransformationMatrixVariable(1,2) = 0;
-        mTransformationMatrixVariable(1,3) = mModulus * mDirOfTranslation[1];
+        mTransformationMatrixVariable(1,3) = 0;
         mTransformationMatrixVariable(2,0) = 0;
         mTransformationMatrixVariable(2,1) = 0;
         mTransformationMatrixVariable(2,2) = 1.0;
-        mTransformationMatrixVariable(2,3) = mModulus * mDirOfTranslation[2];
+        mTransformationMatrixVariable(2,3) = 0;
+        mTransformationMatrixVariable(3,0) = 0.0;
+        mTransformationMatrixVariable(3,1) = 0.0;
+        mTransformationMatrixVariable(3,2) = 0.0;
         mTransformationMatrixVariable(3,3) = 1.0;
     }
 
@@ -432,6 +440,9 @@ class ApplyPeriodicConditionProcess : public Process
         mTransformationMatrix(2,1) = t9 * (t12 + t13 - t14 + b * c * t8 + b * c * t2 * t4);
         mTransformationMatrix(2,2) = t9 * (t2 * t5 + t6 * t8 + t2 * t4 * t6);
         mTransformationMatrix(2,3) = -t9 * (-t8 * z1 + t2 * t5 * z1 + t6 * t8 * z1 + a * c * t8 * x1 - b * c * t2 * y1 + b * c * t8 * y1 + a * t3 * t5 * y1 + a * t3 * t6 * y1 - b * t3 * t8 * x1 + t2 * t4 * t6 * z1 - a * c * t2 * t8 * x1 + b * c * t2 * t4 * y1);
+        mTransformationMatrix(3,0) = 0.0;
+        mTransformationMatrix(3,1) = 0.0;
+        mTransformationMatrix(3,2) = 0.0;
         mTransformationMatrix(3,3) = 1.0;
     }
 
@@ -486,6 +497,9 @@ class ApplyPeriodicConditionProcess : public Process
         mTransformationMatrixVariable(2,1) = t9 * (t12 + t13 - t14 + b * c * t8 + b * c * t2 * t4);
         mTransformationMatrixVariable(2,2) = t9 * (t2 * t5 + t6 * t8 + t2 * t4 * t6);
         mTransformationMatrixVariable(2,3) = -t9 * (-t8 * z1 + t2 * t5 * z1 + t6 * t8 * z1 + a * c * t8 * x1 - b * c * t2 * y1 + b * c * t8 * y1 + a * t3 * t5 * y1 + a * t3 * t6 * y1 - b * t3 * t8 * x1 + t2 * t4 * t6 * z1 - a * c * t2 * t8 * x1 + b * c * t2 * t4 * y1);
+        mTransformationMatrixVariable(3,0) = 0.0;
+        mTransformationMatrixVariable(3,1) = 0.0;
+        mTransformationMatrixVariable(3,2) = 0.0;
         mTransformationMatrixVariable(3,3) = 1.0;
     }
 
