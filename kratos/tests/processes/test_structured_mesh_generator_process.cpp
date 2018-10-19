@@ -19,6 +19,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/kernel.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "geometries/quadrilateral_2d_4.h"
@@ -32,6 +33,8 @@ namespace Kratos {
 		{
 			Kernel kernel;
 
+			Model current_model;
+
             Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
             Node<3>::Pointer p_point2(new Node<3>(2, 10.00, 0.00, 0.00));
             Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
@@ -43,7 +46,7 @@ namespace Kratos {
 
             Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
-			ModelPart model_part("Generated");
+			ModelPart& model_part = current_model.CreateModelPart("Generated");
 
 			Parameters mesher_parameters(R"(
             {
@@ -81,6 +84,8 @@ namespace Kratos {
 		{
 			Kernel kernel;
 
+			Model current_model;
+
 			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
 			Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
 			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
@@ -88,7 +93,7 @@ namespace Kratos {
 
 			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
 
-			ModelPart model_part("Generated");
+			ModelPart& model_part = current_model.CreateModelPart("Generated");
 
 			Parameters mesher_parameters(R"(
             {

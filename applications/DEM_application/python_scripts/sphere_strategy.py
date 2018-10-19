@@ -221,7 +221,7 @@ class ExplicitStrategy(object):
         # TIME RELATED PARAMETERS
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
 
-        os.chdir('..')
+        #-----os.chdir('..')   # check functionality
 
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)

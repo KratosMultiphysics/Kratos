@@ -16,6 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/kratos_flags.h"
 #include "geometries/triangle_3d_3.h"
 
@@ -35,8 +36,10 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess1, KratosCoreFastSuite)
         {
-            ModelPart origin_model_part("Origin");
-            ModelPart destination_model_part("Destination");
+            Model current_model;
+
+            ModelPart& origin_model_part = current_model.CreateModelPart("Origin");
+            ModelPart& destination_model_part = current_model.CreateModelPart("Destination");
 
             Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
 
@@ -93,8 +96,10 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess2, KratosCoreFastSuite)
         {
-            ModelPart origin_model_part("Origin");
-            ModelPart destination_model_part("Destination");
+            Model current_model;
+
+            ModelPart& origin_model_part = current_model.CreateModelPart("Origin");
+            ModelPart& destination_model_part = current_model.CreateModelPart("Destination");
 
             Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
 
@@ -173,8 +178,10 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess3, KratosCoreFastSuite)
         {
-            ModelPart origin_model_part("Origin");
-            ModelPart destination_model_part("Destination");
+            Model current_model;
+
+            ModelPart& origin_model_part = current_model.CreateModelPart("Origin");
+            ModelPart& destination_model_part = current_model.CreateModelPart("Destination");
 
             Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
 
@@ -231,8 +238,10 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(FastTransferBetweenModelPartsProcess4, KratosCoreFastSuite)
         {
-            ModelPart origin_model_part("Origin");
-            ModelPart destination_model_part("Destination");
+            Model current_model;
+            
+            ModelPart& origin_model_part = current_model.CreateModelPart("Origin");
+            ModelPart& destination_model_part = current_model.CreateModelPart("Destination");
             
             Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
             

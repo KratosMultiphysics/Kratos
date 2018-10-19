@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
@@ -50,7 +51,9 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestNodalH1, KratosNodalHFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
@@ -120,7 +123,9 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestNodalH2, KratosNodalHFastSuite)
         {
-            ModelPart this_model_part("Main");
+            Model current_model;
+            
+            ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);

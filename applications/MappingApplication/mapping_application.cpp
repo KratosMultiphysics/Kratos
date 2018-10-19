@@ -21,6 +21,8 @@
 
 
 // Project includes
+#include "containers/model.h"
+
 #include "mapping_application.h"
 #include "mapping_application_variables.h"
 

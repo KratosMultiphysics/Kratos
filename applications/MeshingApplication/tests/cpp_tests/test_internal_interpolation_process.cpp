@@ -18,6 +18,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/kratos_flags.h"
 #include "includes/gid_io.h"
 #include "meshing_application.h"
@@ -234,8 +235,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessCPT1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 2;
 
@@ -332,8 +333,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessLST1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 2;
 
@@ -435,8 +436,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessCPT2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 3;
 
@@ -534,8 +535,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessLST2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 3;
 
@@ -637,8 +638,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsCPT1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 2;
 
@@ -716,8 +717,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsLST1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 2;
 
@@ -800,8 +801,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsCPT2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 3;
 
@@ -880,8 +881,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessElementsLST2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 3;
 

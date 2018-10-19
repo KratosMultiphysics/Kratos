@@ -18,6 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
 #include "custom_elements/embedded_navier_stokes.h"
@@ -35,11 +36,13 @@ namespace Kratos {
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(ElementEmbeddedNavierStokes2D3N, FluidDynamicsApplicationFastSuite)
 		{
-
-			ModelPart modelPart("Main");
+			Model model;
+			ModelPart& modelPart = model.CreateModelPart("Main");
 			modelPart.SetBufferSize(3);
 
 			// Variables addition
+			modelPart.AddNodalSolutionStepVariable(DISTANCE);
+			modelPart.AddNodalSolutionStepVariable(REACTION);
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
 			modelPart.AddNodalSolutionStepVariable(DENSITY);
 			modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
@@ -48,6 +51,8 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(PRESSURE);
 			modelPart.AddNodalSolutionStepVariable(VELOCITY);
 			modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
+			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
 
 			// Process info creation
 			double delta_time = 0.1;
@@ -121,13 +126,13 @@ namespace Kratos {
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
 			KRATOS_CHECK_NEAR(RHS(0), 0.0475309, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(1), 0.0975309, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(2), -0.0545696, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(2), -0.0546391, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(3), 0.0469136, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(4), 0.0969136, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(5), 0.0176796, 1e-7);
 			KRATOS_CHECK_NEAR(RHS(6), 16436.9, 1e-1 );
 			KRATOS_CHECK_NEAR(RHS(7), 33828.9, 1e-1);
-			KRATOS_CHECK_NEAR(RHS(8), 0.0202233, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(8), 0.0202928, 1e-7);
 		}
 
 	    // /** Checks the EmbeddedNavierStokes3D4N element.
@@ -135,9 +140,8 @@ namespace Kratos {
 	    //  */
 	    KRATOS_TEST_CASE_IN_SUITE(ElementEmbeddedNavierStokes3D4N, FluidDynamicsApplicationFastSuite)
 		{
-
-			ModelPart modelPart("Main");
-			modelPart.SetBufferSize(3);
+			Model model;
+			ModelPart& modelPart = model.CreateModelPart("Main", 3);
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);

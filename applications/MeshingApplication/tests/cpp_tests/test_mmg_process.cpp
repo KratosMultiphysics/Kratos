@@ -18,6 +18,7 @@
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
 #include "includes/gid_io.h"
+#include "containers/model.h"
 #include "meshing_application.h"
 
 /* Processes */
@@ -51,9 +52,9 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(MMGProcess1, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
-
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
+            
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
@@ -139,9 +140,9 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(MMGProcess2, KratosMeshingApplicationFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
-
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
+            
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE);
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);

@@ -15,6 +15,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 
@@ -191,7 +192,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataRead, FluidDynamicsApplicationFastSuit
     TestPropertiesData properties_data;
     TestProcessInfoData process_info_data;
 
-    ModelPart full_model_part("Test Full");
+    Model model;
+    ModelPart& full_model_part = model.CreateModelPart("Test Full");
 
     constexpr double DeltaTime = 0.1;
     FluidElementDataTestCompleteModelPart(full_model_part,DeltaTime,2);
@@ -226,8 +228,8 @@ KRATOS_TEST_CASE_IN_SUITE(FluidElementDataRead, FluidDynamicsApplicationFastSuit
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FluidElementDataCheck, FluidDynamicsApplicationFastSuite) {
-
-    ModelPart empty_model_part("Test Empty");
+    Model model;
+    ModelPart& empty_model_part = model.CreateModelPart("Test Empty");
 
     constexpr double DeltaTime = 0.1;
     FluidElementDataTestEmptyModelPart(empty_model_part,DeltaTime,1);

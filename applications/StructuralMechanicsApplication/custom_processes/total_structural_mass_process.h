@@ -115,6 +115,8 @@ public:
 
     void Execute() override;
 
+    static double CalculateElementMass(Element& rElement, const std::size_t DomainSize);
+
     ///@}
     ///@name Access
     ///@{
