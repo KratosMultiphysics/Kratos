@@ -32,11 +32,11 @@ namespace Kratos
         mRootModelPartMap.clear();
         //mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
     }
-    
-    ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::IndexType NewBufferSize ) 
+
+    ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::IndexType NewBufferSize )
     {
         KRATOS_TRY
-                
+
         auto search = mRootModelPartMap.find(ModelPartName);
         if( search == mRootModelPartMap.end()) {
             auto pvar_list = Kratos::make_unique<VariablesList>();
@@ -53,7 +53,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void Model::DeleteModelPart( const std::string ModelPartName  ) 
+    void Model::DeleteModelPart( const std::string ModelPartName  )
     {
         KRATOS_TRY
 
@@ -62,10 +62,10 @@ namespace Kratos
         else
             KRATOS_WARNING("Info") << "attempting to delete inexisting modelpart : " << ModelPartName << std::endl;
 
-        
+
         KRATOS_CATCH("")
     }
-    
+
     void Model::RenameModelPart( const std::string OldName, const std::string NewName )
     {
         KRATOS_TRY
@@ -73,29 +73,29 @@ namespace Kratos
         KRATOS_ERROR_IF_NOT(this->HasModelPart(OldName)) << "The Old Name is not in model (as a root model part). Required old name was : " << OldName << std::endl;
 
         KRATOS_ERROR_IF(this->HasModelPart(NewName)) << "The New Name is already existing in model. Proposed name was : " << NewName << std::endl;
-        
+
         mRootModelPartMap[OldName]->Name() = NewName; //change the name of the existing modelpart
-        
+
         CreateModelPart(NewName);
-        
+
         mRootModelPartMap[NewName].swap(mRootModelPartMap[OldName]);
-        
+
         mRootModelPartMap.erase(OldName);
 
         KRATOS_CATCH("")
     }
-    
-    
+
+
     ModelPart& Model::GetModelPart(const std::string& rFullModelPartName)
     {
         KRATOS_TRY
-        
+
         KRATOS_ERROR_IF( rFullModelPartName.empty() ) << "Attempting to find a "
             << "ModelPart with empty name (\"\")!" << std::endl;
-            
-        std::vector< std::string > subparts_list = GetSubPartsList(rFullModelPartName);
-        
-        
+
+        std::vector< std::string > subparts_list = SplitSubModelPartHierarchyIntoList(rFullModelPartName);
+
+
         if(subparts_list.size() == 1) //it is a root model part
         {
             auto search = mRootModelPartMap.find(subparts_list[0]);
@@ -111,7 +111,7 @@ namespace Kratos
                      if(pmodel_part != nullptr) //give back the first one that was found
                          return *pmodel_part;
                 }
-                
+
                 //if we are here we did not find it
                 KRATOS_ERROR << "The ModelPart named : \"" << subparts_list[0]
                      << "\" was not found either as root-ModelPart or as a flat name. The total input string was \""
@@ -136,11 +136,11 @@ namespace Kratos
                 }
                 return *p_model_part;
             }
-            else 
+            else
             {
                 KRATOS_ERROR << "root model part " << rFullModelPartName << " not found" << std::endl;
             }
-            
+
         }
 
         KRATOS_CATCH("")
@@ -153,7 +153,7 @@ namespace Kratos
         KRATOS_ERROR_IF( rFullModelPartName.empty() ) << "Attempting to find a "
             << "ModelPart with empty name (\"\")!" << std::endl;
 
-        std::vector< std::string > subparts_list =  GetSubPartsList(rFullModelPartName);
+        std::vector< std::string > subparts_list =  SplitSubModelPartHierarchyIntoList(rFullModelPartName);
 
         //token 0 is the root
         auto search = mRootModelPartMap.find(subparts_list[0]);
@@ -199,7 +199,7 @@ namespace Kratos
     {
     }
 
-    std::vector<std::string> Model::GetSubPartsList(const std::string& rFullModelPartName)
+    std::vector<std::string> Model::SplitSubModelPartHierarchyIntoList(const std::string& rFullModelPartName)
     {
         std::vector<std::string> rSubPartsList;
         std::istringstream iss(rFullModelPartName);
@@ -211,7 +211,7 @@ namespace Kratos
         }
         return rSubPartsList;
     }
-    
+
     ModelPart* Model::RecursiveSearchByName(const std::string& ModelPartName, ModelPart* pModelPart)
     {
 

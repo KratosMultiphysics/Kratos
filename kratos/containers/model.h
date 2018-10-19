@@ -252,7 +252,7 @@ private:
 
     ModelPart* RecursiveSearchByName(const std::string& ModelPartName, ModelPart* pModelPart);
 
-    std::vector<std::string> GetSubPartsList(const std::string& rFullModelPartName);
+    std::vector<std::string> SplitSubModelPartHierarchyIntoList(const std::string& rFullModelPartName);
 
 
     ///@}
