@@ -55,12 +55,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Rank local searching
-/** This class provides features for rank local searching. It is basically a wrapper for the Bin Search Function
-* It computes local neighbors and selects the best neighbor out of the search results. How these are selected is
-* defined in the "EvaluateResult" function of the InterfaceObject
-* If no neighbors are found, the search radius is increased by a factor ("increase_factor" in "Search")
-* Look into the class description of the MapperCommunicator to see how this Object is used in the application
+/// Object for exchanging data on the Interface
+/** Mapping requires knowledge about the "other" side of the Interface. This class communicates the
+ * data required by the mappers, hence it also includes the (local) searching
 */
 class InterfaceCommunicator
 {

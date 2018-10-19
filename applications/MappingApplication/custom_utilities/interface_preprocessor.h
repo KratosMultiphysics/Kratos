@@ -52,8 +52,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Preparing the interface by construting the MapperLocalSystems
+/** The MapperLocalSystems are used for the mapping-system, this class
+ * constructs them based on the available geometry
 */
 class InterfacePreprocessor
 {

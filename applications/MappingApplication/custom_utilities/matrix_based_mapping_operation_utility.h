@@ -49,8 +49,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Object for constructing the mapping-matrices of the mapping-system
+/** This class assembles the Mapping Matrix
 */
 template<class TSparseSpace, class TDenseSpace>
 class MatrixBasedMappingOperationUtility

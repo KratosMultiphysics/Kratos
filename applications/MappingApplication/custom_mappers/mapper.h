@@ -62,7 +62,6 @@ namespace Kratos
  * Furthermore it manages the InverseMapper, which is the same mapper but with reversed input of
  * ModelParts to map in the opposite direction
 */
-
 template<class TSparseSpace, class TDenseSpace>
 class Mapper
 {

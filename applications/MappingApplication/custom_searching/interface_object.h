@@ -53,8 +53,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Object used by the bin-search
+/** This object is used by the bin search. It is the baseclass for objects that hold information
+ * about geometric entities, e.g. Nodes or Geometries
 */
 class InterfaceObject : public Point
 {

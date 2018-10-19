@@ -49,8 +49,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Object for storing data that is needed to construct the local-mapping-system
+/** When constructing th local-mapper-system, some data from the "other" side of the
+ * Interface is needed which is different for every mapper.
+ * This class stores the data needed and provides it later when the local-system is
+ * constructed.
+ * For the data-exchange in MPI the data is saved using serialization
 */
 class MapperInterfaceInfo
 {

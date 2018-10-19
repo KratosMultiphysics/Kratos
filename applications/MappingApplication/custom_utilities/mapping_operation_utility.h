@@ -52,8 +52,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Object for constructing the mapping-system, equivalent to the BuilderAndSolver
+/** The mapping-system is constructed from the the MapperLocalSystems, this class
+ * and its derived objects take care of this.
 */
 template<class TSparseSpace, class TDenseSpace>
 class MappingOperationUtility

@@ -52,12 +52,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// This is the "Condition" of the Mappers.
-/** Detail class definition.
-In case the mapping matrix is build we need at some point the EquationIDs of the MappingMatrix
-=> To get these we have to compute also the MappingWeights which might be expensive
-(e.g. triangulation, integration, projection)
-=> Therefore we save this to later only querry it
+/// This is the "Condition" of the mappers
+/** This class assembles the local system for the mappers, using the Information that
+ * was provided by the "MapperInterfaceInfo"
 */
 class MapperLocalSystem
 {
