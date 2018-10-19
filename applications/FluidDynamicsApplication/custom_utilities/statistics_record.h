@@ -31,22 +31,6 @@ namespace Kratos
 ///@addtogroup FluidDynamicsApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -56,7 +40,7 @@ namespace Kratos
  *  simulation procedure.
  *  @see IntegrationPointStatisticsProcess for an implementation using this to compute statistics at the mesh integration points.
  */
-class StatisticsRecord
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) StatisticsRecord
 {
 public:
     ///@name Type Definitions
@@ -148,23 +132,25 @@ public:
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    std::vector< std::vector<double> > mUpdateBuffer;
-
-    ///@}
     ///@name Member Variables
     ///@{
 
+    /// Auxiliary container to hold temporary values while updating the statistics.
+    std::vector< std::vector<double> > mUpdateBuffer;
+
+    /// This variable is used to control whether the internal memory has already been allocated.
     bool mInitialized;
 
+    /// Number of doubles used by the total of recorded statistics.
     std::size_t mDataBufferSize;
 
+    /// Number of realizations recorded during the simulation.
     std::size_t mRecordedSteps;
 
+    /// Collection of average quantities to be stored per sampling point.
     PointerVector<StatisticsSampler> mAverageData;
 
+    /// Collection of second and higher order statistics to be stored per sampling point.
     PointerVector<StatisticsSampler> mHigherOrderData;
 
     ///@}
@@ -193,10 +179,6 @@ private:
 
 ///@}
 
-///@name Type Definitions
-///@{
-
-///@}
 ///@name Input and output
 ///@{
 
