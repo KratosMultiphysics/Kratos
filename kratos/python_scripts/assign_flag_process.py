@@ -39,7 +39,7 @@ class AssignFlagProcess(KratosMultiphysics.Process):
             "flag_name"       : "SPECIFY_FLAG_NAME",
             "interval"        : [0.0, 1e30],
             "value"           : true,
-            "entities"        : ["nodes","conditions","elements"]
+            "entities"        : []
         }
         """
         )
@@ -53,6 +53,9 @@ class AssignFlagProcess(KratosMultiphysics.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.value = settings["value"].GetBool()
+        # Define entities
+        if (settings["entities"].size() == 0):
+           raise Exception("This process requires a list of entities. The options are: nodes, conditions, elements and model_part")
         self.entities = []
         for i in range(settings["entities"].size()):
             self.entities.append(settings["entities"][i].GetString())
