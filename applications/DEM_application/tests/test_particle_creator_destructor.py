@@ -5,7 +5,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestParticleCreatorDestructor(KratosUnittest.TestCase):    
 
     def setUp(self):
-        self.spheres_model_part = Kratos.ModelPart("SpheresPart")
+        self.current_model = Kratos.Model()
+        self.spheres_model_part = self.current_model.CreateModelPart("SpheresPart")
         self.spheres_model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
         self.spheres_model_part.AddNodalSolutionStepVariable(Kratos.ANGULAR_VELOCITY)
         self.spheres_model_part.AddNodalSolutionStepVariable(Kratos.RADIUS)

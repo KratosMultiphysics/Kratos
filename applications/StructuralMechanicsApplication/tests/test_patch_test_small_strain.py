@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestSmallStrain(KratosUnittest.TestCase):
     def setUp(self):
         pass
-
+       
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -215,7 +215,8 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
     def test_SmallDisplacementElement_2D_triangle(self):
         dim = 2
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -264,7 +265,8 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
     def test_SmallDisplacementElement_2D_quadrilateral(self):
         dim = 2
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 
@@ -304,7 +306,8 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
     def test_SmallDisplacementElement_3D_hexa(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
 

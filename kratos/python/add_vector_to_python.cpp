@@ -106,6 +106,42 @@ namespace Python
         return binder;
         }
 
+    template< std::size_t TSize >
+    void CreateArray1DInterface(pybind11::module& m, const std::string& Name )
+    {
+        auto binder = CreateVectorInterface< array_1d<double,TSize> >(m,Name);
+        binder.def(init( [](double value){
+            array_1d<double,TSize> tmp;
+            for(std::size_t i=0; i < TSize; ++i)
+                tmp[i] = value;
+            return tmp;
+        }));
+        binder.def(init( [](const Vector& input){
+            KRATOS_ERROR_IF(input.size() != TSize)
+            << "Attempting to initialize an array_1d<double," << TSize << "> from a Vector of size "
+            << input.size() << ". Input should have size " << TSize <<"." << std::endl;
+
+            array_1d<double,TSize> tmp(input);
+            return tmp;
+        }));
+        binder.def(init<array_1d<double,TSize>>());
+        binder.def(init( [](const list& input){
+            KRATOS_ERROR_IF(input.size() != TSize)
+            << "Attempting to initialize an array_1d<double," << TSize << "> from a Python list of size "
+            << input.size() << ". Input should have size " << TSize <<"." << std::endl;
+
+            array_1d<double,TSize> tmp;
+            for(std::size_t i=0; i<TSize; ++i) {
+                tmp[i] = cast<double>(input[i]);
+            }
+            return tmp;
+        }));
+
+
+        implicitly_convertible<list, array_1d<double,TSize>>();
+        implicitly_convertible<Vector, array_1d<double,TSize>>();
+    }
+
     void  AddVectorToPython(pybind11::module& m)
     {
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
@@ -177,36 +213,10 @@ namespace Python
         implicitly_convertible<array_1d<double,3>, Vector>();
 
 
-
-
-
-
-        auto array3_binder = CreateVectorInterface< Kratos::array_1d<double,3> >(m, "Array3");
-        array3_binder.def(init( [](double value){
-                                array_1d<double,3> tmp;
-                                for(unsigned int i=0; i<3; ++i)
-                                    tmp[i] = value;
-                                return tmp;
-                                }));
-        array3_binder.def(init( [](const Vector& input){
-                                if(input.size() != 3)
-                                    KRATOS_ERROR << "expected size should be 3 when constructing an Array3. Provide Input  size is: " << input.size() << std::endl;
-
-                                array_1d<double,3> tmp(input);
-                                return tmp;
-                                })   );
-        array3_binder.def(init<array_1d<double,3>>());
-        array3_binder.def(init( [](const list& input){
-                                if(input.size() != 3)
-                                    KRATOS_ERROR << "expected size should be 3 when constructing an Array3. Provide Input  size is: " << input.size() << std::endl;
-
-                                array_1d<double,3> tmp;
-                                for(unsigned int i=0; i<3; ++i)
-                                    tmp[i] = cast<double>(input[i]);
-                                return tmp;
-                                }) );
-        implicitly_convertible<list, array_1d<double,3>>();
-        implicitly_convertible<Vector, array_1d<double,3>>();
+        CreateArray1DInterface< 3 >(m,"Array3");
+        CreateArray1DInterface< 4 >(m,"Array4");
+        CreateArray1DInterface< 6 >(m,"Array6");
+        CreateArray1DInterface< 9 >(m,"Array9");
 
     }
 }  // namespace Python.

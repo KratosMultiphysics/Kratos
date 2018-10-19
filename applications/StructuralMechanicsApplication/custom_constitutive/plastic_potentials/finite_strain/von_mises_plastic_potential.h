@@ -54,7 +54,7 @@ namespace Kratos
  * @author Lucia Barbu
  */
 template <SizeType TVoigtSize = 6>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainVonMisesPlasticPotential
+class FiniteStrainVonMisesPlasticPotential
 {
 public:
     ///@name Type Definitions
@@ -215,18 +215,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 

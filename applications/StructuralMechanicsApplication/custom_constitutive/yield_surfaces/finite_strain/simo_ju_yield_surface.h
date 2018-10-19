@@ -57,7 +57,7 @@ namespace Kratos
  * @author Lucia Barbu
  */
 template <class TPlasticPotentialType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainSimoJuYieldSurface
+class FiniteStrainSimoJuYieldSurface
 {
   public:
     ///@name Type Definitions
@@ -286,18 +286,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) FiniteStrainSimoJuYieldSurfac
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 

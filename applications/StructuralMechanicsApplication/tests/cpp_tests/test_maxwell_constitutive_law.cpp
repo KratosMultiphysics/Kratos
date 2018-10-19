@@ -16,7 +16,7 @@
 // Project includes
 #include "includes/process_info.h"
 #include "testing/testing.h"
-
+#include "containers/model.h"
 // Application includes
 
 // Constitutive law
@@ -42,7 +42,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwell, KratosStructuralMechanicsFastS
     ProcessInfo process_info;
     Vector stress_vector, strain_vector;
 
-    ModelPart test_model_part("Main");
+    Model current_model;
+    ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
     NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
