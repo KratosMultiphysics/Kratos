@@ -14,7 +14,7 @@
 //  Framework for Non-Matching Grid Mapping"
 
 // System includes
-#include<unordered_set>
+#include<set>
 
 // External includes
 
@@ -35,8 +35,8 @@ typedef typename MapperLocalSystem::MatrixType MatrixType;
 typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 
 void ConstructRowColIdSets(UtilityType::MapperLocalSystemPointerVector& rMapperLocalSystems,
-                           std::unordered_set<int>& rRowEquationIds,
-                           std::unordered_set<int>& rColEquationIds)
+                           std::set<int>& rRowEquationIds,
+                           std::set<int>& rColEquationIds)
 {
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
@@ -126,9 +126,6 @@ void UtilityType::BuildMappingSystem(
     ModelPart& rModelPartDestination,
     MapperLocalSystemPointerVector& rMapperLocalSystems) const
 {
-    if (rModelPartOrigin.GetCommunicator().MyPID() == 0)
-        std::cout << "\nENTERING the Matrix and Vector Assembly" << std::endl;
-
     // ***** Creating vectors with information abt which IDs are local *****
     const auto& r_local_mesh_origin = rModelPartOrigin.GetCommunicator().LocalMesh();
     const auto& r_local_mesh_destination = rModelPartDestination.GetCommunicator().LocalMesh();
@@ -152,13 +149,11 @@ void UtilityType::BuildMappingSystem(
     }
 
     // Construct vectors containing all the equation ids of rows and columns this processor contributes to
-    std::unordered_set<int> row_equation_ids_set;
-    std::unordered_set<int> col_equation_ids_set;
+    std::set<int> row_equation_ids_set;
+    std::set<int> col_equation_ids_set;
     ConstructRowColIdSets(rMapperLocalSystems, row_equation_ids_set, col_equation_ids_set);
     std::vector<int> row_equation_ids(row_equation_ids_set.begin(), row_equation_ids_set.end());
     std::vector<int> col_equation_ids(col_equation_ids_set.begin(), col_equation_ids_set.end());
-    std::sort(row_equation_ids.begin(), row_equation_ids.end());
-    std::sort(col_equation_ids.begin(), col_equation_ids.end());
 
     // ***** Creating the maps for the MappingMatrix and the SystemVectors *****
     const Epetra_MpiComm epetra_comm(MPI_COMM_WORLD);
