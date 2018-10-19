@@ -156,91 +156,91 @@ void  AddContainersToPython(pybind11::module& m)
 
     class_<VariableData>(m, "VariableData" )
     .def("Name", &VariableData::Name, return_value_policy::copy)
-    .def("__str__", KRATOS_DEF_PYTHON_STR(VariableData))
+    .def("__str__", PrintObject<VariableData>)
     ;
 
     class_<Variable<std::string>, VariableData>(m, "StringVariable" )
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<std::string>))
+    .def("__str__", PrintObject<Variable<std::string>>)
     ;
 
     class_<Variable<bool>, VariableData>(m, "BoolVariable" )
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<bool>))
+    .def("__str__", PrintObject<Variable<bool>>)
     ;
 
     class_<Variable<int>,VariableData>(m, "IntegerVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<int>))
+    .def("__str__", PrintObject<Variable<int>>)
     ;
 
     class_<Variable<DenseVector<int> >,VariableData>(m, "IntegerVectorVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<DenseVector<int> >))
+    .def("__str__", PrintObject<Variable<DenseVector<int> >>)
     ;
 
     class_<Variable<double>,VariableData>(m, "DoubleVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<double>))
+    .def("__str__", PrintObject<Variable<double>>)
     ;
 
     class_<Variable<Vector >,VariableData>(m, "VectorVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<Vector >))
+    .def("__str__", PrintObject<Variable<Vector >>)
     ;
 
     class_<Array1DVariable3,VariableData>(m, "Array1DVariable3")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1DVariable3))
+    .def("__str__", PrintObject<Array1DVariable3>)
     ;
 
     class_<Array1DVariable4,VariableData>(m, "Array1DVariable4")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1DVariable4))
+    .def("__str__", PrintObject<Array1DVariable4>)
     ;
 
     class_<Array1DVariable6,VariableData>(m, "Array1DVariable6")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1DVariable6))
+    .def("__str__", PrintObject<Array1DVariable6>)
     ;
 
     class_<Array1DVariable9,VariableData>(m, "Array1DVariable9")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1DVariable9))
+    .def("__str__", PrintObject<Array1DVariable9>)
     ;
 
     class_<Variable<DenseMatrix<double> >,VariableData>(m, "MatrixVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<DenseMatrix<double> >))
+    .def("__str__", PrintObject<Variable<DenseMatrix<double> >>)
     ;
 
     class_<Variable<ConstitutiveLaw::Pointer>,VariableData>(m, "ConstitutuveLawVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<ConstitutiveLaw::Pointer>))
+    .def("__str__", PrintObject<Variable<ConstitutiveLaw::Pointer>>)
     ;
 
     class_<Variable<ConvectionDiffusionSettings::Pointer > ,VariableData>(m,"ConvectionDiffusionSettingsVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<ConvectionDiffusionSettings::Pointer >))
+    .def("__str__", PrintObject<Variable<ConvectionDiffusionSettings::Pointer >>)
     ;
 
     class_<Variable<RadiationSettings::Pointer > ,VariableData>(m,"RadiationSettingsVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<RadiationSettings::Pointer >))
+    .def("__str__", PrintObject<Variable<RadiationSettings::Pointer >>)
     ;
     class_<VariableComponent<VectorComponentAdaptor<Vector > >,VariableData>(m, "VectorComponentVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(VariableComponent<VectorComponentAdaptor<Vector > >))
+    .def("__str__", PrintObject<VariableComponent<VectorComponentAdaptor<Vector > >>)
     // .def( "GetSourceVariable", &VariableComponent<VectorComponentAdaptor<Vector > >::GetSourceVariable ) // components for vector are not yet fully supported
     ;
 
     class_<Array1DComponentVariable,VariableData>(m, "Array1DComponentVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1DComponentVariable))
+    .def("__str__", PrintObject<Array1DComponentVariable>)
     .def( "GetSourceVariable", &Array1DComponentVariable::GetSourceVariable )
     ;
 
     class_<Array1D4ComponentVariable,VariableData>(m, "Array1D4ComponentVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1D4ComponentVariable))
+    .def("__str__", PrintObject<Array1D4ComponentVariable>)
     .def( "GetSourceVariable", &Array1D4ComponentVariable::GetSourceVariable )
     ;
 
     class_<Array1D6ComponentVariable,VariableData>(m, "Array1D6ComponentVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1D6ComponentVariable))
+    .def("__str__", PrintObject<Array1D6ComponentVariable>)
     .def( "GetSourceVariable", &Array1D6ComponentVariable::GetSourceVariable )
     ;
 
     class_<Array1D9ComponentVariable,VariableData>(m, "Array1D9ComponentVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Array1D9ComponentVariable))
+    .def("__str__", PrintObject<Array1D9ComponentVariable>)
     .def( "GetSourceVariable", &Array1D9ComponentVariable::GetSourceVariable )
     ;
 
     class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Variable<Quaternion<double> >))
+    .def("__str__", PrintObject<Variable<Quaternion<double> >>)
     ;
 
     //***********************************************************************
@@ -275,7 +275,7 @@ void  AddContainersToPython(pybind11::module& m)
     typedef class_<DataValueContainer, DataValueContainer::Pointer> DataValueContainerBinderType;
     DataValueContainerBinderType DataValueBinder(m, "DataValueContainer" );
     DataValueBinder.def( "__len__", &DataValueContainer::Size );
-    DataValueBinder.def("__str__", KRATOS_DEF_PYTHON_STR(DataValueContainer));
+    DataValueBinder.def("__str__", PrintObject<DataValueContainer>);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<bool> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<int> >(DataValueBinder);
     VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<double> >(DataValueBinder);
@@ -297,7 +297,7 @@ void  AddContainersToPython(pybind11::module& m)
     typedef class_<VariablesListDataValueContainer, VariablesListDataValueContainer::Pointer> VariableDataValueContainerBinderType;
     VariableDataValueContainerBinderType VariableDataValueBinder(m, "VariablesListDataValueContainer" );
     VariableDataValueBinder.def( "__len__", &VariablesListDataValueContainer::Size );
-    VariableDataValueBinder.def("__str__", KRATOS_DEF_PYTHON_STR(VariablesListDataValueContainer));
+    VariableDataValueBinder.def("__str__", PrintObject<VariablesListDataValueContainer>);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<bool> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<int> >(VariableDataValueBinder);
     VariableIndexingUtility< VariableDataValueContainerBinderType, VariablesListDataValueContainer, Variable<double> >(VariableDataValueBinder);
@@ -329,7 +329,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("Clear", &Flags::Clear)
     .def("__or__", FlagsOr)
     .def("__and__", FlagsAnd)
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Flags))
+    .def("__str__", PrintObject<Flags>)
     ;
 
     KRATOS_REGISTER_IN_PYTHON_FLAG(m,STRUCTURE);

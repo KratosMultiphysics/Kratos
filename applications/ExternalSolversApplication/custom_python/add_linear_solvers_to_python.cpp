@@ -114,7 +114,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(init<double>())
     .def(init<double, unsigned int>())
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
-    .def("__str__", KRATOS_DEF_PYTHON_STR(GMRESSolverType))
+    .def("__str__", PrintObject<GMRESSolverType>)
     ;
 }
 

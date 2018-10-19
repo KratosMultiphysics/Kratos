@@ -67,7 +67,7 @@ template< typename TMatrixType > class_< TMatrixType > CreateMatrixInterface(pyb
         binder.def("__imul__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1*=value; return m1;}, is_operator());
         binder.def("__itruediv__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1/=value; return m1;}, is_operator());
 
-        binder.def("__str__", KRATOS_DEF_PYTHON_STR(TMatrixType));
+        binder.def("__str__", PrintObject<TMatrixType>);
         return binder;
         }
 

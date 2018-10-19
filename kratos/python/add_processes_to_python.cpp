@@ -81,7 +81,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteBeforeOutputStep",&Process::ExecuteBeforeOutputStep)
     .def("ExecuteAfterOutputStep",&Process::ExecuteAfterOutputStep)
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Process))
+    .def("__str__", PrintObject<Process>)
     ;
 
     // Find NODAL_H (Historical variables stored)

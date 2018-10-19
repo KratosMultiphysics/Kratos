@@ -70,7 +70,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)
     .def("Volume",&GeometryType::Volume)
-    .def("__str__", KRATOS_DEF_PYTHON_STR(GeometryType))
+    .def("__str__", PrintObject<GeometryType>)
 //     .def("Points", &GeometryType::ConstGetPoints)
 //     .def("Points", &GeometryType::GetPoints)
     ;

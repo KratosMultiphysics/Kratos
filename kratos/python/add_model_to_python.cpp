@@ -39,7 +39,7 @@ void  AddModelToPython(pybind11::module& m)
     .def("GetModelPart", &Model::GetModelPart, return_value_policy::reference_internal)
     .def("HasModelPart", &Model::HasModelPart)
     .def("__getitem__", &Model::GetModelPart, return_value_policy::reference_internal)
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Model))
+    .def("__str__", PrintObject<Model>)
     ;
 }
 

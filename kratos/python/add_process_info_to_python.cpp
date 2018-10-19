@@ -43,7 +43,7 @@ void  AddProcessInfoToPython(pybind11::module& m)
     .def(init<>())
     .def("CreateSolutionStepInfo", &ProcessInfo::CreateSolutionStepInfo)
 	.def("GetPreviousSolutionStepInfo", ProcessInfoGetPreviousSolutionStepInfo)
-    .def("__str__", KRATOS_DEF_PYTHON_STR(ProcessInfo))
+    .def("__str__", PrintObject<ProcessInfo>)
     ;
 }
 }  // namespace Python.

@@ -58,7 +58,7 @@ void  AddModelerToPython(pybind11::module& m)
     .def("GenerateModelPart",&GenerateModelPart)
     .def("GenerateMesh",&GenerateMesh)
     .def("GenerateNodes",&Modeler::GenerateNodes)
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Modeler))
+    .def("__str__", PrintObject<Modeler>)
     ;
 
     class_<ConnectivityPreserveModeler,ConnectivityPreserveModeler::Pointer,Modeler>(m,"ConnectivityPreserveModeler")

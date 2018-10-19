@@ -49,7 +49,7 @@ void AddKratosApplicationToPython(pybind11::module& m) {
             RegisterToPythonApplicationVariables(self.Name());
         }
         )
-        .def("__str__", KRATOS_DEF_PYTHON_STR(KratosApplication))
+        .def("__str__", PrintObject<KratosApplication>)
         ;
 }
 

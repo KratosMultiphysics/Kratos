@@ -110,7 +110,7 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("items", &items )
     .def("keys", &keys )
     .def("values", &values )
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Parameters))
+    .def("__str__", PrintObject<Parameters>)
     .def("AddEmptyList", &Parameters::AddEmptyArray)
     .def("Append", Append<int>) // created due to ambiguous overload int/bool...
     .def("Append", Append<bool>) // created due to ambiguous overload int/bool...

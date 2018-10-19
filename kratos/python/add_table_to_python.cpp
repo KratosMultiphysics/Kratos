@@ -50,7 +50,7 @@ void  AddTableToPython(pybind11::module& m)
     .def("GetDerivative",&DoubleTableType::GetDerivative)
     .def("GetNearestValue", TableGetNearestValue)
     .def("AddRow", &DoubleTableType::PushBack)
-    .def("__str__", KRATOS_DEF_PYTHON_STR(DoubleTableType))
+    .def("__str__", PrintObject<DoubleTableType>)
     ;
 }
 

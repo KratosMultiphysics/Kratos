@@ -52,7 +52,7 @@ void AddConstraintToPython(pybind11::module &m)
         .def("Has", HasHelperFunctionConstraint< MasterSlaveConstraint, Variable< bool > >)
         .def("SetValue", SetValueHelperFunctionConstraint< MasterSlaveConstraint, Variable< bool > >)
         .def("GetValue", GetValueHelperFunctionConstraint< MasterSlaveConstraint, Variable< bool > >)
-        .def("__str__", KRATOS_DEF_PYTHON_STR(MasterSlaveConstraint))
+        .def("__str__", PrintObject<MasterSlaveConstraint>)
         ;
 }
 

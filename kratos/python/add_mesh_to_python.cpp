@@ -560,7 +560,7 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
     .def("Initialize", &Element::Initialize)
     //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Element))
+    .def("__str__", PrintObject<Element>)
     ;
 
     PointerVectorSetPythonInterface<MeshType::ElementsContainerType>().CreateInterface(m,"ElementsArray")
@@ -667,7 +667,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Initialize", &Condition::Initialize)
     .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
     .def("Info", &Condition::Info)
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Condition))
+    .def("__str__", PrintObject<Condition>)
     ;
 
     PointerVectorSetPythonInterface<MeshType::ConditionsContainerType>().CreateInterface(m,"ConditionsArray")
@@ -686,7 +686,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("HasProperties", &MeshType::HasProperties)
     .def("HasElement", &MeshType::HasElement)
     .def("HasCondition", &MeshType::HasCondition)
-    .def("__str__", KRATOS_DEF_PYTHON_STR(MeshType))
+    .def("__str__", PrintObject<MeshType>)
     ;
 }
 }  // namespace Python.

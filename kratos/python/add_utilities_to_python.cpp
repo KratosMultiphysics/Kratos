@@ -409,7 +409,7 @@ void AddUtilitiesToPython(pybind11::module& m)
 //     .staticmethod("Start")
 //     .staticmethod("Stop")
     //      .def("PrintTimingInformation",Timer::PrintTimingInformation)
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Timer))
+    .def("__str__", PrintObject<Timer>)
     ;
 
     class_<OpenMPUtils >(m,"OpenMPUtils")
