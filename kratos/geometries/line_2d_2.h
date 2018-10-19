@@ -908,9 +908,11 @@ public:
         const TPointType& second_point_other = *rOtherGeometry(1); //p4
 
         // parametric coordinate of intersection on current line
-        double t = ( (first_point[0]-first_point_other[0])*(first_point_other[1] - second_point_other[1]) - (first_point[1]-first_point_other[1])*(first_point_other[0]-second_point_other[0]) )
-                    /
-                   ( (first_point[0]-second_point[0])*(first_point_other[1] - second_point_other[1]) - (first_point[1]-second_point[1])*(first_point_other[0]-second_point_other[0]) );
+        const double numerator   = ( (first_point[0]-first_point_other[0])*(first_point_other[1] - second_point_other[1]) - (first_point[1]-first_point_other[1])*(first_point_other[0]-second_point_other[0]) );
+        const double denominator = ( (first_point[0]-second_point[0])*(first_point_other[1] - second_point_other[1]) - (first_point[1]-second_point[1])*(first_point_other[0]-second_point_other[0]) );
+        if (std::abs(denominator) < tolerance) // this means parallel lines.
+            return false;
+        const double t = numerator  /  denominator;
 
         return (0.0-tolerance<=t) && (t<=1.0+tolerance);
     }
