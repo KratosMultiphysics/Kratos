@@ -95,7 +95,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             mapper_project_parameters["interface_submodel_part_origin"].SetString(fluid_submodelpart_name)
             mapper_project_parameters["interface_submodel_part_destination"].SetString(structure_submodelpart_name)
 
-            self.interface_mapper = KratosMapping.MapperFactory.CreateMapper(self.fluid_solver.main_model_part,
+            self.interface_mapper = KratosMapping.MapperFactory.CreateMPIMapper(self.fluid_solver.main_model_part,
                                                                              self.structure_solver.main_model_part,
                                                                              mapper_project_parameters)
 
@@ -124,7 +124,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             pos_mapper_project_parameters["interface_submodel_part_origin"].SetString(pos_face_submodelpart_name)
             pos_mapper_project_parameters["interface_submodel_part_destination"].SetString(structure_submodelpart_name)
 
-            self.pos_interface_mapper = KratosMapping.MapperFactory.CreateMapper(self.fluid_solver.main_model_part,
+            self.pos_interface_mapper = KratosMapping.MapperFactory.CreateMPIMapper(self.fluid_solver.main_model_part,
                                                                                  self.structure_solver.main_model_part,
                                                                                  pos_mapper_project_parameters)
 
@@ -138,7 +138,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             neg_mapper_project_parameters["interface_submodel_part_origin"].SetString(neg_face_submodelpart_name)
             neg_mapper_project_parameters["interface_submodel_part_destination"].SetString(structure_submodelpart_name)
 
-            self.neg_interface_mapper = KratosMapping.MapperFactory.CreateMapper(self.fluid_solver.main_model_part,
+            self.neg_interface_mapper = KratosMapping.MapperFactory.CreateMPIMapper(self.fluid_solver.main_model_part,
                                                                                  self.structure_solver.main_model_part,
                                                                                  neg_mapper_project_parameters)
 
