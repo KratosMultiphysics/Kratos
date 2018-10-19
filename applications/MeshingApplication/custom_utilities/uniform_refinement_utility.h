@@ -31,7 +31,10 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/model_part.h"
+#include "geometries/triangle_2d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/hexahedra_3d_8.h"
 #include "meshing_application.h"
 
 
@@ -85,6 +88,11 @@ public:
      * Type of face geometry
      */
     typedef Quadrilateral3D4<NodeType> FaceType;
+
+    /**
+     * Type of body geometry
+     */
+    typedef Hexahedra3D8<NodeType> BodyType;
 
     /**
      * Type of IDs
@@ -285,22 +293,6 @@ private:
         );
 
     /**
-     * @brief CreateNodeInEdge creates a node at the middle point of an edge
-     * @detail If the middle node does not exist, creates a new one and set the
-     * nodal values. Otherwise, do nothing
-     * @param rEdge The edge containing the two father nodes
-     * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
-     * @param rNodeKey The pair of Id's of the edge nodes
-     * @param rTagNodes The map 
-     */
-    typename NodeType::Pointer CreateNodeInEdge(
-        const EdgeType& rEdge,
-        const int& rNumberOfDivisions,
-        const EdgeKeyType& rNodeKey,
-        IndexIndexVectorMapType& rTagNodes
-        );
-
-    /**
      * @brief GetNodeInEdge gets the middle node on an edge and return a pointer to it
      * @detail CreateNodeInEdge should be executed before to ensure the node existance
      * @param rEdge The edge containing the two father nodes
@@ -314,15 +306,19 @@ private:
         );
 
     /**
-     * @brief CreateNodeInFace creates a node at the middle point of a face
-     * @detail If the middle node does not exist, create a new one. Otherwise, do nothing
-     * @param rFace The face containing the father nodes
+     * @brief CreateNodeInEdge creates a node at the middle point of an edge
+     * @detail If the middle node does not exist, creates a new one and set the
+     * nodal values. Otherwise, do nothing
+     * @see GetNodeInEdge
+     * @param rEdge The edge containing the two father nodes
      * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
+     * @param rNodeKey The pair of Id's of the edge nodes
+     * @param rTagNodes The map with the vector of Id's associated to the tag
      */
-    typename NodeType::Pointer CreateNodeInFace(
-        const FaceType& rFace,
+    typename NodeType::Pointer CreateNodeInEdge(
+        const EdgeType& rEdge,
         const int& rNumberOfDivisions,
-        const FaceKeyType& rNodeKey,
+        const EdgeKeyType& rNodeKey,
         IndexIndexVectorMapType& rTagNodes
         );
 
@@ -330,9 +326,40 @@ private:
      * @brief GetNodeInFace gets the node inside a face
      * @detail If the middle node does not exist, create a new one and returns a pointer to it
      * @param rFace The face containing the father nodes 
+     * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
+     * @param rTagNodes The map with the vector of Id's associated to the tag
      */
     typename NodeType::Pointer GetNodeInFace(
         const FaceType& rFace,
+        const int& rNumberOfDivisions,
+        IndexIndexVectorMapType& rTagNodes
+        );
+
+    /**
+     * @brief CreateNodeInFace creates a node at the middle point of a face
+     * @detail If the middle node does not exist, create a new one. Otherwise, do nothing
+     * @see GetNodeInFace
+     * @param rFace The face containing the father nodes
+     * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
+     * @param rNodeKey The pair of Id's of the edge nodes
+     * @param rTagNodes The map with the vector of Id's associated to the tag
+     */
+    typename NodeType::Pointer CreateNodeInFace(
+        const FaceType& rFace,
+        const int& rNumberOfDivisions,
+        const FaceKeyType& rNodeKey,
+        IndexIndexVectorMapType& rTagNodes
+        );
+    
+    /**
+     * @brief GetNodeInBody gets the node inside an hexahedrons
+     * @detail The middle node does never exist, so always creates a new one and returns a pointer to it
+     * @param rBody The geometry containing the father nodes 
+     * @param rNumberOfDivisions The value to set NUMBER_OF_DIVISIONS flag
+     * @param rTagNodes The map with the vector of Id's associated to the tag
+     */
+    typename NodeType::Pointer GetNodeInBody(
+        const BodyType& rBody,
         const int& rNumberOfDivisions,
         IndexIndexVectorMapType& rTagNodes
         );
@@ -365,6 +392,17 @@ private:
         const NodeType::Pointer pNode1,
         const NodeType::Pointer pNode2,
         const NodeType::Pointer pNode3
+        );
+
+    /**
+     * @brief CalculateNodalStepData calculates the nodal data as the mean of the father nodes
+     * @detail The destination node is assumed to be at the mid point among the origin nodes
+     * @param pNewNode The destination node
+     * @param rBody The array with the 8 origin nodes
+     */
+    void CalculateNodalStepData(
+        NodeType::Pointer pNewNode,
+        const BodyType& rBody
         );
 
     /**

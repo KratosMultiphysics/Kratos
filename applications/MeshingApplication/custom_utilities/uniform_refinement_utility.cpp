@@ -468,6 +468,47 @@ typename NodeType::Pointer UniformRefinementUtility::CreateNodeInFace(
 }
 
 
+/// Create the middle node on a body defined by eight nodes.
+typename NodeType::Pointer UniformRefinementUtility::GetNodeInBody(
+    const BodyType& rBody,
+    const int& rNumberOfDivisions,
+    IndexIndexVectorMapType& rTagNodes
+)
+{
+    // Initialize the output
+    NodeType::Pointer middle_node;
+
+    // Create the new node
+    const double new_x = 0.125*rBody(0)->X() + 0.125*rBody(1)->X() + 0.125*rBody(2)->X() + 
+        0.125*rBody(3)->X() + 0.125*rBody(4)->X() + 0.125*rBody(5)->X() + 0.125*rBody(6)->X() + 0.125*rBody(7)->X();
+    const double new_y = 0.125*rBody(0)->Y() + 0.125*rBody(1)->Y() + 0.125*rBody(2)->Y() + 
+        0.125*rBody(3)->Y() + 0.125*rBody(4)->Y() + 0.125*rBody(5)->Y() + 0.125*rBody(6)->Y() + 0.125*rBody(7)->Y();
+    const double new_z = 0.125*rBody(0)->Z() + 0.125*rBody(1)->Z() + 0.125*rBody(2)->Z() + 
+        0.125*rBody(3)->Z() + 0.125*rBody(4)->Z() + 0.125*rBody(5)->Z() + 0.125*rBody(6)->Z() + 0.125*rBody(7)->Z();
+    middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
+
+    // Interpolate the variables
+    CalculateNodalStepData(middle_node, rBody);
+
+    // Set the refinement level
+    int& this_node_level = middle_node->GetValue(NUMBER_OF_DIVISIONS);
+    this_node_level = rNumberOfDivisions;
+
+    // Set the appropriate flags
+    middle_node->Set(NEW_ENTITY, true);
+
+    // Set the DoF's
+    for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+        middle_node->pAddDof(*it_dof);
+
+    // Store the created node on the tags map in order to later add it to the sub model parts
+    IndexType tag = mNodesTags[rBody(0)->Id()];
+    rTagNodes[tag].push_back(middle_node->Id());
+    mNodesTags[middle_node->Id()] = tag;
+
+    return middle_node;
+}
+
 /// Compute the nodal data of a node
 void UniformRefinementUtility::CalculateNodalStepData(
     NodeType::Pointer pNewNode,
@@ -506,7 +547,7 @@ void UniformRefinementUtility::CalculateNodalStepData(
     const NodeType::Pointer pNode1,
     const NodeType::Pointer pNode2,
     const NodeType::Pointer pNode3
-    )
+)
 {
     for (IndexType step = 0; step < mBufferSize; step++)
     {
@@ -536,6 +577,16 @@ void UniformRefinementUtility::CalculateNodalStepData(
         pNode1->GetValue(FATHER_NODES), pNode2->GetValue(FATHER_NODES_WEIGHTS), 1/3);
     AddOtherFatherNodes(r_new_father_nodes, r_new_father_nodes_weights,
         pNode1->GetValue(FATHER_NODES), pNode3->GetValue(FATHER_NODES_WEIGHTS), 0.25);
+}
+
+
+/// Compute the nodal data of a node
+void UniformRefinementUtility::CalculateNodalStepData(
+    NodeType::Pointer pNewNode,
+    const BodyType& rBody
+)
+{
+    CalculateNodalStepData(pNewNode, rBody(8), rBody(9), rBody(10), rBody(11));
 }
 
 
