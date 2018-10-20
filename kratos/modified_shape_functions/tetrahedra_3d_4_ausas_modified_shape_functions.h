@@ -192,41 +192,41 @@ public:
 
     /**
     * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
-    * @return rPositiveSideInterfaceAreaNormals: Outwards unit normal vector list.
+    * @return rPositiveSideInterfaceNormals: Outwards unit normal vector list.
     * @param IntegrationMethod Desired integration quadrature.
     */
-    void ComputePositiveSideInterfaceAreaNormals(
-        std::vector<Vector> &rPositiveSideInterfaceAreaNormals,
+    void ComputePositiveSideInterfaceNormals(
+        std::vector<Vector> &rPositiveSideInterfaceNormals,
         const IntegrationMethodType IntegrationMethod) override;
 
     /**
     * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
-    * @return rNegativeSideInterfaceAreaNormals: Outwards unit normal vector list.
+    * @return rNegativeSideInterfaceNormals: Outwards unit normal vector list.
     * @param IntegrationMethod Desired integration quadrature.
     */
-    void ComputeNegativeSideInterfaceAreaNormals(
-        std::vector<Vector> &rNegativeSideInterfaceAreaNormals,
+    void ComputeNegativeSideInterfaceNormals(
+        std::vector<Vector> &rNegativeSideInterfaceNormals,
         const IntegrationMethodType IntegrationMethod) override;
 
     /**
     * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
-    * @return rPositiveExteriorFaceAreaNormal: Outwards area normal vector list.
+    * @return rPositiveExteriorFaceNormal: Outwards area normal vector list.
     * @param FaceId Face local id. in where the values are to be computed.
     * @param IntegrationMethod Desired integration quadrature.
     */
-    void ComputePositiveExteriorFaceAreaNormals(
-        std::vector<Vector> &rPositiveExteriorFaceAreaNormal,
+    void ComputePositiveExteriorFaceNormals(
+        std::vector<Vector> &rPositiveExteriorFaceNormal,
         const unsigned int FaceId,
         const IntegrationMethodType IntegrationMethod) override;
 
     /**
     * Returns the negative side outwards area normal vector values for the Gauss pts. of given quadrature.
-    * @return rNegativeExteriorFaceAreaNormal: Outwards area normal vector list.
+    * @return rNegativeExteriorFaceNormal: Outwards area normal vector list.
     * @param FaceId Face local id. in where the values are to be computed.
     * @param IntegrationMethod Desired integration quadrature.
     */
-    void ComputeNegativeExteriorFaceAreaNormals(
-        std::vector<Vector> &rNegativeExteriorFaceAreaNormal,
+    void ComputeNegativeExteriorFaceNormals(
+        std::vector<Vector> &rNegativeExteriorFaceNormal,
         const unsigned int FaceId,
         const IntegrationMethodType IntegrationMethod) override;
 

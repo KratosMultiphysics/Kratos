@@ -203,41 +203,41 @@ public:
 
     /**
     * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
-    * @return rPositiveSideInterfaceAreaNormal: Outwards area normal vector list.
+    * @return rPositiveSideInterfaceNormal: Outwards area normal vector list.
     * @param IntegrationMethod Desired integration quadrature.
     */
-    virtual void ComputePositiveSideInterfaceAreaNormals(
-        std::vector<Vector> &rPositiveSideInterfaceAreaNormal,
+    virtual void ComputePositiveSideInterfaceNormals(
+        std::vector<Vector> &rPositiveSideInterfaceNormal,
         const IntegrationMethodType IntegrationMethod) = 0;
 
     /**
     * Returns the negative side outwards area normal vector values for the Gauss pts. of given quadrature.
-    * @return rNegativeSideInterfaceAreaNormal: Outwards area normal vector list.
+    * @return rNegativeSideInterfaceNormal: Outwards area normal vector list.
     * @param IntegrationMethod Desired integration quadrature.
     */
-    virtual void ComputeNegativeSideInterfaceAreaNormals(
-        std::vector<Vector> &rNegativeSideInterfaceAreaNormal,
+    virtual void ComputeNegativeSideInterfaceNormals(
+        std::vector<Vector> &rNegativeSideInterfaceNormal,
         const IntegrationMethodType IntegrationMethod) = 0;
 
     /**
     * Returns the positive side outwards area normal vector values for the Gauss pts. of given quadrature.
-    * @return rPositiveExteriorFaceAreaNormal: Outwards area normal vector list.
+    * @return rPositiveExteriorFaceNormal: Outwards area normal vector list.
     * @param FaceId Face local id. in where the values are to be computed.
     * @param IntegrationMethod Desired integration quadrature.
     */
-    virtual void ComputePositiveExteriorFaceAreaNormals(
-        std::vector<Vector> &rPositiveExteriorFaceAreaNormal,
+    virtual void ComputePositiveExteriorFaceNormals(
+        std::vector<Vector> &rPositiveExteriorFaceNormal,
         const unsigned int FaceId,
         const IntegrationMethodType IntegrationMethod) = 0;
 
     /**
     * Returns the negative side outwards area normal vector values for the Gauss pts. of given quadrature.
-    * @return rNegativeExteriorFaceAreaNormal: Outwards area normal vector list.
+    * @return rNegativeExteriorFaceNormal: Outwards area normal vector list.
     * @param FaceId Face local id. in where the values are to be computed.
     * @param IntegrationMethod Desired integration quadrature.
     */
-    virtual void ComputeNegativeExteriorFaceAreaNormals(
-        std::vector<Vector> &rNegativeExteriorFaceAreaNormal,
+    virtual void ComputeNegativeExteriorFaceNormals(
+        std::vector<Vector> &rNegativeExteriorFaceNormal,
         const unsigned int FaceId,
         const IntegrationMethodType IntegrationMethod) = 0;
 
@@ -335,12 +335,12 @@ protected:
 
     /**
     * Returns the outwards area normal vector values in either the positive or negative element interfaces for a given quadrature.
-    * @return rInterfaceAreaNormalValues: std::vector containing the area normal values for the selected quadrature Gauss pts.
+    * @return rInterfaceNormalValues: std::vector containing the area normal values for the selected quadrature Gauss pts.
     * @param rInterfacesVector std::vector of intersection point based geometries where the values are to be computed.
     * @param IntegrationMethod Desired integration quadrature.
     */
     virtual void ComputeFaceNormalOnOneSide(
-        std::vector<Vector> &rInterfaceAreaNormalValues,
+        std::vector<Vector> &rInterfaceNormalValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const IntegrationMethodType IntegrationMethod);
 
