@@ -150,11 +150,11 @@ namespace Kratos
 			// Call the interface outwards normal unit vector calculator
 			std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
 
-			triangle_ausas_shape_functions.ComputePositiveSideInterfaceAreaNormals(
+			triangle_ausas_shape_functions.ComputePositiveSideInterfaceNormals(
 				positive_side_area_normals,
 				GeometryData::GI_GAUSS_1);
 
-			triangle_ausas_shape_functions.ComputeNegativeSideInterfaceAreaNormals(
+			triangle_ausas_shape_functions.ComputeNegativeSideInterfaceNormals(
 				negative_side_area_normals,
 				GeometryData::GI_GAUSS_1);
 
@@ -164,22 +164,22 @@ namespace Kratos
 				area_normals_pos_face_1, area_normals_neg_face_1,
 				area_normals_pos_face_2, area_normals_neg_face_2;
 
-			triangle_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
+			triangle_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
 				area_normals_pos_face_0, 0, GeometryData::GI_GAUSS_1);
 
-			triangle_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
+			triangle_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
 				area_normals_neg_face_0, 0, GeometryData::GI_GAUSS_1);
 
-			triangle_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
+			triangle_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
 				area_normals_pos_face_1, 1, GeometryData::GI_GAUSS_1);
 
-			triangle_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
+			triangle_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
 				area_normals_neg_face_1, 1, GeometryData::GI_GAUSS_1);
 
-			triangle_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
+			triangle_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
 				area_normals_pos_face_2, 2, GeometryData::GI_GAUSS_1);
 
-			triangle_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
+			triangle_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
 				area_normals_neg_face_2, 2, GeometryData::GI_GAUSS_1);
 
 			const double tolerance = 1e-10;
@@ -471,11 +471,11 @@ namespace Kratos
 			// Call the interface outwards normal unit vector calculator
 			std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
 
-			triangle_ausas_shape_functions.ComputePositiveSideInterfaceAreaNormals(
+			triangle_ausas_shape_functions.ComputePositiveSideInterfaceNormals(
 				positive_side_area_normals,
 				GeometryData::GI_GAUSS_1);
 
-			triangle_ausas_shape_functions.ComputeNegativeSideInterfaceAreaNormals(
+			triangle_ausas_shape_functions.ComputeNegativeSideInterfaceNormals(
 				negative_side_area_normals,
 				GeometryData::GI_GAUSS_1);
 
@@ -485,22 +485,22 @@ namespace Kratos
 				area_normals_pos_face_1, area_normals_neg_face_1,
 				area_normals_pos_face_2, area_normals_neg_face_2;
 
-			triangle_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
+			triangle_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
 				area_normals_pos_face_0, 0, GeometryData::GI_GAUSS_1);
 
-			triangle_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
+			triangle_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
 				area_normals_neg_face_0, 0, GeometryData::GI_GAUSS_1);
 
-			triangle_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
+			triangle_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
 				area_normals_pos_face_1, 1, GeometryData::GI_GAUSS_1);
 
-			triangle_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
+			triangle_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
 				area_normals_neg_face_1, 1, GeometryData::GI_GAUSS_1);
 
-			triangle_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
+			triangle_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
 				area_normals_pos_face_2, 2, GeometryData::GI_GAUSS_1);
 
-			triangle_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
+			triangle_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
 				area_normals_neg_face_2, 2, GeometryData::GI_GAUSS_1);
 
 			const double tolerance = 1e-10;
