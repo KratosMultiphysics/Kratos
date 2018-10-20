@@ -1675,7 +1675,7 @@ public:
         mPn1.clear();
         mHmin.clear();
         mHavg.clear();
-        //mAreaNormal.clear();
+        //mNormal.clear();
         //mvel_nitNormal.clear();
         mPressureNormal.clear();
         mSlipNormal.clear();
@@ -1843,7 +1843,7 @@ private:
     CalcVectorType mEdgeDimensions;
     double mDissipationLength;
     //area normal
-    //CalcVectorType mAreaNormal, mvel_nitNormal;
+    //CalcVectorType mNormal, mvel_nitNormal;
     CalcVectorType mPressureNormal, mSlipNormal;
     //projection terms
     CalcVectorType mPi, mXi;
