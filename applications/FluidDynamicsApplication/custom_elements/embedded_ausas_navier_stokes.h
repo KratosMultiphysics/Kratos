@@ -550,12 +550,12 @@ protected:
                 GeometryData::GI_GAUSS_2);
 
             // Call the positive side Gauss pts. unit normal calculator
-            p_ausas_modified_sh_func->ComputePositiveSideInterfaceAreaNormals(
+            p_ausas_modified_sh_func->ComputePositiveSideInterfaceNormals(
                 rData.pos_int_unit_normals,
                 GeometryData::GI_GAUSS_2);
 
             // Call the negative side Gauss pts. unit normal calculator
-            p_ausas_modified_sh_func->ComputeNegativeSideInterfaceAreaNormals(
+            p_ausas_modified_sh_func->ComputeNegativeSideInterfaceNormals(
                 rData.neg_int_unit_normals,
                 GeometryData::GI_GAUSS_2);
 

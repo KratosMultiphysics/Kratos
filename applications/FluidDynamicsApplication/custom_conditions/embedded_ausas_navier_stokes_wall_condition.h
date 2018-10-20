@@ -813,12 +813,12 @@ protected:
                 face_id,
                 GeometryData::GI_GAUSS_2);
 
-            p_ausas_modified_sh_func->ComputePositiveExteriorFaceAreaNormals(
+            p_ausas_modified_sh_func->ComputePositiveExteriorFaceNormals(
                 rData.pos_face_area_normals,
                 face_id,
                 GeometryData::GI_GAUSS_2);
 
-            p_ausas_modified_sh_func->ComputeNegativeExteriorFaceAreaNormals(
+            p_ausas_modified_sh_func->ComputeNegativeExteriorFaceNormals(
                 rData.neg_face_area_normals,
                 face_id,
                 GeometryData::GI_GAUSS_2);
@@ -843,7 +843,7 @@ protected:
             (rData.area_normals_container).clear();
             for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
                 const CoordinatesArrayType& gauss_pt_loc_coords = integration_points[i_gauss].Coordinates();
-                (rData.area_normals_container).push_back(r_geometry.AreaNormal(gauss_pt_loc_coords));
+                (rData.area_normals_container).push_back(r_geometry.Normal(gauss_pt_loc_coords));
             }
         }
 
