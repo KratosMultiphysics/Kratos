@@ -51,16 +51,13 @@ ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
     else
     {
         // If none of the READ, WRITE or APPEND are defined we will take READ as
-        // defualt.
+        // default.
         OpenMode = std::fstream::in;
     }
 
     pFile->open(mFilename.c_str(), OpenMode);
 
-    if (!(pFile->is_open()))
-    {
-        KRATOS_THROW_ERROR(std::invalid_argument, "Error opening mdpa file : ", mFilename.c_str());
-    }
+    KRATOS_ERROR_IF_NOT(pFile->is_open()) << "Error opening mdpa file : " << mFilename.c_str() << std::endl;
 
     // Store the pointer as a regular std::iostream
     mpStream = pFile;
@@ -74,12 +71,10 @@ ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags O
     , mOptions(Options)
 {
     // Check if the pointer is valid
-    if (Stream == nullptr)
-        KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
+    KRATOS_ERROR_IF(Stream == nullptr) << "Error: ModelPartIO Stream is invalid " << std::endl;
 
     // Check if the pointer was .reset() or never initialized and if its a NULL pointer)
-    if (Stream == nullptr || Stream == Kratos::shared_ptr<std::iostream>(NULL))
-        KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
+    KRATOS_ERROR_IF(Stream == nullptr || Stream == Kratos::shared_ptr<std::iostream>(NULL)) << "Error: ModelPartIO Stream is invalid " << std::endl;
 
     mpStream = Stream;
 }
@@ -100,7 +95,7 @@ ModelPartIO::~ModelPartIO() {
 
 bool ModelPartIO::ReadNode(NodeType& rThisNode)
 {
-    KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class.", "")
+    KRATOS_ERROR << "Calling base class member. Please check the definition of derived class." << std::endl;
 }
 
 bool ModelPartIO::ReadNodes(NodesContainerType& rThisNodes)
@@ -236,7 +231,7 @@ void ModelPartIO::WriteProperties(PropertiesContainerType& rThisProperties)
 
 void ModelPartIO::ReadElement(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, Element::Pointer& pThisElements)
 {
-    KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+    KRATOS_ERROR << "Calling base class member. Please check the definition of derived class" << std::endl;
 }
 
 void ModelPartIO::ReadElements(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements)
@@ -449,7 +444,7 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
 
 void ModelPartIO::ReadMesh(MeshType & rThisMesh)
 {
-    KRATOS_THROW_ERROR(std::logic_error, "ModelPartIO does not implement this method.", "")
+    KRATOS_ERROR << "ModelPartIO does not implement this method." << std::endl;
 }
 
 void ModelPartIO::WriteMesh(MeshType & rThisMesh)
@@ -579,7 +574,7 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& aux_connect
         {
             std::stringstream msg;
             msg << "Nodes are not consecutively numbered. Node " << n << " was not found in mdpa file." << std::endl;
-            KRATOS_THROW_ERROR(std::runtime_error, msg.str(),"")
+            KRATOS_ERROR << msg.str() << std::endl;
         }
     }
 
@@ -631,8 +626,7 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
         std::stringstream buffer;
         buffer << mBaseFilename << "_" << i << ".mdpa";
         std::ofstream* p_ofstream = new std::ofstream(buffer.str().c_str());
-        if(!(*p_ofstream))
-            KRATOS_THROW_ERROR(std::invalid_argument, "Error opening mdpa file : ", buffer.str());
+        KRATOS_ERROR_IF_NOT(!(*p_ofstream)) << "Error opening mdpa file : " << buffer.str() << std::endl;
 
         output_files.push_back(p_ofstream);
     }
@@ -2678,11 +2672,11 @@ void ModelPartIO::ReadMeshBlock(ModelPart& rModelPart)
 
     SizeType number_of_meshes = rModelPart.NumberOfMeshes();
 
-    if(mesh_id > 1000000) // this would be a case of error in reading.
-        KRATOS_THROW_ERROR(std::invalid_argument, "Too large mesh id :", mesh_id);
+    // This would be a case of error in reading.
+    KRATOS_ERROR_IF(mesh_id > 1000000) << "Too large mesh id : " << mesh_id << std::endl;
 
-    if(mesh_id == 0) // this would be a case of error in reading.
-        KRATOS_THROW_ERROR(std::invalid_argument, "The mesh zero is the reference mesh and already created. You cannot create a mesh 0 with mesh block.", "");
+    // This would be a case of error in reading.
+    KRATOS_ERROR_IF(mesh_id == 0) << "The mesh zero is the reference mesh and already created. You cannot create a mesh 0 with mesh block." << std::endl;
 
     // adding necessary meshes to the model part.
     MeshType empty_mesh;
@@ -3754,7 +3748,7 @@ void ModelPartIO::DivideScalarVariableData(OutputFilesContainerType& OutputFiles
         else if(BlockName == "ConditionalData")
             index = ReorderedConditionId(id);
         else
-            KRATOS_THROW_ERROR(std::logic_error, "Invalid block name :", BlockName);
+            KRATOS_ERROR << "Invalid block name :" << BlockName << std::endl;
 
         if(index > EntitiesPartitions.size())
         {
