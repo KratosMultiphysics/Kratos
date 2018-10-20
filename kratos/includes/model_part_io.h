@@ -264,7 +264,7 @@ protected:
 
     ///@}
 
-protected:
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -292,7 +292,6 @@ protected:
     ///@{
 
     std::string& ReadBlockName(std::string& rBlockName);
-
 
     void SkipBlock(std::string const& BlockName);
 
@@ -539,7 +538,6 @@ protected:
 
     ModelPartIO& ReadBlock(std::string& Block, std::string const& BlockName);
 
-
     char SkipWhiteSpaces();
 
     bool IsWhiteSpace(char C);
@@ -550,9 +548,9 @@ protected:
 
     void ResetInput();
 
-    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, DenseVector<unsigned int>& partitions);
+    inline void CreatePartition(unsigned int NumberOfThreads,const int number_of_rows, DenseVector<unsigned int>& partitions);
 
-
+    inline void EndSection(const std::string& rString);
 
     ///@}
     ///@name Private  Access

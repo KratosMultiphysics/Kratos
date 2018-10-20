@@ -470,11 +470,17 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
             break;
         ReadBlockName(word);
         if(word == "ModelPartData") {
-            if (mOptions.IsNot(IO::MESH_ONLY))
+            if (mOptions.IsNot(IO::MESH_ONLY)) {
                 ReadModelPartDataBlock(rThisModelPart);
+            } else {
+                EndSection("ModelPartData");
+            }
         } else if(word == "Table") {
-            if (mOptions.IsNot(IO::MESH_ONLY))
+            if (mOptions.IsNot(IO::MESH_ONLY)) {
                 ReadTableBlock(rThisModelPart.Tables());
+            } else {
+                EndSection("Table");
+            }
         } else if(word == "Properties") {
             ReadPropertiesBlock(rThisModelPart.rProperties());
         } else if(word == "Nodes") {
@@ -484,20 +490,31 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
         } else if(word == "Conditions") {
             ReadConditionsBlock(rThisModelPart);
         } else if(word == "NodalData") {
-            if (mOptions.IsNot(IO::MESH_ONLY))
+            if (mOptions.IsNot(IO::MESH_ONLY)) {
                 ReadNodalDataBlock(rThisModelPart);
+            } else {
+                EndSection("NodalData");
+            }
         } else if(word == "ElementalData") {
-            if (mOptions.IsNot(IO::MESH_ONLY))
+            if (mOptions.IsNot(IO::MESH_ONLY)) {
                 ReadElementalDataBlock(rThisModelPart.Elements());
+            } else {
+                EndSection("ElementalData");
+            }
         } else if (word == "ConditionalData") {
-            if (mOptions.IsNot(IO::MESH_ONLY))
+            if (mOptions.IsNot(IO::MESH_ONLY)) {
                 ReadConditionalDataBlock(rThisModelPart.Conditions());
+            } else {
+                EndSection("ConditionalData");
+            }
         } else if(word == "CommunicatorData") {
             if (mOptions.IsNot(IO::MESH_ONLY)) {
                 ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
                 //Adding the elements and conditions to the communicator
                 rThisModelPart.GetCommunicator().LocalMesh().Elements() = rThisModelPart.Elements();
                 rThisModelPart.GetCommunicator().LocalMesh().Conditions() = rThisModelPart.Conditions();
+            } else {
+                EndSection("CommunicatorData");
             }
         } else if (word == "Mesh") {
             ReadMeshBlock(rThisModelPart);
@@ -913,7 +930,6 @@ void ModelPartIO::ReadTableBlock(TablesContainerType& rTables)
     ReadWord(variable_name);
 
     if(!KratosComponents<VariableData>::Has(variable_name))
-
     {
         std::stringstream buffer;
         buffer << variable_name << " is not a valid argument variable!!! Table only accepts double arguments." << std::endl;
@@ -1166,14 +1182,14 @@ NodeType temp_node;
     rModelPart.Nodes().Unique();
     KRATOS_WARNING_IF("ModelPartIO", rModelPart.Nodes().size() != numer_of_nodes_read) << "attention! we read " << numer_of_nodes_read << " but there are only " << rModelPart.Nodes().size() << " non repeated nodes" << std::endl;
 */
-SizeType id;
-double x;
-double y;
-double z;
+    SizeType id;
+    double x;
+    double y;
+    double z;
 
-std::string word;
+    std::string word;
 
-SizeType number_of_nodes_read = 0;
+    SizeType number_of_nodes_read = 0;
     const unsigned int old_size = rModelPart.Nodes().size();
 
     typedef std::map< unsigned int, array_1d<double,3> > map_type;
@@ -1181,32 +1197,31 @@ SizeType number_of_nodes_read = 0;
 
     KRATOS_INFO("ModelPartIO") << "  [Reading Nodes    : ";
 
-while(!mpStream->eof())
-{
-    ReadWord(word);
-    if(CheckEndBlock("Nodes", word))
-    break;
+    while(!mpStream->eof())
+    {
+        ReadWord(word);
+        if(CheckEndBlock("Nodes", word))
+            break;
 
-    ExtractValue(word, id);
-    ReadWord(word);
-    ExtractValue(word, x);
-    ReadWord(word);
-    ExtractValue(word, y);
-    ReadWord(word);
-    ExtractValue(word, z);
+        ExtractValue(word, id);
+        ReadWord(word);
+        ExtractValue(word, x);
+        ReadWord(word);
+        ExtractValue(word, y);
+        ReadWord(word);
+        ExtractValue(word, z);
 
         array_1d<double,3> coords;
         coords[0]=x;
         coords[1]=y;
         coords[2]=z;
         read_coordinates[ReorderedNodeId(id)] = coords;
-    number_of_nodes_read++;
-}
+        number_of_nodes_read++;
+    }
 
-
-//make this to construct the nodes "in parallel" - the idea is that first touch is being done in parallel but the reading is actually sequential
-const int nnodes = read_coordinates.size();
-const int nthreads = OpenMPUtils::GetNumThreads();
+    //make this to construct the nodes "in parallel" - the idea is that first touch is being done in parallel but the reading is actually sequential
+    const int nnodes = read_coordinates.size();
+    const int nthreads = OpenMPUtils::GetNumThreads();
     std::vector<int> partition;
     OpenMPUtils::DivideInPartitions(nnodes, nthreads, partition);
 
@@ -1229,8 +1244,8 @@ const int nthreads = OpenMPUtils::GetNumThreads();
         }
     }
 
-KRATOS_INFO("") << number_of_nodes_read << " nodes read]" << std::endl;
-KRATOS_WARNING_IF("ModelPartIO", rModelPart.Nodes().size() - old_size != number_of_nodes_read) << "attention! we read " << number_of_nodes_read << " but there are only " << rModelPart.Nodes().size() - old_size<< " non repeated nodes" << std::endl;
+    KRATOS_INFO("") << number_of_nodes_read << " nodes read]" << std::endl;
+    KRATOS_WARNING_IF("ModelPartIO", rModelPart.Nodes().size() - old_size != number_of_nodes_read) << "attention! we read " << number_of_nodes_read << " but there are only " << rModelPart.Nodes().size() - old_size<< " non repeated nodes" << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -4688,14 +4703,25 @@ void ModelPartIO::SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream)
     mpStream.swap(newStream);
 }
 
-inline void ModelPartIO::CreatePartition(unsigned int number_of_threads,const int number_of_rows, DenseVector<unsigned int>& partitions)
+inline void ModelPartIO::CreatePartition(unsigned int NumberOfThreads,const int number_of_rows, DenseVector<unsigned int>& partitions)
 {
-    partitions.resize(number_of_threads+1);
-    int partition_size = number_of_rows / number_of_threads;
+    partitions.resize(NumberOfThreads+1);
+    int partition_size = number_of_rows / NumberOfThreads;
     partitions[0] = 0;
-    partitions[number_of_threads] = number_of_rows;
-    for(unsigned int i = 1; i<number_of_threads; i++)
+    partitions[NumberOfThreads] = number_of_rows;
+    for(unsigned int i = 1; i<NumberOfThreads; i++)
         partitions[i] = partitions[i-1] + partition_size ;
+}
+
+inline void ModelPartIO::EndSection(const std::string& rString)
+{
+    std::string value;
+
+    while(!mpStream->eof()) {
+        ReadWord(value); // reading id
+        if(CheckEndBlock(rString, value))
+            break;
+    }
 }
 
 /// Unaccessible assignment operator.
