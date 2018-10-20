@@ -50,12 +50,11 @@ class ParticleMPMSolver(PythonSolver):
                 "input_filename"    : "unknown_name_Body"
             },
             "material_import_settings"           : {
-                "materials_filename" : "ParticleMaterials.json"
+                "materials_filename" : ""
             },
             "explicit_integration_scheme"        : "CentralDifferences",
             "time_step_prediction_level"         : "Automatic",
             "rayleigh_damping"                   : false,
-            "rotation_dofs"                      : false,
             "pressure_dofs"                      : false,
             "reform_dof_set_at_each_step"        : false,
             "line_search"                        : false,
@@ -164,7 +163,6 @@ class ParticleMPMSolver(PythonSolver):
         # Set definition of the solver parameters
         self.compute_reactions      = self.settings["compute_reactions"].GetBool()
         self.compute_contact_forces = self.settings["compute_contact_forces"].GetBool()
-        self.rotation_dofs          = self.settings["rotation_dofs"].GetBool()
         self.pressure_dofs          = self.settings["pressure_dofs"].GetBool()
         self.line_search            = self.settings["line_search"].GetBool()
         self.implex                 = self.settings["implex"].GetBool()
@@ -292,12 +290,6 @@ class ParticleMPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
         # Add variables for specific cases
-        if self.settings["rotation_dofs"].GetBool():
-            # add specific variables for the problem (rotation dofs)
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
         if self.settings["pressure_dofs"].GetBool():
             # add specific variables for the problem (pressure dofs)
             model_part.AddNodalSolutionStepVariable(KratosParticle.PRESSURE_REACTION)
@@ -359,11 +351,6 @@ class ParticleMPMSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
-
-        if self.settings["rotation_dofs"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X, model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y, model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z, model_part)
 
         if self.settings["pressure_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosParticle.PRESSURE_REACTION, model_part)
