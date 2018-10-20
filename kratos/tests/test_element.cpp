@@ -147,10 +147,12 @@ namespace Kratos
         if ( rResult.size() != dimension )
             rResult.resize( dimension, false );
 
-        rResult[0] = GetGeometry()[0].GetDof( DISPLACEMENT_X ).EquationId();
-        rResult[1] = GetGeometry()[0].GetDof( DISPLACEMENT_Y ).EquationId();
+        const auto& r_geom = GetGeometry();
+
+        rResult[0] = r_geom[0].GetDof( DISPLACEMENT_X ).EquationId();
+        rResult[1] = r_geom[0].GetDof( DISPLACEMENT_Y ).EquationId();
         if( dimension == 3)
-            rResult[2] = GetGeometry()[0].GetDof( DISPLACEMENT_Z ).EquationId();
+            rResult[2] = r_geom[0].GetDof( DISPLACEMENT_Z ).EquationId();
     }
 
     //*********************************DISPLACEMENT***************************************//

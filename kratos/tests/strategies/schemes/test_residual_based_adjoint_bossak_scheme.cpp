@@ -165,8 +165,9 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override
     {
         rResult.resize(2);
-        rResult[0] = this->GetGeometry()[0].GetDof(DISPLACEMENT_X).EquationId();
-        rResult[1] = this->GetGeometry()[1].GetDof(DISPLACEMENT_X).EquationId();
+        const auto& r_geom = this->GetGeometry();
+        rResult[0] = r_geom[0].GetDof(DISPLACEMENT_X).EquationId();
+        rResult[1] = r_geom[1].GetDof(DISPLACEMENT_X).EquationId();
     }
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) override
