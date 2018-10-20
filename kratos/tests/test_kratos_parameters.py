@@ -470,7 +470,7 @@ class TestParameters(KratosUnittest.TestCase):
             else:
                 with self.assertRaises(RuntimeError):
                     tmp[key].GetMatrix()
-
+                    
     #def test_vector_interface(self):
         ## Read and check Vectors from a Parameters-Object
         #tmp = Parameters("""{

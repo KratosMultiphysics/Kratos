@@ -28,7 +28,8 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             pass
 
     def test_levelset_convection(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         KratosMultiphysics.ModelPartIO(GetFilePath("levelset_convection_process_mesh")).ReadModelPart(model_part)

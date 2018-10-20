@@ -30,7 +30,7 @@ namespace Kratos
 //*******************************CONSTRUCTOR******************************************
 //************************************************************************************
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion()
-    :YieldCriterion()
+    :MPMYieldCriterion()
 {
 
 }
@@ -39,7 +39,7 @@ ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion()
 //************************************************************************************
 
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(HardeningLawPointer pHardeningLaw)
-    :YieldCriterion(pHardeningLaw)
+    :MPMYieldCriterion(pHardeningLaw)
 {
 
 }
@@ -50,7 +50,7 @@ ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(HardeningLawPointer
 
 ModifiedCamClayYieldCriterion& ModifiedCamClayYieldCriterion::operator=(ModifiedCamClayYieldCriterion const& rOther)
 {
-    YieldCriterion::operator=(rOther);
+    MPMYieldCriterion::operator=(rOther);
     return *this;
 }
 
@@ -58,7 +58,7 @@ ModifiedCamClayYieldCriterion& ModifiedCamClayYieldCriterion::operator=(Modified
 //************************************************************************************
 
 ModifiedCamClayYieldCriterion::ModifiedCamClayYieldCriterion(ModifiedCamClayYieldCriterion const& rOther)
-    :YieldCriterion(rOther)
+    :MPMYieldCriterion(rOther)
 {
 
 }
@@ -139,12 +139,12 @@ double ModifiedCamClayYieldCriterion::GetPI()
 
 void ModifiedCamClayYieldCriterion::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, YieldCriterion )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMYieldCriterion )
 }
 
 void ModifiedCamClayYieldCriterion::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, YieldCriterion )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMYieldCriterion )
 }
 
 

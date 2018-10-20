@@ -5,7 +5,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestWallCreatorDestructor(KratosUnittest.TestCase):
 
     def setUp(self):
-        self.walls_model_part = Kratos.ModelPart("Walls")
+        self.current_model = Kratos.Model()
+        self.walls_model_part = self.current_model.CreateModelPart("Walls")
         self.walls_model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
 
         properties = Kratos.Properties(0)
