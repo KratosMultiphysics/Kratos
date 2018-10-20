@@ -66,7 +66,7 @@ class Element;
 ///@name Kratos Classes
 ///@{
 
-/// This class defines the node 
+/// This class defines the node
 /** The node class from Kratos is defined in this class
 */
 template<std::size_t TDimension, class TDofType = Dof<double> >
@@ -768,15 +768,7 @@ public:
         }
 
         // Otherwise do a find
-        it = mDofs.find(rDofVariable.Key());
-        if ( it!= mDofs.end() )
-        {
-            return *it;
-        }
-
-        std::stringstream buffer;
-        buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
-        KRATOS_ERROR <<  buffer.str() << std::endl;
+        return GetDof(rDofVariable);
     }
 
     /** returns the Dof asociated with variable  */
@@ -792,7 +784,6 @@ public:
         std::stringstream buffer;
         buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
         KRATOS_ERROR <<  buffer.str() << std::endl;
-
     }
 
     /** returns all of the Dofs  */
@@ -814,7 +805,6 @@ public:
         std::stringstream buffer;
         buffer << "Not existant DOF in node #" << Id() << " for variable : " << rDofVariable.Name();
         KRATOS_ERROR <<  buffer.str() << std::endl;
-
     }
 
     /** adds a Dof to the node and return new added dof or existed one. */
@@ -822,9 +812,9 @@ public:
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable)
     {
         KRATOS_TRY
-        
+
 #ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0) 
+        if(rDofVariable.Key() == 0)
         {
             KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
         }
@@ -851,7 +841,7 @@ public:
     inline typename DofType::Pointer pAddDof(DofType const& SourceDof)
     {
         KRATOS_TRY
-        
+
         typename DofsContainerType::iterator it_dof = mDofs.find(SourceDof.GetVariable());
         if(it_dof != mDofs.end())
         {
@@ -883,13 +873,13 @@ public:
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
         KRATOS_TRY
-        
+
 #ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0) 
+        if(rDofVariable.Key() == 0)
         {
             KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
         }
-        if(rDofReaction.Key() == 0) 
+        if(rDofReaction.Key() == 0)
         {
             KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
         }
@@ -919,7 +909,7 @@ public:
     inline DofType& AddDof(TVariableType const& rDofVariable)
     {
         KRATOS_TRY
-        
+
 #ifdef KRATOS_DEBUG
         if(rDofVariable.Key() == 0)
         {
@@ -932,7 +922,7 @@ public:
         {
             return *it_dof;
         }
-            
+
         typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
@@ -950,13 +940,13 @@ public:
     inline DofType& AddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
         KRATOS_TRY
-        
+
 #ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0) 
+        if(rDofVariable.Key() == 0)
         {
             KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
         }
-        if(rDofReaction.Key() == 0) 
+        if(rDofReaction.Key() == 0)
         {
             KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
         }
