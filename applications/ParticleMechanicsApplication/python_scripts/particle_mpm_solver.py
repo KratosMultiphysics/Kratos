@@ -310,13 +310,13 @@ class ParticleMPMSolver(PythonSolver):
     def _model_part_reading(self):
         # reading the model part of the background grid
         if(self.settings["grid_model_import_settings"]["input_type"].GetString() == "mdpa"):
-            KratosMultiphysics.ModelPartIO(self.settings["grid_model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.grid_model_part)
+            self._ImportModelPart(self.grid_model_part, self.settings["grid_model_import_settings"])
         else:
             raise Exception("Other input options are not implemented yet.")
 
         # reading the model part of the material point
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.initial_material_model_part)
+            self._ImportModelPart(self.initial_material_model_part, self.settings["model_import_settings"])
         else:
             raise Exception("Other input options are not implemented yet.")
 
