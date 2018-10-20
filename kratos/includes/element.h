@@ -297,7 +297,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofsVectorType& rElementalDofList,
-                            const ProcessInfo& rCurrentProcessInfo) const
+                            const ProcessInfo& rCurrentProcessInfo)
     {
         if (rElementalDofList.size() != 0)
             rElementalDofList.resize(0);
