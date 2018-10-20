@@ -1,24 +1,14 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
 //
-
-
-
-
-
-
-
-
-
-
 
 #ifndef KRATOS_PERIODIC_CONDITION_H
 #define	KRATOS_PERIODIC_CONDITION_H
@@ -29,9 +19,7 @@
 #include <sstream>
 #include <cstddef>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -196,8 +184,8 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo) override;
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns a matrix of penalty terms for the periodic variables.
     /**
@@ -205,7 +193,7 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo) override;
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Returns RHS values for the penalized dofs.
     /**
@@ -213,7 +201,7 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Provides the global indices for each one of this element's local rows
     /**
@@ -223,7 +211,7 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo) override;
+                          const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
@@ -231,10 +219,10 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void GetDofList(DofsVectorType& ElementalDofList,
-                            ProcessInfo& CurrentProcessInfo) override;
+                    const ProcessInfo& CurrentProcessInfo) override;
 
     /// Returns the values of the unknowns for each node
-    void GetValuesVector(Vector& Values, int Step = 0) override;
+    void GetValuesVector(Vector& Values, int Step = 0) const override;
 
     ///@}
     ///@name Conditional Data

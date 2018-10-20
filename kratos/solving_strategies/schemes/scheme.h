@@ -295,10 +295,12 @@ public:
     {
         KRATOS_TRY
 
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
             auto it_elem = rModelPart.ElementsBegin() + i;
-            it_elem->Initialize();
+            it_elem->Initialize(r_current_process_info);
         }
 
         SetElementsAreInitialized();
@@ -317,10 +319,12 @@ public:
 
         KRATOS_ERROR_IF_NOT(mElementsAreInitialized) << "Before initilizing Conditions, initialize Elements FIRST" << std::endl;
 
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
             auto it_cond = rModelPart.ConditionsBegin() + i;
-            it_cond->Initialize();
+            it_cond->Initialize(r_current_process_info);
         }
 
         SetConditionsAreInitialized();

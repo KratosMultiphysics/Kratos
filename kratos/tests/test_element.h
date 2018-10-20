@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
@@ -22,23 +22,23 @@
 
 namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
     ///@name Testing Globals
     ///@{
-        
+
     ///@}
     ///@name Type Definitions
     ///@{
-        
+
     ///@}
     ///@name  Enum's
     ///@{
-        
+
     ///@}
     ///@name  Functions
     ///@{
-        
+
     ///@}
     ///@name Testing Classes
     ///@{
@@ -63,18 +63,18 @@ namespace Kratos
 
         ///@name  Enum's
         ///@{
-        
+
         /**
-        * @brief This enum is used in order of differentiante 
+        * @brief This enum is used in order of differentiante
         * @details If more implementations are added, add the corresponding enum
         */
         enum class ResidualType {LINEAR = 0, NON_LINEAR = 1, ARC_LENGTH = 2};
-        
+
         ///@}
         ///@name Life Cycle
         ///@{
 
-        /**  
+        /**
         * @brief Default constructor
         * @param NewId the ID of the new element
         * @param pGeometry the nodes of the new element
@@ -82,7 +82,7 @@ namespace Kratos
         */
         TestElement(IndexType NewId, GeometryType::Pointer pGeometry, const ResidualType TheResidualType = ResidualType::LINEAR);
 
-        /**  
+        /**
         * @brief Default constructor
         * @param NewId The ID of the new element
         * @param pGeometry The nodes of the new element
@@ -129,44 +129,44 @@ namespace Kratos
 
         /**
         * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
-        * @param rElementalDofList The vector containing the list of the DoFs 
+        * @param rElementalDofList The vector containing the list of the DoFs
         * @param rCurrentProcessInfo The current process info instance
         */
         void GetDofList(
-            DofsVectorType& rElementalDofList, 
-            ProcessInfo& rCurrentProcessInfo
+            DofsVectorType& rElementalDofList,
+            const ProcessInfo& rCurrentProcessInfo
             ) override;
 
         /**
         * @brief Sets on rResult the ID's of the element degrees of freedom
-        * @param rResult The vector containing the ids of the DoFs 
+        * @param rResult The vector containing the ids of the DoFs
         * @param rCurrentProcessInfo The current process info instance
         */
         void EquationIdVector(
-            EquationIdVectorType& rResult, 
-            ProcessInfo& rCurrentProcessInfo
-            ) override;
+            EquationIdVectorType& rResult,
+            const ProcessInfo& rCurrentProcessInfo
+            ) const override;
 
         /**
-        * @brief Sets on rValues the nodal displacements     
+        * @brief Sets on rValues the nodal displacements
         * @param rValues The vector containing the dofs values
         * @param Step The time step computed (must be in the buffer)
         */
-        void GetValuesVector(Vector& rValues, int Step = 0) override;
+        void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
         /**
         * @brief Sets on rValues the nodal velocities
-        * @param rValues The vector containing the first derivatives 
+        * @param rValues The vector containing the first derivatives
         * @param Step The time step computed (must be in the buffer)
         */
-        void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+        void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
         /**
         * @brief Sets on rValues the nodal accelerations
-        * @param rValues The vector containing the second derivatives 
+        * @param rValues The vector containing the second derivatives
         * @param Step The time step computed (must be in the buffer)
         */
-        void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+        void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
         //************* COMPUTING  METHODS
 
@@ -178,9 +178,9 @@ namespace Kratos
         */
 
         void CalculateLocalSystem(
-            MatrixType& rLeftHandSideMatrix, 
-            VectorType& rRightHandSideVector, 
-            ProcessInfo& rCurrentProcessInfo
+            MatrixType& rLeftHandSideMatrix,
+            VectorType& rRightHandSideVector,
+            const ProcessInfo& rCurrentProcessInfo
             ) override;
 
         /**
@@ -190,9 +190,9 @@ namespace Kratos
         * @param rCurrentProcessInfo The current process info instance
         */
 
-        void CalculateRightHandSide( 
+        void CalculateRightHandSide(
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo
+            const ProcessInfo& rCurrentProcessInfo
             ) override;
 
         /**
@@ -202,9 +202,9 @@ namespace Kratos
         * @param rCurrentProcessInfo The current process info instance
         */
 
-        void CalculateLeftHandSide( 
+        void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
-            ProcessInfo& rCurrentProcessInfo
+            const ProcessInfo& rCurrentProcessInfo
             ) override;
 
         /**
@@ -213,8 +213,8 @@ namespace Kratos
         * @param rCurrentProcessInfo the current process info instance
         */
         void CalculateMassMatrix(
-            MatrixType& rMassMatrix, 
-            ProcessInfo& rCurrentProcessInfo
+            MatrixType& rMassMatrix,
+            const ProcessInfo& rCurrentProcessInfo
             ) override;
 
         /**
@@ -224,8 +224,8 @@ namespace Kratos
         * @param rCurrentProcessInfo The current process info instance
         */
         void CalculateDampingMatrix(
-            MatrixType& rDampingMatrix, 
-            ProcessInfo& rCurrentProcessInfo
+            MatrixType& rDampingMatrix,
+            const ProcessInfo& rCurrentProcessInfo
             ) override;
 
         /**
@@ -261,7 +261,7 @@ namespace Kratos
 
         ///@name Protected Operators
         ///@{
-        
+
         TestElement() : Element()
         {
         }
@@ -301,7 +301,7 @@ namespace Kratos
         ///@}
         ///@name Serialization
         ///@{
-        
+
         friend class Serializer;
 
         // A private default constructor necessary for serialization
@@ -326,6 +326,6 @@ namespace Kratos
     ///@name Input and output
     ///@{
     ///@}
-    } // namespace Testing. 
+    } // namespace Testing.
 } // namespace Kratos.
-#endif // KRATOS_TEST_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_TEST_ELEMENT_H_INCLUDED  defined

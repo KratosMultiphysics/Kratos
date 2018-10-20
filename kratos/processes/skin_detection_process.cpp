@@ -149,13 +149,13 @@ void SkinDetectionProcess<TDim>::Execute()
 
         mrModelPart.RemoveSubModelPart(name_auxiliar_model_part);
         mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
-    } 
+    }
     ModelPart& r_auxiliar_model_part = mrModelPart.GetSubModelPart(name_auxiliar_model_part);
 
     // The auxiliar name of the condition
     const std::string& name_condition = mThisParameters["name_auxiliar_condition"].GetString();
     std::string pre_name = "";
-    if (TDim == 3 && name_condition == "Condition") 
+    if (TDim == 3 && name_condition == "Condition")
         pre_name = "Surface";
 
     // The number of conditions
@@ -166,6 +166,7 @@ void SkinDetectionProcess<TDim>::Execute()
 
     // Create the auxiliar conditions
     Properties::Pointer p_prop_0 = mrModelPart.pGetProperties(0);
+    const ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
     for (auto& map : inverse_face_map) {
         condition_id += 1;
 
@@ -178,7 +179,7 @@ void SkinDetectionProcess<TDim>::Execute()
         auto p_cond = mrModelPart.CreateNewCondition(complete_name, condition_id, nodes_face, p_prop_0);
         r_auxiliar_model_part.AddCondition(p_cond);
         p_cond->Set(INTERFACE, true);
-        p_cond->Initialize();
+        p_cond->Initialize(r_current_process_info);
     }
 
     // Adding to the auxiliar model part
