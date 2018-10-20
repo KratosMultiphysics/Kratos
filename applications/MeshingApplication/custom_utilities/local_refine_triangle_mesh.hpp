@@ -181,7 +181,7 @@ public:
         int nint = 0;
         std::vector<int> aux;
 
-        const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+        ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 
 	std::cout << "****************** REFINING MESH ******************" << std::endl;
         std::cout << "OLD NUMBER ELEMENTS: " << rElements.size() << std::endl;
