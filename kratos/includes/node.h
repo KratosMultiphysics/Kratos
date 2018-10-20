@@ -813,12 +813,8 @@ public:
     {
         KRATOS_TRY
 
-#ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0)
-        {
-            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
-        }
-#endif
+        KRATOS_DEBUG_ERROR_IF(rDofVariable.Key() == 0) << "Variable  " << rDofVariable
+            << " has key zero key when adding Dof for node " << this->Id() << std::endl;
 
         typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
         if(it_dof != mDofs.end())
@@ -874,16 +870,10 @@ public:
     {
         KRATOS_TRY
 
-#ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0)
-        {
-            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
-        }
-        if(rDofReaction.Key() == 0)
-        {
-            KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
-        }
-#endif
+        KRATOS_DEBUG_ERROR_IF_NOT(rDofVariable.Key() == 0) << "Variable  " << rDofVariable
+            << " has key zero key when adding Dof for node " << this->Id() << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(rDofReaction.Key() == 0) << "Reaction  " << rDofReaction
+            << " has key zero when adding reactions for node " << this->Id() << std::endl;
 
         typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
         if(it_dof != mDofs.end())
@@ -941,16 +931,10 @@ public:
     {
         KRATOS_TRY
 
-#ifdef KRATOS_DEBUG
-        if(rDofVariable.Key() == 0)
-        {
-            KRATOS_ERROR << "Variable  " << rDofVariable << " has key zero key when adding Dof for node " << this->Id() << std::endl;
-        }
-        if(rDofReaction.Key() == 0)
-        {
-            KRATOS_ERROR << "Reaction  " << rDofReaction << " has key zero when adding reactions for node " << this->Id() << std::endl;
-        }
-#endif
+        KRATOS_DEBUG_ERROR_IF(rDofVariable.Key() == 0) << "Variable  " << rDofVariable
+            << " has key zero key when adding Dof for node " << this->Id() << std::endl;
+        KRATOS_DEBUG_ERROR_IF(rDofReaction.Key() == 0) << "Reaction  " << rDofReaction
+            << " has key zero when adding reactions for node " << this->Id() << std::endl;
 
         typename DofsContainerType::iterator it_dof = mDofs.find(rDofVariable);
         if(it_dof != mDofs.end())
