@@ -38,7 +38,6 @@ class ParticleMPMSolver(PythonSolver):
             "time_stepping"   : {},
             "solver_type"                        : "StaticSolver",
             "echo_level"                         : 0,
-            "time_integration_method"            : "Implicit",
             "analysis_type"                      : "linear",
             "scheme_type"                        : "Newmark",
             "grid_model_import_settings"              : {
@@ -52,7 +51,6 @@ class ParticleMPMSolver(PythonSolver):
             "material_import_settings"           : {
                 "materials_filename" : ""
             },
-            "explicit_integration_scheme"        : "CentralDifferences",
             "time_step_prediction_level"         : "Automatic",
             "rayleigh_damping"                   : false,
             "pressure_dofs"                      : false,
@@ -158,7 +156,6 @@ class ParticleMPMSolver(PythonSolver):
 
         # Set definition of the global solver type
         self.solver_type                    = self.settings["solver_type"].GetString()
-        self.time_integration_method        = self.settings["time_integration_method"].GetString()
 
         # Set definition of the solver parameters
         self.compute_reactions      = self.settings["compute_reactions"].GetBool()
@@ -290,9 +287,6 @@ class ParticleMPMSolver(PythonSolver):
             model_part.AddNodalSolutionStepVariable(KratosParticle.PRESSURE_REACTION)
             model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MPRESSURE)
             model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_PRESSURE)
-        if self.settings["time_integration_method"].GetString() == "explicit" :
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MIDDLE_VELOCITY)
 
     def _model_part_reading(self):
         # reading the model part of the background grid
