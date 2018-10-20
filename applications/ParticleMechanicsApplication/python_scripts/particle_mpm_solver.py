@@ -264,7 +264,7 @@ class ParticleMPMSolver(PythonSolver):
         # Add nodal force variables
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FORCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCE)
-        #model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
+        # model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
 
         # Add specific variables for the problem conditions
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
@@ -273,17 +273,12 @@ class ParticleMPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.DISPLACEMENT_AUX)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_R)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_T)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_R_VEL)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_T_VEL)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_R_ACC)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_T_ACC)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_LUMPED_MASS)
 
         # Add variables for arbitrary slope with slip
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
