@@ -62,7 +62,7 @@ ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
     // Store the pointer as a regular std::iostream
     mpStream = pFile;
 
-    Timer::SetOuputFile(Filename + ".time");
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::SetOuputFile(Filename + ".time");
 }
 
 /// Constructor with stream
@@ -81,7 +81,7 @@ ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags O
 
 /// Destructor.
 ModelPartIO::~ModelPartIO() {
-    Timer::CloseOuputFile();
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::CloseOuputFile();
 }
 
 ///@}
@@ -459,7 +459,7 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
 {
     KRATOS_TRY
 
-    Timer::Start("Reading Input");
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::Start("Reading Input");
 
     ResetInput();
     std::string word;
@@ -500,13 +500,13 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
             ReadSubModelPartBlock(rThisModelPart, rThisModelPart);
     }
     KRATOS_INFO("ModelPartIO") << "  [Total Lines Read : " << mNumberOfLines<<"]" << std::endl;
-    Timer::Stop("Reading Input");
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::Stop("Reading Input");
     KRATOS_CATCH("")
 }
 
 void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
 {
-    Timer::Start("Writing Output");
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::Start("Writing Output");
 
     // Setting the buffer size
 //         size_t size_buffer = 4096; // Look to modify this
@@ -525,7 +525,7 @@ void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
 
     KRATOS_INFO("ModelPartIO") << "  [Total Lines Wrote : " << mNumberOfLines<<"]" << std::endl;
 
-    Timer::Stop("Writing Output");
+    if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::Stop("Writing Output");
 }
 
 
