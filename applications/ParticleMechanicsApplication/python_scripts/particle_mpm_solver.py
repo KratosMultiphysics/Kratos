@@ -326,8 +326,8 @@ class ParticleMPMSolver(PythonSolver):
             if (node.Is(KratosMultiphysics.ACTIVE)):
                 self.print_on_rank_zero("::[ParticleMPMSolver]:: ","WARNING: This grid node have been set active: ", node.Id)
 
-        for element in self.initial_material_model_part.Elements:
-            element.Set(KratosMultiphysics.ACTIVE, True)
+        # Setting active initial elements
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.initial_material_model_part.Elements)
 
         # Specify domain size
         self.domain_size = self.material_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
