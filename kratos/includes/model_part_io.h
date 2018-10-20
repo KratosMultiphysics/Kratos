@@ -13,23 +13,19 @@
 #if !defined(KRATOS_MODEL_PART_IO_H_INCLUDED )
 #define  KRATOS_MODEL_PART_IO_H_INCLUDED
 
-
 // System includes
 #include <string>
 #include <fstream>
 #include <set>
 #include <typeinfo>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/io.h"
 #include "utilities/timer.h"
 #include "containers/flags.h"
-
 
 namespace Kratos
 {
