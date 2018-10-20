@@ -689,7 +689,7 @@ public:
      * It computes the unit normal of the geometry, if possible
      * @return The normal of the geometry
      */
-    virtual array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const
+    virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) const
     {
         const unsigned int local_space_dimension = this->LocalSpaceDimension();
         const unsigned int dimension = this->WorkingSpaceDimension();
@@ -737,7 +737,7 @@ public:
      */
     virtual array_1d<double, 3> UnitNormal(const CoordinatesArrayType& rPointLocalCoordinates) const
     {
-        array_1d<double, 3> normal = AreaNormal(rPointLocalCoordinates);
+        array_1d<double, 3> normal = Normal(rPointLocalCoordinates);
         const double norm_normal = norm_2(normal);
         if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
         else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;

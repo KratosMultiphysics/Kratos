@@ -811,7 +811,7 @@ public:
      * point in where the unit normal is to be computed
      * @return The area normal in the given point
      */
-    array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const override
+    array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) const override
     {
         // We define the normal
         array_1d<double,3> normal;
