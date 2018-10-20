@@ -13,15 +13,11 @@
 #if !defined(KRATOS_IO_H_INCLUDED )
 #define  KRATOS_IO_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -29,7 +25,6 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/model_part.h"
-
 
 namespace Kratos
 {
@@ -53,10 +48,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// IO provides different implementation of input output procedures which can be used to read and write with different formats and characteristics.
-/** IO provides different implementation of input output procedures which can be used to read and write with different formats and characteristics.
+/**
+ * @class IO
+ * @ingroup KratosCore
+ * @brief IO provides different implementation of input output procedures which can be used to read and write with different formats and characteristics.
+ * @details IO provides different implementation of input output procedures which can be used to read and write with different formats and characteristics.
  * An automatic configurable IO module is added to these components providing the complete set of solutions necessary for dealing with multi-disciplinary problems. 
  * This IO module uses different component lists to adjust itself when reading and writing new concepts originating from different fields of analysis.
+ * @author Pooyan Dadvand
  */
 class KRATOS_API(KRATOS_CORE) IO
 {
