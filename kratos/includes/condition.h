@@ -212,7 +212,7 @@ public:
     @return SizeType, working space dimension of this geometry.
     */
 
-    SizeType WorkingSpaceDimension() const
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please ask directly the Geometry") SizeType WorkingSpaceDimension() const
     {
         return pGetGeometry()->WorkingSpaceDimension();
     }
@@ -868,18 +868,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-    //METHODS TO BE CLEANED: DEPRECATED start
-
-
-    //NOTE: They will be deleted in December, 2015
-
-
-    /**
-     * CONDITIONS inherited from this class must implement this methods
-     * if they need to add dynamic condition contributions
-     * MassMatrix, AddMassMatrix, DampingMatrix, AddInertiaForces methods are: OPTIONAL and OBSOLETE
-     */
 
     /**
      * this is called during the assembling process in order

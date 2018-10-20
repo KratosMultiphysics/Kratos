@@ -11,9 +11,14 @@ import shutil
 
 class FracturePropagationUtility:
 
-    def __init__(self,domain_size,problem_name,move_mesh_flag):
+    def __init__(self,model,original_model_part_name,model_part_number,domain_size,problem_name,move_mesh_flag):
 
         # Construct the utility
+        self.model = model
+
+        self.model_part_number = model_part_number
+        self.original_model_part_name = original_model_part_name
+
         self.domain_size = domain_size
         if domain_size==2:
             self.PropagationUtility = KratosPoro.FracturePropagation2DUtilities()
@@ -153,7 +158,7 @@ class FracturePropagationUtility:
 
         return main_model_part,solver,list_of_processes,gid_output
 
-    def GenereateNewModelPart(self,main_model_part,solver,list_of_processes,gid_output):
+    def GenereateNewModelPart(self,old_main_model_part,solver,list_of_processes,gid_output):
 
         ### Finalize Old Model ---------------------------------------------------------------------------------------
 
@@ -182,9 +187,6 @@ class FracturePropagationUtility:
         new_filepath = os.path.join(str(self.problem_path),str(new_filename))
         shutil.copy(str(original_filepath), str(new_filepath))
 
-        # Save previous model_part
-        main_model_part_old = main_model_part
-
         ### Generate New Model ---------------------------------------------------------------------------------------
 
         # Parsing the parameters
@@ -194,14 +196,18 @@ class FracturePropagationUtility:
         ## Model part ------------------------------------------------------------------------------------------------
 
         # Defining the model part
-        main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["solver_settings"]["model_part_name"].GetString())
-        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
-        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, main_model_part_old.ProcessInfo[KratosMultiphysics.DELTA_TIME])
-        main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, main_model_part_old.ProcessInfo[KratosPoro.TIME_UNIT_CONVERTER])
+        self.model_part_number = self.model_part_number + 1
+        new_model_part_name = str(self.original_model_part_name) + '_' + str(self.model_part_number)
+
+        new_model_part = self.model.CreateModelPart(new_model_part_name,2)
+
+        new_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
+        new_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, old_main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME])
+        new_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, old_main_model_part.ProcessInfo[KratosPoro.TIME_UNIT_CONVERTER])
 
         # Construct the solver (main setting methods are located in the solver_module)
         solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-        solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
+        solver = solver_module.CreateSolver(new_model_part, ProjectParameters["solver_settings"])
 
         # Add problem variables
         solver.AddVariables()
@@ -212,19 +218,10 @@ class FracturePropagationUtility:
         # Add degrees of freedom
         solver.AddDofs()
 
-        # Creation of Kratos model
-        PoroModel = KratosMultiphysics.Model()
-        PoroModel.AddModelPart(main_model_part)
-
-        # Build sub_model_parts (save the list of the submodel part in the object Model)
-        for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
-            part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-            PoroModel.AddModelPart(main_model_part.GetSubModelPart(part_name))
-
         # Print model_part
         echo_level = ProjectParameters["solver_settings"]["echo_level"].GetInt()
         if(echo_level > 1):
-            print(main_model_part)
+            print(new_model_part)
 
         ## Initialize ------------------------------------------------------------------------------------------------
 
@@ -238,7 +235,7 @@ class FracturePropagationUtility:
             process.ExecuteInitialize()
 
         # Set TIME
-        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, main_model_part_old.ProcessInfo[KratosMultiphysics.TIME])
+        new_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, old_main_model_part.ProcessInfo[KratosMultiphysics.TIME])
 
         # Initialize GiD I/O
         computing_model_part = solver.GetComputingModelPart()
@@ -262,21 +259,23 @@ class FracturePropagationUtility:
 
         ### Mapping between old and new model parts ------------------------------------------------------------------
 
-        self.PropagationUtility.MappingModelParts(self.FracturesData,main_model_part_old,main_model_part,self.move_mesh_flag)
+        self.PropagationUtility.MappingModelParts(self.FracturesData,old_main_model_part,new_model_part,self.move_mesh_flag)
 
         # set ARC_LENGTH_LAMBDA and ARC_LENGTH_RADIUS_FACTOR and update loads
         if ProjectParameters["solver_settings"]["strategy_type"].GetString() == "arc_length":
-            main_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_LAMBDA, main_model_part_old.ProcessInfo[KratosPoro.ARC_LENGTH_LAMBDA])
-            main_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_RADIUS_FACTOR, main_model_part_old.ProcessInfo[KratosPoro.ARC_LENGTH_RADIUS_FACTOR])
+            new_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_LAMBDA, old_main_model_part.ProcessInfo[KratosPoro.ARC_LENGTH_LAMBDA])
+            new_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_RADIUS_FACTOR, old_main_model_part.ProcessInfo[KratosPoro.ARC_LENGTH_RADIUS_FACTOR])
             solver._UpdateLoads()
 
-        # delete auxiliary model_part
-        del main_model_part_old
+        # delete old model_part
+        old_model_part_number = self.model_part_number - 1
+        old_model_part_name = str(self.original_model_part_name) + '_' + str(old_model_part_number)
+        self.model.DeleteModelPart(old_model_part_name)
 
         # Check new mesh
         #IsConverged = solver._CheckConvergence()
 
-        return main_model_part,solver,list_of_processes,gid_output
+        return new_model_part,solver,list_of_processes,gid_output
 
     def Finalize(self):
 

@@ -157,7 +157,7 @@ class MonolithicSolver(object):
 
 
     #### Solve loop methods ####
-    
+
     def Solve(self):
         self.Clear()
         return self._get_mechanical_solver().Solve()
@@ -176,6 +176,9 @@ class MonolithicSolver(object):
 
 
     #### Solver internal methods ####
+
+    def _check_adaptive_solution(self):
+        return self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool()
 
     def _check_reform_dofs(self):
         if self._domain_parts_updated():
@@ -296,7 +299,7 @@ class MonolithicSolver(object):
         if( buffer_size <= time_integration_order ):
             buffer_size = time_integration_order + 1
         return buffer_size;
-    
+
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal

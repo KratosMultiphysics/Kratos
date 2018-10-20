@@ -54,7 +54,7 @@ namespace Kratos
  * @todo Finish adapt for 2D dimension
  */
 template <SizeType TVoigtSize = 6>
-class ConstitutiveLawUtilities
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
 {
   public:
     ///@name Type definitions
@@ -302,9 +302,9 @@ class ConstitutiveLawUtilities
      * @param rMatrixCompression The Stress Vector
      */
     static void SpectralDecomposition(
-        const Vector& rStressVector,
-        Vector& rStressVectorTension,
-        Vector& rStressVectorCompression
+        const array_1d<double, VoigtSize>& rStressVector,
+        array_1d<double, VoigtSize>& rStressVectorTension,
+        array_1d<double, VoigtSize>& rStressVectorCompression
         );
 
   private:

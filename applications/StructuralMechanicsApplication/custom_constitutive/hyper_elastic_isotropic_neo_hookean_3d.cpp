@@ -183,7 +183,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseCauchy (Constit
 void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
 //     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
-//     this->CalculateMaterialResponsePK1(rValues);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK1(rValues);
 //     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 }
 
@@ -193,7 +193,7 @@ void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponsePK1(Constitutive
 void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
 //     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
-//     this->CalculateMaterialResponsePK2(rValues);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(rValues);
 //     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 }
 
@@ -203,7 +203,7 @@ void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponsePK2(Constitutive
 void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 //     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
-//     this->CalculateMaterialResponseCauchy(rValues);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseCauchy(rValues);
 //     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 }
 
@@ -213,7 +213,7 @@ void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponseCauchy(Constitut
 void HyperElasticIsotropicNeoHookean3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
 //     rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
-//     this->CalculateMaterialResponseKirchhoff(rValues);
+//     HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff(rValues);
 //     rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 }
 
@@ -288,11 +288,11 @@ Vector& HyperElasticIsotropicNeoHookean3D::CalculateValue(
 
         // We compute the strain
         if (rThisVariable == STRAIN) {
-            this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
+            HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
         } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
-            this->CalculateMaterialResponsePK2(rParameterValues);
+            HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(rParameterValues);
         } else if (rThisVariable == ALMANSI_STRAIN_VECTOR) {
-            this->CalculateMaterialResponseKirchhoff(rParameterValues);
+            HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff(rParameterValues);
         } else if (rThisVariable == HENCKY_STRAIN_VECTOR) {
             const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
             const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
@@ -330,13 +330,13 @@ Vector& HyperElasticIsotropicNeoHookean3D::CalculateValue(
 
         // We compute the stress
         if (rThisVariable == STRESSES) {
-            this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
+            HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
         } if (rThisVariable == KIRCHHOFF_STRESS_VECTOR) {
-            this->CalculateMaterialResponseKirchhoff(rParameterValues);
+            HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff(rParameterValues);
         } if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-            this->CalculateMaterialResponseCauchy(rParameterValues);
+            HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseCauchy(rParameterValues);
         } if (rThisVariable == PK2_STRESS_VECTOR) {
-            this->CalculateMaterialResponsePK2(rParameterValues);
+            HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(rParameterValues);
         }
 
         rValue = rParameterValues.GetStressVector();
@@ -376,11 +376,11 @@ Matrix& HyperElasticIsotropicNeoHookean3D::CalculateValue(
 
         // We compute the constitutive matrix
         if (rThisVariable == CONSTITUTIVE_MATRIX) {
-            this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
+            HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
         } else if (rThisVariable == CONSTITUTIVE_MATRIX_PK2) {
-            this->CalculateMaterialResponsePK2(rParameterValues);
+            HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(rParameterValues);
         } else if (rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
-            this->CalculateMaterialResponsePK2(rParameterValues);
+            HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(rParameterValues);
         }
 
         rValue = rParameterValues.GetConstitutiveMatrix();

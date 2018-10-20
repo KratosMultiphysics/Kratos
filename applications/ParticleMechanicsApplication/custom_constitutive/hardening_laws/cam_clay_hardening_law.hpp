@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -49,7 +49,7 @@ namespace Kratos
 /** Detail class definition.
 */
 class CamClayHardeningLaw 
-        : public HardeningLaw 
+        : public MPMHardeningLaw 
 {
 public:
     ///@name Type Definitions
