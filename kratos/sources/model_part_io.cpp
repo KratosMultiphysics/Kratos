@@ -449,7 +449,8 @@ void ModelPartIO::ReadMesh(MeshType & rThisMesh)
 
 void ModelPartIO::WriteMesh(MeshType & rThisMesh)
 {
-    WriteProperties(rThisMesh.Properties());
+    if (mOptions.IsNot(IO::MESH_ONLY))
+        WriteProperties(rThisMesh.Properties());
     WriteNodes(rThisMesh.Nodes());
     WriteElements(rThisMesh.Elements());
     WriteConditions(rThisMesh.Conditions());
@@ -470,11 +471,14 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
             break;
         ReadBlockName(word);
         if(word == "ModelPartData")
-            ReadModelPartDataBlock(rThisModelPart);
+            if (mOptions.IsNot(IO::MESH_ONLY))
+                ReadModelPartDataBlock(rThisModelPart);
         else if(word == "Table")
-            ReadTableBlock(rThisModelPart.Tables());
+            if (mOptions.IsNot(IO::MESH_ONLY))
+                ReadTableBlock(rThisModelPart.Tables());
         else if(word == "Properties")
-            ReadPropertiesBlock(rThisModelPart.rProperties());
+            if (mOptions.IsNot(IO::MESH_ONLY))
+                ReadPropertiesBlock(rThisModelPart.rProperties());
         else if(word == "Nodes")
             ReadNodesBlock(rThisModelPart);
         else if(word == "Elements")
@@ -482,17 +486,21 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
         else if(word == "Conditions")
             ReadConditionsBlock(rThisModelPart);
         else if(word == "NodalData")
-            ReadNodalDataBlock(rThisModelPart);
+            if (mOptions.IsNot(IO::MESH_ONLY))
+                ReadNodalDataBlock(rThisModelPart);
         else if(word == "ElementalData")
-            ReadElementalDataBlock(rThisModelPart.Elements());
+            if (mOptions.IsNot(IO::MESH_ONLY))
+                ReadElementalDataBlock(rThisModelPart.Elements());
         else if (word == "ConditionalData")
-            ReadConditionalDataBlock(rThisModelPart.Conditions());
-        else if(word == "CommunicatorData")
-        {
-            ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
-            //Adding the elements and conditions to the communicator
-            rThisModelPart.GetCommunicator().LocalMesh().Elements() = rThisModelPart.Elements();
-            rThisModelPart.GetCommunicator().LocalMesh().Conditions() = rThisModelPart.Conditions();
+            if (mOptions.IsNot(IO::MESH_ONLY))
+                ReadConditionalDataBlock(rThisModelPart.Conditions());
+        else if(word == "CommunicatorData") {
+            if (mOptions.IsNot(IO::MESH_ONLY)) {
+                ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
+                //Adding the elements and conditions to the communicator
+                rThisModelPart.GetCommunicator().LocalMesh().Elements() = rThisModelPart.Elements();
+                rThisModelPart.GetCommunicator().LocalMesh().Conditions() = rThisModelPart.Conditions();
+            }
         }
         else if (word == "Mesh")
             ReadMeshBlock(rThisModelPart);
@@ -509,18 +517,22 @@ void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
     if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::Start("Writing Output");
 
     // Setting the buffer size
-//         size_t size_buffer = 4096; // Look to modify this
-//         char Buffer[size_buffer];
-//         mpStream->rdbuf()->pubsetbuf(Buffer, size_buffer);
+//     size_t size_buffer = 4096; // Look to modify this
+//     char Buffer[size_buffer];
+//     mpStream->rdbuf()->pubsetbuf(Buffer, size_buffer);
+//
+//     WriteModelPartDataBlock(rThisModelPart); // TODO: FINISH ME
 
-//         WriteModelPartDataBlock(rThisModelPart); // TODO: FINISH ME
-    WriteTableBlock(rThisModelPart.Tables());
+    if (mOptions.IsNot(IO::MESH_ONLY))
+        WriteTableBlock(rThisModelPart.Tables());
     WriteMesh(rThisModelPart.GetMesh());
-    WriteNodalDataBlock(rThisModelPart); // TODO: FINISH ME
-    WriteDataBlock(rThisModelPart.Elements(), "Element");
-    WriteDataBlock(rThisModelPart.Conditions(),"Condition");
-//         WriteCommunicatorDataBlock(); // TODO: FINISH ME
-//         WriteMeshBlock(rThisModelPart); // TODO: FINISH ME
+    if (mOptions.IsNot(IO::MESH_ONLY)) {
+        WriteNodalDataBlock(rThisModelPart); // TODO: FINISH ME
+        WriteDataBlock(rThisModelPart.Elements(), "Element");
+        WriteDataBlock(rThisModelPart.Conditions(),"Condition");
+    }
+//     WriteCommunicatorDataBlock(); // TODO: FINISH ME
+//     WriteMeshBlock(rThisModelPart); // TODO: FINISH ME
     WriteSubModelPartBlock(rThisModelPart, "");
 
     KRATOS_INFO("ModelPartIO") << "  [Total Lines Wrote : " << mNumberOfLines<<"]" << std::endl;
