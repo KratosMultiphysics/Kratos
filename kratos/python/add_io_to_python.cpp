@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -131,19 +131,19 @@ void (GidIO<>::*local_axes_write_nodal_results)( Variable<array_1d<double, 3> > 
 /// NON-HISTORICAL DATABASE                               ///
 ////////////////////////////////////////////////////////////
 void (GidIO<>::*pointer_to_flags_write_nodal_results_NH)( Kratos::Flags rFlag, std::string rFlagName,  GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
-	= &GidIO<>::WriteNodalFlags;
+    = &GidIO<>::WriteNodalFlags;
         
 void (GidIO<>::*pointer_to_bool_write_nodal_results_NH)( Variable<bool> const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
-	= &GidIO<>::WriteNodalResultsNonHistorical;
+    = &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_double_write_nodal_results_NH)( Variable<double> const& rVariable,  GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
         = &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_array1d_write_nodal_results_NH)(Variable<array_1d<double, 3> > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) = &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_vector_write_nodal_results_NH)(Variable<Vector > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
         = &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*pointer_to_matrix_write_nodal_results_NH)(Variable<Matrix > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
-	= &GidIO<>::WriteNodalResultsNonHistorical;
+    = &GidIO<>::WriteNodalResultsNonHistorical;
 void (GidIO<>::*local_axes_write_nodal_results_NH)( Variable<array_1d<double, 3> > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag) 
-	= &GidIO<>::WriteLocalAxesOnNodesNonHistorical;
+    = &GidIO<>::WriteLocalAxesOnNodesNonHistorical;
 
 //         void (GidIO::*pointer_to_double_cond_print_on_gauss_points)(const Variable<double>& rVariable,
 //               ModelPart& rModelPart, double SolutionTag) = &GidIO::CondPrintOnGaussPoints;
@@ -183,11 +183,13 @@ void  AddIOToPython(pybind11::module& m)
     .def("ReadMesh",&IO::ReadMesh)
     .def("ReadModelPart",&IO::ReadModelPart)
     .def("WriteModelPart",&IO::WriteModelPart)
-	;
-	io_python_interface.attr("READ") = IO::READ;
-	io_python_interface.attr("WRITE") =IO::WRITE;
-	io_python_interface.attr("APPEND") = IO::APPEND;
-	io_python_interface.attr("IGNORE_VARIABLES_ERROR" ) = IO::IGNORE_VARIABLES_ERROR;
+    ;
+    io_python_interface.attr("READ") = IO::READ;
+    io_python_interface.attr("WRITE") =IO::WRITE;
+    io_python_interface.attr("APPEND") = IO::APPEND;
+    io_python_interface.attr("IGNORE_VARIABLES_ERROR" ) = IO::IGNORE_VARIABLES_ERROR;
+    io_python_interface.attr("SKIP_TIMER" ) = IO::SKIP_TIMER;
+    io_python_interface.attr("MESH_ONLY" ) = IO::MESH_ONLY;
  
 
     
@@ -274,7 +276,7 @@ void  AddIOToPython(pybind11::module& m)
     .value("GiD_PostAscii", GiD_PostAscii)
     .value("GiD_PostAsciiZipped", GiD_PostAsciiZipped)
     .value("GiD_PostBinary", GiD_PostBinary)
-	.value("GiD_PostHDF5", GiD_PostHDF5)
+    .value("GiD_PostHDF5", GiD_PostHDF5)
     ;
 
     enum_<WriteDeformedMeshFlag>(m,"WriteDeformedMeshFlag")

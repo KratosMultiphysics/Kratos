@@ -449,8 +449,7 @@ void ModelPartIO::ReadMesh(MeshType & rThisMesh)
 
 void ModelPartIO::WriteMesh(MeshType & rThisMesh)
 {
-    if (mOptions.IsNot(IO::MESH_ONLY))
-        WriteProperties(rThisMesh.Properties());
+    WriteProperties(rThisMesh.Properties());
     WriteNodes(rThisMesh.Nodes());
     WriteElements(rThisMesh.Elements());
     WriteConditions(rThisMesh.Conditions());
@@ -470,42 +469,41 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
         if(mpStream->eof())
             break;
         ReadBlockName(word);
-        if(word == "ModelPartData")
+        if(word == "ModelPartData") {
             if (mOptions.IsNot(IO::MESH_ONLY))
                 ReadModelPartDataBlock(rThisModelPart);
-        else if(word == "Table")
+        } else if(word == "Table") {
             if (mOptions.IsNot(IO::MESH_ONLY))
                 ReadTableBlock(rThisModelPart.Tables());
-        else if(word == "Properties")
-            if (mOptions.IsNot(IO::MESH_ONLY))
-                ReadPropertiesBlock(rThisModelPart.rProperties());
-        else if(word == "Nodes")
+        } else if(word == "Properties") {
+            ReadPropertiesBlock(rThisModelPart.rProperties());
+        } else if(word == "Nodes") {
             ReadNodesBlock(rThisModelPart);
-        else if(word == "Elements")
+        } else if(word == "Elements") {
             ReadElementsBlock(rThisModelPart);
-        else if(word == "Conditions")
+        } else if(word == "Conditions") {
             ReadConditionsBlock(rThisModelPart);
-        else if(word == "NodalData")
+        } else if(word == "NodalData") {
             if (mOptions.IsNot(IO::MESH_ONLY))
                 ReadNodalDataBlock(rThisModelPart);
-        else if(word == "ElementalData")
+        } else if(word == "ElementalData") {
             if (mOptions.IsNot(IO::MESH_ONLY))
                 ReadElementalDataBlock(rThisModelPart.Elements());
-        else if (word == "ConditionalData")
+        } else if (word == "ConditionalData") {
             if (mOptions.IsNot(IO::MESH_ONLY))
                 ReadConditionalDataBlock(rThisModelPart.Conditions());
-        else if(word == "CommunicatorData") {
+        } else if(word == "CommunicatorData") {
             if (mOptions.IsNot(IO::MESH_ONLY)) {
                 ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
                 //Adding the elements and conditions to the communicator
                 rThisModelPart.GetCommunicator().LocalMesh().Elements() = rThisModelPart.Elements();
                 rThisModelPart.GetCommunicator().LocalMesh().Conditions() = rThisModelPart.Conditions();
             }
-        }
-        else if (word == "Mesh")
+        } else if (word == "Mesh") {
             ReadMeshBlock(rThisModelPart);
-        else if (word == "SubModelPart")
+        } else if (word == "SubModelPart") {
             ReadSubModelPartBlock(rThisModelPart, rThisModelPart);
+        }
     }
     KRATOS_INFO("ModelPartIO") << "  [Total Lines Read : " << mNumberOfLines<<"]" << std::endl;
     if (mOptions.IsNot(IO::SKIP_TIMER)) Timer::Stop("Reading Input");
@@ -1309,7 +1307,7 @@ void ModelPartIO::ReadPropertiesBlock(PropertiesContainerType& rThisProperties)
             if(variable_name == "Table") // At this moment the only supported nested block is a table
                 ReadTableBlock(temp_properties);
         }
-    else if(KratosComponents<Variable<std::string> >::Has(variable_name))
+        else if(KratosComponents<Variable<std::string> >::Has(variable_name))
         {
             std::string value;
             std::string  temp;
@@ -1318,7 +1316,7 @@ void ModelPartIO::ReadPropertiesBlock(PropertiesContainerType& rThisProperties)
             ExtractValue(value,temp);
             temp_properties[KratosComponents<Variable<std::string> >::Get(variable_name)] = temp;
         }
-    else if(KratosComponents<Variable<double> >::Has(variable_name))
+        else if(KratosComponents<Variable<double> >::Has(variable_name))
         {
             std::string value;
             double temp;
