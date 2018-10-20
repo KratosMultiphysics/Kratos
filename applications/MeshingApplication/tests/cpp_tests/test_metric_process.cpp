@@ -464,7 +464,7 @@ namespace Kratos
 
             Create2DGeometry(this_model_part, "SmallDisplacementElement2D3N");
             for (auto& ielem : this_model_part.Elements()) {
-                ielem.Initialize();
+                ielem.Initialize(process_info);
                 ielem.InitializeSolutionStep(process_info);
             }
 
@@ -529,7 +529,7 @@ namespace Kratos
 
             Create3DGeometry(this_model_part, "SmallDisplacementElement3D4N");
             for (auto& ielem : this_model_part.Elements()) {
-                ielem.Initialize();
+                ielem.Initialize(process_info);
                 ielem.InitializeSolutionStep(process_info);
             }
 

@@ -181,7 +181,7 @@ public:
         int nint = 0;
         std::vector<int> aux;
 
-        ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
+        const ProcessInfo& rCurrentProcessInfo = this_model_part.GetProcessInfo();
 
 	std::cout << "****************** REFINING MESH ******************" << std::endl;
         std::cout << "OLD NUMBER ELEMENTS: " << rElements.size() << std::endl;
@@ -225,7 +225,7 @@ public:
 
                         Element::Pointer p_element;
                         p_element = it->Create(current_id, geom, it->pGetProperties());
-                        p_element->Initialize();
+                        p_element->Initialize(rCurrentProcessInfo);
                         p_element->InitializeSolutionStep(rCurrentProcessInfo);
                         p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -252,7 +252,7 @@ public:
 
                         Element::Pointer p_element;
                         p_element = it->Create(current_id, geom, it->pGetProperties());
-                        p_element->Initialize();
+                        p_element->Initialize(rCurrentProcessInfo);
                         p_element->InitializeSolutionStep(rCurrentProcessInfo);
                         p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -405,7 +405,7 @@ public:
             /* Adding news elements to the model part */
             for (PointerVector< Condition >::iterator it_new = New_Conditions.begin(); it_new != New_Conditions.end(); it_new++)
             {
-                it_new->Initialize();
+                it_new->Initialize(rCurrentProcessInfo);
                 it_new->InitializeSolutionStep(rCurrentProcessInfo);
                 it_new->FinalizeSolutionStep(rCurrentProcessInfo);
                 this_model_part.Conditions().push_back(*(it_new.base()));

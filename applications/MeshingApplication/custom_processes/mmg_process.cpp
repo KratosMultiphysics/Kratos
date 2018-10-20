@@ -843,13 +843,15 @@ void MmgProcess<TMMGLibray>::ReorderAllIds()
 template<MMGLibray TMMGLibray>
 void MmgProcess<TMMGLibray>::InitializeElementsAndConditions()
 {
+    const ProcessInfo& r_current_process_info = mrThisModelPart.GetProcessInfo();
+
     ConditionsArrayType& condition_array = mrThisModelPart.Conditions();
     for(SizeType i = 0; i < condition_array.size(); ++i)
-        (condition_array.begin() + i)->Initialize();
+        (condition_array.begin() + i)->Initialize(r_current_process_info);
 
     ElementsArrayType& element_array = mrThisModelPart.Elements();
     for(SizeType i = 0; i < element_array.size(); ++i)
-        (element_array.begin() + i)->Initialize();
+        (element_array.begin() + i)->Initialize(r_current_process_info);
 }
 
 /***********************************************************************************/

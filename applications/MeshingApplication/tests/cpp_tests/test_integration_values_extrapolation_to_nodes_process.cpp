@@ -27,9 +27,9 @@
 #include "custom_processes/integration_values_extrapolation_to_nodes_process.h"
 #include "includes/mat_variables.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
@@ -49,10 +49,11 @@ namespace Kratos
             gid_io.WriteNodalResultsNonHistorical(this_var, ThisModelPart.Nodes(), label);
             gid_io.WriteNodalResultsNonHistorical(NODAL_AREA, ThisModelPart.Nodes(), label);
         }
-        
+
         void Create2DModelPartForExtrapolation(ModelPart& ThisModelPart)
         {
             Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            const auto& r_process_info = ThisModelPart.GetProcessInfo();
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -89,15 +90,16 @@ namespace Kratos
             Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 4, PointerVector<NodeType>{element_nodes_3}, p_elem_prop);
 
             // Initialize Elements
-            p_elem_0->Initialize();
-            p_elem_1->Initialize();
-            p_elem_2->Initialize();
-            p_elem_3->Initialize();
+            p_elem_0->Initialize(r_process_info);
+            p_elem_1->Initialize(r_process_info);
+            p_elem_2->Initialize(r_process_info);
+            p_elem_3->Initialize(r_process_info);
         }
 
         void Create3DModelPartForExtrapolation(ModelPart& ThisModelPart)
         {
             Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            const auto& r_process_info = ThisModelPart.GetProcessInfo();
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
@@ -201,23 +203,23 @@ namespace Kratos
             Element::Pointer p_elem_11 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 12, PointerVector<NodeType>{element_nodes_11}, p_elem_prop);
 
             // Initialize Elements
-            p_elem_0->Initialize();
-            p_elem_1->Initialize();
-            p_elem_2->Initialize();
-            p_elem_3->Initialize();
-            p_elem_4->Initialize();
-            p_elem_5->Initialize();
-            p_elem_6->Initialize();
-            p_elem_7->Initialize();
-            p_elem_8->Initialize();
-            p_elem_9->Initialize();
-            p_elem_10->Initialize();
-            p_elem_11->Initialize();
+            p_elem_0->Initialize(r_process_info);
+            p_elem_1->Initialize(r_process_info);
+            p_elem_2->Initialize(r_process_info);
+            p_elem_3->Initialize(r_process_info);
+            p_elem_4->Initialize(r_process_info);
+            p_elem_5->Initialize(r_process_info);
+            p_elem_6->Initialize(r_process_info);
+            p_elem_7->Initialize(r_process_info);
+            p_elem_8->Initialize(r_process_info);
+            p_elem_9->Initialize(r_process_info);
+            p_elem_10->Initialize(r_process_info);
+            p_elem_11->Initialize(r_process_info);
         }
 
         /**
         * Checks the correct work of the internal variable extrapolation process
-        * Test triangle 
+        * Test triangle
         */
 
         KRATOS_TEST_CASE_IN_SUITE(TestIntegrationValuesExtrapolationToNodesProcessTriangle, KratosMeshingApplicationFastSuite)
@@ -226,9 +228,9 @@ namespace Kratos
             ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 2;
-            
+
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            
+
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
@@ -236,11 +238,11 @@ namespace Kratos
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
-            
+
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
-            
+
             Create2DModelPartForExtrapolation(this_model_part);
 
             // Compute extrapolation
@@ -254,7 +256,7 @@ namespace Kratos
 
 //             // DEBUG
 //             GiDIODebugInternalExtrapolation(this_model_part, "1");
-            
+
             const double tolerance = 1.0e-8;
             auto this_var = KratosComponents<Variable<double>>::Get("REFERENCE_DEFORMATION_GRADIENT_DETERMINANT");
             for (auto& node : this_model_part.Nodes()) {
@@ -263,7 +265,7 @@ namespace Kratos
 
             extrapolation_process.ExecuteFinalize();
         }
-        
+
         /**
         * Checks the correct work of the internal variable extrapolation process
         * Test tetrahedra
@@ -289,7 +291,7 @@ namespace Kratos
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
-            
+
             Create3DModelPartForExtrapolation(this_model_part);
 
             // Compute extrapolation

@@ -65,6 +65,7 @@ namespace Kratos
         void Create2DModelPart(ModelPart& ThisModelPart)
         {
             Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            const auto& r_process_info = ThisModelPart.GetProcessInfo();
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -101,15 +102,16 @@ namespace Kratos
             Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 4, PointerVector<NodeType>{element_nodes_3}, p_elem_prop);
 
             // Initialize Elements
-            p_elem_0->Initialize();
-            p_elem_1->Initialize();
-            p_elem_2->Initialize();
-            p_elem_3->Initialize();
+            p_elem_0->Initialize(r_process_info);
+            p_elem_1->Initialize(r_process_info);
+            p_elem_2->Initialize(r_process_info);
+            p_elem_3->Initialize(r_process_info);
         }
 
         void Create3DModelPart(ModelPart& ThisModelPart)
         {
             Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+            const auto& r_process_info = ThisModelPart.GetProcessInfo();
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
@@ -213,18 +215,18 @@ namespace Kratos
             Element::Pointer p_elem_11 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 12, PointerVector<NodeType>{element_nodes_11}, p_elem_prop);
 
             // Initialize Elements
-            p_elem_0->Initialize();
-            p_elem_1->Initialize();
-            p_elem_2->Initialize();
-            p_elem_3->Initialize();
-            p_elem_4->Initialize();
-            p_elem_5->Initialize();
-            p_elem_6->Initialize();
-            p_elem_7->Initialize();
-            p_elem_8->Initialize();
-            p_elem_9->Initialize();
-            p_elem_10->Initialize();
-            p_elem_11->Initialize();
+            p_elem_0->Initialize(r_process_info);
+            p_elem_1->Initialize(r_process_info);
+            p_elem_2->Initialize(r_process_info);
+            p_elem_3->Initialize(r_process_info);
+            p_elem_4->Initialize(r_process_info);
+            p_elem_5->Initialize(r_process_info);
+            p_elem_6->Initialize(r_process_info);
+            p_elem_7->Initialize(r_process_info);
+            p_elem_8->Initialize(r_process_info);
+            p_elem_9->Initialize(r_process_info);
+            p_elem_10->Initialize(r_process_info);
+            p_elem_11->Initialize(r_process_info);
         }
 
 

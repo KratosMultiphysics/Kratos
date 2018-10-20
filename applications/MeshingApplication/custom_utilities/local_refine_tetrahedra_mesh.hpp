@@ -253,7 +253,7 @@ public:
 		  // Generate new element by cloning the base one
 		  Element::Pointer p_element;
 		  p_element = it->Create(current_id, geom, it->pGetProperties());
-		  p_element->Initialize();
+		  p_element->Initialize(rCurrentProcessInfo);
 		  p_element->InitializeSolutionStep(rCurrentProcessInfo);
 		  p_element->FinalizeSolutionStep(rCurrentProcessInfo);
 
@@ -416,7 +416,7 @@ public:
                             // Generate new condition by cloning the base one
                             Condition::Pointer pcond;
                             pcond = it->Create(current_id, newgeom, it->pGetProperties());
-                            pcond ->Initialize();
+                            pcond ->Initialize(rCurrentProcessInfo);
                             pcond ->InitializeSolutionStep(rCurrentProcessInfo);
                             pcond ->FinalizeSolutionStep(rCurrentProcessInfo);
 
