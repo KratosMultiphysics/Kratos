@@ -543,7 +543,7 @@ public:
     }
 
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
@@ -551,7 +551,7 @@ public:
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
-        ) override
+        ) const override
     {
         return PointLocalCoordinatesImplementation(rResult, rPoint);
     }
@@ -1518,7 +1518,7 @@ private:
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint,
         const bool IsInside = false
-        )
+        ) const
     {
         BoundedMatrix<double,3,4> X;
         BoundedMatrix<double,3,2> DN;
@@ -1537,8 +1537,8 @@ private:
 
         // Starting with xi = 0
         rResult = ZeroVector( 3 );
-        array_1d<double, 2> DeltaXi( 2, 0.0 );
-	const array_1d<double, 3> zero_array(3, 0.0);
+        array_1d<double, 2> DeltaXi = ZeroVector( 2 );
+        const array_1d<double, 3> zero_array = ZeroVector(3);
         array_1d<double, 3> CurrentGlobalCoords;
 
         //Newton iteration:
