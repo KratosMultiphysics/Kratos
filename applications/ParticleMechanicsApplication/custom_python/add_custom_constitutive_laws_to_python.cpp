@@ -41,12 +41,15 @@
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
 #include "custom_constitutive/flow_rules/borja_cam_clay_plastic_flow_rule.hpp"
-#include "custom_constitutive/flow_rules/bingham_viscoplastic_flow_rule.hpp"
-#include "custom_constitutive/flow_rules/viscoplastic_flow_rule.hpp"
 
 //---constitutive laws
-#include "custom_constitutive/hyperelastic_viscoplastic_3D_law.hpp"
-#include "custom_constitutive/hyperelastic_viscoplastic_2D_plain_strain_law.hpp"
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_UP_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plane_strain_UP_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_3D_law.hpp"
 #include "custom_constitutive/hencky_mc_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
@@ -64,10 +67,9 @@ namespace Python
 
 using namespace pybind11;
 
-typedef FlowRule::Pointer                        FlowRulePointer;
 typedef MPMFlowRule::Pointer                  MPMFlowRulePointer;
-typedef YieldCriterion::Pointer            YieldCriterionPointer;
-typedef HardeningLaw::Pointer                HardeningLawPointer;
+typedef MPMYieldCriterion::Pointer      MPMYieldCriterionPointer;
+typedef MPMHardeningLaw::Pointer          MPMHardeningLawPointer;
 typedef Properties::Pointer                    PropertiesPointer;
 typedef Mesh<Node<3>, Properties, Element, Condition>   MeshType;
 
@@ -85,68 +87,85 @@ void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
-    // Hyperelastic Viscoplastic
-    class_< HyperElasticViscoplastic3DLaw, typename HyperElasticViscoplastic3DLaw::Pointer, ConstitutiveLaw >
-    (m, "HyperElasticViscoplastic3DLaw")
-    .def(init<>() )
-    .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    // Linear Elastic laws
+    class_< LinearElastic3DLaw, typename LinearElastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElastic3DLaw").def(init<>() )
     ;
 
-    class_< HyperElasticViscoplasticPlaneStrain2DLaw, typename HyperElasticViscoplasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
-    (m, "HyperElasticViscoplasticPlaneStrain2DLaw")
-    .def(init<>() )
-    .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    class_< LinearElasticPlaneStress2DLaw, typename LinearElasticPlaneStress2DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElasticPlaneStress2DLaw").def(init<>() )
+    ;
+
+    class_< LinearElasticPlaneStrain2DLaw, typename LinearElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "LinearElasticPlaneStrain2DLaw").def(init<>() )
+    ;
+    
+    // Hyperelastic laws
+    class_< HyperElastic3DLaw, typename HyperElastic3DLaw::Pointer, ConstitutiveLaw >
+    (m, "HyperElastic3DLaw").def(init<>() )
+    ;
+
+    class_< HyperElasticPlaneStrain2DLaw, typename HyperElasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
+    (m, "HyperElasticPlaneStrain2DLaw").def(init<>() )
+    ;
+
+    class_< HyperElasticUP3DLaw, typename HyperElasticUP3DLaw::Pointer, ConstitutiveLaw >
+    (m, "HyperElasticUP3DLaw").def(init<>() )
+    ;
+
+    class_< HyperElasticPlaneStrainUP2DLaw, typename HyperElasticPlaneStrainUP2DLaw::Pointer, ConstitutiveLaw >
+    (m, "HyperElasticPlaneStrainUP2DLaw").def(init<>() )
     ;
 
     // Hencky Mohr Coulomb
     class_< HenckyMCPlasticPlaneStrain2DLaw, typename HenckyMCPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyMCPlasticPlaneStrain2DLaw")
     .def(init<>() )
-    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
     ;
 
     class_< HenckyMCPlastic3DLaw, typename HenckyMCPlastic3DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyMCPlastic3DLaw")
     .def(init<>() )
-    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
     ;
 
     class_< HenckyMCPlasticUP3DLaw, typename HenckyMCPlasticUP3DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyMCPlasticUP3DLaw")
     .def(init<>() )
-    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
     ;
 
     class_< HenckyMCPlasticPlaneStrainUP2DLaw, typename HenckyMCPlasticPlaneStrainUP2DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyMCPlasticPlaneStrainUP2DLaw")
     .def(init<>() )
-    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
     ;
 
     // Hencky Mohr Coulomb Strain Softening
     class_< HenckyMCStrainSofteningPlasticPlaneStrain2DLaw, typename HenckyMCStrainSofteningPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyMCStrainSofteningPlasticPlaneStrain2DLaw")
     .def(init<>() )
-    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
     ;
 
     class_< HenckyMCStrainSofteningPlastic3DLaw, typename HenckyMCStrainSofteningPlastic3DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyMCStrainSofteningPlastic3DLaw")
     .def(init<>() )
-    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
     ;
 
     // Hencky Borja Cam Clay
     class_< HenckyBorjaCamClayPlasticPlaneStrain2DLaw, typename HenckyBorjaCamClayPlasticPlaneStrain2DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyBorjaCamClayPlasticPlaneStrain2DLaw")
     .def(init<>() )
-    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
     ;
 
     class_< HenckyBorjaCamClayPlastic3DLaw, typename HenckyBorjaCamClayPlastic3DLaw::Pointer, ConstitutiveLaw >
     (m, "HenckyBorjaCamClayPlastic3DLaw")
     .def(init<>() )
-    .def( init<MPMFlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    .def( init<MPMFlowRulePointer, MPMYieldCriterionPointer, MPMHardeningLawPointer>() )
     ;
 }
 

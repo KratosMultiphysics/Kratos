@@ -183,15 +183,15 @@ namespace Kratos
 
             const StressMeasureType& rStressMeasure  = rValues.GetStressMeasure();
 
-            if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C=FT*F)  C^-1=(FT*F)^-1=F^-1*FT^-1
+            if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C=FT*F)  C^-1=(FT*F)^-1=F^-1*FT^-1
 
                KRATOS_ERROR << "calling HenckyHyperelastic based method with PK2 stress. not implemented" << std::endl;
 
             }
-            else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b=F*FT)
+            else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b=F*FT)
 
                //set working strain measure
-               rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Left);
+               rValues.SetStrainMeasure(ConstitutiveModelData::StrainMeasureType::CauchyGreen_Left);
 
                MatrixType EigenVectors;
                MatrixType EigenValues;
@@ -309,5 +309,3 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_HENCKY_HYPER_ELASTIC_MODEL_H_INCLUDED  defined
-
-

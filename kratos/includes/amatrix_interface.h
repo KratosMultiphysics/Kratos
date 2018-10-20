@@ -448,6 +448,8 @@ template <typename T> AMatrix::TransposeMatrix<T> trans(T& TheMatrix){ return AM
 
 template <typename TExpressionType> using vector_expression = AMatrix::MatrixExpression<TExpressionType,AMatrix::row_major_access>;
 
+template <typename TExpressionType> using MatrixRow = AMatrix::MatrixRow<TExpressionType>;
+
 
 template <typename TDataType>
 class KratosZeroMatrix
@@ -607,6 +609,19 @@ template <typename TExpressionType, std::size_t TCategory>
     return AMatrix::SubVector<TExpressionType>(TheExpression.expression(), From,To - From);
 }
 
+
+	template <typename TExpressionType, std::size_t TCategory>
+	typename TExpressionType::data_type sum(
+		AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
+		using data_type = typename TExpressionType::data_type;
+		auto& the_expression = TheExpression.expression();
+		data_type result = data_type();
+		for (std::size_t i = 0; i < the_expression.size(); ++i) {
+			result += the_expression[i];
+		}
+		return result;
+	}
+
 template <typename TExpressionType, std::size_t TCategory>
     typename TExpressionType::data_type norm_frobenius(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
@@ -618,6 +633,7 @@ template <typename TExpressionType, std::size_t TCategory>
         }
     return std::sqrt(result);
 }
+
 
 	template <typename TDataType>
 	class scalar_matrix

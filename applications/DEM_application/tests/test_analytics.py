@@ -19,7 +19,8 @@ def CreateAndRunObjectInOneOpenMPThread(my_obj):
         initial_number_of_threads = os.environ['OMP_NUM_THREADS']
         omp_utils.SetNumThreads(1)
 
-    my_obj().Run()
+    model = Kratos.Model()
+    my_obj(model).Run()
 
     if "OMP_NUM_THREADS" in os.environ:
         omp_utils.SetNumThreads(int(initial_number_of_threads))
