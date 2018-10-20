@@ -769,9 +769,40 @@ public:
         return GetDof(rDofVariable);
     }
 
+    template<class TVariableType>
+    inline DofType& GetDof(TVariableType const& rDofVariable, int pos) const
+    {
+        typename DofsContainerType::iterator it_begin = mDofs.begin();
+        typename DofsContainerType::iterator it_end = mDofs.end();
+        typename DofsContainerType::iterator it;
+        // If the guess is exact return the guess
+        if(pos < it_end-it_begin) {
+            it = it_begin + pos;
+            if( (it)->GetVariable() == rDofVariable) {
+                return *it;
+            }
+        }
+
+        // Otherwise do a find
+        return GetDof(rDofVariable);
+    }
+
     /** returns the Dof asociated with variable  */
     template<class TVariableType>
     inline DofType& GetDof(TVariableType const& rDofVariable)
+    {
+        typename DofsContainerType::iterator it=mDofs.find(rDofVariable.Key());
+        if ( it!= mDofs.end() ) {
+            return *it;
+        }
+
+        KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : "
+            << rDofVariable.Name() << std::endl;
+    }
+
+    /** returns the Dof asociated with variable  */
+    template<class TVariableType>
+    inline DofType& GetDof(TVariableType const& rDofVariable) const
     {
         typename DofsContainerType::iterator it=mDofs.find(rDofVariable.Key());
         if ( it!= mDofs.end() ) {
@@ -788,9 +819,28 @@ public:
         return mDofs;
     }
 
+    /** returns all of the Dofs  */
+    DofsContainerType& GetDofs() const
+    {
+        return mDofs;
+    }
+
     /** returns a counted pointer to the Dof asociated with variable  */
     template<class TVariableType>
     inline typename DofType::Pointer pGetDof(TVariableType const& rDofVariable)
+    {
+        typename DofsContainerType::iterator it=mDofs.find(rDofVariable.Key());
+        if ( it!= mDofs.end() ) {
+            return *(it.base());
+        }
+
+        KRATOS_ERROR <<  "Not existant DOF in node #" << Id() << " for variable : "
+            << rDofVariable.Name() << std::endl;
+    }
+
+    /** returns a counted pointer to the Dof asociated with variable  */
+    template<class TVariableType>
+    inline typename DofType::Pointer pGetDof(TVariableType const& rDofVariable) const
     {
         typename DofsContainerType::iterator it=mDofs.find(rDofVariable.Key());
         if ( it!= mDofs.end() ) {
