@@ -7,7 +7,6 @@ import KratosMultiphysics
 KratosMultiphysics.CheckRegisteredApplications("ParticleMechanicsApplication")
 
 # Import applications and dependencies
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
 # Importing the base class
@@ -301,7 +300,7 @@ class ParticleMPMSolver(PythonSolver):
             model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
         if self.settings["pressure_dofs"].GetBool():
             # add specific variables for the problem (pressure dofs)
-            model_part.AddNodalSolutionStepVariable(KratosSolid.PRESSURE_REACTION)
+            model_part.AddNodalSolutionStepVariable(KratosParticle.PRESSURE_REACTION)
             model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MPRESSURE)
             model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_PRESSURE)
         if self.settings["time_integration_method"].GetString() == "explicit" :
@@ -367,7 +366,7 @@ class ParticleMPMSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z, model_part)
 
         if self.settings["pressure_dofs"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosSolid.PRESSURE_REACTION, model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosParticle.PRESSURE_REACTION, model_part)
 
     def _set_buffer_size(self):
         current_buffer_size = self.grid_model_part.GetBufferSize()

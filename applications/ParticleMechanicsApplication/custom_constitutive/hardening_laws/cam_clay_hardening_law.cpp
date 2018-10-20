@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/properties.h"
-#include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
 #include "includes/mat_variables.h"
 
 
@@ -31,7 +31,7 @@ namespace Kratos
 //************************************************************************************
 
 CamClayHardeningLaw::CamClayHardeningLaw()
-	:HardeningLaw()
+	:MPMHardeningLaw()
 {
    
 }
@@ -42,7 +42,7 @@ CamClayHardeningLaw::CamClayHardeningLaw()
 
 CamClayHardeningLaw& CamClayHardeningLaw::operator=(CamClayHardeningLaw const& rOther)
 {
-   HardeningLaw::operator=(rOther);
+   MPMHardeningLaw::operator=(rOther);
    return *this;
 }
 
@@ -50,7 +50,7 @@ CamClayHardeningLaw& CamClayHardeningLaw::operator=(CamClayHardeningLaw const& r
 //************************************************************************************
 
 CamClayHardeningLaw::CamClayHardeningLaw(CamClayHardeningLaw const& rOther)
-	:HardeningLaw(rOther)
+	:MPMHardeningLaw(rOther)
 {
 
 }
@@ -84,13 +84,13 @@ double& CamClayHardeningLaw::CalculateHardening(double &rHardening, const double
 
 void CamClayHardeningLaw::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningLaw )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMHardeningLaw )
 
 }
 
 void CamClayHardeningLaw::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningLaw )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMHardeningLaw )
 
 }
 
