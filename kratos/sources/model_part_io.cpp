@@ -3023,30 +3023,37 @@ void ModelPartIO::ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rP
             break;
 
         ReadBlockName(word);
-        if (word == "SubModelPartData")
-            ReadSubModelPartDataBlock(r_sub_model_part);
-        else if (word == "SubModelPartTables")
-            ReadSubModelPartTablesBlock(rMainModelPart, r_sub_model_part);
-        else if (word == "SubModelPartProperties")
+        if (word == "SubModelPartData") {
+            if (mOptions.IsNot(IO::MESH_ONLY)) {
+                ReadSubModelPartDataBlock(r_sub_model_part);
+            } else {
+                EndSection("SubModelPartData");
+            }
+        } else if (word == "SubModelPartTables") {
+            if (mOptions.IsNot(IO::MESH_ONLY)) {
+                ReadSubModelPartTablesBlock(rMainModelPart, r_sub_model_part);
+            } else {
+                EndSection("SubModelPartTables");
+            }
+        } else if (word == "SubModelPartProperties") {
             ReadSubModelPartPropertiesBlock(rMainModelPart, r_sub_model_part);
-        else if (word == "SubModelPartNodes")
+        } else if (word == "SubModelPartNodes") {
             ReadSubModelPartNodesBlock(rMainModelPart, r_sub_model_part);
-        else if (word == "SubModelPartElements")
+        } else if (word == "SubModelPartElements") {
             ReadSubModelPartElementsBlock(rMainModelPart, r_sub_model_part);
-        else if (word == "SubModelPartConditions")
+        } else if (word == "SubModelPartConditions") {
             ReadSubModelPartConditionsBlock(rMainModelPart, r_sub_model_part);
-        // TODO: Add the following blocks. Pooyan.
-        //else if (word == "CommunicatorData")
-        //{
-        //    ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
-        //    //Adding the elements and conditions to the communicator
-        //    rThisModelPart.GetCommunicator().LocalMesh().Elements() = rThisModelPart.Elements();
-        //    rThisModelPart.GetCommunicator().LocalMesh().Conditions() = rThisModelPart.Conditions();
-        //}
-        //else if (word == "Mesh")
-        //    ReadMeshBlock(rThisModelPart);
-        else if (word == "SubModelPart")
+//         TODO: Add the following blocks. Pooyan.
+//         } else if (word == "CommunicatorData") {
+//            ReadCommunicatorDataBlock(rThisModelPart.GetCommunicator(), rThisModelPart.Nodes());
+//            //Adding the elements and conditions to the communicator
+//            rThisModelPart.GetCommunicator().LocalMesh().Elements() = rThisModelPart.Elements();
+//            rThisModelPart.GetCommunicator().LocalMesh().Conditions() = rThisModelPart.Conditions();
+//         } else if (word == "Mesh") {
+//            ReadMeshBlock(rThisModelPart);
+        } else if (word == "SubModelPart") {
             ReadSubModelPartBlock(rMainModelPart, r_sub_model_part);
+        }
     }
 
     KRATOS_CATCH("")

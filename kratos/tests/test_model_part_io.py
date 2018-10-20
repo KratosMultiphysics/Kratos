@@ -279,9 +279,6 @@ class TestModelPartIO(KratosUnittest.TestCase):
             raise Exception("a segmentation fault is issued!!")
             self.fail("a segmentation fault is issued!!")
 
-
-
-
     #def test_model_part_io_properties_block(self):
     #    model_part= current_model.CreateModelPart("Main")
     #    model_part_io = ModelPartIO("test_model_part_io")
