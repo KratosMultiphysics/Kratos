@@ -2,6 +2,11 @@
 
 This application features continuum-based meshfree and particle methods with main motivations of simulating non-linear large deformable materials, such as free-surface flows, geomechanics phenomena, and extreme events involving impact, penetration, fragmentation, blast, multi-phase interaction, failure evolution, etc.
 
+<p align="center">
+  <img src="https://github.com/KratosMultiphysics/Documentation/blob/master/Readme_files/ParticleMechanicsApplication.gif" width="618" height="280"/>
+</p>
+
+
 The recent research and development have been focused solely on the Material Point Method (MPM. However, the implementation of other continuum-based methods, e.g. the Smoothed Particle Hydrodynamics (SPH), the Galerkin Meshfree Method (GMM), etc, is planned to be done within the same application in the future.
 
 ## Getting Started
