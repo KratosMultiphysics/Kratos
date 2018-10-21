@@ -62,8 +62,8 @@ The following features are currently available and subject to development within
     * Implicit - newmark prediction and correction scheme
 
 - Other features:
-    * Particle erase features
-    * Slip arbitrary boundary condition
+    * Particle erase features - to delete particle outside the interest domain
+    * Arbitrary slip boundary condition
 
 ## Available Interfaces
 
