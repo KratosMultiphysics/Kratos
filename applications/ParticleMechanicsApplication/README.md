@@ -2,7 +2,7 @@
 
 This application features continuum-based meshfree and particle methods with main motivations of simulating non-linear large deformable materials, such as free-surface flows, geomechanics phenomena, and extreme events involving impact, penetration, fragmentation, blast, multi-phase interaction, failure evolution, etc.
 
-The recent research and development have been focused on the Material Point Method (MPM), which is a fully Lagrangian particle method that combines the advantages of traditional Eulerian and Lagrangian methods. The implementation of other continuum-based methods, e.g. SPH, MPS, etc, are planned to be done within the same application in the future.
+The recent research and development have been focused solely on the Material Point Method (MPM. However, the implementation of other continuum-based methods, e.g. the Smoothed Particle Hydrodynamics (SPH), the Galerkin Meshfree Method (GMM), etc, is planned to be done within the same application in the future.
 
 ## Getting Started
 
@@ -41,17 +41,17 @@ The following features are currently available and subject to development within
 
 - Solid (background) elements:
     * Updated Lagrangian elements - triangular (2D) and tetrahedral (3D), structured and unstructured
-    * Updated Lagrangian UP elements - triangular (2D) and tetrahedral (3D), with Mixed Variational Methods of displacement and pressure
+    * Updated Lagrangian UP elements - triangular (2D) and tetrahedral (3D), structured and unstructured, with Mixed Variational Methods of displacement and pressure
     * Updated Lagrangian quadrilateral elements - quadrilateral (2D) and hexahedral (3D), structured and unstructured
 
 - Constitutive laws:
     * Linear elastic materials - plane strain, plane stress and 3D
-    * Hyperelastic Neo-Hookean laws - large deformation, plane strain and 3D
+    * Hyperelastic Neo-Hookean laws - finite strain, plane strain and 3D
     * Elasto-plastic laws:
-        * Mohr Coulomb - large deformation, associative and non-associative, plane strain and 3D
-        * Mohr Coulomb with Strain Softening - large deformation, associative and non-associative, plane strain and 3D
+        * Mohr Coulomb - finite strain, associative and non-associative, plane strain and 3D
+        * Mohr Coulomb with Strain Softening - finite strain, associative and non-associative, plane strain and 3D
     * Critical state laws:
-        * Modified Cam-Clay - large deformation, plane strain and 3D
+        * Modified Cam-Clay - finite strain, plane strain and 3D
 
 - Strategies and schemes:
     * Implicit - newmark prediction and correction scheme
