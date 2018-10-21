@@ -26,19 +26,20 @@ class RigidBody(object):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "python_module"   : "rigid_body",
-            "model_part_name" : "RigidBodyDomain",
-            "rigid_body_settings":{
-               "rigid_body_element_type": "TranslatoryRigidElement3D1N",
-               "fixed_body": true,
-               "compute_body_parameters": false,
-               "rigid_body_model_part_name": "RigidBodyDomain",
-               "rigid_body_parameters":{
-                   "center_of_gravity": [0.0 ,0.0, 0.0],
-                   "mass":0.0,
-                   "main_inertias": [0.0, 0.0, 0.0],
-                   "main_axes": [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
-               }
+            "model_part_name": "RigidBodyDomain",
+            "body_parameters":{
+              "element_type": "TranslatoryRigidElement3D1N",
+              "constrained": true,
+              "compute_parameters": false,
+              "center_of_gravity": [0.0 ,0.0, 0.0],
+              "mass":0.0,
+              "main_inertias": [0.0, 0.0, 0.0],
+              "main_axes": [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
+            },
+            "create_links " : false,
+            "link_parameters":{
+              "condition_type": "RigidBodyPointLinkCondition",
+              "flags_list": []
             }
         }
         """)
@@ -54,13 +55,13 @@ class RigidBody(object):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         # construct rigid body // it will contain the array of nodes, array of elements, and the array of conditions
-        self.rigid_body_model_part = self.main_model_part.GetSubModelPart(self.settings["model_part_name"].GetString())
-        self.rigid_body_model_part.Set(KratosMultiphysics.RIGID)
+        self.model_part = self.main_model_part.GetSubModelPart(self.settings["model_part_name"].GetString())
+        self.model_part.Set(KratosMultiphysics.RIGID)
 
-        for node in self.rigid_body_model_part.Nodes:
+        for node in self.model_part.Nodes:
             node.Set(KratosMultiphysics.RIGID,True)
 
-        #for node in self.rigid_body_model_part.Elements:
+        #for node in self.model_part.Elements:
         #    node.Set(KratosMultiphysics.ACTIVE,False)
 
         #check for the bounding box of a compound wall
@@ -77,13 +78,13 @@ class RigidBody(object):
 
         box_parameters = box_settings["parameters_list"][0]
 
-        upper_point = self.GetUpperPoint(self.rigid_body_model_part)
+        upper_point = self._get_upper_point(self.model_part)
         counter = 0
         for i in upper_point:
             box_parameters["upper_point"][counter].SetDouble(i)
             counter+=1
 
-        lower_point = self.GetLowerPoint(self.rigid_body_model_part)
+        lower_point = self._get_lower_point(self.model_part)
         counter = 0
         for i in lower_point:
             box_parameters["lower_point"][counter].SetDouble(i)
@@ -92,15 +93,31 @@ class RigidBody(object):
         self.bounding_box = KratosDelaunay.SpatialBoundingBox(box_settings)
 
         # construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
-        creation_utility = KratosContact.RigidBodyCreationUtility()
-        creation_utility.CreateRigidBodyElement(self.main_model_part, self.bounding_box, self.settings["rigid_body_settings"])
+        self.creation_utility = KratosContact.RigidBodyCreationUtility()
+        
+        self.model_part = self.main_model_part.GetSubModelPart(self.settings["model_part_name"].GetString())
+        self.creation_utility.CreateRigidBody(self.model_part, self.bounding_box, self.settings["body_parameters"])
 
         print(self._class_prefix()+" Ready")
 
     ####
 
+    def ExecuteInitialize(self):
+
+        if self.settings["create_links"]:
+            self.creation_utility.CreateLinks(self.model_part, self.settings["link_parameters"])
+        
     #
-    def GetUpperPoint(self, model_part):
+    def ExecuteInitializeSolutionStep(self):
+        pass
+    #
+    def ExecuteFinalizeSolutionStep(self):
+        pass
+
+    ###
+    
+    #
+    def _get_upper_point(self, model_part):
 
         dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
@@ -122,7 +139,7 @@ class RigidBody(object):
             return [max_x, max_y, max_z]
 
     #
-    def GetLowerPoint(self, model_part):
+    def _get_lower_point(self, model_part):
 
         dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
@@ -142,12 +159,7 @@ class RigidBody(object):
             return [min_x, min_y, 0]
         else:
             return [min_x, min_y, min_z]
-
-    ####
-
-    def Initialize(self):
-        pass
-
+    
     #
     @classmethod
     def _class_prefix(self):

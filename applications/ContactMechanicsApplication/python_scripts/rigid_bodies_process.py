@@ -30,7 +30,7 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.echo_level        = 1
+        self.echo_level = 1
 
         self.Model = Model
 
@@ -47,16 +47,16 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
         for i in range(0,self.number_of_bodies):
             item = bodies_list[i]
             rigid_body_module = __import__(item["python_module"].GetString())
-            body = rigid_body_module.CreateRigidBody( self.main_model_part, item )
+            body = rigid_body_module.CreateRigidBody( self.main_model_part, item["Parameters"] )
             self.rigid_bodies.append(body)
 
         # initialize rigid body domains
         import domain_utilities
         domain_utils = domain_utilities.DomainUtilities()
-        domain_utils.InitializeDomains(self.main_model_part,self.echo_level)
+        domain_utils.InitializeDomains(self.main_model_part, self.echo_level)
 
         for body in self.rigid_bodies:
-            body.Initialize();
+            body.ExecuteInitialize();
 
         print(self._class_prefix()+" Ready")
 
@@ -64,13 +64,13 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
 
     #
     def ExecuteInitializeSolutionStep(self):
-        pass
-
-
+        for body in self.rigid_bodies:
+            body.ExecuteInitializeSolutionStep();
+            
     #
     def ExecuteFinalizeSolutionStep(self):
-        pass
-
+        for body in self.rigid_bodies:
+            body.ExecuteFinalizeSolutionStep();
 
     ###
 
