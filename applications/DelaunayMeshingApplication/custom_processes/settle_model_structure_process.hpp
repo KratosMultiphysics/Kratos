@@ -923,12 +923,12 @@ class SettleModelStructureProcess
 
 
     //Sort
-    // rComputingModelPart.Nodes().Sort();
+    rComputingModelPart.Nodes().Sort();
     // rComputingModelPart.Elements().Sort();
     // rComputingModelPart.Conditions().Sort();
 
     //Unique
-    // rComputingModelPart.Nodes().Unique();
+    rComputingModelPart.Nodes().Unique();
     // rComputingModelPart.Elements().Unique();
     // rComputingModelPart.Conditions().Unique();
 
