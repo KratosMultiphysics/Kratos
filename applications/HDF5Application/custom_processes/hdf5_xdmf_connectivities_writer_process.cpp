@@ -29,9 +29,10 @@ XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(const std::stri
     const int num_points = mpFile->GetDataDimensions(node_ids_path)[0];
     mpFile->ReadDataSet(node_ids_path, node_ids, 0, num_points);
 
+    mKratosToXdmfIdMap.reserve(num_points);
     // Set the parametric coordinate ids.
     for (int i = 0; i < num_points; ++i) {
-        mKratosToXdmfIdMap.insert(IdMapType::value_type(node_ids[i], i));
+        mKratosToXdmfIdMap.insert(IdMapType::value_type(node_ids[i], i)); // TODO check if this entry is already present?
     }
 
     KRATOS_CATCH("");
