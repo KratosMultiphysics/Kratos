@@ -284,7 +284,7 @@ class TemporalInputProcess(KratosMultiphysics.Process):
         time_tag = "-" + fmt.format(self._model_part.ProcessInfo[KratosMultiphysics.TIME])
         return self._time_step_file_name + time_tag + ".h5"
 
-class InitializationFromInputProcess(KratosMultiphysics.Process):
+class InitialInputProcess(KratosMultiphysics.Process):
     """A process to initialize a simulation using an HDF5 output file."""
 
     def __init__(self, model_part, hdf5_file_factory, settings):

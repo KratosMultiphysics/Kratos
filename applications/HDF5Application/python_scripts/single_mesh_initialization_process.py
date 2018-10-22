@@ -26,7 +26,7 @@ def Factory(settings, Model):
     element_data_results_input = hdf5_io.ElementDataValueInput(settings["element_data_value_settings"])
     nodal_data_results_input = hdf5_io.NodalDataValueInput(settings["nodal_data_value_settings"])
 
-    initialization_settings = KratosMultiphysics.Parameters(r'''{}''')
+    initialization_settings = KratosMultiphysics.Parameters()
     initialization_settings.AddEmptyValue("file_name")
     initialization_settings["file_name"].SetString(settings["file_name"].GetString())
 
