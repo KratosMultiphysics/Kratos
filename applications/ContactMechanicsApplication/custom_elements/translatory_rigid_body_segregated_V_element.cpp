@@ -2,7 +2,7 @@
 //   Project Name:        KratosContactMechanicsApplication $
 //   Created by:          $Author:              JMCarbonell $
 //   Last modified by:    $Co-Author:                       $
-//   Date:                $Date:             September 2018 $
+//   Date:                $Date:               October 2018 $
 //   Revision:            $Revision:                    0.0 $
 //
 //
@@ -12,8 +12,10 @@
 // External includes
 
 // Project includes
-#include "custom_elements/rigid_body_segregated_V_element.hpp"
+#include "custom_elements/translatory_rigid_body_segregated_V_element.hpp"
+
 #include "contact_mechanics_application_variables.h"
+
 
 namespace Kratos
 {
@@ -21,69 +23,74 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId,GeometryType::Pointer pGeometry)
-    :RigidBodyElement(NewId, pGeometry)
+TranslatoryRigidBodySegregatedVElement::TranslatoryRigidBodySegregatedVElement(IndexType NewId,GeometryType::Pointer pGeometry)
+    : TranslatoryRigidBodyElement(NewId, pGeometry)
+{
+
+}
+
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
+
+TranslatoryRigidBodySegregatedVElement::TranslatoryRigidBodySegregatedVElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : TranslatoryRigidBodyElement(NewId, pGeometry, pProperties)
 {
 }
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    :RigidBodyElement(NewId, pGeometry, pProperties)
+TranslatoryRigidBodySegregatedVElement::TranslatoryRigidBodySegregatedVElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, NodesContainerType::Pointer pNodes)
+  : TranslatoryRigidBodyElement(NewId, pGeometry, pProperties, pNodes)
 {
 }
 
-//******************************CONSTRUCTOR*******************************************
-//************************************************************************************
-
-RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, NodesContainerType::Pointer pNodes)
-    :RigidBodyElement(NewId, pGeometry, pProperties)
-{
-}
 
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-RigidBodySegregatedVElement::RigidBodySegregatedVElement(RigidBodySegregatedVElement const& rOther)
-    :RigidBodyElement(rOther)
+TranslatoryRigidBodySegregatedVElement::TranslatoryRigidBodySegregatedVElement(TranslatoryRigidBodySegregatedVElement const& rOther)
+    : TranslatoryRigidBodyElement(rOther)
 {
 }
 
 //*********************************CREATE*********************************************
 //************************************************************************************
 
-Element::Pointer RigidBodySegregatedVElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Element::Pointer TranslatoryRigidBodySegregatedVElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-  return Kratos::make_shared<RigidBodySegregatedVElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+  return Kratos::make_shared<TranslatoryRigidBodySegregatedVElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
 //*********************************CLONE**********************************************
 //************************************************************************************
 
-Element::Pointer RigidBodySegregatedVElement::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
+Element::Pointer TranslatoryRigidBodySegregatedVElement::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
 {
-  RigidBodySegregatedVElement NewElement( NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpNodes );
+
+  TranslatoryRigidBodySegregatedVElement NewElement( NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpNodes );
 
   NewElement.mInitialLocalQuaternion = this->mInitialLocalQuaternion;
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
 
-  return Kratos::make_shared<RigidBodySegregatedVElement>(NewElement);
+  return Kratos::make_shared<TranslatoryRigidBodySegregatedVElement>(NewElement);
+
 }
+
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-RigidBodySegregatedVElement::~RigidBodySegregatedVElement()
+TranslatoryRigidBodySegregatedVElement::~TranslatoryRigidBodySegregatedVElement()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
 {
   rElementalDofList.resize(0);
 
@@ -91,21 +98,15 @@ void RigidBodySegregatedVElement::GetDofList(DofsVectorType& rElementalDofList,P
   {
     case VELOCITY_STEP:
       {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
           rElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
           rElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
-          if( dimension == 2 ){
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
-          }
-          else{
+          if( dimension ==3 )
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
-            rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
-          }
         }
         break;
       }
@@ -122,7 +123,7 @@ void RigidBodySegregatedVElement::GetDofList(DofsVectorType& rElementalDofList,P
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
   SizeType dofs_size = this->GetDofsSize();
 
@@ -133,23 +134,20 @@ void RigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult
   {
     case VELOCITY_STEP:
       {
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-        dofs_size = dimension * (dimension + 1) * 0.5;
-        for ( SizeType i = 0; i < number_of_nodes; i++ )
+        const unsigned int number_of_nodes = GetGeometry().size();
+        const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+        unsigned int element_size          = number_of_nodes * ( dimension );
+
+        if ( rResult.size() != element_size )
+          rResult.resize( element_size, false );
+
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-          SizeType index = i * (dofs_size);
+          int index = i * ( dimension );
           rResult[index]   = GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
           rResult[index+1] = GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
-          if( dimension == 2 ){
-            rResult[index+2] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
-          }
-          else{
+          if( dimension ==3 )
             rResult[index+2] = GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
-            rResult[index+3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
-            rResult[index+4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
-            rResult[index+5] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
-          }
         }
         break;
       }
@@ -160,13 +158,14 @@ void RigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult
     default:
       KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
   }
+
 }
 
 
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::GetValuesVector(Vector& rValues, int Step)
+void TranslatoryRigidBodySegregatedVElement::GetValuesVector(Vector& rValues, int Step)
 {
   KRATOS_TRY
 
@@ -174,7 +173,7 @@ void RigidBodySegregatedVElement::GetValuesVector(Vector& rValues, int Step)
   {
     case VELOCITY_STEP:
       {
-        RigidBodyElement::GetValuesVector(rValues, Step);
+        TranslatoryRigidBodyElement::GetValuesVector(rValues, Step);
         break;
       }
     case PRESSURE_STEP:
@@ -188,13 +187,15 @@ void RigidBodySegregatedVElement::GetValuesVector(Vector& rValues, int Step)
       KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
   }
 
-  KRATOS_CATCH("")
+  KRATOS_CATCH( "" )
 }
 
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::GetFirstDerivativesVector(Vector& rValues, int Step)
+//************************************************************************************
+//************************************************************************************
+void TranslatoryRigidBodySegregatedVElement::GetFirstDerivativesVector(Vector& rValues, int Step)
 {
   KRATOS_TRY
 
@@ -202,7 +203,7 @@ void RigidBodySegregatedVElement::GetFirstDerivativesVector(Vector& rValues, int
   {
     case VELOCITY_STEP:
       {
-        RigidBodyElement::GetFirstDerivativesVector(rValues, Step);
+        TranslatoryRigidBodyElement::GetFirstDerivativesVector(rValues, Step);
         break;
       }
     case PRESSURE_STEP:
@@ -222,7 +223,7 @@ void RigidBodySegregatedVElement::GetFirstDerivativesVector(Vector& rValues, int
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::GetSecondDerivativesVector(Vector& rValues, int Step)
+void TranslatoryRigidBodySegregatedVElement::GetSecondDerivativesVector(Vector& rValues, int Step)
 {
   KRATOS_TRY
 
@@ -230,7 +231,7 @@ void RigidBodySegregatedVElement::GetSecondDerivativesVector(Vector& rValues, in
   {
     case VELOCITY_STEP:
       {
-        RigidBodyElement::GetSecondDerivativesVector(rValues, Step);
+        TranslatoryRigidBodyElement::GetSecondDerivativesVector(rValues, Step);
         break;
       }
     case PRESSURE_STEP:
@@ -250,19 +251,19 @@ void RigidBodySegregatedVElement::GetSecondDerivativesVector(Vector& rValues, in
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::Initialize()
+void TranslatoryRigidBodySegregatedVElement::Initialize()
 {
-  KRATOS_TRY
+    KRATOS_TRY
 
-  RigidBodyElement::Initialize();
+    TranslatoryRigidBodyElement::Initialize();
 
-  KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -272,7 +273,7 @@ void RigidBodySegregatedVElement::InitializeSolutionStep(ProcessInfo& rCurrentPr
   {
     case VELOCITY_STEP:
       {
-        RigidBodyElement::InitializeSolutionStep(rCurrentProcessInfo);
+        TranslatoryRigidBodyElement::InitializeSolutionStep(rCurrentProcessInfo);
         break;
       }
     case PRESSURE_STEP:
@@ -286,17 +287,16 @@ void RigidBodySegregatedVElement::InitializeSolutionStep(ProcessInfo& rCurrentPr
   KRATOS_CATCH("")
 }
 
-
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void TranslatoryRigidBodySegregatedVElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
   this->SetProcessInformation(rCurrentProcessInfo);
 
-  RigidBodyElement::InitializeNonLinearIteration(rCurrentProcessInfo);
+  TranslatoryRigidBodyElement::InitializeNonLinearIteration(rCurrentProcessInfo);
 
   KRATOS_CATCH("")
 }
@@ -304,7 +304,7 @@ void RigidBodySegregatedVElement::InitializeNonLinearIteration( ProcessInfo& rCu
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void TranslatoryRigidBodySegregatedVElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -314,7 +314,7 @@ void RigidBodySegregatedVElement::FinalizeNonLinearIteration( ProcessInfo& rCurr
   {
     case VELOCITY_STEP:
       {
-        RigidBodyElement::FinalizeNonLinearIteration(rCurrentProcessInfo);
+        TranslatoryRigidBodyElement::FinalizeNonLinearIteration(rCurrentProcessInfo);
         break;
       }
     case PRESSURE_STEP:
@@ -325,14 +325,13 @@ void RigidBodySegregatedVElement::FinalizeNonLinearIteration( ProcessInfo& rCurr
       KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
   }
 
-
   KRATOS_CATCH("")
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void TranslatoryRigidBodySegregatedVElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -342,7 +341,7 @@ void RigidBodySegregatedVElement::FinalizeSolutionStep( ProcessInfo& rCurrentPro
   {
     case VELOCITY_STEP:
       {
-        RigidBodyElement::FinalizeSolutionStep(rCurrentProcessInfo);
+        TranslatoryRigidBodyElement::FinalizeSolutionStep(rCurrentProcessInfo);
         break;
       }
     case PRESSURE_STEP:
@@ -358,19 +357,18 @@ void RigidBodySegregatedVElement::FinalizeSolutionStep( ProcessInfo& rCurrentPro
   KRATOS_CATCH( "" )
 }
 
-
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                                         ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                                                    ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
   //process information
   this->SetProcessInformation(rCurrentProcessInfo);
 
-  RigidBodyElement::CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
+  TranslatoryRigidBodyElement::CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
 
   KRATOS_CATCH("")
 }
@@ -379,15 +377,15 @@ void RigidBodySegregatedVElement::CalculateRightHandSide(VectorType& rRightHandS
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                                        ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                                                   ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
   //process information
   this->SetProcessInformation(rCurrentProcessInfo);
 
-  RigidBodyElement::CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
+  TranslatoryRigidBodyElement::CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
 
   KRATOS_CATCH("")
 }
@@ -396,16 +394,18 @@ void RigidBodySegregatedVElement::CalculateLeftHandSide(MatrixType& rLeftHandSid
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                                       VectorType& rRightHandSideVector,
-                                                       ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                                                  VectorType& rRightHandSideVector,
+                                                                  ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
   //process information
   this->SetProcessInformation(rCurrentProcessInfo);
 
-  RigidBodyElement::CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+  TranslatoryRigidBodyElement::CalculateLocalSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+
+  //KRATOS_INFO("")<<mStepVariable<<" LHS:"<<rLeftHandSideMatrix<<" RHS:"<<rRightHandSideVector<<std::endl;
 
   KRATOS_CATCH("")
 }
@@ -414,9 +414,9 @@ void RigidBodySegregatedVElement::CalculateLocalSystem(MatrixType& rLeftHandSide
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-                                                                          VectorType& rRightHandSideVector,
-                                                                          ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                                                     VectorType& rRightHandSideVector,
+                                                                                     ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -427,7 +427,69 @@ void RigidBodySegregatedVElement::CalculateSecondDerivativesContributions(Matrix
   {
     case VELOCITY_STEP:
       {
-        RigidBodyElement::CalculateSecondDerivativesContributions(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        TranslatoryRigidBodyElement::CalculateSecondDerivativesContributions(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+  }
+
+  //KRATOS_INFO("")<<mStepVariable<<" 2LHS:"<<rLeftHandSideMatrix<<" 2RHS:"<<rRightHandSideVector<<std::endl;
+
+  KRATOS_CATCH("")
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void TranslatoryRigidBodySegregatedVElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                                                           ProcessInfo& rCurrentProcessInfo)
+{
+  KRATOS_TRY
+
+  //process information
+  this->SetProcessInformation(rCurrentProcessInfo);
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        TranslatoryRigidBodyElement::CalculateSecondDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+  }
+
+
+  KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void TranslatoryRigidBodySegregatedVElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
+                                                                           ProcessInfo& rCurrentProcessInfo)
+{
+  KRATOS_TRY
+
+  //process information
+  this->SetProcessInformation(rCurrentProcessInfo);
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        TranslatoryRigidBodyElement::CalculateSecondDerivativesRHS(rRightHandSideVector, rCurrentProcessInfo);
         break;
       }
     case PRESSURE_STEP:
@@ -441,12 +503,10 @@ void RigidBodySegregatedVElement::CalculateSecondDerivativesContributions(Matrix
   KRATOS_CATCH("")
 }
 
-
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                                                ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -457,7 +517,7 @@ void RigidBodySegregatedVElement::CalculateSecondDerivativesLHS(MatrixType& rLef
   {
     case VELOCITY_STEP:
       {
-        RigidBodyElement::CalculateSecondDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
+        TranslatoryRigidBodyElement::CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
         break;
       }
     case PRESSURE_STEP:
@@ -468,43 +528,15 @@ void RigidBodySegregatedVElement::CalculateSecondDerivativesLHS(MatrixType& rLef
       KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
   }
 
+  //KRATOS_INFO("")<<mStepVariable<<" MassM:"<<rMassMatrix<<std::endl;
 
-  KRATOS_CATCH("")
+  KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-                                                                ProcessInfo& rCurrentProcessInfo)
-{
-  KRATOS_TRY
-
-  //process information
-  this->SetProcessInformation(rCurrentProcessInfo);
-
-  switch(mStepVariable)
-  {
-    case VELOCITY_STEP:
-      {
-        RigidBodyElement::CalculateSecondDerivativesRHS(rRightHandSideVector, rCurrentProcessInfo);
-        break;
-      }
-    case PRESSURE_STEP:
-      {
-        break;
-      }
-    default:
-      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
-  }
-
-  KRATOS_CATCH("")
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodySegregatedVElement::GetTimeIntegrationParameters(double& rP0,double& rP1,double& rP2, const ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::GetTimeIntegrationParameters(double& rP0,double& rP1,double& rP2, const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -519,7 +551,7 @@ void RigidBodySegregatedVElement::GetTimeIntegrationParameters(double& rP0,doubl
 //************************************************************************************
 //************************************************************************************
 
-RigidBodySegregatedVElement::SizeType RigidBodySegregatedVElement::GetDofsSize()
+TranslatoryRigidBodySegregatedVElement::SizeType TranslatoryRigidBodySegregatedVElement::GetDofsSize()
 {
   KRATOS_TRY
 
@@ -528,9 +560,7 @@ RigidBodySegregatedVElement::SizeType RigidBodySegregatedVElement::GetDofsSize()
   {
     case VELOCITY_STEP:
       {
-        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-        const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-        size = number_of_nodes*dimension*(dimension + 1)*0.5; //size for velocity
+        size = TranslatoryRigidBodyElement::GetDofsSize();
         break;
       }
     case PRESSURE_STEP:
@@ -550,7 +580,7 @@ RigidBodySegregatedVElement::SizeType RigidBodySegregatedVElement::GetDofsSize()
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::SetProcessInformation(const ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::SetProcessInformation(const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -562,70 +592,60 @@ void RigidBodySegregatedVElement::SetProcessInformation(const ProcessInfo& rCurr
 //************************************************************************************
 //************************************************************************************
 
-int RigidBodySegregatedVElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int TranslatoryRigidBodySegregatedVElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
-  KRATOS_TRY
+    KRATOS_TRY
 
-  if(GetGeometry().size()!=1)
-  {
-    KRATOS_THROW_ERROR( std::invalid_argument, "This element works only with 1 noded geometry", "")
-  }
+    if(GetGeometry().size()!=1)
+    {
+      KRATOS_THROW_ERROR( std::invalid_argument, "This element works only with 1 noded geometry", "")
+    }
 
-  //verify that the variables are correctly initialized
-  if(VELOCITY.Key() == 0)
-    KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
-  if(DISPLACEMENT.Key() == 0)
-    KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
-  if(ACCELERATION.Key() == 0)
-    KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
-  if(DENSITY.Key() == 0)
-    KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered", "" )
-  if(NODAL_MASS.Key() == 0)
-    KRATOS_THROW_ERROR( std::invalid_argument,"NODAL_MASS has Key zero! (check if the application is correctly registered", "" )
-  if(LOCAL_INERTIA_TENSOR.Key() == 0)
-    KRATOS_THROW_ERROR( std::invalid_argument,"LOCAL_INERTIA_TENSOR has Key zero! (check if the application is correctly registered", "" )
-  if(ROTATION.Key() == 0)
-    KRATOS_THROW_ERROR( std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered", "" )
+    //verify that the variables are correctly initialized
+    if(VELOCITY.Key() == 0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
+    if(DISPLACEMENT.Key() == 0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
+    if(ACCELERATION.Key() == 0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
+    if(DENSITY.Key() == 0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered", "" )
+    if(NODAL_MASS.Key() == 0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"NODAL_MASS has Key zero! (check if the application is correctly registered", "" )
 
-  //verify that the dofs exist
-  for(SizeType i=0; i<this->GetGeometry().size(); i++)
-  {
-    if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
-      KRATOS_THROW_ERROR( std::invalid_argument,"missing variable VELOCITY on node ", this->GetGeometry()[i].Id() )
-    if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false || this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false || this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
-      KRATOS_THROW_ERROR( std::invalid_argument,"missing one of the dofs for the variable VELOCITY on node ", GetGeometry()[i].Id() )
-  }
+    //verify that the dofs exist
+    for(SizeType i=0; i<this->GetGeometry().size(); i++)
+    {
+        if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
+            KRATOS_THROW_ERROR( std::invalid_argument,"missing variable VELOCITY on node ", this->GetGeometry()[i].Id() )
+        if(this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false || this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false || this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
+                KRATOS_THROW_ERROR( std::invalid_argument,"missing one of the dofs for the variable VELOCITY on node ", GetGeometry()[i].Id() )
+    }
 
-  //verify that the area is given by properties
-  if (this->GetProperties().Has(NODAL_MASS)==false)
-  {
-    if( GetValue(NODAL_MASS) == 0.0 )
-      KRATOS_THROW_ERROR( std::logic_error,"NODAL_MASS not provided for this element", this->Id() )
-  }
+    //verify that the area is given by properties
+    if (this->GetProperties().Has(NODAL_MASS)==false)
+    {
+        if( GetValue(NODAL_MASS) == 0.0 )
+            KRATOS_THROW_ERROR( std::logic_error,"NODAL_MASS not provided for this element", this->Id() )
+    }
 
-  //verify that the inertia is given by properties
-  if (this->GetProperties().Has(LOCAL_INERTIA_TENSOR)==false)
-  {
-    if( GetValue(LOCAL_INERTIA_TENSOR)(0,0) == 0.0 )
-      KRATOS_THROW_ERROR( std::logic_error,"LOCAL_INERTIA_TENSOR not provided for this element ", this->Id() )
-  }
+    return 0;
 
-  return 0;
-
-  KRATOS_CATCH("")
+    KRATOS_CATCH("")
 }
+
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::save( Serializer& rSerializer ) const
+void TranslatoryRigidBodySegregatedVElement::save( Serializer& rSerializer ) const
 {
-  KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, RigidBodyElement )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, TranslatoryRigidBodyElement )
 }
 
-void RigidBodySegregatedVElement::load( Serializer& rSerializer )
+void TranslatoryRigidBodySegregatedVElement::load( Serializer& rSerializer )
 {
-  KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, RigidBodyElement )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, TranslatoryRigidBodyElement )
 }
 
 

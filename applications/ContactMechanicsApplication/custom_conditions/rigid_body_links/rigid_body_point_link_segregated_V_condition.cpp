@@ -25,10 +25,6 @@ namespace Kratos
 RigidBodyPointLinkSegregatedVCondition::RigidBodyPointLinkSegregatedVCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : RigidBodyPointLinkCondition(NewId, pGeometry)
 {
-  for ( SizeType i = 0; i < GetGeometry().size(); i++ )
-  {
-    GetGeometry()[i].Set(SLAVE); //Flag to set MASTER_ELEMENTS in that nodes (if is SLAVE, a MASTER is required)
-  }
 }
 
 //***********************************************************************************
@@ -251,8 +247,8 @@ void RigidBodyPointLinkSegregatedVCondition::InitializeSolutionStep( ProcessInfo
 //************************************************************************************
 
 void RigidBodyPointLinkSegregatedVCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
-							VectorType& rRightHandSideVector,
-							ProcessInfo& rCurrentProcessInfo )
+                                                                   VectorType& rRightHandSideVector,
+                                                                   ProcessInfo& rCurrentProcessInfo )
 {
   //process information
   this->SetProcessInformation(rCurrentProcessInfo);
@@ -273,6 +269,9 @@ void RigidBodyPointLinkSegregatedVCondition::CalculateLocalSystem( MatrixType& r
     default:
       KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
   }
+
+  //KRATOS_INFO("")<<mStepVariable<<" LHS:"<<rLeftHandSideMatrix<<" RHS:"<<rRightHandSideVector<<std::endl;
+
 }
 
 //************************************************************************************
@@ -301,6 +300,8 @@ void RigidBodyPointLinkSegregatedVCondition::CalculateSecondDerivativesContribut
     default:
       KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
   }
+
+  //KRATOS_INFO("")<<mStepVariable<<" 2LHS:"<<rLeftHandSideMatrix<<" 2RHS:"<<rRightHandSideVector<<std::endl;
 }
 
 //************************************************************************************
@@ -398,7 +399,7 @@ RigidBodyPointLinkSegregatedVCondition::SizeType RigidBodyPointLinkSegregatedVCo
   {
     case VELOCITY_STEP:
       {
-        RigidBodyPointLinkCondition::GetDofsSize();
+        size = RigidBodyPointLinkCondition::GetDofsSize();
         break;
       }
     case PRESSURE_STEP:

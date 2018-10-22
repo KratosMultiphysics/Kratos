@@ -2,7 +2,7 @@
 //   Project Name:        KratosContactMechanicsApplication $
 //   Created by:          $Author:              JMCarbonell $
 //   Last modified by:    $Co-Author:                       $
-//   Date:                $Date:             September 2018 $
+//   Date:                $Date:               October 2018 $
 //   Revision:            $Revision:                    0.0 $
 //
 //
@@ -42,7 +42,7 @@ namespace Kratos
  */
 
 class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodySegregatedVElement
-    :public RigidBodyElement
+    : public RigidBodyElement
 {
 public:
 
@@ -63,7 +63,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( RigidBodySegregatedVElement );
 
     enum StepType{VELOCITY_STEP = 0, PRESSURE_STEP = 1};
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -166,7 +166,7 @@ public:
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
-    
+
     //************* COMPUTING  METHODS
 
     /**
@@ -283,7 +283,7 @@ protected:
     ///@{
 
     StepType mStepVariable;
-        
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -296,7 +296,7 @@ protected:
      */
     virtual void SetProcessInformation(const ProcessInfo& rCurrentProcessInfo);
 
-    
+
     /**
      * Calculation of the time integration parameters
      */

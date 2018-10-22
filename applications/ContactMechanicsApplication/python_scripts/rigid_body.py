@@ -27,17 +27,19 @@ class RigidBody(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name": "RigidBodyDomain",
-            "body_parameters":{
+            "body_settings":{
               "element_type": "TranslatoryRigidElement3D1N",
               "constrained": true,
               "compute_parameters": false,
-              "center_of_gravity": [0.0 ,0.0, 0.0],
-              "mass":0.0,
-              "main_inertias": [0.0, 0.0, 0.0],
-              "main_axes": [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
+              "body_parameters": {
+                "center_of_gravity": [0.0 ,0.0, 0.0],
+                "mass":0.0,
+                "main_inertias": [0.0, 0.0, 0.0],
+                "main_axes": [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
+              }
             },
-            "create_links " : false,
-            "link_parameters":{
+            "create_links": false,
+            "link_settings":{
               "condition_type": "RigidBodyPointLinkCondition",
               "flags_list": []
             }
@@ -94,9 +96,9 @@ class RigidBody(object):
 
         # construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
         self.creation_utility = KratosContact.RigidBodyCreationUtility()
-        
+
         self.model_part = self.main_model_part.GetSubModelPart(self.settings["model_part_name"].GetString())
-        self.creation_utility.CreateRigidBody(self.model_part, self.bounding_box, self.settings["body_parameters"])
+        self.creation_utility.CreateRigidBody(self.model_part, self.bounding_box, self.settings["body_settings"])
 
         print(self._class_prefix()+" Ready")
 
@@ -104,9 +106,10 @@ class RigidBody(object):
 
     def ExecuteInitialize(self):
 
-        if self.settings["create_links"]:
-            self.creation_utility.CreateLinks(self.model_part, self.settings["link_parameters"])
-        
+        if self.settings["create_links"].GetBool():
+            print(self._class_prefix()+" Create Links")
+            self.creation_utility.CreateLinks(self.model_part, self.settings["link_settings"])
+
     #
     def ExecuteInitializeSolutionStep(self):
         pass
@@ -115,7 +118,7 @@ class RigidBody(object):
         pass
 
     ###
-    
+
     #
     def _get_upper_point(self, model_part):
 
@@ -159,7 +162,7 @@ class RigidBody(object):
             return [min_x, min_y, 0]
         else:
             return [min_x, min_y, min_z]
-    
+
     #
     @classmethod
     def _class_prefix(self):

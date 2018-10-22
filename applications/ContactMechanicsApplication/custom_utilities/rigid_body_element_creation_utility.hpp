@@ -54,7 +54,7 @@ public:
 
     typedef ModelPart::NodeType                   NodeType;
     typedef ModelPart::ElementType             ElementType;
-    typedef ModelPart::ConditionType         ConditionType;  
+    typedef ModelPart::ConditionType         ConditionType;
     typedef ModelPart::PropertiesType       PropertiesType;
     typedef ElementType::GeometryType         GeometryType;
     typedef Point2D<ModelPart::NodeType>       Point2DType;
@@ -95,10 +95,12 @@ public:
                 "element_type": "TranslatoryRigidElement3D1N",
                 "constrained": true,
                 "compute_parameters": false,
-                "center_of_gravity": [0.0 ,0.0, 0.0],
-                "mass": 0.0,
-                "main_inertias": [0.0, 0.0, 0.0],
-                "main_axes": [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
+                "body_parameters":{
+                   "center_of_gravity": [0.0 ,0.0, 0.0],
+                   "mass": 0.0,
+                   "main_inertias": [0.0, 0.0, 0.0],
+                   "main_axes": [ [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
+                }
             }  )" );
 
 
@@ -108,6 +110,8 @@ public:
       bool BodyIsFixed = CustomParameters["constrained"].GetBool();
 
       ModelPart& rMainModelPart = *(rModelPart.GetParentModelPart());
+
+      std::cout<<rMainModelPart<<std::endl;
 
       //create properties for the rigid body
       unsigned int NumberOfProperties = rMainModelPart.NumberOfProperties();
@@ -128,16 +132,18 @@ public:
       }
       else{
 
-    	Mass = CustomParameters["mass"].GetDouble();
+        Parameters BodyParameters = CustomParameters["body_parameters"];
 
-    	unsigned int size = CustomParameters["main_inertias"].size();
+    	Mass = BodyParameters["mass"].GetDouble();
+
+    	unsigned int size = BodyParameters["main_inertias"].size();
 
     	for( unsigned int i=0; i<size; i++ )
     	  {
-    	    Parameters LocalAxesRow = CustomParameters["main_axes"][i];
+    	    Parameters LocalAxesRow = BodyParameters["main_axes"][i];
 
-    	    CenterOfGravity[i]     = CustomParameters["center_of_gravity"][i].GetDouble();
-    	    InertiaTensor(i,i)     = CustomParameters["main_inertias"][i].GetDouble();
+    	    CenterOfGravity[i]     = BodyParameters["center_of_gravity"][i].GetDouble();
+    	    InertiaTensor(i,i)     = BodyParameters["main_inertias"][i].GetDouble();
 
     	    LocalAxesMatrix(0,i)   = LocalAxesRow[0].GetDouble(); //column disposition
     	    LocalAxesMatrix(1,i)   = LocalAxesRow[1].GetDouble();
@@ -160,28 +166,13 @@ public:
       // create node for the rigid body center of gravity:
       unsigned int LastNodeId  = rMainModelPart.Nodes().back().Id() + 1;
 
+      std::cout<<" Node Id "<<LastNodeId<<std::endl;
+
       NodeType::Pointer NodeCenterOfGravity;
       this->CreateNode( NodeCenterOfGravity, rMainModelPart, CenterOfGravity, LastNodeId, BodyIsFixed);
 
       //Set this node to the boundary model_part where it belongs to
       unsigned int RigidBodyNodeId = rModelPart.Nodes().back().Id();
-
-      for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin(); i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
-	{
-
-	  if(i_mp->Is(BOUNDARY)){
-	    std::cout<<" boundary model part "<<i_mp->Name()<<std::endl;
-	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin(); i_node!= i_mp->NodesEnd(); i_node++)
-	      {
-		if( i_node->Id() == RigidBodyNodeId ){
-		  i_mp->AddNode(NodeCenterOfGravity);
-		  std::cout<<" node set "<<std::endl;
-		  break;
-		}
-	      }
-	  }
-
-	}
 
       // set node variables
       NodeCenterOfGravity->GetSolutionStepValue(VOLUME_ACCELERATION) = rModelPart.Nodes().back().GetSolutionStepValue(VOLUME_ACCELERATION);
@@ -198,20 +189,18 @@ public:
 
       std::string ElementName = CustomParameters["element_type"].GetString();
 
-      // always a 3D point
-      GeometryType::Pointer pGeometry = Kratos::make_shared<Point3DType>(NodeCenterOfGravity);
+      // geometry point 2D or 3D type
+      GeometryType::Pointer pGeometry;
+      if(rModelPart.GetProcessInfo()[SPACE_DIMENSION] == 3)
+        pGeometry = Kratos::make_shared<Point3DType>(NodeCenterOfGravity);
+      else if(rModelPart.GetProcessInfo()[SPACE_DIMENSION] == 2)
+        pGeometry = Kratos::make_shared<Point2DType>(NodeCenterOfGravity);
 
       ModelPart::NodesContainerType::Pointer pNodes =  rModelPart.pNodes();
 
       ElementType::Pointer pRigidBodyElement = this->CreateRigidBodyElement(ElementName, LastElementId, pGeometry, pProperties, pNodes);
 
       // set rigid body element constraint and add to solving model part
-      
-      if(BodyIsFixed){
-        pRigidBodyElement->Set(RIGID,true);
-        pRigidBodyElement->Set(ACTIVE,false);
-      }
-
       rModelPart.AddElement(pRigidBodyElement);
       rModelPart.AddNode(NodeCenterOfGravity);
 
@@ -219,17 +208,47 @@ public:
         pRigidBodyElement->Set(RIGID,true);
         pRigidBodyElement->Set(ACTIVE,false);
       }
-      else{
-        //add rigid body element to solving model part:
-        for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin() ; i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
-	{
-          std::cout<<" Add Rigid Body to Solving model part "<<std::endl;
-	  if( (i_mp->Is(ACTIVE)) ){ //computing_domain
-	    pRigidBodyElement->Set(ACTIVE,true);
-	    rMainModelPart.GetSubModelPart(i_mp->Name()).AddElement(pRigidBodyElement);
-	    rMainModelPart.GetSubModelPart(i_mp->Name()).AddNode(NodeCenterOfGravity);
-	  }
-	}
+
+      //add rigid body element node to boundary model part where there is an imposition:
+      for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin(); i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
+      {
+        bool set = false;
+        if(i_mp->Is(BOUNDARY)){
+          for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin(); i_node != i_mp->NodesEnd(); ++i_node)
+          {
+            for(ModelPart::NodesContainerType::iterator j_node = rModelPart.NodesBegin(); j_node != rModelPart.NodesEnd(); ++j_node)
+            {
+              if(i_node->Id() == j_node->Id() || i_node->Id() == RigidBodyNodeId){
+                i_mp->AddNode(NodeCenterOfGravity);
+                std::cout<<"  [ Add CenterOfGravity (node:"<<RigidBodyNodeId<<") to "<<i_mp->Name()<<" ]"<<std::endl;
+                set = true;
+                break;
+              }
+            }
+            if(set)
+              break;
+          }
+        }
+
+      }
+
+      //add rigid body element to solving model part:
+      for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin() ; i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
+      {
+        if( (i_mp->Is(ACTIVE)) ){ //computing_domain
+          std::cout<<"  [ Add Rigid Body to Solving model part ]"<<std::endl;
+          pRigidBodyElement->Set(ACTIVE,true);
+          rMainModelPart.GetSubModelPart(i_mp->Name()).AddElement(pRigidBodyElement);
+          rMainModelPart.GetSubModelPart(i_mp->Name()).AddNode(NodeCenterOfGravity);
+        }
+      }
+
+      WeakPointerVector<Element> MasterElements;
+      MasterElements.push_back(Element::WeakPointer(pRigidBodyElement));
+
+      for(ModelPart::NodesContainerType::iterator j_node = rModelPart.NodesBegin(); j_node != rModelPart.NodesEnd(); ++j_node)
+      {
+        j_node->SetValue(MASTER_ELEMENTS,MasterElements);
       }
 
       std::cout<<"  [ "<<ElementName<<" Created : [NodeId:"<<LastNodeId<<"] [ElementId:"<<LastElementId<<"] CG("<<NodeCenterOfGravity->X()<<","<<NodeCenterOfGravity->Y()<<","<<NodeCenterOfGravity->Z()<<") ]"<<std::endl;
@@ -247,7 +266,7 @@ public:
 
       Parameters DefaultParameters( R"(
             {
-                "condition_type": "RigidBodyPointLinkCondition",
+                "condition_type": "RigidBodyPointLinkCondition3D1N",
                 "flags_list": []
             }  )" );
 
@@ -260,25 +279,47 @@ public:
         TransferFlags.push_back(KratosComponents<Flags>::Get( CustomParameters["flags_list"][i].GetString() ));
       }
 
-      unsigned int LastConditionId = rModelPart.Conditions().back().Id() + 1;
+      ModelPart& rMainModelPart = *(rModelPart.GetParentModelPart());
+
+      unsigned int LastConditionId = rMainModelPart.Conditions().back().Id() + 1;
 
       std::string ConditionName = CustomParameters["condition_type"].GetString();
 
       PropertiesType::Pointer pProperties = rModelPart.pGetProperties(0);
 
+      ModelPart::ConditionsContainerType LinkConditions;
+
+      unsigned int Id = LastConditionId;
       if(nnodes != 0)
       {
         ModelPart::NodesContainerType::iterator it_begin = rModelPart.NodesBegin();
 
-        #pragma omp parallel for
         for(int i = 0; i<nnodes; i++)
         {
           ModelPart::NodesContainerType::iterator it = it_begin + i;
           if (this->MatchTransferFlags(*(it.base()), TransferFlags))
           {
-            GeometryType::Pointer pGeometry = Kratos::make_shared<Point3DType>(*(it.base()));
-            rModelPart.AddCondition(this->CreateRigidBodyLinkCondition(ConditionName, LastConditionId, pGeometry, pProperties));
+            // geometry point 2D or 3D type
+            GeometryType::Pointer pGeometry;
+            if(rModelPart.GetProcessInfo()[SPACE_DIMENSION] == 3)
+              pGeometry = Kratos::make_shared<Point3DType>(*(it.base()));
+            else if(rModelPart.GetProcessInfo()[SPACE_DIMENSION] == 2)
+              pGeometry = Kratos::make_shared<Point2DType>(*(it.base()));
+
+            LinkConditions.push_back(this->CreateRigidBodyLinkCondition(ConditionName, Id, pGeometry, pProperties));
+            ++Id;
           }
+        }
+      }
+
+      // add links to rigid body model part:
+      rModelPart.AddConditions(LinkConditions.begin(),LinkConditions.end());
+
+      // add links to solving model part:
+      for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin() ; i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
+      {
+        if( (i_mp->Is(ACTIVE)) ){ //computing_domain
+          rMainModelPart.GetSubModelPart(i_mp->Name()).AddConditions(LinkConditions.begin(),LinkConditions.end());
         }
       }
 
@@ -384,24 +425,37 @@ private:
     //************************************************************************************
 
     ElementType::Pointer CreateRigidBodyElement(std::string ElementName, unsigned int& rElementId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, ModelPart::NodesContainerType::Pointer pNodes)
-    {         
+    {
       KRATOS_TRY
 
       ElementType::Pointer pRigidBodyElement;
-          
+
       //Rigid Body Element:
       if( ElementName == "RigidBodyElement3D1N" || ElementName == "RigidBodyElement2D1N" ){
-	//std::cout<<" RigidBodyElement "<<std::endl;
+	//std::cout<<" RigidBodyElement "<<rElementId<<std::endl;
     	pRigidBodyElement = Kratos::make_shared<RigidBodyElement>(rElementId, pGeometry, pProperties, pNodes);
       }
       else if( ElementName == "TranslatoryRigidBodyElement3D1N" || ElementName == "TranslatoryRigidBodyElement2D1N"){
-	//std::cout<<" TranslatoryRigidBodyElement "<<std::endl;
+	//std::cout<<" TranslatoryRigidBodyElement "<<rElementId<<std::endl;
 	// return KratosComponents<Element>::Get("TranslatoryRigidBodyElement")
     	pRigidBodyElement = Kratos::make_shared<TranslatoryRigidBodyElement>(rElementId, pGeometry, pProperties, pNodes);
+      }
+      else if( ElementName == "RigidBodySegregatedVElement3D1N" || ElementName == "RigidBodySegregatedVElement2D1N" ){
+	//std::cout<<" RigidBodyElement "<<rElementId<<std::endl;
+    	pRigidBodyElement = Kratos::make_shared<RigidBodySegregatedVElement>(rElementId, pGeometry, pProperties, pNodes);
+      }
+      else if( ElementName == "TranslatoryRigidBodySegregatedVElement3D1N" || ElementName == "TranslatoryRigidBodySegregatedVElement2D1N"){
+	//std::cout<<" TranslatoryRigidBodyElement "<<rElementId<<std::endl;
+	// return KratosComponents<Element>::Get("TranslatoryRigidBodyElement")
+    	pRigidBodyElement = Kratos::make_shared<TranslatoryRigidBodySegregatedVElement>(rElementId, pGeometry, pProperties, pNodes);
       }
       else if( ElementName == "RigidBodyEMCElement3D1N" || ElementName == "RigidBodyEMCElement2D1N" ){
 	//std::cout<<" RigidBodyEMCElement "<<std::endl;
     	//return Kratos::make_shared<RigidBodyEMCElement>(rElementId, pGeometry, pProperties, pNodes);
+        KRATOS_ERROR<<" There is no rigid body element of the type "<<ElementName<<std::endl;
+      }
+      else{
+        KRATOS_ERROR<<" There is no rigid body element of the type "<<ElementName<<std::endl;
       }
 
       // once conventional constructor and registered
@@ -417,7 +471,7 @@ private:
       // rModelPart.CreateNewElement(ElementName,LastElementId, NodeIds, pProperties);
 
       return pRigidBodyElement;
-      
+
       KRATOS_CATCH("")
     }
 
@@ -425,25 +479,28 @@ private:
     //************************************************************************************
 
     ConditionType::Pointer CreateRigidBodyLinkCondition(std::string ConditionName, unsigned int& rConditionId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    {         
+    {
       KRATOS_TRY
 
       ConditionType::Pointer pLinkCondition;
-      
+
       //Rigid Body Point Ling Condition:
       if( ConditionName == "RigidBodyPointLinkCondition3D1N" || ConditionName == "RigidBodyPointLinkCondition2D1N" ){
+        //std::cout<<" Create RigidBodyPointLinkCondition "<<rConditionId<<std::endl;
     	pLinkCondition = Kratos::make_shared<RigidBodyPointLinkCondition>(rConditionId, pGeometry, pProperties);
       }
       else if( ConditionName == "RigidBodyPointLinkSegregatedVCondition3D1N" || ConditionName == "RigidBodyPointLinkSegregatedVCondition2D1N" ){
-
+        //std::cout<<" Create RigidBodyPointLinkSegregatedVCondition "<<rConditionId<<std::endl;
     	pLinkCondition = Kratos::make_shared<RigidBodyPointLinkSegregatedVCondition>(rConditionId, pGeometry, pProperties);
       }
-
+      else{
+        KRATOS_ERROR<<" There is no link condition of the type "<<ConditionName<<std::endl;
+      }
       return pLinkCondition;
-      
+
       KRATOS_CATCH("")
     }
-  
+
     //************************************************************************************
     //************************************************************************************
 
@@ -457,7 +514,6 @@ private:
 	}
 
       return true;
-
     }
 
     //************************************************************************************

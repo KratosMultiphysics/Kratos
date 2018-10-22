@@ -74,8 +74,9 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_CORE
 
 	##elements
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_element.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_segregated_V_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/translatory_rigid_body_segregated_V_element.cpp
 
 	##friction laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_friction/friction_law.cpp

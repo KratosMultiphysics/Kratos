@@ -66,7 +66,7 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         for body in self.rigid_bodies:
             body.ExecuteInitializeSolutionStep();
-            
+
     #
     def ExecuteFinalizeSolutionStep(self):
         for body in self.rigid_bodies:

@@ -165,6 +165,16 @@ public:
      */
     void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
+
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -222,30 +232,34 @@ protected:
     /**
      * Initialize System Matrices
      */
-    virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-                                          VectorType& rRightHandSideVector,
-                                          Flags& rCalculationFlags) override;
+    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+                                  VectorType& rRightHandSideVector,
+                                  Flags& rCalculationFlags) override;
 
 
 
     /**
       * Calculation of the Tangent Intertia Matrix
       */
-    virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
-					   ElementVariables& rVariables) override;
+    void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
+                                   ElementVariables& rVariables) override;
 
     /**
       * Calculation of the Inertial Forces Vector
       */
-    virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
-					   ElementVariables& rVariables) override;
+    void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
+                                   ElementVariables& rVariables) override;
 
 
     /**
       * Update rigid body nodes and positions
       */
-    virtual void UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo) override;
+    void UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * Get element size from the dofs
+     */
+    SizeType GetDofsSize() override;
 
 
     ///@}
@@ -281,9 +295,9 @@ private:
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{
@@ -297,4 +311,3 @@ private:
 
 } // namespace Kratos.
 #endif //  KRATOS_TRANSLATORY_RIGID_BODY_ELEMENT_H_INCLUDED defined
-

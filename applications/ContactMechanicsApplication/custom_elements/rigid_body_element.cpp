@@ -131,7 +131,7 @@ void RigidBodyElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void RigidBodyElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
 
     const SizeType number_of_nodes = GetGeometry().size();
@@ -1257,7 +1257,7 @@ void RigidBodyElement::GetTimeIntegrationParameters(double& rP0,double& rP1,doub
   rP0 = 1.0;
   rP1 = (1.0/ ( DeltaTime * DeltaTime * rCurrentProcessInfo[NEWMARK_BETA] ));
   rP2 = ( DeltaTime * rCurrentProcessInfo[NEWMARK_GAMMA] );
-      
+
   KRATOS_CATCH("")
 }
 
@@ -1712,9 +1712,9 @@ int  RigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size()!=1 )
+    if(GetGeometry().size()!=1)
     {
-      KRATOS_THROW_ERROR( std::invalid_argument, "This element works only in 3D and with 1 noded geometry", "")
+      KRATOS_THROW_ERROR( std::invalid_argument, "This element works only with 1 noded geometry", "")
     }
 
     //verify that the variables are correctly initialized
@@ -1726,8 +1726,6 @@ int  RigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
     if(DENSITY.Key() == 0)
         KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered", "" )
-     if(VOLUME_ACCELERATION.Key() == 0)
-        // KRATOS_THROW_ERROR( std::invalid_argument,"VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered", "" )
     if(NODAL_MASS.Key() == 0)
         KRATOS_THROW_ERROR( std::invalid_argument,"NODAL_MASS has Key zero! (check if the application is correctly registered", "" )
     if(LOCAL_INERTIA_TENSOR.Key() == 0)
@@ -1741,7 +1739,7 @@ int  RigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
         if(this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
             KRATOS_THROW_ERROR( std::invalid_argument,"missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
         if(this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
-            KRATOS_THROW_ERROR( std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
+                KRATOS_THROW_ERROR( std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
     }
 
     //verify that the area is given by properties

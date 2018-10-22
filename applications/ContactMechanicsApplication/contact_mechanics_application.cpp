@@ -33,9 +33,9 @@ namespace Kratos {
     mAxisymContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
     mThermalContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
     mAxisymThermalContactDomainPenaltyCondition2D3N( 0, Kratos::make_shared< Triangle2D3<Node<3> > >( Condition::GeometryType::PointsArrayType(3))),
-    mRigidBodyPointLinkCondition2D1N( 0, Kratos::make_shared< Point3D<Node<3> > >( Condition::GeometryType::PointsArrayType(1))),
+    mRigidBodyPointLinkCondition2D1N( 0, Kratos::make_shared< Point2D<Node<3> > >( Condition::GeometryType::PointsArrayType(1))),
     mRigidBodyPointLinkCondition3D1N( 0, Kratos::make_shared< Point3D<Node<3> > >( Condition::GeometryType::PointsArrayType(1))),
-    mRigidBodyPointLinkSegregatedVCondition2D1N( 0, Kratos::make_shared< Point3D<Node<3> > >( Condition::GeometryType::PointsArrayType(1))),
+    mRigidBodyPointLinkSegregatedVCondition2D1N( 0, Kratos::make_shared< Point2D<Node<3> > >( Condition::GeometryType::PointsArrayType(1))),
     mRigidBodyPointLinkSegregatedVCondition3D1N( 0, Kratos::make_shared< Point3D<Node<3> > >( Condition::GeometryType::PointsArrayType(1)))
 
   {}
@@ -53,8 +53,9 @@ namespace Kratos {
 
       //Register Rigid Bodies
       KRATOS_REGISTER_ELEMENT( "RigidBodyElement", mRigidBodyElement )
-      KRATOS_REGISTER_ELEMENT( "TranslatoryRigidBodyElement", mTranslatoryRigidBodyElement )
       KRATOS_REGISTER_ELEMENT( "RigidBodySegregatedVElement", mRigidBodySegregatedVElement )
+      KRATOS_REGISTER_ELEMENT( "TranslatoryRigidBodyElement", mTranslatoryRigidBodyElement )
+      KRATOS_REGISTER_ELEMENT( "TranslatoryRigidBodySegregatedVElement", mTranslatoryRigidBodySegregatedVElement )
 
       //Register Conditions
       KRATOS_REGISTER_CONDITION( "ContactDomainLMCondition3D4N", mContactDomainLMCondition3D4N )

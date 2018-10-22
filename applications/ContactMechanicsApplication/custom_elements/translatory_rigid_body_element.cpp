@@ -290,7 +290,7 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
     KRATOS_TRY
 
     const ProcessInfo& rCurrentProcessInfo = rVariables.GetProcessInfo();
-    
+
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension );
@@ -355,7 +355,7 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHa
     KRATOS_TRY
 
     const ProcessInfo& rCurrentProcessInfo = rVariables.GetProcessInfo();
-    
+
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize               = number_of_nodes * ( dimension );
@@ -440,14 +440,14 @@ void TranslatoryRigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
 
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize               = number_of_nodes * ( dimension );
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size       = this->GetDofsSize();
 
-    if(rMassMatrix.size1() != MatSize)
-        rMassMatrix.resize (MatSize, MatSize, false);
+    if(rMassMatrix.size1() != dofs_size)
+        rMassMatrix.resize (dofs_size, dofs_size, false);
 
-    rMassMatrix = ZeroMatrix( MatSize, MatSize );
+    rMassMatrix = ZeroMatrix( dofs_size, dofs_size );
 
     // Rigid Body Properties
     RigidBodyProperties RigidBody;
@@ -455,7 +455,7 @@ void TranslatoryRigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
 
     //block m(1,1) of the mass matrix
 
-    MatrixType m11 = ZeroMatrix(3,3);
+    MatrixType m11 = ZeroMatrix(dimension,dimension);
 
     double TotalMass = 0;
     TotalMass = RigidBody.Mass;
@@ -510,6 +510,68 @@ void TranslatoryRigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProc
      KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
+
+TranslatoryRigidBodyElement::SizeType TranslatoryRigidBodyElement::GetDofsSize()
+{
+  KRATOS_TRY
+
+  const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+  const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+
+  SizeType size = number_of_nodes * dimension; //size for velocity
+
+  return size;
+
+  KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+int TranslatoryRigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if(GetGeometry().size()!=1)
+    {
+      KRATOS_THROW_ERROR( std::invalid_argument, "This element works only with 1 noded geometry", "")
+    }
+
+    //verify that the variables are correctly initialized
+    if(VELOCITY.Key() == 0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
+    if(DISPLACEMENT.Key() == 0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
+    if(ACCELERATION.Key() == 0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
+    if(DENSITY.Key() == 0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered", "" )
+    if(NODAL_MASS.Key() == 0)
+        KRATOS_THROW_ERROR( std::invalid_argument,"NODAL_MASS has Key zero! (check if the application is correctly registered", "" )
+
+    //verify that the dofs exist
+    for(SizeType i=0; i<this->GetGeometry().size(); i++)
+    {
+        if(this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
+            KRATOS_THROW_ERROR( std::invalid_argument,"missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
+        if(this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
+                KRATOS_THROW_ERROR( std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
+    }
+
+    //verify that the area is given by properties
+    if (this->GetProperties().Has(NODAL_MASS)==false)
+    {
+        if( GetValue(NODAL_MASS) == 0.0 )
+            KRATOS_THROW_ERROR( std::logic_error,"NODAL_MASS not provided for this element", this->Id() )
+    }
+
+    return 0;
+
+    KRATOS_CATCH("")
+}
 
 //************************************************************************************
 //************************************************************************************
