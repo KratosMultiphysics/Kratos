@@ -137,15 +137,15 @@ void MonolithicWallCondition<TDim,TNumNodes>::CalculateLocalVelocityContribution
 //        ExternalPressure += rGeom[d].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
 //    ExternalPressure *= NodeFactor;
 
-//    array_1d<double,3> Normal = ZeroVector(3);
-//    this->CalculateNormal(Normal);
+//    array_1d<double,3> AreaNormal = ZeroVector(3);
+//    this->CalculateNormal(AreaNormal);
 
 //    unsigned int Row = 0;
 //    for (unsigned int i = 0; i < TNumNodes; i++)
 //    {
 //        Row = i*(TDim+1);
 //        for (unsigned int d = 0; d < TDim; d++)
-//            rRightHandSideVector[Row+d] -= NodeFactor*Normal[d]*ExternalPressure;
+//            rRightHandSideVector[Row+d] -= NodeFactor*AreaNormal[d]*ExternalPressure;
 //    }
 
     this->ApplyNeumannCondition(rDampMatrix,rRightHandSideVector);

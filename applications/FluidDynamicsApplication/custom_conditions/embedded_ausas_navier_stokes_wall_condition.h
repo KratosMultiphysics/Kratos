@@ -813,12 +813,12 @@ protected:
                 face_id,
                 GeometryData::GI_GAUSS_2);
 
-            p_ausas_modified_sh_func->ComputePositiveExteriorFaceNormals(
+            p_ausas_modified_sh_func->ComputePositiveExteriorFaceAreaNormals(
                 rData.pos_face_area_normals,
                 face_id,
                 GeometryData::GI_GAUSS_2);
 
-            p_ausas_modified_sh_func->ComputeNegativeExteriorFaceNormals(
+            p_ausas_modified_sh_func->ComputeNegativeExteriorFaceAreaNormals(
                 rData.neg_face_area_normals,
                 face_id,
                 GeometryData::GI_GAUSS_2);
