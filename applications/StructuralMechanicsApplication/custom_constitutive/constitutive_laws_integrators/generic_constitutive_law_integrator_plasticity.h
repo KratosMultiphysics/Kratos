@@ -232,18 +232,36 @@ class GenericConstitutiveLawIntegratorPlasticity
     {
         array_1d<double, VoigtSize> deviator(6, 0.0);
         array_1d<double, VoigtSize> h_capa(6, 0.0);
-        double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter;
+        double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, equivalent_plastic_strain;
 
-        YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
-        const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
-        CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux, rValues);
-        CalculateGFluxVector(rPredictiveStressVector, deviator, J2, rGflux, rValues);
-        CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor);
-        CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor, rPlasticStrainIncrement, rPlasticDissipation, h_capa, rValues, CharacteristicLength);
-        CalculateEquivalentStressThreshold(rPlasticDissipation, tensile_indicator_factor, compression_indicator_factor, rThreshold, slope, rValues, rPlasticStrain);
+        YieldSurfaceType::CalculateEquivalentStress(
+            rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
+        const double I1 = rPredictiveStressVector[0] +
+                          rPredictiveStressVector[1] +
+                          rPredictiveStressVector[2];
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(
+            rPredictiveStressVector, I1, deviator, J2);
+        CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux,
+                             rValues);
+        CalculateGFluxVector(rPredictiveStressVector, deviator, J2, rGflux,
+                             rValues);
+        CalculateIndicatorsFactors(rPredictiveStressVector,
+                                   tensile_indicator_factor,
+                                   compression_indicator_factor);
+        CalculatePlasticDissipation(
+            rPredictiveStressVector, tensile_indicator_factor,
+            compression_indicator_factor, rPlasticStrainIncrement,
+            rPlasticDissipation, h_capa, rValues, CharacteristicLength);
+        CalculateEquivalentPlasticStrain(
+            rPredictiveStressVector, rUniaxialStress, rPlasticStrain,
+            tensile_indicator_factor, rValues, equivalent_plastic_strain);
+        CalculateEquivalentStressThreshold(
+            rPlasticDissipation, tensile_indicator_factor,
+            compression_indicator_factor, rThreshold, slope, rValues,
+            equivalent_plastic_strain);
         CalculateHardeningParameter(rFflux, slope, h_capa, hardening_parameter);
-        CalculatePlasticDenominator(rFflux, rGflux, rConstitutiveMatrix, hardening_parameter, rPlasticDenominator);
+        CalculatePlasticDenominator(rFflux, rGflux, rConstitutiveMatrix,
+                                    hardening_parameter, rPlasticDenominator);
     }
 
     /**
@@ -413,7 +431,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         double& rEquivalentStressThreshold,
         double& rSlope,
         ConstitutiveLaw::Parameters& rValues,
-        const Vector& rPlasticStrain
+        const double EquivalentPlasticStrain
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -455,7 +473,7 @@ class GenericConstitutiveLawIntegratorPlasticity
                 CalculateEquivalentStressThresholdCurveFittingHardening(
                     PlasticDissipation, TensileIndicatorFactor,
                     CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
-                    rValues, rPlasticStrain);
+                    rValues, EquivalentPlasticStrain);
                 break;
 
                 // Add more cases...
@@ -602,7 +620,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         double& rEquivalentStressThreshold,
         double& rSlope,
         ConstitutiveLaw::Parameters& rValues,
-        const Vector& rPlasticStrain      
+        const double& EquivalentPlasticStrain      
     )
     {
         const Properties mat_props = rValues.GetMaterialProperties();
@@ -643,10 +661,27 @@ class GenericConstitutiveLawIntegratorPlasticity
         int indicator = 0;
         if (PlasticDissipation <= segment_threshold) {
             indicator = 1;
-            
+
         }
 
 
+    }
+
+    /**
+     * @brief This method returns the initial uniaxial stress threshold
+     * @param rThreshold The uniaxial stress threshold
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateEquivalentPlasticStrain(
+        const Vector& rStressVector, 
+        const double UniaxialStress,
+        const Vector& rPlasticStrain,
+        const double r0,
+        ConstitutiveLaw::Parameters& rValues,
+        double& rEquivalentPlasticStrain
+        ) 
+    {
+      // TODO
     }
 
     /**
