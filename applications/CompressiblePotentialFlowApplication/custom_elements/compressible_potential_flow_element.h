@@ -331,6 +331,20 @@ public:
                 break;
             }
 
+        bool lower_face_element = false;
+        int counter = 0;
+        for(unsigned int i=0; i<NumNodes; ++i)
+        {
+            if(GetGeometry()[i].Is(BOUNDARY))
+                counter+=1;
+            
+            if(counter > 1)
+            {
+                lower_face_element = true;
+                break;
+            }
+        }
+
         if(this->IsNot(MARKER))//normal element (non-wake) - eventually an embedded
         {
             if(rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
@@ -496,8 +510,11 @@ public:
 //                 bounded_matrix<double,Dim,Dim> P = IdentityMatrix(Dim,Dim) - nn;
 //                 noalias(tmp) = prod(data.DN_DX,P);
 //                 bounded_matrix<double,NumNodes,NumNodes> tangent_constraint = /*1e3**/data.vol*prod(tmp, trans(data.DN_DX));
-                if(kutta_element == true || this->Is(BOUNDARY))
+                if((kutta_element == true && lower_face_element ==true) || this->Is(BOUNDARY))
                 {
+                    std::cout << "TRAILING EDGE ELEMENT = " << this->Id()  << std::endl;
+                    std::cout << "this->Is(BOUNDARY) = " << this->Is(BOUNDARY)  << std::endl;
+
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)
@@ -513,6 +530,40 @@ public:
                             
                             rLaplacianMatrix(i+NumNodes,j+NumNodes) =  laplacian_negative(i,j); 
                             rLaplacianMatrix(i+NumNodes,j)          =  0.0;
+                        }
+                    }
+
+                    //side1  -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
+                    for(unsigned int i=0; i<NumNodes; ++i)
+                    {
+                        if(data.distances[i]<0)
+                        {
+                            std::cout << "LOWER WAKE NODE = " << GetGeometry()[i].Id()  << std::endl;
+                            for(unsigned int j=0; j<NumNodes; ++j)
+                            {
+                                rLeftHandSideMatrix(i,j)          = lhs_positive(i,j); 
+                                rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j); 
+
+                                rLaplacianMatrix(i,j)          = laplacian_positive(i,j); 
+                                rLaplacianMatrix(i,j+NumNodes) = -laplacian_positive(i,j);
+                            }
+                        }
+                    }
+                    
+                    //side2 -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
+                    for(unsigned int i=0; i<NumNodes; ++i)
+                    {                            
+                        if(data.distances[i]>0)
+                        {   
+                            std::cout << "UPPER WAKE NODE = " << GetGeometry()[i].Id()  << std::endl;
+                            for(unsigned int j=0; j<NumNodes; ++j)
+                            {
+                                rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = lhs_negative(i,j);
+                                //rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j);
+
+                                rLaplacianMatrix(i+NumNodes,j+NumNodes) = laplacian_negative(i,j);
+                                //rLaplacianMatrix(i+NumNodes,j) = -laplacian_negative(i,j);
+                            }
                         }
                     }
                 }
@@ -869,6 +920,24 @@ public:
                 }
 
                 array_1d<double,Dim> vaux = prod(trans(data.DN_DX), data.phis);
+                double vupnorm = inner_prod(vaux,vaux);
+
+                //taking only negative part
+                for (unsigned int i = 0; i < NumNodes; i++)
+                {
+                    if(distances[i] < 0)
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                    else
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                }
+
+                array_1d<double,Dim> vtest = prod(trans(data.DN_DX), data.phis);
+                double vdownnorm = inner_prod(vtest,vtest);
+
+                if( abs(vupnorm - vdownnorm) > 0.1)
+                {
+                   std::cout << "WAKE CONDITION NOT FULFILLED ELEMENT = " << this->Id()  << std::endl; 
+                }
                 
                 for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
             }
@@ -877,9 +946,44 @@ public:
 
             rValues[0] = v;
         }
-        if (rVariable == NORMAL)
+        else if (rVariable == NORMAL)
         {
             rValues[0] = this->GetValue(NORMAL);
+        }
+        else if (rVariable == VELOCITY_LAPLACIAN)
+        {
+            bool active = true;
+            if ((this)->IsDefined(ACTIVE))
+                active = (this)->Is(ACTIVE);
+
+            array_1d<double,3> v = ZeroVector();
+            if(this->Is(MARKER) && active==true)
+            {
+                ElementalData<NumNodes,Dim> data;
+                
+                //calculate shape functions
+                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+                array_1d<double,NumNodes> distances;
+                GetWakeDistances(distances);
+
+                //taking only negative part
+                for (unsigned int i = 0; i < NumNodes; i++)
+                {
+                    if(distances[i] < 0)
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                    else
+                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                }
+
+                array_1d<double,Dim> vaux = prod(trans(data.DN_DX), data.phis);
+                
+                for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
+            }
+
+
+
+            rValues[0] = v;
         }
     }    
 

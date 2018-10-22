@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication
 import KratosMultiphysics.CompressiblePotentialFlowApplication
+import eigen_solver_factory
 KratosMultiphysics.CheckForPreviousImport()
 
 
@@ -38,9 +39,9 @@ class LaplacianSolver:
                     "solver_type": "AMGCL",
                     "max_iteration": 400,
                     "gmres_krylov_space_dimension": 100,
-                    "coarse_enough" : 100000,
+                    "coarse_enough" : 1000,
                     "smoother_type":"ilu0",
-                    "coarsening_type":"aggregation",
+                    "coarsening_type":"ruge_stuben",
                     "krylov_type": "lgmres",
                     "tolerance": 1e-9,
                     "verbosity": 2,
@@ -55,6 +56,42 @@ class LaplacianSolver:
         #construct the linear solvers
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        
+        ##settings for the condition number
+        settings_max = KratosMultiphysics.Parameters("""
+        {
+            "solver_type"             : "power_iteration_highest_eigenvalue_solver",
+            "max_iteration"           : 10000,
+            "tolerance"               : 1e-9,
+            "required_eigen_number"   : 1,
+            "verbosity"               : 0,
+            "linear_solver_settings"  : {
+                "solver_type"             : "SuperLUSolver",
+                "max_iteration"           : 500,
+                "tolerance"               : 1e-9,
+                "scaling"                 : false,
+                "verbosity"               : 0
+            }
+        }
+        """)
+        self.eigen_solver_max = eigen_solver_factory.ConstructSolver(settings_max)
+        settings_min = KratosMultiphysics.Parameters("""
+        {
+            "solver_type"             : "power_iteration_eigenvalue_solver",
+            "max_iteration"           : 10000,
+            "tolerance"               : 1e-9,
+            "required_eigen_number"   : 1,
+            "verbosity"               : 0,
+            "linear_solver_settings"  : {
+                "solver_type"             : "SuperLUSolver",
+                "max_iteration"           : 500,
+                "tolerance"               : 1e-9,
+                "scaling"                 : false,
+                "verbosity"               : 0
+            }
+        }
+        """)
+        self.eigen_solver_min = eigen_solver_factory.ConstructSolver(settings_min)
 
         print("Construction of LaplacianSolver finished")
 
@@ -107,6 +144,12 @@ class LaplacianSolver:
         
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Check()
+        
+        #'''
+        for node in self.main_model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.POSITIVE_FACE_PRESSURE,0)
+            node.SetSolutionStepValue(KratosMultiphysics.NEGATIVE_FACE_PRESSURE,0)
+        #'''    
         
     def ImportModelPart(self):
         
@@ -164,6 +207,14 @@ class LaplacianSolver:
         
     def Solve(self):
         (self.solver).Solve()
+        #'''
+        # Solve condition number
+        condition_number_utility = KratosMultiphysics.ConditionNumberUtility()
+        condition_number = condition_number_utility.GetConditionNumber(self.solver.GetSystemMatrix(), self.eigen_solver_max, self.eigen_solver_min)
+        print('Condition number = {:.6e}'.format(condition_number))
+        condition_number_file = open("condition_number.txt", "a")
+        condition_number_file.write('{0:.6e}\t'.format(condition_number))
+        #'''
 
     #
     def SetEchoLevel(self, level):

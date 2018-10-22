@@ -585,7 +585,14 @@ public:
             pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
             this->SetValue(PRESSURE,rValues[0]);
             pElem->SetValue(NORMAL,this->GetValue(NORMAL));
+            mInitializeWasPerformed = false;
         }
+
+        // void Finalize()
+        // {
+            
+            
+        // }
 
 
 

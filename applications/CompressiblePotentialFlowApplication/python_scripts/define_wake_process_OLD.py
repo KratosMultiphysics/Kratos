@@ -18,8 +18,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             {
                 "mesh_id"                       : 0,
                 "model_part_name"               : "please specify the model part that contains the kutta nodes",
-                "upper_surface_model_part_name" : "please specify the model part that contains the upper surface nodes",
-                "lower_surface_model_part_name" : "please specify the model part that contains the lower surface nodes",
                 "fluid_part_name"               : "MainModelPart",
                 "direction"                     : [1.0,0.0,0.0],
                 "stl_filename"                  : "please specify name of stl file",
@@ -36,7 +34,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         #convert angle to radians
         self.AOArad = self.AOAdeg*pi/180       
  
-        #'''
+        '''
         self.direction = KratosMultiphysics.Vector(3)
         self.direction[0] = settings["direction"][0].GetDouble()*cos(self.AOArad)
         self.direction[2] = settings["direction"][0].GetDouble()*sin(self.AOArad)
@@ -57,8 +55,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         self.kutta_model_part =         Model[settings["model_part_name"].GetString()]
         self.fluid_model_part =         Model[settings["fluid_part_name"].GetString()]
-        self.upper_surface_model_part = Model[settings["upper_surface_model_part_name"].GetString()]
-        self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString()]
+        #self.upper_surface_model_part = Model[settings["upper_surface_model_part_name"].GetString()]
+        #self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString()]
         
         # Neigbour search tool instance
         AvgElemNum = 10
@@ -74,19 +72,10 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         for node in self.kutta_model_part.Nodes:
             node.Set(KratosMultiphysics.STRUCTURE)
             x1 = node.X
-            print('KUTTA NODE X =', x1)
             y1 = node.Y
             z1 = node.Z
             
-        #print('Selecting upper surface nodes...')
-        #for node in self.upper_surface_model_part.Nodes:
-        #    node.SetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.UPPER_SURFACE, 1)
-        print('Selecting lower surface nodes...')
-        for node in self.lower_surface_model_part.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.LOWER_SURFACE, 1)
-        print('Finishied selecting lower surface nodes...')    
-        
-            
+                   
 
         #find wake node in the outflow boundary
         pos = 0    
@@ -95,14 +84,12 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         #compute the distances of the elements of the wake, and decide which ones are wak    
         if(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): #2D case
-            '''
-            self.projection = KratosMultiphysics.Matrix(2,2)
-            self.projection[0,0] = 1.0
-            self.projection[0,1] = 0.0
-            self.projection[1,1] = 1.0
-            self.projection[1,0] = 0.0
-            self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.UPPER_PROJECTION,self.projection)
-            '''
+            #self.projection = KratosMultiphysics.Matrix(2,2)
+            #self.projection[0,0] = 1.0
+            #self.projection[0,1] = 0.0
+            #self.projection[1,1] = 1.0
+            #self.projection[1,0] = 0.0
+            #self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.UPPER_PROJECTION,self.projection)
             
             xn = KratosMultiphysics.Vector(3)
             
@@ -113,10 +100,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             print("wake normal =",self.n)
             
             self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.WAKE_NORMAL,self.n)
-            
-            #for elem in self.fluid_model_part.Elements:
-            #    elem.Set(KratosMultiphysics.MARKER,False)
-            
             for node in self.kutta_model_part.Nodes:
                 x0 = node.X
                 y0 = node.Y
@@ -151,7 +134,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             if(abs(d) < self.epsilon):
                                 d = self.epsilon
                             #if(xn[0] < 0 and xn[1] > 0 and xn[1] < 0.0001):#for high angles of attack
-                            if(xn[0] < 0 and d > 0 and elnode.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.LOWER_SURFACE) == 1):#for high angles of attack (selecting nodes in the lower surface)
+                            if(xn[0] < 0 and d > 0 and d < 0.0003):#for high angles of attack (selecting nodes in the lower surface)
                                 d = -self.epsilon
                                 print(elnode)
                             #    print(elnode.X - x0)
@@ -502,12 +485,5 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     
                     #print(elem.Id, elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))
                 
-    def ExecuteInitializeSolutionStep(self):
+    def ExecuteInitialize(self):
         self.Execute()
-        
-    def ExecuteFinalize(self):
-        print('DESELECTING ELEMENTS')
-        for elem in self.fluid_model_part.Elements:
-            elem.Set(KratosMultiphysics.MARKER,False)
-            
-        
