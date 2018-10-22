@@ -210,7 +210,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         while (iteration <= max_iter) {
             plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
 
-            noalias(plastic_deformation_gradient_increment) = YieldSurfaceType::CalculatePlasticDeformationGradientIncrement(rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re);
+            noalias(plastic_deformation_gradient_increment) = ConstitutiveLawUtilities<VoigtSize>::CalculateExponentialPlasticDeformationGradientIncrement(rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re);
 
             // We check that the increment is not a zero matrix
             if (norm_frobenius(plastic_deformation_gradient_increment) < 1.0e-8) {
