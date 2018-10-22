@@ -30,12 +30,9 @@ XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(const std::stri
     mpFile->ReadDataSet(node_ids_path, node_ids, 0, num_points);
 
     // Set the parametric coordinate ids.
-    mKratosToXdmfIdTable.resize(*(std::max_element(node_ids.begin(), node_ids.end())));
 #pragma omp parallel for
-    for (int i = 0; i < num_points; ++i)
-    {
-        // Here we expect the ids are one-based indices.
-        mKratosToXdmfIdTable(node_ids[i] - 1) = i;
+    for (int i = 0; i < num_points; ++i) {
+        mKratosToXdmfIdMap.insert(IdMapType::value_type(node_ids[i], i));
     }
 
     KRATOS_CATCH("");
@@ -68,13 +65,10 @@ void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivities(const std::string
     xdmf_connectivities.resize(kratos_connectivities.size1(), kratos_connectivities.size2(), false);
 
 #pragma omp parallel for
-    for (int i = 0; i < block_size; ++i)
-    {
-        for (unsigned j = 0; j < kratos_connectivities.size2(); ++j)
-        {
+    for (int i = 0; i < block_size; ++i) {
+        for (unsigned j = 0; j < kratos_connectivities.size2(); ++j) {
             const int kratos_id = kratos_connectivities(i, j);
-            // Here we expect the ids are one-based indices.
-            xdmf_connectivities(i, j) = mKratosToXdmfIdTable(kratos_id - 1);
+            xdmf_connectivities(i, j) = mKratosToXdmfIdMap.at(kratos_id);
         }
     }
 
