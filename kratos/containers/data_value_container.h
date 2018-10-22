@@ -291,6 +291,17 @@ public:
         mData.clear();
     }
 
+    void Merge(const DataValueContainer& rOther)
+    {
+        for (const_iterator i = rOther.mData.begin(); i != rOther.mData.end(); ++i) {
+            bool variable_already_exist = false;
+            for (const_iterator j = mData.begin(); j != mData.end(); ++j) {
+                if (i->first->Key() == j->first->Key()) variable_already_exist = true;
+            }
+            if (!variable_already_exist) mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{
