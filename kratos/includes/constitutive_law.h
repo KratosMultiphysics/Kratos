@@ -1007,7 +1007,7 @@ public:
      * @param rStrainInitial the measure of stress of the given  rStrainVector
      * @param rStrainFinal the measure of stress of the returned rStrainVector
      */
-    Vector& TransformStrains        (Vector& rStrainVector,
+    virtual Vector& TransformStrains (Vector& rStrainVector,
 				     const Matrix &rF,
 				     StrainMeasure rStrainInitial,
 				     StrainMeasure rStrainFinal);

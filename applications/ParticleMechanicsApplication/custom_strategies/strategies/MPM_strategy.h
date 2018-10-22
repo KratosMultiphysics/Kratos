@@ -30,7 +30,6 @@
 #include "includes/element.h"
 
 // Application includes
-#include "solid_mechanics_application.h"
 #include "particle_mechanics_application.h"
 
 // Geometry utilities
