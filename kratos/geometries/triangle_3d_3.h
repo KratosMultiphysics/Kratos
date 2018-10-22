@@ -878,7 +878,7 @@ public:
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
-        ) override
+        ) const override
     {
         return PointLocalCoordinatesImplementation(rResult, rPoint);
     }
@@ -1669,7 +1669,7 @@ private:
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint,
         const bool IsInside = false
-        )
+        ) const
     {
         BoundedMatrix<double, 3, 3> X;
         BoundedMatrix<double, 3, 2> DN;
