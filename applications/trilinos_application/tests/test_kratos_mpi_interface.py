@@ -11,7 +11,7 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
 
         my_value = my_rank # this is an int
 
-        gathered_values = mpi.gather(mpi.world, my_value, rank_to_gather_on)
+        gathered_values = mpi.gather_int(mpi.world, my_value, rank_to_gather_on)
 
         self.assertEqual(type(gathered_values), list)
 
@@ -29,7 +29,7 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
 
         my_value = my_rank+0.5 # this is a double
 
-        gathered_values = mpi.gather(mpi.world, my_value, rank_to_gather_on)
+        gathered_values = mpi.gather_double(mpi.world, my_value, rank_to_gather_on)
 
         self.assertEqual(type(gathered_values), list)
 
@@ -50,7 +50,7 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
         for i in range(my_rank+1):
             local_list.append(i+1.3)
 
-        gathered_lists = mpi.gatherv(mpi.world, local_list, rank_to_gather_on) # this is a list of lists, one from each rank
+        gathered_lists = mpi.gatherv_double(mpi.world, local_list, rank_to_gather_on) # this is a list of lists, one from each rank
 
         self.assertEqual(type(gathered_lists), list)
         for sublist in gathered_lists:
@@ -70,7 +70,7 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
     def test_allgather_int(self):
         my_value = mpi.rank # this is an int
 
-        gathered_values = mpi.allgather(mpi.world, my_value)
+        gathered_values = mpi.allgather_int(mpi.world, my_value)
 
         self.assertEqual(type(gathered_values), list)
 
@@ -82,7 +82,7 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
     def test_allgather_double(self):
         my_value = mpi.rank+0.5 # this is a double
 
-        gathered_values = mpi.allgather(mpi.world, my_value)
+        gathered_values = mpi.allgather_double(mpi.world, my_value)
 
         self.assertEqual(type(gathered_values), list)
 
@@ -164,7 +164,7 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
         val_to_broadcast = (mpi.rank+1)*5
         rank_to_broadcast_from = 0
 
-        broadcasted_value = mpi.broadcast(mpi.world, val_to_broadcast, rank_to_broadcast_from)
+        broadcasted_value = mpi.broadcast_int(mpi.world, val_to_broadcast, rank_to_broadcast_from)
 
         exp_val = (rank_to_broadcast_from+1)*5
 
@@ -174,29 +174,47 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
         val_to_broadcast = (mpi.rank+1)*5.333
         rank_to_broadcast_from = 0
 
-        broadcasted_value = mpi.broadcast(mpi.world, val_to_broadcast, rank_to_broadcast_from)
+        broadcasted_value = mpi.broadcast_double(mpi.world, val_to_broadcast, rank_to_broadcast_from)
 
         exp_val = (rank_to_broadcast_from+1)*5.333
 
         self.assertAlmostEqual(exp_val, broadcasted_value)
 
-    def test_reduce_int_max(self):
+    def test_max_int(self):
         self._execute_reduction_test_int_max(is_allreduce=False)
 
-    def test_allreduce_int_max(self):
+    def test_max_all_int(self):
         self._execute_reduction_test_int_max(is_allreduce=True)
 
-    def test_reduce_int_min(self):
+    def test_min_int(self):
         self._execute_reduction_test_int_min(is_allreduce=False)
 
-    def test_allreduce_int_min(self):
+    def test_min_all_int(self):
         self._execute_reduction_test_int_min(is_allreduce=True)
 
-    def test_reduce_int_sum(self):
+    def test_sum_int(self):
         self._execute_reduction_test_int_sum(is_allreduce=False)
 
-    def test_allreduce_int_sum(self):
+    def test_sum_all_int(self):
         self._execute_reduction_test_int_sum(is_allreduce=True)
+
+    def test_max_double(self):
+        self._execute_reduction_test_double_max(is_allreduce=False)
+
+    def test_max_all_double(self):
+        self._execute_reduction_test_double_max(is_allreduce=True)
+
+    def test_min_double(self):
+        self._execute_reduction_test_double_min(is_allreduce=False)
+
+    def test_min_all_double(self):
+        self._execute_reduction_test_double_min(is_allreduce=True)
+
+    def test_sum_double(self):
+        self._execute_reduction_test_double_sum(is_allreduce=False)
+
+    def test_sum_all_double(self):
+        self._execute_reduction_test_double_sum(is_allreduce=True)
 
     def _execute_reduction_test_int_max(self, is_allreduce):
         my_rank = mpi.rank
@@ -205,9 +223,9 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
         my_value = my_rank + 2 # this is an int
 
         if is_allreduce:
-            max_val = mpi.allreduce(mpi.world, my_value, mpi.MPI_op.MAX)
+            max_val = mpi.max_all_int(mpi.world, my_value)
         else:
-            max_val = mpi.reduce(mpi.world, my_value, rank_to_reduce_on, mpi.MPI_op.MAX)
+            max_val = mpi.max_int(mpi.world, my_value, rank_to_reduce_on)
 
         if is_allreduce or my_rank == rank_to_reduce_on:
             self.assertEqual(mpi.size+1, max_val)
@@ -219,9 +237,9 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
         my_value = my_rank - 2 # this is an int
 
         if is_allreduce:
-            min_val = mpi.allreduce(mpi.world, my_value, mpi.MPI_op.MIN)
+            min_val = mpi.min_all_int(mpi.world, my_value)
         else:
-            min_val = mpi.reduce(mpi.world, my_value, rank_to_reduce_on, mpi.MPI_op.MIN)
+            min_val = mpi.min_int(mpi.world, my_value, rank_to_reduce_on)
 
         if is_allreduce or my_rank == rank_to_reduce_on:
             self.assertEqual(-2, min_val)
@@ -233,14 +251,60 @@ class TestKratosMPIInterface(KratosUnittest.TestCase):
         my_value = my_rank+1 # this is an int
 
         if is_allreduce:
-            sum_val = mpi.allreduce(mpi.world, my_value, mpi.MPI_op.SUM)
+            sum_val = mpi.sum_all_int(mpi.world, my_value)
         else:
-            sum_val = mpi.reduce(mpi.world, my_value, rank_to_reduce_on, mpi.MPI_op.SUM)
+            sum_val = mpi.sum_int(mpi.world, my_value, rank_to_reduce_on)
 
         if is_allreduce or my_rank == rank_to_reduce_on:
             comm_size = mpi.size
             exp_val = int((comm_size)*(comm_size+1)/2)
             self.assertEqual(exp_val, sum_val)
+
+    def _execute_reduction_test_double_max(self, is_allreduce):
+        my_rank = mpi.rank
+        rank_to_reduce_on = 0
+
+        my_value = my_rank + 2.34 # this is a double
+
+        if is_allreduce:
+            max_val = mpi.max_all_double(mpi.world, my_value)
+        else:
+            max_val = mpi.max_double(mpi.world, my_value, rank_to_reduce_on)
+
+        if is_allreduce or my_rank == rank_to_reduce_on:
+            self.assertAlmostEqual(mpi.size+1.34, max_val)
+
+    def _execute_reduction_test_double_min(self, is_allreduce):
+        my_rank = mpi.rank
+        rank_to_reduce_on = 0
+
+        my_value = my_rank - 2.45 # this is a double
+
+        if is_allreduce:
+            min_val = mpi.min_all_double(mpi.world, my_value)
+        else:
+            min_val = mpi.min_double(mpi.world, my_value, rank_to_reduce_on)
+
+        if is_allreduce or my_rank == rank_to_reduce_on:
+            self.assertAlmostEqual(-2.45, min_val)
+
+    def _execute_reduction_test_double_sum(self, is_allreduce):
+        my_rank = mpi.rank
+        rank_to_reduce_on = 0
+
+        offset = 1.932
+
+        my_value = my_rank+offset # this is a double
+
+        if is_allreduce:
+            sum_val = mpi.sum_all_double(mpi.world, my_value)
+        else:
+            sum_val = mpi.sum_double(mpi.world, my_value, rank_to_reduce_on)
+
+        if is_allreduce or my_rank == rank_to_reduce_on:
+            comm_size = mpi.size
+            exp_val = comm_size*(offset + (comm_size-1)/2)
+            self.assertAlmostEqual(exp_val, sum_val)
 
 def DoubleScatterVList(range_list):
     return [(2.125**x)/(2**(x-6)) for x in range_list]

@@ -10,9 +10,12 @@ def GetFilePath(fileName):
 
 
 class TestImporting(KratosUnittest.TestCase):
+
     def test_importing(self):
+        current_model = Model()
+
         #import KratosMultiphysics.FluidDynamicsApplication
-        model_part = ModelPart("Main")
+        model_part= current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(VELOCITY)
 
         model_part.CreateNewNode(1,0.0,0.0,0.0)
@@ -36,6 +39,8 @@ class TestImporting(KratosUnittest.TestCase):
         model_part.Nodes[1].SetSolutionStepValue(VELOCITY_Y,0,2.0)
 
     def test_has_application(self):
+        current_model = Model()
+        
         self.assertTrue(Kernel().IsImported("KratosMultiphysics"))
 
         try:

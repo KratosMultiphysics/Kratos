@@ -1,5 +1,52 @@
 {
     "optimization_settings" : {
+        "model_settings" : {
+            "domain_size"           : 3,
+            "model_part_name"       : "solid_cantilever",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "solid_cantilever"
+            },
+            "design_surface_sub_model_part_name" : "design_surface",
+            "damping" : {
+                "apply_damping" : true,
+                "damping_regions" : [{
+                    "sub_model_part_name"   : "tip_face",
+                    "damp_X"                : true,
+                    "damp_Y"                : false,
+                    "damp_Z"                : false,
+                    "damping_function_type" : "cosine",
+                    "damping_radius"        : 0.06
+                },{
+                    "sub_model_part_name"   : "DISPLACEMENT_fixed_support",
+                    "damp_X"                : true,
+                    "damp_Y"                : false,
+                    "damp_Z"                : false,
+                    "damping_function_type" : "cosine",
+                    "damping_radius"        : 0.06
+                }]
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : true,
+                "solver_settings" : {
+                    "solver_type": "mesh_solver_structural_similarity",
+                    "model_part_name"    : "solid_cantilever",
+                    "model_import_settings"              : {
+                        "input_type"     : "use_input_model_part"
+                    },
+                    "time_stepping" : {
+                        "time_step"       : 1.0
+                    },
+                    "domain_size"     : 3,
+                    "mesh_motion_linear_solver_settings"  : {
+                        "solver_type" : "Super_LU",
+                        "scaling"     : false,
+                        "verbosity"   : 0
+                    },
+                    "compute_reactions"     : true
+                }
+            }
+        },
         "objectives" : [{
             "identifier" : "eigenfrequency",
             "type"       : "maximization",
@@ -26,9 +73,9 @@
                 "material_import_settings" :{
                    "materials_filename": "materials.json"
                 },
+                "model_part_name" : "solid_cantilever",
                 "model_import_settings"              : {
-                    "input_type"     : "use_input_model_part",
-                    "input_filename" : "solid_cantilever"
+                    "input_type"     : "use_input_model_part"
                 },
                 "gradient_mode"          : "finite_differencing",
                 "step_size"              : 1e-8,
@@ -38,48 +85,11 @@
         }],
         "design_variables" : {
             "type"                               : "vertex_morphing",
-            "optimization_model_part_name"       : "solid_cantilever",
-            "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 0.2,
                 "max_nodes_in_filter_radius" : 10000,
                 "matrix_free_filtering"      : true
-            },
-            "mesh_motion" : {
-                "apply_mesh_solver" : true,
-                "solver_settings" : {
-                    "solver_type": "mesh_solver_structural_similarity",
-                    "model_import_settings"              : {
-                        "input_type"     : "use_input_model_part",
-                        "input_filename" : "solid_cantilever"
-                    },
-                    "mesh_motion_linear_solver_settings"  : {
-                        "solver_type" : "Super_LU",
-                        "scaling"     : false,
-                        "verbosity"   : 0
-                    },
-                    "compute_reactions"     : true
-                }
-            },
-            "damping" : {
-                "perform_damping" : true,
-                "damping_regions" : [{
-                    "sub_model_part_name"   : "tip_face",
-                    "damp_X"                : true,
-                    "damp_Y"                : false,
-                    "damp_Z"                : false,
-                    "damping_function_type" : "cosine",
-                    "damping_radius"        : 0.06
-                },{
-                    "sub_model_part_name"   : "DISPLACEMENT_fixed_support",
-                    "damp_X"                : true,
-                    "damp_Y"                : false,
-                    "damp_Z"                : false,
-                    "damping_function_type" : "cosine",
-                    "damping_radius"        : 0.06
-                }]
             }
         },
         "optimization_algorithm" : {
@@ -106,15 +116,7 @@
                                           "SHAPE_UPDATE",
                                           "SHAPE_CHANGE" ],
             "output_format" : {
-                "name"              : "gid",
-                "gid_configuration" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary"
-                        },
-                        "output_frequency"    : 1.0
-                    }
-                }
+                "name": "gid"
             }
         }
     }

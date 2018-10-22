@@ -25,8 +25,7 @@ class KratosInternalAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
     def __init__( self, optimization_settings, model_part_controller ):
         self.model_part_controller = model_part_controller
 
-        analysis_mdpa = model_part_controller.GetOptimizationModelPart()
-        self.response_function_list = response_function_factory.CreateListOfResponseFunctions(optimization_settings, analysis_mdpa)
+        self.response_function_list = response_function_factory.CreateListOfResponseFunctions(optimization_settings, self.model_part_controller.GetModel())
 
     # --------------------------------------------------------------------------
     def InitializeBeforeOptimizationLoop( self ):

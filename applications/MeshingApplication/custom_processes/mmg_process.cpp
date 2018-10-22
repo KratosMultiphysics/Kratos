@@ -23,6 +23,7 @@
 
 // Project includes
 #include "custom_processes/mmg_process.h"
+#include "containers/model.h"
 #include "utilities/sub_model_parts_list_utility.h"
 #include "utilities/variable_utils.h"
 // We indlude the internal variable interpolation process
@@ -546,8 +547,8 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
     }
 
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
-
-    ModelPart r_old_model_part;
+    Model& owner_model = mrThisModelPart.GetOwnerModel();
+    ModelPart& r_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
 
     // First we empty the model part
     NodesArrayType& nodes_array = mrThisModelPart.Nodes();
@@ -812,6 +813,9 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
         InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(r_old_model_part, mrThisModelPart, mThisParameters["internal_variables_parameters"]);
         InternalVariablesInterpolation.Execute();
     }
+
+    // We remove the auxiliar old model part
+    owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");
 }
 
 /***********************************************************************************/
@@ -2799,7 +2803,9 @@ void MmgProcess<TMMGLibray>::AssignAndClearAuxiliarSubModelPartForFlags()
 template<MMGLibray TMMGLibray>
 void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
 {
-    ModelPart auxiliar_model_part("auxiliar_thing");
+    Model& owner_model = mrThisModelPart.GetOwnerModel();
+    ModelPart& auxiliar_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Auxiliar", mrThisModelPart.GetBufferSize());
+    ModelPart& copy_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old_Copy", mrThisModelPart.GetBufferSize());
 
     Properties::Pointer p_prop_1 = auxiliar_model_part.pGetProperties(1);
     Properties::Pointer p_prop_2 = auxiliar_model_part.pGetProperties(2);
@@ -2818,7 +2824,6 @@ void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModel
         it_elem->SetProperties(p_prop_1);
     }
     // Old model part
-    ModelPart copy_old_model_part("old_model_part_copy");
     FastTransferBetweenModelPartsProcess transfer_process_old = FastTransferBetweenModelPartsProcess(copy_old_model_part, rOldModelPart, FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS);
     transfer_process_current.Set(MODIFIED); // We replicate, not transfer
     transfer_process_old.Execute();
@@ -2854,6 +2859,10 @@ void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModel
     gid_io.WriteMesh(auxiliar_model_part.GetMesh());
     gid_io.FinalizeMesh();
     gid_io.InitializeResults(label, auxiliar_model_part.GetMesh());
+
+    // Remove auxiliar model parts
+    owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Auxiliar");
+    owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old_Copy");
 }
 
 /***********************************************************************************/
