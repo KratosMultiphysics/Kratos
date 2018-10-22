@@ -6,7 +6,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 from KratosMultiphysics.KratosUnittest import TestCase
 from gid_output_process import GiDOutputProcess
 import mapper_factory as mapper_factory
-import csv, math
+import math
 
 # =======================================================================================================
 # Auxiliary functions
