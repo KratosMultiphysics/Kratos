@@ -167,6 +167,8 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(NODAL_MEAN_MESH_SIZE);
     KRATOS_REGISTER_VARIABLE(NODAL_FREESURFACE_AREA);
 
+    KRATOS_REGISTER_VARIABLE(FLUID_FRACTION_OLD);
+
     //Register Elements
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitElement2D",mTwoStepUpdatedLagrangianVPImplicitElement2D);
     KRATOS_REGISTER_ELEMENT("TwoStepUpdatedLagrangianVPImplicitElement2Dquadratic",mTwoStepUpdatedLagrangianVPImplicitElement2Dquadratic);
