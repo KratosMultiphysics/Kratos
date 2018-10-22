@@ -46,16 +46,43 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Computes NODAL_H
-/** FindNodalHProcess
- * Calculate the NODAL_H for all the nodes by means of the element sides minimum length
-*/
+/**
+ * @brief This struct is used in order to identify when using the hitorical and non historical variables
+ */
+struct FindNodalH
+{
+    // Defining clearer options
+    constexpr static bool SaveAsHistoricalVariable = true;
+    constexpr static bool SaveAsNonHistoricalVariable = false;
+};
 
-class KRATOS_API(KRATOS_CORE) FindNodalHProcess : public Process
+/** 
+ * @class FindNodalHProcess
+ * @ingroup KratosCore 
+ * @brief Computes NODAL_H
+ * @details Calculate the NODAL_H for all the nodes by means of the element sides minimum length
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ */
+template<bool THistorical = true>
+class KRATOS_API(KRATOS_CORE) FindNodalHProcess 
+    : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    /// Index type definition
+    typedef std::size_t IndexType;
+    
+    /// Size type definition
+    typedef std::size_t SizeType;
+    
+    /// The definition of the node
+    typedef Node<3> NodeType;
+    
+    /// The definition of the node iterator
+    typedef ModelPart::NodeIterator NodeIterator;
 
     /// Pointer definition of FindNodalHProcess
     KRATOS_CLASS_POINTER_DEFINITION(FindNodalHProcess);
@@ -177,8 +204,7 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrModelPart;
-    double mMinH;
+    ModelPart& mrModelPart;  /// The model part were to compute the NODAL_H
 
     ///@}
     ///@name Private Operators
@@ -188,6 +214,28 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method gets the current value of the NODAL_H
+     * @param rNode The node iterator to be get
+     * @return The current value of NODAL_H
+     */
+    double& GetHValue(NodeType& rNode);
+    
+    /**
+     * @brief This method sets the current value of the NODAL_H to the given one
+     * @param rNode The node iterator to be get
+     * @param Value The current value of NODAL_H
+     */
+    void SetHValue(
+        NodeType& rNode,
+        const double Value
+        );
+    
+    /**
+     * @brief This method sets the current value of the NODAL_H to the maximum
+     * @param itNode The node iterator to be set
+     */
+    void SetInitialValue(NodeIterator itNode);
 
     ///@}
     ///@name Private  Access
@@ -226,12 +274,14 @@ private:
 
 
 /// input stream function
+template<bool THistorical>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  FindNodalHProcess& rThis);
+                                  FindNodalHProcess<THistorical>& rThis);
 
 /// output stream function
+template<bool THistorical>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const FindNodalHProcess& rThis)
+                                  const FindNodalHProcess<THistorical>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

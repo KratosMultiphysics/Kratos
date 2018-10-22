@@ -1,6 +1,6 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
@@ -10,7 +10,7 @@
 //  Main authors:    Nelson Lafontaine
 //                   Jordi Cotela Dalmau
 //                   Riccardo Rossi
-//    Co-authors:    Vicente Mataix Ferrándiz
+//    Co-authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -45,14 +45,14 @@ namespace Kratos
 
         PointerVector< Element > New_Elements;
 	New_Elements.reserve(20);
-	
+
 	// Initial renumber of nodes and elemetns
 	unsigned int id = 1;
         for (ModelPart::NodesContainerType::iterator it = mModelPart.NodesBegin(); it != mModelPart.NodesEnd(); it++)
 	{
 	  it->SetId(id++);
 	}
-	
+
 	id = 1;
         for (ModelPart::ElementsContainerType::iterator it = mModelPart.ElementsBegin(); it != mModelPart.ElementsEnd(); it++)
 	{
@@ -64,7 +64,7 @@ namespace Kratos
 	{
 	  it->SetId(id++);
 	}
-	
+
         if (refine_on_reference == true)
         {
             for (ModelPart::NodesContainerType::iterator it = mModelPart.NodesBegin(); it != mModelPart.NodesEnd(); it++)
@@ -92,7 +92,7 @@ namespace Kratos
 
         RenumeringElementsAndNodes(mModelPart, New_Elements);
 
-        
+
         if (refine_on_reference == true)
         {
             for (ModelPart::NodesContainerType::iterator it = mModelPart.NodesBegin(); it != mModelPart.NodesEnd(); it++)
@@ -108,17 +108,17 @@ namespace Kratos
 
         KRATOS_CATCH("");
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     void LocalRefineGeometryMesh::CSRRowMatrix(
             ModelPart& this_model_part,
             compressed_matrix<int>& Coord
     )
     {
         KRATOS_TRY;
-	
+
         NodesArrayType& pNodes = this_model_part.Nodes();
         NodesArrayType::iterator it_begin = pNodes.ptr_begin();
         NodesArrayType::iterator it_end   = pNodes.ptr_end();
@@ -148,20 +148,20 @@ namespace Kratos
                 Coord.push_back(index_i, aux[k], -1);
             }
         }
-        
+
         KRATOS_CATCH("");
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     void LocalRefineGeometryMesh::SearchEdgeToBeRefined(
             ModelPart& this_model_part,
             compressed_matrix<int>& Coord
     )
     {
         KRATOS_TRY;
-	
+
         ElementsArrayType& rElements = this_model_part.Elements();
         ElementsArrayType::iterator it_begin = rElements.ptr_begin();
         ElementsArrayType::iterator it_end   = rElements.ptr_end();
@@ -185,13 +185,13 @@ namespace Kratos
                 }
             }
         }
-        
+
         KRATOS_CATCH("");
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     void LocalRefineGeometryMesh::CreateListOfNewNodes(
             ModelPart& this_model_part,
             compressed_matrix<int>& Coord,
@@ -200,7 +200,7 @@ namespace Kratos
     )
     {
         KRATOS_TRY;
-	
+
         unsigned int number_of_new_nodes = 0;
 
         NodesArrayType& pNodes = this_model_part.Nodes();
@@ -243,13 +243,13 @@ namespace Kratos
                 }
             }
         }
-        
+
         KRATOS_CATCH("");
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     void LocalRefineGeometryMesh::CalculateCoordinateAndInsertNewNodes(
             ModelPart& this_model_part,
             const boost::numeric::ublas::vector<array_1d<int, 2 > >& Position_Node,
@@ -257,7 +257,7 @@ namespace Kratos
     )
     {
 	KRATOS_TRY;
-	
+
         array_1d<double, 3 > Coord_Node_1;
         array_1d<double, 3 > Coord_Node_2;
         boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node;
@@ -276,20 +276,20 @@ namespace Kratos
             /* Calculating the coordinate of the news nodes */
             const int& node_i = Position_Node[i][0];
             const int& node_j = Position_Node[i][1];
-	    
+
             auto& it_node1 = aux_node_list[node_i];
             auto& it_node2 = aux_node_list[node_j];
-            
+
 // //             ModelPart::NodesContainerType::iterator it_node1 = this_model_part.Nodes().find(node_i);
 //             std::size_t pos1 = it_node1 - this_model_part.NodesBegin();
             noalias(Coord_Node_1) = it_node1->Coordinates();
-	    
+
 // //             ModelPart::NodesContainerType::iterator it_node2 = this_model_part.Nodes().find(node_j);
 //             std::size_t pos2 = it_node2 - this_model_part.NodesBegin();
             noalias(Coord_Node_2) = it_node2->Coordinates();
-	    
+
             noalias(Coordinate_New_Node[i]) = 0.50 * (Coord_Node_1 + Coord_Node_2);
-            
+
             /* Inserting the news node in the model part */
             Node < 3 >::Pointer pnode = Node < 3 >::Pointer(new Node < 3 >(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]));
             pnode->SetSolutionStepVariablesList( this_model_part.NodesBegin()->pGetVariablesList() );
@@ -305,14 +305,14 @@ namespace Kratos
             pnode->X0() = 0.5 * (it_node1->X0() + it_node2->X0());
             pnode->Y0() = 0.5 * (it_node1->Y0() + it_node2->Y0());
             pnode->Z0() = 0.5 * (it_node1->Z0() + it_node2->Z0());
-            
+
 //             KRATOS_WATCH(__LINE__)
 
             for (auto iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
             {
                 Node < 3 > ::DofType& rDof = *iii;
                 Node < 3 > ::DofType::Pointer p_new_dof = pnode->pAddDof(rDof);
-		
+
                 if (it_node1->IsFixed(iii->GetVariable()) == true && it_node2->IsFixed(iii->GetVariable()) == true)
                 {
                     (p_new_dof)->FixDof();
@@ -330,7 +330,7 @@ namespace Kratos
                 double* new_step_data = pnode->SolutionStepData().Data(step);
                 double* step_data1 = it_node1->SolutionStepData().Data(step);
                 double* step_data2 = it_node2->SolutionStepData().Data(step);
-		
+
                 // Copying this data in the position of the vector we are interested in
                 for (unsigned int j = 0; j < step_data_size; j++)
                 {
@@ -338,25 +338,25 @@ namespace Kratos
                 }
             }
 //             KRATOS_WATCH(__LINE__)
-        
+
             aux_node_list[pnode->Id()] = pnode;
             //this_model_part.Nodes().push_back(pnode);
         }
-        
+
         this_model_part.Nodes().clear();
         this_model_part.Nodes().reserve(aux_node_list.size());
         for(auto & it : aux_node_list)
             this_model_part.Nodes().push_back(it.second);
-        
-        
+
+
         this_model_part.Nodes().Sort();
-	
+
 	KRATOS_CATCH("");
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     void LocalRefineGeometryMesh::EraseOldElementAndCreateNewElement(
             ModelPart& this_model_part,
             const compressed_matrix<int>& Coord,
@@ -365,30 +365,30 @@ namespace Kratos
 									     )
     {
       KRATOS_TRY;
-    
+
       KRATOS_THROW_ERROR( std::logic_error, "Called the virtual function of LocalRefineGeometryMesh for EraseOldElementAndCreateNewElement", "" );
-    
+
       KRATOS_CATCH( "" );
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     void LocalRefineGeometryMesh::EraseOldConditionsAndCreateNew(
             ModelPart& this_model_part,
             const compressed_matrix<int>& Coord
 	 )
     {
       KRATOS_TRY;
-    
+
       KRATOS_THROW_ERROR( std::logic_error, "Called the virtual function of LocalRefineGeometryMesh for EraseOldConditionsAndCreateNew", "" );
-    
+
       KRATOS_CATCH( "" );
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     void LocalRefineGeometryMesh::CalculateEdges(
             Element::GeometryType& geom,
             const compressed_matrix<int>& Coord,
@@ -397,23 +397,23 @@ namespace Kratos
             )
     {
       KRATOS_TRY;
-    
+
       KRATOS_THROW_ERROR( std::logic_error, "Called the virtual function of LocalRefineGeometryMesh for CalculateEdges", "" );
-    
+
       KRATOS_CATCH( "" );
-    
+
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     void LocalRefineGeometryMesh::RenumeringElementsAndNodes(
             ModelPart& this_model_part,
             PointerVector< Element >& New_Elements
     )
     {
         KRATOS_TRY;
-	
+
         unsigned int id_node = 1;
         unsigned int id_elem = 1;
         NodesArrayType& pNodes = this_model_part.Nodes();
@@ -441,16 +441,16 @@ namespace Kratos
             }
             id_elem++;
         }
-        
+
         KRATOS_CATCH("");
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     inline void LocalRefineGeometryMesh::CreatePartition(
-      unsigned int number_of_threads, 
-      const int number_of_rows, 
+      unsigned int number_of_threads,
+      const int number_of_rows,
       vector<unsigned int>& partitions
     )
     {
@@ -463,10 +463,10 @@ namespace Kratos
             partitions[i] = partitions[i - 1] + partition_size;
         }
     }
-    
+
     /***********************************************************************************/
     /***********************************************************************************/
-    
+
     void LocalRefineGeometryMesh::InterpolateInteralVariables(
             const int& number_elem,
             const Element::Pointer father_elem,

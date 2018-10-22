@@ -14,6 +14,8 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/model_part.h"
+#include "containers/model.h"
+
 
 namespace Kratos {
     namespace Testing {
@@ -25,7 +27,8 @@ namespace Kratos {
         */
         KRATOS_TEST_CASE_IN_SUITE(ConditionCloneOperator, KratosCoreFastSuite)
         {
-            ModelPart model_part("test");
+            Model current_model;
+            ModelPart& model_part = current_model.CreateModelPart("test");
 
             // Definition of nodes
             auto p_node1 = model_part.CreateNewNode(1, 1.0, 0.0, 0.0);

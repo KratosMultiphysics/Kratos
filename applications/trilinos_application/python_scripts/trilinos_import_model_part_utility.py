@@ -88,6 +88,9 @@ class TrilinosImportModelPartUtility():
 
             RestartUtility(self.main_model_part, restart_settings).LoadRestart()
 
+        elif input_type == "use_input_model_part":
+            pass
+
         else:
             raise Exception("Other input options are not yet implemented.")
 

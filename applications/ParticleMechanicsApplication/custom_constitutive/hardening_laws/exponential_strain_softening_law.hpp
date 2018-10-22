@@ -10,17 +10,16 @@
 //  Main authors:    Bodhinanda Chandra
 //
 
+
 #if !defined(KRATOS_EXPONENTIAL_STRAIN_SOFTENING_LAW_H_INCLUDED )
 #define  KRATOS_EXPONENTIAL_STRAIN_SOFTENING_LAW_H_INCLUDED
-
-
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
+#include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -50,7 +49,7 @@ namespace Kratos
 /** Detail class definition.
 */
 class ExponentialStrainSofteningLaw 
-        : public HardeningLaw 
+        : public MPMHardeningLaw 
 {
 public:
 

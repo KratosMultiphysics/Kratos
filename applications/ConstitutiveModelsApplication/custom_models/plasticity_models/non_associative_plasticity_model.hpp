@@ -322,7 +322,7 @@ namespace Kratos
 	       Matrix ExtraMatrix(6,6);
 	       noalias(ExtraMatrix)= ZeroMatrix(6,6);
                MatrixType Identity;
-	       noalias(Identity) = identity_matrix<double>(3);
+	       noalias(Identity) = IdentityMatrix(3);
 
                unsigned int indexi, indexj;
                for (unsigned int i = 0; i < 3; i++) {
@@ -798,10 +798,10 @@ namespace Kratos
 
                MatrixType DeformationGradientReference;
                MatrixType DeformationGradientFinal;
-               MatrixType IdentityMatrix = identity_matrix<double>(3);
+               MatrixType Identity = IdentityMatrix(3);
 
-               DeformationGradientReference = rReferenceConfiguration * rDeltaDeformationMatrix + (1.0 - rReferenceConfiguration) * IdentityMatrix;
-               DeformationGradientFinal     = rFinalConfiguration * rDeltaDeformationMatrix + (1.0 - rFinalConfiguration) * IdentityMatrix;
+               DeformationGradientReference = rReferenceConfiguration * rDeltaDeformationMatrix + (1.0 - rReferenceConfiguration) * Identity;
+               DeformationGradientFinal     = rFinalConfiguration * rDeltaDeformationMatrix + (1.0 - rFinalConfiguration) * Identity;
 
                double det;
                rSubstepDeformationGradient.clear();
@@ -841,13 +841,13 @@ namespace Kratos
                const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
                const StrainMeasureType& rStrainMeasure = rModelData.GetStrainMeasure();
 
-               if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){
+               if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){
                   KRATOS_ERROR << "calling initialize PlasticityModel .. StrainMeasure provided is inconsistent" << std::endl;
                }
-               else if(  rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
+               else if(  rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){
 
-                  if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left ) {
-                     rVariables.StrainMatrix = identity_matrix<double>(3);
+                  if( rStrainMeasure == ConstitutiveModelData::StrainMeasureType::CauchyGreen_Left ) {
+                     rVariables.StrainMatrix = IdentityMatrix(3);
                   }
                   else{
                      KRATOS_ERROR << "calling initialize PlasticityModel .. StrainMeasure provided is inconsistent" << std::endl;

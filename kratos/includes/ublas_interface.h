@@ -44,12 +44,13 @@
     #include <boost/numeric/ublas/hermitian.hpp>
     #include <boost/numeric/ublas/banded.hpp>
     #include <boost/numeric/ublas/triangular.hpp>
-    #include <boost/numeric/ublas/io.hpp>
-    #include <boost/numeric/ublas/operation.hpp>
-    #include <boost/numeric/ublas/lu.hpp>
+	#include <boost/numeric/ublas/lu.hpp>
 #endif // ifdef KRATOS_USE_AMATRIX
 
+
+#include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
+#include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/operation_sparse.hpp>
 
 // Project includes
@@ -98,12 +99,13 @@ namespace Kratos
     //typedef sparse_matrix<double> SparseMatrix;
     typedef mapped_matrix<double> SparseMatrix;
     typedef coordinate_matrix<double> CoordinateMatrix;
-    typedef matrix_row<Matrix> MatrixRow;
     typedef matrix_column<Matrix> MatrixColumn;
     typedef matrix_vector_range<Matrix> MatrixVectorRange;
     typedef matrix_vector_slice<Matrix> MatrixVectorSlice;
     typedef matrix_range<Matrix> MatrixRange;
     typedef matrix_slice<Matrix> MatrixSlice;
+
+	template <typename TExpressionType> using MatrixRow = matrix_row<TExpressionType>;
 
 #endif // ifndef KRATOS_USE_AMATRIX
 

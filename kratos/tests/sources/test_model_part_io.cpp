@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/model_part_io.h"
 #include "includes/kratos_application.h"
@@ -96,6 +97,8 @@ KRATOS_TEST_CASE_IN_SUITE(
     application.Register();
     kernel.Initialize();
 
+    Model current_model;
+
     ModelPartIO model_part_io(p_input);
 
     Kratos::shared_ptr<std::stringstream> p_output_0(new std::stringstream);
@@ -120,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(
         conditions_partitions, nodes_all_partitions, elements_all_partitions,
         conditions_all_partitions);
 
-    ModelPart model_part_0("Partition 0");
+    ModelPart& model_part_0 = current_model.CreateModelPart("Partition 0");
     model_part_0.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part_0.AddNodalSolutionStepVariable(FORCE);
     model_part_0.AddNodalSolutionStepVariable(PARTITION_INDEX);
@@ -141,7 +144,7 @@ KRATOS_TEST_CASE_IN_SUITE(
     KRATOS_CHECK_EQUAL(
         model_part_0.GetSubModelPart("BasePart").NumberOfConditions(), 1);
 
-    ModelPart model_part_1("Partition 1");
+    ModelPart& model_part_1 = current_model.CreateModelPart("Partition 1");
     model_part_1.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part_1.AddNodalSolutionStepVariable(FORCE);
     model_part_1.AddNodalSolutionStepVariable(PARTITION_INDEX);
@@ -175,8 +178,10 @@ KRATOS_TEST_CASE_IN_SUITE(
 
 KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
 
+    Model current_model;
+    
     // Create a model part to write
-    ModelPart main_model_part("MainModelPart");
+    ModelPart& main_model_part = current_model.CreateModelPart("MainModelPart");
     main_model_part.SetBufferSize(1);
     Properties::Pointer p_properties_1(new Properties(1));
     p_properties_1->SetValue(DENSITY, 1000.0);
@@ -194,7 +199,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     main_model_part.CreateNewElement("Element2D3N", 2, elem_nodes_2, p_properties_1);
 
     //elemental data
-    Matrix stress(2,2,1);
+    Matrix stress = ScalarMatrix(2,2, 1.00);
     main_model_part.GetMesh().GetElement(1).SetValue(CAUCHY_STRESS_TENSOR,stress);
     bool is_restarted = true;
     main_model_part.GetMesh().GetElement(1).SetValue(IS_RESTARTED,is_restarted);
@@ -240,7 +245,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
 
     // Read and check the written .mdpa file
     ModelPartIO * model_part_io_output = new ModelPartIO(output_file_name);
-    ModelPart main_model_part_output("MainModelPartOutput");
+    ModelPart& main_model_part_output = current_model.CreateModelPart("MainModelPartOutput");
     model_part_io_output->ReadModelPart(main_model_part_output);
 
     // Assert results
@@ -326,10 +331,12 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOVariableNotInSolutionStepData, KratosCoreFa
     application.Register();
     kernel.Initialize();
 
+    Model current_model;
+
     // 1. Reading without IGNORE flag -> Error
     ModelPartIO default_model_part_io(p_input);
 
-    ModelPart model_part_0("ErrorForce");
+    ModelPart& model_part_0 = current_model.CreateModelPart("ErrorForce");
     model_part_0.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part_0.AddNodalSolutionStepVariable(PRESSURE);
     model_part_0.AddNodalSolutionStepVariable(TEMPERATURE);
@@ -338,7 +345,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOVariableNotInSolutionStepData, KratosCoreFa
         default_model_part_io.ReadModelPart(model_part_0),
         "The nodal solution step container does not have this variable: FORCE_Y");
 
-    ModelPart model_part_1("ErrorTemperature");
+    ModelPart& model_part_1 = current_model.CreateModelPart("ErrorTemperature");
     model_part_1.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part_1.AddNodalSolutionStepVariable(FORCE);
     model_part_1.AddNodalSolutionStepVariable(PRESSURE);
@@ -350,7 +357,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOVariableNotInSolutionStepData, KratosCoreFa
     // 2. Reading with IGNORE flag -> Not set
     ModelPartIO ignore_model_part_io(p_input,ModelPartIO::READ|ModelPartIO::IGNORE_VARIABLES_ERROR);
 
-    ModelPart model_part_2("IgnoreForce");
+    ModelPart& model_part_2 = current_model.CreateModelPart("IgnoreForce");
     model_part_0.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part_0.AddNodalSolutionStepVariable(PRESSURE);
     model_part_0.AddNodalSolutionStepVariable(TEMPERATURE);
@@ -359,7 +366,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOVariableNotInSolutionStepData, KratosCoreFa
     KRATOS_CHECK_EQUAL(model_part_2.NumberOfNodes(), 4);
     KRATOS_CHECK_EQUAL(model_part_2.NodesBegin()->Has(FORCE), false);
 
-    ModelPart model_part_3("IgnoreTemperature");
+    ModelPart& model_part_3 = current_model.CreateModelPart("IgnoreTemperature");
     model_part_1.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part_1.AddNodalSolutionStepVariable(FORCE);
     model_part_1.AddNodalSolutionStepVariable(PRESSURE);

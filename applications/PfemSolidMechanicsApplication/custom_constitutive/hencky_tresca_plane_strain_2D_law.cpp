@@ -8,14 +8,12 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/hencky_tresca_plane_strain_2D_law.hpp"
+
 #include "pfem_solid_mechanics_application_variables.h"
 
 namespace Kratos

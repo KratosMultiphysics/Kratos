@@ -8,10 +8,8 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include <cmath>
 
 // Project includes
 #include "custom_constitutive/hyperelastic_3D_law.hpp"

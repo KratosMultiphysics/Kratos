@@ -7,8 +7,9 @@
 //  License:		BSD License
 //					Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
+
 
 #if !defined(KRATOS_MPM_FLOW_RULE_H_INCLUDED )
 #define  KRATOS_MPM_FLOW_RULE_H_INCLUDED
@@ -24,9 +25,10 @@
 #include "includes/serializer.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
+#include "input_output/logger.h"
 
-#include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
-#include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
+#include "custom_constitutive/yield_criteria/MPM_yield_criterion.hpp"
+#include "custom_constitutive/hardening_laws/MPM_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -61,8 +63,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef YieldCriterion::Pointer    YieldCriterionPointer;
-    typedef HardeningLaw::Pointer        HardeningLawPointer;
+    typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
+    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
     typedef const Properties*              PropertiesPointer;
 
 
@@ -100,9 +102,8 @@ public:
 
         void print()
         {
-            std::cout<<" Internal Thermal Variables "<<std::endl;
-            std::cout<<" PlasticDissipation: "<<PlasticDissipation<<std::endl;
-            std::cout<<" DeltaPlasticDissipation: "<<DeltaPlasticDissipation<<std::endl;
+            KRATOS_INFO("MPMFlowRule.ThermalVariables") << "PlasticDissipation      = " << PlasticDissipation      <<std::endl;
+            KRATOS_INFO("MPMFlowRule.ThermalVariables") << "DeltaPlasticDissipation = " << DeltaPlasticDissipation <<std::endl;
         }
 
     private:
@@ -192,7 +193,9 @@ public:
     {
         double EquivalentPlasticStrain;
         double DeltaPlasticStrain;
+        double AccumulatedPlasticVolumetricStrain;
         double AccumulatedPlasticDeviatoricStrain;
+        double DeltaPlasticVolumetricStrain;
         double DeltaPlasticDeviatoricStrain;
         Matrix  Normal;
 
@@ -209,8 +212,10 @@ public:
         void clear()
         {
             EquivalentPlasticStrain = 0;
+            AccumulatedPlasticVolumetricStrain = 0;
             AccumulatedPlasticDeviatoricStrain = 0; 
             DeltaPlasticStrain = 0;
+            DeltaPlasticVolumetricStrain = 0;
             DeltaPlasticDeviatoricStrain = 0;
             Normal.clear();
             LameMu_bar  = 0;
@@ -223,12 +228,13 @@ public:
 
         void print()
         {
-            std::cout<<" Internal Variables "<<std::endl;
-            std::cout<<" EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
-            std::cout<<" DeltaPlasticStrain: "<<DeltaPlasticStrain<<std::endl;
-            std::cout<<" AccumulatedPlasticDeviatoricStrain: "<<AccumulatedPlasticDeviatoricStrain<<std::endl;
-            std::cout<<" DeltaPlasticDeviatoricStrain: "<<DeltaPlasticDeviatoricStrain<<std::endl;
-            std::cout<<" EquivalentPlasticStrainOld: "<<EquivalentPlasticStrainOld<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " DeltaPlasticStrain: "<<DeltaPlasticStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " AccumulatedPlasticVolumetricStrain: "<<AccumulatedPlasticVolumetricStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " DeltaPlasticVolumetricStrain: "<<DeltaPlasticVolumetricStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " AccumulatedPlasticDeviatoricStrain: "<<AccumulatedPlasticDeviatoricStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " DeltaPlasticDeviatoricStrain: "<<DeltaPlasticDeviatoricStrain<<std::endl;
+            KRATOS_INFO("MPMFlowRule.InternalVariables") << " EquivalentPlasticStrainOld: "<<EquivalentPlasticStrainOld<<std::endl;
         }
 
     private:
@@ -241,6 +247,8 @@ public:
         {
             rSerializer.save("EquivalentPlasticStrain",EquivalentPlasticStrain);
             rSerializer.save("DeltaPlasticStrain",DeltaPlasticStrain);
+            rSerializer.save("AccumulatedPlasticVolumetricStrain",AccumulatedPlasticVolumetricStrain);
+            rSerializer.save("DeltaPlasticVolumetricStrain",DeltaPlasticVolumetricStrain);
             rSerializer.save("AccumulatedPlasticDeviatoricStrain",AccumulatedPlasticDeviatoricStrain);
             rSerializer.save("DeltaPlasticDeviatoricStrain",DeltaPlasticDeviatoricStrain);
             rSerializer.save("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
@@ -250,6 +258,8 @@ public:
         {
             rSerializer.load("EquivalentPlasticStrain",EquivalentPlasticStrain);
             rSerializer.load("DeltaPlasticStrain",DeltaPlasticStrain);
+            rSerializer.load("AccumulatedPlasticVolumetricStrain",AccumulatedPlasticVolumetricStrain);
+            rSerializer.load("DeltaPlasticVolumetricStrain",DeltaPlasticVolumetricStrain);
             rSerializer.load("AccumulatedPlasticDeviatoricStrain",AccumulatedPlasticDeviatoricStrain);
             rSerializer.load("DeltaPlasticDeviatoricStrain",DeltaPlasticDeviatoricStrain);           
             rSerializer.load("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
@@ -401,6 +411,11 @@ public:
         KRATOS_ERROR << "Calling the base class function (GetPlasticRegion) in MPM FlowRule:: illegal operation!" << std::endl;
     };
 
+    virtual void CalculatePrincipalStressTrial(const RadialReturnVariables& rReturnMappingVariables, Matrix& rNewElasticLeftCauchyGreen, Matrix& rStressMatrix)
+    {
+        KRATOS_ERROR << "Calling the base class function (CalculatePrincipalStressTrial) in MPM FlowRule:: illegal operation!" << std::endl;
+    };
+
 
     ///@}
     ///@name Access
@@ -520,14 +535,14 @@ private:
     {
         rSerializer.save("InternalVariables",mInternalVariables);
         rSerializer.save("ThermalVariables",mThermalVariables);
-        rSerializer.save("YieldCriterion",mpYieldCriterion);
+        rSerializer.save("MPMYieldCriterion",mpYieldCriterion);
     };
 
     virtual void load(Serializer& rSerializer)
     {
         rSerializer.load("InternalVariables",mInternalVariables);
         rSerializer.load("ThermalVariables",mThermalVariables);
-        rSerializer.load("YieldCriterion",mpYieldCriterion);
+        rSerializer.load("MPMYieldCriterion",mpYieldCriterion);
     };
 
     ///@}

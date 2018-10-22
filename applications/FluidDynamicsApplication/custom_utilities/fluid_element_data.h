@@ -47,6 +47,8 @@ public:
 
     using ShapeDerivativesType = BoundedMatrix<double,TNumNodes,TDim>;
 
+    using MatrixRowType = MatrixRow< Matrix >;
+
     /// Physical space dimension for the problem.
     constexpr static unsigned int Dim = TDim;
 
@@ -86,7 +88,7 @@ public:
     virtual void UpdateGeometryValues(
         unsigned int IntegrationPointIndex,
         double NewWeight,
-        const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
+        const MatrixRowType& rN,
         const ShapeDerivativesType& rDN_DX);
 
     ///@}

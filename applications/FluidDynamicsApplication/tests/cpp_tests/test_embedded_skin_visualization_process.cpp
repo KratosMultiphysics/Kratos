@@ -17,6 +17,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 
@@ -43,8 +44,8 @@ namespace Kratos {
             // Set the nodal values
             const double p_pos = 1.0;
             const double p_neg = -1.0;
-            array_1d<double, 3> v_pos(3, 0.0);
-            array_1d<double, 3> v_neg(3, 0.0);
+            array_1d<double, 3> v_pos = ZeroVector(3);
+            array_1d<double, 3> v_neg = ZeroVector(3);
             v_pos[0] = 1.0;
             v_neg[0] = -1.0;
             const double level_set_height = 4.5;
@@ -98,8 +99,8 @@ namespace Kratos {
             // Set the nodal values
             const double p_pos = 1.0;
             const double p_neg = -1.0;
-            array_1d<double,3> v_pos(3,0.0);
-            array_1d<double,3> v_neg(3,0.0);
+            array_1d<double,3> v_pos = ZeroVector(3);
+            array_1d<double,3> v_neg = ZeroVector(3);
             v_pos[0] = 1.0;
             v_neg[0] = -1.0;
             const double level_set_height = 4.5;
@@ -135,17 +136,18 @@ namespace Kratos {
             }
         }
 
-	    /** 
+	    /**
 	     * Checks the embedded skin visualization process for a unique triangle with the standard shape functions
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTriangleStandard, FluidDynamicsApplicationFastSuite)
 		{
             // Set the test model part
-            ModelPart main_model_part("MainModelPart");
+            Model model;
+            ModelPart& main_model_part = model.CreateModelPart("MainModelPart");
             SetUniqueTriangleModelPart(main_model_part);
 
             // Create the visualization model part
-            ModelPart visualization_model_part("VisualizationModelPart");
+            ModelPart&  visualization_model_part = model.CreateModelPart("VisualizationModelPart");
             visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
             visualization_model_part.AddNodalSolutionStepVariable(VELOCITY);
             visualization_model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -158,8 +160,8 @@ namespace Kratos {
             })");
 
             EmbeddedSkinVisualizationProcess skin_visualization_process(
-                main_model_part, 
-                visualization_model_part, 
+                main_model_part,
+                visualization_model_part,
                 visualization_settings);
 
             skin_visualization_process.ExecuteInitialize();
@@ -185,17 +187,18 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(visualization_model_part.GetNode(7).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
 	    }
 
-	    /** 
+	    /**
 	     * Checks the embedded skin visualization process for a unique triangle with the Ausas shape functions
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTriangleAusas, FluidDynamicsApplicationFastSuite)
 		{
             // Set the test model part
-            ModelPart main_model_part("MainModelPart");
+            Model model;
+            ModelPart& main_model_part = model.CreateModelPart("MainModelPart");
             SetUniqueTriangleModelPart(main_model_part);
 
             // Create the visualization model part
-            ModelPart visualization_model_part("VisualizationModelPart");
+            ModelPart& visualization_model_part = model.CreateModelPart("VisualizationModelPart");
             visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
             visualization_model_part.AddNodalSolutionStepVariable(VELOCITY);
             visualization_model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -208,8 +211,8 @@ namespace Kratos {
             })");
 
             EmbeddedSkinVisualizationProcess skin_visualization_process(
-                main_model_part, 
-                visualization_model_part, 
+                main_model_part,
+                visualization_model_part,
                 visualization_settings);
 
             skin_visualization_process.ExecuteInitialize();
@@ -235,17 +238,18 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(visualization_model_part.GetNode(7).FastGetSolutionStepValue(VELOCITY_X), -1.0, 1e-8);
 	    }
 
-	    /** 
+	    /**
 	     * Checks the embedded skin visualization process for a unique tetrahedron using the standard shape functions
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTetrahedronStandard, FluidDynamicsApplicationFastSuite)
 		{
             // Set the test model part
-            ModelPart main_model_part("MainModelPart");
+            Model model;
+            ModelPart& main_model_part = model.CreateModelPart("MainModelPart");
             SetUniqueTetrahedronModelPart(main_model_part);
 
             // Create the visualization model part
-            ModelPart visualization_model_part("VisualizationModelPart");
+            ModelPart& visualization_model_part = model.CreateModelPart("VisualizationModelPart");
             visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
             visualization_model_part.AddNodalSolutionStepVariable(VELOCITY);
             visualization_model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -258,8 +262,8 @@ namespace Kratos {
             })");
 
             EmbeddedSkinVisualizationProcess skin_visualization_process(
-                main_model_part, 
-                visualization_model_part, 
+                main_model_part,
+                visualization_model_part,
                 visualization_settings);
 
             skin_visualization_process.ExecuteInitialize();
@@ -297,17 +301,18 @@ namespace Kratos {
             KRATOS_CHECK_NEAR(visualization_model_part.GetNode(13).FastGetSolutionStepValue(VELOCITY_X), -0.1, 1e-8);
 	    }
 
-	    /** 
+	    /**
 	     * Checks the embedded skin visualization process for a unique tetrahedron using the Ausas shape functions
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTetrahedronAusas, FluidDynamicsApplicationFastSuite)
 		{
             // Set the test model part
-            ModelPart main_model_part("MainModelPart");
+            Model model;
+            ModelPart& main_model_part = model.CreateModelPart ("MainModelPart");
             SetUniqueTetrahedronModelPart(main_model_part);
 
             // Create the visualization model part
-            ModelPart visualization_model_part("VisualizationModelPart");
+            ModelPart& visualization_model_part = model.CreateModelPart("VisualizationModelPart");
             visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
             visualization_model_part.AddNodalSolutionStepVariable(VELOCITY);
             visualization_model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -320,8 +325,8 @@ namespace Kratos {
             })");
 
             EmbeddedSkinVisualizationProcess skin_visualization_process(
-                main_model_part, 
-                visualization_model_part, 
+                main_model_part,
+                visualization_model_part,
                 visualization_settings);
 
             skin_visualization_process.ExecuteInitialize();

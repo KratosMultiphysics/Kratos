@@ -16,7 +16,7 @@ def CreateSolver(model, custom_settings):
 class ShallowWaterBaseSolver(PythonSolver):
     def __init__(self, model, custom_settings):  # Constructor of the class
         settings = self._ValidateSettings(custom_settings)
-        
+
         super(ShallowWaterBaseSolver, self).__init__(model, settings)
 
         # There is only a single rank in OpenMP, we always print
@@ -37,8 +37,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name)
-            self.model.AddModelPart(self.main_model_part)
+            self.main_model_part = self.model.CreateModelPart(model_part_name)
 
         domain_size = self.settings["domain_size"].GetInt()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
@@ -98,7 +97,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             water_height_unit_converter = 0.001
         else:
             raise Exception("unknown water height scale")
-        
+
         # Set ProcessInfo variables
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.GRAVITY_Z, gravity * time_unit_converter**2)
@@ -145,7 +144,7 @@ class ShallowWaterBaseSolver(PythonSolver):
                                                                             self.settings["compute_reactions"].GetBool(),
                                                                             self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                             self.settings["move_mesh_flag"].GetBool())
-        
+
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
         (self.solver).SetEchoLevel(max(0, self.echo_level-1))
@@ -203,10 +202,10 @@ class ShallowWaterBaseSolver(PythonSolver):
         # User-defined delta time
         else:
             delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
-        
+
         # Move particles utility needs to read delta_time
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
-        
+
         return delta_time
 
     def _ValidateSettings(self, settings):

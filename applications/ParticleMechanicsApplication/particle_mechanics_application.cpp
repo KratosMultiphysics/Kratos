@@ -12,12 +12,9 @@
 //
 
 
-
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "geometries/triangle_2d_3.h"
@@ -51,13 +48,13 @@
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 
-//#include "includes/define.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
 
 #include "particle_mechanics_application.h"
+
 namespace Kratos
 {
 
@@ -118,8 +115,13 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MP_STRAIN_ENERGY )
         KRATOS_REGISTER_VARIABLE( MP_TOTAL_ENERGY )
         KRATOS_REGISTER_VARIABLE( MP_PRESSURE )
+        KRATOS_REGISTER_VARIABLE( PRESSURE_REACTION )
         KRATOS_REGISTER_VARIABLE( MP_JACOBIAN )
+        KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_EQUIVALENT_PLASTIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_VOLUMETRIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_VOLUMETRIC_STRAIN )
+        KRATOS_REGISTER_VARIABLE( MP_DELTA_PLASTIC_DEVIATORIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN )
         KRATOS_REGISTER_VARIABLE( MP_CONSTITUTIVE_PRESSURE )
         KRATOS_REGISTER_VARIABLE( NODAL_MPRESSURE )
@@ -128,8 +130,11 @@ namespace Kratos
 
         // Registering consitutive law variables
         KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER )
-        KRATOS_REGISTER_VARIABLE( DILATANCY_COEFFICIENT )
+        // CL: Solid
+        KRATOS_REGISTER_VARIABLE( RAYLEIGH_ALPHA )
+        KRATOS_REGISTER_VARIABLE( RAYLEIGH_BETA )
         // CL: Mohr Coulomb
+        KRATOS_REGISTER_VARIABLE( DILATANCY_COEFFICIENT )
         KRATOS_REGISTER_VARIABLE( COHESION )
         KRATOS_REGISTER_VARIABLE( INTERNAL_DILATANCY_ANGLE )
         // CL: Mohr Coulomb Strain Softening
@@ -141,12 +146,8 @@ namespace Kratos
 
         // Nodal DOFs
         KRATOS_REGISTER_VARIABLE( AUX_R )
-        KRATOS_REGISTER_VARIABLE( AUX_T )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_R_VEL )
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_T_VEL )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_R_ACC )
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_T_ACC )
-        KRATOS_REGISTER_VARIABLE( NODAL_LUMPED_MASS )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_VELOCITY )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUX_ACCELERATION )
 
@@ -174,17 +175,22 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( MP_CAUCHY_STRESS_VECTOR )
         KRATOS_REGISTER_VARIABLE( MP_ALMANSI_STRAIN_VECTOR )
         KRATOS_REGISTER_VARIABLE( MP_CONSTITUTIVE_MATRIX )
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DISPLACEMENT_AUX )
-        
+
         // Registering grid node variable
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_MOMENTUM )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
 
         // Registering Constitutive Laws
-        // CL: Hyperelastic ViscoPlastic laws
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticViscoplastic3DLaw", mHyperElasticViscoplastic3DLaw);
-        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticViscoplasticPlaneStrain2DLaw", mHyperElasticViscoplasticPlaneStrain2DLaw);
+        // CL: Linear Elastic laws
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DLaw", mHyperElastic3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStress2DLaw", mHyperElasticPlaneStrain2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrain2DLaw", mHyperElasticPlaneStrainUP2DLaw);
+        // CL: Hyperelastic laws
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElastic3DLaw", mHyperElastic3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrain2DLaw", mHyperElasticPlaneStrain2DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticUP3DLaw", mHyperElasticUP3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrainUP2DLaw", mHyperElasticPlaneStrainUP2DLaw);
         // CL: Mohr Coulomb
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlastic3DLaw", mHenckyMCPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCPlasticPlaneStrain2DLaw", mHenckyMCPlasticPlaneStrain2DLaw);
@@ -193,16 +199,22 @@ namespace Kratos
         // CL: Mohr Coulomb Strain Softening
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCStrainSofteningPlastic3DLaw", mHenckyMCStrainSofteningPlastic3DLaw);
         KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyMCStrainSofteningPlasticPlaneStrain2DLaw", mHenckyMCStrainSofteningPlasticPlaneStrain2DLaw);
+        // CL: Borja Cam Clay
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyBorjaCamClayPlastic3DLaw", mHenckyBorjaCamClayPlastic3DLaw);
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HenckyBorjaCamClayPlasticPlaneStrain2DLaw", mHenckyBorjaCamClayPlasticPlaneStrain2DLaw);
 
         //Register Flow Rules
         Serializer::Register("MCPlasticFlowRule", mMCPlasticFlowRule);
         Serializer::Register("MCStrainSofteningPlasticFlowRule", mMCStrainSofteningPlasticFlowRule);
+        Serializer::Register("BorjaCamClayPlasticFlowRule", mBorjaCamClayPlasticFlowRule);
 
         //Register Yield Criterion
         Serializer::Register("MCYieldCriterion", mMCYieldCriterion);
+        Serializer::Register("ModifiedCamClayYieldCriterion", mModifiedCamClayYieldCriterion);
 
         //Register Hardening Laws
         Serializer::Register("ExponentialStrainSofteningLaw", mExponentialStrainSofteningLaw);
+        Serializer::Register("CamClayHardeningLaw", mCamClayHardeningLaw);
 
     }
 
