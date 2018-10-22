@@ -133,10 +133,25 @@ mapper_settings = Parameters("""
 {
     "filter_function_type"       : "linear",
     "filter_radius"              : 0.4,
+    "max_nodes_in_filter_radius" : 1000
+}""")
+matrix_mapper = mapper_factory.CreateMapper(plate_with_trias,plate_with_quads,mapper_settings)
+matrix_mapper.Map(CONTROL_POINT_UPDATE,CONTROL_POINT_CHANGE)
+matrix_mapper.InverseMap(CONTROL_POINT_CHANGE,SHAPE_UPDATE)
+
+norm_2_results_quad = Norm2OfVectorVariable(plate_with_quads, CONTROL_POINT_CHANGE)
+norm_2_results_tria = Norm2OfVectorVariable(plate_with_trias, SHAPE_UPDATE)
+
+TestCase().assertAlmostEqual(norm_2_results_quad, 2.5408880662655733, 12)
+TestCase().assertAlmostEqual(norm_2_results_tria, 4.48736454850266, 12)
+
+# Test rectangular matrix mapper with matrix free mapper
+mapper_settings = Parameters("""
+{
+    "filter_function_type"       : "linear",
+    "filter_radius"              : 0.4,
     "max_nodes_in_filter_radius" : 1000,
-    "matrix_free_filtering"      : false,
-    "consistent_mapping"         : false,
-    "improved_integration"       : false
+    "matrix_free_filtering"      : true
 }""")
 matrix_mapper = mapper_factory.CreateMapper(plate_with_trias,plate_with_quads,mapper_settings)
 matrix_mapper.Map(CONTROL_POINT_UPDATE,CONTROL_POINT_CHANGE)
