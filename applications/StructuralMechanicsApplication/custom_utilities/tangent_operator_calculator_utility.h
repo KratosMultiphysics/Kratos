@@ -51,7 +51,7 @@ namespace Kratos
  compuestos mediante la teoría de mezclas serie/paralelo" X. Martinez, S. Oller y E. Barbero.
  * @authors Alejandro Cornejo & Lucia Barbu
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TangentOperatorCalculatorUtility
+class TangentOperatorCalculatorUtility
 {
 public:
     ///@name Type Definitions

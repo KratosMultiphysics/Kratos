@@ -70,7 +70,7 @@ ideal for numerical approximation. (COMPUTATIONAL METHODS FOR PLASTICITY THEORY 
  * @author Lucia Barbu
  */
 template<class TYieldSurfaceType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericFiniteStrainConstitutiveLawIntegratorPlasticity
+class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
 {
   public:
     ///@name Type Definitions
@@ -523,18 +523,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 

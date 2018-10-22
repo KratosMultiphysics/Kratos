@@ -155,6 +155,11 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(REACTION_ENERGY)
     KRATOS_REGISTER_VARIABLE(MACH)
 
+    // Turbulence statistics
+    KRATOS_REGISTER_VARIABLE( STATISTICS_CONTAINER)
+    KRATOS_REGISTER_VARIABLE( TURBULENCE_STATISTICS_DATA)
+    KRATOS_REGISTER_VARIABLE( UPDATE_STATISTICS )
+
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("VMS3D4N",mVMS3D); //this is the name the element should have according to the naming convention

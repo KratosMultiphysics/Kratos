@@ -16,7 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/model_part.h"
+#include "containers/model.h"
 #include "includes/kratos_parameters.h"
 #include "includes/communicator.h"
 

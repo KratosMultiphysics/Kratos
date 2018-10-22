@@ -18,6 +18,7 @@
 #include "testing/testing.h"
 #include "includes/kratos_flags.h"
 #include "includes/gid_io.h"
+#include "containers/model.h"
 #include "meshing_application.h"
 
 /* Processes */
@@ -116,7 +117,7 @@ namespace Kratos
             mmg_process.Execute();
 
             // Compute NodalH
-            auto process = FindNodalHProcess<true>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
 
 //             // DEBUG
@@ -274,7 +275,7 @@ namespace Kratos
             mmg_process.Execute();
 
             // Compute NodalH
-            auto process = FindNodalHProcess<true>(this_model_part);
+            auto process = FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>(this_model_part);
             process.Execute();
 
 //             // DEBUG

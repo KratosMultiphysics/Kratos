@@ -124,15 +124,7 @@
                                           "SHAPE_UPDATE",
                                           "SHAPE_CHANGE" ],
             "output_format" : {
-                "name"              : "gid",
-                "gid_configuration" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary"
-                        },
-                        "output_frequency"    : 1.0
-                    }
-                }
+                "name": "gid"
             }
         }
     }
