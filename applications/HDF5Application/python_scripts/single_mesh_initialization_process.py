@@ -11,8 +11,9 @@ def Factory(settings, Model):
         "file_settings" : {
             "file_access_mode" : "read_only"
         },
-        "nodal_results_settings" : {},
-        "element_results_settings" : {},
+        "nodal_solution_step_data_settings" : {},
+        "element_data_value_settings" : {},
+        "nodal_data_value_settings" : {},
         "process_info_results_settings" : {},
         "file_name": ""
     }''')
@@ -21,15 +22,17 @@ def Factory(settings, Model):
     settings.ValidateAndAssignDefaults(default_settings)
     model_part = Model[settings["model_part_name"].GetString()]
     hdf5_file_factory = hdf5_io.HDF5SerialFileFactory(settings["file_settings"])
-    nodal_results_input = hdf5_io.NodalResultsInput(settings["nodal_results_settings"])
-    element_results_input = hdf5_io.ElementResultsInput(settings["element_results_settings"])
+    nodal_history_results_input = hdf5_io.NodalSolutionStepDataInput(settings["nodal_solution_step_data_settings"])
+    element_data_results_input = hdf5_io.ElementDataValueInput(settings["element_data_value_settings"])
+    nodal_data_results_input = hdf5_io.NodalDataValueInput(settings["nodal_data_value_settings"])
 
     initialization_settings = KratosMultiphysics.Parameters(r'''{}''')
     initialization_settings.AddEmptyValue("file_name")
     initialization_settings["file_name"].SetString(settings["file_name"].GetString())
 
     initialization_process = hdf5_io.InitializationFromInputProcess(model_part,hdf5_file_factory,initialization_settings)
-    initialization_process.AddInput(nodal_results_input)
-    initialization_process.AddInput(element_results_input)
+    initialization_process.AddInput(nodal_history_results_input)
+    initialization_process.AddInput(element_data_results_input)
+    initialization_process.AddInput(nodal_data_results_input)
     return initialization_process
 
