@@ -404,6 +404,7 @@ class GenericConstitutiveLawIntegratorPlasticity
      * @param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rValues Parameters of the constitutive law
+     * @param rPlasticStrain The Plastic Strain internal variable
      */
     static void CalculateEquivalentStressThreshold(
         const double PlasticDissipation,
@@ -416,9 +417,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
-
         const int curve_type = r_material_properties[HARDENING_CURVE];
-
         BoundedVector<double, 2> slopes, eq_thresholds;
 
         for (IndexType i = 0; i < 2; ++i) { // i:0 Tension ; i:1 compression
@@ -594,6 +593,7 @@ class GenericConstitutiveLawIntegratorPlasticity
      * param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rValues Parameters of the constitutive law
+     * @param rPlasticStrain The Plastic Strain internal variable
      */
 	static void CalculateEquivalentStressThresholdCurveFittingHardening(
         const double PlasticDissipation,
@@ -605,6 +605,47 @@ class GenericConstitutiveLawIntegratorPlasticity
         const Vector& rPlasticStrain      
     )
     {
+        const Properties mat_props = rValues.GetMaterialProperties();
+        const Vector curve_fitting_parameters = mat_props[CURVE_FITTING_PARAMETERS];
+        const Vector plastic_strain_indicators = mat_props[PLASTIC_STRAIN_INDICATORS];
+        const double fracture_energy = mat_props[FRACTURE_ENERGY];
+
+        const unsigned int order_polinomial = curve_fitting_parameters.size();
+        const double plastic_strain_indicator_1 = plastic_strain_indicators[0];
+        const double plastic_strain_indicator_2 = plastic_strain_indicators[1];
+
+        // Compute the initial and the final stresses
+        double stress_indicator_1 = curve_fitting_parameters[0];
+        double dS_dEp_slope = 0.0;
+
+        for (unsigned int i = 1; i < order_polinomial; ++i) {
+            stress_indicator_1 += curve_fitting_parameters[i] * (std::pow(plastic_strain_indicator_1, i));
+            dS_dEp_slope += i * curve_fitting_parameters[i] * std::pow(plastic_strain_indicator_1, i - 1);
+        }
+
+        double dKp_dEp = stress_indicator_1 / fracture_energy;
+        double dS_dEp = 0.0; // initial slope is zero
+        const double stress_indicator_2 = stress_indicator_1 + dS_dEp * (plastic_strain_indicator_2 - plastic_strain_indicator_1);
+
+        // Compute volumetric fracture energies of each region
+        double Gt1 = 0.0, Gt2, Gt3;
+        for (unsigned int i = 0; i < order_polinomial; ++i) {
+            Gt1 += curve_fitting_parameters[i] * (std::pow(plastic_strain_indicator_1, i + 1)) / (i + 1);
+        }
+        Gt2 = (stress_indicator_1 * stress_indicator_2) * (plastic_strain_indicator_2 - plastic_strain_indicator_1) * 0.5;
+        Gt3 = fracture_energy - Gt2 - Gt1;
+
+        KRATOS_ERROR_IF(Gt3 < 0.0) << "Fracture energy too low in curve 4 of plasticity..." << std::endl;
+
+        // Compute segment threshold
+        const double segment_threshold = (Gt2 + Gt1) / fracture_energy;
+
+        int indicator = 0;
+        if (PlasticDissipation <= segment_threshold) {
+            indicator = 1;
+            
+        }
+
 
     }
 
