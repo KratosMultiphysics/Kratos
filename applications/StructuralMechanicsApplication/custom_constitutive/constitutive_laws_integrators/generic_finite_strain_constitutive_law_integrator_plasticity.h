@@ -53,8 +53,7 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This object integrates the predictive stress using the plasticity theory by means of
  * linear/exponential softening or hardening + softening evolution laws
- * @details The crucial difference between the discretisation of the large strain problem and the infinitesimal one lies in the numerical approximation of the plastic flow equation. The structure of the plastic flow equation makes algorithms based on exponential map integrators
-ideal for numerical approximation. (COMPUTATIONAL METHODS FOR PLASTICITY THEORY AND APPLICATIONS. EA de Souza Neto,D Perić, DRJ Owen pag. 616).
+ * @details The crucial difference between the discretisation of the large strain problem and the infinitesimal one lies in the numerical approximation of the plastic flow equation. The structure of the plastic flow equation makes algorithms based on exponential map integrators ideal for numerical approximation. (COMPUTATIONAL METHODS FOR PLASTICITY THEORY AND APPLICATIONS. EA de Souza Neto,D Perić, DRJ Owen pag. 616).
  * The definitions of these classes is completely static, the derivation is done in a static way
  * @tparam TYieldSurfaceType The yield surface considered
  * The plasticity integrator requires the definition of the following properties:
