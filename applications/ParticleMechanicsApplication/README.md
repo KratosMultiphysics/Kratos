@@ -33,9 +33,10 @@ Particle or meshfree methods are a category of methods where the state of a syst
 The MPM is a one of the Lagrangian particle methods which has gained a remarkably increasing popularity due to its capability in simulating solid mechanics problems involving historically dependent materials and large deformations. As MPM is able to combine the strengths of Eulerian and Lagrangian methods, it has been utilized in various engineering applications and industrial purposes, in particular in geomechanics and environmental fluid dynamics field. The method stores the historically changing variables and the material information at the moving particles, the so-called *material points* (MP), and uses a constantly-reset *background mesh* to solve the linear system of equations.
 
 Recommended references for implementation details of MPM in Kratos:
-- Iaconeta I, Larese A, Rossi R, & Zhiming G. (2016). Comparison of a material point method and a Galerkin meshfree method for the simulation of cohesive-frictional materials. *Materials*, 10(10), p. 1150.
-- Iaconeta, I. Larese, A., Rossi, R., Oñate, E. A stabilized, mixed, implicit Material Point Method for non-linear incompressible solid mechanics problems. Accepted for publication by Computational mechanics (2018)
-- Iaconeta, I., Larese, A., Rossi, R., Oñate, E., An implicit material point method applied to granular flows. Procedia Engineering Proceeding of the 1st International Conference on the Material Point Method, Vol 175, 226-232 MPM 2017, Delft, Netherlands (2017)
+- Iaconeta, I., Larese, A., Rossi, R., & Zhiming, G. (2016). Comparison of a material point method and a Galerkin meshfree method for the simulation of cohesive-frictional materials. *Materials*, 10(10), p. 1150.
+- Iaconeta, I., Larese, A., Rossi, R., Oñate, E. (2017). An implicit material point method applied to granular flows. *Procedia Engineering: Proceeding of the 1st International Conference on the Material Point Method (MPM2017)*, Vol 175, 226-232 MPM 2017, Delft, Netherlands.
+- Iaconeta, I. Larese, A., Rossi, R., Oñate, E. (2018). A stabilized, mixed, implicit Material Point Method for non-linear incompressible solid mechanics problems. *Accepted for publication by Computational mechanics*.
+- Chandra, B., Larese, A., Iaconeta, I., Rossi, R., Wüchner, R. (2018). Soil-Structure Interaction Simulation of Landslides Impacting a Structure Using an Implicit Material Point Method. *Accepted for publication by Proceeding of the 2nd International Conference on The Material Point Method (MPM2019)*.
 
 ## Features
 
@@ -76,8 +77,9 @@ Requires [GiD](https://www.gidhome.com/) - Pre and Post Processing software.
 
 ## License
 
-The Particle Mechanics application is OPEN SOURCE. The main code and program structure is available and aimed to grow with the need of any user willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
+The Particle Mechanics Application is OPEN SOURCE. The main code and program structure is available and aimed to grow with the need of any user willing to expand it. The BSD (Berkeley Software Distribution) licence allows to use and distribute the existing code without any restriction, but with the possibility to develop new parts of the code on an open or close basis depending on the developers.
 
 ## Contact
 
-* **Antonia Larese** - *Group Leader* - [antoldt@cimne.upc.edu ](mailto:antoldt@cimne.upc.edu )
+* **Antonia Larese** - *Group Leader* - [antoldt@cimne.upc.edu](mailto:antoldt@cimne.upc.edu)
+* **Bodhinanda Chandra** - *Application Maintainer* - [bodhinanda.chandra@tum.de](mailto:bodhinanda.chandra@tum.de)
