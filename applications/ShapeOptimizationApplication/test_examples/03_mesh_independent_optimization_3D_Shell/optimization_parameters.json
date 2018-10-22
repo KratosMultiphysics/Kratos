@@ -57,8 +57,8 @@
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 3.0,
                 "max_nodes_in_filter_radius" : 10000,
-                "apply_consistent_mapping"   : true,
-                "apply_improved_integration" : true,
+                "consistent_mapping"   : true,
+                "improved_integration" : true,
                 "integration_method"    : "area_weighted_sum",
                 "number_of_gauss_points": 2
             }
