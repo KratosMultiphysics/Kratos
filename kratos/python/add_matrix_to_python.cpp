@@ -30,11 +30,10 @@ namespace Kratos
 {
 namespace Python
 {
+    using namespace pybind11;
 
-using namespace pybind11;
-
-template< typename TMatrixType > class_< TMatrixType > CreateMatrixInterface(pybind11::module& m, std::string Name )
-        {
+    template< typename TMatrixType > class_< TMatrixType > CreateMatrixInterface(pybind11::module& m, std::string Name )
+    {
         class_< TMatrixType, Kratos::shared_ptr<TMatrixType> > binder(m,Name.c_str());
         binder.def(init<>());
 
@@ -68,33 +67,31 @@ template< typename TMatrixType > class_< TMatrixType > CreateMatrixInterface(pyb
         binder.def("__itruediv__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1/=value; return m1;}, is_operator());
 
         binder.def("__repr__", [](const TMatrixType& self)-> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; });      
-        return binder;
-        }
+        return std::move(binder);
+    }
 
+    void  AddMatrixToPython(pybind11::module& m)
+    {
+        //here we add the dense matrix
+        auto matrix_binder = CreateMatrixInterface< DenseMatrix<double> >(m,"Matrix");
+        matrix_binder.def(init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type>());
+    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        // This constructor is not supported by AMatrix
+        //matrix_binder.def(init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
+    #else
+        matrix_binder.def(init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
+    #endif // KRATOS_USE_AMATRIX
+        matrix_binder.def(init<const DenseMatrix<double>& >());
+        matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const Vector& v){ return Vector(prod(m1,v));}, is_operator());
+        matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const array_1d<double,3>& v){ if(m1.size2() != 3) KRATOS_ERROR << "matrix size2 is not 3!" << std::endl; return Vector(prod(m1,v));}, is_operator());
 
+        ;
 
-void  AddMatrixToPython(pybind11::module& m)
-{
-    //here we add the dense matrix
-    auto matrix_binder = CreateMatrixInterface< DenseMatrix<double> >(m,"Matrix");
-    matrix_binder.def(init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type>());
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-	// This constructor is not supported by AMatrix
-	//matrix_binder.def(init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
-#else
-	matrix_binder.def(init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
-#endif // KRATOS_USE_AMATRIX
-    matrix_binder.def(init<const DenseMatrix<double>& >());
-    matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const Vector& v){ return Vector(prod(m1,v));}, is_operator());
-    matrix_binder.def("__mul__", [](const DenseMatrix<double>& m1, const array_1d<double,3>& v){ if(m1.size2() != 3) KRATOS_ERROR << "matrix size2 is not 3!" << std::endl; return Vector(prod(m1,v));}, is_operator());
-
-    ;
-    
-    //here we add the sparse matrix
-    auto compressed_matrix_binder = CreateMatrixInterface< CompressedMatrix >(m,"CompressedMatrix");
-    compressed_matrix_binder.def(init<const CompressedMatrix::size_type, const CompressedMatrix::size_type>());
-    compressed_matrix_binder.def(init<const CompressedMatrix& >());
-}
+        //here we add the sparse matrix
+        auto compressed_matrix_binder = CreateMatrixInterface< CompressedMatrix >(m,"CompressedMatrix");
+        compressed_matrix_binder.def(init<const CompressedMatrix::size_type, const CompressedMatrix::size_type>());
+        compressed_matrix_binder.def(init<const CompressedMatrix& >());
+    }
 
 }  // namespace Python.
 
