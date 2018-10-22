@@ -89,19 +89,16 @@ public:
   virtual void Initialize(){};
 
   // --------------------------------------------------------------------------
-  virtual void Map(const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace) = 0;
+  virtual void Map(const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable) = 0;
 
   // --------------------------------------------------------------------------
-  virtual void Map(const Variable<double> &rNodalVariable, const Variable<double> &rNodalVariableInGeometrySpace) = 0;
+  virtual void Map(const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable) = 0;
 
   // --------------------------------------------------------------------------
-  virtual void InverseMap(const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace) = 0;
+  virtual void InverseMap(const Variable<array_3d> &rDestinationVariable, const Variable<array_3d> &rOriginVariable) = 0;
 
   // --------------------------------------------------------------------------
-  virtual void InverseMap(const Variable<double> &rNodalVariable, const Variable<double> &rNodalVariableInDesignSpace) = 0;
-
-  // --------------------------------------------------------------------------
-  virtual void Finalize(){};
+  virtual void InverseMap(const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable) = 0;
 
   // --------------------------------------------------------------------------
 

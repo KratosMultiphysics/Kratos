@@ -67,8 +67,8 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingImprovedIntegration( ModelPart& rOriginMdpa, ModelPart& rDestinationMdpa, Parameters MapperSettings )
-        : MapperVertexMorphing(rOriginMdpa, rDestinationMdpa, MapperSettings)
+    MapperVertexMorphingImprovedIntegration( ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters MapperSettings )
+        : MapperVertexMorphing(rOriginModelPart, rDestinationModelPart, MapperSettings)
     {
     }
 
@@ -185,7 +185,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    Element::IntegrationMethod mElementIntegrationMethod;
+    Element::IntegrationMethod mIntegrationMethod;
     bool mAreaWeightedNodeSum;
     std::vector<double> nodalAreas;
 
@@ -201,32 +201,32 @@ private:
     // --------------------------------------------------------------------------
     void SetIntegrationMethod()
     {
-        std::string specified_integration_method = mMapperSettings["integration_method"].GetString();
+        std::string integration_method = mMapperSettings["integration_method"].GetString();
         int number_of_gauss_points = mMapperSettings["number_of_gauss_points"].GetInt();
 
-        if (specified_integration_method.compare("area_weighted_sum") == 0)
+        if (integration_method.compare("area_weighted_sum") == 0)
             mAreaWeightedNodeSum = true;
-        else if (specified_integration_method.compare("gauss_integration") == 0)
+        else if (integration_method.compare("gauss_integration") == 0)
         {
             mAreaWeightedNodeSum = false;
             if (number_of_gauss_points == 1)
-                mElementIntegrationMethod = GeometryData::GI_GAUSS_1;
+                mIntegrationMethod = GeometryData::GI_GAUSS_1;
             else if (number_of_gauss_points == 2)
-                mElementIntegrationMethod = GeometryData::GI_GAUSS_2;
+                mIntegrationMethod = GeometryData::GI_GAUSS_2;
             else if (number_of_gauss_points == 3)
-                mElementIntegrationMethod = GeometryData::GI_GAUSS_3;
+                mIntegrationMethod = GeometryData::GI_GAUSS_3;
             else if (number_of_gauss_points == 4)
-                mElementIntegrationMethod = GeometryData::GI_GAUSS_4;
+                mIntegrationMethod = GeometryData::GI_GAUSS_4;
             else if (number_of_gauss_points == 5)
-                mElementIntegrationMethod = GeometryData::GI_GAUSS_5;
+                mIntegrationMethod = GeometryData::GI_GAUSS_5;
             else
             {
                 std::cout << "\n> number_of_gauss_points: " << number_of_gauss_points << " not valid! USING DEFAULT: 2 " << std::endl;
-                mElementIntegrationMethod = GeometryData::GI_GAUSS_2;
+                mIntegrationMethod = GeometryData::GI_GAUSS_2;
             }
         }
         else{
-            std::cout << "\n> Integration method " << specified_integration_method << " unknown!" << std::endl;
+            std::cout << "\n> Integration method " << integration_method << " unknown!" << std::endl;
             exit(-1);
         }
     }
@@ -235,7 +235,7 @@ private:
     void FindNeighbourConditions()
     {
         std::cout << "> Computing neighbour conditions ..." << std::endl;
-        FindConditionsNeighboursProcess find_conditions_neighbours_process(mrOriginMdpa, mrOriginMdpa.GetProcessInfo()[DOMAIN_SIZE]);
+        FindConditionsNeighboursProcess find_conditions_neighbours_process(mrOriginModelPart, mrOriginModelPart.GetProcessInfo()[DOMAIN_SIZE]);
         find_conditions_neighbours_process.Execute();
     }
 
@@ -285,9 +285,9 @@ private:
                     }
 
                     // Evaluate shape functions of design surface according specified integration method
-                    const Condition::GeometryType::IntegrationPointsArrayType& integrationPoints = geom_i.IntegrationPoints(mElementIntegrationMethod);
+                    const Condition::GeometryType::IntegrationPointsArrayType& integrationPoints = geom_i.IntegrationPoints(mIntegrationMethod);
                     const unsigned int numberOfIntegrationPoints = integrationPoints.size();
-                    const Matrix& N_container = geom_i.ShapeFunctionsValues(mElementIntegrationMethod);
+                    const Matrix& N_container = geom_i.ShapeFunctionsValues(mIntegrationMethod);
 
                     for ( unsigned int pointNumber = 0; pointNumber < numberOfIntegrationPoints; pointNumber++ )
                     {
@@ -304,13 +304,13 @@ private:
                         double Aij = mpFilterFunction->compute_weight(gp_i_coord,node_i.Coordinates());
 
                         // multiply with evaluation of shape function at gauss point
-                        Aij *= geom_i.ShapeFunctionValue(pointNumber,localNodeIndex,mElementIntegrationMethod);;
+                        Aij *= geom_i.ShapeFunctionValue(pointNumber,localNodeIndex,mIntegrationMethod);;
 
                         // Get weight for integration
                         Aij *= integrationPoints[pointNumber].Weight();
 
                         // consider jacobian
-                        Aij *= geom_i.DeterminantOfJacobian(pointNumber,mElementIntegrationMethod);
+                        Aij *= geom_i.DeterminantOfJacobian(pointNumber,mIntegrationMethod);
 
                         // Add values to list
                         list_of_weights[j_itr] += Aij;
@@ -332,8 +332,8 @@ private:
         // necessary for this class
         if (mAreaWeightedNodeSum)
         {
-            nodalAreas.resize(mrOriginMdpa.Nodes().size(),0.0);
-            for(auto& node_i : mrOriginMdpa.Nodes())
+            nodalAreas.resize(mrOriginModelPart.Nodes().size(),0.0);
+            for(auto& node_i : mrOriginModelPart.Nodes())
             {
                 const int& i = node_i.GetValue(MAPPING_ID);
 

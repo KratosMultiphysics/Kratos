@@ -42,7 +42,7 @@ namespace Python
 
 // Overloaded functions
 template<typename TMapper>
-inline void MapScalar(TMapper& mapper,
+inline void MapVector(TMapper& mapper,
                 const Variable< array_1d<double, 3> >& origin_variable,
                 const Variable< array_1d<double, 3> >& destination_variable)
 {
@@ -50,7 +50,7 @@ inline void MapScalar(TMapper& mapper,
 }
 
 template<typename TMapper>
-inline void MapVector(TMapper& mapper,
+inline void MapScalar(TMapper& mapper,
                 const Variable< double >& origin_variable,
                 const Variable< double >& destination_variable)
 {
@@ -58,14 +58,14 @@ inline void MapVector(TMapper& mapper,
 }
 
 template<typename TMapper>
-inline void InverseMapScalar(TMapper& mapper,
+inline void InverseMapVector(TMapper& mapper,
                        const Variable< array_1d<double, 3> >& origin_variable,
                        const Variable< array_1d<double, 3> >& destination_variable)
 {
     mapper.InverseMap(origin_variable, destination_variable);
 }
 template<typename TMapper>
-inline void InverseMapVector(TMapper& mapper,
+inline void InverseMapScalar(TMapper& mapper,
                        const Variable< double >& origin_variable,
                        const Variable< double >& destination_variable)
 {

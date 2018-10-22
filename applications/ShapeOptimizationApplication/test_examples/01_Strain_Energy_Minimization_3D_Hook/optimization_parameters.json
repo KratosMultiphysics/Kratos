@@ -100,7 +100,7 @@
                 "filter_function_type"        : "linear",
                 "filter_radius"               : 30.0,
                 "max_nodes_in_filter_radius"  : 10000,
-                "apply_matrix_free_filtering" : true
+                "matrix_free_filtering" : true
             }
         },
         "optimization_algorithm" : {
