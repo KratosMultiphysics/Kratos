@@ -18,6 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "custom_elements/compressible_potential_flow_element.h"
 
@@ -49,8 +50,8 @@ namespace Kratos {
 	     */
 	    KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElement_CalculateLocalSystem, CompressiblePotentialApplicationFastSuite)
 		{
-
-			ModelPart modelPart("Main");
+			Model current_model;
+			ModelPart& modelPart=current_model.CreateModelPart("Main");
 			GenerateElement(modelPart);
 			Element::Pointer pElement = modelPart.pGetElement(1);
 
@@ -82,7 +83,9 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElement_EquationIdVector, CompressiblePotentialApplicationFastSuite)
 		{
 
-			ModelPart modelPart("Main");
+			Model current_model;
+			ModelPart& modelPart=current_model.CreateModelPart("Main");
+			GenerateElement(modelPart);
 			GenerateElement(modelPart);
 			Element::Pointer pElement = modelPart.pGetElement(1);
 
@@ -110,7 +113,9 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElement_EquationIdVector_Wake, CompressiblePotentialApplicationFastSuite)
 		{
 
-			ModelPart modelPart("Main");
+			Model current_model;
+			ModelPart& modelPart=current_model.CreateModelPart("Main");
+			GenerateElement(modelPart);
 			GenerateElement(modelPart);
 			Element::Pointer pElement = modelPart.pGetElement(1);
 			pElement->Set(MARKER,true);
