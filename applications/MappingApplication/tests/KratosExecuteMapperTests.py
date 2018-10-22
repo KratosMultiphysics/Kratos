@@ -34,11 +34,11 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         # check if executed in parallel
         try:
-            num_processors = mpi.size
+            self.num_processors = mpi.size
         except:
-            num_processors = 1
+            self.num_processors = 1
 
-        if (num_processors == 1): # serial execution
+        if (self.num_processors == 1): # serial execution
             self.parallel_execution = False
         else:
             # Partition and Read Model Parts
@@ -51,13 +51,13 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
                                                                      "ModelPartNameOrigin",
                                                                      input_file_origin, 3,
                                                                      variable_list,
-                                                                     num_processors)
+                                                                     self.num_processors)
 
         self.model_part_destination = self.partition_and_read_model_part(self.model,
                                                                          "ModelPartNameDestination",
                                                                          input_file_destination, 3,
                                                                          variable_list,
-                                                                         num_processors)
+                                                                         self.num_processors)
 
     def SetUpMapper(self, file_name):
         self.ResetValuesModelParts()
@@ -90,15 +90,9 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
                                                 mapper_settings["interface_submodel_part_destination"].GetString())
 
         # Initialize Mapper
-        if self.parallel_execution:
-            fct_ptr = MapperFactory.CreateMPIMapper
-            print("Creating an MPI Mapper")
-        else:
-            fct_ptr = MapperFactory.CreateMapper
-            print("Creating a serial Mapper")
-        self.mapper = fct_ptr(self.model_part_origin,
-                              self.model_part_destination,
-                              mapper_settings)
+        self.mapper = MapperFactory.CreateMapper(self.model_part_origin,
+                                    self.model_part_destination,
+                                    mapper_settings)
 
         if (self.set_up_test_1):
             self.PrintValuesForJson() # needed to set up the test
