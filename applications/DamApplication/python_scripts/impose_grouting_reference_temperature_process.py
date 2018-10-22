@@ -11,9 +11,6 @@ class ImposeGroutingReferenceTemperatureProcess(Process):
 
         Process.__init__(self)
         model_part = Model[settings["model_part_name"].GetString()]
-        variable_name = settings["variable_name"].GetString()
-        initial_value = settings["initial_value"].GetDouble()
-        time_grouting = settings["time_grouting"].GetDouble()
 
         self.process = DamGroutingReferenceTemperatureProcess(model_part, settings)
 

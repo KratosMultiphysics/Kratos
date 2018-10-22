@@ -2,7 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.DamApplication
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return CheckAndPrepareModelProcessDamMechanical(Model, settings["Parameters"])
 

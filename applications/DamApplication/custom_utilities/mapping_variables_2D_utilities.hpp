@@ -108,14 +108,14 @@ protected:
         for(int i = 0; i < AuxVariables.NRows; i++) ElementOldCellMatrix[i].resize(AuxVariables.NColumns);
 
         // Locate Old Elments in cells
-        double X_me;
-        double Y_me;
+        double X;
+        double Y;
         int PointsNumber;
 
         int NElems = static_cast<int>(rModelPartOld.Elements().size());
         ModelPart::ElementsContainerType::iterator el_begin = rModelPartOld.ElementsBegin();
 
-        #pragma omp parallel for private(X_me,Y_me,PointsNumber)
+        #pragma omp parallel for private(X,Y,PointsNumber)
         for(int i = 0; i < NElems; i++)
         {
             ModelPart::ElementsContainerType::iterator itElemOld = el_begin + i;
@@ -128,13 +128,13 @@ protected:
 
             for(int j = 1; j < PointsNumber; j++)
             {
-                X_me = itElemOld->GetGeometry().GetPoint(j).X0();
-                Y_me = itElemOld->GetGeometry().GetPoint(j).Y0();
+                X = itElemOld->GetGeometry().GetPoint(j).X0();
+                Y = itElemOld->GetGeometry().GetPoint(j).Y0();
 
-                if(X_me > X_right) X_right = X_me;
-                else if(X_me < X_left) X_left = X_me;
-                if(Y_me > Y_top) Y_top = Y_me;
-                else if(Y_me < Y_bot) Y_bot = Y_me;
+                if(X > X_right) X_right = X;
+                else if(X < X_left) X_left = X;
+                if(Y > Y_top) Y_top = Y;
+                else if(Y < Y_bot) Y_bot = Y;
             }
 
             int Column_left = int((X_left-AuxVariables.X_min)/AuxVariables.ColumnSize);
@@ -183,16 +183,16 @@ protected:
         array_1d<double,3> GlobalCoordinates;
         array_1d<double,3> LocalCoordinates;
 
-        #pragma omp parallel for private(X_me,Y_me,PointsNumber,GlobalCoordinates,LocalCoordinates)
+        #pragma omp parallel for private(X,Y,PointsNumber,GlobalCoordinates,LocalCoordinates)
         for(int i = 0; i < NNodes; i++)
         {
             ModelPart::NodesContainerType::iterator itNodeNew = node_begin + i;
 
-            X_me = itNodeNew->X0();
-            Y_me = itNodeNew->Y0();
+            X = itNodeNew->X0();
+            Y = itNodeNew->Y0();
 
-            int Column = int((X_me-AuxVariables.X_min)/AuxVariables.ColumnSize);
-            int Row = int((AuxVariables.Y_max-Y_me)/AuxVariables.RowSize);
+            int Column = int((X-AuxVariables.X_min)/AuxVariables.ColumnSize);
+            int Row = int((AuxVariables.Y_max-Y)/AuxVariables.RowSize);
 
             if(Column >= AuxVariables.NColumns) Column = AuxVariables.NColumns-1;
             else if(Column < 0) Column = 0;
@@ -267,14 +267,14 @@ protected:
         for(int i = 0; i < AuxVariables.NRows; i++) ElementOldCellMatrix[i].resize(AuxVariables.NColumns);
 
         // Locate Old Elments in cells
-        double X_me;
-        double Y_me;
+        double X;
+        double Y;
         int PointsNumber;
 
         int NElems = static_cast<int>(rModelPartOld.Elements().size());
         ModelPart::ElementsContainerType::iterator el_begin = rModelPartOld.ElementsBegin();
 
-        #pragma omp parallel for private(X_me,Y_me,PointsNumber)
+        #pragma omp parallel for private(X,Y,PointsNumber)
         for(int i = 0; i < NElems; i++)
         {
             ModelPart::ElementsContainerType::iterator itElemOld = el_begin + i;
@@ -287,13 +287,13 @@ protected:
 
             for(int j = 1; j < PointsNumber; j++)
             {
-                X_me = itElemOld->GetGeometry().GetPoint(j).X0();
-                Y_me = itElemOld->GetGeometry().GetPoint(j).Y0();
+                X = itElemOld->GetGeometry().GetPoint(j).X0();
+                Y = itElemOld->GetGeometry().GetPoint(j).Y0();
 
-                if(X_me > X_right) X_right = X_me;
-                else if(X_me < X_left) X_left = X_me;
-                if(Y_me > Y_top) Y_top = Y_me;
-                else if(Y_me < Y_bot) Y_bot = Y_me;
+                if(X > X_right) X_right = X;
+                else if(X < X_left) X_left = X;
+                if(Y > Y_top) Y_top = Y;
+                else if(Y < Y_bot) Y_bot = Y;
             }
 
             int Column_left = int((X_left-AuxVariables.X_min)/AuxVariables.ColumnSize);
@@ -342,16 +342,16 @@ protected:
         array_1d<double,3> GlobalCoordinates;
         array_1d<double,3> LocalCoordinates;
 
-        #pragma omp parallel for private(X_me,Y_me,PointsNumber,GlobalCoordinates,LocalCoordinates)
+        #pragma omp parallel for private(X,Y,PointsNumber,GlobalCoordinates,LocalCoordinates)
         for(int i = 0; i < NNodes; i++)
         {
             ModelPart::NodesContainerType::iterator itNodeNew = node_begin + i;
 
-            X_me = itNodeNew->X0();
-            Y_me = itNodeNew->Y0();
+            X = itNodeNew->X0();
+            Y = itNodeNew->Y0();
 
-            int Column = int((X_me-AuxVariables.X_min)/AuxVariables.ColumnSize);
-            int Row = int((AuxVariables.Y_max-Y_me)/AuxVariables.RowSize);
+            int Column = int((X-AuxVariables.X_min)/AuxVariables.ColumnSize);
+            int Row = int((AuxVariables.Y_max-Y)/AuxVariables.RowSize);
 
             if(Column >= AuxVariables.NColumns) Column = AuxVariables.NColumns-1;
             else if(Column < 0) Column = 0;
@@ -448,21 +448,21 @@ private:
             Y_max_partition[k] = node_begin->Y();
             Y_min_partition[k] = Y_max_partition[k];
 
-            double X_me, Y_me;
+            double X, Y;
 
             #pragma omp for
             for(int i = 0; i < NNodes; i++)
             {
                 ModelPart::NodesContainerType::iterator itNode = node_begin + i;
 
-                X_me = itNode->X();
-                Y_me = itNode->Y();
+                X = itNode->X();
+                Y = itNode->Y();
 
-                if( X_me > X_max_partition[k] ) X_max_partition[k] = X_me;
-                else if( X_me < X_min_partition[k] ) X_min_partition[k] = X_me;
+                if( X > X_max_partition[k] ) X_max_partition[k] = X;
+                else if( X < X_min_partition[k] ) X_min_partition[k] = X;
 
-                if( Y_me > Y_max_partition[k] ) Y_max_partition[k] = Y_me;
-                else if( Y_me < Y_min_partition[k] ) Y_min_partition[k] = Y_me;
+                if( Y > Y_max_partition[k] ) Y_max_partition[k] = Y;
+                else if( Y < Y_min_partition[k] ) Y_min_partition[k] = Y;
             }
         }
 

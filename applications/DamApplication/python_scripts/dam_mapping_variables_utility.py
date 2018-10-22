@@ -1,13 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# Import system python
-import os
-# Import kratos core and applications
-import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
+# Import applications
 import KratosMultiphysics.DamApplication as KratosDam
-# Import shutil to manage file copying
-import shutil
 
 class MappingVariablesUtility:
 
