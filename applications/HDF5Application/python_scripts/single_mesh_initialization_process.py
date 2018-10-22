@@ -14,7 +14,6 @@ def Factory(settings, Model):
         "nodal_solution_step_data_settings" : {},
         "element_data_value_settings" : {},
         "nodal_data_value_settings" : {},
-        "process_info_results_settings" : {},
         "file_name": ""
     }''')
 
