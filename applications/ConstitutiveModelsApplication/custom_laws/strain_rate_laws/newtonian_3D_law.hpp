@@ -67,7 +67,7 @@ namespace Kratos
     /**
      * Material parameters are inizialized
      */
-    void InitializeMaterial(const Properties& rMaterialProperties,
+    void InitializeMaterial(const Properties& rProperties,
 			    const GeometryType& rElementGeometry,
 			    const Vector& rShapeFunctionsValues ) override;
 
@@ -106,12 +106,12 @@ namespace Kratos
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param rMaterialProperties
+     * @param rProperties
      * @param rElementGeometry
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const Properties& rProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -177,20 +177,20 @@ namespace Kratos
      * Calculates the stresses for given strain state
      * @param rStressVector the stress vector corresponding to the deformation
      * @param rStrainVector strain rates
-     * @param rMaterialProperties properties of the material
+     * @param rProperties properties of the material
      */
     virtual void CalculateStress(Vector& rStressVector,
                                  const Vector &rStrainVector,
-				 const Properties& rMaterialProperties);
+				 const Properties& rProperties);
 
     /**
      * calculates the linear elastic constitutive matrix in terms of Young's modulus and
      * @param rConstitutiveMatrix constitutive matrix return value
-     * @param rMaterialProperties properties of the material
+     * @param rProperties properties of the material
      */
 
     virtual void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-					     const Properties& rMaterialProperties);
+					     const Properties& rProperties);
 
 
     ///@}

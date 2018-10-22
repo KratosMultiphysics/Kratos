@@ -39,7 +39,6 @@ SWIMMING_DEM_APPLICATION;\
 PARTICLE_MECHANICS_APPLICATION;\
 LAGRANGIAN_MPM_APPLICATION;\
 EXTERNAL_SOLVERS_APPLICATION;\
-OPENCL_APPLICATION;\
 TRILINOS_APPLICATION;\
 MPI_SEARCH_APPLICATION;\
 METIS_APPLICATION;\
@@ -176,10 +175,6 @@ message( "**********************************************************************
 message( " ")
 message( " ")
 
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/applications_interface.py DESTINATION applications)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
 #include subdirectories for compilation
 if(${FLUID_RVE_LAGRANGE_MULTIPLIERS_APPLICATION} MATCHES ON)
   add_subdirectory(fluid_rve_lagrange_multipliers_application)
@@ -256,10 +251,6 @@ endif(${FSI_APPLICATION} MATCHES ON)
 if(${EMPIRE_APPLICATION} MATCHES ON)
   add_subdirectory(EmpireApplication)
 endif(${EMPIRE_APPLICATION} MATCHES ON)
-
-if(${OPENCL_APPLICATION} MATCHES ON)
-  add_subdirectory(OpenCLapplication)
-endif(${OPENCL_APPLICATION} MATCHES ON)
 
 if(${MIXED_ELEMENT_APPLICATION} MATCHES ON)
   add_subdirectory(MixedElementApplication)

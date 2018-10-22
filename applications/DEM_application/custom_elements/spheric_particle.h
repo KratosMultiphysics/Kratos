@@ -63,7 +63,7 @@ public:
 
     virtual ~ParticleDataBuffer(){}
 
-bool SetNextNeighbourOrExit(const int& i)
+virtual bool SetNextNeighbourOrExit(int& i)
 {
     if (i < int(mpThisParticle->mNeighbourElements.size())){
         SetCurrentNeighbour(mpThisParticle->mNeighbourElements[i]);

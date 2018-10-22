@@ -21,11 +21,15 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
+#include "fluid_dynamics_application_variables.h"
 
 
 namespace Kratos
 {
-
+KRATOS_DEFINE_VARIABLE( double, PECLET)
+KRATOS_DEFINE_VARIABLE( double, THETA)
+KRATOS_DEFINE_VARIABLE( double, PHI_THETA)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( PHI_GRADIENT)
 }
 
 #endif	/* KRATOS_FLUID_TRANSPORT_APPLICATION_VARIABLES_H_INCLUDED */

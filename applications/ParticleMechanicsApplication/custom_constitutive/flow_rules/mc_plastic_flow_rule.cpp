@@ -20,7 +20,6 @@
 
 // Project includes
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 #include "particle_mechanics_application.h"
 #include "custom_utilities/mpm_stress_principal_invariants_utility.h"

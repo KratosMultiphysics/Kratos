@@ -367,7 +367,7 @@ class InsertFluidNodesMesherProcess
       else if( freesurface_nodes<3 && rigid_nodes<3 ){
 
 	ElementalVolume*=penalization;
-	for(int nn= 0; nn< rElementsToRefine; ++nn)
+	for(unsigned int nn= 0; nn< rElementsToRefine; ++nn)
         {
           if(ElementalVolume>rLargestVolumes[nn]){
 
@@ -376,7 +376,7 @@ class InsertFluidNodesMesherProcess
               array_1d<double,3> NewPosition;
               noalias(NewPosition) = 0.5*(rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates());
 
-              for(int j= 0; j< rElementsToRefine; ++j)
+              for(unsigned int j= 0; j< rElementsToRefine; ++j)
               {
                 if(rNewPositions[j][0]==NewPosition[0] && rNewPositions[j][1]==NewPosition[1]){
                   suitableElement=false;
@@ -581,7 +581,7 @@ class InsertFluidNodesMesherProcess
       else if(freesurface_nodes<4 && rigid_nodes<4){
 
 	ElementalVolume*=penalization;
-	for(int nn= 0; nn< rElementsToRefine; ++nn)
+	for(unsigned int nn= 0; nn< rElementsToRefine; ++nn)
         {
           if(ElementalVolume>rLargestVolumes[nn]){
 
@@ -592,7 +592,7 @@ class InsertFluidNodesMesherProcess
               array_1d<double,3> NewPosition;
               noalias(NewPosition) = 0.5 * (rGeometry[FirstEdgeNode[maxCount]].Coordinates()+rGeometry[SecondEdgeNode[maxCount]].Coordinates());
 
-              for(int j= 0; j< rElementsToRefine; ++j)
+              for(unsigned int j= 0; j< rElementsToRefine; ++j)
               {
                 if(rNewPositions[j][0]==NewPosition[0] && rNewPositions[j][1]==NewPosition[1] && rNewPositions[j][2]==NewPosition[2]){
                   suitableElement=false; //this is a repeated node, I have already choose this from another element

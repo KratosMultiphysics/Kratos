@@ -16,7 +16,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/model_part.h"
+#include "containers/model.h"
 
 // Application includes
 #include "tests/test_utils.h"
@@ -30,11 +30,12 @@ namespace Testing
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_ConnectivitiesData1, KratosHDF5TestSuite)
 {
-    ModelPart test_model_part;
-    TestModelPartFactory::CreateModelPart(test_model_part, {{"Element2D3N"}});
-    KRATOS_CHECK(test_model_part.Elements().size() > 0);
+    Model this_model;
+    ModelPart& r_test_model_part = this_model.CreateModelPart("TestModelPart");
+    TestModelPartFactory::CreateModelPart(r_test_model_part, {{"Element2D3N"}});
+    KRATOS_CHECK(r_test_model_part.Elements().size() > 0);
     HDF5::Internals::ConnectivitiesData data;
-    data.SetData(FactorElements(test_model_part.Elements()).front());
+    data.SetData(FactorElements(r_test_model_part.Elements()).front());
     auto test_file = GetTestSerialFile();
     HDF5::WriteInfo info;
     data.WriteData(test_file, "/Elements", info);
@@ -42,17 +43,18 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_ConnectivitiesData1, KratosHDF5TestSuit
     KRATOS_CHECK(data.size() == 0);
     data.ReadData(test_file, "/Elements", info.StartIndex, info.BlockSize);
     HDF5::ElementsContainerType new_elements;
-    data.CreateEntities(test_model_part.Nodes(), test_model_part.rProperties(), new_elements);
-    CompareElements(new_elements, test_model_part.Elements());
+    data.CreateEntities(r_test_model_part.Nodes(), r_test_model_part.rProperties(), new_elements);
+    CompareElements(new_elements, r_test_model_part.Elements());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_ConnectivitiesData2, KratosHDF5TestSuite)
 {
-    ModelPart test_model_part;
-    TestModelPartFactory::CreateModelPart(test_model_part, {}, {{"SurfaceCondition3D3N"}});
-    KRATOS_CHECK(test_model_part.Conditions().size() > 0);
+    Model this_model;
+    ModelPart& r_test_model_part = this_model.CreateModelPart("TestModelPart");
+    TestModelPartFactory::CreateModelPart(r_test_model_part, {}, {{"SurfaceCondition3D3N"}});
+    KRATOS_CHECK(r_test_model_part.Conditions().size() > 0);
     HDF5::Internals::ConnectivitiesData data;
-    data.SetData(FactorConditions(test_model_part.Conditions()).front());
+    data.SetData(FactorConditions(r_test_model_part.Conditions()).front());
     auto test_file = GetTestSerialFile();
     HDF5::WriteInfo info;
     data.WriteData(test_file, "/Conditions", info);
@@ -60,8 +62,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_ConnectivitiesData2, KratosHDF5TestSuit
     KRATOS_CHECK(data.size() == 0);
     data.ReadData(test_file, "/Conditions", info.StartIndex, info.BlockSize);
     HDF5::ConditionsContainerType new_conditions;
-    data.CreateEntities(test_model_part.Nodes(), test_model_part.rProperties(), new_conditions);
-    CompareConditions(new_conditions, test_model_part.Conditions());
+    data.CreateEntities(r_test_model_part.Nodes(), r_test_model_part.rProperties(), new_conditions);
+    CompareConditions(new_conditions, r_test_model_part.Conditions());
 }
 
 } // namespace Testing
