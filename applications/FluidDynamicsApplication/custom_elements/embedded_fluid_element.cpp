@@ -305,7 +305,7 @@ void EmbeddedFluidElement<TBaseElement>::DefineCutGeometryData(
         rData.PositiveInterfaceWeights, GeometryData::GI_GAUSS_2);
 
     // Fluid side interface normals
-    p_calculator->ComputePositiveSideInterfaceNormals(
+    p_calculator->ComputePositiveSideInterfaceAreaNormals(
         rData.PositiveInterfaceUnitNormals, GeometryData::GI_GAUSS_2);
 
     // Normalize the normals

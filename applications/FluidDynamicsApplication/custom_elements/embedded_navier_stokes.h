@@ -211,7 +211,7 @@ public:
                 GeometryData::GI_GAUSS_2);
 
             // Call the fluid side Gauss pts. unit normal calculator
-            p_modified_sh_func->ComputePositiveSideInterfaceNormals(
+            p_modified_sh_func->ComputePositiveSideInterfaceAreaNormals(
                 rData.pos_int_unit_normals,
                 GeometryData::GI_GAUSS_2);
 
