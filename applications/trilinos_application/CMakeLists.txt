@@ -7,26 +7,21 @@ include(pybind11Tools)
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/ )
 
-#dependecies on other application -- TRILINOS specific
+# Dependecies on other application -- TRILINOS specific
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
-
-#find trilinos solver package -- this is our own find package!!
+# Find trilinos solver package -- this is our own find package!!
 find_package(TRILINOS REQUIRED)
 include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
 link_directories(${TRILINOS_LIBRARIES})
 
 if(TRILINOS_USE_AMGCL MATCHES ON)
     add_definitions(-DAMGCL_INCLUDED)
-    #add_definitions(-DAMGCL_PROFILING)
-#     add_definitions(-lrt)
+    # add_definitions(-DAMGCL_PROFILING)
+    # add_definitions(-lrt)
 
     find_package(Pastix QUIET)
-
-#     find_package(BLAS   QUIET)
-
-#     if (PASTIX_INCLUDES AND SCOTCH_INCLUDES AND BLAS_FOUND)
     if (PASTIX_INCLUDES)
         set(HAVE_PASTIX ON)
         find_package(Scotch REQUIRED)
@@ -35,20 +30,13 @@ if(TRILINOS_USE_AMGCL MATCHES ON)
         add_definitions(-DAMGCL_HAVE_PASTIX)
     endif()
 
-    ##including the amgcl, which is header only
-#     set(AMGCL_ROOT $ENV{AMGCL_ROOT} CACHE STRING "AMGCL root")
+    # Including the amgcl, which is header only
     set(AMGCL_ROOT "../../external_libraries" )
     message(STATUS "Found AMGCL at ${AMGCL_ROOT}")
     include_directories(${AMGCL_ROOT})
-
-    ##including extra boost libraries
-
 endif(TRILINOS_USE_AMGCL MATCHES ON)
 
-
-##add definitions needed
-
-## generate variables with the sources
+# Generate variables with the sources
 set( KRATOS_TRILINOS_APPLICATION_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/trilinos_application.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/trilinos_python_application.cpp
@@ -66,33 +54,31 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi_normal_calculation_utilities.cpp;
 )
 
-# add_executable(testmap ${CMAKE_CURRENT_SOURCE_DIR}/testmap.cpp )
-# target_link_libraries(testmap ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${BLAS_LIBRARIES})
+## Kratos tests sources. Enabled by default
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_TRILINOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 # ###############################################################
-pybind11_add_module(KratosTrilinosApplication MODULE THIN_LTO ${KRATOS_TRILINOS_APPLICATION_SOURCES})
-
-
-
+pybind11_add_module(KratosTrilinosApplication MODULE THIN_LTO ${KRATOS_TRILINOS_APPLICATION_SOURCES} ${KRATOS_TRILINOS_TEST_SOURCES})
 
 if (HAVE_PASTIX)
-        target_link_libraries(KratosTrilinosApplication PRIVATE KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES} )
-        install(FILES ${PASTIX_LIBRARIES} DESTINATION libs )
+    target_link_libraries(KratosTrilinosApplication PRIVATE KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES} )
+    install(FILES ${PASTIX_LIBRARIES} DESTINATION libs )
 
-        message("linking PASTIX in the AMGCL lib")
-#         target_link_libraries(KratosTrilinosApplication PRIVATE KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} ${PASTIX_LIBRARIES} ${SCOTCH_LIBRARIES} ${BLAS_LIBRARIES})
-else()
-        target_link_libraries(KratosTrilinosApplication PRIVATE KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
-endif()
+    message("linking PASTIX in the AMGCL lib")
+else(HAVE_PASTIX)
+    target_link_libraries(KratosTrilinosApplication PRIVATE KratosCore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
+endif(HAVE_PASTIX)
 
 set_target_properties(KratosTrilinosApplication PROPERTIES PREFIX "")
 
-# changing the .dll suffix to .pyd
+# Changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so
+# Changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosTrilinosApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
