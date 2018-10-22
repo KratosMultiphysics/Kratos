@@ -113,7 +113,7 @@ public:
     void Initialize() override
     {
         BuiltinTimer timer;
-        std::cout << "> Starting initialization of mapping..." << std::endl;
+        std::cout << "> Starting initialization of matrix-free mapping..." << std::endl;
 
         if (mIsMappingInitialized == false)
         {
@@ -126,7 +126,7 @@ public:
 
         mIsMappingInitialized = true;
 
-        std::cout << "> Finished initialization of mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
+        std::cout << "> Finished initialization of matrix-free mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -139,9 +139,9 @@ public:
         std::cout << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
-        mXValuesDestination.clear();
-        mYValuesDestination.clear();
-        mZValuesDestination.clear();
+        mValuesDestination[0].clear();
+        mValuesDestination[1].clear();
+        mValuesDestination[2].clear();
 
         // Perform mapping
         for(auto& node_i : mrDestinationModelPart.Nodes())
@@ -168,9 +168,9 @@ public:
                 ModelPart::NodeType& node_j = *neighbor_nodes[neighbor_itr];
                 array_3d& nodal_variable = node_j.FastGetSolutionStepValue(rOriginVariable);
 
-                mXValuesDestination[node_i_mapping_id] += weight*nodal_variable[0];
-                mYValuesDestination[node_i_mapping_id] += weight*nodal_variable[1];
-                mZValuesDestination[node_i_mapping_id] += weight*nodal_variable[2];
+                mValuesDestination[0][node_i_mapping_id] += weight*nodal_variable[0];
+                mValuesDestination[1][node_i_mapping_id] += weight*nodal_variable[1];
+                mValuesDestination[2][node_i_mapping_id] += weight*nodal_variable[2];
             }
         }
 
@@ -180,9 +180,9 @@ public:
             int i = node_i.GetValue(MAPPING_ID);
 
             array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rDestinationVariable);
-            r_node_vector(0) = mXValuesDestination[i];
-            r_node_vector(1) = mYValuesDestination[i];
-            r_node_vector(2) = mZValuesDestination[i];
+            r_node_vector(0) = mValuesDestination[0][i];
+            r_node_vector(1) = mValuesDestination[1][i];
+            r_node_vector(2) = mValuesDestination[2][i];
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
@@ -198,7 +198,7 @@ public:
         std::cout << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
-        mXValuesDestination.clear();
+        mValuesDestination[0].clear();
 
         // Perform mapping
         for(auto& node_i : mrDestinationModelPart.Nodes())
@@ -223,7 +223,7 @@ public:
                 double weight = list_of_weights[neighbor_itr] / sum_of_weights;
                 ModelPart::NodeType& node_j = *neighbor_nodes[neighbor_itr];
 
-                mXValuesDestination[node_i_mapping_id] += weight*node_j.FastGetSolutionStepValue(rOriginVariable);
+                mValuesDestination[0][node_i_mapping_id] += weight*node_j.FastGetSolutionStepValue(rOriginVariable);
             }
         }
 
@@ -231,7 +231,7 @@ public:
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
             int i = node_i.GetValue(MAPPING_ID);
-            node_i.FastGetSolutionStepValue(rDestinationVariable) = mXValuesDestination[i];
+            node_i.FastGetSolutionStepValue(rDestinationVariable) = mValuesDestination[0][i];
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
@@ -247,9 +247,9 @@ public:
         std::cout << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
-        mXValuesOrigin.clear();
-        mYValuesOrigin.clear();
-        mZValuesOrigin.clear();
+        mValuesOrigin[0].clear();
+        mValuesOrigin[1].clear();
+        mValuesOrigin[2].clear();
 
         // Perform mapping
         for(auto& node_i : mrDestinationModelPart.Nodes())
@@ -276,9 +276,9 @@ public:
 
                 double weight = list_of_weights[neighbor_itr] / sum_of_weights;
 
-                mXValuesOrigin[neighbor_node_mapping_id] += weight*nodal_variable[0];
-                mYValuesOrigin[neighbor_node_mapping_id] += weight*nodal_variable[1];
-                mZValuesOrigin[neighbor_node_mapping_id] += weight*nodal_variable[2];
+                mValuesOrigin[0][neighbor_node_mapping_id] += weight*nodal_variable[0];
+                mValuesOrigin[1][neighbor_node_mapping_id] += weight*nodal_variable[1];
+                mValuesOrigin[2][neighbor_node_mapping_id] += weight*nodal_variable[2];
             }
         }
 
@@ -288,9 +288,9 @@ public:
             int i = node_i.GetValue(MAPPING_ID);
 
             array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rOriginVariable);
-            r_node_vector(0) = mXValuesOrigin[i];
-            r_node_vector(1) = mYValuesOrigin[i];
-            r_node_vector(2) = mZValuesOrigin[i];
+            r_node_vector(0) = mValuesOrigin[0][i];
+            r_node_vector(1) = mValuesOrigin[1][i];
+            r_node_vector(2) = mValuesOrigin[2][i];
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
@@ -306,7 +306,7 @@ public:
         std::cout << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
-        mXValuesOrigin.clear();
+        mValuesOrigin[0].clear();
 
         // Perform mapping
         for(auto& node_i : mrDestinationModelPart.Nodes())
@@ -333,7 +333,7 @@ public:
 
                 double weight = list_of_weights[neighbor_itr] / sum_of_weights;
 
-                mXValuesOrigin[neighbor_node_mapping_id] += weight*variable_value;
+                mValuesOrigin[0][neighbor_node_mapping_id] += weight*variable_value;
             }
         }
 
@@ -341,7 +341,7 @@ public:
         for(auto& node_i : mrOriginModelPart.Nodes())
         {
             int i = node_i.GetValue(MAPPING_ID);
-            node_i.FastGetSolutionStepValue(rOriginVariable) = mXValuesOrigin[i];
+            node_i.FastGetSolutionStepValue(rOriginVariable) = mValuesOrigin[0][i];
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
@@ -448,8 +448,8 @@ private:
     KDTree::Pointer mpSearchTree;
 
     // Variables for mapping
-    Vector mXValuesOrigin, mYValuesOrigin, mZValuesOrigin;
-    Vector mXValuesDestination, mYValuesDestination, mZValuesDestination;
+    std::vector<Vector> mValuesOrigin;
+    std::vector<Vector> mValuesDestination;
     bool mIsMappingInitialized = false;
 
     ///@}
@@ -486,14 +486,10 @@ private:
     void InitializeMappingVariables()
     {
         const unsigned int origin_node_number = mrOriginModelPart.Nodes().size();
-        mXValuesOrigin.resize(origin_node_number,0.0);
-        mYValuesOrigin.resize(origin_node_number,0.0);
-        mZValuesOrigin.resize(origin_node_number,0.0);
+        mValuesOrigin.resize(3,ZeroVector(origin_node_number));
 
         const unsigned int destination_node_number = mrDestinationModelPart.Nodes().size();
-        mXValuesDestination.resize(destination_node_number,0.0);
-        mYValuesDestination.resize(destination_node_number,0.0);
-        mZValuesDestination.resize(destination_node_number,0.0);
+        mValuesDestination.resize(3,ZeroVector(destination_node_number));
     }
 
     // --------------------------------------------------------------------------

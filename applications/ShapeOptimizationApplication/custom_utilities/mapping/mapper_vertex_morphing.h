@@ -143,26 +143,26 @@ public:
         std::cout << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
-        mXValuesOrigin.clear();
-        mYValuesOrigin.clear();
-        mZValuesOrigin.clear();
-        mXValuesDestination.clear();
-        mYValuesDestination.clear();
-        mZValuesDestination.clear();
+        mValuesOrigin[0].clear();
+        mValuesOrigin[1].clear();
+        mValuesOrigin[2].clear();
+        mValuesDestination[0].clear();
+        mValuesDestination[1].clear();
+        mValuesDestination[2].clear();
 
         for(auto& node_i : mrOriginModelPart.Nodes())
         {
             int i = node_i.GetValue(MAPPING_ID);
             array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rOriginVariable);
-            mXValuesOrigin[i] = r_nodal_variable[0];
-            mYValuesOrigin[i] = r_nodal_variable[1];
-            mZValuesOrigin[i] = r_nodal_variable[2];
+            mValuesOrigin[0][i] = r_nodal_variable[0];
+            mValuesOrigin[1][i] = r_nodal_variable[1];
+            mValuesOrigin[2][i] = r_nodal_variable[2];
         }
 
         // Perform mapping
-        noalias(mXValuesDestination) = prod(mMappingMatrix,mXValuesOrigin);
-        noalias(mYValuesDestination) = prod(mMappingMatrix,mYValuesOrigin);
-        noalias(mZValuesDestination) = prod(mMappingMatrix,mZValuesOrigin);
+        noalias(mValuesDestination[0]) = prod(mMappingMatrix,mValuesOrigin[0]);
+        noalias(mValuesDestination[1]) = prod(mMappingMatrix,mValuesOrigin[1]);
+        noalias(mValuesDestination[2]) = prod(mMappingMatrix,mValuesOrigin[2]);
 
         // Assign results to nodal variable
         for(auto& node_i : mrDestinationModelPart.Nodes())
@@ -170,9 +170,9 @@ public:
             int i = node_i.GetValue(MAPPING_ID);
 
             array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rDestinationVariable);
-            r_node_vector(0) = mXValuesDestination[i];
-            r_node_vector(1) = mYValuesDestination[i];
-            r_node_vector(2) = mZValuesDestination[i];
+            r_node_vector(0) = mValuesDestination[0][i];
+            r_node_vector(1) = mValuesDestination[1][i];
+            r_node_vector(2) = mValuesDestination[2][i];
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
@@ -188,23 +188,23 @@ public:
         std::cout << "\n> Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
-        mXValuesOrigin.clear();
-        mXValuesDestination.clear();
+        mValuesOrigin[0].clear();
+        mValuesDestination[0].clear();
 
         for(auto& node_i : mrOriginModelPart.Nodes())
         {
             int i = node_i.GetValue(MAPPING_ID);
-            mXValuesOrigin[i] = node_i.FastGetSolutionStepValue(rOriginVariable);
+            mValuesOrigin[0][i] = node_i.FastGetSolutionStepValue(rOriginVariable);
         }
 
         // Perform mapping
-        noalias(mXValuesDestination) = prod(mMappingMatrix,mXValuesOrigin);
+        noalias(mValuesDestination[0]) = prod(mMappingMatrix,mValuesOrigin[0]);
 
         // Assign results to nodal variable
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
             int i = node_i.GetValue(MAPPING_ID);
-            node_i.FastGetSolutionStepValue(rDestinationVariable) = mXValuesDestination[i];
+            node_i.FastGetSolutionStepValue(rDestinationVariable) = mValuesDestination[0][i];
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
@@ -220,20 +220,20 @@ public:
         std::cout << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
-        mXValuesOrigin.clear();
-        mYValuesOrigin.clear();
-        mZValuesOrigin.clear();
-        mXValuesDestination.clear();
-        mYValuesDestination.clear();
-        mZValuesDestination.clear();
+        mValuesOrigin[0].clear();
+        mValuesOrigin[1].clear();
+        mValuesOrigin[2].clear();
+        mValuesDestination[0].clear();
+        mValuesDestination[1].clear();
+        mValuesDestination[2].clear();
 
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
             int i = node_i.GetValue(MAPPING_ID);
             array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rDestinationVariable);
-            mXValuesDestination[i] = r_nodal_variable[0];
-            mYValuesDestination[i] = r_nodal_variable[1];
-            mZValuesDestination[i] = r_nodal_variable[2];
+            mValuesDestination[0][i] = r_nodal_variable[0];
+            mValuesDestination[1][i] = r_nodal_variable[1];
+            mValuesDestination[2][i] = r_nodal_variable[2];
         }
 
         // Perform mapping
@@ -241,15 +241,15 @@ public:
         {
             KRATOS_ERROR_IF(mrOriginModelPart.Nodes().size() != mrDestinationModelPart.Nodes().size()) << "Consistent mapping requires matching origin and destination model part.";
 
-            noalias(mXValuesOrigin) = prod(mMappingMatrix,mXValuesDestination);
-            noalias(mYValuesOrigin) = prod(mMappingMatrix,mYValuesDestination);
-            noalias(mZValuesOrigin) = prod(mMappingMatrix,mZValuesDestination);
+            noalias(mValuesOrigin[0]) = prod(mMappingMatrix,mValuesDestination[0]);
+            noalias(mValuesOrigin[1]) = prod(mMappingMatrix,mValuesDestination[1]);
+            noalias(mValuesOrigin[2]) = prod(mMappingMatrix,mValuesDestination[2]);
         }
         else
         {
-            SparseSpaceType::TransposeMult(mMappingMatrix,mXValuesDestination,mXValuesOrigin);
-            SparseSpaceType::TransposeMult(mMappingMatrix,mYValuesDestination,mYValuesOrigin);
-            SparseSpaceType::TransposeMult(mMappingMatrix,mZValuesDestination,mZValuesOrigin);
+            SparseSpaceType::TransposeMult(mMappingMatrix,mValuesDestination[0],mValuesOrigin[0]);
+            SparseSpaceType::TransposeMult(mMappingMatrix,mValuesDestination[1],mValuesOrigin[1]);
+            SparseSpaceType::TransposeMult(mMappingMatrix,mValuesDestination[2],mValuesOrigin[2]);
         }
 
         // Assign results to nodal variable
@@ -258,9 +258,9 @@ public:
             int i = node_i.GetValue(MAPPING_ID);
 
             array_3d& r_node_vector = node_i.FastGetSolutionStepValue(rOriginVariable);
-            r_node_vector(0) = mXValuesOrigin[i];
-            r_node_vector(1) = mYValuesOrigin[i];
-            r_node_vector(2) = mZValuesOrigin[i];
+            r_node_vector(0) = mValuesOrigin[0][i];
+            r_node_vector(1) = mValuesOrigin[1][i];
+            r_node_vector(2) = mValuesOrigin[2][i];
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
@@ -276,29 +276,29 @@ public:
         std::cout << "\n> Starting inverse mapping of " << rDestinationVariable.Name() << "..." << std::endl;
 
         // Prepare vectors for mapping
-        mXValuesOrigin.clear();
-        mXValuesDestination.clear();
+        mValuesOrigin[0].clear();
+        mValuesDestination[0].clear();
 
         for(auto& node_i : mrDestinationModelPart.Nodes())
         {
             int i = node_i.GetValue(MAPPING_ID);
-            mXValuesDestination[i] = node_i.FastGetSolutionStepValue(rDestinationVariable);
+            mValuesDestination[0][i] = node_i.FastGetSolutionStepValue(rDestinationVariable);
         }
 
         // Perform mapping
         if(mMapperSettings["consistent_mapping"].GetBool())
         {
             KRATOS_ERROR_IF(mrOriginModelPart.Nodes().size() != mrDestinationModelPart.Nodes().size()) << "Consistent mapping requires matching origin and destination model part.";
-            noalias(mXValuesOrigin) = prod(mMappingMatrix,mXValuesDestination);
+            noalias(mValuesOrigin[0]) = prod(mMappingMatrix,mValuesDestination[0]);
         }
         else
-            SparseSpaceType::TransposeMult(mMappingMatrix,mXValuesDestination,mXValuesOrigin);
+            SparseSpaceType::TransposeMult(mMappingMatrix,mValuesDestination[0],mValuesOrigin[0]);
 
         // Assign results to nodal variable
         for(auto& node_i : mrOriginModelPart.Nodes())
         {
             int i = node_i.GetValue(MAPPING_ID);
-            node_i.FastGetSolutionStepValue(rOriginVariable) = mXValuesOrigin[i];
+            node_i.FastGetSolutionStepValue(rOriginVariable) = mValuesOrigin[0][i];
         }
 
         std::cout << "> Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
@@ -409,8 +409,8 @@ private:
 
     // Variables for mapping
     SparseMatrixType mMappingMatrix;
-    Vector mXValuesOrigin, mYValuesOrigin, mZValuesOrigin;
-    Vector mXValuesDestination, mYValuesDestination, mZValuesDestination;
+    std::vector<Vector> mValuesOrigin;
+    std::vector<Vector> mValuesDestination;
 
     ///@}
     ///@name Private Operators
@@ -451,13 +451,8 @@ private:
         mMappingMatrix.resize(destination_node_number,origin_node_number,false);
         mMappingMatrix.clear();
 
-        mXValuesOrigin.resize(origin_node_number,0.0);
-        mYValuesOrigin.resize(origin_node_number,0.0);
-        mZValuesOrigin.resize(origin_node_number,0.0);
-
-        mXValuesDestination.resize(destination_node_number,0.0);
-        mYValuesDestination.resize(destination_node_number,0.0);
-        mZValuesDestination.resize(destination_node_number,0.0);
+        mValuesOrigin.resize(3,ZeroVector(origin_node_number));
+        mValuesDestination.resize(3,ZeroVector(destination_node_number));
     }
 
     // --------------------------------------------------------------------------
