@@ -169,11 +169,11 @@ namespace Kratos
             // Call the interface outwards normal unit vector calculator
             std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
 
-            tetrahedra_ausas_shape_functions.ComputePositiveSideInterfaceNormals(
+            tetrahedra_ausas_shape_functions.ComputePositiveSideInterfaceAreaNormals(
                 positive_side_area_normals,
                 GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputeNegativeSideInterfaceNormals(
+            tetrahedra_ausas_shape_functions.ComputeNegativeSideInterfaceAreaNormals(
                 negative_side_area_normals,
                 GeometryData::GI_GAUSS_1);
 
@@ -184,28 +184,28 @@ namespace Kratos
                 area_normals_pos_face_2, area_normals_neg_face_2,
                 area_normals_pos_face_3, area_normals_neg_face_3;
 
-            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
                 area_normals_pos_face_0, 0, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
                 area_normals_neg_face_0, 0, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
                 area_normals_pos_face_1, 1, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
                 area_normals_neg_face_1, 1, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
                 area_normals_pos_face_2, 2, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
                 area_normals_neg_face_2, 2, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
                 area_normals_pos_face_3, 3, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
                 area_normals_neg_face_3, 3, GeometryData::GI_GAUSS_1);
 
             const double tolerance = 1e-10;
@@ -709,11 +709,11 @@ namespace Kratos
             // Call the interface outwards normal unit vector calculator
             std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
 
-            tetrahedra_ausas_shape_functions.ComputePositiveSideInterfaceNormals(
+            tetrahedra_ausas_shape_functions.ComputePositiveSideInterfaceAreaNormals(
                 positive_side_area_normals,
                 GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputeNegativeSideInterfaceNormals(
+            tetrahedra_ausas_shape_functions.ComputeNegativeSideInterfaceAreaNormals(
                 negative_side_area_normals,
                 GeometryData::GI_GAUSS_1);
 
@@ -724,28 +724,28 @@ namespace Kratos
                 area_normals_pos_face_2, area_normals_neg_face_2,
                 area_normals_pos_face_3, area_normals_neg_face_3;
 
-            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
                 area_normals_pos_face_0, 0, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
                 area_normals_neg_face_0, 0, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
                 area_normals_pos_face_1, 1, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
                 area_normals_neg_face_1, 1, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
                 area_normals_pos_face_2, 2, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
                 area_normals_neg_face_2, 2, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
                 area_normals_pos_face_3, 3, GeometryData::GI_GAUSS_1);
 
-            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceNormals(
+            tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
                 area_normals_neg_face_3, 3, GeometryData::GI_GAUSS_1);
 
             const double tolerance = 1e-10;
