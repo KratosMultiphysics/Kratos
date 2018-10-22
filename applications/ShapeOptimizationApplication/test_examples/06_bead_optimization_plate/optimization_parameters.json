@@ -34,8 +34,7 @@
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 0.075,
-                "max_nodes_in_filter_radius" : 10000,
-                "matrix_free_filtering"      : false
+                "max_nodes_in_filter_radius" : 1000
             }
         },
         "optimization_algorithm" : {
@@ -45,8 +44,8 @@
             "gradient_ratio"              : 0.1,
             "max_outer_iterations"        : 200,
             "max_inner_iterations"        : 50,
-            "min_inner_iterations"        : 30,
-            "inner_iteration_tolerance"   : 1e-2,
+            "min_inner_iterations"        : 3,
+            "inner_iteration_tolerance"   : 1e-3,
             "outer_iteration_tolerance"   : 1e-1,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
