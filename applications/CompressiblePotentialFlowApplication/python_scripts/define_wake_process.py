@@ -103,9 +103,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                         max_y=node.Y                 
                         kutta_node=node               
 
-        model_part_kutta=KratosMultiphysics.ModelPart(self.wake_model_part_name)
-        self.model.AddModelPart(model_part_kutta)
-        self.kutta_model_part=model_part_kutta
+        self.kutta_model_part=self.model.CreateModelPart(self.wake_model_part_name)
         self.kutta_model_part.AddNode(kutta_node,0)
      
 

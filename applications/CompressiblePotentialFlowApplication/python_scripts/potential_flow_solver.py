@@ -65,7 +65,7 @@ class LaplacianSolver(PythonSolver):
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name)
+            self.main_model_part = model.CreateModelPart(model_part_name)
         
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
