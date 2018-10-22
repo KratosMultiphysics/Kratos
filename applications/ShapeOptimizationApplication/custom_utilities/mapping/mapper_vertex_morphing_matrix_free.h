@@ -502,6 +502,10 @@ private:
         unsigned int i = 0;
         for(auto& node_i : mrOriginModelPart.Nodes())
             node_i.SetValue(MAPPING_ID,i++);
+
+        i = 0;
+        for(auto& node_i : mrDestinationModelPart.Nodes())
+            node_i.SetValue(MAPPING_ID,i++);
     }
 
     // --------------------------------------------------------------------------
