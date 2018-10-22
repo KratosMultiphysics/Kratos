@@ -390,7 +390,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        SmallStrainIntegratorType::CalculateEquivalentStressThreshold(PlasticDissipation, TensileIndicatorFactor, CompressionIndicatorFactor, rEquivalentStressThreshold, rSlope, rValues);
+        SmallStrainIntegratorType::CalculateEquivalentStressThreshold(PlasticDissipation, TensileIndicatorFactor, CompressionIndicatorFactor, rEquivalentStressThreshold, rSlope, rValues, rValues.GetStrainVector());
     }
 
     /**
