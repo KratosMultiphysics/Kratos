@@ -289,25 +289,28 @@ class InitialInputProcess(KratosMultiphysics.Process):
 
     def __init__(self, model_part, hdf5_file_factory, settings):
         KratosMultiphysics.Process.__init__(self)
-        default_settings = KratosMultiphysics.Parameters(r'''{
+        default_settings = KratosMultiphysics.Parameters(r"""{
             "file_name": ""
-        }''')
+        }""")
         settings.ValidateAndAssignDefaults(default_settings)
         file_name_string = settings["file_name"].GetString()
         if file_name_string == "":
             raise Exception("Please specify the HDF5 input file name as the \"file_name\" parameter (string).")
         else:
-            self._file_name = file_name_string
+            self._file_name_string = file_name_string
 
         self._model_part = model_part
         self._hdf5_file_factory = hdf5_file_factory
+        self._file_name = self._get_total_file_name()
         self._list_of_inputs = []
 
     def AddInput(self,i):
         self._list_of_inputs.append(i)
 
     def ExecuteInitialize(self):
-        print(self._file_name)
         hdf5_file = self._hdf5_file_factory.Open(self._file_name)
         for i in self._list_of_inputs:
             i.Execute(self._model_part, hdf5_file)
+
+    def _get_total_file_name(self):
+        return self._file_name_string + ".h5"
