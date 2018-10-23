@@ -1325,7 +1325,7 @@ public:
             if(itr->is_object()) {
                 Parameters subobject = (*this)[item_name];
                 Parameters defaults_subobject = rDefaultParameters[item_name];
-                subobject.ValidateAndAssignDefaults(defaults_subobject);
+                subobject.RecursivelyValidateAndAssignDefaults(defaults_subobject);
             }
         }
 
@@ -1333,6 +1333,7 @@ public:
         if(rDefaultParameters.IsSubParameter()) {
             for (auto itr = rDefaultParameters.mpValue->begin(); itr != rDefaultParameters.mpValue->end(); ++itr) {
                 const std::string& item_name = itr.key();
+
                 if(mpValue->find(item_name) == mpValue->end()) {
                     (*mpValue)[item_name] = itr.value();
                 }
@@ -1341,7 +1342,8 @@ public:
                 if(itr->is_object()) {
                     Parameters subobject = (*this)[item_name];
                     Parameters defaults_subobject = rDefaultParameters[item_name];
-                    subobject.ValidateAndAssignDefaults(defaults_subobject);
+
+                    subobject.RecursivelyValidateAndAssignDefaults(defaults_subobject);
                 }
             }
         }
@@ -1375,7 +1377,10 @@ public:
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {};
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << "Parameters Object " << Info();
+    };
 
 protected:
     ///@name Protected static Member Variables
