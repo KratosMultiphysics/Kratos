@@ -109,6 +109,7 @@ class ApplyPeriodicConditionProcess : public Process
 
         CalculateTransformationMatrix();
         mIsInitialized = false;
+        std::cout<<"########### New Implementation :: "<<std::endl;
     }
 
     /**
@@ -145,8 +146,8 @@ class ApplyPeriodicConditionProcess : public Process
         KRATOS_TRY;
         if (!mIsInitialized)
         {
-            ProcessInfoPointerType info = mrMasterModelPart.pGetProcessInfo();
-            int prob_dim = info->GetValue(DOMAIN_SIZE);
+            const ProcessInfoPointerType info = mrMasterModelPart.pGetProcessInfo();
+            const int prob_dim = info->GetValue(DOMAIN_SIZE);
             // Rotate the master so it goes to the slave
             if (prob_dim == 2){
                 ApplyConstraintsForPeriodicConditions<2>();
@@ -182,7 +183,6 @@ class ApplyPeriodicConditionProcess : public Process
     ModelPart &mrMasterModelPart;       // the master modelpart to which the master-slave constraints are added.
     ModelPart &mrSlaveModelPart;
     Parameters mParameters;          // parameters
-    ModelPart mpTransformedMasterModelPart; // This is new modelpart
     double mTheta;
     bool mIsInitialized;
     std::vector<double> mCenterOfRotation;
@@ -223,7 +223,7 @@ class ApplyPeriodicConditionProcess : public Process
             TransformNode(it_slave_node->Coordinates(), transformed_slave_coordinates);
 
             // Finding the host element for this node
-            bool is_found = bin_based_point_locator.FindPointOnMesh(transformed_slave_coordinates, shape_function_values, p_host_cond, result_begin, max_results);
+            const bool is_found = bin_based_point_locator.FindPointOnMesh(transformed_slave_coordinates, shape_function_values, p_host_cond, result_begin, max_results);
             if(is_found)
             {
                 ++num_slaves_found;
@@ -256,40 +256,38 @@ class ApplyPeriodicConditionProcess : public Process
      * @param rVarName The name of the vector variable on which periodic boundary condition can be applied.
      */
     template <int TDim>
-    void ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSalveNode, GeometryType& rHostedGeometry, VectorType& rWeights, const std::string& rVarName )
+    void ConstraintSlaveNodeWithConditionForVectorVariable(NodeType& rSalveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName )
     {
-        VariableComponentType r_var_x = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_X"));
-        VariableComponentType r_var_y = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Y"));
-        VariableComponentType r_var_z = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Z"));
+        const VariableComponentType r_var_x = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_X"));
+        const VariableComponentType r_var_y = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Y"));
+        const VariableComponentType r_var_z = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Z"));
 
         IndexType master_index = 0;
         for (auto& master_node : rHostedGeometry)
         {
                 int current_num_constraint = mrMasterModelPart.GetRootModelPart().NumberOfMasterSlaveConstraints();
-                auto& actual_master_node = mrMasterModelPart.GetNode(master_node.Id());
 
-                double master_weight = rWeights(master_index);
-                double constant_x(0.0), constant_y(0.0), constant_z(0.0);
+                const double master_weight = rWeights(master_index);
 
-                constant_x = master_weight * mTransformationMatrixVariable(0,3);
-                constant_y = master_weight * mTransformationMatrixVariable(1,3);
-                constant_z = master_weight * mTransformationMatrixVariable(2,3);
+                const double constant_x = master_weight * mTransformationMatrixVariable(0,3);
+                const double constant_y = master_weight * mTransformationMatrixVariable(1,3);
+                const double constant_z = master_weight * mTransformationMatrixVariable(2,3);
 
                 #pragma omp critical
                 {
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_x, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_y, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_z, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,0), constant_x);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,1), constant_x);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSalveNode, r_var_x, master_weight * mTransformationMatrixVariable(0,2), constant_x);
 
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_x, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_y, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
-                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_z, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,0), constant_y);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,1), constant_y);
+                    mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSalveNode, r_var_y, master_weight * mTransformationMatrixVariable(1,2), constant_y);
 
                     if (TDim == 3)
                     {
-                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_x, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
-                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_y, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
-                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var_z, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
+                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_x, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,0), constant_z);
+                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_y, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,1), constant_z);
+                        mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var_z, rSalveNode, r_var_z, master_weight * mTransformationMatrixVariable(2,2), constant_z);
                     }
                 }
 
@@ -307,22 +305,20 @@ class ApplyPeriodicConditionProcess : public Process
      * @param rVarName The name of the scalar variable on which periodic boundary condition can be applied.
      */
     template <int TDim>
-    void ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSalveNode, GeometryType& rHostedGeometry, VectorType& rWeights, const std::string& rVarName )
+    void ConstraintSlaveNodeWithConditionForScalarVariable(NodeType& rSalveNode, const GeometryType& rHostedGeometry, const VectorType& rWeights, const std::string& rVarName )
     {
-        VariableType r_var = KratosComponents<VariableType>::Get(rVarName);
+        const VariableType r_var = KratosComponents<VariableType>::Get(rVarName);
 
         IndexType master_index = 0;
         for (auto& master_node : rHostedGeometry)
         {
             int current_num_constraint = mrMasterModelPart.NumberOfMasterSlaveConstraints();
-            auto& actual_master_node = mrMasterModelPart.GetNode(master_node.Id());
 
-            double master_weight = rWeights(master_index);
+            const double master_weight = rWeights(master_index);
             #pragma omp critical
             {
-                mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, actual_master_node, r_var, rSalveNode, r_var, master_weight, 0.0);
+                mrMasterModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", current_num_constraint++, master_node, r_var, rSalveNode, r_var, master_weight, 0.0);
             }
-
             master_index++;
         }
     }
@@ -333,67 +329,48 @@ class ApplyPeriodicConditionProcess : public Process
     void CalculateTransformationMatrix()
     {
         if (mType == "translation"){
-            CalculateTranslationMatrix();
-            CalculateTranslationMatrixVariable();
-            std::cout<<"mTransformationMatrixVariable :: "<<mTransformationMatrixVariable<<std::endl;
+            CalculateTranslationMatrix(mModulus, mTransformationMatrix);
+            CalculateTranslationMatrix(0.0, mTransformationMatrixVariable);
         }
         else if (mType == "rotation"){
-            CalculateRotationMatrix();
-            CalculateRotationMatrixVariable();
+            CalculateRotationMatrix(-1*mTheta, mTransformationMatrix);
+            CalculateRotationMatrix(mTheta, mTransformationMatrixVariable);
         }
     }
 
     /**
      * @brief   Calculates the transformation matrix which translates the given vector alone mDirOfTranslation by mModulus
+     * @param   Modulus is the magnitude by which the translation should happen in the direction of mDirOfTranslation.
+     * @param   rMatrix is the transformation matrix which will be calculated in this function. This should be of correct size (4x4).
      */
-    void CalculateTranslationMatrix()
+    void CalculateTranslationMatrix(const double Modulus, MatrixType& rMatrix)
     {
-        mTransformationMatrix(0,0) = 1;
-        mTransformationMatrix(0,1) = 0;
-        mTransformationMatrix(0,2) = 0;
-        mTransformationMatrix(0,3) = -1*mModulus *mDirOfTranslation[0];
-        mTransformationMatrix(1,0) = 0;
-        mTransformationMatrix(1,1) = 1.0;
-        mTransformationMatrix(1,2) = 0;
-        mTransformationMatrix(1,3) = -1*mModulus *mDirOfTranslation[1];
-        mTransformationMatrix(2,0) = 0;
-        mTransformationMatrix(2,1) = 0;
-        mTransformationMatrix(2,2) = 1.0;
-        mTransformationMatrix(2,3) = -1*mModulus *mDirOfTranslation[2];
-        mTransformationMatrix(3,0) = 0.0;
-        mTransformationMatrix(3,1) = 0.0;
-        mTransformationMatrix(3,2) = 0.0;
-        mTransformationMatrix(3,3) = 1.0;
-    }
-
-    /**
-     * @brief   Calculates the transformation matrix which translates the given vector variable alone mDirOfTranslation by mModulus
-     */
-    void CalculateTranslationMatrixVariable()
-    {
-        mTransformationMatrixVariable(0,0) = 1;
-        mTransformationMatrixVariable(0,1) = 0;
-        mTransformationMatrixVariable(0,2) = 0;
-        mTransformationMatrixVariable(0,3) = 0;
-        mTransformationMatrixVariable(1,0) = 0;
-        mTransformationMatrixVariable(1,1) = 1.0;
-        mTransformationMatrixVariable(1,2) = 0;
-        mTransformationMatrixVariable(1,3) = 0;
-        mTransformationMatrixVariable(2,0) = 0;
-        mTransformationMatrixVariable(2,1) = 0;
-        mTransformationMatrixVariable(2,2) = 1.0;
-        mTransformationMatrixVariable(2,3) = 0;
-        mTransformationMatrixVariable(3,0) = 0.0;
-        mTransformationMatrixVariable(3,1) = 0.0;
-        mTransformationMatrixVariable(3,2) = 0.0;
-        mTransformationMatrixVariable(3,3) = 1.0;
+        const double tolerance = std::numeric_limits<double>::epsilon();
+        rMatrix(0,0) = 1.0;
+        rMatrix(0,1) = 0.0;
+        rMatrix(0,2) = 0.0;
+        rMatrix(0,3) = (abs(Modulus)<tolerance) ?  1.0 : -1*mModulus *mDirOfTranslation[0];
+        rMatrix(1,0) = 0.0;
+        rMatrix(1,1) = 1.0;
+        rMatrix(1,2) = 0.0;
+        rMatrix(1,3) = (abs(Modulus)<tolerance) ?  1.0 : -1*mModulus *mDirOfTranslation[1];
+        rMatrix(2,0) = 0.0;
+        rMatrix(2,1) = 0.0;
+        rMatrix(2,2) = 1.0;
+        rMatrix(2,3) = (abs(Modulus)<tolerance) ?  1.0 : -1*mModulus *mDirOfTranslation[2];
+        rMatrix(3,0) = 0.0;
+        rMatrix(3,1) = 0.0;
+        rMatrix(3,2) = 0.0;
+        rMatrix(3,3) = 1.0;
     }
 
     /**
      * @brief   Calculates the transformation matrix which rotates the given vector around mAxisOfRotationVector and mCenterOfRotation
-     *          by mTheta. The following code is generated from MATLAB and is adapted here.
+     *          by provided Theta and stores the result in rMatrix The following code is generated from MATLAB and is adapted here.
+     * @param   Theta is the angle of rotation about mAxisOfRotationVector and mCenterOfRotation.
+     * @param   rMatrix is the transformation matrix which will be calculated in this function. This should be of correct size (4x4).
      */
-    void CalculateRotationMatrix()
+    void CalculateRotationMatrix(const double Theta, MatrixType& rMatrix )
     {
         std::vector<double> U(3); // normalized axis of rotation
         // normalizing the axis of rotation
@@ -405,104 +382,46 @@ class ApplyPeriodicConditionProcess : public Process
             U[d] = mAxisOfRotationVector[d] / norm;
 
         // Constructing the transformation matrix
-        double x1 = mCenterOfRotation[0];
-        double y1 = mCenterOfRotation[1];
-        double z1 = mCenterOfRotation[2];
+        const double x1 = mCenterOfRotation[0];
+        const double y1 = mCenterOfRotation[1];
+        const double z1 = mCenterOfRotation[2];
 
-        double a = U[0];
-        double b = U[1];
-        double c = U[2];
+        const double a = U[0];
+        const double b = U[1];
+        const double c = U[2];
 
-        double t2 = cos(-1*mTheta);
-        double t3 = sin(-1*mTheta);
-        double t4 = a * a;
-        double t5 = b * b;
-        double t6 = c * c;
-        double t7 = a * b;
-        double t8 = t5 + t6;
+        const double t2 = cos(Theta);
+        const double t3 = sin(Theta);
+        const double t4 = a * a;
+        const double t5 = b * b;
+        const double t6 = c * c;
+        const double t7 = a * b;
+        const double t8 = t5 + t6;
         double t9 = 1.0 / t8;
         if(isnan(t9))
             t9 = 0.0;
-        double t10 = a * c;
-        double t11 = b * t3;
-        double t12 = a * t3 * t5;
-        double t13 = a * t3 * t6;
-        double t14 = b * c * t2;
-        mTransformationMatrix(0,0) = t4 + t2 * t8;
-        mTransformationMatrix(0,1) = t7 - c * t3 - a * b * t2;
-        mTransformationMatrix(0,2) = t10 + t11 - a * c * t2;
-        mTransformationMatrix(0,3) = x1 - t4 * x1 - a * b * y1 - a * c * z1 - b * t3 * z1 + c * t3 * y1 - t2 * t5 * x1 - t2 * t6 * x1 + a * b * t2 * y1 + a * c * t2 * z1;
-        mTransformationMatrix(1,0) = t7 + c * t3 - a * b * t2;
-        mTransformationMatrix(1,1) = t9 * (t2 * t6 + t5 * t8 + t2 * t4 * t5);
-        mTransformationMatrix(1,2) = -t9 * (t12 + t13 + t14 - b * c * t8 - b * c * t2 * t4);
-        mTransformationMatrix(1,3) = -t9 * (-t8 * y1 + t2 * t6 * y1 + t5 * t8 * y1 + a * b * t8 * x1 - b * c * t2 * z1 + b * c * t8 * z1 - a * t3 * t5 * z1 - a * t3 * t6 * z1 + c * t3 * t8 * x1 + t2 * t4 * t5 * y1 - a * b * t2 * t8 * x1 + b * c * t2 * t4 * z1);
-        mTransformationMatrix(2,0) = t10 - t11 - a * c * t2;
-        mTransformationMatrix(2,1) = t9 * (t12 + t13 - t14 + b * c * t8 + b * c * t2 * t4);
-        mTransformationMatrix(2,2) = t9 * (t2 * t5 + t6 * t8 + t2 * t4 * t6);
-        mTransformationMatrix(2,3) = -t9 * (-t8 * z1 + t2 * t5 * z1 + t6 * t8 * z1 + a * c * t8 * x1 - b * c * t2 * y1 + b * c * t8 * y1 + a * t3 * t5 * y1 + a * t3 * t6 * y1 - b * t3 * t8 * x1 + t2 * t4 * t6 * z1 - a * c * t2 * t8 * x1 + b * c * t2 * t4 * y1);
-        mTransformationMatrix(3,0) = 0.0;
-        mTransformationMatrix(3,1) = 0.0;
-        mTransformationMatrix(3,2) = 0.0;
-        mTransformationMatrix(3,3) = 1.0;
+        const double t10 = a * c;
+        const double t11 = b * t3;
+        const double t12 = a * t3 * t5;
+        const double t13 = a * t3 * t6;
+        const double t14 = b * c * t2;
+        rMatrix(0,0) = t4 + t2 * t8;
+        rMatrix(0,1) = t7 - c * t3 - a * b * t2;
+        rMatrix(0,2) = t10 + t11 - a * c * t2;
+        rMatrix(0,3) = x1 - t4 * x1 - a * b * y1 - a * c * z1 - b * t3 * z1 + c * t3 * y1 - t2 * t5 * x1 - t2 * t6 * x1 + a * b * t2 * y1 + a * c * t2 * z1;
+        rMatrix(1,0) = t7 + c * t3 - a * b * t2;
+        rMatrix(1,1) = t9 * (t2 * t6 + t5 * t8 + t2 * t4 * t5);
+        rMatrix(1,2) = -t9 * (t12 + t13 + t14 - b * c * t8 - b * c * t2 * t4);
+        rMatrix(1,3) = -t9 * (-t8 * y1 + t2 * t6 * y1 + t5 * t8 * y1 + a * b * t8 * x1 - b * c * t2 * z1 + b * c * t8 * z1 - a * t3 * t5 * z1 - a * t3 * t6 * z1 + c * t3 * t8 * x1 + t2 * t4 * t5 * y1 - a * b * t2 * t8 * x1 + b * c * t2 * t4 * z1);
+        rMatrix(2,0) = t10 - t11 - a * c * t2;
+        rMatrix(2,1) = t9 * (t12 + t13 - t14 + b * c * t8 + b * c * t2 * t4);
+        rMatrix(2,2) = t9 * (t2 * t5 + t6 * t8 + t2 * t4 * t6);
+        rMatrix(2,3) = -t9 * (-t8 * z1 + t2 * t5 * z1 + t6 * t8 * z1 + a * c * t8 * x1 - b * c * t2 * y1 + b * c * t8 * y1 + a * t3 * t5 * y1 + a * t3 * t6 * y1 - b * t3 * t8 * x1 + t2 * t4 * t6 * z1 - a * c * t2 * t8 * x1 + b * c * t2 * t4 * y1);
+        rMatrix(3,0) = 0.0;
+        rMatrix(3,1) = 0.0;
+        rMatrix(3,2) = 0.0;
+        rMatrix(3,3) = 1.0;
     }
-
-    /**
-     * @brief   Calculates the transformation matrix which rotates the given vector around mAxisOfRotationVector and mCenterOfRotation
-     *          by mTheta. The following code is generated from MATLAB and is adapted here.
-     */
-    void CalculateRotationMatrixVariable()
-    {
-        std::vector<double> U(3); // normalized axis of rotation
-        // normalizing the axis of rotation
-        double norm = 0.0;
-        for (unsigned int d = 0; d < 3; ++d)
-            norm += mAxisOfRotationVector[d] * mAxisOfRotationVector[d];
-        norm = sqrt(norm);
-        for (unsigned int d = 0; d < 3; ++d)
-            U[d] = mAxisOfRotationVector[d] / norm;
-
-        // Constructing the transformation matrix
-        double x1 = mCenterOfRotation[0];
-        double y1 = mCenterOfRotation[1];
-        double z1 = mCenterOfRotation[2];
-
-        double a = U[0];
-        double b = U[1];
-        double c = U[2];
-
-        double t2 = cos(mTheta);
-        double t3 = sin(mTheta);
-        double t4 = a * a;
-        double t5 = b * b;
-        double t6 = c * c;
-        double t7 = a * b;
-        double t8 = t5 + t6;
-        double t9 = 1.0 / t8;
-        if(isnan(t9))
-            t9 = 0.0;
-        double t10 = a * c;
-        double t11 = b * t3;
-        double t12 = a * t3 * t5;
-        double t13 = a * t3 * t6;
-        double t14 = b * c * t2;
-        mTransformationMatrixVariable(0,0) = t4 + t2 * t8;
-        mTransformationMatrixVariable(0,1) = t7 - c * t3 - a * b * t2;
-        mTransformationMatrixVariable(0,2) = t10 + t11 - a * c * t2;
-        mTransformationMatrixVariable(0,3) = x1 - t4 * x1 - a * b * y1 - a * c * z1 - b * t3 * z1 + c * t3 * y1 - t2 * t5 * x1 - t2 * t6 * x1 + a * b * t2 * y1 + a * c * t2 * z1;
-        mTransformationMatrixVariable(1,0) = t7 + c * t3 - a * b * t2;
-        mTransformationMatrixVariable(1,1) = t9 * (t2 * t6 + t5 * t8 + t2 * t4 * t5);
-        mTransformationMatrixVariable(1,2) = -t9 * (t12 + t13 + t14 - b * c * t8 - b * c * t2 * t4);
-        mTransformationMatrixVariable(1,3) = -t9 * (-t8 * y1 + t2 * t6 * y1 + t5 * t8 * y1 + a * b * t8 * x1 - b * c * t2 * z1 + b * c * t8 * z1 - a * t3 * t5 * z1 - a * t3 * t6 * z1 + c * t3 * t8 * x1 + t2 * t4 * t5 * y1 - a * b * t2 * t8 * x1 + b * c * t2 * t4 * z1);
-        mTransformationMatrixVariable(2,0) = t10 - t11 - a * c * t2;
-        mTransformationMatrixVariable(2,1) = t9 * (t12 + t13 - t14 + b * c * t8 + b * c * t2 * t4);
-        mTransformationMatrixVariable(2,2) = t9 * (t2 * t5 + t6 * t8 + t2 * t4 * t6);
-        mTransformationMatrixVariable(2,3) = -t9 * (-t8 * z1 + t2 * t5 * z1 + t6 * t8 * z1 + a * c * t8 * x1 - b * c * t2 * y1 + b * c * t8 * y1 + a * t3 * t5 * y1 + a * t3 * t6 * y1 - b * t3 * t8 * x1 + t2 * t4 * t6 * z1 - a * c * t2 * t8 * x1 + b * c * t2 * t4 * y1);
-        mTransformationMatrixVariable(3,0) = 0.0;
-        mTransformationMatrixVariable(3,1) = 0.0;
-        mTransformationMatrixVariable(3,2) = 0.0;
-        mTransformationMatrixVariable(3,3) = 1.0;
-    }
-
 
     /*
      * @brief Rotates a given point(node_cords) in space around a given mAxisOfRotationVector by an angle thetha
@@ -511,20 +430,20 @@ class ApplyPeriodicConditionProcess : public Process
      */
     void TransformNode(array_1d<double, 3 >& rCoordinates, array_1d<double, 3 >& rTransformedCoordinates)
     {
-        std::vector<double> originalNode(4, 0.0f);
-        std::vector<double> rotatedNode(4, 0.0f);
+        std::vector<double> original_node(4, 0.0f);
+        std::vector<double> transformed_node(4, 0.0f);
 
-        originalNode[0] = rCoordinates(0); originalNode[1] = rCoordinates(1); originalNode[2] = rCoordinates(2); originalNode[3] = 1.0;
+        original_node[0] = rCoordinates(0); original_node[1] = rCoordinates(1); original_node[2] = rCoordinates(2); original_node[3] = 1.0;
         // Multiplying the point to get the rotated point
         for (int i = 0; i < 4; i++)
         {
             for (int j = 0; j < 4; j++)
             {
-                rotatedNode[i] += mTransformationMatrix(i,j) * originalNode[j];
+                transformed_node[i] += mTransformationMatrix(i,j) * original_node[j];
             }
         }
 
-        rTransformedCoordinates(0) = rotatedNode[0]; rTransformedCoordinates(1) = rotatedNode[1]; rTransformedCoordinates(2) = rotatedNode[2];
+        rTransformedCoordinates(0) = transformed_node[0]; rTransformedCoordinates(1) = transformed_node[1]; rTransformedCoordinates(2) = transformed_node[2];
     }
 
 }; // Class
