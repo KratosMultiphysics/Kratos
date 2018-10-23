@@ -1803,7 +1803,7 @@ void TwoFluidNavierStokes<TElementData>::CondenseEnrichment(
     MatrixType &rKeeTot,
     const VectorType &rRHSeeTot)
 {
-    const double min_area_ratio = -1e-6;
+    const double min_area_ratio = 1e-7;
 
     // Compute positive side, negative side and total volumes
     double positive_volume = 0.0;
