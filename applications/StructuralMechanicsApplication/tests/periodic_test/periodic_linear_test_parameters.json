@@ -47,49 +47,77 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_fixedAxis","PointLoad3D_forceOuter"],
         "rotation_dofs"                      : false
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_fixedAxis",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_fixedAxis",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "apply_periodic_boundaray_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "ApplyPeriodicBoundaryConditionProcess",
+            "Parameters"    : {
+                "computing_model_part_name"   : "computing_domain",
+                "model_part_name"             : "Structure",
+                "first_model_part_name"       : "GENERIC_horiSurface",
+                "second_model_part_name"      : "GENERIC_vertSurface",
+                "interval"                    : [0.0, 1e30],
+                "variable_names"              : ["DISPLACEMENT"],
+                "center"                      : [0,0,0],
+                "axis_of_rotation"            : [0.0,0.0,1.0],
+                "angle"                       : 90.0
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process sets a vector variable value over a condition",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "PointLoad3D_forceOuter",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : 0.0001,
+                "direction"       : [1.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+                "input_file_name"  : "periodic_test/periodic_linear_test_output_horizontal.json",
+                "model_part_name"  : "GENERIC_horiSurface",
+                "time_frequency"   : 0.01
+            }
+        },
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+                "input_file_name"  : "periodic_test/periodic_linear_test_output_vertical.json",
+                "model_part_name"  : "GENERIC_vertSurface",
+                "time_frequency"   : 0.01
+            }
         }
-    },{
-        "python_module" : "apply_periodic_boundaray_condition_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "ApplyPeriodicBoundaryConditionProcess",
-        "Parameters"    : {
-            "computing_model_part_name"   : "computing_domain",
-            "model_part_name"             : "Structure",
-            "first_model_part_name"       : "GENERIC_horiSurface",
-            "second_model_part_name"      : "GENERIC_vertSurface",
-            "interval"                    : [0.0, 1e30],
-            "variable_names"              : ["DISPLACEMENT"],
-            "center"                      : [0,0,0],
-            "axis_of_rotation"            : [0.0,0.0,1.0],
-            "angle"                       : 90.0
-        }
-    }],
-    "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process sets a vector variable value over a condition",
-        "check"         : "DirectorVectorNonZero direction",
-        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_forceOuter",
-            "variable_name"   : "POINT_LOAD",
-            "modulus"         : 0.0001,
-            "direction"       : [1.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
-        }
-    }],
+        ]
+    },
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
