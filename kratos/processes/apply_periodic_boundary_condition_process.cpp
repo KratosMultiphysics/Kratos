@@ -303,7 +303,7 @@ namespace Kratos
         const double b = U[1];
         const double c = U[2];
 
-        const double t2 = cos(Theta);
+        const double t2 = std::cos(Theta);
         const double t3 = sin(Theta);
         const double t4 = a * a;
         const double t5 = b * b;
