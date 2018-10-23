@@ -1,0 +1,117 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "test_periodic",
+        "parallel_type"   : "OpenMP",
+        "time_step"       : 1.1,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 1
+    },
+    "solver_settings"          : {
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 3,
+        "solver_type"                        : "static",
+        "echo_level"                         : 1,
+        "analysis_type"                      : "linear",
+        "model_import_settings"              : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "periodic_test/periodic_linear_test",
+            "input_file_label" : 0
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "periodic_test/periodic_linear_test_materials.json"
+        },
+        "multi_point_constraints_used"       : true,
+        "reform_dofs_at_each_step"           : true,
+        "line_search"                        : false,
+        "convergence_criterion"              : "Residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "linear_solver_settings"             : {
+                "solver_type"                    : "AMGCL",
+                "max_iteration"                  : 500,
+                "tolerance"                      : 1e-6,
+                "provide_coordinates"            : false,
+                "smoother_type"                  : "ilu0",
+                "krylov_type"                    : "cg",
+                "gmres_krylov_space_dimension"   : 100,
+                "use_block_matrices_if_possible" : false,
+                "coarsening_type"                : "aggregation",
+                "scaling"                        : true,
+                "verbosity"                      : 0
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_solid"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_fixedAxis","PointLoad3D_forceOuter"],
+        "rotation_dofs"                      : false
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_fixedAxis",
+            "variable_name"   : "DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    },{
+        "python_module" : "apply_periodic_boundaray_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "ApplyPeriodicBoundaryConditionProcess",
+        "Parameters"    : {
+            "computing_model_part_name"   : "computing_domain",
+            "model_part_name"             : "Structure",
+            "first_model_part_name"       : "GENERIC_horiSurface",
+            "second_model_part_name"      : "GENERIC_vertSurface",
+            "interval"                    : [0.0, 1e30],
+            "variable_names"              : ["DISPLACEMENT"],
+            "center"                      : [0,0,0],
+            "axis_of_rotation"            : [0.0,0.0,1.0],
+            "angle"                       : 90.0
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "assign_vector_by_direction_to_condition_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process sets a vector variable value over a condition",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PointLoad3D_forceOuter",
+            "variable_name"   : "POINT_LOAD",
+            "modulus"         : 0.0001,
+            "direction"       : [1.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+    }],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostAscii",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","VOLUME_ACCELERATION"],
+            "gauss_point_results" : ["VON_MISES_STRESS"]
+        },
+        "point_data_configuration"  : []
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}

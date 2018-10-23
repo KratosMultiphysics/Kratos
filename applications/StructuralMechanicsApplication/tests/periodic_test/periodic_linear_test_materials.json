@@ -1,0 +1,17 @@
+{
+    "properties" : [{
+        "model_part_name" : "Parts_solid",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 7850.0,
+                "YOUNG_MODULUS" : 206900000000.0,
+                "POISSON_RATIO" : 0.29
+            },
+            "Tables"           : {}
+        }
+    }]
+}
