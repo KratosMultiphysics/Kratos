@@ -110,6 +110,6 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
 
         # We activate/deactivate conditions dependeding of interval
         if (self.interval.IsInInterval(current_time)):
-            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.computing_model_part.MasterSlaveConstraints)
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.master_model_part.MasterSlaveConstraints)
         else:
-            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, False, self.computing_model_part.MasterSlaveConstraints)
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, False, self.master_model_part.MasterSlaveConstraints)
