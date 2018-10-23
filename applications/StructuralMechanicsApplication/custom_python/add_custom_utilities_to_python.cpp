@@ -18,8 +18,6 @@
 
 //Utilities
 #include "custom_utilities/formfinding_io_utility.h"
-#include "custom_utilities/vtk_output.hpp"
-
 
 namespace Kratos
 {
@@ -35,11 +33,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("PrintModelPart",&FormfindingIOUtility::PrintModelPart)
     .def("ReadPrestressData",&FormfindingIOUtility::ReadPrestressData )
     .def("PrintPrestressData",&FormfindingIOUtility::PrintPrestressData )
-    ;
-
-    class_<VtkOutput>(m,"VtkOutput")
-    .def(init< ModelPart&, std::string, const Parameters >())
-    .def("PrintOutput", &VtkOutput::PrintOutput)
     ;
 }
 
