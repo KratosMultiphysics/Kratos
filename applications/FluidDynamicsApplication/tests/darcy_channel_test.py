@@ -175,8 +175,8 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.rho = fluid.density
         self.nu = fluid.kinematic_viscosity
 
-        self.linear_darcy_coefficient = self.rho * self.nu / filt.k1
-        self.nonlinear_darcy_coefficient = self.rho / filt.k2
+        self.linear_darcy_coefficient = 1.0 / filt.k1
+        self.nonlinear_darcy_coefficient = 1.0 / filt.k2
 
         print("A: {0} B: {1}".format(self.linear_darcy_coefficient,self.nonlinear_darcy_coefficient))
 
@@ -192,7 +192,7 @@ class DarcyChannelTest(UnitTest.TestCase):
 
 
         # dP/dX = (mu/k1) * u0 + (rho/k2) * u0**2
-        expected_pressure_drop = (self.xmax - self.xmin) * (self.linear_darcy_coefficient*self.u0 + self.nonlinear_darcy_coefficient*self.u0**2)
+        expected_pressure_drop = (self.xmax - self.xmin) * (self.nu*self.rho*self.linear_darcy_coefficient*self.u0 + self.rho*self.nonlinear_darcy_coefficient*self.u0**2)
         measured_pressure_drop = p_in - p_out
         rel_error = 100. * (measured_pressure_drop-expected_pressure_drop)/expected_pressure_drop
         outfile.write("{0}; {1}; {2}; {3}; {4}; {5}; {6}\n".format(fluid.name,filt.name,self.dt,self.dynamic_tau,expected_pressure_drop,measured_pressure_drop,rel_error))
@@ -304,7 +304,7 @@ class DarcyChannelTest(UnitTest.TestCase):
             p_out = node_out.GetSolutionStepValue(PRESSURE)
 
             # dP/dX = (mu/k1) * u0 + (rho/k2) * u0**2
-            expected_pressure_drop = (self.xmax-self.xmin) * (self.linear_darcy_coefficient*self.u0 + self.nonlinear_darcy_coefficient*self.u0**2)
+            expected_pressure_drop = (self.xmax-self.xmin) * (self.nu*self.rho*self.linear_darcy_coefficient*self.u0 + self.rho*self.nonlinear_darcy_coefficient*self.u0**2)
             measured_pressure_drop = p_in - p_out
             self.assertAlmostEqual(expected_pressure_drop,measured_pressure_drop,6)
         else:
