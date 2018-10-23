@@ -84,6 +84,7 @@ private:
         ///@{
 
         value_iterator mValueIterator;                   /// Our iterator
+        nlohmann::json& mrValue;                         /// The original container
         std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
 
         ///@}
@@ -96,13 +97,13 @@ private:
          * @param itValue The iterator to adapt
          * @param pRoot The root Parameter pointer
          */
-        iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
+        iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mrValue(*pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
 
         /**
          * @brief Default constructor (just iterator)
          * @param itValue The iterator to adapt
          */
-        iterator_adaptor(const iterator_adaptor& itValue) : mValueIterator(itValue.mValueIterator),  mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage())) {}
+        iterator_adaptor(const iterator_adaptor& itValue) : mValueIterator(itValue.mValueIterator), mrValue(itValue.mrValue),  mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage())) {}
 
         ///@}
         ///@name Operators
@@ -159,7 +160,7 @@ private:
          */
         Parameters& operator*() const
         {
-            if (!mValueIterator.is_end())
+            if (mValueIterator != mrValue.end())
                 mpParameters->mpValue = &(*mValueIterator);
             return *mpParameters;
         }
@@ -171,7 +172,7 @@ private:
          */
         Parameters* operator->() const
         {
-            if (!mValueIterator.is_end())
+            if (mValueIterator != mrValue.end())
                 mpParameters->mpValue = &(*mValueIterator);
             return mpParameters.get();
         }
@@ -228,6 +229,7 @@ private:
         ///@{
 
         value_iterator mValueIterator;                   /// Our iterator
+        nlohmann::json& mrValue;                         /// The original container
         std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
 
         ///@}
@@ -240,14 +242,14 @@ private:
          * @param itValue The iterator to adapt
          * @param pRoot The root Parameter pointer
          */
-        const_iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
+        const_iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mrValue(*pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
 
         /**
          * @brief Default constructor (just constant iterator)
          * @param itValue The iterator to adapt
          * @todo Use copy constructor in the following method
          */
-        const_iterator_adaptor(const const_iterator_adaptor& itValue) : mValueIterator(itValue.mValueIterator), mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage()))  {}
+        const_iterator_adaptor(const const_iterator_adaptor& itValue) : mValueIterator(itValue.mValueIterator), mrValue(itValue.mrValue), mpParameters(new Parameters(itValue->GetUnderlyingStorage(), itValue->GetUnderlyingRootStorage()))  {}
 
         ///@}
         ///@name Operators
@@ -304,7 +306,7 @@ private:
          */
         const Parameters& operator*() const
         {
-            if (!mValueIterator.is_end())
+            if (mValueIterator != mrValue.cend())
                 mpParameters->mpValue = const_cast<nlohmann::json*>(&(*mValueIterator));
             return *mpParameters;
         }
@@ -316,7 +318,7 @@ private:
          */
         const Parameters* operator->() const
         {
-            if (!mValueIterator.is_end())
+            if (mValueIterator != mrValue.cend())
                 mpParameters->mpValue = const_cast<nlohmann::json*>(&(*mValueIterator));
             return mpParameters.get();
         }
