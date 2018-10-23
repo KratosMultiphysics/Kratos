@@ -923,7 +923,7 @@ class SettleModelStructureProcess
 
 
     //Sort
-    rComputingModelPart.Nodes().Sort();
+    // rComputingModelPart.Nodes().Sort();
     // rComputingModelPart.Elements().Sort();
     // rComputingModelPart.Conditions().Sort();
 
