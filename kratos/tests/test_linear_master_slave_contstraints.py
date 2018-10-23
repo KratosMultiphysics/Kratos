@@ -270,7 +270,8 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
     def test_MPC_Constraints(self):
         dim = 2
-        self.mp = KratosMultiphysics.ModelPart("MainModelPart")
+        current_model = Model()
+        self.mp= current_model.CreateModelPart("MainModelPart")
         self._add_variables()
         self._setup_model_part()
         self._add_dofs()
