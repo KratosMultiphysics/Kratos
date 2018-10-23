@@ -113,7 +113,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 const unsigned int number_of_gauss_points = gauss_weights.size();
                 array_1d<double, NumNodes> Ncenter;
                 for (unsigned int i = 0; i < NumNodes; i++){
-                    Ncenter[i] = 0.25;
+                    Ncenter[i] = 1.0/NumNodes;
                 }
                 const double d_gauss = inner_prod(data.Distance, Ncenter);
                 for (unsigned int g = 0; g < number_of_gauss_points; g++){
