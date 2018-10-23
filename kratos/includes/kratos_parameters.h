@@ -84,7 +84,6 @@ private:
         ///@{
 
         value_iterator mValueIterator;                   /// Our iterator
-        nlohmann::json* mpValue;                         /// Original dataset
         std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
 
         ///@}
@@ -97,7 +96,7 @@ private:
          * @param itValue The iterator to adapt
          * @param pRoot The root Parameter pointer
          */
-        iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpValue(pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
+        iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
 
         /**
          * @brief Default constructor (just iterator)
@@ -160,7 +159,7 @@ private:
          */
         Parameters& operator*() const
         {
-            if (mValueIterator != mpValue->end())
+            if (!mValueIterator.is_end())
                 mpParameters->mpValue = &(*mValueIterator);
             return *mpParameters;
         }
@@ -172,7 +171,7 @@ private:
          */
         Parameters* operator->() const
         {
-            if (mValueIterator != mpValue->end())
+            if (!mValueIterator.is_end())
                 mpParameters->mpValue = &(*mValueIterator);
             return mpParameters.get();
         }
@@ -228,9 +227,8 @@ private:
         ///@name Member Variables
         ///@{
 
-        value_iterator mValueIterator;                         /// Our iterator
-        nlohmann::json* mpValue;                               /// Original dataset
-        std::unique_ptr<Parameters> mpParameters;              /// The unique pointer to the base Parameter
+        value_iterator mValueIterator;                   /// Our iterator
+        std::unique_ptr<Parameters> mpParameters;        /// The unique pointer to the base Parameter
 
         ///@}
     public:
@@ -242,7 +240,7 @@ private:
          * @param itValue The iterator to adapt
          * @param pRoot The root Parameter pointer
          */
-        const_iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpValue(pValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
+        const_iterator_adaptor(value_iterator itValue, nlohmann::json* pValue,  Kratos::shared_ptr<nlohmann::json> pRoot) :mValueIterator(itValue), mpParameters(new Parameters(itValue, pValue, pRoot)) {}
 
         /**
          * @brief Default constructor (just constant iterator)
@@ -263,8 +261,6 @@ private:
         const_iterator_adaptor& operator++()
         {
             mValueIterator++;
-            if (mValueIterator != mpValue->cend())
-                mpParameters->mpValue = const_cast<nlohmann::json*>( &(*mValueIterator) );
             return *this;
         }
 
@@ -308,7 +304,7 @@ private:
          */
         const Parameters& operator*() const
         {
-            if (mValueIterator != mpValue->cend())
+            if (!mValueIterator.is_end())
                 mpParameters->mpValue = const_cast<nlohmann::json*>(&(*mValueIterator));
             return *mpParameters;
         }
@@ -320,6 +316,8 @@ private:
          */
         const Parameters* operator->() const
         {
+            if (!mValueIterator.is_end())
+                mpParameters->mpValue = const_cast<nlohmann::json*>(&(*mValueIterator));
             return mpParameters.get();
         }
 
@@ -1221,7 +1219,7 @@ public:
     {
         KRATOS_TRY
 
-        // First verifies that all the enries in the current parameters have a correspondance in the rDefaultParameters.
+        // First verifies that all the entries in the current parameters have a correspondance in the rDefaultParameters.
         // If it is not the case throw an error
         for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
             std::string item_name = itr.key();
@@ -1283,7 +1281,7 @@ public:
     {
         KRATOS_TRY
 
-        // First verifies that all the enries in the current parameters have a correspondance in the rDefaultParameters.
+        // First verifies that all the entries in the current parameters have a correspondance in the rDefaultParameters.
         // If it is not the case throw an error
         for (auto itr = this->mpValue->cbegin(); itr != this->mpValue->cend(); ++itr) {
             const std::string& item_name = itr.key();
@@ -1332,7 +1330,7 @@ public:
         if(rDefaultParameters.IsSubParameter()) {
             for (auto itr = rDefaultParameters.mpValue->begin(); itr != rDefaultParameters.mpValue->end(); ++itr) {
                 const std::string& item_name = itr.key();
-                if(mpValue->find(item_name) ==  mpValue->end()) {
+                if(mpValue->find(item_name) == mpValue->end()) {
                     (*mpValue)[item_name] = itr.value();
                 }
 
