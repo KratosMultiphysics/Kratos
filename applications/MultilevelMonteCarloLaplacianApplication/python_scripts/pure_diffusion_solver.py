@@ -1,11 +1,11 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication 
+import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.MyMultilevelMonteCarloLaplacianApplication as Poisson
 from python_solver import PythonSolver
-import sys
-#import pprint
+# import sys
+# import pprint
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -16,8 +16,8 @@ def CreateSolver(model, custom_settings):
 
 class PureDiffusionSolver(PythonSolver):
 
-    
-    def __init__(self, model, custom_settings):  # Constructor of the class        
+
+    def __init__(self, model, custom_settings):  # Constructor of the class
 
         ## Overwrite the default settings with user-provided parameters
         settings = self._ValidateSettings(custom_settings)
@@ -25,7 +25,7 @@ class PureDiffusionSolver(PythonSolver):
         super(PureDiffusionSolver,self).__init__(model, settings)
         
         # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True        
+        self._is_printing_rank = True
         ## Set the element and condition names for the replace settings
         self.element_name = "MyLaplacianElement"
         # self.condition_name = "PointSourceCondition"
@@ -38,8 +38,8 @@ class PureDiffusionSolver(PythonSolver):
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name)
-            
+            self.main_model_part = model.CreateModelPart(model_part_name)
+
         domain_size = self.settings["domain_size"].GetInt()
         if domain_size == -1:
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
@@ -69,8 +69,8 @@ class PureDiffusionSolver(PythonSolver):
         
     def PrepareModelPart(self):
         if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
-            self.model.AddModelPart(self.main_model_part)
-
+            self.model.CreateModelPart(self.settings["model_part_name"].GetString())
+            
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("PureDiffusionSolverSolver", "Model reading finished.")
 
@@ -106,7 +106,7 @@ class PureDiffusionSolver(PythonSolver):
                                                                      False)
 
 
-        (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())        
+        (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         (self.solver).Initialize()
         (self.solver).Check()
         # print ("Pure diffusion solver initialization finished")
@@ -130,13 +130,13 @@ class PureDiffusionSolver(PythonSolver):
     def Finalize(self):
         # now we proceed to use the GID interface (both to import the infomation inside the .mdpa file and later print the results in a file
         # since in the .json file the output configuration was not defined, we define it now
-        gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostAscii  #we import the python file that includes the commands that we need  
+        gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostAscii  #we import the python file that includes the commands that we need
         multifile = KratosMultiphysics.MultiFileFlag.SingleFile
         deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
         write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteElementsOnly
         gid_io = KratosMultiphysics.GidIO("MultilevelMonteCarloLaplacian", gid_mode,multifile, deformed_mesh_flag, write_conditions)
 
-        # we create a mesh for the postprocess  
+        # we create a mesh for the postprocess
         mesh_name = 0.0
         gid_io.InitializeMesh( mesh_name )
         gid_io.WriteMesh((self.main_model_part).GetMesh())
@@ -144,7 +144,7 @@ class PureDiffusionSolver(PythonSolver):
 
         # and we print the results
         # select which result to print on the nodes
-        gid_io.InitializeResults(mesh_name,(self.main_model_part).GetMesh()) 
+        gid_io.InitializeResults(mesh_name,(self.main_model_part).GetMesh())
         gid_io.WriteNodalResults(Poisson.SOLUTION,self.main_model_part.Nodes,0,0)
         gid_io.FinalizeResults()
 
@@ -235,7 +235,7 @@ class PureDiffusionSolver(PythonSolver):
         return settings
 
     
-    def _IsPrintingRank(self):        
+    def _IsPrintingRank(self):
         return self._is_printing_rank
 
 

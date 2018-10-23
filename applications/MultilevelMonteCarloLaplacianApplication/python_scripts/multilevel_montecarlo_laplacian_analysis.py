@@ -3,7 +3,7 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 import KratosMultiphysics as Kratos
 # KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
 Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
-import KratosMultiphysics.MyStochasticLaplacianApplication as Poisson    
+import KratosMultiphysics.MyStochasticLaplacianApplication as Poisson
 
 from analysis_stage import AnalysisStage
 
@@ -17,7 +17,7 @@ from pycompss.api.parameter import *
 class MultilevelMonteCarloLaplacianAnalysis(AnalysisStage):
     """Main script for MultilevelMonte Carlo Poisson simulations using the pure_diffusion solver"""
 
-    
+
     def __init__(self,model,parameters,sample):
         self.sample = sample
         super(MultilevelMonteCarloLaplacianAnalysis,self).__init__(model,parameters)
@@ -42,7 +42,7 @@ class MultilevelMonteCarloLaplacianAnalysis(AnalysisStage):
             coord_y = node.Y
             # forcing = -432.0 * coord_x * (coord_x - 1) * coord_y * (coord_y - 1)
             forcing = -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)
-            node.SetSolutionStepValue(Poisson.FORCING,forcing*self.sample)            
+            node.SetSolutionStepValue(Poisson.FORCING,forcing*self.sample)
         # print("SAMPLE = ",self.sample)
             ############################################################################################################################################################################################
             ## need to use SetSolutionStepValue and not SetValue (equivalent for GetSolutionStepValue and GetValue) because in custom_elements and custom_conditions I use this function              ##
@@ -73,7 +73,7 @@ def GenerateStochasticContribute(parameters):
         if stochastic_pdf["normal_distribution"].Has("mean"):
             mu = stochastic_pdf["normal_distribution"]["mean"].GetDouble()
         else:
-            raise Exception('Please define the "mean" for the normal distribution in the .json file')            
+            raise Exception('Please define the "mean" for the normal distribution in the .json file')
         if stochastic_pdf["normal_distribution"].Has("variance"):
             sigma = stochastic_pdf["normal_distribution"]["variance"].GetDouble()
         else:
@@ -84,7 +84,7 @@ def GenerateStochasticContribute(parameters):
         if stochastic_pdf["beta_distribution"].Has("alpha"):
             alpha = stochastic_pdf["beta_distribution"]["alpha"].GetDouble()
         else:
-            raise Exception('Please define the "alpha" for the beta distribution in the .json file')            
+            raise Exception('Please define the "alpha" for the beta distribution in the .json file')
         if stochastic_pdf["beta_distribution"].Has("beta"):
             beta = stochastic_pdf["beta_distribution"]["beta"].GetDouble()
         else:
@@ -106,7 +106,6 @@ def EvaluateQuantityOfInterest(simulation):
     we use the midpoint rule to evaluate the integral"""
     Kratos.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
     Q = 0.0
-    SolArray = []
     for node in simulation._GetSolver().main_model_part.Nodes:
         Q = Q + (node.GetSolutionStepValue(Kratos.NODAL_AREA)*node.GetSolutionStepValue(Poisson.SOLUTION))
         #print("NODAL AREA = ",node.GetSolutionStepValue(Kratos.NODAL_AREA),"NODAL SOLUTION = ",node.GetSolutionStepValue(Poisson.SOLUTION),"CURRENT Q = ",Q)
@@ -121,15 +120,15 @@ def Nf_law(lev):
         #      level = 2, h_{lev=2} = 0.2/4 = 0.0625
         #      ...
         # I wrote the following:
-        # N0 = 4.
-        # M  = 2.
-        # NFF = (N0*np.power(M,lev))
-        # Nf2 = 2*NFF**2
-        # Nobile wrote the following:
-        N0 = 5.
+        N0 = 4.
         M  = 2.
         NFF = (N0*np.power(M,lev))
-        Nf2 = NFF**2
+        Nf2 = 2*NFF**2
+        # Nobile wrote the following:
+        # N0 = 5.
+        # M  = 2.
+        # NFF = (N0*np.power(M,lev))
+        # Nf2 = NFF**2
         # NFF is the number of elements on a boundary line
         # Nf2 is the number of triangular elements in the square domain (approximately, if mesh non uniform)
         return Nf2
@@ -160,9 +159,9 @@ def compute_sample_variance_from_M2(M2,nsam):
 def EstimateBayesianVariance(mean,variance,settings_ML,ratesLS,nDoF,nsam,level_local):
     k0 = settings_ML[0]
     k1 = settings_ML[1]
-    Calfa = ratesLS[0]    
+    Calfa = ratesLS[0]
     alfa  = ratesLS[1]
-    Cbeta = ratesLS[2]    
+    Cbeta = ratesLS[2]
     beta  = ratesLS[3]
 
     # use local variables, in order to not modify the global variables
@@ -170,16 +169,13 @@ def EstimateBayesianVariance(mean,variance,settings_ML,ratesLS,nDoF,nsam,level_l
     variance_local = variance[:]
     nsam_local = nsam[:]
     if len(mean_local) < (level_local+1):
-        count = (level_local+1)-len(mean_local)
-        for i_count in range(0,count):
+        for i in range (0,(level_local+1)-len(mean_local)):
             mean_local.append(0.0)
     if len(variance_local) < (level_local+1):
-        count = (level_local+1)-len(variance_local)
-        for i_count in range(0,count):
+        for i in range (0,(level_local+1)-len(variance_local)):
             variance_local.append(0.0)
     if len(nsam_local) < (level_local+1):
-        count = (level_local+1)-len(nsam_local)
-        for i_count in range(0,count):
+        for i in range (0,(level_local+1)-len(nsam_local)):
             nsam_local.append(0)
 
     BayesianVariance = []
@@ -198,9 +194,9 @@ def compute_tollerance_i(settings_ML,iE,iter_def):
     r2 = settings_ML[3]
     tolF = settings_ML[5]
     if iter_def <= iE:
-        tol = (r1**(iE-iter) * r2**(-1))*tolF
+        tol = (r1**(iE-iter_def) * r2**(-1))*tolF
     else:
-        tol = (r2**(iE-iter) * r2**(-1))*tolF
+        tol = (r2**(iE-iter_def) * r2**(-1))*tolF
     return tol
 
 
@@ -208,22 +204,22 @@ def compute_ratesLS(bias_ratesLS,variance_ratesLS,cost_ML_ratesLS,ndof_ratesLS):
     bias_ratesLS = np.abs(bias_ratesLS)
 
     ##################### MEAN - alpha ########################################
-    ## NUMPY: linear fit   
+    ## NUMPY: linear fit
     # why not considered also M_{L=0}?
     pa = np.polyfit(np.log2(ndof_ratesLS[1::]),np.log2(bias_ratesLS[1::]),1) # Nobile does not use level = 0 but uses log2, I use log natural
     alpha   = -pa[0]
     C1      = 2**pa[1]
 
-    ##################### VAR - beta ########################################## 
-    ## NUMPY: linear fit   
+    ##################### VAR - beta ##########################################
+    ## NUMPY: linear fit
     # why not considered also M_{L=0}?
     pb          = np.polyfit(np.log2(ndof_ratesLS[1::]),np.log2(variance_ratesLS[1::]),1) # Nobile does not use level = 0
     beta        = -pb[0]
-    C2          = 2**pb[1] 
+    C2          = 2**pb[1]
 
-    ################# COST - gamma ############################################     
-    ## NUMPY: linear fit       
-    pg          = np.polyfit(np.log2(ndof_ratesLS),np.log2(cost_ML_ratesLS),1) 
+    ################# COST - gamma ############################################ 
+    ## NUMPY: linear fit
+    pg          = np.polyfit(np.log2(ndof_ratesLS),np.log2(cost_ML_ratesLS),1)
     gamma       = pg[0]
     C3          = 2**pg[1]
 
@@ -294,7 +290,6 @@ def compute_number_samples(L_opt,BayesianVariance,ratesLS,theta,tol,nDoF,nsam,se
     minNadd = np.multiply(np.ones(L_opt+1),6.)
     Cgamma = ratesLS[4]
     gamma  = ratesLS[5]
-    Calpha = ratesLS[0]
     Cphi = settings_ML[6]
     ndof_local = nDoF[0:L_opt+1]
 
@@ -329,7 +324,7 @@ def compute_number_samples(L_opt,BayesianVariance,ratesLS,theta,tol,nDoF,nsam,se
             opt_number_samples[l] = nsam[l] + dNsam[l]
             # i.e. the minimum addition of samples is given by the array minNadd
             # so if the new number of samples would be smaller than the old
-            # number of samples, I set to have an addition of minNadd[l] samples          
+            # number of samples, I set to have an addition of minNadd[l] samples
         
         nsam[l] = opt_number_samples[l]
     for i in range (0,len(dNsam)):
@@ -353,9 +348,9 @@ def execution_task(parameter_file_name, sample):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
     local_parameters = parameters # in case there are more parameters file, we rename them
-    model = Kratos.Model()      
+    model = Kratos.Model()
     simulation = MultilevelMonteCarloLaplacianAnalysis(model,local_parameters,sample)
-    simulation.Run() 
+    simulation.Run()
     QoI =  EvaluateQuantityOfInterest(simulation)
     return QoI
 
@@ -377,8 +372,7 @@ def exact_execution_task(model_part_file_name, parameter_file_name):
     local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     sample = 1.0
     simulation = MultilevelMonteCarloLaplacianAnalysis(model,local_parameters, sample)
-    simulation.Run() 
-    QoI =  EvaluateQuantityOfInterest(simulation)
+    simulation.Run()
     ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
     return ExactExpectedValueQoI
 
@@ -390,7 +384,7 @@ def compare_mean(AveragedMeanQoI,ExactExpectedValueQoI):
 
 
 if __name__ == '__main__':
-    from sys import argv
+    # from sys import argv
     
     # if len(argv) > 2:
     #     err_msg = 'Too many input arguments!\n'
@@ -404,26 +398,26 @@ if __name__ == '__main__':
     # if len(argv) == 2: # ProjectParameters is being passed from outside
     #     parameter_file_name = argv[1]
     # else: # using default name
-    #     parameter_file_name = "/home/kratos105b/Kratos/applications/MyMultilevelMonteCarloLaplacianApplication/tests/Level0/ProjectParameters.json"
+    #     parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloLaplacianApplication/tests/Level0/ProjectParameters.json"
 
     parameter_file_name =[]
-    parameter_file_name.append("/home/kratos105b/Kratos/applications/MyMultilevelMonteCarloLaplacianApplication/tests/Level0/ProjectParameters.json")
+    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloLaplacianApplication/tests/Level0/ProjectParameters.json")
     with open(parameter_file_name[0],'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
     local_parameters_0 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("/home/kratos105b/Kratos/applications/MyMultilevelMonteCarloLaplacianApplication/tests/Level1/ProjectParameters.json")
+    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloLaplacianApplication/tests/Level1/ProjectParameters.json")
     with open(parameter_file_name[1],'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
     local_parameters_1 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("/home/kratos105b/Kratos/applications/MyMultilevelMonteCarloLaplacianApplication/tests/Level2/ProjectParameters.json")
+    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloLaplacianApplication/tests/Level2/ProjectParameters.json")
     with open(parameter_file_name[2],'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
     local_parameters_2 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("/home/kratos105b/Kratos/applications/MyMultilevelMonteCarloLaplacianApplication/tests/Level3/ProjectParameters.json")
+    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloLaplacianApplication/tests/Level3/ProjectParameters.json")
     with open(parameter_file_name[3],'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
     local_parameters_3 = parameters # in case there are more parameters file, we rename them
-    parameter_file_name.append("/home/kratos105b/Kratos/applications/MyMultilevelMonteCarloLaplacianApplication/tests/Level4/ProjectParameters.json")
+    parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloLaplacianApplication/tests/Level4/ProjectParameters.json")
     with open(parameter_file_name[4],'r') as parameter_file:
         parameters = Kratos.Parameters(parameter_file.read())
     local_parameters_4 = parameters # in case there are more parameters file, we rename them
@@ -450,7 +444,7 @@ if __name__ == '__main__':
     # instances.append(local_parameters_0["problem_data"]["number_samples"].GetInt())
     # instances.append(local_parameters_1["problem_data"]["number_samples"].GetInt())
     # instances.append(local_parameters_2["problem_data"]["number_samples"].GetInt())
-    instances = [25,25,25] # set here to handle in a simple way
+    instances = [6,6,6] # set here to handle in a simple way
 
     difference_QoI = [] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
     time_ML = []        # list containing the time to compute the level=l simulations
@@ -462,7 +456,7 @@ if __name__ == '__main__':
     if (L_screening+1) > len(difference_QoI):
         for i in range (0,(L_screening+1)-len(difference_QoI)):
             difference_QoI.append([]) # append a list in Y_l for every level
-            time_ML.append([])           
+            time_ML.append([])
     print("\n ######## SCREENING PHASE ######## \n")
     
     for level in range (0,(L_screening+1)):
@@ -474,7 +468,7 @@ if __name__ == '__main__':
             if level == 0: # evaluating QoI in the coarsest grid
                 run_results.append(execution_task(parameter_file_name[level], sample)) # append to run_results QoI for the coarsest grid
                 time_MLi = time.time() - start_time_ML # create a new function?
-                # difference_QoI[level].append(run_results[-1]) 
+                # difference_QoI[level].append(run_results[-1])
                 difference_QoI[level] = np.append(difference_QoI[level],run_results[-1]) # with list[-1] we read the last element of the list
                 # time_ML[level].append(time_MLi)
                 time_ML[level] = np.append(time_ML[level],time_MLi)
@@ -504,7 +498,7 @@ if __name__ == '__main__':
         for i in range (0,(L_screening+1)-len(second_moment_difference_QoI)):
             second_moment_difference_QoI.append([]) # append a list in Var^(MC)[Y_l] for every level
     
-    for level in range (0,L_screening+1):    
+    for level in range (0,L_screening+1):
         for i in range(0,number_samples[level]):
             nsam = i+1
             mean_difference_QoI[level],second_moment_difference_QoI[level] = update_onepass_M(difference_QoI[level][i],mean_difference_QoI[level],second_moment_difference_QoI[level],nsam)
@@ -559,14 +553,14 @@ if __name__ == '__main__':
     print("\nnumber of iterations we are going to perform for CMLMC = ",iE_cmlmc)
 
     convergence = False
-    iter = 1
+    iter_MLMC = 1
     L_old = L_screening
 
     while convergence is not True:
-        print("\n ######## CMLMC iter = ",iter,"######## \n")
+        print("\n ######## CMLMC iter = ",iter_MLMC,"######## \n")
         # Compute Tolerance for the iteration i
         # eventually, we may still run the algorithm for a few more iterations wrt iE_cmlmc
-        tol_i = compute_tollerance_i(settings_ML_simulation,iE_cmlmc,iter)
+        tol_i = compute_tollerance_i(settings_ML_simulation,iE_cmlmc,iter_MLMC)
         
         # Compute Optimal Number of Levels L_i
         # print("Bayesian variance before computing optimal number of levels",BayesianVariance)
@@ -592,7 +586,7 @@ if __name__ == '__main__':
             raise Exception ("The splitting parameter theta_i assumed a value outside the range (0,1)")
 
         # compute number of samples according to bayesian variance and theta splitting parameters
-        number_samples, difference_number_samples, previous_number_samples = compute_number_samples(L_opt,BayesianVariance,ratesLS,theta_i,tol_i,nDoF,number_samples,settings_ML_simulation)        
+        number_samples, difference_number_samples, previous_number_samples = compute_number_samples(L_opt,BayesianVariance,ratesLS,theta_i,tol_i,nDoF,number_samples,settings_ML_simulation)
         # difference_number_samples = [2,2,2,2]
         # number_samples = [4,4,4,2]
 
@@ -626,8 +620,8 @@ if __name__ == '__main__':
                     difference_QoI[level] = np.append(difference_QoI[level],run_results[-1] - run_results[-2])
                     time_ML[level] = np.append(time_ML[level],time_MLi)
 
-        # print("iteration",iter,"Y_l",difference_QoI)
-        # print("iteration",iter,"time ML",time_ML)
+        # print("iteration",iter_MLMC,"Y_l",difference_QoI)
+        # print("iteration",iter_MLMC,"time ML",time_ML)
     
         # compute mean, second moment, sample variance for Y_l
         mean_difference_QoI = mean_difference_QoI[0:L_old+1]
@@ -710,19 +704,19 @@ if __name__ == '__main__':
 
         L_old = L_opt
 
-        if iter >= iE_cmlmc: # in [PNL16] go out of the cycle if: i) iter >= iE_cmlmc
-                             #                                   ii) TErr < tollerance_iter
+        if iter_MLMC >= iE_cmlmc: # in [PNL16] go out of the cycle if: i) iter >= iE_cmlmc
+                                  #                                   ii) TErr < tollerance_iter
             if (TErr < tol_i):
                 convergence = True
         else:
-            iter = iter + 1
+            iter_MLMC = iter_MLMC + 1
 
         
     relative_error = compare_mean(mean_mlmc_QoI,ExactExpectedValueQoI)
     mean_mlmc_QoI = compss_wait_on(mean_mlmc_QoI)
     ExactExpectedValueQoI = compss_wait_on(ExactExpectedValueQoI)
     relative_error = compss_wait_on(relative_error)
-    print("\niterations = ",iter,"total error TErr computed = ",TErr,"mean MLMC QoI = ",mean_mlmc_QoI,"exact mean = ",ExactExpectedValueQoI)
+    print("\niterations = ",iter_MLMC,"total error TErr computed = ",TErr,"mean MLMC QoI = ",mean_mlmc_QoI,"exact mean = ",ExactExpectedValueQoI)
     print("relative error: ",relative_error,"\n")
 
     ### OBSERVATION ###

@@ -238,7 +238,7 @@ void MyLaplacianElement::CalculateLocalSystem(
     D(1,1)=integrated_permittivity;
 
     // Main loop (one Gauss point)
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
+    // const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(GetIntegrationMethod());
     
     noalias(rLeftHandSideMatrix) = prod(DN_DX, Matrix(prod(D, trans(DN_DX))));  // Bt D B
     
