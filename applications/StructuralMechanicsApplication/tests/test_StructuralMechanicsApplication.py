@@ -175,6 +175,7 @@ from structural_mechanics_test_factory import ShellT3AndQ4NonLinearStaticUnstruc
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests as TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests
+from structural_mechanics_test_factory import PeriodicBoundaryConditionLinearTest as TPeriodicLinearTest
 
 ##### RESTART TESTS #####
 from restart_tests import TestSmallDisplacement2D4N  as TTestSmallDisplacement2D4N
@@ -387,6 +388,7 @@ def AssembleTestSuites():
     validationSuite.addTest(TShellQ4ThinLinearDynamicTests('test_execution'))
     validationSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
     validationSuite.addTest(TShellQ4ThinOrthotropicLaminateLinearStaticTests('test_execution'))
+    validationSuite.addTest(TPeriodicLinearTest('test_execution'))
     ### ---| OLD Shell Tests End
 
     # Create a test suit that contains all the tests:
