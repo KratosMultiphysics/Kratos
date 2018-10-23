@@ -329,7 +329,7 @@ class ApplyPeriodicConditionProcess : public Process
     void CalculateTransformationMatrix()
     {
         if (mType == "translation"){
-            CalculateTranslationMatrix(mModulus, mTransformationMatrix);
+            CalculateTranslationMatrix(-1*mModulus, mTransformationMatrix);
             CalculateTranslationMatrix(0.0, mTransformationMatrixVariable);
         }
         else if (mType == "rotation"){
@@ -349,15 +349,15 @@ class ApplyPeriodicConditionProcess : public Process
         rMatrix(0,0) = 1.0;
         rMatrix(0,1) = 0.0;
         rMatrix(0,2) = 0.0;
-        rMatrix(0,3) = (abs(Modulus)<tolerance) ?  1.0 : -1*mModulus *mDirOfTranslation[0];
+        rMatrix(0,3) = (abs(Modulus)<tolerance) ?  1.0 : mModulus *mDirOfTranslation[0];
         rMatrix(1,0) = 0.0;
         rMatrix(1,1) = 1.0;
         rMatrix(1,2) = 0.0;
-        rMatrix(1,3) = (abs(Modulus)<tolerance) ?  1.0 : -1*mModulus *mDirOfTranslation[1];
+        rMatrix(1,3) = (abs(Modulus)<tolerance) ?  1.0 : mModulus *mDirOfTranslation[1];
         rMatrix(2,0) = 0.0;
         rMatrix(2,1) = 0.0;
         rMatrix(2,2) = 1.0;
-        rMatrix(2,3) = (abs(Modulus)<tolerance) ?  1.0 : -1*mModulus *mDirOfTranslation[2];
+        rMatrix(2,3) = (abs(Modulus)<tolerance) ?  1.0 : mModulus *mDirOfTranslation[2];
         rMatrix(3,0) = 0.0;
         rMatrix(3,1) = 0.0;
         rMatrix(3,2) = 0.0;
