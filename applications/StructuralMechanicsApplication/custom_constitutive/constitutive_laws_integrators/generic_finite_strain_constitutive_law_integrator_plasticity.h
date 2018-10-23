@@ -102,6 +102,9 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
     /// The type of plastic potential
     typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
+    /// Definition of the tolerance for convergence
+    static constexpr double ConvergenceTolerance = 1.0e-4;
+
     /// Counted pointer of GenericFiniteStrainConstitutiveLawIntegratorPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericFiniteStrainConstitutiveLawIntegratorPlasticity);
 
@@ -246,7 +249,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
             // Calculate plastic parameters
             threshold_indicator = CalculatePlasticParameters(rPredictiveStressVector, rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative, rPlasticPotentialDerivative, rPlasticDissipation, delta_plastic_strain, rValues);
 
-            if (std::abs(threshold_indicator - previous_threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
+            if (std::abs((threshold_indicator - previous_threshold_indicator)/rThreshold) < ConvergenceTolerance) { // Has converged
                 break;
             } else {
                 ++iteration;
