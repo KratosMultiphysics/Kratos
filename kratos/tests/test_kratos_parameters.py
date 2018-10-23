@@ -471,58 +471,58 @@ class TestParameters(KratosUnittest.TestCase):
                 with self.assertRaises(RuntimeError):
                     tmp[key].GetMatrix()
                     
-    #def test_vector_interface(self):
-        ## Read and check Vectors from a Parameters-Object
-        #tmp = Parameters("""{
-            #"valid_vectors" : [ []
-            #],
-            #"false_vectors" : [ [[]],
-                                #[[2,3],2],
-                                #[2,3,[2]],
-                                #[2,3,[]],
-                                #[{"key":3},2],
-                                #[2,3,{"key":3}],
-                                #[true,2],
-                                #[2,3,true],
-                                #[5,"string",2]
-            #]
-        #}""")
+    def test_vector_interface(self):
+        # Read and check Vectors from a Parameters-Object
+        tmp = Parameters("""{
+            "valid_vectors" : [ []
+            ],
+            "false_vectors" : [ [[]],
+                                [[2,3],2],
+                                [2,3,[2]],
+                                [2,3,[]],
+                                [{"key":3},2],
+                                [2,3,{"key":3}],
+                                [true,2],
+                                [2,3,true],
+                                [5,"string",2]
+            ]
+        }""")
 
-        ## Check the IsVector Method
-        #for i in range(tmp["valid_vectors"].size()):
-            #valid_vector = tmp["valid_vectors"][i]
-            #self.assertTrue(valid_vector.IsVector())
+        # Check the IsVector Method
+        for i in range(tmp["valid_vectors"].size()):
+            valid_vector = tmp["valid_vectors"][i]
+            self.assertTrue(valid_vector.IsVector())
 
-        #for i in range(tmp["false_vectors"].size()):
-            #false_vector = tmp["false_vectors"][i]
-            #self.assertFalse(false_vector.IsVector())
+        for i in range(tmp["false_vectors"].size()):
+            false_vector = tmp["false_vectors"][i]
+            self.assertFalse(false_vector.IsVector())
 
-        ## Check the GetVector Method also on the valid Matrices
-        #for i in range(tmp["valid_vectors"].size()):
-            #valid_vector = tmp["valid_vectors"][i]
-            #valid_vector.GetVector()
+        # Check the GetVector Method also on the valid Matrices
+        for i in range(tmp["valid_vectors"].size()):
+            valid_vector = tmp["valid_vectors"][i]
+            valid_vector.GetVector()
 
-        ## Check that the errors of the GetVector method are thrown correctly
-        #for i in range(tmp["false_vectors"].size()):
-            #false_vector = tmp["false_vectors"][i]
-            #with self.assertRaises(RuntimeError):
-                #false_vector.GetVector()
+        # Check that the errors of the GetVector method are thrown correctly
+        for i in range(tmp["false_vectors"].size()):
+            false_vector = tmp["false_vectors"][i]
+            with self.assertRaises(RuntimeError):
+                false_vector.GetVector()
 
-        ## Manually assign and check a Vector
-        #vec = Vector(3)
-        #vec[0] = 1.32
-        #vec[1] = -2.22
-        #vec[2] = 5.5
+        # Manually assign and check a Vector
+        vec = Vector(3)
+        vec[0] = 1.32
+        vec[1] = -2.22
+        vec[2] = 5.5
 
-        #tmp.AddEmptyValue("vector_value")
-        #tmp["vector_value"].SetVector(vec)
+        tmp.AddEmptyValue("vector_value")
+        tmp["vector_value"].SetVector(vec)
 
-        #self.assertTrue(tmp["vector_value"].IsVector())
+        self.assertTrue(tmp["vector_value"].IsVector())
 
-        #V2 = tmp["vector_value"].GetVector()
-        #self.assertEqual(V2[0],1.32)
-        #self.assertEqual(V2[1],-2.22)
-        #self.assertEqual(V2[2],5.5)
+        V2 = tmp["vector_value"].GetVector()
+        self.assertEqual(V2[0],1.32)
+        self.assertEqual(V2[1],-2.22)
+        self.assertEqual(V2[2],5.5)
 
     def test_matrix_interface(self):
         # Read and check Matrices from a Parameters-Object
@@ -612,8 +612,6 @@ class TestParameters(KratosUnittest.TestCase):
 
         with self.assertRaises(RuntimeError):
             double_custom.ValidateAndAssignDefaults(null_default)
-
-
 
 if __name__ == '__main__':
     KratosUnittest.main()
