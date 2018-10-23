@@ -901,7 +901,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
 		#pragma omp parallel for schedule(guided, 512)
         for (int i_constraints = 0; i_constraints < number_of_constraints; ++i_constraints)
         {
-            //const GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
+            //GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin + i_constraints;
             GlobalMasterSlaveRelationContainerType::iterator it = constraints_begin;
             std::advance(it, i_constraints);
 
