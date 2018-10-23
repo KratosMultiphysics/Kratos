@@ -9,7 +9,8 @@ class AdjointVMSElement2D(KratosUnittest.TestCase):
     def setUp(self):
         self.delta_time = 1.0
         # create test model part
-        self.model_part = ModelPart("test")
+        self.model = Model()
+        self.model_part = self.model.CreateModelPart("test")
         self.model_part.AddNodalSolutionStepVariable(VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(ACCELERATION)
         self.model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
