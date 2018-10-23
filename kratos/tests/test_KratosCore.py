@@ -36,6 +36,7 @@ import test_variable_component
 import test_variable_redistribution
 import test_object_printing
 import test_array_1d_interface
+import test_linear_master_slave_constraints
 
 
 def AssembleTestSuites():
@@ -82,6 +83,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixSum]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixTranspose]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixMultiplication]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_component.TestVariableComponent]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_component.TestVariableComponent]))
     smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testLinearFunction'))
     smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testSharpCorners'))
