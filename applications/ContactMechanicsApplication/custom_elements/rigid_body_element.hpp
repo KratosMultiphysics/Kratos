@@ -60,6 +60,8 @@ public:
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     ///Type for size
     typedef GeometryData::SizeType                              SizeType;
+    ///Type of vector
+    typedef array_1d<double,3>                                 ArrayType;
 
     /// Counted pointer of RigidBodyElement
     KRATOS_CLASS_POINTER_DEFINITION( RigidBodyElement );
@@ -97,7 +99,7 @@ protected:
 
       //section properties
       RigidBodyProperties RigidBody;
-      Vector VolumeForce;
+      ArrayType VolumeForce;
       Matrix DeltaPosition;
 
       void SetProcessInfo(const ProcessInfo& rProcessInfo)
@@ -112,8 +114,7 @@ protected:
 
       void Initialize(const unsigned int& dimension, const ProcessInfo& rProcessInfo)
       {
-        VolumeForce.resize(dimension);
-        noalias(VolumeForce) = ZeroVector(dimension);
+        noalias(VolumeForce) = ZeroVector(3);
         DeltaPosition.resize(1,dimension,false);
         noalias(DeltaPosition) = ZeroMatrix(1, dimension);
         pProcessInfo=&rProcessInfo;
@@ -434,18 +435,7 @@ protected:
     /**
      * Transform Vector Variable from Global Frame to the Spatial Local Frame
      */
-    Vector& MapToInitialLocalFrame(Vector& rVariable);
-
-
-    /**
-     * Get Current Value, buffer 0 with FastGetSolutionStepValue
-     */
-    Vector& GetNodalCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
-
-    /**
-     * Get Previous Value, buffer 1 with FastGetSolutionStepValue
-     */
-    Vector& GetNodalPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
+    ArrayType& MapToInitialLocalFrame(ArrayType& rVariable);
 
 
     /**
@@ -494,13 +484,13 @@ protected:
     /**
      * Calculation of the Volume Force of the Element
      */
-    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce);
+    virtual ArrayType& CalculateVolumeForce(ArrayType& rVolumeForce);
 
 
     /**
      * Calculation Complementary Method : Inertial Matrix Calculation Part 1
      */
-    virtual void CalculateRotationLinearPartTensor(Vector& rRotationVector, Matrix& rRotationTensor);
+    virtual void CalculateRotationLinearPartTensor(ArrayType& rRotationVector, Matrix& rRotationTensor);
 
 
     /**

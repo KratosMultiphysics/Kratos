@@ -21,11 +21,10 @@
 #include "geometries/point_3d.h"
 
 #include "custom_utilities/rigid_body_utilities.hpp"
-
 #include "custom_bounding/spatial_bounding_box.hpp"
 
-#include "custom_elements/translatory_rigid_body_element.hpp"
-
+#include "custom_elements/rigid_body_segregated_V_element.hpp"
+#include "custom_elements/translatory_rigid_body_segregated_V_element.hpp"
 #include "custom_conditions/rigid_body_links/rigid_body_point_link_segregated_V_condition.hpp"
 
 #include "contact_mechanics_application_variables.h"

@@ -364,67 +364,25 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHa
       rRightHandSideVector.resize(MatSize, false);
 
     rRightHandSideVector = ZeroVector( MatSize );
-
-     double TotalMass = 0;
-    TotalMass = rVariables.RigidBody.Mass;
-
-    Vector LinearAccelerationVector          = ZeroVector(3);
-    Vector CurrentLinearAccelerationVector   = ZeroVector(3);
-    Vector PreviousLinearAccelerationVector  = ZeroVector(3);
-
-    Vector CurrentValueVector = ZeroVector(3);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	//Current Linear Acceleration Vector
-	CurrentValueVector = GetNodalCurrentValue( ACCELERATION, CurrentValueVector, i );
-	CurrentLinearAccelerationVector  = CurrentValueVector;
-
-	//Previous Linear Acceleration Vector
-	CurrentValueVector = GetNodalPreviousValue( ACCELERATION, CurrentValueVector, i );
-	PreviousLinearAccelerationVector = CurrentValueVector;
-
-      }
-
-    //Set step variables to local frame (current Frame is the local frame)
-    CurrentLinearAccelerationVector     = MapToInitialLocalFrame( CurrentLinearAccelerationVector );
-    PreviousLinearAccelerationVector    = MapToInitialLocalFrame( PreviousLinearAccelerationVector );
-
+    
+    ArrayType CurrentLinearAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
+    CurrentLinearAccelerationVector = MapToInitialLocalFrame(CurrentLinearAccelerationVector);
+    ArrayType PreviousLinearAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION,1);
+    PreviousLinearAccelerationVector = MapToInitialLocalFrame(PreviousLinearAccelerationVector);
+    
     double AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-    LinearAccelerationVector  = (1.0-AlphaM) * CurrentLinearAccelerationVector + AlphaM * (PreviousLinearAccelerationVector);
+    
+    ArrayType LinearAccelerationVector = (1.0-AlphaM) * CurrentLinearAccelerationVector + AlphaM * (PreviousLinearAccelerationVector);
 
     //-----------------
-    //block m(1) of the inertial force vector
+    //block 1 of the inertial force vector
 
     //Compute Linear Term:
-
-    Vector LinearInertialForceVector = ZeroVector(3);
-
-    //this transformation is wrong
-    //LinearInertialForceVector  = MapToMaterialFrame( TotalQuaternion, LinearInertialForceVector );
-
-    LinearInertialForceVector = TotalMass * LinearAccelerationVector;
+    ArrayType LinearInertialForceVector;
+    noalias(LinearInertialForceVector) = rVariables.RigidBody.Mass * LinearAccelerationVector;
 
 
-    //Initialize Local Matrices
-    VectorType Fi = ZeroVector(6);
-    unsigned int RowIndex = 0;
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-
-    	RowIndex = i * (dimension);
-
-    	Fi = ZeroVector(6);
-
-    	//nodal force vector
-    	Fi  = LinearInertialForceVector;
-
-	BeamMathUtilsType::AddVector(Fi, rRightHandSideVector, RowIndex);
-
-    	//std::cout<<" Fi "<<Fi<<std::endl;
-
-      }
+    BeamMathUtilsType::AddVector(LinearInertialForceVector, rRightHandSideVector, 0);
 
     //std::cout<<" Rigid Body: rRightHandSideVector "<<rRightHandSideVector<<std::endl;
 
@@ -440,7 +398,6 @@ void TranslatoryRigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
 
     KRATOS_TRY
 
-    const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
     const SizeType dofs_size       = this->GetDofsSize();
 
@@ -454,32 +411,12 @@ void TranslatoryRigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
     this->CalculateRigidBodyProperties(RigidBody);
 
     //block m(1,1) of the mass matrix
+    MatrixType m11(dimension,dimension);
+    noalias(m11) = IdentityMatrix(dimension);
+    m11 *= RigidBody.Mass;
 
-    MatrixType m11 = ZeroMatrix(dimension,dimension);
-
-    double TotalMass = 0;
-    TotalMass = RigidBody.Mass;
-
-
-
-    for( unsigned int i=0; i < number_of_nodes; i++ )
-      {
-
-        double temp = TotalMass;
-
-    	int RowIndex = i * (dimension);
-
-    	for( unsigned int k=0; k < dimension; k++ )
-    	  {
-    	    m11(k,k) = temp;
-    	  }
-
-
-    	//Building the Local Tangent Inertia Matrix
-    	BeamMathUtilsType::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
-
-      }
-
+    //Building the Local Tangent Inertia Matrix
+    BeamMathUtilsType::AddMatrix(rMassMatrix, m11, 0, 0);
 
     KRATOS_CATCH( "" )
 
@@ -496,9 +433,9 @@ void TranslatoryRigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProc
 
      Node<3>& rCenterOfGravity = this->GetGeometry()[0];
 
-     array_1d<double, 3 >&  Displacement = rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT);
-     array_1d<double, 3 >&  Velocity     = rCenterOfGravity.FastGetSolutionStepValue(VELOCITY);
-     array_1d<double, 3 >&  Acceleration = rCenterOfGravity.FastGetSolutionStepValue(ACCELERATION);
+     ArrayType&  Displacement = rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT);
+     ArrayType&  Velocity     = rCenterOfGravity.FastGetSolutionStepValue(VELOCITY);
+     ArrayType&  Acceleration = rCenterOfGravity.FastGetSolutionStepValue(ACCELERATION);
 
      for (NodesContainerType::iterator i = mpNodes->begin(); i != mpNodes->end(); ++i)
        {

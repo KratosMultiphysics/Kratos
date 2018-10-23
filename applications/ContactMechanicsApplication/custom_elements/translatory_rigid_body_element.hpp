@@ -64,6 +64,8 @@ public:
     typedef Node<3>                                             NodeType;
     ///Type for nodes container
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
+    ///Type of vector
+    typedef array_1d<double,3>                                 ArrayType;
 
 
     /// Counted pointer of TranslatoryRigidBodyElement

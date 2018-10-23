@@ -505,7 +505,6 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
 
   EquationIdVectorType SlaveResult;
   std::vector<SizeType> element_dofs;
-  SizeType slave_elements = SlaveElements.size();
   SizeType master_index = 0;
   for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
   {
@@ -674,7 +673,6 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
 
   EquationIdVectorType SlaveResult;
   std::vector<SizeType> element_dofs;
-  SizeType slave_elements = SlaveElements.size();
   SizeType master_index = 0;
   for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
   {
@@ -757,7 +755,6 @@ void RigidBodyPointLinkCondition::CalculateRightHandSide( VectorType& rRightHand
 
   EquationIdVectorType SlaveResult;
   std::vector<SizeType> element_dofs;
-  SizeType slave_elements = SlaveElements.size();
   SizeType master_index = 0;
   for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
   {
@@ -830,7 +827,6 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesLHS(MatrixType& rLef
 
   EquationIdVectorType SlaveResult;
   std::vector<SizeType> element_dofs;
-  SizeType slave_elements = SlaveElements.size();
   SizeType master_index = 0;
   for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
   {
@@ -905,7 +901,6 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesRHS(VectorType& rRig
 
   EquationIdVectorType SlaveResult;
   std::vector<SizeType> element_dofs;
-  SizeType slave_elements = SlaveElements.size();
   SizeType master_index = 0;
   for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
   {
