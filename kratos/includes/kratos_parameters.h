@@ -1239,9 +1239,9 @@ public:
 
             bool type_coincides = false;
             auto value_defaults = (rDefaultParameters[item_name]).GetUnderlyingStorage();
-//             if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
-            if(itr->is_number_integer() && value_defaults->is_number_integer()) type_coincides = true;
-            if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
+            if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
+//             if(itr->is_number_integer() && value_defaults->is_number_integer()) type_coincides = true;
+//             if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
             if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
             if(itr->is_null() && value_defaults->is_null()) type_coincides = true;
             if(itr->is_array() && value_defaults->is_array()) type_coincides = true;
@@ -1302,9 +1302,9 @@ public:
 
             bool type_coincides = false;
             auto value_defaults = (rDefaultParameters[item_name]).GetUnderlyingStorage();
-//             if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
-            if(itr->is_number_integer() && value_defaults->is_number_integer()) type_coincides = true;
-            if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
+            if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
+//             if(itr->is_number_integer() && value_defaults->is_number_integer()) type_coincides = true;
+//             if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
             if(itr->is_boolean() && value_defaults->is_boolean()) type_coincides = true;
             if(itr->is_null() && value_defaults->is_null()) type_coincides = true;
             if(itr->is_array() && value_defaults->is_array()) type_coincides = true;
