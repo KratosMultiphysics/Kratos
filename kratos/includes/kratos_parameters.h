@@ -652,8 +652,9 @@ public:
         if (!mpValue->is_array())
             return false;
 
+        auto& r_array = (*mpValue);
         for (IndexType i = 0; i < mpValue->size(); ++i) {
-            if (!(*mpValue)[i].is_number())
+            if (!r_array[i].is_number())
                 return false;
         }
         return true; // All entries are numbers or Vector is empty
@@ -841,7 +842,7 @@ public:
         (*mpValue) = j_array;
 
         for (IndexType i = 0; i < size; ++i) {
-            mpValue[i] = rValue[i];
+            (*mpValue)[i] = rValue[i];
         }
     }
 
