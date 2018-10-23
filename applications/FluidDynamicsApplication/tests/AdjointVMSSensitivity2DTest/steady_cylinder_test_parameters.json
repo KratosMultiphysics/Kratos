@@ -1,8 +1,6 @@
 {
     "problem_data"                     : {
         "problem_name"    : "steady_cylinder_test",
-        "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
@@ -40,10 +38,9 @@
             "input_type"     : "mdpa",
             "input_filename" : "AdjointVMSSensitivity2DTest/steady_cylinder_test"
         },
+        "model_part_name"              : "MainModelPart",
         "maximum_iterations"           : 1000,
-        "dynamic_tau"                  : 0,
-        "oss_switch"                   : 0,
-        "echo_level"                   : 0,
+        "domain_size"                  : 2,
         "consider_periodic_conditions" : false,
         "compute_reactions"            : true,
         "reform_dofs_at_each_step"     : false,
@@ -70,7 +67,12 @@
         },
         "time_scheme"                 : "steady",
         "velocity_relaxation"         : 0.9,
-        "pressure_relaxation"         : 0.9
+        "pressure_relaxation"         : 0.9,
+        "stabilization" : {
+            "formulation"              : "vms",
+            "use_orthogonal_subscales" : false,
+            "dynamic_tau"              : 0
+        }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{

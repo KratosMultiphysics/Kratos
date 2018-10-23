@@ -1,8 +1,6 @@
 {
     "problem_data" : {
         "problem_name"    : "one_element",
-        "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
         "start_step"      : 4.0,
         "nsteps"          : 3,
         "echo_level"      : 0,
@@ -46,9 +44,11 @@
             "nodal_solution_step_sensitivity_variables": ["SHAPE_SENSITIVITY"],
             "build_mode": "integrate"
         },
+        "domain_size"                   : 2,
         "dynamic_tau"                   : 1.0,
         "oss_switch"                    : 0,
         "echo_level"                    : 0,
+        "model_part_name"               : "MainModelPart",
         "volume_model_part_name"        : "Parts_Fluid",
         "skin_parts"                    : ["Inlet", "Outlet", "Boundary", "Structure"],
         "linear_solver_settings" : {

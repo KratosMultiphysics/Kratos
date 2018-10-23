@@ -1,8 +1,6 @@
 {
     "problem_data" : {
         "problem_name"    : "one_element",
-        "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
         "start_time"      : 0.0,
         "end_time"        : 3.0,
         "nsteps"          : 3,
@@ -32,8 +30,7 @@
     "solver_settings" : {
         "solver_type"                   : "Monolithic",
         "maximum_iterations"            : 10,
-        "dynamic_tau"                   : 1.0,
-        "oss_switch"                    : 0,
+        "domain_size"                   : 2,
         "echo_level"                    : 0,
         "consider_periodic_conditions"  : false,
         "compute_reactions"             : false,
@@ -42,6 +39,7 @@
         "absolute_velocity_tolerance"   : 1e-5,
         "relative_pressure_tolerance"   : 0.001,
         "absolute_pressure_tolerance"   : 1e-5,
+        "model_part_name"               : "MainModelPart",
         "volume_model_part_name"        : "Parts_Fluid",
         "skin_parts"                    : ["Inlet", "Outlet", "Boundary", "Structure"],
         "no_skin_parts"                 : [],
@@ -56,6 +54,11 @@
         "time_stepping"                : {
             "automatic_time_step" : false,
             "time_step"           : 1.0
+        },
+        "stabilization" : {
+            "formulation"              : "vms",
+            "use_orthogonal_subscales" : false,
+            "dynamic_tau"              : 1.0
         }
     },
     "initial_conditions_process_list"  : [],

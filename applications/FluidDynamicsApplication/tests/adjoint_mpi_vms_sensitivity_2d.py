@@ -77,7 +77,6 @@ class AdjointMPIVMSSensitivity(KratosUnittest.TestCase):
                 self._remove_h5_files("primal")
             self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_" + str(rank) + ".time")
             self._remove_file("./AdjointVMSSensitivity2DTest/cylinder_test_" + str(rank) + ".mdpa")
-            self._remove_h5_files("mpi_cylinder_test_")
 
     def tearDown(self):
         pass

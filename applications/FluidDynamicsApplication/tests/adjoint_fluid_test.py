@@ -82,7 +82,6 @@ class AdjointFluidTest(UnitTest.TestCase):
             }
         }'''))
 
-
         # to check the results: add output settings block if needed
         if self.print_output:
             settings["adjoint_settings"].AddValue("output_configuration", km.Parameters(r'''{
@@ -111,11 +110,7 @@ class AdjointFluidTest(UnitTest.TestCase):
         adjoint_model = km.Model()
         adjoint_analysis = AdjointFluidAnalysis(adjoint_model,settings["adjoint_settings"])
         adjoint_analysis.Run()
-
-
-        kratos_utilities.DeleteFileIfExisting("cylinder_2d.time")
         self._remove_h5_files("primal_output")
-
 
     def _remove_h5_files(self, model_part_name):
         for name in os.listdir():

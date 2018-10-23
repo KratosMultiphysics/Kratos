@@ -1,8 +1,6 @@
 {
     "problem_data"                     : {
         "problem_name"    : "mpi_cylinder_test",
-        "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
         "start_step"      : 0.11,
         "nsteps"          : 10,
         "parallel_type"   : "MPI",
@@ -53,8 +51,10 @@
         "linear_solver_settings" : {
             "solver_type" : "MultiLevelSolver"
         },
+        "model_part_name"        : "MainModelPart",
         "volume_model_part_name" : "Parts_Fluid",
         "skin_parts"             : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Wall","NoSlip2D_Cylinder"],
+        "domain_size"            : 2,
         "dynamic_tau"            : 1.0,
         "oss_switch"             : 0,
         "echo_level"             : 0,

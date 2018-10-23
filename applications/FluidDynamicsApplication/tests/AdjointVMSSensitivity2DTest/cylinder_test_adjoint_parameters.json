@@ -1,8 +1,6 @@
 {
     "problem_data"                     : {
         "problem_name"    : "cylinder_test",
-        "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
         "start_step"      : 0.11,
         "nsteps"          : 10,
         "echo_level"      : 0,
@@ -46,9 +44,11 @@
             "nodal_solution_step_sensitivity_variables": ["SHAPE_SENSITIVITY"],
             "build_mode": "integrate"
         },
+        "domain_size"                  : 2,
         "dynamic_tau"                  : 1.0,
         "oss_switch"                   : 0,
         "echo_level"                   : 0,
+        "model_part_name"              : "MainModelPart",
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Wall","NoSlip2D_Cylinder"],
         "linear_solver_settings"       : {
@@ -85,7 +85,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "Inlet2D_Inlet",
             "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
-	        "value"           : [0.0, 0.0, 0.0]
+            "value"           : [0.0, 0.0, 0.0]
         }
     },{
         "python_module" : "assign_vector_variable_process",
@@ -95,7 +95,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "NoSlip2D_Wall",
             "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
-	        "value"           : [0.0, 0.0, 0.0]
+            "value"           : [0.0, 0.0, 0.0]
         }
     },{
         "python_module" : "assign_vector_variable_process",
@@ -105,7 +105,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "NoSlip2D_Cylinder",
             "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
-	        "value"           : [0.0, 0.0, 0.0]
+            "value"           : [0.0, 0.0, 0.0]
         }
     }],
     "gravity"                          : [{
@@ -127,7 +127,7 @@
         "help"          : "",
         "process_name"  : "",
         "Parameters" : {
-	        "model_part_name" : "MainModelPart",
+            "model_part_name" : "MainModelPart",
             "file_settings" : {
                 "file_access_mode" : "read_only"
             },
@@ -197,7 +197,7 @@
             "output_file_name"    : "AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe2.dat",
             "reference_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe2_ref.dat",
             "comparison_type"     : "dat_file",
-	        "decimal_places"      : 5
+            "decimal_places"      : 2
         }
     },{
         "python_module"   : "compare_two_files_check_process",
@@ -208,7 +208,7 @@
             "output_file_name"    : "AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe3.dat",
             "reference_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_adjoint_probe3_ref.dat",
             "comparison_type"     : "dat_file",
-	        "decimal_places"      : 10
+            "decimal_places"      : 10
         }
     }]
 }
