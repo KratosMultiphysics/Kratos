@@ -109,7 +109,6 @@ class ApplyPeriodicConditionProcess : public Process
 
         CalculateTransformationMatrix();
         mIsInitialized = false;
-        std::cout<<"########### New Implementation :: "<<std::endl;
     }
 
     /**
@@ -345,19 +344,18 @@ class ApplyPeriodicConditionProcess : public Process
      */
     void CalculateTranslationMatrix(const double Modulus, MatrixType& rMatrix)
     {
-        const double tolerance = std::numeric_limits<double>::epsilon();
         rMatrix(0,0) = 1.0;
         rMatrix(0,1) = 0.0;
         rMatrix(0,2) = 0.0;
-        rMatrix(0,3) = (abs(Modulus)<tolerance) ?  1.0 : mModulus *mDirOfTranslation[0];
+        rMatrix(0,3) = Modulus *mDirOfTranslation[0];
         rMatrix(1,0) = 0.0;
         rMatrix(1,1) = 1.0;
         rMatrix(1,2) = 0.0;
-        rMatrix(1,3) = (abs(Modulus)<tolerance) ?  1.0 : mModulus *mDirOfTranslation[1];
+        rMatrix(1,3) = Modulus *mDirOfTranslation[1];
         rMatrix(2,0) = 0.0;
         rMatrix(2,1) = 0.0;
         rMatrix(2,2) = 1.0;
-        rMatrix(2,3) = (abs(Modulus)<tolerance) ?  1.0 : mModulus *mDirOfTranslation[2];
+        rMatrix(2,3) = Modulus *mDirOfTranslation[2];
         rMatrix(3,0) = 0.0;
         rMatrix(3,1) = 0.0;
         rMatrix(3,2) = 0.0;
