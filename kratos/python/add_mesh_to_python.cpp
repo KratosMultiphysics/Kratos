@@ -63,11 +63,15 @@ array_1d<double,3> GetNormalFromCondition(
     CoordinatesArrayType& LocalCoords
     )
 {
+    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetNormal\" is deprecated, please "
+        << "replace this call with \"GetGeometry().UnitNormal()\"" << std::endl;
     return( dummy.GetGeometry().UnitNormal(LocalCoords) );
 }
 
 array_1d<double,3> FastGetNormalFromCondition(Condition& dummy)
 {
+    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetNormal\" is deprecated, please "
+        << "replace this call with \"GetGeometry().UnitNormal()\"" << std::endl;
     CoordinatesArrayType LocalCoords;
     LocalCoords.clear();
     return( dummy.GetGeometry().UnitNormal(LocalCoords) );
@@ -75,11 +79,15 @@ array_1d<double,3> FastGetNormalFromCondition(Condition& dummy)
 
 double GetAreaFromCondition( Condition& dummy )
 {
+    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetArea\" is deprecated, please "
+        << "replace this call with \"GetGeometry().Area()\"" << std::endl;
     return( dummy.GetGeometry().Area() );
 }
 
 double GetAreaFromElement( Element& dummy )
 {
+    KRATOS_WARNING_FIRST_N("Element-Python Interface", 10) << "\"GetArea\" is deprecated, please "
+        << "replace this call with \"GetGeometry().Area()\"" << std::endl;
     return( dummy.GetGeometry().Area() );
 }
 
@@ -101,14 +109,10 @@ void SetPropertiesFromCondition( Condition& pcond, Properties::Pointer pProperti
      pcond.SetProperties(pProperties) ;
 }
 
-GeometryType::Pointer GetGeometryFromElement( Element& pelem )
+template <class T>
+const GeometryType& GetGeometryFromObject( T& rObject )
 {
-    return pelem.pGetGeometry();
-}
-
-GeometryType::Pointer GetGeometryFromCondition( Condition& pcond )
-{
-    return pcond.pGetGeometry();
+    return rObject.GetGeometry();
 }
 
 NodeType::Pointer GetNodeFromElement( Element& dummy, unsigned int index )
@@ -452,7 +456,8 @@ void  AddMeshToPython(pybind11::module& m)
     class_<Element, Element::Pointer, Element::BaseType, Flags  >(m,"Element")
     .def(init<Kratos::Element::IndexType>())
     .def_property("Properties", GetPropertiesFromElement, SetPropertiesFromElement)
-    .def_property_readonly("Geometry", GetGeometryFromElement)
+    .def("GetGeometry", GetGeometryFromObject<Element>, return_value_policy::reference_internal)
+
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 3>  > >)
@@ -517,7 +522,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Element, Variable< bool > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< bool > >)
 
-    .def("GetArea", GetAreaFromElement )
+    .def("GetArea", GetAreaFromElement ) // deprecated, to be removed (see warning in function)
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
@@ -579,7 +584,8 @@ void  AddMeshToPython(pybind11::module& m)
     class_<Condition, Condition::Pointer, Condition::BaseType, Flags  >(m,"Condition")
     .def(init<Kratos::Condition::IndexType>())
     .def_property("Properties", GetPropertiesFromCondition, SetPropertiesFromCondition)
-    .def_property_readonly("Geometry", GetGeometryFromCondition)
+    .def("GetGeometry", GetGeometryFromObject<Condition>, return_value_policy::reference_internal)
+
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
@@ -655,9 +661,9 @@ void  AddMeshToPython(pybind11::module& m)
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
-    .def("GetNormal",GetNormalFromCondition)
-    .def("GetNormal",FastGetNormalFromCondition)
-    .def("GetArea",GetAreaFromCondition)
+    .def("GetNormal",GetNormalFromCondition) // deprecated, to be removed (see warning in function)
+    .def("GetNormal",FastGetNormalFromCondition) // deprecated, to be removed (see warning in function)
+    .def("GetArea",GetAreaFromCondition) // deprecated, to be removed (see warning in function)
 
 //     .def(VariableIndexingPython<Condition, Variable<int> >())
 //     .def(VariableIndexingPython<Condition, Variable<double> >())
