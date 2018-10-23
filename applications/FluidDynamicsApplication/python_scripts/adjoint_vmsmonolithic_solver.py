@@ -97,9 +97,9 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
 
         if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
             if (domain_size == 2):
-                self.response_function = KratosCFD.DragResponseFunction2D(self.settings["response_function_settings"], self.main_model_part)
+                self.response_function = KratosCFD.DragResponseFunction2D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
             elif (domain_size == 3):
-                self.response_function = KratosCFD.DragResponseFunction3D(self.settings["response_function_settings"], self.main_model_part)
+                self.response_function = KratosCFD.DragResponseFunction3D(self.settings["response_function_settings"]["custom_settings"], self.main_model_part)
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
