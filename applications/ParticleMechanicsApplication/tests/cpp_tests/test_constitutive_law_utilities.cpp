@@ -43,30 +43,14 @@ KRATOS_TEST_CASE_IN_SUITE(dummytestfortesting, KratosParticleMechanicsFastSuite)
     stress_vector[5] = 6.45e6;
 
     double I1, I2, I3;
-    // ConstitutiveLawUtilities<6>::CalculateI1Invariant(stress_vector, I1);
-    // ConstitutiveLawUtilities<6>::CalculateI2Invariant(stress_vector, I2);
-    // ConstitutiveLawUtilities<6>::CalculateI3Invariant(stress_vector, I3);
-
-//     // DEBUG
-//     std::cout << "I1: " << I1 << "\tI2: " << I2 << "\tI3: " << I3 << std::endl;
 
     KRATOS_CHECK_LESS_EQUAL((   -2.27e+07 - I1)/I1, tolerance);
     KRATOS_CHECK_LESS_EQUAL((-1.70812e+14 - I2)/I2, tolerance);
     KRATOS_CHECK_LESS_EQUAL(( 2.64752e+21 - I3)/I3, tolerance);
 
-    // ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(principal_stress_vector, stress_vector);
-
-//     // DEBUG
-//     KRATOS_WATCH(principal_stress_vector)
-
     KRATOS_CHECK_LESS_EQUAL((1.16178e+07 - principal_stress_vector[0])/principal_stress_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-2.53163e+07 - principal_stress_vector[1])/principal_stress_vector[1], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-9.00151e+06 - principal_stress_vector[2])/principal_stress_vector[2], tolerance);
-
-    // ConstitutiveLawUtilities<6>::CalculatePrincipalStressesWithCardano(principal_stress_vector, stress_vector);
-
-//     // DEBUG
-//     KRATOS_WATCH(principal_stress_vector)
 
     KRATOS_CHECK_LESS_EQUAL((1.16178e+07 - principal_stress_vector[0])/principal_stress_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-9.00151e+06 - principal_stress_vector[1])/principal_stress_vector[1], tolerance);

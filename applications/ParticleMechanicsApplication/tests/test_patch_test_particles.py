@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticleMechanics
+import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 

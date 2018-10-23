@@ -1,7 +1,6 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.ParticleMechanicsApplication
-
 import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
@@ -40,7 +39,7 @@ def AssembleTestSuites():
     nightSuite.addTests(smallSuite)
     nightSuite.addTest(DummyTest('test_execution'))
 
-    
+
     validationSuite = suites['validation']
 
     allSuite = suites['all']

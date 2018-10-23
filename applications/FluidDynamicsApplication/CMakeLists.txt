@@ -16,6 +16,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_element_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/drag_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/element_size_calculator.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/statistics_record.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/vorticity_utilities.cpp
 
   # elements
