@@ -24,7 +24,7 @@
 // Project includes
 #include "custom_processes/mmg_process.h"
 #include "containers/model.h"
-#include "utilities/sub_model_parts_list_utility.h"
+#include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "utilities/variable_utils.h"
 // We indlude the internal variable interpolation process
 #include "custom_processes/nodal_values_interpolation_process.h"
@@ -295,8 +295,8 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
     // First we compute the colors
     mColors.clear();
     ColorsMapType nodes_colors, cond_colors, elem_colors;
-    SubModelPartsListUtility sub_model_parts_list(mrThisModelPart);
-    sub_model_parts_list.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, mColors);
+    AssignUniqueModelPartCollectionTagUtility model_part_collections(mrThisModelPart);
+    model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, mColors);
 
     /////////* MESH FILE */////////
     // Build mesh in MMG5 format //
@@ -699,7 +699,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
         if (key != 0) {// NOTE: key == 0 is the MainModelPart
             for (auto sub_model_part_name : color_list.second) {
-                ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
+                ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
 
                 if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
                 if (color_cond_0.find(key) != color_cond_0.end()) r_sub_model_part.AddConditions(color_cond_0[key]);
@@ -712,10 +712,10 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
     // TODO: Add OMP
     // NOTE: We add the nodes from the elements and conditions to the respective submodelparts
-    const std::vector<std::string> sub_model_part_names = SubModelPartsListUtility::GetRecursiveSubModelPartNames(mrThisModelPart);
+    const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(mrThisModelPart);
 
     for (auto sub_model_part_name : sub_model_part_names) {
-        ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
+        ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
 
         std::unordered_set<IndexType> node_ids;
 
