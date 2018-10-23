@@ -259,7 +259,7 @@ void UpdatedLagrangianElement::InitializeElementData (ElementDataType& rVariable
 void UpdatedLagrangianElement::FinalizeStepVariables( ElementDataType & rVariables, const double& rPointNumber )
 {
     //update internal (historical) variables
-    mDeterminantF0[rPointNumber]         = rVariables.detF * rVariables.detF0;
+    mDeterminantF0[rPointNumber] = rVariables.detF * rVariables.detF0;
     noalias(mDeformationGradientF0[rPointNumber]) = prod(rVariables.F, rVariables.F0);
 }
 
@@ -436,7 +436,7 @@ void UpdatedLagrangianElement::GetHistoricalVariables( ElementDataType& rVariabl
 
     //Deformation Gradient F0
     rVariables.detF0 = mDeterminantF0[rPointNumber];
-    rVariables.F0    = mDeformationGradientF0[rPointNumber];
+    noalias(rVariables.F0) = mDeformationGradientF0[rPointNumber];
 }
 
 //************************************CALCULATE VOLUME CHANGE*************************

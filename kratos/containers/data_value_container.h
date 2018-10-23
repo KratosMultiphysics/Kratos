@@ -310,7 +310,7 @@ public:
         return (std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.GetSourceVariable().Key())) != mData.end());
     }
 
-    bool IsEmpty()
+    bool IsEmpty() const
     {
         return mData.empty();
     }

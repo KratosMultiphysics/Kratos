@@ -63,7 +63,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template<class TYieldSurfaceType>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegratorPlasticity
+class GenericConstitutiveLawIntegratorPlasticity
 {
   public:
     ///@name Type Definitions
@@ -168,7 +168,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         )
     {
         bool is_converged = false;
-        IndexType iteration = 0, max_iter = 9000;
+        IndexType iteration = 0, max_iter = 100;
         array_1d<double, VoigtSize> delta_sigma;
         double plastic_consistency_factor_increment, F;
 
@@ -176,10 +176,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         while (is_converged == false && iteration <= max_iter) {
             F = rUniaxialStress - rThreshold;
             plastic_consistency_factor_increment = F * rPlasticDenominator;
-            //if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0;
+            //if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0; // NOTE: It could be useful, maybe
             noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rGflux;
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
+
             noalias(rPredictiveStressVector) -= delta_sigma;
 
             CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
@@ -301,7 +302,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         }
 
         // We proceed as usual
-        array_1d<double, Dimension> principal_stresses(Dimension, 0.0);
+        array_1d<double, Dimension> principal_stresses = ZeroVector(Dimension);
         ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses, rPredictiveStressVector);
 
         double suma = 0.0, sumb = 0.0, sumc = 0.0;
@@ -388,6 +389,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
             rPlasticDissipation = 0.9999;
         else if (rPlasticDissipation < 0.0)
             rPlasticDissipation = 0.0;
+
+        // We add a check
+        KRATOS_DEBUG_ERROR_IF(std::isnan(rPlasticDissipation)) << "rPlasticDissipation is nan" << std::endl;
     }
 
     /**
@@ -413,15 +417,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         const int curve_type = r_material_properties[HARDENING_CURVE];
 
         BoundedVector<double, 2> slopes, eq_thresholds;
-
-//         // Fracture energy arrays
-//         const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
-//         const double yield_comp = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
-//         const double yield_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-//         const double n = yield_comp / yield_tension;
-//         BoundedVector<double, 2> fracture_energy;
-//         fracture_energy[0] = r_material_properties[FRACTURE_ENERGY];
-//         fracture_energy[1] = std::pow(n, 2) * fracture_energy[0];
 
         for (IndexType i = 0; i < 2; ++i) { // i:0 Tension ; i:1 compression
             switch (static_cast<HardeningCurveType>(curve_type))
@@ -449,6 +444,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
                 break;
             }
         }
+
         rEquivalentStressThreshold = TensileIndicatorFactor * eq_thresholds[0] + CompressionIndicatorFactor * eq_thresholds[1];
         rSlope = rEquivalentStressThreshold * ((TensileIndicatorFactor * slopes[0] / eq_thresholds[0]) + (CompressionIndicatorFactor * slopes[1] / eq_thresholds[1]));
         KRATOS_DEBUG_ERROR_IF(rEquivalentStressThreshold < tolerance) << "Threshold set to zero. TensileIndicatorFactor: " << TensileIndicatorFactor << " eq_thresholds[0]: " << eq_thresholds[0] << " CompressionIndicatorFactor: " << CompressionIndicatorFactor << " eq_thresholds[1]:" << eq_thresholds[1] << std::endl;
@@ -476,6 +472,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
         GetInitialUniaxialThreshold(rValues, initial_threshold);
 
         rEquivalentStressThreshold = initial_threshold * std::sqrt(1.0 - PlasticDissipation);
+
         rSlope = -0.5 * (std::pow(initial_threshold, 2.0) / (rEquivalentStressThreshold));
     }
 
@@ -756,18 +753,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericConstitutiveLawIntegra
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 

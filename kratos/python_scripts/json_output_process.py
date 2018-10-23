@@ -31,6 +31,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         model_part -- the model part used to construct the process.
         settings -- Kratos parameters containing solver settings.
         """
+        KratosMultiphysics.Process.__init__(self)
 
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""

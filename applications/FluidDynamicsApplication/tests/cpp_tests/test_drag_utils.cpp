@@ -18,6 +18,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 
@@ -51,6 +52,7 @@ namespace Kratos {
             rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
             rModelPart.AddNodalSolutionStepVariable(SOUND_VELOCITY);
             rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+            rModelPart.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
 
             // Process info creation
             double delta_time = 0.1;
@@ -140,7 +142,8 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(ComputeBodyFittedDrag, FluidDynamicsApplicationFastSuite)
 		{
             // Create a test element inside a modelpart
-			ModelPart model_part("Main", 3);
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTestModelPart(model_part);
             Element::Pointer p_element = model_part.pGetElement(1);
 
@@ -173,7 +176,8 @@ namespace Kratos {
             bool is_embedded = true;
 
             // Create a test element inside a modelpart
-			ModelPart model_part("Main", 3);
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
             GenerateTestModelPart(model_part, is_embedded);
             Element::Pointer p_element = model_part.pGetElement(1);
 

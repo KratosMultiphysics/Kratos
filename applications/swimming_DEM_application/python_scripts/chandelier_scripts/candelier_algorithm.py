@@ -14,8 +14,8 @@ def Cross(a, b):
 
 
 class Algorithm(BaseAlgorithm):
-    def __init__(self, varying_parameters = Parameters("{}")):
-        BaseAlgorithm.__init__(self, varying_parameters)
+    def __init__(self, model, varying_parameters = Parameters("{}")):
+        BaseAlgorithm.__init__(self, model, varying_parameters)
 
     def GetVelocityRelativeToMovingFrame(self, r_rel, v_glob):
         cross_omega_r = Cross(self.frame_angular_vel, r_rel)

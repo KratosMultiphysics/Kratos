@@ -15,6 +15,7 @@
 #if defined(KRATOS_PYTHON)
 // External includes
 #include <pybind11/pybind11.h>
+#include <string>
 
 // Project includes
 #include "includes/define_python.h"
@@ -53,6 +54,7 @@
 #include "external_includes/ml_solver.h"
 
 #include "external_includes/amgcl_mpi_solver.h"
+//#include "external_includes/amgcl_deflation_solver.h"
 #include "external_includes/amgcl_mpi_schur_complement_solver.h"
 
 namespace Kratos
@@ -113,11 +115,16 @@ void  AddLinearSolvers(pybind11::module& m)
 
     typedef AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISolverType;
     class_<AmgclMPISolverType, typename AmgclMPISolverType::Pointer, TrilinosLinearSolverType >
-    (m,"AmgclMPISolver").def( init<Parameters>()) //init<double, int,int,bool >())
-    .def("SetDoubleParameter", &AmgclMPISolverType::SetDoubleParameter)
-    .def("SetIntParameter", &AmgclMPISolverType::SetIntParameter)
+    (m,"AmgclMPISolver").def( init<Parameters>()) 
     ;
     
+#if 0
+    typedef AmgclDeflationSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclDeflationSolverType;
+    class_<AmgclDeflationSolverType, typename AmgclDeflationSolverType::Pointer, TrilinosLinearSolverType >
+    (m,"AmgclDeflationSolver").def( init<Parameters>())
+    ;
+#endif
+
     typedef AmgclMPISchurComplementSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISchurComplementSolverType;
     class_<AmgclMPISchurComplementSolverType, typename AmgclMPISchurComplementSolverType::Pointer, TrilinosLinearSolverType >
     (m,"AmgclMPISchurComplementSolver").def( init<Parameters>()) 

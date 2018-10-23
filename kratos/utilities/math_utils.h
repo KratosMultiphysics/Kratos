@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -73,6 +73,8 @@ public:
     typedef std::size_t IndexType;
 
     typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
+
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
     ///@}
     ///@name Life Cycle
@@ -243,12 +245,12 @@ public:
                 ia2(j_sub++) = k;
 
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-		PermutationMatrix<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+        PermutationMatrix<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
 #else
-		boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
+        boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
 #endif // KRATOS_USE_AMATRIX
-		const TDataType first_minor = DetMat(sub_mat);
-		return ((i + j) % 2) ? -first_minor : first_minor;
+        const TDataType first_minor = DetMat(sub_mat);
+        return ((i + j) % 2) ? -first_minor : first_minor;
     }
 
     template<class TMatrixType>
@@ -276,7 +278,7 @@ public:
     static inline BoundedMatrix<TDataType, TDim, TDim> InvertMatrix(
             const BoundedMatrix<TDataType, TDim, TDim>& InputMatrix,
             TDataType& InputMatrixDet,
-            const TDataType Tolerance = std::numeric_limits<double>::epsilon()
+            const TDataType Tolerance = ZeroTolerance
             )
     {
         BoundedMatrix<TDataType, TDim, TDim> InvertedMatrix;
@@ -415,13 +417,13 @@ public:
         const VectorType& rB
         )
     {
-        const SizeType size1 = A.size1();
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-		AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
-		double determinant = lu_factorization.determinant();
-		KRATOS_ERROR_IF(std::abs(determinant) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << A << std::endl;
-		rX = lu_factorization.solve(rB);
+        AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
+        double determinant = lu_factorization.determinant();
+        KRATOS_ERROR_IF(std::abs(determinant) <= ZeroTolerance) << "::WARNING: Matrix is singular: " << A << std::endl;
+        rX = lu_factorization.solve(rB);
 #else
+        const SizeType size1 = A.size1();
         rX = rB;
         typedef permutation_matrix<SizeType> pmatrix;
         pmatrix pm(size1);
@@ -429,7 +431,7 @@ public:
         KRATOS_DEBUG_ERROR_IF(singular == 1) << "::ERROR: Matrix is singular: " << A << std::endl;
         lu_substitute(A, pm, rX);
 #endif // ifdef KRATOS_USE_AMATRIX
-	}
+    }
 
     /**
      * It inverts matrices of order 2, 3 and 4
@@ -469,8 +471,8 @@ public:
             Matrix temp(InputMatrix);
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
             InputMatrixDet = lu_factorization.determinant();
-            KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= std::numeric_limits<double>::epsilon()) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
-			InvertedMatrix = lu_factorization.inverse();
+            KRATOS_ERROR_IF(std::abs(InputMatrixDet) <= ZeroTolerance) << "::WARNING: Matrix is singular: " << InputMatrix << std::endl;
+            InvertedMatrix = lu_factorization.inverse();
 #else
 
             typedef permutation_matrix<SizeType> pmatrix;
@@ -976,10 +978,107 @@ public:
         CrossProduct(c,a,b);
         const double norm = norm_2(c);
 #ifdef KRATOS_DEBUG
-        if(norm < 1000.0*std::numeric_limits<double>::epsilon())
+        if(norm < 1000.0*ZeroTolerance)
             KRATOS_ERROR << "norm is 0 when making the UnitCrossProduct of the vectors " << a << " and " << b << std::endl;
 #endif
         c/=norm;
+    }
+
+    /**
+     * @brief This computes a orthonormal basis from a given vector (Frisvad method)
+     * @param c The input vector
+     * @param a First resulting vector
+     * @param b Second resulting vector
+     * @param Type The type of method employed, 0 is HughesMoeller, 1 is Frisvad and otherwise Naive
+     */
+    template< class T1, class T2 , class T3>
+    static inline void OrthonormalBasis(const T1& c,T2& a,T3& b, const IndexType Type = 0 ){
+        if (Type == 0)
+            OrthonormalBasisHughesMoeller(c,a,b);
+        else if (Type == 1)
+            OrthonormalBasisFrisvad(c,a,b);
+        else
+            OrthonormalBasisNaive(c,a,b);
+    }
+
+    /**
+     * @brief This computes a orthonormal basis from a given vector (Hughes Moeller method)
+     * @param c The input vector
+     * @param a First resulting vector
+     * @param b Second resulting vector
+     * @note Orthonormal basis taken from: http://orbit.dtu.dk/files/126824972/onb_frisvad_jgt2012_v2.pdf
+     */
+    template< class T1, class T2 , class T3>
+    static inline void OrthonormalBasisHughesMoeller(const T1& c,T2& a,T3& b ){
+        KRATOS_DEBUG_ERROR_IF(norm_2(c) < (1.0 - 1.0e-6) || norm_2(c) > (1.0 + 1.0e-6)) << "Input should be a normal vector" << std::endl;
+        //  Choose a vector  orthogonal  to n as the  direction  of b2.
+        if(std::abs(c[0]) > std::abs(c[2])) {
+            b[0] =  c[1];
+            b[1] = -c[0];
+            b[2] =  0.0;
+        } else {
+            b[0] =   0.0;
+            b[1] =   c[2];
+            b[2]  = -c[1];
+        }
+        b /=  norm_2(b); //  Normalize  b
+        UnitCrossProduct(a, b , c); //  Construct  a  using a cross  product
+    }
+
+    /**
+     * @brief This computes a orthonormal basis from a given vector (Frisvad method)
+     * @param c The input vector
+     * @param a First resulting vector
+     * @param b Second resulting vector
+     * @note Orthonormal basis taken from: http://orbit.dtu.dk/files/126824972/onb_frisvad_jgt2012_v2.pdf
+     */
+    template< class T1, class T2 , class T3>
+    static inline void OrthonormalBasisFrisvad(const T1& c,T2& a,T3& b ){
+        KRATOS_DEBUG_ERROR_IF(norm_2(c) < (1.0 - 1.0e-3) || norm_2(c) > (1.0 + 1.0e-3)) << "Input should be a normal vector" << std::endl;
+        if ((c[2] + 1.0) > 1.0e4 * ZeroTolerance) {
+            a[0] = 1.0 - std::pow(c[0], 2)/(1.0 + c[2]);
+            a[1] = - (c[0] * c[1])/(1.0 + c[2]);
+            a[2] = - c[0];
+            const double norm_a = norm_2(a);
+            a /= norm_a;
+            b[0] = - (c[0] * c[1])/(1.0 + c[2]);
+            b[1] = 1.0 - std::pow(c[1], 2)/(1.0 + c[2]);
+            b[2] = -c[1];
+            const double norm_b = norm_2(b);
+            b /= norm_b;
+        } else { // In case that the vector is in negative Z direction
+            a[0] = 1.0;
+            a[1] = 0.0;
+            a[2] = 0.0;
+            b[0] = 0.0;
+            b[1] = -1.0;
+            b[2] = 0.0;
+        }
+    }
+
+    /**
+     * @brief This computes a orthonormal basis from a given vector (Naive method)
+     * @param c The input vector
+     * @param a First resulting vector
+     * @param b Second resulting vector
+     * @note Orthonormal basis taken from: http://orbit.dtu.dk/files/126824972/onb_frisvad_jgt2012_v2.pdf
+     */
+    template< class T1, class T2 , class T3>
+    static inline void OrthonormalBasisNaive(const T1& c,T2& a,T3& b ){
+        KRATOS_DEBUG_ERROR_IF(norm_2(c) < (1.0 - 1.0e-3) || norm_2(c) > (1.0 + 1.0e-3)) << "Input should be a normal vector" << std::endl;
+        // If c is near  the x-axis , use  the y-axis. Otherwise  use  the x-axis.
+        if(c[0] > 0.9f) {
+            a[0] = 0.0;
+            a[1] = 1.0;
+            a[2] = 0.0;
+        } else {
+            a[0] = 1.0;
+            a[1] = 0.0;
+            a[2] = 0.0;
+        }
+        a  -= c * inner_prod(a, c); // Make a  orthogonal  to c
+        a /=  norm_2(a);            //  Normalize  a
+        UnitCrossProduct(b, c, a);  //  Construct  b  using a cross  product
     }
 
     /**
@@ -1167,7 +1266,7 @@ public:
 
         const unsigned int size = ReducedMatrix.size2();
         unsigned int rowindex = 0;
-	unsigned int colindex = 0;
+    unsigned int colindex = 0;
 
         for (unsigned int i = 0; i < size; i++)
         {
@@ -1215,43 +1314,46 @@ public:
      * \f$ [ s11, s22, s12 ] \f$ for 2D case.
      * @param rStressVector the given stress vector
      * @return the corresponding stress tensor in matrix form
+     * @tparam TVector The vector type considered
+     * @tparam TMatrixType The matrix returning type
      */
-    static inline MatrixType StressVectorToTensor(const Vector& rStressVector)
+    template<class TVector, class TMatrixType = MatrixType>
+    static inline TMatrixType StressVectorToTensor(const TVector& rStressVector)
     {
-        KRATOS_TRY
-        Matrix StressTensor;
+        KRATOS_TRY;
+        TMatrixType stress_tensor;
 
         if (rStressVector.size()==3) {
-            StressTensor.resize(2,2,false);
-            StressTensor(0,0) = rStressVector[0];
-            StressTensor(0,1) = rStressVector[2];
-            StressTensor(1,0) = rStressVector[2];
-            StressTensor(1,1) = rStressVector[1];
+            stress_tensor.resize(2,2,false);
+            stress_tensor(0,0) = rStressVector[0];
+            stress_tensor(0,1) = rStressVector[2];
+            stress_tensor(1,0) = rStressVector[2];
+            stress_tensor(1,1) = rStressVector[1];
         } else if (rStressVector.size()==4) {
-            StressTensor.resize(3,3,false);
-            StressTensor(0,0) = rStressVector[0];
-            StressTensor(0,1) = rStressVector[3];
-            StressTensor(0,2) = 0.0;
-            StressTensor(1,0) = rStressVector[3];
-            StressTensor(1,1) = rStressVector[1];
-            StressTensor(1,2) = 0.0;
-            StressTensor(2,0) = 0.0;
-            StressTensor(2,1) = 0.0;
-            StressTensor(2,2) = rStressVector[2];
+            stress_tensor.resize(3,3,false);
+            stress_tensor(0,0) = rStressVector[0];
+            stress_tensor(0,1) = rStressVector[3];
+            stress_tensor(0,2) = 0.0;
+            stress_tensor(1,0) = rStressVector[3];
+            stress_tensor(1,1) = rStressVector[1];
+            stress_tensor(1,2) = 0.0;
+            stress_tensor(2,0) = 0.0;
+            stress_tensor(2,1) = 0.0;
+            stress_tensor(2,2) = rStressVector[2];
         } else if (rStressVector.size()==6) {
-            StressTensor.resize(3,3,false);
-            StressTensor(0,0) = rStressVector[0];
-            StressTensor(0,1) = rStressVector[3];
-            StressTensor(0,2) = rStressVector[5];
-            StressTensor(1,0) = rStressVector[3];
-            StressTensor(1,1) = rStressVector[1];
-            StressTensor(1,2) = rStressVector[4];
-            StressTensor(2,0) = rStressVector[5];
-            StressTensor(2,1) = rStressVector[4];
-            StressTensor(2,2) = rStressVector[2];
+            stress_tensor.resize(3,3,false);
+            stress_tensor(0,0) = rStressVector[0];
+            stress_tensor(0,1) = rStressVector[3];
+            stress_tensor(0,2) = rStressVector[5];
+            stress_tensor(1,0) = rStressVector[3];
+            stress_tensor(1,1) = rStressVector[1];
+            stress_tensor(1,2) = rStressVector[4];
+            stress_tensor(2,0) = rStressVector[5];
+            stress_tensor(2,1) = rStressVector[4];
+            stress_tensor(2,2) = rStressVector[2];
         }
 
-        return StressTensor;
+        return stress_tensor;
 
         KRATOS_CATCH("");
     }
@@ -1333,44 +1435,50 @@ public:
      * while they are stored into the matrix
      * @param rStrainVector the given strain vector
      * @return the corresponding strain tensor in matrix form
+     * @tparam TVector The vector type considered
+     * @tparam TMatrixType The matrix returning type
      */
-
-    static inline MatrixType StrainVectorToTensor( const VectorType& rStrainVector)
+    template<class TVector, class TMatrixType = MatrixType>
+    static inline TMatrixType StrainVectorToTensor( const TVector& rStrainVector)
     {
         KRATOS_TRY
-        Matrix StrainTensor;
+
+        TMatrixType strain_tensor;
 
         if (rStrainVector.size()==3) {
-            StrainTensor.resize(2,2, false);
-            StrainTensor(0,0) = rStrainVector[0];
-            StrainTensor(0,1) = 0.5*rStrainVector[2];
-            StrainTensor(1,0) = 0.5*rStrainVector[2];
-            StrainTensor(1,1) = rStrainVector[1];
+            strain_tensor.resize(2,2, false);
+
+            strain_tensor(0,0) = rStrainVector[0];
+            strain_tensor(0,1) = 0.5*rStrainVector[2];
+            strain_tensor(1,0) = 0.5*rStrainVector[2];
+            strain_tensor(1,1) = rStrainVector[1];
         } else if (rStrainVector.size()==4) {
-            StrainTensor.resize(3,3, false);
-            StrainTensor(0,0) = rStrainVector[0];
-            StrainTensor(0,1) = 0.5*rStrainVector[3];
-            StrainTensor(0,2) = 0;
-            StrainTensor(1,0) = 0.5*rStrainVector[3];
-            StrainTensor(1,1) = rStrainVector[1];
-            StrainTensor(1,2) = 0;
-            StrainTensor(2,0) = 0;
-            StrainTensor(2,1) = 0;
-            StrainTensor(2,2) = rStrainVector[2];
+            strain_tensor.resize(3,3, false);
+            strain_tensor(0,0) = rStrainVector[0];
+            strain_tensor(0,1) = 0.5*rStrainVector[3];
+            strain_tensor(0,2) = 0;
+            strain_tensor(1,0) = 0.5*rStrainVector[3];
+            strain_tensor(1,1) = rStrainVector[1];
+            strain_tensor(1,2) = 0;
+            strain_tensor(2,0) = 0;
+            strain_tensor(2,1) = 0;
+            strain_tensor(2,2) = rStrainVector[2];
         } else if (rStrainVector.size()==6) {
-            StrainTensor.resize(3,3, false);
-            StrainTensor(0,0) = rStrainVector[0];
-            StrainTensor(0,1) = 0.5*rStrainVector[3];
-            StrainTensor(0,2) = 0.5*rStrainVector[5];
-            StrainTensor(1,0) = 0.5*rStrainVector[3];
-            StrainTensor(1,1) = rStrainVector[1];
-            StrainTensor(1,2) = 0.5*rStrainVector[4];
-            StrainTensor(2,0) = 0.5*rStrainVector[5];
-            StrainTensor(2,1) = 0.5*rStrainVector[4];
-            StrainTensor(2,2) = rStrainVector[2];
+            strain_tensor.resize(3,3, false);
+            strain_tensor(0,0) = rStrainVector[0];
+            strain_tensor(0,1) = 0.5*rStrainVector[3];
+            strain_tensor(0,2) = 0.5*rStrainVector[5];
+            strain_tensor(1,0) = 0.5*rStrainVector[3];
+            strain_tensor(1,1) = rStrainVector[1];
+            strain_tensor(1,2) = 0.5*rStrainVector[4];
+            strain_tensor(2,0) = 0.5*rStrainVector[5];
+            strain_tensor(2,1) = 0.5*rStrainVector[4];
+            strain_tensor(2,2) = rStrainVector[2];
+
+
         }
 
-        return StrainTensor;
+        return strain_tensor;
 
         KRATOS_CATCH("");
     }
@@ -1570,7 +1678,7 @@ public:
             )
     {
         bool is_converged = false;
-        eigen_values_matrix = ZeroMatrix(TDim);
+        eigen_values_matrix = ZeroMatrix(TDim,TDim);
         BoundedMatrix<TDataType, TDim, TDim> TempMat = A;
         BoundedMatrix<TDataType, TDim, TDim> AuxA;
 
