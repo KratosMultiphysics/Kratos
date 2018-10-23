@@ -284,21 +284,21 @@ class TestParameters(KratosUnittest.TestCase):
         with self.assertRaises(RuntimeError):
             kp.RecursivelyValidateAndAssignDefaults(defaults_params)
 
-    #def test_recursive_validation_4_levels(self):
-        #kp = Parameters(four_levels)
-        #kp_variation = Parameters(four_levels_variation)
-        #kp_wrong_wariation = Parameters(four_levels_wrong_variation)
-        #defaults_params = Parameters(four_levels_defaults)
+    def test_recursive_validation_4_levels(self):
+        kp = Parameters(four_levels)
+        kp_variation = Parameters(four_levels_variation)
+        kp_wrong_wariation = Parameters(four_levels_wrong_variation)
+        defaults_params = Parameters(four_levels_defaults)
 
-        #kp.RecursivelyValidateAndAssignDefaults(defaults_params)
-        #kp_variation.RecursivelyValidateAndAssignDefaults(defaults_params)
+        kp.RecursivelyValidateAndAssignDefaults(defaults_params)
+        kp_variation.RecursivelyValidateAndAssignDefaults(defaults_params)
 
-        #self.assertTrue( kp.IsEquivalentTo(defaults_params) )
-        #self.assertFalse( kp_variation.IsEquivalentTo(defaults_params) )
+        self.assertTrue( kp.IsEquivalentTo(defaults_params) )
+        self.assertFalse( kp_variation.IsEquivalentTo(defaults_params) )
 
-        #self.assertTrue( kp.HasSameKeysAndTypeOfValuesAs(defaults_params) )
-        #self.assertTrue( kp_variation.HasSameKeysAndTypeOfValuesAs(defaults_params) )
-        #self.assertFalse( kp_wrong_wariation.HasSameKeysAndTypeOfValuesAs(defaults_params) )
+        self.assertTrue( kp.HasSameKeysAndTypeOfValuesAs(defaults_params) )
+        self.assertTrue( kp_variation.HasSameKeysAndTypeOfValuesAs(defaults_params) )
+        self.assertFalse( kp_wrong_wariation.HasSameKeysAndTypeOfValuesAs(defaults_params) )
 
     def test_validation_succeds_error_on_first_level(self):
         kp = Parameters(wrong_lev2)
