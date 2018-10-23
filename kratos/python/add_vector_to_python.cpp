@@ -87,6 +87,7 @@ namespace Python
 			AMatrix::SubVector<TVectorType> sliced_self(self, start, slicelength);
 			return sliced_self;
 		});
+        binder.def("fill", [](TVectorType& self, const typename TVectorType::value_type value) { self.fill(value); });
 #else
 		binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> boost::numeric::ublas::vector_slice<TVectorType> {
 			size_t start, stop, step, slicelength;
@@ -96,6 +97,7 @@ namespace Python
 			boost::numeric::ublas::vector_slice<TVectorType> sliced_self(self, ublas_slice);
 			return sliced_self;
 		});
+        binder.def("fill", [](TVectorType& self, const typename TVectorType::value_type value) { noalias(self) = TVectorType(self.size(),value); });
 #endif // KRATOS_USE_AMATRIX
 
         binder.def("__iter__", [](TVectorType& self){ return make_iterator(self.begin(), self.end(), return_value_policy::reference_internal); } , keep_alive<0,1>() ) ;
