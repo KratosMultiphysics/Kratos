@@ -40,8 +40,6 @@
 //---linear solvers
 #include "linear_solvers/linear_solver.h"
 
-#include "solid_mechanics_application.h"
-
 namespace Kratos
 {
 

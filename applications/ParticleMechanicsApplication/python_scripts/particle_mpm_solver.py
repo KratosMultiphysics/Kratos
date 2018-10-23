@@ -7,7 +7,6 @@ import KratosMultiphysics
 KratosMultiphysics.CheckRegisteredApplications("ParticleMechanicsApplication")
 
 # Import applications and dependencies
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
 # Importing the base class
@@ -39,7 +38,6 @@ class ParticleMPMSolver(PythonSolver):
             "time_stepping"   : {},
             "solver_type"                        : "StaticSolver",
             "echo_level"                         : 0,
-            "time_integration_method"            : "Implicit",
             "analysis_type"                      : "linear",
             "scheme_type"                        : "Newmark",
             "grid_model_import_settings"              : {
@@ -51,12 +49,10 @@ class ParticleMPMSolver(PythonSolver):
                 "input_filename"    : "unknown_name_Body"
             },
             "material_import_settings"           : {
-                "materials_filename" : "ParticleMaterials.json"
+                "materials_filename" : ""
             },
-            "explicit_integration_scheme"        : "CentralDifferences",
             "time_step_prediction_level"         : "Automatic",
             "rayleigh_damping"                   : false,
-            "rotation_dofs"                      : false,
             "pressure_dofs"                      : false,
             "reform_dof_set_at_each_step"        : false,
             "line_search"                        : false,
@@ -160,12 +156,10 @@ class ParticleMPMSolver(PythonSolver):
 
         # Set definition of the global solver type
         self.solver_type                    = self.settings["solver_type"].GetString()
-        self.time_integration_method        = self.settings["time_integration_method"].GetString()
 
         # Set definition of the solver parameters
         self.compute_reactions      = self.settings["compute_reactions"].GetBool()
         self.compute_contact_forces = self.settings["compute_contact_forces"].GetBool()
-        self.rotation_dofs          = self.settings["rotation_dofs"].GetBool()
         self.pressure_dofs          = self.settings["pressure_dofs"].GetBool()
         self.line_search            = self.settings["line_search"].GetBool()
         self.implex                 = self.settings["implex"].GetBool()
@@ -267,7 +261,7 @@ class ParticleMPMSolver(PythonSolver):
         # Add nodal force variables
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FORCE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCE)
-        #model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
+        # model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
 
         # Add specific variables for the problem conditions
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
@@ -276,48 +270,34 @@ class ParticleMPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.DISPLACEMENT_AUX)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_R)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_T)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_R_VEL)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_T_VEL)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_R_ACC)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_T_ACC)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_LUMPED_MASS)
 
         # Add variables for arbitrary slope with slip
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
         # Add variables for specific cases
-        if self.settings["rotation_dofs"].GetBool():
-            # add specific variables for the problem (rotation dofs)
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
         if self.settings["pressure_dofs"].GetBool():
             # add specific variables for the problem (pressure dofs)
-            model_part.AddNodalSolutionStepVariable(KratosSolid.PRESSURE_REACTION)
+            model_part.AddNodalSolutionStepVariable(KratosParticle.PRESSURE_REACTION)
             model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MPRESSURE)
             model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_PRESSURE)
-        if self.settings["time_integration_method"].GetString() == "explicit" :
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
-            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MIDDLE_VELOCITY)
 
     def _model_part_reading(self):
         # reading the model part of the background grid
         if(self.settings["grid_model_import_settings"]["input_type"].GetString() == "mdpa"):
-            KratosMultiphysics.ModelPartIO(self.settings["grid_model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.grid_model_part)
+            self._ImportModelPart(self.grid_model_part, self.settings["grid_model_import_settings"])
         else:
             raise Exception("Other input options are not implemented yet.")
 
         # reading the model part of the material point
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.initial_material_model_part)
+            self._ImportModelPart(self.initial_material_model_part, self.settings["model_import_settings"])
         else:
             raise Exception("Other input options are not implemented yet.")
 
@@ -327,8 +307,8 @@ class ParticleMPMSolver(PythonSolver):
             if (node.Is(KratosMultiphysics.ACTIVE)):
                 self.print_on_rank_zero("::[ParticleMPMSolver]:: ","WARNING: This grid node have been set active: ", node.Id)
 
-        for element in self.initial_material_model_part.Elements:
-            element.Set(KratosMultiphysics.ACTIVE, True)
+        # Setting active initial elements
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, self.initial_material_model_part.Elements)
 
         # Specify domain size
         self.domain_size = self.material_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
@@ -361,13 +341,8 @@ class ParticleMPMSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, model_part)
 
-        if self.settings["rotation_dofs"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X, model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y, model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z, model_part)
-
         if self.settings["pressure_dofs"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosSolid.PRESSURE_REACTION, model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosParticle.PRESSURE_REACTION, model_part)
 
     def _set_buffer_size(self):
         current_buffer_size = self.grid_model_part.GetBufferSize()

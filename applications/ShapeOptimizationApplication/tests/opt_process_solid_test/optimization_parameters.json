@@ -88,7 +88,13 @@
             "design_output_mode"      : "WriteOptimizationModelPart",
             "nodal_results" : [ "SHAPE_CHANGE" ],
             "output_format" : {
-                "name": "gid"
+                "name": "gid",
+                "result_file_configuration" : {
+                    "gidpost_flags"       : {
+                        "GiDPostMode"           : "GiD_PostBinary"
+                    },
+                    "output_frequency"    : 1.0
+                }
             }
         }
     }
