@@ -55,6 +55,7 @@
 #include "utilities/sub_model_parts_list_utility.h"
 #include "utilities/merge_variable_lists_utility.h"
 #include "utilities/variable_redistribution_utility.h"
+#include "utilities/sensitivity_builder.h"
 
 namespace Kratos
 {
@@ -609,6 +610,11 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def_static("ConvertDistributedValuesToPoint",ConvertDistributedDouble)
     .def_static("ConvertDistributedValuesToPoint",ConvertDistributedArray)
     ;
+
+    class_<SensitivityBuilder>(m, "SensitivityBuilder")
+        .def(init<Parameters, ModelPart&, AdjointResponseFunction::Pointer>())
+        .def("Initialize", &SensitivityBuilder::Initialize)
+        .def("UpdateSensitivities", &SensitivityBuilder::UpdateSensitivities);
 
 }
 

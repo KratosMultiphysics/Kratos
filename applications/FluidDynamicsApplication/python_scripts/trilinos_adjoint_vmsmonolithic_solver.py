@@ -4,12 +4,12 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("AdjointFluidApplication","MetisApplication","TrilinosApplication")
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","MetisApplication","TrilinosApplication")
 
 # Import applications
 import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
+import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 
 ## Checks that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -33,6 +33,7 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
             "response_function_settings" : {
                 "response_type" : "drag"
             },
+            "sensitivity_settings" : {},
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -123,18 +124,20 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         if self.settings["response_function_settings"]["response_type"].GetString() == "drag":
             if (domain_size == 2):
-                self.response_function = AdjointFluidApplication.DragResponseFunction2D(self.main_model_part, self.settings["response_function_settings"])
+                self.response_function = FluidDynamicsApplication.DragResponseFunction2D(self.settings["response_function_settings"], self.main_model_part)
             elif (domain_size == 3):
-                self.response_function = AdjointFluidApplication.DragResponseFunction3D(self.main_model_part, self.settings["response_function_settings"])
+                self.response_function = FluidDynamicsApplication.DragResponseFunction3D(self.settings["response_function_settings"], self.main_model_part)
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
             raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
 
+        self.sensitivity_builder = KratosMultiphysics.SensitivityBuilder(self.settings["sensitivity_settings"], self.main_model_part, self.response_function)
+
         if self.settings["scheme_settings"]["scheme_type"].GetString() == "bossak":
-            self.time_scheme = TrilinosApplication.TrilinosAdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
+            self.time_scheme = TrilinosApplication.TrilinosResidualBasedAdjointBossakScheme(self.settings["scheme_settings"], self.response_function)
         elif self.settings["scheme_settings"]["scheme_type"].GetString() == "steady":
-            self.time_scheme = TrilinosApplication.TrilinosAdjointSteadyScheme(self.settings["scheme_settings"], self.response_function)
+            self.time_scheme = TrilinosApplication.TrilinosResidualBasedAdjointSteadyScheme(self.response_function)
         else:
             raise Exception("invalid scheme_type: " + self.settings["scheme_settings"]["scheme_type"].GetString())
 
@@ -159,6 +162,8 @@ class AdjointVMSMonolithicMPISolver(AdjointVMSMonolithicSolver):
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         (self.solver).Initialize()
+        (self.response_function).Initialize()
+        (self.sensitivity_builder).Initialize()
 
         (self.solver).Check()
 

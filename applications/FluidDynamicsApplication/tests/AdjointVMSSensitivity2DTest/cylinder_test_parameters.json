@@ -136,14 +136,16 @@
             }
         }
     },{
-        "kratos_module" : "KratosMultiphysics.AdjointFluidApplication",
-        "python_module" : "print_drag_process",
-        "help"          : "",
-        "process_name"  : "PrintDragProcess",
-        "Parameters" : {
-        "drag_model_part_name" : "NoSlip2D_Cylinder",
-        "drag_file_name"       : "AdjointVMSSensitivity2DTest/cylinder_test.dat"
-        }
+        "python_module" : "compute_body_fitted_drag_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "ComputeBodyFittedDragProcess",
+            "Parameters" : {
+                "model_part_name"           : "NoSlip2D_Cylinder",
+                "interval"                  : [0.0, 1e30],
+                "write_drag_output_file"    : true,
+                "print_drag_to_screen"      : false,
+                "print_format"              : "22.15e"
+            }
      },{
         "kratos_module"   : "KratosMultiphysics",
         "python_module"   : "point_output_process",

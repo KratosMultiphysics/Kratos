@@ -122,13 +122,15 @@
             }
         }
     },{
-        "kratos_module" : "KratosMultiphysics.AdjointFluidApplication",
-        "python_module" : "print_drag_process",
-        "help"          : "",
-        "process_name"  : "PrintDragProcess",
-        "Parameters" : {
-	    "drag_model_part_name" : "Structure",
-            "drag_file_name"       : "AdjointVMSSensitivity2DTest/one_element_test.dat"
-        }
+        "python_module" : "compute_body_fitted_drag_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "ComputeBodyFittedDragProcess",
+            "Parameters" : {
+                "model_part_name"           : "Structure",
+                "interval"                  : [0.0, 1e30],
+                "write_drag_output_file"    : true,
+                "print_drag_to_screen"      : false,
+                "print_format"              : "22.15e"
+            }
     }]
 }

@@ -36,12 +36,15 @@
         },
         "response_function_settings" : {
             "response_type"            : "drag",
-            "sensitivity_model_part_name"  : "Boundary",
-            "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
             "custom_settings" : {
                 "structure_model_part_name" : "Structure",
                 "drag_direction"            : [1.0, 0.0, 0.0]
             }
+        },
+        "sensitivity_settings" : {
+            "sensitivity_model_part_name": "Boundary",
+            "nodal_solution_step_sensitivity_variables": ["SHAPE_SENSITIVITY"],
+            "build_mode": "integrate"
         },
         "dynamic_tau"                   : 1.0,
         "oss_switch"                    : 0,
@@ -69,7 +72,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Inlet",
-            "variable_name"   : "ADJOINT_VELOCITY",
+            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
             "value"           : [0.0, 0.0, 0.0]
         }
     },{
@@ -79,7 +82,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet",
-            "variable_name"   : "ADJOINT_PRESSURE",
+            "variable_name"   : "ADJOINT_FLUID_SCALAR_1",
             "value"           : 0
         }
     },{
@@ -89,7 +92,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Boundary",
-            "variable_name"   : "ADJOINT_VELOCITY",
+            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
             "value"           : [0.0, 0.0, 0.0]
         }
     },{
@@ -99,7 +102,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet",
-            "variable_name"   : "ADJOINT_VELOCITY",
+            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
             "constrained"     : [false,true,true],
             "value"           : [0.0, 0.0, 0.0]
         }

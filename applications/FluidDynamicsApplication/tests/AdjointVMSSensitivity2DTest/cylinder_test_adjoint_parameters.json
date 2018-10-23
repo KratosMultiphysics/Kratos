@@ -23,7 +23,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["VELOCITY","PRESSURE","ADJOINT_VELOCITY","ADJOINT_PRESSURE","SHAPE_SENSITIVITY"],
+            "nodal_results"       : ["VELOCITY","PRESSURE","ADJOINT_FLUID_VECTOR_1","ADJOINT_FLUID_SCALAR_1","SHAPE_SENSITIVITY"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
@@ -36,12 +36,15 @@
         },
         "response_function_settings" : {
             "response_type"            : "drag",
-            "sensitivity_model_part_name" : "NoSlip2D_Cylinder",
-            "nodal_sensitivity_variables" : ["SHAPE_SENSITIVITY"],
             "custom_settings" : {
                 "structure_model_part_name" : "NoSlip2D_Cylinder",
                 "drag_direction"            : [1.0, 0.0, 0.0]
             }
+        },
+        "sensitivity_settings" : {
+            "sensitivity_model_part_name": "NoSlip2D_Cylinder",
+            "nodal_solution_step_sensitivity_variables": ["SHAPE_SENSITIVITY"],
+            "build_mode": "integrate"
         },
         "dynamic_tau"                  : 1.0,
         "oss_switch"                   : 0,
@@ -71,7 +74,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Outlet2D_Outlet",
-            "variable_name"   : "ADJOINT_PRESSURE",
+            "variable_name"   : "ADJOINT_FLUID_SCALAR_1",
             "value"           : 0
         }
     },{
@@ -81,7 +84,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "Inlet2D_Inlet",
-            "variable_name"   : "ADJOINT_VELOCITY",
+            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
 	        "value"           : [0.0, 0.0, 0.0]
         }
     },{
@@ -91,7 +94,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "NoSlip2D_Wall",
-            "variable_name"   : "ADJOINT_VELOCITY",
+            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
 	        "value"           : [0.0, 0.0, 0.0]
         }
     },{
@@ -101,7 +104,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "NoSlip2D_Cylinder",
-            "variable_name"   : "ADJOINT_VELOCITY",
+            "variable_name"   : "ADJOINT_FLUID_VECTOR_1",
 	        "value"           : [0.0, 0.0, 0.0]
         }
     }],
@@ -144,7 +147,7 @@
                 "file_name"  : "cylinder_test_adjoint_probe1.dat",
                 "folder_name": "AdjointVMSSensitivity2DTest"
             },
-            "output_variables" : ["ADJOINT_VELOCITY_X", "ADJOINT_VELOCITY_Y"]
+            "output_variables" : ["ADJOINT_FLUID_VECTOR_1_X", "ADJOINT_FLUID_VECTOR_1_Y"]
         }
      },{
         "kratos_module"   : "KratosMultiphysics",
@@ -158,7 +161,7 @@
                 "file_name"  : "cylinder_test_adjoint_probe2.dat",
                 "folder_name": "AdjointVMSSensitivity2DTest"
             },
-            "output_variables" : ["ADJOINT_PRESSURE"]
+            "output_variables" : ["ADJOINT_FLUID_SCALAR_1"]
         }
      },{
         "kratos_module"   : "KratosMultiphysics",
