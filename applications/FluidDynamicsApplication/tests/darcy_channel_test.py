@@ -83,9 +83,9 @@ class DarcyChannelTest(UnitTest.TestCase):
 
     def testDarcyDensity(self):
         self.u0 = 2.0
-        self.linear_darcy_coefficient = 1.0
-        self.nonlinear_darcy_coefficient = 1.0
         self.rho = 1000.0
+        self.linear_darcy_coefficient = 1.0/self.rho
+        self.nonlinear_darcy_coefficient = 1.0/self.rho
         self.testDarcyChannel()
 
     def testReferenceValues(self):
