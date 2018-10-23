@@ -197,7 +197,7 @@ namespace Kratos
     {
         const VariableComponentType r_var_x = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_X"));
         const VariableComponentType r_var_y = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Y"));
-        const VariableComponentType r_var_z = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Z"));
+        const VariableComponentType& r_var_z = KratosComponents<VariableComponentType>::Get(rVarName + std::string("_Z"));
 
         IndexType master_index = 0;
         for (auto& master_node : rHostedGeometry)
