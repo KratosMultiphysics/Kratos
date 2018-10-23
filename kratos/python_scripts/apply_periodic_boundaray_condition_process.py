@@ -83,8 +83,6 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         slave_model_part_name = main_model_part_name+"."+settings["second_model_part_name"].GetString()
         self.master_model_part = Model[master_model_part_name]
         self.slave_model_part = Model[slave_model_part_name]
-        print(self.master_model_part)
-        print(self.slave_model_part)
 
         self.periodic_bc_process = KratosMultiphysics.ApplyPeriodicConditionProcess(self.master_model_part,
                                                                                     self.slave_model_part
