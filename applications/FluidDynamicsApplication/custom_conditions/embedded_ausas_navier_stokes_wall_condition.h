@@ -841,6 +841,7 @@ protected:
 
             // Compute each Gauss pt. area normal
             (rData.area_normals_container).clear();
+            // We compute the area normal in each Gauss point
             for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
                 const CoordinatesArrayType& gauss_pt_loc_coords = integration_points[i_gauss].Coordinates();
                 (rData.area_normals_container).push_back(r_geometry.Normal(gauss_pt_loc_coords));
