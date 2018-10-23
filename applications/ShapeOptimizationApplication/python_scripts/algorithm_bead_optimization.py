@@ -159,15 +159,18 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 for node in self.design_surface.Nodes:
                     raw_gradient = node.GetSolutionStepValue(DF1DX)
                     normal = node.GetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)
-                    dF1dalpha[node.Id] = self.bead_height*(raw_gradient[0]*normal[0] + raw_gradient[1]*normal[1] + raw_gradient[2]*normal[2])
+
+                    dF1dalpha_i = self.bead_height*(raw_gradient[0]*normal[0] + raw_gradient[1]*normal[1] + raw_gradient[2]*normal[2])
+
+                    dF1dalpha[node.Id] = dF1dalpha_i
+                    node.SetSolutionStepValue(DF1DALPHA, dF1dalpha_i)
 
                 # Map gradient using temporarily an auxiliary variable
-                WriteDictionaryDataOnNodalVariable(dF1dalpha, self.design_surface, SCALAR_VARIABLE)
-                self.mapper.InverseMap(SCALAR_VARIABLE, SCALAR_VARIABLE_MAPPED)
+                self.mapper.InverseMap(DF1DALPHA, DF1DALPHA_MAPPED)
 
                 dF1dalpha_mapped = {}
                 for node in self.design_surface.Nodes:
-                    dF1dalpha_mapped[node.Id] = node.GetSolutionStepValue(SCALAR_VARIABLE_MAPPED)
+                    dF1dalpha_mapped[node.Id] = node.GetSolutionStepValue(DF1DALPHA_MAPPED)
 
                 # Compute penalization term
                 penalty_gradient = {}
@@ -176,19 +179,28 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                     for node in self.design_surface.Nodes:
                         alpha_i = alpha[node.Id]
                         penalty_value = penalty_value + alpha_i-alpha_i**2
-                        penalty_gradient[node.Id] = 1-2*alpha_i
+                        penalty_gradient_i = 1-2*alpha_i
+
+                        penalty_gradient[node.Id] = penalty_gradient_i
+                        node.SetSolutionStepValue(DPDALPHA, penalty_gradient_i)
 
                 elif self.direction_mode == -1:
                     for node in self.design_surface.Nodes:
                         alpha_i = alpha[node.Id]
                         penalty_value = penalty_value + -alpha_i-alpha_i**2
-                        penalty_gradient[node.Id] = -1-2*alpha_i
+                        penalty_gradient_i = -1-2*alpha_i
+
+                        penalty_gradient[node.Id] = penalty_gradient_i
+                        node.SetSolutionStepValue(DPDALPHA, penalty_gradient_i)
 
                 elif self.direction_mode == 2:
                     for node in self.design_surface.Nodes:
                         alpha_i = alpha[node.Id]
                         penalty_value = penalty_value + -alpha_i**2+1
-                        penalty_gradient[node.Id] = -2*alpha_i
+                        penalty_gradient_i = -2*alpha_i
+
+                        penalty_gradient[node.Id] = penalty_gradient_i
+                        node.SetSolutionStepValue(DPDALPHA, penalty_gradient_i)
 
                 # Compute Lagrange value
                 L = objective_value + current_lambda*penalty_scaling*penalty_value + self.penalty_factor*(penalty_scaling*penalty_value)**2
@@ -200,7 +212,10 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 # Compute gradient of Lagrange function
                 dLdalpha = {}
                 for node in self.design_surface.Nodes:
-                    dLdalpha[node.Id] = dF1dalpha_mapped[node.Id] + current_lambda*penalty_scaling*penalty_gradient[node.Id]
+                    dLdalpha_i = dF1dalpha_mapped[node.Id] + current_lambda*penalty_scaling*penalty_gradient[node.Id]
+
+                    dLdalpha[node.Id] = dLdalpha_i
+                    node.SetSolutionStepValue(DLDALPHA, dLdalpha_i)
 
                 # Normalization using infinity norm
                 dLdalpha_for_normalization = copy.deepcopy(dLdalpha)

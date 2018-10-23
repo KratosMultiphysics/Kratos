@@ -95,6 +95,13 @@ class VertexMorphingMethod:
         model_part.AddNodalSolutionStepVariable(VECTOR_VARIABLE)
         model_part.AddNodalSolutionStepVariable(VECTOR_VARIABLE_MAPPED)
 
+        # For bead optimization
+        model_part.AddNodalSolutionStepVariable(DF1DALPHA)
+        model_part.AddNodalSolutionStepVariable(DF1DALPHA_MAPPED)
+        model_part.AddNodalSolutionStepVariable(DPDALPHA)
+        model_part.AddNodalSolutionStepVariable(DPDALPHA_MAPPED)
+        model_part.AddNodalSolutionStepVariable(DLDALPHA)
+
     # --------------------------------------------------------------------------
     def Optimize(self):
         algorithm_name = self.optimization_settings["optimization_algorithm"]["name"].GetString()
