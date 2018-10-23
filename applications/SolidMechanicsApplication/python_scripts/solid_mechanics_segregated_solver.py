@@ -102,8 +102,15 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
             strategies.append(solver._get_mechanical_solver())
         options = KratosMultiphysics.Flags()
         mechanical_solver =  KratosSolid.SegregatedStrategy(self.model_part, options, strategies)
-        mechanical_solver.Set(KratosSolid.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
+        mechanical_solver.Set(KratosSolid.SolverLocalFlags.ADAPTIVE_SOLUTION,self._check_adaptive_solution())
         return mechanical_solver
+
+    #
+    def _check_adaptive_solution(self):
+        for solver in self.solvers:
+            if solver._check_adaptive_solution():
+                return True
+        return False
     #
     def _get_dofs(self):
         dof_variables = []

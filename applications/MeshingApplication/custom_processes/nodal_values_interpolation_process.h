@@ -202,7 +202,7 @@ private:
  * @author Vicente Mataix Ferrandiz
  */
 template<SizeType TDim>
-class NodalValuesInterpolationProcess
+class KRATOS_API(MESHING_APPLICATION) NodalValuesInterpolationProcess
     : public Process
 {
 public:
@@ -494,7 +494,7 @@ private:
     {
         // The nodal data (historical)
         double* step_data = pNode->SolutionStepData().Data(Step);
-        for (IndexType j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j)
+        for (int j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j)
             step_data[j] = 0;
 
         // The nodal data (historical) of each node of the original mesh
@@ -503,7 +503,7 @@ private:
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             const double* nodal_data = geom[i].SolutionStepData().Data(Step);
             // Now we interpolate the values of each node
-            for (IndexType j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j) {
+            for (int j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j) {
                 step_data[j] += rShapeFunctions[i] * nodal_data[j];
             }
         }
@@ -511,13 +511,29 @@ private:
 
     /**
      * @brief This methoid a boundary model part in the reference and target model part
+     * @param rAuxiliarNameModelPart The name of the model part to be created
      */
-    void GenerateBoundary();
+    void GenerateBoundary(const std::string& rAuxiliarNameModelPart);
 
     /**
      * @brief This methoid a boundary model part in the reference and target model part
+     * @param rModelPart The model part to compute
+     * @param rAuxiliarNameModelPart The name of the model part to be created
      */
-    void ExtrapolateValues(std::vector<NodeType::Pointer>& rToExtrapolateNodes);
+    void GenerateBoundaryFromElements(
+        ModelPart& rModelPart,
+        const std::string& rAuxiliarNameModelPart
+        );
+
+    /**
+     * @brief This methoid a boundary model part in the reference and target model part
+     * @param rAuxiliarNameModelPart The name of the model part to be created
+     * @param rToExtrapolateNodes The list of nodes to extrapolate
+     */
+    void ExtrapolateValues(
+        const std::string& rAuxiliarNameModelPart,
+        std::vector<NodeType::Pointer>& rToExtrapolateNodes
+        );
 
     /**
      * @brief This method computes the normal in a skin model part (saved in non historical variables)

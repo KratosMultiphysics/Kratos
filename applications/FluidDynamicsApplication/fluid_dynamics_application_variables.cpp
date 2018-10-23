@@ -11,6 +11,8 @@
 //
 
 #include "fluid_dynamics_application_variables.h"
+#include "custom_utilities/statistics_data.h"
+#include "custom_utilities/statistics_record.h"
 
 namespace Kratos
 {
@@ -57,4 +59,10 @@ KRATOS_CREATE_VARIABLE(double, HEAT_CAPACITY_RATIO)
 KRATOS_CREATE_VARIABLE(double, REACTION_DENSITY)
 KRATOS_CREATE_VARIABLE(double, REACTION_ENERGY)
 KRATOS_CREATE_VARIABLE(double, MACH)
+
+// Turbulence statistics
+KRATOS_CREATE_VARIABLE( StatisticsRecord::Pointer, STATISTICS_CONTAINER)
+KRATOS_CREATE_VARIABLE( StatisticsData, TURBULENCE_STATISTICS_DATA)
+KRATOS_CREATE_VARIABLE( double, UPDATE_STATISTICS )
+
 }

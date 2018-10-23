@@ -112,11 +112,11 @@ namespace Kratos
     /**
      * Initialize member data
      */
-    void InitializeMaterial(const Properties& rMaterialProperties) override
+    void InitializeMaterial(const Properties& rProperties) override
     {
       KRATOS_TRY
 
-      mElasticityModel.InitializeMaterial(rMaterialProperties);
+      mElasticityModel.InitializeMaterial(rProperties);
 
       KRATOS_CATCH(" ")
     }
@@ -223,24 +223,24 @@ namespace Kratos
     /**
      * Check
      */
-    int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo) override
     {
       KRATOS_TRY
 
-      if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
+      if(YOUNG_MODULUS.Key() == 0 || rProperties[YOUNG_MODULUS]<= 0.00)
          KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value" << std::endl;
 
-      const double& nu = rMaterialProperties[POISSON_RATIO];
+      const double& nu = rProperties[POISSON_RATIO];
       const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
 
       if(POISSON_RATIO.Key() == 0 || check==true)
          KRATOS_ERROR << "POISSON_RATIO has Key zero invalid value" << std::endl;
 
 
-      if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00)
+      if(DENSITY.Key() == 0 || rProperties[DENSITY]<0.00)
          KRATOS_ERROR << "DENSITY has Key zero or invalid value" << std::endl;
 
-      mElasticityModel.Check(rMaterialProperties, rCurrentProcessInfo);
+      mElasticityModel.Check(rProperties, rCurrentProcessInfo);
 
       return 0;
 

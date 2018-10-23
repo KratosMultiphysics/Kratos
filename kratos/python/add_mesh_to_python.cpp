@@ -462,28 +462,24 @@ void  AddMeshToPython(pybind11::module& m)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
-    .def("SetValue", [](Element& self, const Variable< array_1d<double,3>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,3>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
     .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 4>  > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
-    .def("SetValue", [](Element& self, const Variable< array_1d<double,4>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,4>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
     .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 6>  > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
-    .def("SetValue", [](Element& self, const Variable< array_1d<double,6>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,6>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
     .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 9>  > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
-    .def("SetValue", [](Element& self, const Variable< array_1d<double,9>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,9>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< Vector > >)
@@ -521,6 +517,12 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Has", HasHelperFunction< Element, Variable< bool > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< bool > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< bool > >)
+
+    .def("__setitem__", SetValueHelperFunction< Element, Variable< std::string > >)
+    .def("__getitem__", GetValueHelperFunction< Element, Variable< std::string > >)
+    .def("Has", HasHelperFunction< Element, Variable< std::string > >)
+    .def("SetValue", SetValueHelperFunction< Element, Variable< std::string > >)
+    .def("GetValue", GetValueHelperFunction< Element, Variable< std::string > >)
 
     .def("GetArea", GetAreaFromElement ) // deprecated, to be removed (see warning in function)
     .def("GetNode", GetNodeFromElement )
@@ -590,28 +592,24 @@ void  AddMeshToPython(pybind11::module& m)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
-    .def("SetValue", [](Condition& self, const Variable< array_1d<double,3>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,3>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
     .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
-    .def("SetValue", [](Condition& self, const Variable< array_1d<double,4>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,4>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
     .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
-    .def("SetValue", [](Condition& self, const Variable< array_1d<double,6>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,6>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
     .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
-    .def("SetValue", [](Condition& self, const Variable< array_1d<double,9>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,9>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< Vector > >)
@@ -649,6 +647,12 @@ void  AddMeshToPython(pybind11::module& m)
     .def("Has", HasHelperFunction< Condition, Variable< bool > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< bool > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< bool > >)
+
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< std::string > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< std::string > >)
+    .def("Has", HasHelperFunction< Condition, Variable< std::string > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< std::string > >)
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< std::string > >)
 
     .def("GetNode", GetNodeFromCondition )
     .def("GetNodes", GetNodesFromCondition )

@@ -51,9 +51,9 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
 
     def test_PostprocessEigenvaluesProcess(self):
         test_model = KratosMultiphysics.Model()
-        model_part = KratosMultiphysics.ModelPart("Structure")
+        model_part = test_model.CreateModelPart("Structure")
         comp_model_part = model_part.CreateSubModelPart("computing_domain")
-        test_model.AddModelPart(model_part) # TODO this will become model.CreateModelPart() or sth similar
+
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
@@ -106,7 +106,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         settings_check_process["reference_file_name"].SetString(GetFilePath("test_postprocess_eigenvalues_process.ref"))
         settings_check_process["output_file_name"].SetString("Structure_EigenResults_0.post.res")
 
-        check_process = CompareTwoFilesCheckProcess(test_model, settings_check_process)
+        check_process = CompareTwoFilesCheckProcess(settings_check_process)
 
         check_process.ExecuteInitialize()
         check_process.ExecuteBeforeSolutionLoop()
