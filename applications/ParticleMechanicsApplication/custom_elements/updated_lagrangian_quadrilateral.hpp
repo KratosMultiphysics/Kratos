@@ -1,10 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosParticleMechanicsApplication $
-//   Last modified by:    $Author:                 ilaria $
-//   Date:                $Date:                July 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		BSD License
+//					Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
+
 
 #if !defined(KRATOS_UPDATED_LAGRANGIAN_QUADRILATERAL_H_INCLUDED )
 #define  KRATOS_UPDATED_LAGRANGIAN_QUADRILATERAL_H_INCLUDED
@@ -12,7 +17,6 @@
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -21,8 +25,6 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-//#include "custom_utilities/comparison_utilities.hpp"
-
 
 namespace Kratos
 {
@@ -112,7 +114,6 @@ protected:
         Matrix  F;
         Matrix  FT;
         Matrix  F0;
-        Matrix  F0Inverse;
         Matrix  DN_DX;
         Matrix  DN_De;
         Matrix  ConstitutiveMatrix;
@@ -604,9 +605,6 @@ protected:
      * Container for the total deformation gradient determinants
      */
     double mDeterminantF0;
-    /* Container for inverse of total deformation gradient
-     */
-    Matrix mInverseDeformationGradientF0;
     /**
      * Container for historical inverse of Jacobian at reference configuration invJ0
      */
@@ -706,14 +704,6 @@ protected:
      */
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
                                      ConstitutiveLaw::Parameters& rValues);
-
-
-    /**
-     * Update Variables of the Element to the Parameters of the Constitutive Law if needed
-     */
-    virtual void UpdateGeneralVariables(GeneralVariables& rVariables,
-                                     ConstitutiveLaw::Parameters& rValues);
-
 
 
     /**

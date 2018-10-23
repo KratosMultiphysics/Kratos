@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -227,6 +228,9 @@ class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests(StructuralMechanic
 class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate_lumped"
 
+class RigidFaceTestWithImposeRigidMovementProcess(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/rigid_test"
+
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick__BendingRollUp_test"
@@ -308,3 +312,6 @@ class ShellT3AndQ4NonLinearDynamicUnstructPendulusTests(StructuralMechanicsTestF
 
 class ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus_lumped"
+
+if __name__ == '__main__':
+    KratosUnittest.main()

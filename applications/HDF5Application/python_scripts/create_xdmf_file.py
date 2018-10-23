@@ -74,8 +74,7 @@ def GetListOfTimeLabels(file_name):
     return list_of_time_labels
 
 
-def main():
-    file_name = sys.argv[1]
+def WriteXdmfFile(file_name):
     temporal_grid = xdmf.TemporalGrid()
     GenerateXdmfConnectivities(file_name)
     # Get the initial spatial grid from the base file.
@@ -114,4 +113,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    file_name = sys.argv[1]
+    WriteXdmfFile(file_name)

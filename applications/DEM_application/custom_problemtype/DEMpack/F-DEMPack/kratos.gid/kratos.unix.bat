@@ -25,11 +25,12 @@ fi
 #fi
 
 #export PYTHONHOME="$3/kratos/Lib/python27"
-#export PYTHONPATH="$3/kratos/Lib/python27":"$3/kratos"
+export PYTHONPATH="$3/kratos":"$2"
+export LD_LIBRARY_PATH="$3/kratos":"$3/kratos/libs"
 
 # Set the number of threads for OpenMP
 export OMP_NUM_THREADS=$5
 
 # Run Python using the script KratosSwimmingDEM.py
 #"$3/kratos/runkratos" KratosSwimmingDEM.py > "$2/$1.info" 2> "$2/$1.err"
-python KratosSwimmingDEM.py > "$2/$1.info" 2> "$2/$1.err"
+python3 KratosSwimmingDEM.py > "$2/$1.info" 2> "$2/$1.err"

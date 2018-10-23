@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
@@ -198,8 +199,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSPRErrorProcess1, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main",2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -221,9 +222,10 @@ namespace Kratos
             Testing::Create2DGeometry(this_model_part, "SmallDisplacementElement2D3N");
 
             for (auto& node : this_model_part.Nodes()) {
-                if (node.X() > 0.9)
+                if (node.X() > 0.9) {
                     node.FastGetSolutionStepValue(DISPLACEMENT_X) += 0.1;
                     node.Coordinates()[0] += 0.1;
+                }
             }
 
             for (auto& ielem : this_model_part.Elements()) {
@@ -246,8 +248,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestSPRErrorProcess2, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main",2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -269,9 +271,10 @@ namespace Kratos
             Testing::Create3DGeometry(this_model_part, "SmallDisplacementElement3D4N");
 
             for (auto& node : this_model_part.Nodes()) {
-                if (node.X() > 0.9)
+                if (node.X() > 0.9) {
                     node.FastGetSolutionStepValue(DISPLACEMENT_X) += 0.1;
                     node.Coordinates()[0] += 0.1;
+                }
             }
 
             for (auto& ielem : this_model_part.Elements()) {

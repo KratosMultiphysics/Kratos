@@ -180,7 +180,7 @@ namespace Kratos
 	     this->GetProperties()[THICKNESS] = 1.0;
       } 
 
-                  return correct;
+      return correct;
 
       KRATOS_CATCH( "" );
    }
@@ -509,7 +509,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
       //Set Shape Functions Values for this integration point
-      rVariables.N=row( Ncontainer, rPointNumber);
+      noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
       //Calculate IntegrationPoint radius
       CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N);
@@ -525,7 +525,7 @@ void AxisymUpdatedLagrangianUJElement::CalculateAlmansiStrain(const Matrix& rF,
       MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
       //Compute cartesian derivatives [dN/dx_n+1]
-      rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
+      noalias( rVariables.DN_DX ) =  prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
       //Determinant of the Deformation Gradient F0
       rVariables.detF0 = mDeterminantF0[rPointNumber];

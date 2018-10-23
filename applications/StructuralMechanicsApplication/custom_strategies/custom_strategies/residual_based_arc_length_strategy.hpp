@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Nelson Lafontaine
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_BASED_RESIDUAL_ARC_LENGHT_STRATEGY )
@@ -23,6 +23,7 @@
 /* Project includes */
 // #include "structural_mechanics_application.h"
 #include "includes/define.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -102,9 +103,13 @@ public:
             bool ReformDofSetAtEachStep = true,
             bool MoveMeshFlag           = true
             )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag),
+         mAuxElementModelPart(model_part.GetOwnerModel().CreateModelPart("ResidualBasedArcLengthStrategy_AuxElementModelPart")),
+         mAuxConditionModelPart(model_part.GetOwnerModel().CreateModelPart("ResidualBasedArcLengthStrategy_AuxConditionModelPart"))
     {
         KRATOS_TRY;
+        
+        
 
         // Set flags to default values
         SetMaxIterationNumber(MaxIterations);
@@ -155,8 +160,13 @@ public:
 
     /************************************* DESTRUCTOR **********************************/
     /***********************************************************************************/
-
-    ~ResidualBasedArcLengthStrategy() override {}
+    
+    ~ResidualBasedArcLengthStrategy() override 
+    {
+        Model& current_model = BaseType::GetModelPart().GetOwnerModel();
+        current_model.DeleteModelPart("ResidualBasedArcLengthStrategy_AuxElementModelPart");
+        current_model.DeleteModelPart("ResidualBasedArcLengthStrategy_AuxConditionModelPart");
+    }
 
     /************************************* OPERATIONS **********************************/
     /***********************************************************************************/
@@ -253,9 +263,9 @@ public:
         TSystemMatrixType& mA  = *mpA;
         TSystemVectorType& mDx = *mpDx;
         TSystemVectorType& mb  = *mpb;
-	
+
         GetScheme()->Predict(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
-	
+
         // Move the mesh if needed
         if(this->MoveMeshFlag() == true)
         {
@@ -362,13 +372,13 @@ public:
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         //ModelPart& r_model_part = BaseType::GetModelPart();
-	
+
         DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
-	
+
         // Creating models part for analysis
         InitializeAuxiliaryModelParts(BaseType::GetModelPart());
         mstep = BaseType::GetModelPart().GetProcessInfo()[STEP];
-	
+
         if (this->GetEchoLevel() > 0)
         {
             std::cout<<" STEP NUMBER                   = " << mstep << std::endl;
@@ -410,7 +420,7 @@ public:
         InitializeAuxVectors(pe);
         InitializeAuxVectors(pE);
         InitializeAuxVectors(pq);
-	
+
         InitializeAuxVectors(pAux_q);
         InitializeAuxVectors(pAux_h);
         InitializeAuxVectors(pq_Inc_Aux);
@@ -437,7 +447,7 @@ public:
         //// Do nothing. It is called in order to have an order sequence
         //pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
         //is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-	
+
         // Function to perform the building and the solving phase.
         if(BaseType::mRebuildLevel >1 || BaseType::mStiffnessMatrixIsBuilt == false)
         {
@@ -453,7 +463,7 @@ public:
             TSparseSpace::SetToZero(Aux_q);
             TSparseSpace::SetToZero(Aux_h);
             TSparseSpace::SetToZero(q_Inc_Aux);
-	
+
             pBuilderAndSolver->Build(pScheme,mAuxElementModelPart,mA,mb);
             pBuilderAndSolver->BuildRHS(pScheme,mAuxConditionModelPart, q);
             TSparseSpace::Copy(q ,Aux_q); // Aux = q;
@@ -472,7 +482,7 @@ public:
             TSparseSpace::SetToZero(Aux_q);
             TSparseSpace::SetToZero(Aux_h);
             TSparseSpace::SetToZero(q_Inc_Aux);
-	
+
             pBuilderAndSolver->Build(pScheme,mAuxElementModelPart,mA,mb);
             pBuilderAndSolver->BuildRHS(pScheme,mAuxConditionModelPart, q);
             TSparseSpace::Copy(q ,Aux_q); // Aux = q;
@@ -511,7 +521,7 @@ public:
                 // Setting variables in the begining of the iteraction
                 pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
                 meta = 1.00;
-	
+
                 local_converged = false;
                 if(mIterationNumber == 1 && mInit == false)// mstep == 1)
                 {
@@ -766,9 +776,9 @@ public:
                 }
             }
     } // end while
-	
+
     while(mReduceArcLenght == true);
-	
+
     if(is_converged == true)
     {
         // Calculate reactions if required
@@ -780,11 +790,11 @@ public:
         // Finalisation of the solution step, operations to be done after achieving convergence, for example the
         // Final Residual Vector (mb) has to be saved in there
         FinalizeSolutionStep();
-	
+
         // Cleaning memory after the solution
         pScheme->Clean();
         mSolutionStepIsInitialized = false;
-	
+
         // Deallocate the systemvectors
         if (mReformDofSetAtEachStep == true)
         {
@@ -887,7 +897,7 @@ public:
 
         SparseSpaceType::Clear(mpDelta_pold);
         SparseSpaceType::Resize(mDelta_pold, 0);
-	
+
         // Setting to zero the internal flag to ensure that the dof sets are recalculated
         GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
         GetBuilderAndSolver()->Clear();
@@ -962,7 +972,7 @@ public:
         TSparseSpace::SetToZero(Delta_p);
         TSparseSpace::SetToZero(Delta_p1);
         TSparseSpace::SetToZero(Delta_p2);
-	
+
         // Variables vectoriales y matriciles
         TSystemMatrixType& mA            = *mpA;
         //TSystemVectorType& mDx           = *mpDx;
@@ -973,13 +983,13 @@ public:
         TSystemVectorType& Sigma_h       = *pSigma_h;
         TSystemVectorType& mX_old        = *mpX_old;
         TSystemVectorType& q             = *pq;
-	
+
         // Constants needed for the Ublas operations
         RealType A = 1.00;
         //RealType B = 1.00;
 
         // Calculate_Current_Delta(rDofSet, Delta_p);
-	
+
         a = Ao + TSparseSpace::Dot(Sigma_q, Sigma_q);
         TSparseSpace::ScaleAndAdd(A, mDelta_p, meta, Sigma_h, Aux_Vector); // Aux_Vector = A * mDelta_p + meta*Sigma_h
         b = 2.00 * (Ao * (mdelta_lambda-g) + TSparseSpace::Dot(Sigma_q, Aux_Vector));
@@ -997,7 +1007,7 @@ public:
         //KRATOS_WATCH(a);
         //KRATOS_WATCH(b);
         //KRATOS_WATCH(c);
-	
+
         disc = b * b - 4.00 * a * c;
         if (disc >= 0.00)
         {
@@ -1012,24 +1022,24 @@ public:
                 std::cout<<" First Solution  = " << x_sol[0] <<  std::endl;
                 std::cout<<" Second Solution = " << x_sol[1] <<  std::endl;
             }
-	
+
             // Choose the x value: the larges dot product
             // WARNING: The old code use the current incremental displacement
             // First roots
             noalias(Delta_p) = mDelta_p + Delta_p1;
             RealType a1        = TSparseSpace::Dot(Delta_p, mDelta_pold);
-	
+
             //KRATOS_WATCH(Delta_p1[0]);
             //KRATOS_WATCH(Delta_p2[0]);
             //KRATOS_WATCH(mDelta_pold);
             //KRATOS_WATCH(a1);
-	
+
             // Second roots
             TSparseSpace::SetToZero(Delta_p);
             noalias(Delta_p) = mDelta_p + Delta_p2;
             RealType a2        = TSparseSpace::Dot(Delta_p,mDelta_pold);
             //KRATOS_WATCH(a2);
-	
+
             if(a1 > a2)
             {
                 x = x_sol[0];
@@ -1042,9 +1052,9 @@ public:
               noalias(mDelta_p)+= Delta_p2;
               TSparseSpace::Copy(Delta_p2, dx_aux);
             }
-	
+
             mdelta_lambda += - g + x;
-	
+
             if (this->GetEchoLevel() > 1)
             {
                 std::cout << " Solution Chosen = " << x <<  std::endl;
@@ -1104,7 +1114,7 @@ public:
                 noalias(mDelta_p) = miu * Delta_pcr;
                 mdelta_lambda     = miu * delta_lambda_cr;
                 mdelta_l          = delta_lcr;
-	
+
                 if (this->GetEchoLevel() > 1)
                 {
                     std::cout << "   Arc Length      = " << mdelta_l             << std::endl;
@@ -1197,8 +1207,8 @@ private:
     RealType mlambda_old;
     RealType mdelta_lambda;
     RealType mdelta_lambda_old;
-    ModelPart mAuxElementModelPart;
-    ModelPart mAuxConditionModelPart;
+    ModelPart& mAuxElementModelPart;
+    ModelPart& mAuxConditionModelPart;
 
     /*@} */
     /**@name Private Operators*/
@@ -1275,18 +1285,18 @@ private:
         InitializeAuxVectors(mpDelta_p);
         InitializeAuxVectors(mpDelta_pold);
         InitializeAuxVectors(mpX_old);
-	
+
         TSystemMatrixType& mA            = *mpA;          // Stiffness Matrix
         TSystemVectorType& mDx           = *mpDx;         // External Force
         TSystemVectorType& mb            = *mpb;          // Internal Force
         TSystemVectorType& mDelta_p      = *mpDelta_p;    // P  current change
         TSystemVectorType& mDelta_pold   = *mpDelta_pold; // P  =  u_(step+1)-u_(step)
         TSystemVectorType& mX_old        = *mpX_old;      // old = positions X+u
-	
+
         TSparseSpace::SetToZero(mDelta_p);
         TSparseSpace::SetToZero(mDelta_pold);
         TSparseSpace::SetToZero(mX_old);
-	
+
         Calculate_Previous_Delta(rDofSet, mDelta_pold); // Store the last converged delta P
         BackupDatabase(rDofSet, mX_old);                // Store the actual point x = X + u_n = X_0 + Deltap_1 + Deltap_2....+ Deltap_n
         meta = 1.00;                                    // Reseting meta = 1.00; always we begining with 1.00
@@ -1318,17 +1328,17 @@ private:
         typename TSchemeType::Pointer pScheme                           = GetScheme();
         typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
         DofsArrayType& rDofSet                                          = GetBuilderAndSolver()->GetDofSet();
-	
+
         TSystemMatrixType& mA            = *mpA;
         TSystemVectorType& mDx           = *mpDx;
         TSystemVectorType& mb            = *mpb;
-	
+
         RealType factor     = 1.00;
         mdelta_lambda_old =  mdelta_lambda;
         mlambda_old       =  mlambda;
-	
+
         // KRATOS_WATCH(mlambda_old)
-	
+
         factor           = std::sqrt(RealType(mIde)/RealType(mIterationNumber));
 
         // Controling the size of the arc
@@ -1340,7 +1350,7 @@ private:
         {
             factor = 0.75;
         }
-	
+
         mdelta_l = factor * mdelta_lold;
         if (mdelta_lold > mdelta_lmax)
         {
@@ -1425,7 +1435,7 @@ private:
 
         /// WARNING: Verify current mDelta_p
         //Calculate_Delta_pold(rDofSet,mDelta_p);
-	
+
         RealType param_a = TSparseSpace::Dot(Sigma_q,  Sigma_q);
         RealType param_b = TSparseSpace::Dot(Sigma_h,  Sigma_h);
         RealType param_c = TSparseSpace::Dot(Sigma_q,  Sigma_h);
@@ -1447,7 +1457,7 @@ private:
         //KRATOS_WATCH(b_prima);
         //KRATOS_WATCH(c_prima);
         //KRATOS_WATCH(disc);
-	
+
         if (disc >= 0.00)
         {
             imag = false;
@@ -1516,7 +1526,7 @@ private:
               )
       {
         KRATOS_TRY;
-	
+
         for(typename DofsArrayType::const_iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; i_dof ++)
         {
             if(i_dof->IsFree())
@@ -1543,7 +1553,7 @@ private:
     )
     {
         KRATOS_TRY;
-	
+
         for(typename DofsArrayType::const_iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
 	{
             if(i_dof->IsFree())

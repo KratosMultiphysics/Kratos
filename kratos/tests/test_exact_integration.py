@@ -8,11 +8,14 @@ class TestExactIntegration(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
+    
 
     # Test exact integration in 2D
     # LINE
     def test_line_exact_integration_1(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.SetBufferSize(3)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -57,7 +60,9 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[1, 1], 1.0)
 
     def test_line_exact_integration_2(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.SetBufferSize(3)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -102,7 +107,9 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[1, 1], 0.5)
 
     def test_line_exact_integration_3(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.SetBufferSize(3)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -151,7 +158,9 @@ class TestExactIntegration(KratosUnittest.TestCase):
     # Test exact integration in 3D
     # TRIANGLE
     def test_triangle_exact_integration_1(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.SetBufferSize(3)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -205,7 +214,9 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[2, 2], 1.0 / 6.0)
 
     def test_triangle_exact_integration_2(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.SetBufferSize(3)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -258,7 +269,9 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[2, 2], 1.0 / 12.0)
 
     def test_triangle_exact_integration_3(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.SetBufferSize(3)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -372,7 +385,9 @@ class TestExactIntegration(KratosUnittest.TestCase):
 
     # QUADRILATERAL
     def test_quadrilateral_exact_integration_1(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.SetBufferSize(3)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -438,7 +453,9 @@ class TestExactIntegration(KratosUnittest.TestCase):
         self.assertAlmostEqual(matrix_solution[5, 2],  1.0 / 6.0)
 
     def test_quadrilateral_exact_integration_2(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+        
+        model_part = current_model.CreateModelPart("Main")
         model_part.SetBufferSize(3)
         model_part.AddProperties(KratosMultiphysics.Properties(1))
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)

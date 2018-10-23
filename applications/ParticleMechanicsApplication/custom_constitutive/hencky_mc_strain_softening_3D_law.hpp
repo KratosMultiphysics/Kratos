@@ -10,6 +10,7 @@
 //  Main authors:    Bodhinanda Chandra
 //
 
+
 #if !defined (KRATOS_HENCKY_MC_STRAIN_SOFTENING_PLASTIC_3D_LAW_H_INCLUDED)
 #define       KRATOS_HENCKY_MC_STRAIN_SOFTENING_PLASTIC_3D_LAW_H_INCLUDED
 
@@ -18,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/hencky_plastic_3d_law.hpp"
+#include "custom_constitutive/hencky_plastic_3D_law.hpp"
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
 #include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
@@ -27,12 +28,13 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law J2 in plane strain 2D
- * With stress split in an isochoric and volumetric parts
+ * Defines a hyperelastic-plastic isotropic constitutive law for non-associative Mohr Coulomb (MC) constitutive law
  * This material law is defined by the parameters needed by the yield criterion:
-
- * The functionality is limited to large displacements
- */
+ * YOUNG_MODULUS, POISSON_RATIO, COHESION, INTERNAL_FRICTION_ANGLE, INTERNAL_DILATANCY_ANGLE,
+ * COHESION_RESIDUAL, INTERNAL_FRICTION_ANGLE_RESIDUAL, INTERNAL_DILATANCY_ANGLE_RESIDUAL, SHAPE_FUNCTION_BETA
+ * The functionality is designed for large displacements and considering exponential strain softening law
+ * For reference, please refer to: (Fern & Soga, 2016)
+*/
 
 
 
@@ -49,8 +51,8 @@ public:
     typedef std::size_t             SizeType;
 
     typedef MPMFlowRule::Pointer                FlowRulePointer;
-    typedef YieldCriterion::Pointer    YieldCriterionPointer;
-    typedef HardeningLaw::Pointer        HardeningLawPointer;
+    typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
+    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer            PropertiesPointer;
 
     /**
@@ -112,7 +114,7 @@ public:
      * @param CurrentProcessInfo
      * @return
      */
-    //int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
+    int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
