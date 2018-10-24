@@ -68,6 +68,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
         self.model_part_controller.InitializeMeshController()
+        self.mapper.Initialize()
         self.analyzer.InitializeBeforeOptimizationLoop()
         self.data_logger.InitializeDataLogging()
 
@@ -168,7 +169,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         # Mapping
         nodal_variable_mapped = KratosGlobals.GetVariable("DF1DX_MAPPED")
-        self.mapper.Initialize()
+        self.mapper.Update()
         self.mapper.InverseMap(nodal_variable, nodal_variable_mapped)
         self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
 

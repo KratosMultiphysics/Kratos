@@ -72,6 +72,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.relativeTolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
         self.ModelPartController.InitializeMeshController()
+        self.Mapper.Initialize()
         self.Analyzer.InitializeBeforeOptimizationLoop()
         self.DataLogger.InitializeDataLogging()
 
@@ -141,7 +142,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace(self):
-        self.Mapper.Initialize()
+        self.Mapper.Update()
         self.Mapper.InverseMap(DF1DX, DF1DX_MAPPED)
 
     # --------------------------------------------------------------------------

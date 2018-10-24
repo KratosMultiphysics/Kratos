@@ -89,6 +89,9 @@ public:
   virtual void Initialize(){};
 
   // --------------------------------------------------------------------------
+  virtual void Update(){};
+
+  // --------------------------------------------------------------------------
   virtual void Map(const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable) = 0;
 
   // --------------------------------------------------------------------------
