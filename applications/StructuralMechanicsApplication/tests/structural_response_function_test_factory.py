@@ -134,6 +134,7 @@ class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "mass_response"
 
     def test_execution(self):
+        self.current_model = KratosMultiphysics.Model()
         self._calculate_response_and_gradient()
         self.assertAlmostEqual(self.value, 2943.7499999999995)
 
@@ -147,6 +148,7 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "strain_energy_response"
 
     def test_execution(self):
+        self.current_model = KratosMultiphysics.Model()
         self._calculate_response_and_gradient()
         self.assertAlmostEqual(self.value, 0.00606275111915477)
 

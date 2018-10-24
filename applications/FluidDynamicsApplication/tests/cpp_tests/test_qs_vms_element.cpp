@@ -15,6 +15,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 
@@ -26,9 +27,9 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
 {
-    ModelPart model_part("Main");
+    Model model;
     unsigned int buffer_size = 2;
-    model_part.SetBufferSize(buffer_size);
+    ModelPart& model_part = model.CreateModelPart("Main",buffer_size);
 
     // Variables addition
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
@@ -39,6 +40,8 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
     model_part.AddNodalSolutionStepVariable(ADVPROJ);
     model_part.AddNodalSolutionStepVariable(DIVPROJ);
+    model_part.AddNodalSolutionStepVariable(REACTION);
+    model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
 
     // Process info creation
     double delta_time = 0.1;

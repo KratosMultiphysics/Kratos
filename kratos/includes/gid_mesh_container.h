@@ -12,16 +12,6 @@
 //                   Pooyan Dadvand
 //
 
-
-
-
-
-
-
-
-
-
-
 #if !defined(KRATOS_GID_MESH_CONTAINER_H_INCLUDED)
 #define  KRATOS_GID_MESH_CONTAINER_H_INCLUDED
 // System includes
@@ -116,6 +106,10 @@ public:
             for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                     it != mMeshElements.end(); ++it )
             {
+                KRATOS_DEBUG_ERROR_IF_NOT((it)->HasProperties()) << "Element #"
+                    << (it)->Id() << " does not have Properties and hence cannot "
+                    << "be used with the GiD-Output" << std::endl;
+
                 int prop_id = (it)->GetProperties().Id();
                 if (max_id < prop_id) max_id = prop_id;
             }
@@ -220,6 +214,10 @@ public:
             for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
                     it != mMeshConditions.end(); ++it )
             {
+                KRATOS_DEBUG_ERROR_IF_NOT((it)->HasProperties()) << "Condition #"
+                    << (it)->Id() << " does not have Properties and hence cannot "
+                    << "be used with the GiD-Output" << std::endl;
+
                 int prop_id = (it)->GetProperties().Id();
                 conditions_per_layer[prop_id] += 1;
             }
@@ -327,4 +325,3 @@ protected:
 };//class GidMeshContainer
 }// namespace Kratos.
 #endif // KRATOS_GID_MESH_CONTAINER_H_INCLUDED defined
-

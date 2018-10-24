@@ -38,12 +38,12 @@ namespace Kratos
 typedef array_1d<double,3> Vector3;
 
 // Variables definition
-KRATOS_DEFINE_VARIABLE(double, AVERAGE_NODAL_ERROR);                          // The average nodal error
-KRATOS_DEFINE_VARIABLE(double, ANISOTROPIC_RATIO);                            // The anisotropic aspect ratio
-KRATOS_DEFINE_VARIABLE(Vector3, AUXILIAR_GRADIENT);                           // An auxiliar gradient needed to compute the metric
-KRATOS_DEFINE_VARIABLE(Vector,  AUXILIAR_HESSIAN);                            // An auxiliar hessian needed to compute the metric
-KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_2D); // A 2D metric vector
-KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_3D); // A 3D metric vector
+KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, double, AVERAGE_NODAL_ERROR);                          // The average nodal error
+KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, double, ANISOTROPIC_RATIO);                            // The anisotropic aspect ratio
+KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, Vector3, AUXILIAR_GRADIENT);                           // An auxiliar gradient needed to compute the metric
+KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, Vector,  AUXILIAR_HESSIAN);                            // An auxiliar hessian needed to compute the metric
+KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS(MESHING_APPLICATION, METRIC_TENSOR_2D); // A 2D metric vector
+KRATOS_DEFINE_SYMMETRIC_3D_TENSOR_APPLICATION_VARIABLE_WITH_COMPONENTS(MESHING_APPLICATION, METRIC_TENSOR_3D); // A 3D metric vector
 
 KRATOS_DEFINE_VARIABLE(int, NUMBER_OF_DIVISIONS);      // The number of divisions for the multi scale refining
 KRATOS_DEFINE_VARIABLE(int, SUBSCALE_INDEX)
@@ -53,8 +53,8 @@ KRATOS_DEFINE_VARIABLE(Condition::Pointer, FATHER_CONDITION)
 KRATOS_DEFINE_VARIABLE(std::vector<double>, FATHER_NODES_WEIGHTS)
 
 //for ULF (surface_tension) application:
-KRATOS_DEFINE_VARIABLE(double, TRIPLE_POINT)
-KRATOS_DEFINE_VARIABLE(double, CONTACT_ANGLE)
+KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, double, TRIPLE_POINT)
+KRATOS_DEFINE_APPLICATION_VARIABLE(MESHING_APPLICATION, double, CONTACT_ANGLE)
 
 ///@}
 ///@name Type Definitions
@@ -75,7 +75,7 @@ KRATOS_DEFINE_VARIABLE(double, CONTACT_ANGLE)
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosMeshingApplication : public KratosApplication
+class KRATOS_API(MESHING_APPLICATION) KratosMeshingApplication : public KratosApplication
 {
 public:
     ///@name Type Definitions

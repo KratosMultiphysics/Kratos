@@ -27,9 +27,6 @@
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
 
-//#include  "utilities/triangle_triangle_intersection.h"
-
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -727,7 +724,7 @@ public:
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
-        ) override {
+        ) const override {
 
         rResult = ZeroVector(3);
 
