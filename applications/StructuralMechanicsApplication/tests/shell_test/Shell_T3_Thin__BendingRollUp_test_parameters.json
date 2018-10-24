@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "Shell_T3_Thin__BendingRollUp_test",
         "model_part_name" : "SolidDomain",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
         "time_step"       : 0.05,
         "start_time"      : 0.001,
@@ -12,6 +11,7 @@
         "solver_settings"          : {
             "solver_type"                        : "Static",
             "analysis_type"                      : "non_linear",
+            "domain_size"     : 3,
             "echo_level"      					 : 0,
             "model_import_settings"              : {
                 "input_type"     : "mdpa",

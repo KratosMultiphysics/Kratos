@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "Eigen_3D3N_Thin_Circle_test",
         "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
         "time_step"       : 1.1,
         "start_time"      : 0.0,
@@ -12,6 +11,7 @@
     "solver_settings"          : {
         "solver_type"                        : "eigen_value",
         "scheme_type"                        : "dynamic",
+        "domain_size"     : 3,
         "echo_level"                         : 0,
         "model_import_settings"              : {
             "input_type"       : "mdpa",

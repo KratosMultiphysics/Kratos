@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "Shell_T3_Thick_linear_static_test",
         "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
         "time_step"       : 1.1,
         "start_time"      : 0.0,
@@ -12,6 +11,7 @@
     "INFO: Linear refers to the BCs, the element-formulation is Nonlinear, thats why a mon-lin anaylsis has to be used!": 1,
     "solver_settings"          : {
         "solver_type"                        : "Static",
+        "domain_size"     : 3,
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {

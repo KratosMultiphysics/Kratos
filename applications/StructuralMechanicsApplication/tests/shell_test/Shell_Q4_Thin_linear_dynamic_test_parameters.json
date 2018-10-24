@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "Shell_Q4_Thin_linear_dynamic_test",
         "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
         "time_step"       : 1.125,
         "start_time"      : 0.0,
@@ -16,6 +15,7 @@
     "solver_settings"          : {
         "solver_type"                        : "Dynamic",
         "echo_level"                         : 0,
+        "domain_size"     : 3,
         "analysis_type"                      : "non_linear",
         "time_integration_method"            : "implicit",
         "scheme_type"                        : "newmark",
