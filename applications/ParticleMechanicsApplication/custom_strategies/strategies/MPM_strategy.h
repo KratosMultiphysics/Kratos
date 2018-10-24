@@ -119,7 +119,7 @@ public:
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > SolvingStrategyType;
 
-    // Counted pointer of ClassName 
+    // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(MPMStrategy);
 
     typedef typename ModelPart::DofType TDofType;
@@ -153,9 +153,9 @@ public:
     /*@{ */
 
     MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,
-        Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle", 
+        Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle",
         int NumPar = 3, bool BlockBuilder = false, bool isMixedFormulation = false)
-        : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part), 
+        : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part),
         mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
     {
 
@@ -303,10 +303,10 @@ public:
         }
 
         // Define a standard static strategy to be used in the calculation
-        if(SolutionType == "StaticSolver" || SolutionType == "Static")
+        if(SolutionType == "static" || SolutionType == "Static")
         {
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
-            
+
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
             if(BlockBuilder == true){
                 KRATOS_INFO("MPM_Strategy") << "Block Builder is used" << std::endl;
@@ -330,7 +330,7 @@ public:
         }
 
         // Define a quasi-static strategy to be used in the calculation
-        else if(SolutionType == "QuasiStaticSolver" || SolutionType == "Quasi-static")
+        else if(SolutionType == "quasi_static" || SolutionType == "Quasi-static")
         {
             double alpha_M;
             double dynamic;
@@ -359,7 +359,7 @@ public:
         }
 
         // Define a dynamic strategy to be used in the calculation
-        else if(SolutionType == "DynamicSolver" || SolutionType == "Dynamic")
+        else if(SolutionType == "dynamic" || SolutionType == "Dynamic")
         {
             double alpha_M;
             double dynamic;
@@ -455,7 +455,7 @@ public:
 
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Predict" <<std::endl;
         mp_solving_strategy->Predict();
-        
+
         // Do solution iterations
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - SolveSolutionStep" <<std::endl;
         mp_solving_strategy->SolveSolutionStep();
@@ -743,10 +743,10 @@ public:
     virtual void SearchElement(
         ModelPart& grid_model_part,
         ModelPart& mpm_model_part)
-    { 
+    {
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
-			
+
 			auto element_itr = grid_model_part.Elements().begin() + i;
 			element_itr -> Reset(ACTIVE);
             if (m_GeometryElement == "Triangle"){
@@ -794,7 +794,7 @@ public:
                 for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
 
                     auto element_itr = mpm_model_part.Elements().begin() + i;
-                    
+
                     array_1d<double,3> xg = element_itr -> GetValue(GAUSS_COORD);
                     typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
@@ -806,7 +806,7 @@ public:
                     if (is_found == true)
                     {
                         pelem->Set(ACTIVE);
-                    
+
                         element_itr->GetGeometry()(0) = pelem->GetGeometry()(0);
                         element_itr->GetGeometry()(1) = pelem->GetGeometry()(1);
                         element_itr->GetGeometry()(2) = pelem->GetGeometry()(2);
@@ -814,7 +814,7 @@ public:
                         pelem->GetGeometry()[0].Set(ACTIVE);
                         pelem->GetGeometry()[1].Set(ACTIVE);
                         pelem->GetGeometry()[2].Set(ACTIVE);
-                        
+
                         if (TDim ==3)
                         {
                             element_itr->GetGeometry()(3) = pelem->GetGeometry()(3);
@@ -824,7 +824,7 @@ public:
                 }
 		    }
         }
-        
+
         //******************SEARCH FOR QUADRILATERALS************************
         else if(m_GeometryElement == "Quadrilateral")
         {
@@ -842,7 +842,7 @@ public:
                 for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
 
                     auto element_itr = mpm_model_part.Elements().begin() + i;
-                            
+
                     array_1d<double,3> xg = element_itr -> GetValue(GAUSS_COORD);
                     typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
@@ -850,11 +850,11 @@ public:
 
                     // FindPointOnMesh find the element in which a given point falls and the relative shape functions
                     bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin);
-                
+
                     if (is_found == true)
                     {
                         pelem->Set(ACTIVE);
-                        
+
                         element_itr->GetGeometry()(0) = pelem->GetGeometry()(0);
                         element_itr->GetGeometry()(1) = pelem->GetGeometry()(1);
                         element_itr->GetGeometry()(2) = pelem->GetGeometry()(2);
@@ -864,7 +864,7 @@ public:
                         pelem->GetGeometry()[1].Set(ACTIVE);
                         pelem->GetGeometry()[2].Set(ACTIVE);
                         pelem->GetGeometry()[3].Set(ACTIVE);
-                        
+
                         if (TDim ==3)
                         {
                             element_itr->GetGeometry()(4) = pelem->GetGeometry()(4);
