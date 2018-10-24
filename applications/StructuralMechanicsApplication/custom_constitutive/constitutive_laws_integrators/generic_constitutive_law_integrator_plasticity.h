@@ -817,6 +817,7 @@ class GenericConstitutiveLawIntegratorPlasticity
      */
     static int Check(const Properties& rMaterialProperties)
     {
+        // Checking is registered
         KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
         KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
         KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS_TENSION);
@@ -826,14 +827,21 @@ class GenericConstitutiveLawIntegratorPlasticity
         KRATOS_CHECK_VARIABLE_KEY(MAXIMUM_STRESS_POSITION);
         KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
 
+        // Checking is defined
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "HARDENING_CURVE is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(HARDENING_CURVE)) << "HARDENING_CURVE is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
+
+        // Checking values
+        KRATOS_ERROR_IF(rMaterialProperties[FRACTURE_ENERGY] < tolerance) << "FRACTURE_ENERGY is too low:" << rMaterialProperties[FRACTURE_ENERGY] << std::endl;
         
         const int curve_type = rMaterialProperties[HARDENING_CURVE];
         if (static_cast<HardeningCurveType>(curve_type) == HardeningCurveType::InitialHardeningExponentialSoftening) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MAXIMUM_STRESS)) << "MAXIMUM_STRESS is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MAXIMUM_STRESS_POSITION)) << "MAXIMUM_STRESS_POSITION is not a defined value" << std::endl;
+        } else if (static_cast<HardeningCurveType>(curve_type) == HardeningCurveType::CurveFittingHardening:) {
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CURVE_FITTING_PARAMETERS)) << "CURVE_FITTING_PARAMETERS is not a defined value" << std::endl;
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(PLASTIC_STRAIN_INDICATORS)) << "PLASTIC_STRAIN_INDICATORS is not a defined value" << std::endl;
         }
         
         if (!rMaterialProperties.Has(YIELD_STRESS)) {
