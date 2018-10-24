@@ -230,38 +230,31 @@ class GenericConstitutiveLawIntegratorPlasticity
         const Vector& rPlasticStrain 
         )
     {
-        array_1d<double, VoigtSize> deviator(6, 0.0);
-        array_1d<double, VoigtSize> h_capa(6, 0.0);
+        array_1d<double, VoigtSize> deviator = ZeroVector(6);
+        array_1d<double, VoigtSize> h_capa = ZeroVector(6);
         double J2, tensile_indicator_factor, compression_indicator_factor, slope, hardening_parameter, equivalent_plastic_strain;
 
-        YieldSurfaceType::CalculateEquivalentStress(
-            rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
-        const double I1 = rPredictiveStressVector[0] +
-                          rPredictiveStressVector[1] +
-                          rPredictiveStressVector[2];
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(
-            rPredictiveStressVector, I1, deviator, J2);
-        CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux,
-                             rValues);
-        CalculateGFluxVector(rPredictiveStressVector, deviator, J2, rGflux,
-                             rValues);
-        CalculateIndicatorsFactors(rPredictiveStressVector,
-                                   tensile_indicator_factor,
-                                   compression_indicator_factor);
-        CalculatePlasticDissipation(
-            rPredictiveStressVector, tensile_indicator_factor,
-            compression_indicator_factor, rPlasticStrainIncrement,
-            rPlasticDissipation, h_capa, rValues, CharacteristicLength);
-        CalculateEquivalentPlasticStrain(
-            rPredictiveStressVector, rUniaxialStress, rPlasticStrain,
-            tensile_indicator_factor, rValues, equivalent_plastic_strain);
-        CalculateEquivalentStressThreshold(
-            rPlasticDissipation, tensile_indicator_factor,
-            compression_indicator_factor, rThreshold, slope, rValues,
-            equivalent_plastic_strain);
+        YieldSurfaceType::CalculateEquivalentStress( rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
+
+        const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
+
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+
+        CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux, rValues);
+
+        CalculateGFluxVector(rPredictiveStressVector, deviator, J2, rGflux, rValues);
+
+        CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor);
+
+        CalculatePlasticDissipation(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor, rPlasticStrainIncrement,rPlasticDissipation, h_capa, rValues, CharacteristicLength);
+
+        CalculateEquivalentPlasticStrain(rPredictiveStressVector, rUniaxialStress, rPlasticStrain, tensile_indicator_factor, rValues, equivalent_plastic_strain);
+
+        CalculateEquivalentStressThreshold( rPlasticDissipation, tensile_indicator_factor,compression_indicator_factor, rThreshold, slope, rValues, equivalent_plastic_strain);
+
         CalculateHardeningParameter(rFflux, slope, h_capa, hardening_parameter);
-        CalculatePlasticDenominator(rFflux, rGflux, rConstitutiveMatrix,
-                                    hardening_parameter, rPlasticDenominator);
+
+        CalculatePlasticDenominator(rFflux, rGflux, rConstitutiveMatrix, hardening_parameter, rPlasticDenominator);
     }
 
     /**
@@ -422,7 +415,7 @@ class GenericConstitutiveLawIntegratorPlasticity
      * @param rEquivalentStressThreshold The maximum uniaxial stress of the linear behaviour
      * @param rSlope The slope of the PlasticDiss-Threshold curve
      * @param rValues Parameters of the constitutive law
-     * @param rPlasticStrain The Plastic Strain internal variable
+     * @param EquivalentPlasticStrain The equivalent plastic strain
      */
     static void CalculateEquivalentStressThreshold(
         const double PlasticDissipation,
@@ -469,7 +462,7 @@ class GenericConstitutiveLawIntegratorPlasticity
                     rValues);
                 break;
 
-              case HardeningCurveType::CurveFittingHardening: // Only for Small Deformations and VonMises + Tresca!
+              case HardeningCurveType::CurveFittingHardening: // Only for VonMises + Tresca!
                 CalculateEquivalentStressThresholdCurveFittingHardening(
                     PlasticDissipation, TensileIndicatorFactor,
                     CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
@@ -621,14 +614,14 @@ class GenericConstitutiveLawIntegratorPlasticity
         double& rSlope,
         ConstitutiveLaw::Parameters& rValues,
         const double EquivalentPlasticStrain      
-    )
+        )
     {
-        const Properties mat_props = rValues.GetMaterialProperties();
-        const Vector curve_fitting_parameters = mat_props[CURVE_FITTING_PARAMETERS];
-        const Vector plastic_strain_indicators = mat_props[PLASTIC_STRAIN_INDICATORS];
-        const double fracture_energy = mat_props[FRACTURE_ENERGY];
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const Vector& curve_fitting_parameters = r_material_properties[CURVE_FITTING_PARAMETERS];
+        const Vector& plastic_strain_indicators = r_material_properties[PLASTIC_STRAIN_INDICATORS];
+        const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
 
-        const unsigned int order_polinomial = curve_fitting_parameters.size();
+        const SizeType order_polinomial = curve_fitting_parameters.size();
         const double plastic_strain_indicator_1 = plastic_strain_indicators[0];
         const double plastic_strain_indicator_2 = plastic_strain_indicators[1];
 
@@ -636,7 +629,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         double stress_indicator_1 = curve_fitting_parameters[0];
         double dS_dEp_slope = 0.0;
 
-        for (unsigned int i = 1; i < order_polinomial; ++i) {
+        for (IndexType i = 1; i < order_polinomial; ++i) {
             stress_indicator_1 += curve_fitting_parameters[i] * (std::pow(plastic_strain_indicator_1, i));
             dS_dEp_slope += i * curve_fitting_parameters[i] * std::pow(plastic_strain_indicator_1, i - 1);
         }
@@ -644,22 +637,17 @@ class GenericConstitutiveLawIntegratorPlasticity
         double dKp_dEp = stress_indicator_1 / fracture_energy;
         double dS_dEp = 0.0; // initial slope is zero
 
-        const double stress_indicator_2 =
-            stress_indicator_1 +
-            dS_dEp * (plastic_strain_indicator_2 - plastic_strain_indicator_1);
+        const double stress_indicator_2 =  stress_indicator_1 +  dS_dEp * (plastic_strain_indicator_2 - plastic_strain_indicator_1);
 
         // Compute volumetric fracture energies of each region
         double Gt1 = 0.0;
-        for (unsigned int i = 0; i < order_polinomial; ++i) {
+        for (IndexType i = 0; i < order_polinomial; ++i) {
             Gt1 += curve_fitting_parameters[i] * (std::pow(plastic_strain_indicator_1, i + 1)) / (i + 1);
         }
-        const double Gt2 = (stress_indicator_1 * stress_indicator_2) *
-              (plastic_strain_indicator_2 - plastic_strain_indicator_1) * 0.5;
+        const double Gt2 = (stress_indicator_1 * stress_indicator_2) * (plastic_strain_indicator_2 - plastic_strain_indicator_1) * 0.5;
         const double Gt3 = fracture_energy - Gt2 - Gt1;
 
-        KRATOS_ERROR_IF(Gt3 < 0.0) << "Fracture energy too low in "
-                                      "CurveFittingHardening of plasticity..."
-                                   << std::endl;
+        KRATOS_ERROR_IF(Gt3 < 0.0) << "Fracture energy too low in CurveFittingHardening of plasticity..."  << std::endl;
 
         // Compute segment threshold
         const double segment_threshold = (Gt2 + Gt1) / fracture_energy;
@@ -670,7 +658,7 @@ class GenericConstitutiveLawIntegratorPlasticity
             if (EquivalentPlasticStrain < plastic_strain_indicator_1) { // Polinomial region
                 double S_Ep = curve_fitting_parameters[0];
                 double dS_dEp = 0.0;
-                for (unsigned int i = 1; i < order_polinomial; ++i) {
+                for (IndexType i = 1; i < order_polinomial; ++i) {
                     S_Ep += curve_fitting_parameters[i] * std::pow(Eps, i);
                     dS_dEp += i *  curve_fitting_parameters[i] * std::pow(Eps, i - 1);
                 }
@@ -680,12 +668,9 @@ class GenericConstitutiveLawIntegratorPlasticity
                 rSlope = dS_dEp / dKp_dEp;
             } else { // Linear region
                 const double alpha =  std::pow(stress_indicator_1, 2);
-                const double beta =
-                    (std::pow(stress_indicator_2, 2) - alpha) /
-                    (plastic_strain_indicator_2 - plastic_strain_indicator_1);
+                const double beta = (std::pow(stress_indicator_2, 2) - alpha) / (plastic_strain_indicator_2 - plastic_strain_indicator_1);
 
-                const double S_Ep = std::sqrt(
-                    alpha + beta * (Eps - plastic_strain_indicator_1));
+                const double S_Ep = std::sqrt(alpha + beta * (Eps - plastic_strain_indicator_1));
 
                 dS_dEp = 0.5 * (beta) / S_Ep;
                 dKp_dEp = S_Ep / fracture_energy;
@@ -696,18 +681,13 @@ class GenericConstitutiveLawIntegratorPlasticity
         } else { // Exponential softening
             const double Eps = EquivalentPlasticStrain;
             const double alpha = std::pow(stress_indicator_1, 2);
-            const double beta =
-                (std::pow(stress_indicator_2, 2) - alpha) /
-                (plastic_strain_indicator_2 - plastic_strain_indicator_1);
+            const double beta = (std::pow(stress_indicator_2, 2) - alpha) / (plastic_strain_indicator_2 - plastic_strain_indicator_1);
 
-            const double S_Ep =
-                std::sqrt(alpha + beta * (Eps - plastic_strain_indicator_1));
+            const double S_Ep = std::sqrt(alpha + beta * (Eps - plastic_strain_indicator_1));
             const double plastic_dissipation_region_3 = PlasticDissipation - segment_threshold;
 
             const double beta2 = 1.5 * S_Ep / Gt3;
-            const double alpha2 = std::sqrt((plastic_dissipation_region_3 * 2.0 *
-                                            beta2 * fracture_energy / S_Ep) +
-                                           1.0);
+            const double alpha2 = std::sqrt((plastic_dissipation_region_3 * 2.0 * beta2 * fracture_energy / S_Ep) + 1.0);
             rEquivalentStressThreshold = S_Ep * alpha2 * (2.0 - alpha2);
             rSlope = 2.0 * beta2 * fracture_energy * (1.0 / alpha2 - 1.0);
         }
@@ -732,7 +712,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         ) 
     {
         double scalar_product = 0.0;
-        for (unsigned int i = 0; i < rPlasticStrain.size(); ++i) {
+        for (IndexType i = 0; i < rPlasticStrain.size(); ++i) {
             scalar_product += rStressVector[i] * rPlasticStrain[i];
         }
 
@@ -839,7 +819,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         if (static_cast<HardeningCurveType>(curve_type) == HardeningCurveType::InitialHardeningExponentialSoftening) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MAXIMUM_STRESS)) << "MAXIMUM_STRESS is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MAXIMUM_STRESS_POSITION)) << "MAXIMUM_STRESS_POSITION is not a defined value" << std::endl;
-        } else if (static_cast<HardeningCurveType>(curve_type) == HardeningCurveType::CurveFittingHardening:) {
+        } else if (static_cast<HardeningCurveType>(curve_type) == HardeningCurveType::CurveFittingHardening) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CURVE_FITTING_PARAMETERS)) << "CURVE_FITTING_PARAMETERS is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(PLASTIC_STRAIN_INDICATORS)) << "PLASTIC_STRAIN_INDICATORS is not a defined value" << std::endl;
         }
