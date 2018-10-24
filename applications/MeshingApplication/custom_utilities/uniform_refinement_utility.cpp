@@ -21,7 +21,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "uniform_refinement_utility.h"
-#include "utilities/sub_model_parts_list_utility.h"
+#include "utilities/assign_unique_model_part_collection_tag_utility.h"
 
 
 namespace Kratos
@@ -113,8 +113,8 @@ void UniformRefinementUtility::Refine(int& rFinalRefinementLevel)
     mNodesTags.clear();
     mElementsTags.clear();
     mConditionsTags.clear();
-    SubModelPartsListUtility collections_utility(mrModelPart);
-    collections_utility.ComputeSubModelPartsList(mNodesTags, mConditionsTags, mElementsTags, mCollections);
+    AssignUniqueModelPartCollectionTagUtility collections_utility(mrModelPart);
+    collections_utility.ComputeTags(mNodesTags, mConditionsTags, mElementsTags, mCollections);
 
     IndexIndexVectorMapType tag_nodes, tag_elements, tag_conditions;
 
