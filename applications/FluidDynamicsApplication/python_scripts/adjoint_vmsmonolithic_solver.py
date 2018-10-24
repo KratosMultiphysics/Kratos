@@ -136,7 +136,7 @@ class AdjointVMSMonolithicSolver(AdjointFluidSolver):
         (self.response_function).Initialize()
         (self.sensitivity_builder).Initialize()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
-    
+
     def _set_physical_properties(self):
         # Transfer density and (kinematic) viscostity to the nodes
         for el in self.main_model_part.Elements:

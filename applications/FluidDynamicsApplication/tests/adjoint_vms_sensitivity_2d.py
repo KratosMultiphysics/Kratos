@@ -64,65 +64,11 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
         with open(model_part_file_name + '.mdpa', 'w') as model_part_file:
             model_part_file.writelines(lines)
 
-    def readDrag(self, filename):
-        with open(filename, "r") as file_input:
-            lines = file_input.readlines()
-        file_input.close()
-
-        found_headers = False
-
-        time_steps = []
-        reaction = []
-
-        for line in lines:
-            _data = line.strip().split()
-            if not found_headers:
-                if len(line)>4:
-                    if line[:6]=="# Time":
-                        found_headers = True
-                        continue
-
-            if line.strip()=="":
-                continue
-
-            if found_headers:
-                _time = float(_data[0])
-                _fx = float(_data[1])
-                _fy = float(_data[2])
-                _fz = float(_data[3])
-                time_steps.append(_time)
-                reaction.append([_fx, _fy, _fz])
-
-
-        return time_steps, reaction
-
-    def _getTimeAveragedDrag(self,direction,drag_file_name):
-        _time_steps, reaction = self.readDrag(drag_file_name)
-
-        total_drag = 0.0
-
-        for i in range(0, len(_time_steps)):
-            _time = _time_steps[i]
-            if i==0:
-                start_time = _time
-                previous_time = start_time
-                current_time = previous_time
-
-            total_drag += reaction[i][0]*direction[0]+reaction[i][1]*direction[1]+reaction[i][2]*direction[2]
-            previous_time = current_time
-            current_time = _time
-
-        if len(_time_steps) > 1:
-            delta_t = current_time - previous_time
-            total_drag *= (delta_t)
-
-        return total_drag
-
     def _computeFiniteDifferenceDragSensitivity(self,node_ids,step_size,model_part_file_name,drag_direction,drag_file_name):
         sensitivity = []
         # unperturbed drag
         self.solve(model_part_file_name)
-        drag0 = self._getTimeAveragedDrag(drag_direction,drag_file_name)
+        drag0 = _getTimeAveragedDrag(drag_direction,drag_file_name)
         for node_id in node_ids:
             node_sensitivity = []
             coord = self._readNodalCoordinates(node_id,model_part_file_name)
@@ -130,13 +76,13 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
             perturbed_coord = [coord[0] + step_size, coord[1], coord[2]]
             self._writeNodalCoordinates(node_id,perturbed_coord,model_part_file_name)
             self.solve(model_part_file_name)
-            drag = self._getTimeAveragedDrag(drag_direction,drag_file_name)
+            drag = _getTimeAveragedDrag(drag_direction,drag_file_name)
             node_sensitivity.append((drag - drag0) / step_size)
             # Y + h
             perturbed_coord = [coord[0], coord[1] + step_size, coord[2]]
             self._writeNodalCoordinates(node_id,perturbed_coord,model_part_file_name)
             self.solve(model_part_file_name)
-            drag = self._getTimeAveragedDrag(drag_direction,drag_file_name)
+            drag = _getTimeAveragedDrag(drag_direction,drag_file_name)
             node_sensitivity.append((drag - drag0) / step_size)
             sensitivity.append(node_sensitivity)
             # return mdpa file to unperturbed state
@@ -229,6 +175,31 @@ class AdjointVMSSensitivity2D(KratosUnittest.TestCase):
 
     def tearDown(self):
         pass
+
+def _getTimeAveragedDrag(direction,drag_file_name):
+    time_steps, reactions = _readDrag(drag_file_name)
+    total_drag = 0.0
+    for reaction in reactions:
+        total_drag += reaction[0]*direction[0]+reaction[1]*direction[1]+reaction[2]*direction[2]
+    if len(time_steps) > 1:
+        delta_time = time_steps[1] - time_steps[0]
+        total_drag *= delta_time
+    return total_drag
+
+def _readDrag(filename):
+        with open(filename, "r") as file_input:
+            lines = file_input.readlines()
+        time_steps = []
+        reaction = []
+        for line in lines:
+            line = line.strip()
+            if len(line) == 0 or line[0] == '#':
+                continue
+            time_step_data = [float(v) for v in line.split()]
+            time, fx, fy, fz = time_step_data
+            time_steps.append(time)
+            reaction.append([fx, fy, fz])
+        return time_steps, reaction
 
 if __name__ == '__main__':
     KratosUnittest.main()
