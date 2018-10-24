@@ -1225,10 +1225,10 @@ public:
         // First verifies that all the entries in the current parameters have a correspondance in the rDefaultParameters.
         // If it is not the case throw an error
         for (auto itr = this->mpValue->begin(); itr != this->mpValue->end(); ++itr) {
-            std::string item_name = itr.key();
-            if(!rDefaultParameters.Has(item_name) ) {
+            const std::string& r_item_name = itr.key();
+            if(!rDefaultParameters.Has(r_item_name) ) {
                 std::stringstream msg;
-                msg << "The item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
+                msg << "The item with name \"" << r_item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
                 msg << "Hence Validation fails" << std::endl;
                 msg << "Parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
@@ -1238,7 +1238,7 @@ public:
             }
 
             bool type_coincides = false;
-            auto value_defaults = (rDefaultParameters[item_name]).GetUnderlyingStorage();
+            auto value_defaults = (rDefaultParameters[r_item_name]).GetUnderlyingStorage();
             if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
 //             if(itr->is_number_integer() && value_defaults->is_number_integer()) type_coincides = true;
 //             if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
@@ -1251,7 +1251,7 @@ public:
             if(type_coincides == false) {
                 std::stringstream msg;
                 msg << "******************************************************************************************************" << std::endl;
-                msg << "The item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
+                msg << "The item with name :\"" << r_item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
                 msg << "******************************************************************************************************" << std::endl;
                 msg << "Parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
@@ -1260,13 +1260,14 @@ public:
                 KRATOS_ERROR << msg.str() << std::endl;
             }
 
-            // Now iterate over all the rDefaultParameters. In the case a default value is not assigned in the current Parameters add an item copying its value
-            if(rDefaultParameters.IsSubParameter()) {
-                for (auto itr = rDefaultParameters.mpValue->begin(); itr != rDefaultParameters.mpValue->end(); ++itr) {
-                    std::string item_name = itr.key();
-                    if(!this->Has(item_name)) {
-                        (*mpValue)[item_name] = itr.value();
-                    }
+        }
+
+        // Now iterate over all the rDefaultParameters. In the case a default value is not assigned in the current Parameters add an item copying its value
+        if (rDefaultParameters.IsSubParameter()) {
+            for (auto itr = rDefaultParameters.mpValue->begin(); itr != rDefaultParameters.mpValue->end(); ++itr) {
+                const std::string& r_item_name = itr.key();
+                if(mpValue->find(r_item_name) == mpValue->end()) {
+                    (*mpValue)[r_item_name] = itr.value();
                 }
             }
         }
@@ -1287,11 +1288,11 @@ public:
         // First verifies that all the entries in the current parameters have a correspondance in the rDefaultParameters.
         // If it is not the case throw an error
         for (auto itr = this->mpValue->cbegin(); itr != this->mpValue->cend(); ++itr) {
-            const std::string& item_name = itr.key();
+            const std::string& r_item_name = itr.key();
 
-            if(!rDefaultParameters.Has(item_name) ) {
+            if(!rDefaultParameters.Has(r_item_name) ) {
                 std::stringstream msg;
-                msg << "The item with name \"" << item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
+                msg << "The item with name \"" << r_item_name << "\" is present in this Parameters but NOT in the default values" << std::endl;
                 msg << "Hence Validation fails" << std::endl;
                 msg << "Parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
@@ -1301,7 +1302,7 @@ public:
             }
 
             bool type_coincides = false;
-            auto value_defaults = (rDefaultParameters[item_name]).GetUnderlyingStorage();
+            auto value_defaults = (rDefaultParameters[r_item_name]).GetUnderlyingStorage();
             if(itr->is_number() && value_defaults->is_number()) type_coincides = true;
 //             if(itr->is_number_integer() && value_defaults->is_number_integer()) type_coincides = true;
 //             if(itr->is_number_float() && value_defaults->is_number_float()) type_coincides = true;
@@ -1313,7 +1314,7 @@ public:
 
             if(type_coincides == false) {
                 std::stringstream msg;
-                msg << "The item with name :\"" << item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
+                msg << "The item with name :\"" << r_item_name << "\" does not have the same type as the corresponding one in the default values" << std::endl;
                 msg << "Parameters being validated are : " << std::endl;
                 msg << this->PrettyPrintJsonString() << std::endl;
                 msg << "Defaults against which the current parameters are validated are :" << std::endl;
@@ -1323,25 +1324,25 @@ public:
 
             // Now walk the tree recursively
             if(itr->is_object()) {
-                Parameters subobject = (*this)[item_name];
-                Parameters defaults_subobject = rDefaultParameters[item_name];
+                Parameters subobject = (*this)[r_item_name];
+                Parameters defaults_subobject = rDefaultParameters[r_item_name];
                 subobject.RecursivelyValidateAndAssignDefaults(defaults_subobject);
             }
         }
 
         // Now iterate over all the rDefaultParameters. In the case a default value is not assigned in the current Parameters add an item copying its value
-        if(rDefaultParameters.IsSubParameter()) {
+        if (rDefaultParameters.IsSubParameter()) {
             for (auto itr = rDefaultParameters.mpValue->begin(); itr != rDefaultParameters.mpValue->end(); ++itr) {
-                const std::string& item_name = itr.key();
+                const std::string& r_item_name = itr.key();
 
-                if(mpValue->find(item_name) == mpValue->end()) {
-                    (*mpValue)[item_name] = itr.value();
+                if(mpValue->find(r_item_name) == mpValue->end()) {
+                    (*mpValue)[r_item_name] = itr.value();
                 }
 
                 // Now walk the tree recursively
                 if(itr->is_object()) {
-                    Parameters subobject = (*this)[item_name];
-                    Parameters defaults_subobject = rDefaultParameters[item_name];
+                    Parameters subobject = (*this)[r_item_name];
+                    Parameters defaults_subobject = rDefaultParameters[r_item_name];
 
                     subobject.RecursivelyValidateAndAssignDefaults(defaults_subobject);
                 }
