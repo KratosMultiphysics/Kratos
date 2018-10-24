@@ -2,9 +2,9 @@
     "problem_data"             : {
         "problem_name"    : "test_periodic",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
+        "time_step"       : 1.1,
         "echo_level"      : 1
     },
     "solver_settings"          : {
@@ -55,7 +55,7 @@
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "DISPLACEMENT_fixedAxis",
+                "model_part_name" : "Structure.DISPLACEMENT_fixedAxis",
                 "variable_name"   : "DISPLACEMENT",
                 "value"           : [0.0,0.0,0.0],
                 "interval"        : [0.0,"End"]
@@ -73,7 +73,7 @@
                 "variable_names"              : ["DISPLACEMENT"],
                 "center"                      : [0,0,0],
                 "axis_of_rotation"            : [0.0,0.0,1.0],
-                "angle"                       : 90.0
+                "angle_degree"                : 90.0
             }
         }],
         "loads_process_list"       : [{
@@ -84,7 +84,7 @@
             "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
             "Parameters"    : {
                 "mesh_id"         : 0,
-                "model_part_name" : "PointLoad3D_forceOuter",
+                "model_part_name" : "Structure.PointLoad3D_forceOuter",
                 "variable_name"   : "POINT_LOAD",
                 "modulus"         : 0.0001,
                 "direction"       : [1.0,0.0,0.0],
@@ -100,7 +100,7 @@
             "Parameters"            : {
                 "check_variables"  : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
                 "input_file_name"  : "periodic_test/periodic_linear_test_output_horizontal.json",
-                "model_part_name"  : "GENERIC_horiSurface",
+                "model_part_name"  : "Structure.GENERIC_horiSurface",
                 "time_frequency"   : 0.01
             }
         },
@@ -112,13 +112,13 @@
             "Parameters"            : {
                 "check_variables"  : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
                 "input_file_name"  : "periodic_test/periodic_linear_test_output_vertical.json",
-                "model_part_name"  : "GENERIC_vertSurface",
+                "model_part_name"  : "Structure.GENERIC_vertSurface",
                 "time_frequency"   : 0.01
             }
         }
         ]
     },
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostAscii",
@@ -137,9 +137,5 @@
             "gauss_point_results" : ["VON_MISES_STRESS"]
         },
         "point_data_configuration"  : []
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
     }
 }
