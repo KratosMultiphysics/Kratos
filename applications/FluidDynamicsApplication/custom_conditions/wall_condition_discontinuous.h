@@ -229,7 +229,8 @@ public:
                                       VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo) override
     {
-        unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+        const ProcessInfo& r_process_info = rCurrentProcessInfo;
+	    unsigned int step = r_process_info[FRACTIONAL_STEP];
         if ( step == 1)
         {
             // Initialize local contributions

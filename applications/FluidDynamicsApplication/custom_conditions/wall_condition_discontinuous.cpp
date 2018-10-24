@@ -13,7 +13,8 @@ template <>
 void WallConditionDiscontinuous<2,2>::EquationIdVector(EquationIdVectorType& rResult,
                                                     ProcessInfo& rCurrentProcessInfo)
 {
-    int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+	unsigned int step = r_process_info[FRACTIONAL_STEP];
     if ( step == 1 )
     {
         const unsigned int NumNodes = 2;
@@ -56,7 +57,8 @@ template <>
 void WallConditionDiscontinuous<3,3>::EquationIdVector(EquationIdVectorType& rResult,
                                                     ProcessInfo& rCurrentProcessInfo)
 {
-    int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+	unsigned int step = r_process_info[FRACTIONAL_STEP];
     if ( step == 1 )
     {
         const SizeType NumNodes = 3;
@@ -100,7 +102,8 @@ template <>
 void WallConditionDiscontinuous<2,2>::GetDofList(DofsVectorType& rElementalDofList,
                                               ProcessInfo& rCurrentProcessInfo)
 {
- 	int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+	unsigned int step = r_process_info[FRACTIONAL_STEP];
     if ( step == 1 )
     {
         const SizeType NumNodes = 2;
@@ -132,7 +135,7 @@ void WallConditionDiscontinuous<2,2>::GetDofList(DofsVectorType& rElementalDofLi
             rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
         }
 	}
-	
+
     else
     {
         rElementalDofList.resize(0);
@@ -146,7 +149,8 @@ template <>
 void WallConditionDiscontinuous<3,3>::GetDofList(DofsVectorType& rElementalDofList,
                                     ProcessInfo& rCurrentProcessInfo)
 {
-	int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+	unsigned int step = r_process_info[FRACTIONAL_STEP];
     if ( step == 1 )
     {
         const SizeType NumNodes = 3;
