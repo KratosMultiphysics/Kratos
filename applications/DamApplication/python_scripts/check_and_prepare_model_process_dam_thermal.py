@@ -3,11 +3,11 @@ import KratosMultiphysics
 def Factory(settings, Model):
     if not isinstance(settings, Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return CheckAndPrepareModelProcess(Model, settings["Parameters"])
+    return CheckAndPrepareModelProcessDamThermal(Model, settings["Parameters"])
 
 
 ## All the processes python should be derived from "Process"
-class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
+class CheckAndPrepareModelProcessDamThermal(KratosMultiphysics.Process):
 
     def __init__(self, main_model_part, Parameters ):
 
