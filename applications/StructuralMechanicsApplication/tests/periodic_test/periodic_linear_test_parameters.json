@@ -4,7 +4,6 @@
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
-        "time_step"       : 1.1,
         "echo_level"      : 1
     },
     "solver_settings"          : {
@@ -42,6 +41,9 @@
                 "coarsening_type"                : "aggregation",
                 "scaling"                        : true,
                 "verbosity"                      : 0
+        },
+        "time_stepping" : {
+            "time_step" : 1.1
         },
         "problem_domain_sub_model_part_list" : ["Parts_solid"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_fixedAxis","PointLoad3D_forceOuter"],
