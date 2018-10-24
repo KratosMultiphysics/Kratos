@@ -24,7 +24,7 @@ namespace Kratos
     {
         // TODO: Add somethig if necessary
     }
-    
+
     //************************************************************************************
     //************************************************************************************
 
@@ -32,7 +32,7 @@ namespace Kratos
     {
         // TODO: Add somethig if necessary
     }
-    
+
     //************************************************************************************
     //************************************************************************************
 
@@ -40,7 +40,7 @@ namespace Kratos
     {
         // TODO: Add somethig if necessary
     }
-    
+
     //************************************************************************************
     //************************************************************************************
 
@@ -65,7 +65,7 @@ namespace Kratos
         ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
-        
+
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         if (rResult.size() != dim * NumberOfNodes)
@@ -96,7 +96,7 @@ namespace Kratos
         }
         KRATOS_CATCH("")
     }
-    
+
     //***********************************************************************
     //***********************************************************************
     void MPMBaseLoadCondition::GetDofList(
@@ -105,7 +105,7 @@ namespace Kratos
         )
     {
         KRATOS_TRY
-        
+
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim =  GetGeometry().WorkingSpaceDimension();
         ElementalDofList.resize(0);
@@ -130,10 +130,10 @@ namespace Kratos
         }
         KRATOS_CATCH("")
     }
-    
+
     //***********************************************************************
     //***********************************************************************
-    
+
     void MPMBaseLoadCondition::GetValuesVector(
         Vector& rValues,
         int Step
@@ -142,12 +142,12 @@ namespace Kratos
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         const unsigned int MatSize = NumberOfNodes * dim;
-        
+
         if (rValues.size() != MatSize)
         {
             rValues.resize(MatSize, false);
         }
-        
+
         for (unsigned int i = 0; i < NumberOfNodes; i++)
         {
             const array_1d<double, 3 > & Displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
@@ -158,24 +158,24 @@ namespace Kratos
             }
         }
     }
-    
+
     //***********************************************************************
     //***********************************************************************
-    
+
     void MPMBaseLoadCondition::GetFirstDerivativesVector(
         Vector& rValues,
-        int Step 
+        int Step
         )
     {
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         const unsigned int MatSize = NumberOfNodes * dim;
-        
+
         if (rValues.size() != MatSize)
         {
             rValues.resize(MatSize, false);
         }
-        
+
         for (unsigned int i = 0; i < NumberOfNodes; i++)
         {
             const array_1d<double, 3 > & Velocity = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
@@ -186,24 +186,24 @@ namespace Kratos
             }
         }
     }
-    
+
     //***********************************************************************
     //***********************************************************************
-    
+
     void MPMBaseLoadCondition::GetSecondDerivativesVector(
         Vector& rValues,
-        int Step 
+        int Step
         )
     {
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         const unsigned int MatSize = NumberOfNodes * dim;
-        
+
         if (rValues.size() != MatSize)
         {
             rValues.resize(MatSize, false);
         }
-        
+
         for (unsigned int i = 0; i < NumberOfNodes; i++)
         {
             const array_1d<double, 3 > & Acceleration = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
@@ -214,7 +214,7 @@ namespace Kratos
             }
         }
     }
-    
+
     //************************************************************************************
     //************************************************************************************
 
@@ -238,13 +238,13 @@ namespace Kratos
 
         CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
     }
-    
+
     //***********************************************************************
     //***********************************************************************
-    
+
     void MPMBaseLoadCondition::CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo 
+        ProcessInfo& rCurrentProcessInfo
         )
     {
         if(rMassMatrix.size1() != 0)
@@ -252,13 +252,13 @@ namespace Kratos
             rMassMatrix.resize(0, 0, false);
         }
     }
-    
+
     //***********************************************************************
     //***********************************************************************
-    
+
     void MPMBaseLoadCondition::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo 
+        ProcessInfo& rCurrentProcessInfo
         )
     {
         if(rDampingMatrix.size1() != 0)
@@ -266,23 +266,23 @@ namespace Kratos
             rDampingMatrix.resize(0, 0, false);
         }
     }
-    
+
     //***********************************************************************
     //***********************************************************************
 
-    void MPMBaseLoadCondition::CalculateAll( 
+    void MPMBaseLoadCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
         bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
+        bool CalculateResidualVectorFlag
         )
     {
         KRATOS_ERROR << "You are calling the CalculateAll from the base class for loads" << std::endl;
     }
-    
+
     //***********************************************************************
     //***********************************************************************
-    
+
     int MPMBaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     {
         if ( DISPLACEMENT.Key() == 0 )
@@ -305,10 +305,10 @@ namespace Kratos
                 KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
             }
         }
-        
+
         return 0;
     }
-    
+
     //***********************************************************************
     //***********************************************************************
 
@@ -324,9 +324,9 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    void MPMBaseLoadCondition::AddExplicitContribution(const VectorType& rRHS, 
+    void MPMBaseLoadCondition::AddExplicitContribution(const VectorType& rRHS,
         const Variable<VectorType>& rRHSVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable, 
+        Variable<array_1d<double,3> >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
@@ -341,11 +341,14 @@ namespace Kratos
             {
                 SizeType index = dimension * i;
 
-                array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-                for(SizeType j=0; j<dimension; j++)
+                if (GetGeometry()[i].SolutionStepsDataHas(FORCE_RESIDUAL))
                 {
-                    #pragma omp atomic
-                    ForceResidual[j] += rRHS[index + j];
+                    array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+                    for(SizeType j=0; j<dimension; j++)
+                    {
+                        #pragma omp atomic
+                        ForceResidual[j] += rRHS[index + j];
+                    }
                 }
             }
         }

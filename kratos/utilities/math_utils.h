@@ -23,6 +23,7 @@
 /* External includes */
 
 /* External includes */
+#include "input_output/logger.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
 
@@ -1325,32 +1326,32 @@ public:
 
         if (rStressVector.size()==3) {
             stress_tensor.resize(2,2,false);
-            stress_tensor(0,0) = rStressVector(0);
-            stress_tensor(0,1) = rStressVector(2);
-            stress_tensor(1,0) = rStressVector(2);
-            stress_tensor(1,1) = rStressVector(1);
+            stress_tensor(0,0) = rStressVector[0];
+            stress_tensor(0,1) = rStressVector[2];
+            stress_tensor(1,0) = rStressVector[2];
+            stress_tensor(1,1) = rStressVector[1];
         } else if (rStressVector.size()==4) {
             stress_tensor.resize(3,3,false);
-            stress_tensor(0,0) = rStressVector(0);
-            stress_tensor(0,1) = rStressVector(3);
+            stress_tensor(0,0) = rStressVector[0];
+            stress_tensor(0,1) = rStressVector[3];
             stress_tensor(0,2) = 0.0;
-            stress_tensor(1,0) = rStressVector(3);
-            stress_tensor(1,1) = rStressVector(1);
+            stress_tensor(1,0) = rStressVector[3];
+            stress_tensor(1,1) = rStressVector[1];
             stress_tensor(1,2) = 0.0;
             stress_tensor(2,0) = 0.0;
             stress_tensor(2,1) = 0.0;
-            stress_tensor(2,2) = rStressVector(2);
+            stress_tensor(2,2) = rStressVector[2];
         } else if (rStressVector.size()==6) {
             stress_tensor.resize(3,3,false);
-            stress_tensor(0,0) = rStressVector(0);
-            stress_tensor(0,1) = rStressVector(3);
-            stress_tensor(0,2) = rStressVector(5);
-            stress_tensor(1,0) = rStressVector(3);
-            stress_tensor(1,1) = rStressVector(1);
-            stress_tensor(1,2) = rStressVector(4);
-            stress_tensor(2,0) = rStressVector(5);
-            stress_tensor(2,1) = rStressVector(4);
-            stress_tensor(2,2) = rStressVector(2);
+            stress_tensor(0,0) = rStressVector[0];
+            stress_tensor(0,1) = rStressVector[3];
+            stress_tensor(0,2) = rStressVector[5];
+            stress_tensor(1,0) = rStressVector[3];
+            stress_tensor(1,1) = rStressVector[1];
+            stress_tensor(1,2) = rStressVector[4];
+            stress_tensor(2,0) = rStressVector[5];
+            stress_tensor(2,1) = rStressVector[4];
+            stress_tensor(2,2) = rStressVector[2];
         }
 
         return stress_tensor;
@@ -1447,32 +1448,35 @@ public:
 
         if (rStrainVector.size()==3) {
             strain_tensor.resize(2,2, false);
-            strain_tensor(0,0) = rStrainVector(0);
-            strain_tensor(0,1) = 0.5*rStrainVector(2);
-            strain_tensor(1,0) = 0.5*rStrainVector(2);
-            strain_tensor(1,1) = rStrainVector(1);
+
+            strain_tensor(0,0) = rStrainVector[0];
+            strain_tensor(0,1) = 0.5*rStrainVector[2];
+            strain_tensor(1,0) = 0.5*rStrainVector[2];
+            strain_tensor(1,1) = rStrainVector[1];
         } else if (rStrainVector.size()==4) {
             strain_tensor.resize(3,3, false);
-            strain_tensor(0,0) = rStrainVector(0);
-            strain_tensor(0,1) = 0.5*rStrainVector(3);
+            strain_tensor(0,0) = rStrainVector[0];
+            strain_tensor(0,1) = 0.5*rStrainVector[3];
             strain_tensor(0,2) = 0;
-            strain_tensor(1,0) = 0.5*rStrainVector(3);
-            strain_tensor(1,1) = rStrainVector(1);
+            strain_tensor(1,0) = 0.5*rStrainVector[3];
+            strain_tensor(1,1) = rStrainVector[1];
             strain_tensor(1,2) = 0;
             strain_tensor(2,0) = 0;
             strain_tensor(2,1) = 0;
-            strain_tensor(2,2) = rStrainVector(2);
+            strain_tensor(2,2) = rStrainVector[2];
         } else if (rStrainVector.size()==6) {
             strain_tensor.resize(3,3, false);
-            strain_tensor(0,0) = rStrainVector(0);
-            strain_tensor(0,1) = 0.5*rStrainVector(3);
-            strain_tensor(0,2) = 0.5*rStrainVector(5);
-            strain_tensor(1,0) = 0.5*rStrainVector(3);
-            strain_tensor(1,1) = rStrainVector(1);
-            strain_tensor(1,2) = 0.5*rStrainVector(4);
-            strain_tensor(2,0) = 0.5*rStrainVector(5);
-            strain_tensor(2,1) = 0.5*rStrainVector(4);
-            strain_tensor(2,2) = rStrainVector(2);
+            strain_tensor(0,0) = rStrainVector[0];
+            strain_tensor(0,1) = 0.5*rStrainVector[3];
+            strain_tensor(0,2) = 0.5*rStrainVector[5];
+            strain_tensor(1,0) = 0.5*rStrainVector[3];
+            strain_tensor(1,1) = rStrainVector[1];
+            strain_tensor(1,2) = 0.5*rStrainVector[4];
+            strain_tensor(2,0) = 0.5*rStrainVector[5];
+            strain_tensor(2,1) = 0.5*rStrainVector[4];
+            strain_tensor(2,2) = rStrainVector[2];
+
+
         }
 
         return strain_tensor;
@@ -1656,49 +1660,46 @@ public:
      }
 
     /**
-     * Calculates the eigenvectors and eigenvalues of given symmetric TDimxTDim matrix
-     * The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method
+     * @brief Calculates the eigenvectors and eigenvalues of given symmetric TDimxTDim matrix
+     * @details The eigenvectors and eigenvalues are calculated using the iterative Gauss-Seidel-method
+     * @note See https://en.wikipedia.org/wiki/Gauss%E2%80%93Seidel_method
      * @param A The given symmetric matrix the eigenvectors are to be calculated.
-     * @param eigen_vector_matrix The result matrix (will be overwritten with the eigenvectors)
-     * @param eigen_values_matrix The result diagonal matrix with the eigenvalues
-     * @param tolerance The largest value considered to be zero
-     * @param max_iterations Maximum number of iterations
+     * @param rEigenVectorsMatrix The result matrix (will be overwritten with the eigenvectors)
+     * @param rEigenValuesMatrix The result diagonal matrix with the eigenvalues
+     * @param Tolerance The largest value considered to be zero
+     * @param MaxIterations Maximum number of iterations
      */
 
-    template<unsigned int TDim>
+    template<SizeType TDim>
     static inline bool EigenSystem(
-            const BoundedMatrix<TDataType, TDim, TDim>& A,
-            BoundedMatrix<TDataType, TDim, TDim>& eigen_vector_matrix,
-            BoundedMatrix<TDataType, TDim, TDim>& eigen_values_matrix,
-            const TDataType tolerance = 1.0e-18,
-            const unsigned int max_iterations = 20
-            )
+        const BoundedMatrix<TDataType, TDim, TDim>& A,
+        BoundedMatrix<TDataType, TDim, TDim>& rEigenVectorsMatrix,
+        BoundedMatrix<TDataType, TDim, TDim>& rEigenValuesMatrix,
+        const TDataType Tolerance = 1.0e-18,
+        const SizeType MaxIterations = 20
+        )
     {
         bool is_converged = false;
-        eigen_values_matrix = ZeroMatrix(TDim,TDim);
-        BoundedMatrix<TDataType, TDim, TDim> TempMat = A;
-        BoundedMatrix<TDataType, TDim, TDim> AuxA;
+        rEigenValuesMatrix = ZeroMatrix(TDim,TDim);
+        BoundedMatrix<TDataType, TDim, TDim> temp_mat = A;
+        BoundedMatrix<TDataType, TDim, TDim> aux_A;
 
-        const BoundedMatrix<TDataType, TDim, TDim> Indentity = IdentityMatrix(TDim);
-        BoundedMatrix<TDataType, TDim, TDim> V = Indentity;
-        BoundedMatrix<TDataType, TDim, TDim> Vaux;
-        BoundedMatrix<TDataType, TDim, TDim> Rotation;
+        const BoundedMatrix<TDataType, TDim, TDim> identity_matrix = IdentityMatrix(TDim);
+        BoundedMatrix<TDataType, TDim, TDim> V_matrix = identity_matrix;
+        BoundedMatrix<TDataType, TDim, TDim> aux_V_matrix;
+        BoundedMatrix<TDataType, TDim, TDim> rotation_matrix;
 
-        for(unsigned int iterations = 0; iterations < max_iterations; iterations++)
-        {
+        for(IndexType iterations = 0; iterations < MaxIterations; ++iterations) {
             is_converged = true;
 
             TDataType a = 0.0;
-            unsigned int index1 = 0;
-            unsigned int index2 = 1;
+            IndexType index1 = 0;
+            IndexType index2 = 1;
 
-            for(unsigned int i = 0; i < TDim; i++)
-            {
-                for(unsigned int j = (i + 1); j < TDim; j++)
-                {
-                    if((std::abs(TempMat(i, j)) > a ) && (std::abs(TempMat(i, j)) > tolerance))
-                    {
-                        a = std::abs(TempMat(i,j));
+            for(IndexType i = 0; i < TDim; ++i) {
+                for(IndexType j = (i + 1); j < TDim; ++j) {
+                    if((std::abs(temp_mat(i, j)) > a ) && (std::abs(temp_mat(i, j)) > Tolerance)) {
+                        a = std::abs(temp_mat(i,j));
                         index1 = i;
                         index2 = j;
                         is_converged = false;
@@ -1706,84 +1707,69 @@ public:
                 }
             }
 
-            if(is_converged)
-            {
+            if(is_converged) {
                 break;
             }
 
             // Calculation of Rotation angle
-            TDataType gamma = (TempMat(index2, index2)-TempMat(index1, index1)) / (2 * TempMat(index1, index2));
+            const TDataType gamma = (temp_mat(index2, index2)-temp_mat(index1, index1)) / (2 * temp_mat(index1, index2));
             TDataType u = 1.0;
 
-            if(std::abs(gamma) > tolerance && std::abs(gamma)< (1/tolerance))
-            {
+            if(std::abs(gamma) > Tolerance && std::abs(gamma)< (1.0/Tolerance)) {
                 u = gamma / std::abs(gamma) * 1.0 / (std::abs(gamma) + std::sqrt(1.0 + gamma * gamma));
-            }
-            else
-            {
-                if  (std::abs(gamma) >= (1.0/tolerance))
-                {
+            } else {
+                if  (std::abs(gamma) >= (1.0/Tolerance)) {
                     u = 0.5 / gamma;
                 }
             }
 
-            TDataType c = 1.0 / (std::sqrt(1.0 + u * u));
-            TDataType s = c * u;
-            TDataType teta = s / (1.0 + c);
+            const TDataType c = 1.0 / (std::sqrt(1.0 + u * u));
+            const TDataType s = c * u;
+            const TDataType teta = s / (1.0 + c);
 
             // Rotation of the Matrix
-            AuxA = TempMat;
-            AuxA(index2, index2) = TempMat(index2,index2) + u * TempMat(index1, index2);
-            AuxA(index1, index1) = TempMat(index1,index1) - u * TempMat(index1, index2);
-            AuxA(index1, index2) = 0.0;
-            AuxA(index2, index1) = 0.0;
+            aux_A = temp_mat;
+            aux_A(index2, index2) = temp_mat(index2,index2) + u * temp_mat(index1, index2);
+            aux_A(index1, index1) = temp_mat(index1,index1) - u * temp_mat(index1, index2);
+            aux_A(index1, index2) = 0.0;
+            aux_A(index2, index1) = 0.0;
 
-            for(unsigned int i = 0; i < TDim; i++)
-            {
-                if((i!= index1) && (i!= index2))
-                {
-                    AuxA(index2, i) = TempMat(index2, i) + s * (TempMat(index1, i)- teta * TempMat(index2, i));
-                    AuxA(i, index2) = TempMat(index2, i) + s * (TempMat(index1, i)- teta * TempMat(index2, i));
-                    AuxA(index1, i) = TempMat(index1, i) - s * (TempMat(index2, i) + teta * TempMat(index1, i));
-                    AuxA(i, index1) = TempMat(index1, i) - s * (TempMat(index2, i) + teta * TempMat(index1, i));
+            for(IndexType i = 0; i < TDim; ++i) {
+                if((i!= index1) && (i!= index2)) {
+                    aux_A(index2, i) = temp_mat(index2, i) + s * (temp_mat(index1, i)- teta * temp_mat(index2, i));
+                    aux_A(i, index2) = temp_mat(index2, i) + s * (temp_mat(index1, i)- teta * temp_mat(index2, i));
+                    aux_A(index1, i) = temp_mat(index1, i) - s * (temp_mat(index2, i) + teta * temp_mat(index1, i));
+                    aux_A(i, index1) = temp_mat(index1, i) - s * (temp_mat(index2, i) + teta * temp_mat(index1, i));
                 }
             }
 
-            TempMat = AuxA;
+            temp_mat = aux_A;
 
-            // Calculation of the eigeneigen_vector_matrix V
-            Rotation = Indentity;
-            Rotation(index2, index1) = -s;
-            Rotation(index1, index2) =  s;
-            Rotation(index1, index1) =  c;
-            Rotation(index2, index2) =  c;
+            // Calculation of the eigeneigen vector matrix V
+            rotation_matrix = identity_matrix;
+            rotation_matrix(index2, index1) = -s;
+            rotation_matrix(index1, index2) =  s;
+            rotation_matrix(index1, index1) =  c;
+            rotation_matrix(index2, index2) =  c;
 
-            Vaux = ZeroMatrix(TDim, TDim);
+            aux_V_matrix = ZeroMatrix(TDim, TDim);
 
-            for(unsigned int i = 0; i < TDim; i++)
-            {
-                for(unsigned int j = 0; j < TDim; j++)
-                {
-                    for(unsigned int k = 0; k < TDim; k++)
-                    {
-                        Vaux(i, j) += V(i, k) * Rotation(k, j);
+            for(IndexType i = 0; i < TDim; ++i) {
+                for(IndexType j = 0; j < TDim; ++j) {
+                    for(IndexType k = 0; k < TDim; ++k) {
+                        aux_V_matrix(i, j) += V_matrix(i, k) * rotation_matrix(k, j);
                     }
                 }
             }
-            V = Vaux;
+            V_matrix = aux_V_matrix;
         }
 
-        if(!(is_converged))
-        {
-            std::cout<<" WARNING: Spectral decomposition not converged "<<std::endl;
-        }
+        KRATOS_WARNING_IF("MathUtils::EigenSystem", !is_converged) << "Spectral decomposition not converged " << std::endl;
 
-        for(unsigned int i = 0; i < TDim; i++)
-        {
-            eigen_values_matrix(i, i) = TempMat(i, i);
-            for(unsigned int j = 0; j < TDim; j++)
-            {
-                eigen_vector_matrix(i, j) = V(j, i);
+        for(IndexType i = 0; i < TDim; ++i) {
+            rEigenValuesMatrix(i, i) = temp_mat(i, i);
+            for(IndexType j = 0; j < TDim; ++j) {
+                rEigenVectorsMatrix(i, j) = V_matrix(j, i);
             }
         }
 
