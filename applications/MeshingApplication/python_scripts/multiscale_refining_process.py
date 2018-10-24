@@ -105,16 +105,14 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
 
     def _InitializeVisualizationModelPart(self):
         visualization_model_part_name = self.settings['visualization_model_part_name'].GetString()
-        self.visualization_model_part = KratosMultiphysics.ModelPart(visualization_model_part_name)
-        self.model.AddModelPart(self.visualization_model_part)
+        self.visualization_model_part = self.model.CreateModelPart(visualization_model_part_name)
         buffer_size = self.coarse_model_part.GetBufferSize()
         self.visualization_model_part.SetBufferSize(buffer_size)
         MeshingApplication.MultiscaleRefiningProcess.InitializeNewModelPart(self.coarse_model_part, self.visualization_model_part)
 
     def _InitializeRefinedModelPart(self):
         self.refined_model_part_name = self.settings['main_model_part_name'].GetString() + '_' + str(self.current_subscale + 1)
-        self.refined_model_part = KratosMultiphysics.ModelPart(self.refined_model_part_name)
-        self.model.AddModelPart(self.refined_model_part)
+        self.refined_model_part = self.model.CreateModelPart(self.refined_model_part_name)
         buffer_size = self.coarse_model_part.GetBufferSize()
         self.refined_model_part.SetBufferSize(buffer_size)
         MeshingApplication.MultiscaleRefiningProcess.InitializeNewModelPart(self.coarse_model_part, self.refined_model_part)
