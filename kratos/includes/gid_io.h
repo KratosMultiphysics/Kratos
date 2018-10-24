@@ -1224,14 +1224,6 @@ public:
         Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
         Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
 
-        /*for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
-                node_iterator != rThisMesh.NodesEnd();
-                ++node_iterator)
-        {
-            nodes_id[0] = node_iterator->Id();
-            GiD_fWriteSphereMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(radius), node_iterator->FastGetSolutionStepValue(particle_material));
-        }*/
-
         for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                 element_iterator != rThisMesh.ElementsEnd();
                 ++element_iterator)
@@ -1248,7 +1240,7 @@ public:
     }//WriteSphereMesh
 
 
-void WriteCircleMesh( MeshType& rThisMesh )
+    void WriteCircleMesh( MeshType& rThisMesh )
     {
         KRATOS_TRY
 
@@ -1294,7 +1286,7 @@ void WriteCircleMesh( MeshType& rThisMesh )
         KRATOS_CATCH("")
     }//WriteCircleMesh
 
-void WriteClusterMesh( MeshType& rThisMesh )
+    void WriteClusterMesh( MeshType& rThisMesh )
     {
         KRATOS_TRY
 
@@ -1322,14 +1314,6 @@ void WriteClusterMesh( MeshType& rThisMesh )
         // DEM variables
         Variable<int> particle_material = KratosComponents<Variable<int>>::Get("PARTICLE_MATERIAL");
         Variable<double> radius = KratosComponents<Variable<double>>::Get("RADIUS");
-
-        /*for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
-                node_iterator != rThisMesh.NodesEnd();
-                ++node_iterator)
-        {
-            nodes_id[0] = node_iterator->Id();
-            GiD_fWriteClusterMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(radius), node_iterator->FastGetSolutionStepValue(particle_material));
-        }*/
 
         for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                 element_iterator != rThisMesh.ElementsEnd();
