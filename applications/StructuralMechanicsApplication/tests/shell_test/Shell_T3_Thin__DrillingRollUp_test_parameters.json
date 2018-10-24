@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "Shell_T3_Thin__DrillingRollUp_test",
-        "model_part_name" : "SolidDomain",
         "parallel_type"   : "OpenMP",
         "time_step"       : 0.1,
         "start_time"      : 0.001,
@@ -11,6 +10,7 @@
         "solver_settings"          : {
             "solver_type"                        : "static",
             "analysis_type"                      : "non_linear",
+            "model_part_name" : "Structure",
             "echo_level"                         : 0,
             "domain_size"     : 3,
             "time_stepping"                      : {

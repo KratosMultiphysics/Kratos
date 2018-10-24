@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "Shell_Q4_Thick__DrillingRollUp_test",
-        "model_part_name" : "SolidDomain",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.001,
         "end_time"        : 1.00,
@@ -10,6 +9,7 @@
     "solver_settings"          : {
             "solver_type"                        : "Static",
             "analysis_type"                      : "non_linear",
+            "model_part_name" : "Structure",
             "domain_size"     : 3,
             "time_stepping"                      : {
                 "time_step" : 0.1

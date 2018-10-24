@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "Shell_Q4_Thin_linear_dynamic_test",
-        "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 25,
@@ -13,6 +12,7 @@
     "INFO: Linear refers to the BCs, the element-formulation is Nonlinear, thats why a mon-lin anaylsis has to be used!": 1,
     "solver_settings"          : {
         "solver_type"                        : "Dynamic",
+        "model_part_name" : "Structure",
         "echo_level"                         : 0,
         "domain_size"     : 3,
         "time_stepping"                      : {

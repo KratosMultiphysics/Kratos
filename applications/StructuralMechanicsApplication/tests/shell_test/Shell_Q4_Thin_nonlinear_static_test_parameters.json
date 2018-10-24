@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "Shell_Q4_Thin_nonlinear_static_test",
-        "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
@@ -9,6 +8,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
+        "model_part_name" : "Structure",
         "echo_level"                         : 0,
         "domain_size"     : 3,
         "time_stepping"                      : {
