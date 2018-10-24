@@ -216,7 +216,7 @@ public:
     Condition::Pointer Create(IndexType NewId, Condition::GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         return Kratos::make_shared<WallConditionDiscontinuous>(NewId, pGeom, pProperties);
-	}
+    }
 
 
     /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
@@ -230,7 +230,7 @@ public:
                                       ProcessInfo& rCurrentProcessInfo) override
     {
         const ProcessInfo& r_process_info = rCurrentProcessInfo;
-	    unsigned int step = r_process_info[FRACTIONAL_STEP];
+        unsigned int step = r_process_info[FRACTIONAL_STEP];
         if ( step == 1)
         {
             // Initialize local contributions
@@ -263,7 +263,6 @@ public:
 
             if(this->GetValue(IS_STRUCTURE) == 0.0 )
             {
-	      //const unsigned int LocalSize = TNumNodes;
                 const GeometryType& rGeom = this->GetGeometry();
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
                 const unsigned int NumGauss = IntegrationPoints.size();
@@ -503,25 +502,25 @@ public:
     ///@name Input and output
     ///@{
 
-	/// Turn back information as a string.
-	std::string Info() const override
-	{
-		std::stringstream buffer;
-		this->PrintInfo(buffer);
-		return buffer.str();
-	}
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        this->PrintInfo(buffer);
+        return buffer.str();
+    }
 
-	/// Print information about this object.
-	void PrintInfo(std::ostream& rOStream) const override
-	{
-		rOStream << "WallConditionDiscontinuous" << TDim << "D #" << this->Id();
-	}
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "WallConditionDiscontinuous" << TDim << "D #" << this->Id();
+    }
 
-	/// Print object's data.
-	void PrintData(std::ostream& rOStream) const override
-	{
-		this->pGetGeometry()->PrintData(rOStream);
-	}
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        this->pGetGeometry()->PrintData(rOStream);
+    }
 
 
     ///@}
