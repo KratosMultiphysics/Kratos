@@ -147,7 +147,10 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
-        self.__mapSensitivitiesToDesignSpace()
+        self.Mapper.Update()
+        self.Mapper.InverseMap(DF1DX, DF1DX_MAPPED)
+        self.Mapper.InverseMap(DC1DX, DC1DX_MAPPED)
+
         constraint_value = self.Communicator.getStandardizedValue(self.only_con["identifier"].GetString())
         if self.__isConstraintActive(constraint_value):
             self.OptimizationUtilities.ComputeProjectedSearchDirection()
@@ -155,15 +158,10 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         else:
             self.OptimizationUtilities.ComputeSearchDirectionSteepestDescent()
         self.OptimizationUtilities.ComputeControlPointUpdate()
-        self.__mapDesignUpdateToGeometrySpace()
+
+        self.Mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
 
         self.ModelPartController.DampNodalVariableIfSpecified(SHAPE_UPDATE)
-
-    # --------------------------------------------------------------------------
-    def __mapSensitivitiesToDesignSpace(self):
-        self.Mapper.Update()
-        self.Mapper.InverseMap(DF1DX, DF1DX_MAPPED)
-        self.Mapper.InverseMap(DC1DX, DC1DX_MAPPED)
 
     # --------------------------------------------------------------------------
     def __isConstraintActive(self, constraintValue):
@@ -173,10 +171,6 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
             return True
         else:
             return False
-
-    # --------------------------------------------------------------------------
-    def __mapDesignUpdateToGeometrySpace(self):
-        self.Mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
