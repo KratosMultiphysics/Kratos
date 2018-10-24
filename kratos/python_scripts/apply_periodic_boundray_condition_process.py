@@ -7,7 +7,7 @@ def Factory(settings, Model):
 
 ## All the processes python should be derived from "Process"
 class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
-    """This class is used in order to impose a rigid body movement in a certain region of the problem
+    """This class is used in order to impose periodic boundary condition between two given modelparts.
 
     This class constructs the model parts containing the constrains that enforce the rigid body movement
     Only the member variables listed below should be accessed directly.
@@ -21,7 +21,6 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         """ The default constructor of the class
 
         Keyword arguments:
-        self -- It signifies an instance of a class.
         Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
@@ -91,8 +90,6 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
 
-        Keyword arguments:
-        self -- It signifies an instance of a class.
         """
         self.periodic_bc_process.ExecuteInitialize()
         list_constraints = [i for i in range(0,len(self.master_model_part.MasterSlaveConstraints))]
@@ -101,8 +98,7 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
 
-        Keyword arguments:
-        self -- It signifies an instance of a class.
+
         """
         self.periodic_bc_process.ExecuteInitializeSolutionStep()
 
