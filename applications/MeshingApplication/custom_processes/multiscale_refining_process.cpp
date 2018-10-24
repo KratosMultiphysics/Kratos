@@ -21,7 +21,7 @@
 #include "custom_processes/multiscale_refining_process.h"
 #include "geometries/point.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
-#include "utilities/sub_model_parts_list_utility.h"
+#include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "custom_utilities/meshing_flags.h"
 
 namespace Kratos
@@ -96,8 +96,8 @@ void MultiscaleRefiningProcess::ExecuteRefinement()
 {
     // Initialize the maps
     IndexIndexMapType node_tag, elem_tag, cond_tag;
-    SubModelPartsListUtility model_part_collection(mrCoarseModelPart);
-    model_part_collection.ComputeSubModelPartsList(node_tag, cond_tag, elem_tag, mCollections);
+    AssignUniqueModelPartCollectionTagUtility model_part_collection(mrCoarseModelPart);
+    model_part_collection.ComputeTags(node_tag, cond_tag, elem_tag, mCollections);
 
     // Get the Id's
     IndexType node_id;
