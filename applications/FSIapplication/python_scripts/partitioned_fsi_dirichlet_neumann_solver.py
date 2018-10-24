@@ -87,13 +87,12 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         for i in range(0,fluid_interface_residual_size):
             self.iteration_value[i] = 0.0
 
-
     def _InitializeDirichletNeumannInterface(self):
         # Initialize Dirichlet fluid interface
-        coupling_solver_settings = self.settings["coupling_solver_settings"]["solver_settings"]
-        num_fl_interfaces = coupling_solver_settings["fluid_interfaces_list"].size()
+        coupling_settings = self.settings["coupling_settings"]
+        num_fl_interfaces = coupling_settings["fluid_interfaces_list"].size()
         for fl_interface_id in range(num_fl_interfaces):
-            fl_interface_name = coupling_solver_settings["fluid_interfaces_list"][fl_interface_id].GetString()
+            fl_interface_name = coupling_settings["fluid_interfaces_list"][fl_interface_id].GetString()
             fl_interface_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(fl_interface_name)
 
             # Fix the VELOCITY, MESH_DISPLACEMENT and MESH_VELOCITY variables in all the fluid interface submodelparts
@@ -108,21 +107,20 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, fl_interface_submodelpart.Nodes)
 
         # Initialize Neumann structure interface
-        num_str_interfaces = coupling_solver_settings["structure_interfaces_list"].size()
+        num_str_interfaces = coupling_settings["structure_interfaces_list"].size()
         for str_interface_id in range(num_str_interfaces):
-            str_interface_name = coupling_solver_settings["structure_interfaces_list"][str_interface_id].GetString()
+            str_interface_name = coupling_settings["structure_interfaces_list"][str_interface_id].GetString()
             str_interface_submodelpart = self.structure_solver.main_model_part.GetSubModelPart(str_interface_name)
 
             # Set the interface flag
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, str_interface_submodelpart.Nodes)
 
-
     def _SolveMeshAndFluid(self):
         # Set the iteration_value displacement as MESH_DISPLACEMENT
-        coupling_solver_settings = self.settings["coupling_solver_settings"]["solver_settings"]
-        num_fl_interfaces = coupling_solver_settings["fluid_interfaces_list"].size()
+        coupling_settings = self.settings["coupling_settings"]
+        num_fl_interfaces = coupling_settings["fluid_interfaces_list"].size()
         for fl_interface_id in range(num_fl_interfaces):
-            fl_interface_name = coupling_solver_settings["fluid_interfaces_list"][fl_interface_id].GetString()
+            fl_interface_name = coupling_settings["fluid_interfaces_list"][fl_interface_id].GetString()
             fl_interface_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(fl_interface_name)
             self.partitioned_fsi_utilities.UpdateInterfaceValues(fl_interface_submodelpart,
                                                                  KratosMultiphysics.MESH_DISPLACEMENT,
@@ -130,14 +128,17 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
 
         # Solve the mesh problem (or moves the interface nodes)
         if self.solve_mesh_at_each_iteration:
-            self.mesh_solver.Solve()
+            self.mesh_solver.InitializeSolutionStep()
+            self.mesh_solver.Predict()
+            self.mesh_solver.SolveSolutionStep()
+            self.mesh_solver.FinalizeSolutionStep()
         else:
             self.mesh_solver.MoveMesh()
 
         # Update MESH_VELOCITY and MESH_ACCELERATION with Newmark formulas
         self.nodal_update_utilities.UpdateMeshTimeDerivatives(
             self.fluid_solver.GetComputingModelPart(),
-            self.time_step)
+            self._ComputeDeltaTime())
 
         # Impose the structure MESH_VELOCITY and MESH_ACCELERATION in the fluid interface VELOCITY and ACCELERATION
         self.nodal_update_utilities.SetMeshTimeDerivativesOnInterface(self._GetFluidInterfaceSubmodelPart())
@@ -145,9 +146,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         # Solve fluid problem
         self.fluid_solver.SolveSolutionStep()
 
-
     def _SolveStructureSingleFaced(self):
-
         # Transfer fluid reaction to solid interface
         keep_sign = False
         distribute_load = True
@@ -159,9 +158,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         # Solve the structure problem
         self.structure_solver.SolveSolutionStep()
 
-
     def _SolveStructureDoubleFaced(self):
-
         # Transfer fluid reaction from both sides to the structure interface
         keep_sign = False
         distribute_load = True
@@ -184,7 +181,6 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         # Solve the structure problem
         self.structure_solver.SolveSolutionStep()
 
-
     def _ComputeDisplacementResidualSingleFaced(self):
         # Project the structure velocity onto the fluid interface
         keep_sign = True
@@ -203,7 +199,6 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
                                                                       disp_residual)
 
         return disp_residual
-
 
     def _ComputeDisplacementResidualDoubleFaced(self):
         # Project the structure velocity onto the fluid interface
