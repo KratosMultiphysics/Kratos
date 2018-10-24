@@ -87,6 +87,7 @@ namespace Python
 			AMatrix::SubVector<TVectorType> sliced_self(self, start, slicelength);
 			return sliced_self;
 		});
+        binder.def("fill", [](TVectorType& self, const typename TVectorType::value_type value) { self.fill(value); });
 #else
 		binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> boost::numeric::ublas::vector_slice<TVectorType> {
 			size_t start, stop, step, slicelength;
@@ -96,6 +97,7 @@ namespace Python
 			boost::numeric::ublas::vector_slice<TVectorType> sliced_self(self, ublas_slice);
 			return sliced_self;
 		});
+        binder.def("fill", [](TVectorType& self, const typename TVectorType::value_type value) { noalias(self) = TVectorType(self.size(),value); });
 #endif // KRATOS_USE_AMATRIX
 
         binder.def("__iter__", [](TVectorType& self){ return make_iterator(self.begin(), self.end(), return_value_policy::reference_internal); } , keep_alive<0,1>() ) ;
@@ -103,6 +105,42 @@ namespace Python
 
         return binder;
         }
+
+    template< std::size_t TSize >
+    void CreateArray1DInterface(pybind11::module& m, const std::string& Name )
+    {
+        auto binder = CreateVectorInterface< array_1d<double,TSize> >(m,Name);
+        binder.def(init( [](double value){
+            array_1d<double,TSize> tmp;
+            for(std::size_t i=0; i < TSize; ++i)
+                tmp[i] = value;
+            return tmp;
+        }));
+        binder.def(init( [](const Vector& input){
+            KRATOS_ERROR_IF(input.size() != TSize)
+            << "Attempting to initialize an array_1d<double," << TSize << "> from a Vector of size "
+            << input.size() << ". Input should have size " << TSize <<"." << std::endl;
+
+            array_1d<double,TSize> tmp(input);
+            return tmp;
+        }));
+        binder.def(init<array_1d<double,TSize>>());
+        binder.def(init( [](const list& input){
+            KRATOS_ERROR_IF(input.size() != TSize)
+            << "Attempting to initialize an array_1d<double," << TSize << "> from a Python list of size "
+            << input.size() << ". Input should have size " << TSize <<"." << std::endl;
+
+            array_1d<double,TSize> tmp;
+            for(std::size_t i=0; i<TSize; ++i) {
+                tmp[i] = cast<double>(input[i]);
+            }
+            return tmp;
+        }));
+
+
+        implicitly_convertible<list, array_1d<double,TSize>>();
+        implicitly_convertible<Vector, array_1d<double,TSize>>();
+    }
 
     void  AddVectorToPython(pybind11::module& m)
     {
@@ -126,7 +164,7 @@ namespace Python
         .def("__rdiv__", [](VectorSlice vec1, const double scalar){for(unsigned int i=0; i<vec1.size(); ++i) vec1[i]/=scalar;}, is_operator())
         .def("__add__", [](const VectorSlice& vec1, const VectorSlice& vec2){Vector aux(vec1); aux += vec2; return aux;}, is_operator())
         .def("__sub__", [](const VectorSlice& vec1, const VectorSlice& vec2){Vector aux(vec1); aux -= vec2; return aux;}, is_operator())
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
 			.def("__setitem__", [](VectorSlice& self, const unsigned int i, const typename VectorSlice::data_type value) {self[i] = value; })
 #else
 			.def("__setitem__", [](VectorSlice& self, const unsigned int i, const typename VectorSlice::value_type value) {self[i] = value; })
@@ -152,7 +190,7 @@ namespace Python
                 self[start] = value[i]; start += step;
             }
         })
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
 		.def("__iter__", [](VectorSlice& self){ return make_iterator(self.data(), self.data() + self.size(), return_value_policy::reference_internal); } , keep_alive<0,1>() )
 #else
 		.def("__iter__", [](VectorSlice& self){ return make_iterator(self.begin(), self.end(), return_value_policy::reference_internal); } , keep_alive<0,1>() )
@@ -175,36 +213,10 @@ namespace Python
         implicitly_convertible<array_1d<double,3>, Vector>();
 
 
-
-
-
-
-        auto array3_binder = CreateVectorInterface< Kratos::array_1d<double,3> >(m, "Array3");
-        array3_binder.def(init( [](double value){
-                                array_1d<double,3> tmp;
-                                for(unsigned int i=0; i<3; ++i)
-                                    tmp[i] = value;
-                                return tmp;
-                                }));
-        array3_binder.def(init( [](const Vector& input){
-                                if(input.size() != 3)
-                                    KRATOS_ERROR << "expected size should be 3 when constructing an Array3. Provide Input  size is: " << input.size() << std::endl;
-
-                                array_1d<double,3> tmp(input);
-                                return tmp;
-                                })   );
-        array3_binder.def(init<array_1d<double,3>>());
-        array3_binder.def(init( [](const list& input){
-                                if(input.size() != 3)
-                                    KRATOS_ERROR << "expected size should be 3 when constructing an Array3. Provide Input  size is: " << input.size() << std::endl;
-
-                                array_1d<double,3> tmp;
-                                for(unsigned int i=0; i<3; ++i)
-                                    tmp[i] = cast<double>(input[i]);
-                                return tmp;
-                                }) );
-        implicitly_convertible<list, array_1d<double,3>>();
-        implicitly_convertible<Vector, array_1d<double,3>>();
+        CreateArray1DInterface< 3 >(m,"Array3");
+        CreateArray1DInterface< 4 >(m,"Array4");
+        CreateArray1DInterface< 6 >(m,"Array6");
+        CreateArray1DInterface< 9 >(m,"Array9");
 
     }
 }  // namespace Python.

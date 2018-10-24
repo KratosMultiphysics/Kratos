@@ -841,12 +841,12 @@ namespace Kratos
                const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
                const StrainMeasureType& rStrainMeasure = rModelData.GetStrainMeasure();
 
-               if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){
+               if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){
                   KRATOS_ERROR << "calling initialize PlasticityModel .. StrainMeasure provided is inconsistent" << std::endl;
                }
-               else if(  rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){
+               else if(  rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){
 
-                  if( rStrainMeasure == ConstitutiveModelData::CauchyGreen_Left ) {
+                  if( rStrainMeasure == ConstitutiveModelData::StrainMeasureType::CauchyGreen_Left ) {
                      rVariables.StrainMatrix = IdentityMatrix(3);
                   }
                   else{
