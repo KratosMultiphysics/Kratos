@@ -812,9 +812,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(HARDENING_CURVE)) << "HARDENING_CURVE is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
 
-        // Checking values
-        KRATOS_ERROR_IF(rMaterialProperties[FRACTURE_ENERGY] < tolerance) << "FRACTURE_ENERGY is too low:" << rMaterialProperties[FRACTURE_ENERGY] << std::endl;
-        
+        // Checking curves
         const int curve_type = rMaterialProperties[HARDENING_CURVE];
         if (static_cast<HardeningCurveType>(curve_type) == HardeningCurveType::InitialHardeningExponentialSoftening) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(MAXIMUM_STRESS)) << "MAXIMUM_STRESS is not a defined value" << std::endl;
