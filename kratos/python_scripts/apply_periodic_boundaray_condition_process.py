@@ -38,7 +38,7 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
             "variable_names"              : [],
             "center"                      : [0,0,0],
             "axis_of_rotation"            : [0.0,0.0,0.0],
-            "angle"                       : 0.0,
+            "angle_degree"                : 0.0,
             "dir_of_translation"          : [0.0,0.0,0.0],
             "magnitude"                   : 0.0
         }
@@ -75,7 +75,7 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
         periodic_parameters.AddValue("variable_names", settings["variable_names"])
         periodic_parameters.AddValue("center", settings["center"])
         periodic_parameters.AddValue("axis_of_rotation", settings["axis_of_rotation"])
-        periodic_parameters.AddValue("angle", settings["angle"])
+        periodic_parameters.AddValue("angle_degree", settings["angle_degree"])
         periodic_parameters.AddValue("dir_of_translation", settings["dir_of_translation"])
         periodic_parameters.AddValue("magnitude", settings["magnitude"])
 
