@@ -24,25 +24,26 @@ namespace Kratos
 //************************************************************************************
 
 TranslatoryRigidBodySegregatedVElement::TranslatoryRigidBodySegregatedVElement(IndexType NewId,GeometryType::Pointer pGeometry)
-    : TranslatoryRigidBodyElement(NewId, pGeometry)
+    :TranslatoryRigidBodyElement(NewId, pGeometry)
 {
-
 }
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
 TranslatoryRigidBodySegregatedVElement::TranslatoryRigidBodySegregatedVElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : TranslatoryRigidBodyElement(NewId, pGeometry, pProperties)
+    :TranslatoryRigidBodyElement(NewId, pGeometry, pProperties)
 {
+  mStepVariable = VELOCITY_STEP;
 }
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
 TranslatoryRigidBodySegregatedVElement::TranslatoryRigidBodySegregatedVElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, NodesContainerType::Pointer pNodes)
-  : TranslatoryRigidBodyElement(NewId, pGeometry, pProperties, pNodes)
+    :TranslatoryRigidBodyElement(NewId, pGeometry, pProperties, pNodes)
 {
+  mStepVariable = VELOCITY_STEP;
 }
 
 
@@ -50,7 +51,8 @@ TranslatoryRigidBodySegregatedVElement::TranslatoryRigidBodySegregatedVElement(I
 //************************************************************************************
 
 TranslatoryRigidBodySegregatedVElement::TranslatoryRigidBodySegregatedVElement(TranslatoryRigidBodySegregatedVElement const& rOther)
-    : TranslatoryRigidBodyElement(rOther)
+    :TranslatoryRigidBodyElement(rOther)
+    ,mStepVariable(rOther.mStepVariable)      
 {
 }
 
@@ -74,7 +76,8 @@ Element::Pointer TranslatoryRigidBodySegregatedVElement::Clone(IndexType NewId, 
   NewElement.mInitialLocalQuaternion = this->mInitialLocalQuaternion;
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
-
+  NewElement.mStepVariable = mStepVariable;
+  
   return Kratos::make_shared<TranslatoryRigidBodySegregatedVElement>(NewElement);
 
 }
@@ -125,21 +128,18 @@ void TranslatoryRigidBodySegregatedVElement::GetDofList(DofsVectorType& rElement
 
 void TranslatoryRigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
-  SizeType dofs_size = this->GetDofsSize();
-
-  if ( rResult.size() != dofs_size )
-    rResult.resize(dofs_size, false);
-
+  this->SetProcessInformation(rCurrentProcessInfo);
+  
   switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
   {
     case VELOCITY_STEP:
       {
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-        unsigned int element_size          = number_of_nodes * ( dimension );
+        const SizeType dofs_size = this->GetDofsSize();
 
-        if ( rResult.size() != element_size )
-          rResult.resize( element_size, false );
+        if ( rResult.size() != dofs_size )
+          rResult.resize(dofs_size, false);
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -153,6 +153,11 @@ void TranslatoryRigidBodySegregatedVElement::EquationIdVector(EquationIdVectorTy
       }
     case PRESSURE_STEP:
       {
+        const SizeType dofs_size = this->GetDofsSize();
+
+        if ( rResult.size() != dofs_size )
+          rResult.resize(dofs_size, false);
+        
         break;
       }
     default:

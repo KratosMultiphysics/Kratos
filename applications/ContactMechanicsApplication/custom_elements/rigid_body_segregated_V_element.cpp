@@ -32,6 +32,7 @@ RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId,Geometr
 RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     :RigidBodyElement(NewId, pGeometry, pProperties)
 {
+  mStepVariable = VELOCITY_STEP;
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -40,6 +41,7 @@ RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId, Geomet
 RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, NodesContainerType::Pointer pNodes)
     :RigidBodyElement(NewId, pGeometry, pProperties)
 {
+  mStepVariable = VELOCITY_STEP;
 }
 
 //******************************COPY CONSTRUCTOR**************************************
@@ -47,6 +49,7 @@ RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId, Geomet
 
 RigidBodySegregatedVElement::RigidBodySegregatedVElement(RigidBodySegregatedVElement const& rOther)
     :RigidBodyElement(rOther)
+    ,mStepVariable(rOther.mStepVariable)
 {
 }
 
@@ -69,7 +72,8 @@ Element::Pointer RigidBodySegregatedVElement::Clone(IndexType NewId, NodesArrayT
   NewElement.mInitialLocalQuaternion = this->mInitialLocalQuaternion;
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
-
+  NewElement.mStepVariable = mStepVariable;
+  
   return Kratos::make_shared<RigidBodySegregatedVElement>(NewElement);
 }
 
@@ -124,18 +128,19 @@ void RigidBodySegregatedVElement::GetDofList(DofsVectorType& rElementalDofList,P
 
 void RigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
-  SizeType dofs_size = this->GetDofsSize();
-
-  if ( rResult.size() != dofs_size )
-    rResult.resize(dofs_size, false);
-
+  this->SetProcessInformation(rCurrentProcessInfo);
+  
   switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
   {
     case VELOCITY_STEP:
       {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-        dofs_size = dimension * (dimension + 1) * 0.5;
+        const SizeType dofs_size = this->GetDofsSize();
+
+        if ( rResult.size() != dofs_size )
+          rResult.resize(dofs_size, false);
+
         for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
           SizeType index = i * (dofs_size);
@@ -155,6 +160,9 @@ void RigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult
       }
     case PRESSURE_STEP:
       {
+        const SizeType dofs_size = this->GetDofsSize();
+        if ( rResult.size() != dofs_size )
+          rResult.resize(dofs_size, false);
         break;
       }
     default:
@@ -530,7 +538,7 @@ RigidBodySegregatedVElement::SizeType RigidBodySegregatedVElement::GetDofsSize()
       {
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
         const SizeType number_of_nodes  = GetGeometry().PointsNumber();
-        size = number_of_nodes*dimension*(dimension + 1)*0.5; //size for velocity
+        size = number_of_nodes * dimension * (dimension + 1) * 0.5; //size for velocity
         break;
       }
     case PRESSURE_STEP:

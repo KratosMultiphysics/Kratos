@@ -490,7 +490,7 @@ namespace Kratos
 	{
 
 	  if( rGeometry[i].Is(NEW_ENTITY) )
-	    return Undefined;
+	    return MesherUtilities::Undefined;
 
 	  WeakPointerVector<Node<3> >& rN = rGeometry[i].GetValue(NEIGHBOUR_NODES);
 
