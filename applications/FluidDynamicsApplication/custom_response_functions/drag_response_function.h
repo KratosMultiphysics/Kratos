@@ -88,8 +88,8 @@ public:
             if (magnitude == 0.0)
                 KRATOS_ERROR << "\"drag_direction\" is zero." << std::endl;
 
-            std::cout << "WARNING: Non unit magnitude in \"drag_direction\"." << std::endl;
-            std::cout << "WARNING: Normalizing ..." << std::endl;
+            KRATOS_WARNING("DragResponseFunction") << "Non unit magnitude in \"drag_direction\"." << std::endl;
+            KRATOS_WARNING("DragResponseFunction") << "Normalizing ..." << std::endl;
 
             for (unsigned int d = 0; d < TDim; ++d)
                 mDragDirection[d] /= magnitude;
