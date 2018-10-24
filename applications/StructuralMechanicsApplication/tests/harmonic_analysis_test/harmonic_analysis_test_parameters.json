@@ -3,7 +3,6 @@
         "problem_name"    : "harmonic_analysis_test",
         "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 3.0,
         "start_time"      : 10.0,
         "end_time"        : 3800.0,
         "echo_level"      : 0
@@ -12,6 +11,9 @@
         "solver_type"                        : "harmonic_analysis",
         "echo_level"                         : 0,
         "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 3.0
+        },
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",

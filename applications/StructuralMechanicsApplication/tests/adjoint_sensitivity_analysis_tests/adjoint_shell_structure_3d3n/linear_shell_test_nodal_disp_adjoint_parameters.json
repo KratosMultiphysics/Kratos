@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "rectangular_plate",
         "model_part_name" : "Structure",
-        "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "parallel_type"   : "OpenMP",
@@ -12,6 +11,9 @@
         "solver_type"                  : "adjoint_static",
         "analysis_type"                : "linear",
         "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
         "compute_reactions"			   : false,
         "move_mesh_flag"                    : false,
         "scheme_settings" : {

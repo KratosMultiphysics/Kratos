@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "rectangular_plate_structure",
-        "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "parallel_type"   : "OpenMP",
@@ -10,6 +9,9 @@
     "solver_settings"          : {
         "solver_type"                        : "static",
         "echo_level"                         : 0,
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
         "analysis_type"                      : "linear",
         "model_part_name" : "rectangular_plate_structure",
         "domain_size"     : 3,

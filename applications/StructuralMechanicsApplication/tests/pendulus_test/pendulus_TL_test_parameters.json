@@ -3,13 +3,15 @@
         "problem_name"    : "pendulus_TL_test",
         "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.05,
         "start_time"      : 0.0,
         "end_time"        : 3.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
         "domain_size"     : 2,
+        "time_stepping"                      : {
+            "time_step" : 0.05
+        },
         "solver_type"                        : "Dynamic",
         "echo_level"                         : 0,
         "time_integration_method"            : "implicit",

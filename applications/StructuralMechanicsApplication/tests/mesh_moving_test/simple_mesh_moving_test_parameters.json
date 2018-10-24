@@ -3,7 +3,6 @@
         "problem_name"    : "simple_mesh_moving_test",
         "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.005,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -14,6 +13,9 @@
         "analysis_type"                      : "linear",
         "echo_level"                         : 0,
         "domain_size"     : 2,
+        "time_stepping"                      : {
+            "time_step" : 0.005
+        },
         "convergence_criterion"              : "residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,

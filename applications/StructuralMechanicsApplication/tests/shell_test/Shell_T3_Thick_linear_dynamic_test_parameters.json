@@ -3,7 +3,6 @@
         "problem_name"    : "Shell_T3_Thick_linear_dynamic_test",
         "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.125,
         "start_time"      : 0.0,
         "end_time"        : 25,
         "echo_level"      : 0
@@ -16,6 +15,9 @@
         "solver_type"                        : "Dynamic",
         "analysis_type"                      : "non_linear",
         "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.125
+        },
         "echo_level"                         : 0,
         "time_integration_method"            : "implicit",
         "scheme_type"                        : "newmark",

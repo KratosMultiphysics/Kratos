@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "Beam_structure",
         "model_part_name" : "Structure",
-        "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "parallel_type"   : "OpenMP",
@@ -17,6 +16,9 @@
         "scheme_settings" : {
             "scheme_type"              : "adjoint_structural"
             },
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
         "response_function_settings" : {
                 "response_type"     : "adjoint_linear_strain_energy",
                 "use_kratos"        : true,

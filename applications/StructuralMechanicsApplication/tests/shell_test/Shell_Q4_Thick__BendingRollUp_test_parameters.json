@@ -3,7 +3,6 @@
         "problem_name"    : "Shell_Q4_Thick__BendingRollUp_test",
         "model_part_name" : "SolidDomain",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.05,
         "start_time"      : 0.001,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -11,6 +10,9 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 0.05
+        },
         "analysis_type"                      : "non_linear",
         "echo_level"                         : 0,
         "model_import_settings"              : {

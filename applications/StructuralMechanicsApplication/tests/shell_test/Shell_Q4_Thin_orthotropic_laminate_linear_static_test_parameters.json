@@ -3,7 +3,6 @@
         "problem_name"    : "Shell_Q4_Thin_orthotropic_laminate_linear_static_test",
         "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -11,6 +10,9 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "echo_level"                         : 0,
         "analysis_type"                      : "linear",
         "model_import_settings"              : {

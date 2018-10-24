@@ -13,6 +13,9 @@
             "analysis_type"                      : "non_linear",
             "echo_level"                         : 0,
             "domain_size"     : 3,
+            "time_stepping"                      : {
+                "time_step" : 0.1
+            },
             "model_import_settings"              : {
                 "input_type"     : "mdpa",
                 "input_filename" : "shell_test/Shell_T3_Thin__DrillingRollUp"

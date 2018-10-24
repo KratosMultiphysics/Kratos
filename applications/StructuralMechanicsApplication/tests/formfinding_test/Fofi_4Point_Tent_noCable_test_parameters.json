@@ -3,7 +3,6 @@
         "problem_name"    : "4PunktSegel_noCable",
         "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -12,6 +11,9 @@
         "solver_type"                        : "formfinding",
         "echo_level"                         : 0,
         "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "formfinding_test/Fofi_4Point_Tent_noCable"

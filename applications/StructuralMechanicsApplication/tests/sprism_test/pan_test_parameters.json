@@ -3,7 +3,6 @@
         "problem_name"    : "pan_test",
         "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.001,
         "start_time"      : 0.000,
         "end_time"        : 1.000,
         "echo_level"      : 0
@@ -12,6 +11,9 @@
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 0.001
+        },
         "buffer_size"                        : 3,
         "analysis_type"                      : "arc_length",
         "model_import_settings"              : {

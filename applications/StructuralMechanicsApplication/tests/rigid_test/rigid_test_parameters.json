@@ -3,7 +3,6 @@
         "problem_name"    : "rigid_test",
         "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -11,6 +10,9 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "domain_size"     : 2,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {

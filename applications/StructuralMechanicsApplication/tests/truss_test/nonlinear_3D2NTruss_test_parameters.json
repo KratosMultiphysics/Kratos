@@ -3,7 +3,6 @@
         "problem_name"    : "testnew",
         "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.01,
         "start_time"      : 0.0,
         "end_time"        : 1.2,
         "echo_level"      : 0
@@ -12,6 +11,9 @@
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 0.01
+        },
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
