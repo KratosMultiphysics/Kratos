@@ -227,8 +227,8 @@ class FracturePropagationUtility:
 
         # Construct processes to be applied
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(PoroModel).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
-        list_of_processes += process_factory.KratosProcessFactory(PoroModel).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
+        list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
 
         # Initialize processes
         for process in list_of_processes:
