@@ -9,9 +9,9 @@ set( KRATOS_MY_MULTILEVEL_MONTE_CARLO_LAPLACIAN_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/my_multilevel_monte_carlo_laplacian_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/my_multilevel_monte_carlo_laplacian_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/my_multilevel_monte_carlo_laplacian_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+#    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/my_laplacian_element.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+#    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 )
 
 # define library Kratos which defines the basic python interface

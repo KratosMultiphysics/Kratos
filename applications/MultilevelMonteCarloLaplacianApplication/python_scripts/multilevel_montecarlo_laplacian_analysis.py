@@ -54,6 +54,7 @@ class MultilevelMonteCarloLaplacianAnalysis(AnalysisStage):
 
 
     
+    
 ###########################################################
 ######## END OF CLASS MONTECARLOLAPLACIANANALYSIS #########
 ###########################################################
@@ -425,7 +426,8 @@ if __name__ == '__main__':
     print("Maximum number of levels = ",L_max)
 
     ## evaluate the exact expected value of Q (sample = 1.0)
-    ExactExpectedValueQoI = exact_execution_task(local_parameters_3["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[2])
+    ExactExpectedValueQoI = exact_execution_task(local_parameters_0["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[0])
+
 
     # define setting parameters of the ML simulation
     settings_ML_simulation = [0.1, 0.1, 1.25, 1.15, 0.25, 0.1, 1.0]

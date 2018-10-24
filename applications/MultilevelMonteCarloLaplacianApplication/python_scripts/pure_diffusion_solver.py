@@ -127,28 +127,6 @@ class PureDiffusionSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintWarning("PureDiffusionSolver",msg)
 
         
-    def Finalize(self):
-        # now we proceed to use the GID interface (both to import the infomation inside the .mdpa file and later print the results in a file
-        # since in the .json file the output configuration was not defined, we define it now
-        gid_mode = KratosMultiphysics.GiDPostMode.GiD_PostAscii  #we import the python file that includes the commands that we need
-        multifile = KratosMultiphysics.MultiFileFlag.SingleFile
-        deformed_mesh_flag = KratosMultiphysics.WriteDeformedMeshFlag.WriteUndeformed
-        write_conditions = KratosMultiphysics.WriteConditionsFlag.WriteElementsOnly
-        gid_io = KratosMultiphysics.GidIO("MultilevelMonteCarloLaplacian", gid_mode,multifile, deformed_mesh_flag, write_conditions)
-
-        # we create a mesh for the postprocess
-        mesh_name = 0.0
-        gid_io.InitializeMesh( mesh_name )
-        gid_io.WriteMesh((self.main_model_part).GetMesh())
-        gid_io.FinalizeMesh()
-
-        # and we print the results
-        # select which result to print on the nodes
-        gid_io.InitializeResults(mesh_name,(self.main_model_part).GetMesh())
-        gid_io.WriteNodalResults(Poisson.SOLUTION,self.main_model_part.Nodes,0,0)
-        gid_io.FinalizeResults()
-
-
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
         new_time = current_time + dt
