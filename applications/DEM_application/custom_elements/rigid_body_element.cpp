@@ -224,16 +224,22 @@ namespace Kratos {
             ModelPart::NodeIterator i = mListOfNodes.begin() + k;
 
             array_1d<double, 3>& node_forces = i->FastGetSolutionStepValue(CONTACT_FORCES);
-            center_forces[0] += node_forces[0];
-            center_forces[1] += node_forces[1];
-            center_forces[2] += node_forces[2];
+            #pragma omp critical
+            {
+                center_forces[0] += node_forces[0];
+                center_forces[1] += node_forces[1];
+                center_forces[2] += node_forces[2];
+            }
 
             array_1d<double, 3>& node_position = i->Coordinates();
             array_1d<double, 3> center_to_node_vector, additional_torque;
 
-            center_to_node_vector[0] = node_position[0] - central_node.Coordinates()[0];
-            center_to_node_vector[1] = node_position[1] - central_node.Coordinates()[1];
-            center_to_node_vector[2] = node_position[2] - central_node.Coordinates()[2];
+            #pragma omp critical
+            {
+                center_to_node_vector[0] = node_position[0] - central_node.Coordinates()[0];
+                center_to_node_vector[1] = node_position[1] - central_node.Coordinates()[1];
+                center_to_node_vector[2] = node_position[2] - central_node.Coordinates()[2];
+            }
 
             GeometryFunctions::CrossProduct(center_to_node_vector, node_forces, additional_torque);
             center_torque[0] += additional_torque[0];
