@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "Shell_T3andQ4_nonlinear_static_unstruct_hinged_cyl_roof_snapthrough",
-        "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.1,
@@ -10,6 +9,7 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_stepping"                      : {
             "time_step" : 0.3
@@ -37,6 +37,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_hinged_edge","DISPLACEMENT_sym_XZ","DISPLACEMENT_sym_YZ","ROTATION_sym_XZ","ROTATION_sym_YZ","PointLoad3D_point_load"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -119,6 +120,20 @@
             "interval"        : [0.0,"End"]
         }
     }],
+	"json_check_process": [
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"  : ["DISPLACEMENT_Z"],
+            "input_file_name"  : "shell_test/Shell_T3andQ4_nonlinear_static_unstruct_hinged_cyl_roof_snapthrough_results.json",
+            "model_part_name"  : "GENERIC_ref_node",
+            "time_frequency"   : 0.1
+        }
+    }]
+    },
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -139,29 +154,6 @@
         },
         "point_data_configuration"  : []
     },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
-	"json_check_process": [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"  : ["DISPLACEMENT_Z"],
-            "input_file_name"  : "shell_test/Shell_T3andQ4_nonlinear_static_unstruct_hinged_cyl_roof_snapthrough_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
-            "time_frequency"   : 0.1
-        }
-    }],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",

@@ -33,6 +33,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad3D_BC_NEUMANN"],
         "rotation_dofs"                      : false
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -91,5 +92,5 @@
                 "list_of_variables": ["DISPLACEMENT"]
             }
         }
-    }]
+    }]}
 }

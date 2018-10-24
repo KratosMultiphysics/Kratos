@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "nonlinear_3D2NTruss_tension_plasticity_test",
-        "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 82,
@@ -10,6 +9,7 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_stepping"                      : {
             "time_step" : 0.5
@@ -33,6 +33,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletXZ","PointLoad3D_neumann"],
         "rotation_dofs"                      : false
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -103,16 +104,6 @@
             "interval"        : [80,"End"]
         }
     }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
     "list_other_processes": [
     {
         "python_module"   : "from_json_check_result_process",
@@ -127,7 +118,7 @@
             "time_frequency"   : 0.1
         }
     }
-    ],
+    ]},
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",

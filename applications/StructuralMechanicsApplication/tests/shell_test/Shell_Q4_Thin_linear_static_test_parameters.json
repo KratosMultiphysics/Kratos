@@ -39,6 +39,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet","DISPLACEMENT_YZ_sym","DISPLACEMENT_XZ_sym","DISPLACEMENT_sample","ROTATION_YZ_sym","ROTATION_XZ_sym","SurfaceLoad3D_Surface"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -125,16 +126,6 @@
             "interval"        : [0.0,"End"]
         }
     }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
 	"list_other_processes": [
     {
         "python_module" : "from_json_check_result_process",
@@ -148,7 +139,7 @@
             "time_frequency"   : 0.9
         }
     }
-    ],
+    ]},
     "print_output_process" : [
     {
         "python_module" : "json_output_process",

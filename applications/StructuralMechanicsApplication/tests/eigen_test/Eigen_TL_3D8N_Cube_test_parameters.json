@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "Eigen_TL_3D8N_Cube_test",
-        "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
@@ -10,6 +9,7 @@
     "solver_settings"          : {
         "solver_type"                        : "eigen_value",
         "scheme_type"                        : "dynamic",
+        "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_stepping"                      : {
             "time_step" : 1.1
@@ -38,6 +38,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet"],
         "rotation_dofs"                      : false
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -61,5 +62,5 @@
 	        "variable_name"    : "EIGENVALUE_VECTOR",
             "reference_values" : "[907.790376, 907.790376, 1765.137798, 2254.538816]"
         }
-    }]
+    }]}
 }

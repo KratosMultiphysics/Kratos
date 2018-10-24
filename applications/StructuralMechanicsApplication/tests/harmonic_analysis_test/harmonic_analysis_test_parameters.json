@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "harmonic_analysis_test",
-        "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 10.0,
         "end_time"        : 3800.0,
@@ -10,6 +9,7 @@
     "solver_settings"          : {
         "solver_type"                        : "harmonic_analysis",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_stepping"                      : {
             "time_step" : 3.0
@@ -36,6 +36,7 @@
             "use_effective_material_damping" : false
         }
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -102,5 +103,5 @@
             "variable_name"  : "EIGENVALUE_VECTOR",
             "reference_values"       : "[145801.00267211083, 906254.0808654225, 911359.7527626479, 2326540.76016708, 3587479.169479124, 3632487.4950418114, 6044676.003445955, 6151325.827220598]"
         }
-    }]
+    }]}
 }

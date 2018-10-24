@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "Eigen_3D3N_Thin_Circle_test",
-        "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
@@ -10,6 +9,7 @@
     "solver_settings"          : {
         "solver_type"                        : "eigen_value",
         "scheme_type"                        : "dynamic",
+        "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_stepping"                      : {
             "time_step" : 1.1
@@ -38,6 +38,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_support","ROTATION_support"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -73,15 +74,5 @@
 	        "variable_name"    : "EIGENVALUE_VECTOR",
             "reference_values" : "[5870.389149394735, 46368.8484822989, 46368.848484378315, 156722.65667084238, 156722.65668679585, 211940.23752820952, 379353.4270953061, 379353.42713109404]"
         }
-    }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    }]}
 }

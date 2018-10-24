@@ -37,6 +37,7 @@
         },
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -82,7 +83,7 @@
             "direction"       : [0.0,0.0,1],
             "interval"        : [0.0,"End"]
         }
-    }],
+    }]},
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -102,18 +103,5 @@
             "gauss_point_results" : ["SHELL_MOMENT","SHELL_MOMENT_GLOBAL"]
         },
         "point_data_configuration"  : []
-    },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
-    "material_import_settings" : {
-        "materials_filename" : "StructuralMaterials.json"
     }
 }

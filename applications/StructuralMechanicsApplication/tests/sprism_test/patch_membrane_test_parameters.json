@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "patch_membrane_test",
-        "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.01,
         "end_time"        : 0.02,
@@ -10,6 +9,7 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_stepping"                      : {
             "time_step" : 0.011
@@ -37,6 +37,7 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1", "DISPLACEMENT_Displacement_Auto2","DISPLACEMENT_Displacement_Auto3"]
     },
+    "processes" : {
     "constraints_process_list" : [
     {
         "python_module" : "assign_vector_variable_process",
@@ -91,7 +92,7 @@
             "model_part_name"  : "Parts_Parts_Auto1"
             }
     }
-    ],
+    ]},
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -111,15 +112,5 @@
             "gauss_point_results" : ["VON_MISES_STRESS"]
         },
         "point_data_configuration"  : []
-    },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
     }
 }

@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "flat_membrane",
-        "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
@@ -10,6 +9,7 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_stepping"                      : {
             "time_step" : 1.1
@@ -39,6 +39,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_NavierSupport","PointLoad3D_Membrane"],
         "rotation_dofs"                      : false
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -64,16 +65,6 @@
             "direction"       : [0.0,0.0,-1.0]
         }
     }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
     "list_other_processes": [
     {
         "python_module" : "from_json_check_result_process",
@@ -87,7 +78,7 @@
             "time_frequency"   : 0.90
         }
     }
-    ],
+    ]},
     "print_output_process" : [
     {
         "python_module" : "json_output_process",

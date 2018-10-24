@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "patch_test_3D_tension_hexa",
-        "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
@@ -10,6 +9,7 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_stepping"                      : {
             "time_step" : 1.1
@@ -35,6 +35,7 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto3","DISPLACEMENT_Displacement_Auto4","DISPLACEMENT_Displacement_Auto6","SurfaceLoad3D_Load_on_surfaces_Auto1"]
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -100,7 +101,7 @@
                 "tolerance_rank"  : 3
         }
     }
-    ],
+    ]},
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {

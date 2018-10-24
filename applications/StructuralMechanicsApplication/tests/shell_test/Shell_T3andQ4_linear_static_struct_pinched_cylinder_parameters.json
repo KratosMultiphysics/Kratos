@@ -34,6 +34,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_sym_XY","DISPLACEMENT_sym_XZ","DISPLACEMENT_sym_YZ","DISPLACEMENT_Dirichlet","ROTATION_sym_XY","ROTATION_sym_XZ","ROTATION_sym_YZ","PointLoad3D_Neumann"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -142,6 +143,22 @@
             "interval"        : [0.0,"End"]
         }
     }],
+    "json_check_process": [
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"  : ["DISPLACEMENT_Z"],
+            "input_file_name"  : "shell_test/Shell_T3andQ4_linear_static_struct_pinched_cylinder_results.json",
+            "model_part_name"  : "GENERIC_ref_node",
+            "tolerance"            : 1e-9,
+            "relative_tolerance"   : 1e-12,
+            "time_frequency"   : 0.01
+        }
+    }]
+    },
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -162,21 +179,6 @@
         },
         "point_data_configuration"  : []
     },
-	"json_check_process": [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"  : ["DISPLACEMENT_Z"],
-            "input_file_name"  : "shell_test/Shell_T3andQ4_linear_static_struct_pinched_cylinder_results.json",
-            "model_part_name"  : "GENERIC_ref_node",
-            "tolerance"            : 1e-9,
-            "relative_tolerance"   : 1e-12,
-            "time_frequency"   : 0.01
-        }
-    }],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",

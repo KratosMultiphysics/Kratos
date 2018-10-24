@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "harmonic_analysis_test",
-        "model_part_name" : "Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
@@ -10,6 +9,7 @@
     "solver_settings"          : {
         "solver_type"                        : "eigen_value",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
         "domain_size"     : 3,
         "time_stepping"                      : {
             "time_step" : 1.1
@@ -45,6 +45,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_support","PointLoad3D_load"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -86,5 +87,5 @@
             },
             "prefix" : "/ModelData"
         }
-    }]
+    }]}
 }

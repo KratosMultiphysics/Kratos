@@ -44,6 +44,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_edge","DISPLACEMENT_sample","ROTATION_edge","SurfaceLoad3D_surface"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -107,7 +108,7 @@
             "time_frequency"   : 0.001
         }
     }
-    ],
+    ]},
     "print_output_process" : [
     {
         "python_module" : "json_output_process",
