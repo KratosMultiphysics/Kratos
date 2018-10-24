@@ -51,7 +51,7 @@ class VMSAdjointElement: public Element {
         Element* mpElement;
 
     public:
-        ThisExtensions(Element* pElement) : mpElement{pElement}
+        explicit ThisExtensions(Element* pElement) : mpElement{pElement}
         {
         }
 
