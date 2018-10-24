@@ -183,7 +183,9 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
 
         // Some values initialization
         IndexType iteration = 0, max_iter = 100;
-        double plastic_consistency_factor_increment;
+        double plastic_consistency_factor_increment = 0.0;
+        double previous_plastic_denominator = 0.0;
+        double previous_threshold_indicator = 0.0;
         double threshold_indicator = rUniaxialStress - rThreshold;
         Matrix aux_plastic_deformation_gradient;
         Vector delta_sigma = ZeroVector(VoigtSize);
@@ -207,7 +209,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
 
         // Backward Euler
         while (iteration <= max_iter) {
-            plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
+            plastic_consistency_factor_increment = threshold_indicator * (rPlasticDenominator - previous_plastic_denominator);
 
             noalias(plastic_deformation_gradient_increment) = ConstitutiveLawUtilities<VoigtSize>::CalculateExponentialPlasticDeformationGradientIncrement(rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re);
 
@@ -237,9 +239,14 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
             rConstitutiveLaw.CalculateValue(rValues, rStressVariable, aux_vector);
             noalias(rPredictiveStressVector) = aux_vector;
 
+            // Update previous plastic denominator
+            previous_plastic_denominator = rPlasticDenominator;
+            previous_threshold_indicator = threshold_indicator;
+
+            // Calculate plastic parameters
             threshold_indicator = CalculatePlasticParameters(rPredictiveStressVector, rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative, rPlasticPotentialDerivative, rPlasticDissipation, delta_plastic_strain, rValues);
 
-            if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
+            if (std::abs(threshold_indicator - previous_threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 break;
             } else {
                 ++iteration;
@@ -398,7 +405,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        SmallStrainIntegratorType::CalculateEquivalentStressThreshold(PlasticDissipation, TensileIndicatorFactor, CompressionIndicatorFactor, rEquivalentStressThreshold, rSlope, rValues);
+        SmallStrainIntegratorType::CalculateEquivalentStressThreshold(PlasticDissipation, TensileIndicatorFactor, CompressionIndicatorFactor, rEquivalentStressThreshold, rSlope, rValues, 0.0);
     }
 
     /**

@@ -39,7 +39,7 @@ class ParticleMPMSolver(PythonSolver):
             "solver_type"                        : "StaticSolver",
             "echo_level"                         : 0,
             "analysis_type"                      : "linear",
-            "scheme_type"                        : "Newmark",
+            "scheme_type"                        : "",
             "grid_model_import_settings"              : {
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name_Grid"

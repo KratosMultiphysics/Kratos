@@ -82,8 +82,8 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             predictive_stress_vector = rValues.GetStressVector();
         } else {
             // We backup the deformation gradient
-            const double det_deformation_gradient_backup = rValues.GetDeterminantF();
-            const Matrix deformation_gradient_backup = rValues.GetDeformationGradientF();
+            const double& det_deformation_gradient_backup = rValues.GetDeterminantF();
+            const Matrix& deformation_gradient_backup = rValues.GetDeformationGradientF();
 
             // We compute the elastic deformation gradient  Fe = plastic_indicator * inv(Fp)
             Matrix inverse_F_p ( Dimension, Dimension );
@@ -205,7 +205,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
 
         // We backup the deformation gradient
-        const double det_deformation_gradient_backup = rValues.GetDeterminantF();
+        const double& det_deformation_gradient_backup = rValues.GetDeterminantF();
         const Matrix& deformation_gradient_backup = rValues.GetDeformationGradientF();
 
         // We compute the predicted stress vector
@@ -567,7 +567,7 @@ Matrix& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
         const Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
 
         // We backup the deformation gradient
-        const Matrix deformation_gradient_backup = rParameterValues.GetDeformationGradientF();
+        const Matrix& deformation_gradient_backup = rParameterValues.GetDeformationGradientF();
 
         // We compute the elastic deformation gradient  Fe = plastic_indicator * inv(Fp)
         Matrix inverse_F_p ( Dimension, Dimension );
