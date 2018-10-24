@@ -65,15 +65,11 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void CalculateMaterialResponseCauchy (Parameters & rValues) override;
-
     void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
-
-    void SetValue( const Variable<double>& rVariable, const double& rValue, const ProcessInfo& rCurrentProcessInfo ) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -85,38 +81,17 @@ protected:
 
     void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
-
     void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
-    void ComputeEquivalentStrainContact(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
-
-
-    void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,
-                                            ConstitutiveLawVariables& rVariables,
-                                            Parameters& rValues) override;
-
-    void ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,
-                                                    ConstitutiveLawVariables& rVariables,
-                                                    Parameters& rValues) override;
-
-
-    void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,
-                                                ConstitutiveLawVariables& rVariables,
-                                                Parameters& rValues) override;
-
-    void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,
-                                                        ConstitutiveLawVariables& rVariables,
-                                                        Parameters& rValues) override;
-
+    void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
+                                    ConstitutiveLawVariables& rVariables,
+                                    Parameters& rValues) override;
 
     void ComputeStressVector(Vector& rStressVector,
                                 ConstitutiveLawVariables& rVariables,
                                 Parameters& rValues) override;
 
-    void ComputeStressVectorContact(Vector& rStressVector,
-                                        ConstitutiveLawVariables& rVariables,
-                                        Parameters& rValues) override;
-
+    double MacaulayBrackets(const double& Value);
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

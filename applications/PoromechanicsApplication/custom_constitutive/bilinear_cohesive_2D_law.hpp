@@ -66,8 +66,13 @@ protected:
 
     void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
 
-    void ComputeEquivalentStrainContact(ConstitutiveLawVariables& rVariables, Parameters& rValues) override;
+    void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
+                                    ConstitutiveLawVariables& rVariables,
+                                    Parameters& rValues) override;
 
+    void ComputeStressVector(Vector& rStressVector,
+                                ConstitutiveLawVariables& rVariables,
+                                Parameters& rValues) override;
 
     void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,
                                             ConstitutiveLawVariables& rVariables,

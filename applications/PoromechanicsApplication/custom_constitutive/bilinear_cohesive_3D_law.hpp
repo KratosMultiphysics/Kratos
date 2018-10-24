@@ -91,6 +91,8 @@ protected:
         double YoungModulus;
         double FrictionCoefficient;
 
+        double FractureEnergy;
+        double ShearFractureEnergy;
         double ModeMixingRatio;
         double CurveFittingParameter;
 
@@ -106,37 +108,17 @@ protected:
 
     virtual void InitializeConstitutiveLawVariables(ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
-
     virtual void ComputeEquivalentStrain(ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
-    virtual void ComputeEquivalentStrainContact(ConstitutiveLawVariables& rVariables, Parameters& rValues);
+    virtual void CheckLoadingFunction(ConstitutiveLawVariables& rVariables, Parameters& rValues);
 
-
-    virtual void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,
-                                                    ConstitutiveLawVariables& rVariables,
-                                                    Parameters& rValues);
-
-    virtual void ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,
-                                                            ConstitutiveLawVariables& rVariables,
-                                                            Parameters& rValues);
-
-
-    virtual void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,
-                                                    ConstitutiveLawVariables& rVariables,
-                                                    Parameters& rValues);
-
-    virtual void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,
-                                                            ConstitutiveLawVariables& rVariables,
-                                                            Parameters& rValues);
-
+    virtual void ComputeConstitutiveMatrix(Matrix& rConstitutiveMatrix,
+                                            ConstitutiveLawVariables& rVariables,
+                                            Parameters& rValues);
 
     virtual void ComputeStressVector(Vector& rStressVector,
                                         ConstitutiveLawVariables& rVariables,
                                         Parameters& rValues);
-
-    virtual void ComputeStressVectorContact(Vector& rStressVector,
-                                            ConstitutiveLawVariables& rVariables,
-                                            Parameters& rValues);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
