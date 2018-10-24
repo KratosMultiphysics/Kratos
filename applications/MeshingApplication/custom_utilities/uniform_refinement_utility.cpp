@@ -586,7 +586,17 @@ void UniformRefinementUtility::CalculateNodalStepData(
     const BodyType& rBody
 )
 {
-    CalculateNodalStepData(pNewNode, rBody(8), rBody(9), rBody(10), rBody(11));
+    FaceKeyType key;
+    // Get the node in the center of the first face
+    key = {rBody(0)->Id(), rBody(1)->Id(), rBody(2)->Id(), rBody(3)->Id()};
+    std::sort(key.begin(), key.end());
+    NodeType::Pointer node_0 = mrModelPart.pGetNode(mNodesInFaceMap[key]);
+    // Get the node in the center of the opposite face
+    key = {rBody(4)->Id(), rBody(5)->Id(), rBody(6)->Id(), rBody(7)->Id()};
+    std::sort(key.begin(), key.end());
+    NodeType::Pointer node_1 = mrModelPart.pGetNode(mNodesInFaceMap[key]);
+    // Compute the data as an average of this two nodes
+    CalculateNodalStepData(pNewNode, node_0, node_1);
 }
 
 
