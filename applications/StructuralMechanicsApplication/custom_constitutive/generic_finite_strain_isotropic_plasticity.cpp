@@ -115,11 +115,11 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
         // Initialize Plastic Parameters
         double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-        BoundedArrayType yield_surface_derivative = ZeroVector(VoigtSize); // DF/DS
+        BoundedArrayType yield_surface_derivative = ZeroVector(VoigtSize);     // DF/DS
         BoundedArrayType plastic_potential_derivative = ZeroVector(VoigtSize); // DG/DS
         const BoundedArrayType dummy_plastic_strain_increment = ZeroVector(VoigtSize);
 
-        const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, dummy_plastic_strain_increment, rValues);
+        const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, dummy_plastic_strain_increment, plastic_strain, rValues);
 
         if (plastic_indicator <= std::abs(1.0e-4 * r_threshold)) { // Elastic case
             noalias(integrated_stress_vector) = predictive_stress_vector;
@@ -243,11 +243,11 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
         // Initialize Plastic Parameters
         double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-        BoundedArrayType yield_surface_derivative = ZeroVector(VoigtSize); // DF/DS
+        BoundedArrayType yield_surface_derivative = ZeroVector(VoigtSize);     // DF/DS
         BoundedArrayType plastic_potential_derivative = ZeroVector(VoigtSize); // DG/DS
         const BoundedArrayType dummy_plastic_strain_increment = ZeroVector(VoigtSize);
 
-        const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, dummy_plastic_strain_increment, rValues);
+        const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, dummy_plastic_strain_increment, plastic_strain, rValues);
 
         if (plastic_indicator <= std::abs(1.0e-4 * r_threshold)) { // Elastic case
             noalias(integrated_stress_vector) = predictive_stress_vector;
