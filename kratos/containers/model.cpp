@@ -120,7 +120,6 @@ namespace Kratos
         }
         else //it is a submodelpart with the full name provided
         {
-            KRATOS_INFO("Model") << rFullModelPartName << std::endl; //TODO: remove - only for debugging purposes
             auto search = mRootModelPartMap.find(subparts_list[0]);
             if(search != mRootModelPartMap.end())
             {
