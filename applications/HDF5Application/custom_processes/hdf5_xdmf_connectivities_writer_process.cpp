@@ -32,7 +32,9 @@ XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(const std::stri
     mKratosToXdmfIdMap.reserve(num_points);
     // Set the parametric coordinate ids.
     for (int i = 0; i < num_points; ++i) {
-        mKratosToXdmfIdMap.insert(IdMapType::value_type(node_ids[i], i)); // TODO check if this entry is already present?
+        const bool inserted = mKratosToXdmfIdMap.insert(IdMapType::value_type(node_ids[i], i)).second;
+        KRATOS_WARNING_IF("Kratos-Xdmf-Map", !inserted) << "Node-Id #" << node_ids[i]
+            << " is duplicated and only inserted once!" << std::endl;
     }
 
     KRATOS_CATCH("");
