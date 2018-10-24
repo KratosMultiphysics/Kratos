@@ -7,9 +7,10 @@ def Factory(settings, Model):
 
 ## All the processes python should be derived from "Process"
 class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
-    """This class is used in order to impose periodic boundary condition between two given modelparts.
+    """This class is used in order to impose periodic boundary condition between two given modelparts which are related
+        via a rotation operation or a translation operation.
 
-    This class constructs the model parts containing the constrains that enforce the rigid body movement
+    This class constructs the model parts containing the constraints that enforce the rigid body movement
     Only the member variables listed below should be accessed directly.
 
     Public member variables:
