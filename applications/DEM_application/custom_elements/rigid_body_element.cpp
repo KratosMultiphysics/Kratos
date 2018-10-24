@@ -215,36 +215,33 @@ namespace Kratos {
     void RigidBodyElement3D::CollectForcesAndTorquesFromTheNodes() {
 
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE RBE
-        array_1d<double, 3>& center_forces = central_node.FastGetSolutionStepValue(TOTAL_FORCES);
-        array_1d<double, 3>& center_torque = central_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
-        center_forces[0] = center_forces[1] = center_forces[2] = center_torque[0] = center_torque[1] = center_torque[2] = 0.0;
+        #pragma omp parallel
+        {
+            array_1d<double, 3>& center_forces = central_node.FastGetSolutionStepValue(TOTAL_FORCES);
+            array_1d<double, 3>& center_torque = central_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
+            center_forces[0] = center_forces[1] = center_forces[2] = center_torque[0] = center_torque[1] = center_torque[2] = 0.0;
 
-        #pragma omp parallel for schedule(dynamic, 100)
-        for (int k = 0; k < (int)mListOfNodes.size(); k++) {
-            ModelPart::NodeIterator i = mListOfNodes.begin() + k;
+            #pragma omp for schedule(dynamic, 100)
+            for (int k = 0; k < (int)mListOfNodes.size(); k++) {
+                ModelPart::NodeIterator i = mListOfNodes.begin() + k;
 
-            array_1d<double, 3>& node_forces = i->FastGetSolutionStepValue(CONTACT_FORCES);
-            #pragma omp critical
-            {
+                array_1d<double, 3>& node_forces = i->FastGetSolutionStepValue(CONTACT_FORCES);
                 center_forces[0] += node_forces[0];
                 center_forces[1] += node_forces[1];
                 center_forces[2] += node_forces[2];
-            }
 
-            array_1d<double, 3>& node_position = i->Coordinates();
-            array_1d<double, 3> center_to_node_vector, additional_torque;
+                array_1d<double, 3>& node_position = i->Coordinates();
+                array_1d<double, 3> center_to_node_vector, additional_torque;
 
-            #pragma omp critical
-            {
                 center_to_node_vector[0] = node_position[0] - central_node.Coordinates()[0];
                 center_to_node_vector[1] = node_position[1] - central_node.Coordinates()[1];
                 center_to_node_vector[2] = node_position[2] - central_node.Coordinates()[2];
-            }
 
-            GeometryFunctions::CrossProduct(center_to_node_vector, node_forces, additional_torque);
-            center_torque[0] += additional_torque[0];
-            center_torque[1] += additional_torque[1];
-            center_torque[2] += additional_torque[2];
+                GeometryFunctions::CrossProduct(center_to_node_vector, node_forces, additional_torque);
+                center_torque[0] += additional_torque[0];
+                center_torque[1] += additional_torque[1];
+                center_torque[2] += additional_torque[2];
+            }
         }
     }
 
