@@ -33,23 +33,23 @@ class PyDragResponseFunction : public DragResponseFunction<TDim>
 
 namespace Python
 {
-using namespace pybind11;
 
 void AddCustomResponseFunctionsToPython(pybind11::module& m)
 {
-    class_<
+    namespace py = pybind11;
+    py::class_<
         DragResponseFunction<2>,
         PyDragResponseFunction<2>,
         DragResponseFunction<2>::Pointer,
         AdjointResponseFunction>(m,"DragResponseFunction2D")
-        .def(init<Parameters, ModelPart&>());
+        .def(py::init<Parameters, ModelPart&>());
 
-    class_<
+    py::class_<
         DragResponseFunction<3>,
         PyDragResponseFunction<3>,
         DragResponseFunction<3>::Pointer,
         AdjointResponseFunction>(m,"DragResponseFunction3D")
-        .def(init<Parameters, ModelPart&>());
+        .def(py::init<Parameters, ModelPart&>());
 
 }
 
