@@ -112,8 +112,8 @@ public:
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
         : BaseType(),
-          mAlwaysConvergedNorm(AlwaysConvergedNorm),
-          mRatioTolerance(NewRatioTolerance)
+          mRatioTolerance(NewRatioTolerance),
+          mAlwaysConvergedNorm(AlwaysConvergedNorm)
     {
     }
 

@@ -28,7 +28,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-
+#include "includes/linear_solver_factory.h"
 
 namespace Kratos
 {
@@ -128,14 +128,25 @@ public:
 
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
-    /*@} */
-    /**@name Life Cycle
-    */
-    /*@{ */
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit ResidualBasedEliminationBuilderAndSolverComponentwise(Parameters ThisParameters)
+        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(LinearSolverFactoryType().Create(ThisParameters))
+        , rVar(KratosComponents<TVariableType>::Get(ThisParameters["components_wise_variable"].GetString()))
+    {
+
+    }
 
     /** Constructor.
     */
-    ResidualBasedEliminationBuilderAndSolverComponentwise(
+    explicit ResidualBasedEliminationBuilderAndSolverComponentwise(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,TVariableType const& Var)
         : ResidualBasedEliminationBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver)
         , rVar(Var)

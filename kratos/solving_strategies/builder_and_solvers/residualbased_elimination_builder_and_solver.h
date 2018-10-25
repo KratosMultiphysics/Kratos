@@ -34,6 +34,7 @@
 #include "includes/key_hash.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
+#include "includes/linear_solver_factory.h"
 
 namespace Kratos
 {
@@ -108,15 +109,26 @@ public:
 
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /**
+     * @brief Default constructor. (with parameters)
      */
-    ResidualBasedEliminationBuilderAndSolver(
+    explicit ResidualBasedEliminationBuilderAndSolver(Parameters ThisParameters)
+        : BaseType(LinearSolverFactoryType().Create(ThisParameters))
+    {
+    }
+
+    /**
+     * @brief Constructor.
+     */
+    explicit ResidualBasedEliminationBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
+        : BaseType(pNewLinearSystemSolver)
     {
 //         KRATOS_INFO("ResidualBasedEliminationBuilderAndSolver") << "Using the standard builder and solver " << std::endl;
     }
