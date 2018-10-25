@@ -316,7 +316,7 @@ public:
     //this function returns the "Owner" Model
     Model& GetModel()
     {
-        return mrOwnerModel;
+        return mrModel;
     }
 
     ///ATTENTION: this function does not touch the coordinates of the nodes.
@@ -1560,7 +1560,7 @@ private:
 
     SubModelPartsContainerType mSubModelParts;
 
-    Model& mrOwnerModel;
+    Model& mrModel;
 
     ///@}
     ///@name Private Operators

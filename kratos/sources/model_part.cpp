@@ -38,7 +38,7 @@ ModelPart::ModelPart(std::string const& NewName, Model& rOwnerModel)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
-    , mrOwnerModel(rOwnerModel)
+    , mrModel(rOwnerModel)
 {
     KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
     mName = NewName;
@@ -58,7 +58,7 @@ ModelPart::ModelPart(VariablesList* pVariablesList, Model& rOwnerModel)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
-    , mrOwnerModel(rOwnerModel)
+    , mrModel(rOwnerModel)
 {
     mName = "Default";
     MeshType mesh;
@@ -77,7 +77,7 @@ ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList, M
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
-    , mrOwnerModel(rOwnerModel)
+    , mrModel(rOwnerModel)
 {
     KRATOS_ERROR_IF( NewName.empty() )
         << "Please don't use empty names (\"\") when creating a ModelPart"
@@ -104,7 +104,7 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,Variabl
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
-    , mrOwnerModel(rOwnerModel)
+    , mrModel(rOwnerModel)
 {
     KRATOS_ERROR_IF( NewName.empty() )
         << "Please don't use empty names (\"\") when creating a ModelPart"
