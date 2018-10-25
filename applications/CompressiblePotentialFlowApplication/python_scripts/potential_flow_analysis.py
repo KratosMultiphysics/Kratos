@@ -6,19 +6,19 @@ try:
 except ImportError:
     pass
 from analysis_stage import AnalysisStage
-
+import os
 class PotentialFlowAnalysis(AnalysisStage):
         def __init__(self,model,parameters):
             super(PotentialFlowAnalysis,self).__init__(model,parameters)
             boundary_processes=self.project_parameters["processes"]["boundary_conditions_process_list"]
-            defined=False            
+            defined=False         
             for i in range(0,boundary_processes.size()):
                 python_module=boundary_processes[i]["python_module"].GetString()
                 if python_module == "initialize_geometry":
                     defined=True
                     geometry_parameter=boundary_processes[i]["Parameters"]["geometry_parameter"].GetDouble()
-                    initial_case=boundary_processes[i]["Parameters"]["initial_case"].GetString()
-                    self.problem_name=self.project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+"_"+initial_case+"_"+str(geometry_parameter)
+                    skin_model_part_name=boundary_processes[i]["Parameters"]["skin_model_part_name"].GetString()
+                    self.problem_name=self.project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+"_"+skin_model_part_name+"_"+str(geometry_parameter)
                 if python_module == "compute_lift_level_set_process": 
                     self.project_parameters["processes"]["boundary_conditions_process_list"][i]["Parameters"].AddEmptyValue("problem_name")   
                     self.project_parameters["processes"]["boundary_conditions_process_list"][i]["Parameters"]["problem_name"].SetString(self.problem_name)
@@ -29,6 +29,10 @@ class PotentialFlowAnalysis(AnalysisStage):
                     self.problem_name=self.project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
                     self.project_parameters["processes"]["boundary_conditions_process_list"][i]["Parameters"].AddEmptyValue("problem_name")   
                     self.project_parameters["processes"]["boundary_conditions_process_list"][i]["Parameters"]["problem_name"].SetString(self.problem_name)
+       
+            if not os.path.exists('./gid_output/'):
+                os.makedirs('./gid_output/')
+            self.project_parameters["output_processes"]["gid_output"][0]["Parameters"]["output_name"].SetString('./gid_output/'+self.problem_name)
             
         def _CreateSolver(self):
             import potential_flow_solver 
@@ -38,45 +42,7 @@ class PotentialFlowAnalysis(AnalysisStage):
                     "initial_conditions_process_list",
                     "boundary_conditions_process_list",
                     "auxiliar_process_list"]
-        def _SetUpGiDOutput(self):
-            '''Initialize a GiD output instance'''
-            if self.parallel_type == "OpenMP":
-                from gid_output_process import GiDOutputProcess as OutputProcess
-            elif self.parallel_type == "MPI":
-                from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
-            output = OutputProcess(self._GetSolver().GetComputingModelPart(),
-                                    './gid_output/'+self.problem_name,
-                                    self.project_parameters["output_configuration"])
-            return output
-        def RunSolutionLoop(self):
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
-            self.gid_output= self._SetUpGiDOutput()
-            self.gid_output.ExecuteInitialize()
-            self.gid_output.ExecuteBeforeSolutionLoop()
-            self.gid_output.ExecuteInitializeSolutionStep()
-            self.gid_output.PrintOutput()
-            self.gid_output.ExecuteFinalize()
-        # def _GetListOfOutputProcesses(self):
-        #     self._list_of_output_processes=super(PotentialFlowAnalysis,self)._GetListOfOutputProcesses()
-        #     if self.project_parameters.Has("output_configuration"):                
-        #         gid_output= self._SetUpGiDOutput()
-        #         self._list_of_output_processes += [gid_output,]
-        #     return self._list_of_output_processes
-
-        def _CreateProcesses(self, parameter_name, initialization_order):
-            list_of_processes = super(PotentialFlowAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
-            # if self.project_parameters.Has("output_configuration"):
-                
-            #     self.gid_output= self._SetUpGiDOutput()
-            #     list_of_processes += [self.gid_output,]
-
-
-            return list_of_processes
         def _GetSimulationName(self):
             return "Potential Flow Analysis"
 if __name__ == '__main__':

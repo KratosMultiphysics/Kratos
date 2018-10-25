@@ -39,7 +39,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         NormalLower.CalculateOnSimplex(self.lower_surface_model_part,2)
 
 
-    def ExecuteFinalize(self):
+    def ExecuteFinalizeSolutionStep(self):
         print('COMPUTE LIFT')
 
         rx = 0.0
@@ -52,7 +52,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
            rx += n[0]*cp
            ry += n[1]*cp
            rz += n[2]*cp
-
+        
         RZ = rz/self.reference_area
         RX = rx/self.reference_area
         RY = ry/self.reference_area

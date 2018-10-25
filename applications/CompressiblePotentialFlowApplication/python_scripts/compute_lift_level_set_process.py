@@ -31,7 +31,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.process=KratosMultiphysics.CompressiblePotentialFlowApplication.ComputeLiftLevelSetProcess(self.fluid_model_part,self.result_force)
 
 
-    def ExecuteFinalize(self):
+    def ExecuteFinalizeSolutionStep(self):
         print("wip_compute_lift_level_set_process")
         self.process.Execute()
 
@@ -40,7 +40,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         x_lower=[]
         cp_lower=[]
         for element in self.fluid_model_part.Elements:
-            if element.Is(KratosMultiphysics.BOUNDARY):
+            if element.Is(KratosMultiphysics.BOUNDARY) and element.IsNot(KratosMultiphysics.INTERFACE):
                 gp=element.GetValue(KratosMultiphysics.BODY_FORCE)#provisional name
                 pressure=element.GetValue(KratosMultiphysics.PRESSURE)
                 normal=element.GetValue(KratosMultiphysics.NORMAL)

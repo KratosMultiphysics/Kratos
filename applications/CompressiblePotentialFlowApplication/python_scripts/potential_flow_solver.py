@@ -36,7 +36,7 @@ class LaplacianSolver(PythonSolver):
             "linear_solver_settings": {
                     "solver_type": "AMGCL",
                     "max_iteration": 400,
-                    "gmres_krylov_space_dimension": 100,
+                    "gmres_krylov_space_dimension": 300,
                     "smoother_type":"ilu0",
                     "coarsening_type":"ruge_stuben",
                     "coarse_enough" : 5000,
@@ -69,6 +69,7 @@ class LaplacianSolver(PythonSolver):
         
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY, 1000)
                     
         #construct the linear solvers
         import linear_solver_factory
@@ -84,8 +85,11 @@ class LaplacianSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)        
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_INFINITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.WAKE_DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.LEVEL_SET_DISTANCE)
         
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL, self.main_model_part)
@@ -165,10 +169,29 @@ class LaplacianSolver(PythonSolver):
         
     def SaveRestart(self):
         pass #one should write the restart file here
-        
-    def SolveSolutionStep(self):
-        (self.solver).Solve()
     
+    def AdvanceInTime(self, current_time):
+        dt = 1000 #self._ComputeDeltaTime()
+        new_time = current_time + dt
+
+        # self.main_model_part.CloneTimeStep(new_time)
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+
+        return new_time
+
+    def InitializeSolutionStep(self):        
+        self.solver.InitializeSolutionStep()
+
+
+    def SolveSolutionStep(self):
+        (self.solver).SolveSolutionStep()   
+
+    def FinalizeSolutionStep(self):        
+        self.solver.FinalizeSolutionStep()
+
+    def Predict(self):
+        self.solver.Predict()
+
     #
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
