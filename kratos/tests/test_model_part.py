@@ -64,7 +64,6 @@ class TestModelPart(KratosUnittest.TestCase):
 
         self.assertFalse(model_part.HasSubModelPart("Inlets"))
         self.assertEqual(model_part.NumberOfSubModelParts(), 0)
-        #print (model_part)
 
     def test_clear_model_part(self):
         current_model = Model()
