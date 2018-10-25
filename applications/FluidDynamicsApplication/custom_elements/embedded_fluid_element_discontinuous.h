@@ -11,8 +11,8 @@
 //  Co-authors:      Jordi Cotela
 //
 
-#ifndef KRATOS_EMBEDDED_FLUID_ELEMENT_H
-#define KRATOS_EMBEDDED_FLUID_ELEMENT_H
+#ifndef KRATOS_EMBEDDED_FLUID_ELEMENT_DISCONTINUOUS_H
+#define KRATOS_EMBEDDED_FLUID_ELEMENT_DISCONTINUOUS_H
 
 #include "includes/define.h"
 #include "includes/element.h"
@@ -23,7 +23,7 @@
 #include "includes/cfd_variables.h"
 #include "custom_elements/fluid_element.h"
 
-#include "custom_utilities/embedded_data.h"
+#include "custom_utilities/embedded_discontinuous_data.h"
 
 namespace Kratos
 {
@@ -51,14 +51,14 @@ namespace Kratos
 ///@{
 
 template< class TBaseElement >
-class EmbeddedFluidElement : public TBaseElement
+class EmbeddedFluidElementDiscontinuous : public TBaseElement
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of EmbeddedFluidElement
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedFluidElement);
+    /// Pointer definition of EmbeddedFluidElementDiscontinuous
+    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedFluidElementDiscontinuous);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -98,7 +98,7 @@ public:
     constexpr static unsigned int StrainSize = TBaseElement::StrainSize;
 
     using BaseElementData = typename TBaseElement::ElementData;
-    using EmbeddedElementData = EmbeddedData< BaseElementData >;
+    using EmbeddedDiscontinuousElementData = EmbeddedDiscontinuousData< BaseElementData >;
 
     ///@}
     ///@name Life Cycle
@@ -110,21 +110,21 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    EmbeddedFluidElement(IndexType NewId = 0);
+    EmbeddedFluidElementDiscontinuous(IndexType NewId = 0);
 
     /// Constructor using an array of nodes.
     /**
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    EmbeddedFluidElement(IndexType NewId, const NodesArrayType& ThisNodes);
+    EmbeddedFluidElementDiscontinuous(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /// Constructor using a geometry object.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    EmbeddedFluidElement(IndexType NewId, Geometry<NodeType>::Pointer pGeometry);
+    EmbeddedFluidElementDiscontinuous(IndexType NewId, Geometry<NodeType>::Pointer pGeometry);
 
     /// Constuctor using geometry and properties.
     /**
@@ -132,10 +132,10 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    EmbeddedFluidElement(IndexType NewId, Geometry<NodeType>::Pointer pGeometry, Properties::Pointer pProperties);
+    EmbeddedFluidElementDiscontinuous(IndexType NewId, Geometry<NodeType>::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
-    ~EmbeddedFluidElement() override;
+    ~EmbeddedFluidElementDiscontinuous() override;
 
     ///@}
     ///@name Operators
@@ -149,7 +149,7 @@ public:
 
     /// Create a new element of this type
     /**
-     * Returns a pointer to a new EmbeddedFluidElement element, created using given input
+     * Returns a pointer to a new EmbeddedFluidElementDiscontinuous element, created using given input
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -279,125 +279,107 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    void InitializeGeometryData(EmbeddedElementData& rData) const;
-
-    void DefineStandardGeometryData(EmbeddedElementData& rData) const;
-
-    void DefineCutGeometryData(EmbeddedElementData& rData) const;
-
-    void NormalizeInterfaceNormals(typename EmbeddedElementData::InterfaceNormalsType& rNormals, double Tolerance) const;
-
-    /**
-    * This functions adds the no-penetration condition penalty level set contribution.
-    * @param rLHS reference to the LHS matrix
-    * @param rRHS reference to the RHS vector
-    * @param rData reference to element data structure
-    */
-    void AddSlipNormalPenaltyContribution(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const EmbeddedElementData& rData) const;
-
-    /**
-    * This functions adds the no-penetration condition adjoint term level set contribution.
-    * @param rLHS reference to the LHS matrix
-    * @param rRHS reference to the RHS vector
-    * @param rData reference to element data structure
-    */
-    void AddSlipNormalSymmetricCounterpartContribution(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const EmbeddedElementData& rData) const;
-
-    /**
-    * This functions adds the tangential stress condition penalty level set contribution.
-    * @param rLHS reference to the LHS matrix
-    * @param rRHS reference to the RHS vector
-    * @param rData reference to element data structure
-    */
-    void AddSlipTangentialPenaltyContribution(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const EmbeddedElementData& rData) const;
-
-    /**
-    * This functions adds the tangential stress condition adjoint term level set contribution.
-    * @param rLHS reference to the LHS matrix
-    * @param rRHS reference to the RHS vector
-    * @param rData reference to element data structure
-    */
-    void AddSlipTangentialSymmetricCounterpartContribution(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const EmbeddedElementData& rData) const;
-
-    /**
-     * This function computes the penalty coefficient for the Nitsche normal imposition
-     * @param rData reference to element data structure
-     */
-    double ComputeSlipNormalPenaltyCoefficient(
-        const EmbeddedElementData& rData) const;
-
-    /**
-     * This function computes the Nitsche coefficients for the Nitsche normal imposition
-     * @param rData reference to element data structure
-     * @return a pair of double containing the two coefficients
-     */
-    std::pair<const double, const double> ComputeSlipTangentialPenaltyCoefficients(
-        const EmbeddedElementData& rData) const;
-
-    /**
-     * This function computes the Nitsche coefficients for the Nitsche tangential imposition
-     * @param rData reference to element data structure
-     * @return a pair of double containing the two coefficients
-     */
-    std::pair<const double, const double> ComputeSlipTangentialNitscheCoefficients(
-        const EmbeddedElementData& rData) const;
-
-    /**
-    * This functions adds the penalty extra term level set contribution.
-    * @param rLHS reference to the LHS matrix
-    * @param rRHS reference to the RHS vector
-    * @param rData reference to element data structure
-    */
-    void AddBoundaryConditionPenaltyContribution(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const EmbeddedElementData& rData) const;
-    
-    /**
-     * This function computes the penalty coefficient for the level set BC imposition
-     * @param rLeftHandSideMatrix reference to the LHS matrix
-     * @param rData reference to element data structure
-     */
-    double ComputePenaltyCoefficient(
-        const EmbeddedElementData& rData) const;
-
-    /**
-    * This drops the outer nodes velocity constributions in both LHS and RHS matrices.
-    * @param rLHS reference to the LHS matrix
-    * @param rRHS reference to the RHS vector
-    * @param rData reference to element data structure
-    */
-    void DropOuterNodesVelocityContribution(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const EmbeddedElementData& rData) const;
-
-    /**
-    * This functions adds the level set strong boundary condition imposition contribution.
-    * @param rLHS reference to the LHS matrix
-    * @param rRHS reference to the RHS vector
-    * @param rData reference to element data structure
-    */
-    void AddBoundaryConditionModifiedNitscheContribution(
-        MatrixType& rLHS,
-        VectorType& rRHS,
-        const EmbeddedElementData& rData) const;
 
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief Current element data structure initialization
+     * This method checks if the element is intersected and calls the elemental data filling methods accordingly.
+     * @param rData reference to the element data structure
+     */
+    void InitializeGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * @brief Non-intersected element geometry data fill 
+     * This method sets the data structure geometry fields (shape functions, gradients, ...) for a non-intersected element.
+     * @param rData reference to the element data structure
+     */
+    void DefineStandardGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * @brief Intersected element geometry data fill
+     * This method sets the data structure geometry fields (shape functions, gradients, interface normals, ...) for an 
+     * intersected element. To do that, the modified shape functions utility is firstly created and then called to perform
+     * all operations in both the positive and negative sides of the element.
+     * @param rData reference to the element data structure
+     */
+    void DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * @brief For an intersected element, normalize the interface normals
+     * This method normalizes the interface normals for an intersected element.
+     * @param rNormals interface normals container
+     * @param Tolerance tolerance to avoid division by 0 when normalizing
+     */
+    void NormalizeInterfaceNormals(
+        typename EmbeddedDiscontinuousElementData::InterfaceNormalsType& rNormals,
+        double Tolerance) const;
+
+    /**
+    * This method adds the no-penetration condition penalty level set contribution.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddNormalPenaltyContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+    * This method adds the no-penetration condition adjoint term level set contribution.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddNormalSymmetricCounterpartContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+    * This method adds the tangential stress condition penalty level set contribution.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddTangentialPenaltyContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+    * This method adds the tangential stress condition adjoint term level set contribution.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddTangentialSymmetricCounterpartContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * This method computes the penalty coefficient for the Nitsche normal imposition
+     * @param rData reference to element data structure
+     */
+    double ComputeNormalPenaltyCoefficient(const EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * This method computes the Nitsche coefficients for the Nitsche normal imposition
+     * @param rData reference to element data structure
+     * @return a pair of double containing the two coefficients
+     */
+    std::pair<const double, const double> ComputeTangentialPenaltyCoefficients(const EmbeddedDiscontinuousElementData& rData) const;
+
+    /**
+     * This method computes the Nitsche coefficients for the Nitsche tangential imposition
+     * @param rData reference to element data structure
+     * @return a pair of double containing the two coefficients
+     */
+    std::pair<const double, const double> ComputeTangentialNitscheCoefficients(const EmbeddedDiscontinuousElementData& rData) const;
 
 
     ///@}
@@ -460,22 +442,22 @@ private:
     ///@{
 
     /// Assignment operator.
-    EmbeddedFluidElement& operator=(EmbeddedFluidElement const& rOther);
+    EmbeddedFluidElementDiscontinuous& operator=(EmbeddedFluidElementDiscontinuous const& rOther);
 
     /// Copy constructor.
-    EmbeddedFluidElement(EmbeddedFluidElement const& rOther);
+    EmbeddedFluidElementDiscontinuous(EmbeddedFluidElementDiscontinuous const& rOther);
 
     ///@}
 
 
-}; // Class EmbeddedFluidElement
+}; // Class EmbeddedFluidElementDiscontinuous
 
-namespace Internals {
+namespace EmbeddedDiscontinuousInternals {
 
 template <size_t TDim, size_t TNumNodes>
 ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator(
-    const Element& rElement, const Vector& rDistance);
-
+    const Element &rElement,
+    const Vector &rElementalDistances);
 }
 
 ///@}
@@ -491,16 +473,18 @@ ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator(
 
 /// input stream function
 template< class TElementData >
-inline std::istream& operator >>(std::istream& rIStream,
-                                 EmbeddedFluidElement<TElementData>& rThis)
+inline std::istream& operator >>(
+    std::istream& rIStream,
+    EmbeddedFluidElementDiscontinuous<TElementData>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template< class TElementData >
-inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const EmbeddedFluidElement<TElementData>& rThis)
+inline std::ostream& operator <<(
+    std::ostream& rOStream,
+    const EmbeddedFluidElementDiscontinuous<TElementData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -514,4 +498,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_EMBEDDED_FLUID_ELEMENT_H
+#endif // KRATOS_EMBEDDED_FLUID_ELEMENT_DISCONTINUOUS_H
