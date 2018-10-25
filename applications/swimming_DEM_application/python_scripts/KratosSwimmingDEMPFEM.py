@@ -20,7 +20,8 @@ from KratosMultiphysics.ExternalSolversApplication import *
 
 
 class Solution:
-    def __init__(self, algorithm = None, varying_parameters = Parameters("{}")):
+    def __init__(self, model, algorithm = None, varying_parameters = Parameters("{}")):
+        self.model = model
         self.alg = algorithm
 
         if self.alg == None:
@@ -31,4 +32,5 @@ class Solution:
         return self.alg.Run()
 
 if __name__=="__main__":
-    Solution().Run()
+    model = Model()
+    Solution(model).Run()

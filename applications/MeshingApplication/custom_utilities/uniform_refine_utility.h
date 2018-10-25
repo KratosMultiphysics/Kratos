@@ -67,7 +67,7 @@ namespace Kratos
  *  If a higher refinement is needed, the utility can be called recursively.
  */
 template<unsigned int TDim>
-class UniformRefineUtility
+class KRATOS_API(MESHING_APPLICATION) UniformRefineUtility
 {
 public:
     ///@name Type Definitions

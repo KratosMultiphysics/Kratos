@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -200,6 +201,9 @@ class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
 class IsotropicDamageSimoJuPSTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
 
+class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"
+
 class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
 
@@ -311,3 +315,6 @@ class ShellT3AndQ4NonLinearDynamicUnstructPendulusTests(StructuralMechanicsTestF
 
 class ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus_lumped"
+
+if __name__ == '__main__':
+    KratosUnittest.main()

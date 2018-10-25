@@ -215,8 +215,8 @@ namespace Kratos {
                 Node<3>& neighbour_node = p_neighbour_particle->GetGeometry()[0];
 
                 const double indentation = CalculateNormalizedIndentation(spheric_particle, *p_neighbour_particle);
-                const bool indentation_is_significant_for_release = indentation > mNormalizedMaxIndentationForRelease;
-                const bool indentation_is_significant_for_injection = indentation > mNormalizedMaxIndentationForNewParticleCreation;
+                const bool indentation_is_significant_for_release = indentation > mNormalizedMaxIndentationForRelease*spheric_particle.GetInteractionRadius();
+                const bool indentation_is_significant_for_injection = indentation > mNormalizedMaxIndentationForNewParticleCreation*spheric_particle.GetInteractionRadius();
                 const bool i_am_injected_he_is_injector = r_node.IsNot(BLOCKED) && neighbour_node.Is(BLOCKED);
                 const bool i_am_injector_he_is_injected = r_node.Is(BLOCKED) && neighbour_node.IsNot(BLOCKED);
 
@@ -461,6 +461,7 @@ namespace Kratos {
         DettachClusters(r_clusters_modelpart, max_Id);
 
         int smp_number = 0;
+        int inter_smp_number = 0;
         for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
             ModelPart& mp = *smp_it;
 
@@ -472,12 +473,13 @@ namespace Kratos {
             ModelPart::ElementsContainerType::ContainerType& all_elements = smp_it->ElementsArray();
 
             if (current_time > mp[INLET_STOP_TIME]) {
-                if (mLayerRemoved[smp_number]) continue;
+                if (mLayerRemoved[inter_smp_number]) continue;
                 for (int i = 0; i < mesh_size_elements; i++) {
-                    all_elements[i]->Set(TO_ERASE);
-                    all_elements[i]->GetGeometry()[0].Set(TO_ERASE);
+                    all_elements[i]->Set(TO_ERASE, true);
+                    all_elements[i]->GetGeometry()[0].Set(TO_ERASE, true);
                 }
-                mLayerRemoved[smp_number] = true;
+                mLayerRemoved[inter_smp_number] = true;
+                inter_smp_number++;
                 continue;
             }
 
@@ -502,9 +504,13 @@ namespace Kratos {
                     const double maximum_time_until_release = estimated_mass_of_a_particle * mesh_size_elements / mass_flow;
                     const double minimum_velocity = mean_radius * 3.0 / maximum_time_until_release; //The distance necessary to get out of the injector, over the time.
                     array_1d<double, 3> & proposed_velocity = mp[INLET_INITIAL_PARTICLES_VELOCITY];
+                    double& limited_velocity = mp[INLET_MAX_PARTICLES_VELOCITY];
                     const double modulus_of_proposed_velocity = DEM_MODULUS_3(proposed_velocity);
                     const double factor = 2.0;
-                    DEM_MULTIPLY_BY_SCALAR_3(proposed_velocity, factor * minimum_velocity / modulus_of_proposed_velocity);
+                    double injection_speed = factor * minimum_velocity;
+                    const bool dense_option = mp[DENSE_INLET];
+                    if (!dense_option && injection_speed > limited_velocity) {injection_speed = limited_velocity;}
+                    DEM_MULTIPLY_BY_SCALAR_3(proposed_velocity, injection_speed / modulus_of_proposed_velocity);
                 }
             }
             else {
@@ -522,7 +528,6 @@ namespace Kratos {
             }
 
             if (number_of_particles_to_insert) {
-
                 //randomizing mesh
                 srand(/*time(NULL)* */r_modelpart.GetProcessInfo()[TIME_STEPS]);
 
@@ -573,7 +578,6 @@ namespace Kratos {
                 // Dot product to compute the updated inlet velocity from the initial one:
                 mp[LINEAR_VELOCITY] = new_axes1 * inlet_initial_velocity[0] + new_axes2 * inlet_initial_velocity[1] + new_axes3 * inlet_initial_velocity[2];
                 mp[VELOCITY] = new_axes1 * inlet_initial_particles_velocity[0] + new_axes2 * inlet_initial_particles_velocity[1] + new_axes3 * inlet_initial_particles_velocity[2];
-
                 std::string& ElementNameString = mp[ELEMENT_TYPE];
                 const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
 

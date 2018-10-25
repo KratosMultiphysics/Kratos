@@ -36,7 +36,7 @@ class UPwSolver(PythonSolver):
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name)
+            self.main_model_part = self.model.CreateModelPart(model_part_name,self.min_buffer_size)
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
                                                   self.settings["domain_size"].GetInt())
@@ -104,9 +104,6 @@ class UPwSolver(PythonSolver):
             self._ExecuteCheckAndPrepare()
             ## Set buffer size
             self._SetBufferSize()
-
-        if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
-            self.model.AddModelPart(self.main_model_part)
 
         if self._is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Model reading finished.")

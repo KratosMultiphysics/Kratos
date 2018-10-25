@@ -273,6 +273,23 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     void swap(Matrix& Other){
         base_type::swap(Other);
     }
+
+
+	void fill(data_type const& value) {
+		for (std::size_t i = 0; i < size(); i++)
+			at(i) = value;
+
+	}
+
+	void fill_identity() {
+        KRATOS_ERROR_IF(size1() != size2()) << "fill_identity is only supported for square matrices." << std::endl;
+		fill(0.00);
+		const std::size_t next_diagonal = size1() + 1;
+		for (std::size_t i = 0; i < size(); i += next_diagonal)
+			at(i) = 1.00;
+
+	}
+
 };
 
 template <typename TDataType, std::size_t TSize1, std::size_t TSize2>
@@ -448,6 +465,8 @@ template <typename T> AMatrix::TransposeMatrix<T> trans(T& TheMatrix){ return AM
 
 template <typename TExpressionType> using vector_expression = AMatrix::MatrixExpression<TExpressionType,AMatrix::row_major_access>;
 
+template <typename TExpressionType> using MatrixRow = AMatrix::MatrixRow<TExpressionType>;
+
 
 template <typename TDataType>
 class KratosZeroMatrix
@@ -607,6 +626,19 @@ template <typename TExpressionType, std::size_t TCategory>
     return AMatrix::SubVector<TExpressionType>(TheExpression.expression(), From,To - From);
 }
 
+
+	template <typename TExpressionType, std::size_t TCategory>
+	typename TExpressionType::data_type sum(
+		AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
+		using data_type = typename TExpressionType::data_type;
+		auto& the_expression = TheExpression.expression();
+		data_type result = data_type();
+		for (std::size_t i = 0; i < the_expression.size(); ++i) {
+			result += the_expression[i];
+		}
+		return result;
+	}
+
 template <typename TExpressionType, std::size_t TCategory>
     typename TExpressionType::data_type norm_frobenius(
     AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
@@ -618,6 +650,7 @@ template <typename TExpressionType, std::size_t TCategory>
         }
     return std::sqrt(result);
 }
+
 
 	template <typename TDataType>
 	class scalar_matrix

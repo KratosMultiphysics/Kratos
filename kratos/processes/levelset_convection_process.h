@@ -163,7 +163,10 @@ public:
     }
 
     /// Destructor.
-    ~LevelSetConvectionProcess() override {}
+    ~LevelSetConvectionProcess() override 
+    {
+        mrBaseModelPart.GetOwnerModel().DeleteModelPart("DistanceConvectionPart");
+    }
 
     ///@}
     ///@name Operators
@@ -306,7 +309,8 @@ protected:
     ///@{
 
     ModelPart& mrBaseModelPart;
-    Kratos::unique_ptr<ModelPart> mpDistanceModelPart;
+
+    ModelPart* mpDistanceModelPart;
 
     Variable<double>& mrLevelSetVar;
 
@@ -347,15 +351,20 @@ protected:
 
         KRATOS_TRY
 
+        Model& current_model = rBaseModelPart.GetOwnerModel();
+
+        if(current_model.HasModelPart("DistanceConvectionPart"))
+            current_model.DeleteModelPart("DistanceConvectionPart");
+        
+        mpDistanceModelPart= &(current_model.CreateModelPart("DistanceConvectionPart"));
+
+
         // Check buffer size
         const auto base_buffer_size = rBaseModelPart.GetBufferSize();
         KRATOS_ERROR_IF(base_buffer_size < 2) << 
             "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
 
         // Generate
-        Kratos::unique_ptr<ModelPart> p_aux_model_part = Kratos::make_unique<ModelPart>("DistancePart");
-        mpDistanceModelPart.swap(p_aux_model_part);
-
         mpDistanceModelPart->Nodes().clear();
         mpDistanceModelPart->Conditions().clear();
         mpDistanceModelPart->Elements().clear();

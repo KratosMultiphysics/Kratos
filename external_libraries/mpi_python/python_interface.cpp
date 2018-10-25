@@ -44,29 +44,39 @@ PYBIND11_MODULE(mpipython, m)
     const auto py_mpi = py::class_<PythonMPI>(m,"PythonMPI")
     .def_property_readonly("rank",FRank)
     .def_property_readonly("size",FSize)
-    .def("broadcast",&PythonMPI::broadcast<double>)
-    .def("broadcast",&PythonMPI::broadcast<int>)
-    .def("reduce",&PythonMPI::reduce<double>)
-    .def("reduce",&PythonMPI::reduce<int>)
-    .def("allreduce",&PythonMPI::allreduce<double>)
-    .def("allreduce",&PythonMPI::allreduce<int>)
+    .def_property_readonly("world",&PythonMPI::GetWorld,py::return_value_policy::reference_internal )
+
+    .def("broadcast_double",&PythonMPI::broadcast<double>)
+    .def("broadcast_int",&PythonMPI::broadcast<int>)
+
+    .def("max_double",&PythonMPI::max<double>)
+    .def("max_int",&PythonMPI::max<int>)
+    .def("min_double",&PythonMPI::min<double>)
+    .def("min_int",&PythonMPI::min<int>)
+    .def("sum_double",&PythonMPI::sum<double>)
+    .def("sum_int",&PythonMPI::sum<int>)
+
+    .def("max_all_double",&PythonMPI::max_all<double>)
+    .def("max_all_int",&PythonMPI::max_all<int>)
+    .def("min_all_double",&PythonMPI::min_all<double>)
+    .def("min_all_int",&PythonMPI::min_all<int>)
+    .def("sum_all_double",&PythonMPI::sum_all<double>)
+    .def("sum_all_int",&PythonMPI::sum_all<int>)
+
     .def("scatter_double", &PythonMPI::scatter<double>)
     .def("scatter_int", &PythonMPI::scatter<int>)
+
     .def("scatterv_double", &PythonMPI::scatterv<double>)
     .def("scatterv_int", &PythonMPI::scatterv<int>)
-    .def("gather", &PythonMPI::gather<double>)
-    .def("gather", &PythonMPI::gather<int>)
-    .def("gatherv", &PythonMPI::gatherv<double>)
-    .def("gatherv", &PythonMPI::gatherv<int>)
-    .def("allgather",&PythonMPI::allgather<double>)
-    .def("allgather",&PythonMPI::allgather<int>)
-    .def_property_readonly("world",&PythonMPI::GetWorld,py::return_value_policy::reference_internal )
-    ;
 
-    py::enum_<PythonMPI::MPI_Operation>(py_mpi, "MPI_op")
-    .value("MAX", PythonMPI::MPI_Operation::MAX)
-    .value("MIN", PythonMPI::MPI_Operation::MIN)
-    .value("SUM", PythonMPI::MPI_Operation::SUM)
+    .def("gather_double", &PythonMPI::gather<double>)
+    .def("gather_int", &PythonMPI::gather<int>)
+
+    .def("gatherv_double", &PythonMPI::gatherv<double>)
+    .def("gatherv_int", &PythonMPI::gatherv<int>)
+
+    .def("allgather_double",&PythonMPI::allgather<double>)
+    .def("allgather_int",&PythonMPI::allgather<int>)
     ;
 
     m.def("GetMPIInterface",&GetMPIInterface,py::return_value_policy::reference);

@@ -41,11 +41,11 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "type"                               : "vertex_morphing",
+            "type"  : "vertex_morphing",
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 0.3,
-                "max_nodes_in_filter_radius" : 10000,
+                "max_nodes_in_filter_radius" : 1000,
                 "matrix_free_filtering"      : true
             }
         },
@@ -66,15 +66,7 @@
             "design_output_mode"      : "WriteOptimizationModelPart",
             "nodal_results" : [ "SHAPE_CHANGE" ],
             "output_format" : {
-                "name"              : "gid",
-                "gid_configuration" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary"
-                        },
-                        "output_frequency"    : 1.0
-                    }
-                }
+                "name": "gid"
             }
         }
     }
