@@ -43,7 +43,7 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  *
  * @brief This method computes the total mass of a structure
- * @details It takes into account the noda-mass, beam, shells and solid elements
+ * @details It takes into account the nodal-mass, beam, shells and solid elements
  *
  * @author Vicente Mataix Ferrandiz
 */
