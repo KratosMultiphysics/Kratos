@@ -399,7 +399,8 @@ void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& r
 
   DofsVectorType ElementalDofList;
   rVariables.pSlaveElement->GetDofList(ElementalDofList, rCurrentProcessInfo);
-
+  rVariables.SlaveNodeLinearBlockSize = 0;
+  rVariables.SlaveNodeAngularBlockSize = 0;
   for(const auto & elem_dof : ElementalDofList)
   {
     for(const auto& dof : mLinearDofs)
@@ -420,6 +421,8 @@ void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& r
   //compute distance from the slave node to the master rigid body element node (center of gravity)
   Element& MasterElement = (GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
   MasterElement.GetDofList(ElementalDofList, rCurrentProcessInfo);
+  rVariables.MasterLinearBlockSize = 0;
+  rVariables.MasterAngularBlockSize = 0;
   for(const auto & elem_dof : ElementalDofList)
   {
     for(const auto& dof : mLinearDofs)
@@ -434,11 +437,13 @@ void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& r
     }
   }
 
-  if( rVariables.MasterLinearBlockSize != rVariables.SlaveNodeLinearBlockSize )
-    KRATOS_ERROR<<" Linear Deformable Dofs and Rigid Dofs not coincide "<<std::endl;
+  if((rVariables.SlaveNodeLinearBlockSize + rVariables.SlaveNodeAngularBlockSize) != 0){
+    if(rVariables.MasterLinearBlockSize != rVariables.SlaveNodeLinearBlockSize)
+      KRATOS_ERROR<<" Linear Deformable Dofs and Rigid Dofs not coincide "<<rVariables.SlaveNodeLinearBlockSize<<" !+ "<<rVariables.MasterLinearBlockSize<<std::endl;
 
-  if( rVariables.MasterAngularBlockSize < rVariables.SlaveNodeAngularBlockSize )
-    KRATOS_ERROR<<" Angular Deformable Dofs and Rigid Dofs not coincide "<<std::endl;
+    if(rVariables.MasterAngularBlockSize < rVariables.SlaveNodeAngularBlockSize)
+      KRATOS_ERROR<<" Angular Deformable Dofs and Rigid Dofs not coincide "<<rVariables.SlaveNodeAngularBlockSize<<" !+ "<<rVariables.MasterAngularBlockSize<<std::endl;
+  }
   
   array_1d<double,3> Distance;
   for(SizeType i=0; i<rVariables.RigidNodes.size(); ++i)
@@ -566,8 +571,7 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
   SizeType local_index = 0;
   for (WeakPointerVector<Element>::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
   {
-    std::cout<<" LINK "<<std::endl;
-    std::cout<<" SLAVE ELEMENT "<<ie->Id()<<" size "<<ie->GetGeometry().size()<<std::endl;
+    std::cout<<" SLAVE ELEMENT "<<ie->Id()<<" nodes "<<ie->GetGeometry().size()<<std::endl;
 
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -593,7 +597,7 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
     VectorType SlaveRightHandSideVector;
     //std::cout<<"[LINK]"<<std::endl;
     ie->CalculateLocalSystem(SlaveLeftHandSideMatrix,SlaveRightHandSideVector,rCurrentProcessInfo);
-
+    
     LinkedSystem.SetLeftHandSideMatrix(SlaveLeftHandSideMatrix);
     LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
 
