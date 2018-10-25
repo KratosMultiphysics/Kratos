@@ -142,6 +142,17 @@ ModelPart::~ModelPart()
 //       delete mpVariablesList;
 }
 
+void ModelPart::Clear()
+{
+    //wipe all of the submodelparts
+    mSubModelParts.clear();
+    mMeshes.clear();
+    mTables.clear();
+
+    this->AssignFlags( Flags() ); 
+
+}
+
 ModelPart::IndexType ModelPart::CreateSolutionStep()
 {
     KRATOS_THROW_ERROR(std::logic_error, "This method needs updating and is not working. Pooyan", "")
