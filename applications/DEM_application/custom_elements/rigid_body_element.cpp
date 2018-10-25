@@ -215,34 +215,34 @@ namespace Kratos {
     void RigidBodyElement3D::CollectForcesAndTorquesFromTheNodes() {
 
         Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE RBE
-        #pragma omp parallel
-        {
-            array_1d<double, 3>& center_forces = central_node.FastGetSolutionStepValue(TOTAL_FORCES);
-            array_1d<double, 3>& center_torque = central_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
-            center_forces[0] = center_forces[1] = center_forces[2] = center_torque[0] = center_torque[1] = center_torque[2] = 0.0;
 
-            #pragma omp for schedule(dynamic, 100)
-            for (int k = 0; k < (int)mListOfNodes.size(); k++) {
-                ModelPart::NodeIterator i = mListOfNodes.begin() + k;
+        array_1d<double, 3>& center_forces = central_node.FastGetSolutionStepValue(TOTAL_FORCES);
+        array_1d<double, 3>& center_torque = central_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
+        double center_forces_X = 0.0, center_forces_Y = 0.0, center_forces_Z = 0.0, center_torque_X = 0.0, center_torque_Y = 0.0, center_torque_Z = 0.0;
 
-                array_1d<double, 3>& node_forces = i->FastGetSolutionStepValue(CONTACT_FORCES);
-                center_forces[0] += node_forces[0];
-                center_forces[1] += node_forces[1];
-                center_forces[2] += node_forces[2];
+        #pragma omp parallel for schedule(dynamic, 100) reduction(+: center_forces_X, center_forces_Y, center_forces_Z, center_torque_X, center_torque_Y, center_torque_Z)
+        for (int k = 0; k < (int)mListOfNodes.size(); k++) {
+            ModelPart::NodeIterator i = mListOfNodes.begin() + k;
 
-                array_1d<double, 3>& node_position = i->Coordinates();
-                array_1d<double, 3> center_to_node_vector, additional_torque;
+            array_1d<double, 3>& node_forces = i->FastGetSolutionStepValue(CONTACT_FORCES);
+            center_forces_X += node_forces[0];
+            center_forces_Y += node_forces[1];
+            center_forces_Z += node_forces[2];
 
-                center_to_node_vector[0] = node_position[0] - central_node.Coordinates()[0];
-                center_to_node_vector[1] = node_position[1] - central_node.Coordinates()[1];
-                center_to_node_vector[2] = node_position[2] - central_node.Coordinates()[2];
+            array_1d<double, 3>& node_position = i->Coordinates();
+            array_1d<double, 3> center_to_node_vector, additional_torque;
 
-                GeometryFunctions::CrossProduct(center_to_node_vector, node_forces, additional_torque);
-                center_torque[0] += additional_torque[0];
-                center_torque[1] += additional_torque[1];
-                center_torque[2] += additional_torque[2];
-            }
+            center_to_node_vector[0] = node_position[0] - central_node.Coordinates()[0];
+            center_to_node_vector[1] = node_position[1] - central_node.Coordinates()[1];
+            center_to_node_vector[2] = node_position[2] - central_node.Coordinates()[2];
+
+            GeometryFunctions::CrossProduct(center_to_node_vector, node_forces, additional_torque);
+            center_torque_X += additional_torque[0];
+            center_torque_Y += additional_torque[1];
+            center_torque_Z += additional_torque[2];
         }
+        center_forces[0] = center_forces_X; center_forces[1] = center_forces_Y; center_forces[2] = center_forces_Z;
+        center_torque[0] = center_torque_X; center_torque[1] = center_torque_Y; center_torque[2] = center_torque_Z;
     }
 
     void RigidBodyElement3D::ComputeExternalForces(const array_1d<double,3>& gravity) {
