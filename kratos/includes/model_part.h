@@ -314,7 +314,7 @@ public:
     void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex);
 
     //this function returns the "Owner" Model
-    Model& GetOwnerModel()
+    Model& GetModel()
     {
         return mrOwnerModel;
     }

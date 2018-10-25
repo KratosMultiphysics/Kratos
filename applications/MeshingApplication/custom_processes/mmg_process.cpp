@@ -547,7 +547,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
     }
 
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
-    Model& owner_model = mrThisModelPart.GetOwnerModel();
+    Model& owner_model = mrThisModelPart.GetModel();
     ModelPart& r_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
 
     // First we empty the model part
@@ -2803,7 +2803,7 @@ void MmgProcess<TMMGLibray>::AssignAndClearAuxiliarSubModelPartForFlags()
 template<MMGLibray TMMGLibray>
 void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
 {
-    Model& owner_model = mrThisModelPart.GetOwnerModel();
+    Model& owner_model = mrThisModelPart.GetModel();
     ModelPart& auxiliar_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Auxiliar", mrThisModelPart.GetBufferSize());
     ModelPart& copy_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old_Copy", mrThisModelPart.GetBufferSize());
 
