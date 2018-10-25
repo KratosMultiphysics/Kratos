@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.247">
+<Kratos_Data version="1.2.248">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -640,6 +640,7 @@
         </Container>
         <Container id="DEM-AdvancedOptions" pid="Advanced options" class="Tab" help="More advanced options that modify the computation" open='0'>
             <Item id="DEM-CleanInitialIndentations" pid="Clean initial indentations" dv="Yes" ivalues="Yes,No" values="Yes,No" help="If activated, initial indentations between spheres and between spheres and walls are eliminated to avoid explosions (reducing the radius of the spheres accordigly)"/>
+            <Item id="DEM-RemoveBallsInitiallyTouchingWalls" pid="Remove spheres initially touching walls" dv="No" ivalues="Yes,No" values="Yes,No" help="If activated, all spheres touching any wall at the beginning of the computations will be eliminated"/>
             <Item id="DEM-TangencyTolerance" pid="Tangency tolerance" dv="Absolute" class="DEM-TangTolerance" ivalues="Absolute,Coordination_Number,None" values="Absolute,Coordination Number,None" help="Choose a margin by which the radius of the particle is incremented to obtain the seach radius. A larger than 0 value will allow for less frequent search"/>
             <Item id="DEM-TangencyToleranceValueAbsolute" pid="Tangency tolerance value" dv="0.0001" DEM-TangTolerance="Absolute" help=""/>
             <Item id="DEM-TangencyCoordinationNumber" pid="Coordination number" state="hidden" dv="10" DEM-TangTolerance="Coordination_Number" help=""/>

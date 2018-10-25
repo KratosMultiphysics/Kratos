@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.36">
+<Kratos_Data version="1.2.37">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -118,6 +118,7 @@
         </Container>
         <Container id="DEM-AdvancedOptions" pid="Advanced options" class="Tab" help="Advanced Options" open='0'>
             <Item id="DEM-CleanInitialIndentations" pid="Clean initial indentations" state="normal" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, initial indentations between spheres and between spheres and walls are eliminated to avoid explosions (reducing the radius of the spheres accordigly)"/>
+            <Item id="DEM-RemoveBallsInitiallyTouchingWalls" pid="Remove spheres initially touching walls" dv="No" ivalues="Yes,No" values="Yes,No" help="If activated, all spheres touching any wall at the beginning of the computations will be eliminated"/>
             <Item id="DEM-TangencyTolerance" pid="Tangency tolerance" dv="Absolute" class="DEM-TangTolerance" ivalues="Absolute,Coordination_Number,None" values="Absolute,Coordination Number,None" help="Choose if you want to set manually the maximum gap between particles at the beginning of the computation (Absolute) or if you prefer an automatic gap that tries to match a certain average Coordination Number"/>
             <Item id="DEM-TangencyToleranceValueAbsolute" pid="Tangency tolerance value" dv="0.0001" DEM-TangTolerance="Absolute" help="Choose the maximum admissible gap between two particles to consider them cohesive at the beginning of the computation"/>
             <Item id="DEM-TangencyCoordinationNumber" pid="Coordination number" dv="10" DEM-TangTolerance="Coordination_Number" help="Average number of contacts for each particle."/>
