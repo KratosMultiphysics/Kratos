@@ -266,9 +266,7 @@ void UniformRefinementUtility::ExecuteDivision(
 
         // Loop the edges to get or create the middle nodes
         for (auto edge : geom.Edges())
-        {
             middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
-        }
 
         switch(mElementMiddleNodes)
         {
@@ -297,15 +295,13 @@ void UniformRefinementUtility::ExecuteDivision(
                 for (int position = 0; position < 8; position++) // there are 8 sub tetrahedrons
                 {
                     sub_element_nodes = GetSubTetrahedraNodes(position, geom, middle_nodes);
-                    // CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
+                    CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
                 }
             }
-            case 19:
+            case 19: // Split the hexahedra
             {
                 for (auto face : geom.Faces())
-                {
                     middle_nodes[i_node++] = GetNodeInFace(face, step_divisions_level, rTagNodes);
-                }
                 middle_nodes[i_node++] = GetNodeInBody(geom, step_divisions_level, rTagNodes);
                 PointerVector<NodeType> sub_element_nodes(8);    // an hexahedra is defined by 8 nodes
                 for (int position = 0; position < 8; position++) // there are 8 sub hexahedrons
@@ -868,34 +864,66 @@ PointerVector<NodeType> UniformRefinementUtility::GetSubTetrahedraNodes(
     if (Position == 0)
     {
         // First sub element
+        sub_tetrahedra_nodes(0) = rGeom.pGetPoint(0);
+        sub_tetrahedra_nodes(1) = rMiddleNodes[0];
+        sub_tetrahedra_nodes(2) = rMiddleNodes[2];
+        sub_tetrahedra_nodes(3) = rMiddleNodes[3];
     }
     else if (Position == 1)
     {
         // Second sub element
+        sub_tetrahedra_nodes(0) = rMiddleNodes[0];
+        sub_tetrahedra_nodes(1) = rGeom.pGetPoint(1);
+        sub_tetrahedra_nodes(2) = rMiddleNodes[1];
+        sub_tetrahedra_nodes(3) = rMiddleNodes[4];
     }
     else if (Position == 2)
     {
         // Third sub element
+        sub_tetrahedra_nodes(0) = rMiddleNodes[2];
+        sub_tetrahedra_nodes(1) = rMiddleNodes[1];
+        sub_tetrahedra_nodes(2) = rGeom.pGetPoint(2);
+        sub_tetrahedra_nodes(3) = rMiddleNodes[5];
     }
     else if (Position == 3)
     {
         // Fourth sub element
+        sub_tetrahedra_nodes(0) = rMiddleNodes[3];
+        sub_tetrahedra_nodes(1) = rMiddleNodes[4];
+        sub_tetrahedra_nodes(2) = rMiddleNodes[5];
+        sub_tetrahedra_nodes(3) = rGeom.pGetPoint(3);
     }
     else if (Position == 4)
     {
-        // Fifth sub element
+        // Fifth sub element (inner element: Mesh quality is not conserved)
+        sub_tetrahedra_nodes(0) = rMiddleNodes[0];
+        sub_tetrahedra_nodes(1) = rMiddleNodes[1];
+        sub_tetrahedra_nodes(2) = rMiddleNodes[2];
+        sub_tetrahedra_nodes(3) = rMiddleNodes[3];
     }
     else if (Position == 5)
     {
-        // Sixth sub element
+        // Sixth sub element (inner element: Mesh quality is not conserved)
+        sub_tetrahedra_nodes(0) = rMiddleNodes[2];
+        sub_tetrahedra_nodes(1) = rMiddleNodes[3];
+        sub_tetrahedra_nodes(2) = rMiddleNodes[5];
+        sub_tetrahedra_nodes(3) = rMiddleNodes[4];
     }
     else if (Position == 6)
     {
-        // Seventh sub element
+        // Seventh sub element (inner element: Mesh quality is not conserved)
+        sub_tetrahedra_nodes(0) = rMiddleNodes[0];
+        sub_tetrahedra_nodes(1) = rMiddleNodes[3];
+        sub_tetrahedra_nodes(2) = rMiddleNodes[4];
+        sub_tetrahedra_nodes(3) = rMiddleNodes[1];
     }
     else if (Position == 7)
     {
-        // Eighth sub element
+        // Eighth sub element (inner element: Mesh quality is not conserved)
+        sub_tetrahedra_nodes(0) = rMiddleNodes[1];
+        sub_tetrahedra_nodes(1) = rMiddleNodes[4];
+        sub_tetrahedra_nodes(2) = rMiddleNodes[5];
+        sub_tetrahedra_nodes(3) = rMiddleNodes[2];
     }
     else
     {
