@@ -55,8 +55,10 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 "minimum_delta_time"  : 1e-2,
                 "maximum_delta_time"  : 1.0
             },
-            "periodic": "periodic",
-            "move_mesh_flag": false
+            "move_mesh_flag": false,
+            "is_slip": false,
+            "slip_length": 1e+8,
+            "penalty_coefficient": 10.0
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -75,6 +77,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         # TODO: Remove this once we finish the new implementations
         if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
             self.element_name = "EmbeddedSymbolicNavierStokes"
+
+        # TODO: Remove this once we finish the new implementations
+        if (self.settings["solver_type"].GetString() == "EmbeddedAusasDevelopment"):
+            self.settings["is_slip"].SetBool(True)
+            self.element_name = "EmbeddedSymbolicNavierStokesDiscontinuous"
 
         ## Construct the linear solver
         import linear_solver_factory
@@ -121,11 +128,13 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self._set_physical_properties()
             ## Sets the constitutive law
             self._set_constitutive_law()
+            ## Sets the embedded formulation configuration
+            self._SetEmbeddedFormulation()
             ## Setting the nodal distance
             self._set_distance_function()
 
     def Initialize(self):
-        self.computing_model_part = self.GetComputingModelPart()
+        computing_model_part = self.GetComputingModelPart()
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
@@ -139,7 +148,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,
+        self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(computing_model_part,
                                                                             self.settings["time_order"].GetInt())
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
@@ -147,7 +156,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.computing_model_part,
+        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
                                                                             time_scheme,
                                                                             self.linear_solver,
                                                                             self.conv_criteria,
@@ -204,6 +213,21 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.Newtonian2DLaw()
 
+    def _SetEmbeddedFormulation(self):
+        ## Select the embedded formulation(slip/no-slip) and set values accordingly
+        if (self.settings["is_slip"].GetBool()):
+            # Set the SLIP elemental flag to true in the entire domain
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLIP, True, self.GetComputingModelPart().Elements)
+            # Save the slip length value in ProcessInfo
+            slip_length = self.settings["slip_length"].GetDouble()
+            self.main_model_part.ProcessInfo[KratosCFD.SLIP_LENGTH] = slip_length
+        else:
+            # Set the SLIP elemental flag to false in the entire domain
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLIP, False, self.GetComputingModelPart().Elements)
+
+        ## Save the penalty coefficient value (used in both slip and no-slip formulations) in ProcessInfo
+        penalty_coefficient = self.settings["penalty_coefficient"].GetDouble()
+        self.main_model_part.ProcessInfo[KratosCFD.PENALTY_COEFFICIENT] = penalty_coefficient
 
     def _set_distance_function(self):
         ## Set the nodal distance function
