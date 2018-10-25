@@ -30,7 +30,7 @@ void ComputeCenterOfGravityProcess::Execute()
     array_1d<double, 3> center_of_gravity;
 
     // Now we iterate over the elements to calculate the total mass
-    ElementsArrayType& elements_array = mrThisModelPart.GetCommunicator().LocalMesh().Elements();
+    auto& elements_array = mrThisModelPart.GetCommunicator().LocalMesh().Elements();
 
     // Making this loop omp-parallel requires locking all the geometries & nodes, which
     // is most probably not worth the effort

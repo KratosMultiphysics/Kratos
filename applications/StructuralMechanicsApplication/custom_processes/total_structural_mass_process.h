@@ -57,15 +57,6 @@ public:
     /// Pointer definition of TotalStructuralMassProcess
     KRATOS_CLASS_POINTER_DEFINITION(TotalStructuralMassProcess);
 
-    // General type definitions
-    typedef Node<3>                                          NodeType;
-    typedef Point                                           PointType;
-    typedef Geometry<NodeType>                           GeometryType;
-    typedef Geometry<PointType>                     GeometryPointType;
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
-    typedef ModelPart::ElementsContainerType        ElementsArrayType;
-
     ///@}
     ///@name Life Cycle
     ///@{

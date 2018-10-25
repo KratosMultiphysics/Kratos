@@ -58,15 +58,6 @@ public:
     /// Pointer definition of ComputeCenterOfGravityProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeCenterOfGravityProcess);
 
-    // General type definitions
-    typedef Node<3>                                          NodeType;
-    typedef Point                                           PointType;
-    typedef Geometry<NodeType>                           GeometryType;
-    typedef Geometry<PointType>                     GeometryPointType;
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
-    typedef ModelPart::ElementsContainerType        ElementsArrayType;
-
     ///@}
     ///@name Life Cycle
     ///@{
