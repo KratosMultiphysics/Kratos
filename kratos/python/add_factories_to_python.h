@@ -7,19 +7,17 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 
-
-#if !defined(KRATOS_ADD_EQUATION_SYSTEMS_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_EQUATION_SYSTEMS_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_FACTORIES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_FACTORIES_TO_PYTHON_H_INCLUDED
 
 
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 
@@ -33,10 +31,10 @@ namespace Kratos
 namespace Python
 {
 
-void  AddEquationSystemsToPython();
+void  AddFactoriesToPython(pybind11::module& m);
 
 }  // namespace Python.
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_EQUATION_SYSTEMS_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_FACTORIES_TO_PYTHON_H_INCLUDED  defined
