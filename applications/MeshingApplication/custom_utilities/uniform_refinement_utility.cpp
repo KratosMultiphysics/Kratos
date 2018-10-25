@@ -99,6 +99,25 @@ void UniformRefinementUtility::Refine(int& rFinalRefinementLevel)
     else
         mDofs = mrModelPart.NodesBegin()->GetDofs();
 
+    if (mrModelPart.Elements().size() != 0)
+    {
+        // Get the geometry type
+        // NOTE: the geometry type should be the same for all the nodes and elements
+        Geometry<NodeType>& geom = mrModelPart.ElementsBegin()->GetGeometry();
+        if (geom.GetGeometryType() == GeometryData::Kratos_Triangle2D3)
+            mElementMiddleNodes = 4;
+        else if (geom.GetGeometryType() == GeometryData::Kratos_Triangle3D3)
+            mElementMiddleNodes = 4;
+        else if (geom.GetGeometryType() == GeometryData::Kratos_Quadrilateral2D4)
+            mElementMiddleNodes = 5;
+        else if (geom.GetGeometryType() == GeometryData::Kratos_Quadrilateral3D4)
+            mElementMiddleNodes = 5;
+        else if (geom.GetGeometryType() == GeometryData::Kratos_Tetrahedra3D4)
+            mElementMiddleNodes = 6;
+        else if (geom.GetGeometryType() == GeometryData::Kratos_Hexahedra3D8)
+            mElementMiddleNodes = 19;
+    }
+
     // Get the lowest refinement level
     int minimum_divisions_level = 1e6;
     const IndexType n_elements = mrModelPart.Elements().size();
@@ -241,42 +260,60 @@ void UniformRefinementUtility::ExecuteDivision(
         // Get the geometry
         Geometry<NodeType>& geom = i_element->GetGeometry();
 
-        if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
-        {
-            // Loop the edges of the father element and get the nodes
-            int i_edge = 0;
-            std::vector<NodeType::Pointer> middle_nodes(3);
-            for (auto edge : geom.Edges())
-                middle_nodes[i_edge++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+        // Initialize the vector of middle nodes
+        IndexType i_node = 0;
+        std::vector<NodeType::Pointer> middle_nodes(mElementMiddleNodes);
 
-            // Create the sub elements
-            PointerVector<NodeType> sub_element_nodes(3);
-            for (int position = 0; position < 4; position++)
-            {
-                sub_element_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
-                CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
-            }
-        }
-        else if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
+        // Loop the edges to get or create the middle nodes
+        for (auto edge : geom.Edges())
         {
-            // Loop the edges of the father element and get the nodes
-            int i_edge = 0;
-            std::vector<NodeType::Pointer> middle_nodes(5);
-            for (auto edge : geom.Edges())
-                middle_nodes[i_edge++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
-            middle_nodes[4] = GetNodeInFace(geom, step_divisions_level, rTagNodes);
+            middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+        }
 
-            // Create the sub elements
-            PointerVector<NodeType> sub_element_nodes(4);
-            for (int position = 0; position < 4; position++)
-            {
-                sub_element_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
-                CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
-            }
-        }
-        else
+        switch(mElementMiddleNodes)
         {
-            KRATOS_ERROR << "Your geometry contains " << geom.GetGeometryType() << " which cannot be refined" << std::endl;
+            case 3: // Split the triangle
+            {
+                PointerVector<NodeType> sub_element_nodes(3);    // a triangle is defined by 3 nodes
+                for (int position = 0; position < 4; position++) // there are 4 sub triangles
+                {
+                    sub_element_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
+                    CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
+                }
+            }
+            case 5: // Split the quadrilateral
+            {
+                middle_nodes[i_node++] = GetNodeInFace(geom, step_divisions_level, rTagNodes);
+                PointerVector<NodeType> sub_element_nodes(4);    // a quadrilateral is defined by 4 nodes
+                for (int position = 0; position < 4; position++) // there are 4 sub quadrilateral
+                {
+                    sub_element_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
+                    CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
+                }
+            }
+            case 6: // Split the tetrahedra
+            {
+                PointerVector<NodeType> sub_element_nodes(4);    // a tetrahedra is defined by 4 nodes
+                for (int position = 0; position < 8; position++) // there are 8 sub tetrahedrons
+                {
+                    sub_element_nodes = GetSubTetrahedraNodes(position, geom, middle_nodes);
+                    // CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
+                }
+            }
+            case 19:
+            {
+                for (auto face : geom.Faces())
+                {
+                    middle_nodes[i_node++] = GetNodeInFace(face, step_divisions_level, rTagNodes);
+                }
+                middle_nodes[i_node++] = GetNodeInBody(geom, step_divisions_level, rTagNodes);
+                PointerVector<NodeType> sub_element_nodes(8);    // an hexahedra is defined by 8 nodes
+                for (int position = 0; position < 8; position++) // there are 8 sub hexahedrons
+                {
+                    sub_element_nodes = GetSubHexahedraNodes(position, geom, middle_nodes);
+                    CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
+                }
+            }
         }
 
         // Once we have created all the sub elements, the origin element must be deleted
@@ -673,7 +710,7 @@ void UniformRefinementUtility::CreateCondition(
     PointerVector<NodeType>& rThisNodes,
     const int& rNumberOfDivisions,
     IndexIndexVectorMapType& rTagConds
-    )
+)
 {
     Condition::Pointer sub_condition = pOriginCondition->Clone(++mLastCondId, rThisNodes);
 
@@ -699,7 +736,7 @@ PointerVector<NodeType> UniformRefinementUtility::GetSubLineNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
     NodeType::Pointer& rMiddleNode
-    )
+)
 {
     PointerVector<NodeType> sub_line_nodes(2);
 
@@ -729,7 +766,7 @@ PointerVector<NodeType> UniformRefinementUtility::GetSubTriangleNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
     std::vector<NodeType::Pointer>& rMiddleNodes
-    )
+)
 {
     PointerVector<NodeType> sub_triangle_nodes(3);
 
@@ -774,7 +811,7 @@ PointerVector<NodeType> UniformRefinementUtility::GetSubQuadrilateralNodes(
     const int Position,
     const Geometry<NodeType>& rGeom,
     std::vector<NodeType::Pointer>& rMiddleNodes
-    )
+)
 {
     PointerVector<NodeType> sub_quadrilateral_nodes(4);
 
@@ -816,6 +853,169 @@ PointerVector<NodeType> UniformRefinementUtility::GetSubQuadrilateralNodes(
     }
 
     return sub_quadrilateral_nodes;
+}
+
+
+/// Return the nodes defining the i-tetrahedra
+PointerVector<NodeType> UniformRefinementUtility::GetSubTetrahedraNodes(
+    const int Position,
+    const Geometry<NodeType>& rGeom,
+    std::vector<NodeType::Pointer>& rMiddleNodes
+)
+{
+    PointerVector<NodeType> sub_tetrahedra_nodes(4);
+
+    if (Position == 0)
+    {
+        // First sub element
+    }
+    else if (Position == 1)
+    {
+        // Second sub element
+    }
+    else if (Position == 2)
+    {
+        // Third sub element
+    }
+    else if (Position == 3)
+    {
+        // Fourth sub element
+    }
+    else if (Position == 4)
+    {
+        // Fifth sub element
+    }
+    else if (Position == 5)
+    {
+        // Sixth sub element
+    }
+    else if (Position == 6)
+    {
+        // Seventh sub element
+    }
+    else if (Position == 7)
+    {
+        // Eighth sub element
+    }
+    else
+    {
+        KRATOS_ERROR << "Attempting to get " << Position << " sub-tetrahedra inside a tetrahedra" << std::endl;
+    }
+
+    return sub_tetrahedra_nodes;
+}
+
+/// Return the nodes defining the i-tetrahedra
+PointerVector<NodeType> UniformRefinementUtility::GetSubHexahedraNodes(
+    const int Position,
+    const Geometry<NodeType>& rGeom,
+    std::vector<NodeType::Pointer>& rMiddleNodes
+)
+{
+    PointerVector<NodeType> sub_hexahedra_nodes(8);
+
+    if (Position == 0)
+    {
+        // Firs sub element
+        sub_hexahedra_nodes(0) = rGeom.pGetPoint(0);
+        sub_hexahedra_nodes(1) = rMiddleNodes[0];
+        sub_hexahedra_nodes(2) = rMiddleNodes[12];
+        sub_hexahedra_nodes(3) = rMiddleNodes[3];
+        sub_hexahedra_nodes(4) = rMiddleNodes[8];
+        sub_hexahedra_nodes(5) = rMiddleNodes[13];
+        sub_hexahedra_nodes(6) = rMiddleNodes[18];
+        sub_hexahedra_nodes(7) = rMiddleNodes[16];
+    }
+    else if (Position == 1)
+    {
+        // Second sub element
+        sub_hexahedra_nodes(0) = rMiddleNodes[0];
+        sub_hexahedra_nodes(1) = rGeom.pGetPoint(1);
+        sub_hexahedra_nodes(2) = rMiddleNodes[1];
+        sub_hexahedra_nodes(3) = rMiddleNodes[12];
+        sub_hexahedra_nodes(4) = rMiddleNodes[13];
+        sub_hexahedra_nodes(5) = rMiddleNodes[9];
+        sub_hexahedra_nodes(6) = rMiddleNodes[14];
+        sub_hexahedra_nodes(7) = rMiddleNodes[18];
+    }
+    else if (Position == 2)
+    {
+        // Third sub element
+        sub_hexahedra_nodes(0) = rMiddleNodes[12];
+        sub_hexahedra_nodes(1) = rMiddleNodes[1];
+        sub_hexahedra_nodes(2) = rGeom.pGetPoint(2);
+        sub_hexahedra_nodes(3) = rMiddleNodes[2];
+        sub_hexahedra_nodes(4) = rMiddleNodes[18];
+        sub_hexahedra_nodes(5) = rMiddleNodes[14];
+        sub_hexahedra_nodes(6) = rMiddleNodes[10];
+        sub_hexahedra_nodes(7) = rMiddleNodes[15];
+    }
+    else if (Position == 3)
+    {
+        // Fourth sub element
+        sub_hexahedra_nodes(0) = rMiddleNodes[3];
+        sub_hexahedra_nodes(1) = rMiddleNodes[12];
+        sub_hexahedra_nodes(2) = rMiddleNodes[2];
+        sub_hexahedra_nodes(3) = rGeom.pGetPoint(3);
+        sub_hexahedra_nodes(4) = rMiddleNodes[16];
+        sub_hexahedra_nodes(5) = rMiddleNodes[18];
+        sub_hexahedra_nodes(6) = rMiddleNodes[15];
+        sub_hexahedra_nodes(7) = rMiddleNodes[11];
+    }
+    else if (Position == 4)
+    {
+        // Fifth sub element
+        sub_hexahedra_nodes(0) = rMiddleNodes[8];
+        sub_hexahedra_nodes(1) = rMiddleNodes[13];
+        sub_hexahedra_nodes(2) = rMiddleNodes[18];
+        sub_hexahedra_nodes(3) = rMiddleNodes[16];
+        sub_hexahedra_nodes(4) = rGeom.pGetPoint(4);
+        sub_hexahedra_nodes(5) = rMiddleNodes[4];
+        sub_hexahedra_nodes(6) = rMiddleNodes[17];
+        sub_hexahedra_nodes(7) = rMiddleNodes[7];
+    }
+    else if (Position == 5)
+    {
+        // Sixth sub element
+        sub_hexahedra_nodes(0) = rMiddleNodes[13];
+        sub_hexahedra_nodes(1) = rMiddleNodes[9];
+        sub_hexahedra_nodes(2) = rMiddleNodes[14];
+        sub_hexahedra_nodes(3) = rMiddleNodes[18];
+        sub_hexahedra_nodes(4) = rMiddleNodes[4];
+        sub_hexahedra_nodes(5) = rGeom.pGetPoint(5);
+        sub_hexahedra_nodes(6) = rMiddleNodes[5];
+        sub_hexahedra_nodes(7) = rMiddleNodes[17];
+    }
+    else if (Position == 6)
+    {
+        // Seventh sub element
+        sub_hexahedra_nodes(0) = rMiddleNodes[18];
+        sub_hexahedra_nodes(1) = rMiddleNodes[14];
+        sub_hexahedra_nodes(2) = rMiddleNodes[10];
+        sub_hexahedra_nodes(3) = rMiddleNodes[15];
+        sub_hexahedra_nodes(4) = rMiddleNodes[17];
+        sub_hexahedra_nodes(5) = rMiddleNodes[5];
+        sub_hexahedra_nodes(6) = rGeom.pGetPoint(6);
+        sub_hexahedra_nodes(7) = rMiddleNodes[6];
+    }
+    else if (Position == 7)
+    {
+        // Eighth sub element
+        sub_hexahedra_nodes(0) = rMiddleNodes[16];
+        sub_hexahedra_nodes(1) = rMiddleNodes[18];
+        sub_hexahedra_nodes(2) = rMiddleNodes[15];
+        sub_hexahedra_nodes(3) = rMiddleNodes[11];
+        sub_hexahedra_nodes(4) = rMiddleNodes[7];
+        sub_hexahedra_nodes(5) = rMiddleNodes[17];
+        sub_hexahedra_nodes(6) = rMiddleNodes[6];
+        sub_hexahedra_nodes(7) = rGeom.pGetPoint(7);
+    }
+    else
+    {
+        KRATOS_ERROR << "Attempting to get " << Position << " sub-hexahedra inside a hexahedra" << std::endl;
+    }
+
+    return sub_hexahedra_nodes;
 }
 
 

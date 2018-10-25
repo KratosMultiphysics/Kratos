@@ -258,6 +258,9 @@ private:
     IndexType mLastCondId;           /// The condition Id
     IndexType mStepDataSize;         /// The size of the nodal database
     IndexType mBufferSize;           /// The buffer size
+    IndexType mElementMiddleNodes;   /// The number of middle nodes to create
+    IndexType mConditionMiddleNodes; /// The number of middle nodes to create
+
     NodeType::DofsContainerType mDofs;  /// Storage for the dof of the node
 
     NodesInEdgeMapType mNodesMap;              /// Where the father nodes IDs are stored
@@ -447,7 +450,7 @@ private:
 
     /**
      * @brief GetSubLineNodes gets the connectivity of a sub-line inside a geometry and the new node
-     * @param Position The index which defines the sub-line
+     * @param Position The index which defines the i sub-line
      * @param rGeom The original geometry
      * @param rMiddleNode The node which divides the original geometry
      * @return The nodes defining the sub-line
@@ -459,9 +462,9 @@ private:
         );
 
     /**
-     * @brief GetSubTriangleNodes gets the connectivity of a sub-triangle inside a
+     * @brief This method gets the connectivity of a sub-triangle inside a
      * geometry and the new nodes
-     * @param Position The index which defines the sub-triangle
+     * @param Position The index which defines the i sub-triangle
      * @param rGeom The original geometry
      * @param rMiddleNode The nodes which divides the original geometry
      * @return The nodes defining the sub-triangle
@@ -473,9 +476,9 @@ private:
         );
 
     /**
-     * @brief GetSubQuadrilateralNodes gets the connectivity of a sub-quadrilateral inside
+     * @brief This method gets the connectivity of a sub-quadrilateral inside
      * a geometry and the new nodes
-     * @param Position The index which defines the sub-quadrilateral
+     * @param Position The index which defines the i sub-quadrilateral
      * @param rGeom The original geometry
      * @param rMiddleNode The node which divides the original geometry
      * @return The nodes defining the sub-quadrilateral
@@ -485,6 +488,35 @@ private:
         const Geometry<NodeType>& rGeom,
         std::vector<NodeType::Pointer>& rMiddleNodes
         );
+
+    /**
+     * @brief This method gets the connectivity of a sub-tetrahedra inside
+     * a geometry and the new nodes
+     * @param Position The index which defines the i sub-tetrahedra
+     * @param rGeom The original geometry
+     * @param rMiddleNode The node which divides the original geometry
+     * @return The nodes defining the sub-tetrahedra
+     */
+PointerVector<NodeType> GetSubTetrahedraNodes(
+    const int Position,
+    const Geometry<NodeType>& rGeom,
+    std::vector<NodeType::Pointer>& rMiddleNodes
+    );
+
+    /**
+     * @brief This method gets the connectivity of a sub-hexahedra inside
+     * a geometry and the new nodes
+     * @param Position The index which defines the i sub-hexahedra
+     * @param rGeom The original geometry
+     * @param rMiddleNode The node which divides the original geometry
+     * @return The nodes defining the sub-hexahedra
+     */
+PointerVector<NodeType> GetSubHexahedraNodes(
+    const int Position,
+    const Geometry<NodeType>& rGeom,
+    std::vector<NodeType::Pointer>& rMiddleNodes
+    );
+
 
     ///@}
     ///@name Private  Access
