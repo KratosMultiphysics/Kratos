@@ -42,11 +42,12 @@ void KratosCompressiblePotentialFlowApplication::Register()
  	std::cout << "Initializing KratosCompressiblePotentialFlowApplication... " << std::endl;
 
         // Register Variables (defined in compressible_potential_flow_application_variables.h)
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_INFINITY);
-        KRATOS_REGISTER_VARIABLE( WAKE_ELEMENTAL_DISTANCES );
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_INFINITY);        
         KRATOS_REGISTER_VARIABLE( POSITIVE_POTENTIAL );
         KRATOS_REGISTER_VARIABLE( NEGATIVE_POTENTIAL );
         KRATOS_REGISTER_VARIABLE( WAKE_DISTANCE );
+        KRATOS_REGISTER_VARIABLE( LEVEL_SET_DISTANCE );
+        KRATOS_REGISTER_VARIABLE( LEVEL_SET_ELEMENTAL_DISTANCES );
 
         //Register elements
         KRATOS_REGISTER_ELEMENT("CompressiblePotentialFlowElement2D3N",mCompressiblePotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
