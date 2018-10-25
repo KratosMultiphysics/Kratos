@@ -479,8 +479,7 @@ class Procedures(object):
                 model_part.AddNodalSolutionStepVariable(ROLLING_RESISTANCE_MOMENT)
 
         # OTHER PROPERTIES
-        model_part.AddNodalSolutionStepVariable(
-            PARTICLE_MATERIAL)   # Colour defined in GiD
+        model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
 
         if "PostSkinSphere" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostSkinSphere"].GetBool():
@@ -882,10 +881,10 @@ class DEMFEMProcedures(object):
 
         self.fem_mesh_nodes = []
 
-        self.graph_counter = 0
+        self.graph_counter = 1
         self.balls_graph_counter = 0
 
-        self.graph_frequency = int(self.DEM_parameters["GraphExportFreq"].GetDouble() / spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))
+        self.graph_frequency = int((self.DEM_parameters["GraphExportFreq"].GetDouble() / spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))+1.0)
         if self.graph_frequency < 1:
             # that means it is not possible to print results with a higher frequency than the computations delta time
             self.graph_frequency = 1
@@ -1471,15 +1470,15 @@ class DEMIo(object):
         self.PushPrintVar(self.PostDisplacement, DISPLACEMENT, self.global_variables)
         self.PushPrintVar(self.PostVelocity, VELOCITY, self.global_variables)
         self.PushPrintVar(self.PostTotalForces, TOTAL_FORCES, self.global_variables)
+        if self.DEM_parameters["PostAngularVelocity"].GetBool():
+            self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY, self.global_variables)
+        if self.DEM_parameters["PostParticleMoment"].GetBool():
+            self.PushPrintVar(self.PostParticleMoment, PARTICLE_MOMENT, self.global_variables)
 
     def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_FORCE,  self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_MOMENT, self.spheres_and_clusters_variables)
         self.PushPrintVar(self.PostRigidElementForces,  RIGID_ELEMENT_FORCE,     self.spheres_and_clusters_variables)
-        if self.DEM_parameters["PostAngularVelocity"].GetBool():
-            self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY, self.spheres_and_clusters_variables)
-        if self.DEM_parameters["PostParticleMoment"].GetBool():
-            self.PushPrintVar(self.PostParticleMoment, PARTICLE_MOMENT, self.spheres_and_clusters_variables)
 
     # variables common to spheres and clusters
     def AddSpheresNotInClusterAndClustersVariables(self):
@@ -1549,7 +1548,7 @@ class DEMIo(object):
     def AddClusterVariables(self):
 
         if self.PostCharacteristicLength:
-            self.PushPrintVar(self.PostRadius, CHARACTERISTIC_LENGTH, self.clusters_variables)
+            self.PushPrintVar(self.PostCharacteristicLength, CHARACTERISTIC_LENGTH, self.clusters_variables)
 
         if self.DEM_parameters["PostEulerAngles"].GetBool():
             # JIG: SHOULD BE REMOVED IN THE FUTURE
@@ -1559,12 +1558,12 @@ class DEMIo(object):
             #self.PushPrintVar(self.PostEulerAngles, ORIENTATION, self.clusters_variables)
 
     def AddRigidBodyVariables(self):
-        #self.PushPrintVar(1,                         ANGULAR_VELOCITY,             self.rigid_body_variables)
+        pass
         #self.PushPrintVar(1,                         PARTICLE_MOMENT,              self.rigid_body_variables)
         #self.PushPrintVar(1,                         DELTA_DISPLACEMENT,           self.rigid_body_variables)
         #self.PushPrintVar(1,                         DELTA_ROTATION,               self.rigid_body_variables)
-        self.PushPrintVar(1,                         EXTERNAL_APPLIED_FORCE,       self.rigid_body_variables)
-        self.PushPrintVar(1,                         EXTERNAL_APPLIED_MOMENT,      self.rigid_body_variables)
+        #self.PushPrintVar(1,                         EXTERNAL_APPLIED_FORCE,       self.rigid_body_variables)
+        #self.PushPrintVar(1,                         EXTERNAL_APPLIED_MOMENT,      self.rigid_body_variables)
 
     def AddContactVariables(self):
         # Contact Elements Variables
@@ -1741,8 +1740,7 @@ class DEMIo(object):
 
     def PrintingSpheresVariables(self, export_model_part, time):
         for variable in self.spheres_variables:
-            self.gid_io.WriteNodalResults(
-                variable, export_model_part.Nodes, time, 0)
+            self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
         for variable in self.spheres_local_axis_variables:
             self.gid_io.WriteLocalAxesOnNodes(variable, export_model_part.Nodes, time, 0)
 
@@ -1788,6 +1786,7 @@ class DEMIo(object):
         self.PrintingSpheresNotInClusterAndClustersVariables(self.mixed_spheres_not_in_cluster_and_clusters_model_part, time)
         self.PrintingSpheresVariables(self.spheres_model_part, time)
         self.PrintingFEMBoundaryVariables(self.rigid_face_model_part, time)
+        self.PrintingRigidBodyVariables(self.rigid_face_model_part, time)
         self.PrintingClusterVariables(self.cluster_model_part, time)
         self.PrintingContactElementsVariables(self.contact_model_part, time)
 
