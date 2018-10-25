@@ -122,7 +122,7 @@ namespace Kratos
 
             KRATOS_WATCH(PointLoads[0])
 
-            SetValueOnIntegrationPoints(EXTERNAL_FORCES_VECTOR, PointLoads, rCurrentProcessInfo);
+            //SetValueOnIntegrationPoints(EXTERNAL_FORCES_VECTOR, PointLoads, rCurrentProcessInfo);
         }
     }
 } // Namespace Kratos
