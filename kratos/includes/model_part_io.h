@@ -548,7 +548,7 @@ private:
 
     void ResetInput();
 
-    inline void CreatePartition(unsigned int NumberOfThreads,const int number_of_rows, DenseVector<unsigned int>& partitions);
+    inline void CreatePartition(unsigned int NumberOfThreads,const int NumberOfRows, DenseVector<unsigned int>& partitions);
 
     inline void EndSection(const std::string& rString);
 
