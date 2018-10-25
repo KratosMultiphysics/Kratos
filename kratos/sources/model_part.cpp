@@ -144,7 +144,7 @@ ModelPart::~ModelPart()
 
 void ModelPart::Clear()
 {
-    //wipe all of the submodelparts
+    // Wipe all of the submodelparts
     mSubModelParts.clear();
     mMeshes.clear();
     mTables.clear();
