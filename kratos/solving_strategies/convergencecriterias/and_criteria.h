@@ -21,7 +21,9 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/kratos_components.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "includes/convergence_criteria_factory.h"
 
 namespace Kratos
 {
@@ -79,16 +81,37 @@ public:
 
     typedef typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
 
+    typedef ConvergenceCriteriaFactory< TSparseSpace, TDenseSpace > ConvergenceCriteriaFactoryType;
+
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @details It takes two different convergence criteria in order to work
+     */
+    explicit And_Criteria(Kratos::Parameters Settings)
+        :BaseType()
+    {
+        // We check if the criterias are defined
+        if (Settings.Has("first_criterion_settings") && Settings.Has("second_criterion_settings")) {
+            mpFirstCriterion = ConvergenceCriteriaFactoryType().Create(Settings["first_criterion_settings"]);
+            mpSecondCriterion = ConvergenceCriteriaFactoryType().Create(Settings["second_criterion_settings"]);
+        } else { // Displacement criteria and residual criteria will be combined
+            Settings["convergence_criterion"].SetString("displacement_criterion");
+            mpFirstCriterion = ConvergenceCriteriaFactoryType().Create(Settings);
+            Settings["convergence_criterion"].SetString("residual_criterion");
+            mpSecondCriterion = ConvergenceCriteriaFactoryType().Create(Settings);
+        }
+    }
 
     /**
      * @brief Default constructor.
      * @details It takes two different convergence criteria in order to work
      * @param pFirstCriterion The first convergence criteria
      * @param pSecondCriterion The second convergence criteria
-    */
+     */
     explicit And_Criteria(
         ConvergenceCriteriaPointerType pFirstCriterion,
         ConvergenceCriteriaPointerType pSecondCriterion
@@ -101,7 +124,7 @@ public:
     /**
      * @brief Copy constructor.
      * @param rOther The other And_Criteria to be copied
-    */
+     */
     explicit And_Criteria(And_Criteria const& rOther)
         :BaseType(rOther),
          mpFirstCriterion(rOther.mpFirstCriterion),

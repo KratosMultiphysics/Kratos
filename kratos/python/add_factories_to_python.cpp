@@ -16,12 +16,12 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define_python.h"
 #include "python/add_factories_to_python.h"
 #include "includes/linear_solver_factory.h"
 #include "includes/preconditioner_factory.h"
+#include "includes/convergence_criteria_factory.h"
 
 namespace Kratos
 {
@@ -44,6 +44,7 @@ void  AddFactoriesToPython(pybind11::module& m)
     typedef LinearSolverFactory< SpaceType, LocalSpaceType > LinearSolverFactoryType;
     typedef LinearSolverFactory< ComplexSpaceType, ComplexLocalSpaceType > ComplexLinearSolverFactoryType;
     typedef PreconditionerFactory< SpaceType, LocalSpaceType > PreconditionerFactoryType;
+    typedef ConvergenceCriteriaFactory< SpaceType, LocalSpaceType > ConvergenceCriteriaFactoryType;
 
     class_<LinearSolverFactoryType, LinearSolverFactoryType::Pointer>(m, "LinearSolverFactory")
      .def( init< >() )
@@ -60,6 +61,13 @@ void  AddFactoriesToPython(pybind11::module& m)
     class_<PreconditionerFactoryType, PreconditionerFactoryType::Pointer >(m, "PreconditionerFactory")
      .def( init< >() )
      .def("Create",&PreconditionerFactoryType::Create)
+     .def("Has",&PreconditionerFactoryType::Has)
+    ;
+
+    class_<ConvergenceCriteriaFactoryType, ConvergenceCriteriaFactoryType::Pointer >(m, "ConvergenceCriteriaFactory")
+     .def( init< >() )
+     .def("Create",&ConvergenceCriteriaFactoryType::Create)
+     .def("Has",&ConvergenceCriteriaFactoryType::Has)
     ;
 
 }
