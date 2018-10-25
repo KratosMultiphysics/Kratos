@@ -25,7 +25,7 @@
         "max_iteration"                      : 10,
 		"move_mesh_flag"					 : true,
         "linear_solver_settings"             : {
-            "solver_type" : "Super_LU",
+            "solver_type" : "SuperLUSolver",
             "scaling"     : false,
             "verbosity"   : 0
         },

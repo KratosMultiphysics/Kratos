@@ -30,6 +30,8 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/standard_linear_solver_factory.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/standard_preconditioner_factory.cpp;
     #${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/fast_transfer_between_model_parts_process.cpp;
@@ -74,7 +76,6 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/elements/mesh_element.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/conditions/mesh_condition.cpp;
-
 )
 
 ## Kratos python interface code
@@ -106,6 +107,7 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_node_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_linear_solvers_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_factories_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_strategies_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_process_info_to_python.cpp
