@@ -34,6 +34,7 @@
 #include "custom_processes/embedded_postprocess_process.h"
 #include "custom_processes/embedded_skin_visualization_process.h"
 #include "custom_processes/move_rotor_process.h"
+#include "custom_processes/mass_conservation_check_process.h"
 #include "spaces/ublas_space.h"
 
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -113,6 +114,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(init< ModelPart&, Parameters& >())
     ;
 
+    class_<MassConservationCheckProcess, MassConservationCheckProcess::Pointer, Process>
+    (m,"MassConservationCheckProcess")
+    .def(init < ModelPart&, const bool, const int, const bool, const bool >())
+    .def(init< ModelPart&, Parameters& >())
+    ;
 }
 
 } // namespace Python.
