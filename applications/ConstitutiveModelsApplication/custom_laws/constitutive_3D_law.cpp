@@ -299,7 +299,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void Constitutive3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
+  void Constitutive3DLaw::InitializeMaterial( const Properties& rProperties,
 					      const GeometryType& rElementGeometry,
 					      const Vector& rShapeFunctionsValues )
   {
@@ -312,7 +312,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void Constitutive3DLaw::InitializeSolutionStep( const Properties& rMaterialProperties,
+  void Constitutive3DLaw::InitializeSolutionStep( const Properties& rProperties,
 						  const GeometryType& rElementGeometry, //this is just to give the array of nodes
 						  const Vector& rShapeFunctionsValues,
 						  const ProcessInfo& rCurrentProcessInfo)
@@ -326,7 +326,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void Constitutive3DLaw::FinalizeSolutionStep( const Properties& rMaterialProperties,
+  void Constitutive3DLaw::FinalizeSolutionStep( const Properties& rProperties,
 						const GeometryType& rElementGeometry, //this is just to give the array of nodes
 						const Vector& rShapeFunctionsValues,
 						const ProcessInfo& rCurrentProcessInfo)
@@ -866,7 +866,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  int Constitutive3DLaw::Check(const Properties& rMaterialProperties,
+  int Constitutive3DLaw::Check(const Properties& rProperties,
 			       const GeometryType& rElementGeometry,
 			       const ProcessInfo& rCurrentProcessInfo)
   {

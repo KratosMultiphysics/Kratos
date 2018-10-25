@@ -114,12 +114,6 @@ class PythonMPI
 {
 public:
 
-    enum MPI_Operation {
-        MAX,
-        MIN,
-        SUM
-    };
-
 	/// Default constructor.
 	/** Initializes MPI if required and defines a wrapper for MPI_COMM_WORLD,
 	 * which can be accessed by calling GetWorld().
@@ -250,16 +244,43 @@ public:
     TValueType reduce(PythonMPIComm& rComm,
                       const TValueType LocalValue,
                       const int RankToReduceOn,
-                      const MPI_Operation MpiOp)
+                      const MPI_Op MpiOp)
 	{
 		// Determine data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
         TValueType result_val;
         MPI_Reduce(&LocalValue, &result_val, 1, DataType,
-                   GetMPIOpType(MpiOp), RankToReduceOn, rComm.GetMPIComm());
+                   MpiOp, RankToReduceOn, rComm.GetMPIComm());
 
         return result_val;
+    }
+
+    /// Wrapper for MPI_Reduce to compute the maximum number on a rank
+	template<class TValueType>
+    TValueType max(PythonMPIComm& rComm,
+                   const TValueType LocalValue,
+                   const int RankToReduceOn)
+	{
+        return reduce(rComm, LocalValue, RankToReduceOn, MPI_MAX);
+    }
+
+    /// Wrapper for MPI_Reduce to compute the minimum number on a rank
+	template<class TValueType>
+    TValueType min(PythonMPIComm& rComm,
+                   const TValueType LocalValue,
+                   const int RankToReduceOn)
+	{
+        return reduce(rComm, LocalValue, RankToReduceOn, MPI_MIN);
+    }
+
+    /// Wrapper for MPI_Reduce to compute the sum of number on a rank
+	template<class TValueType>
+    TValueType sum(PythonMPIComm& rComm,
+                   const TValueType LocalValue,
+                   const int RankToReduceOn)
+	{
+        return reduce(rComm, LocalValue, RankToReduceOn, MPI_SUM);
     }
 
 	/// Perform a MPI_Allreduce operation.
@@ -273,16 +294,40 @@ public:
 	template<class TValueType>
     TValueType allreduce(PythonMPIComm& rComm,
                          const TValueType LocalValue,
-                         const MPI_Operation MpiOp)
+                         const MPI_Op MpiOp)
 	{
 		// Determine data type
 		const MPI_Datatype DataType = this->GetMPIDatatype(LocalValue);
 
         TValueType result_val;
         MPI_Allreduce(&LocalValue, &result_val, 1, DataType,
-                      GetMPIOpType(MpiOp), rComm.GetMPIComm());
+                      MpiOp, rComm.GetMPIComm());
 
         return result_val;
+    }
+
+	/// Wrapper for MPI_Allreduce to compute the maximum number on all ranks
+	template<class TValueType>
+    TValueType max_all(PythonMPIComm& rComm,
+                   const TValueType LocalValue)
+	{
+        return allreduce(rComm, LocalValue, MPI_MAX);
+    }
+
+    /// Wrapper for MPI_Allreduce to compute the minimum number on all ranks
+	template<class TValueType>
+    TValueType min_all(PythonMPIComm& rComm,
+                   const TValueType LocalValue)
+	{
+        return allreduce(rComm, LocalValue, MPI_MIN);
+    }
+
+    /// Wrapper for MPI_Allreduce to compute the sum of numbers on all ranks
+	template<class TValueType>
+    TValueType sum_all(PythonMPIComm& rComm,
+                   const TValueType LocalValue)
+	{
+        return allreduce(rComm, LocalValue, MPI_SUM);
     }
 
 	/// Perform a MPI_Scatter operation.
@@ -505,18 +550,6 @@ private:
     /// An auxiliary function to determine the MPI_Datatype corresponding to a given C type
     template<class T>
     inline MPI_Datatype GetMPIDatatype(const T& Value);
-
-    /// An auxiliary function to determine the MPI_Op corresponding to a given Enum type
-    /// This is necessary bcs MPI_Op cannot be directly exposed to Python
-    inline MPI_Op GetMPIOpType(const MPI_Operation MPIOpEnum)
-    {
-        switch(MPIOpEnum) {
-	        case MAX: return MPI_MAX;
-	        case MIN: return MPI_MIN;
-	        case SUM: return MPI_SUM;
-        	default: break;
-        }
-    }
 
 	int mArgc;
 

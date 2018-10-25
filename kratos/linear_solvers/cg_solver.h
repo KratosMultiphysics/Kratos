@@ -11,25 +11,20 @@
 //                   Riccardo Rossi
 //
 
-
-
 #if !defined(KRATOS_CG_SOLVER_H_INCLUDED )
 #define  KRATOS_CG_SOLVER_H_INCLUDED
-
 
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
-
+#include "includes/preconditioner_factory.h"
 
 namespace Kratos
 {
@@ -89,10 +84,16 @@ public:
 
     CGSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
         BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner) {}
-        
-    CGSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()):
+
+    CGSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner):
         BaseType(settings, pNewPreconditioner) {}
 
+    CGSolver(Parameters settings):
+        BaseType(settings)
+    {
+        if(settings.Has("preconditioner_type"))
+            BaseType::SetPreconditioner( PreconditionerFactory<TSparseSpaceType,TDenseSpaceType>().Create(settings["preconditioner_type"].GetString()) );
+    }
 
     /// Copy constructor.
     CGSolver(const CGSolver& Other) : BaseType(Other) {}
@@ -393,6 +394,6 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CG_SOLVER_H_INCLUDED  defined 
+#endif // KRATOS_CG_SOLVER_H_INCLUDED  defined
 
 

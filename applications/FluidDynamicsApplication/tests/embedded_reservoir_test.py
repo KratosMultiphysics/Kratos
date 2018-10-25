@@ -88,6 +88,10 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
             import python_solvers_wrapper_fluid
             self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
 
+            ## Set the "is_slip" field in the json settings (to avoid duplication it is set to false in all tests)
+            if self.slip_level_set and self.solver.settings.Has("is_slip"):
+                self.ProjectParameters["solver_settings"]["is_slip"].SetBool(True)
+
             self.solver.AddVariables()
 
             ## Read the model - note that SetBufferSize is done here
@@ -130,10 +134,6 @@ class EmbeddedReservoirTest(UnitTest.TestCase):
             for i_node in range(0,n_nodes):
                 elem_dist[i_node] = elem_nodes[i_node].GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, elem_dist)
-
-        # If proceeds, set the SLIP flag
-        if (self.slip_level_set):
-            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLIP, True, self.main_model_part.Elements)
 
     def runTest(self):
         with WorkFolderScope(self.work_folder):

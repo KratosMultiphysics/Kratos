@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 #importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.PoromechanicsApplication import *
 from KratosMultiphysics.DamApplication import *
 
 def SetConstitutiveLaw(model_part):

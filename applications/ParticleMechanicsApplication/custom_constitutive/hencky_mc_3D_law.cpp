@@ -31,8 +31,8 @@ namespace Kratos
 HenckyMCPlastic3DLaw::HenckyMCPlastic3DLaw()
     : HenckyElasticPlastic3DLaw()
 {
-    mpHardeningLaw   = HardeningLaw::Pointer( new HardeningLaw() );
-    mpYieldCriterion = YieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpHardeningLaw   = MPMHardeningLaw::Pointer( new MPMHardeningLaw() );
+    mpYieldCriterion = MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule    = MPMFlowRule::Pointer( new MCPlasticFlowRule(mpYieldCriterion) );
 }
 
@@ -43,7 +43,7 @@ HenckyMCPlastic3DLaw::HenckyMCPlastic3DLaw()
 HenckyMCPlastic3DLaw::HenckyMCPlastic3DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
     mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  =  YieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpYieldCriterion  =  MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule     =  pMPMFlowRule;
 }
 

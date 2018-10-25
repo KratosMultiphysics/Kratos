@@ -23,9 +23,11 @@ KratosEigenSolversApplication::KratosEigenSolversApplication() : KratosApplicati
 
 void KratosEigenSolversApplication::Register()
 {
-	// calling base class register to register Kratos components
-	KratosApplication::Register();
-	std::cout << "Initializing KratosEigenSolversApplication... " << std::endl;
+    // calling base class register to register Kratos components
+    KratosApplication::Register();
+    std::cout << "Initializing KratosEigenSolversApplication... " << std::endl;
+
+    EigenSolversApplicationRegisterLinearSolvers();
 }
 
 } // namespace Kratos

@@ -103,7 +103,7 @@ class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
      * This is the default constructor, which is used to read the input files
      * @param rModelPart The model part
      */
-    SubModelPartsListUtility(ModelPart& rModelPart);
+    KRATOS_DEPRECATED_MESSAGE("Please, use AssignUniqueModelPartCollectionTagUtility") SubModelPartsListUtility(ModelPart& rModelPart);
 
     /// Destructor.
     ~SubModelPartsListUtility();

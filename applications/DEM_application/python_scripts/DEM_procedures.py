@@ -1311,12 +1311,12 @@ class MultifileList(object):
 
 class DEMIo(object):
 
-    def __init__(self, DEM_parameters, post_path, all_model_parts):
+    def __init__(self, model, DEM_parameters, post_path, all_model_parts):
 
         self.post_path = post_path
-        self.mixed_model_part = ModelPart("Mixed_Part")
-        self.mixed_spheres_and_clusters_model_part = ModelPart("MixedSpheresAndClustersPart")
-        self.mixed_spheres_not_in_cluster_and_clusters_model_part = ModelPart("MixedSpheresNotInClusterAndClustersPart")
+        self.mixed_model_part = model.CreateModelPart("Mixed_Part")
+        self.mixed_spheres_and_clusters_model_part = model.CreateModelPart("MixedSpheresAndClustersPart")
+        self.mixed_spheres_not_in_cluster_and_clusters_model_part = model.CreateModelPart("MixedSpheresNotInClusterAndClustersPart")
 
         self.spheres_model_part = all_model_parts.Get("SpheresPart")
         self.cluster_model_part = all_model_parts.Get("ClusterPart")
@@ -1378,8 +1378,8 @@ class DEMIo(object):
         else:
             self.PostCharacteristicLength = self.DEM_parameters["PostCharacteristicLength"].GetBool()
 
-        #self.PostFaceNormalImpactVelocity = getattr(self.DEM_parameters, "PostFaceNormalImpactVelocity", 0)
-        #self.PostFaceTangentialImpactVelocity = getattr(self.DEM_parameters, "PostFaceTangentialImpactVelocity", 0)
+        #self.PostFaceNormalImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostFaceNormalImpactVelocity", 0)
+        #self.PostFaceTangentialImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostFaceTangentialImpactVelocity", 0)
 
         if not "PostBoundingBox" in self.DEM_parameters.keys():
             self.PostBoundingBox = 0

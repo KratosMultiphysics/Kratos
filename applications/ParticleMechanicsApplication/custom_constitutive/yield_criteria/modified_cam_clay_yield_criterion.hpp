@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/MPM_yield_criterion.hpp"
 #include "custom_constitutive/hardening_laws/cam_clay_hardening_law.hpp"
 
 namespace Kratos
@@ -50,7 +50,7 @@ namespace Kratos
 /** Detail class definition.
 */
 class ModifiedCamClayYieldCriterion
-	: public YieldCriterion 
+	: public MPMYieldCriterion 
 {
     public:
         ///@name Type Definitions

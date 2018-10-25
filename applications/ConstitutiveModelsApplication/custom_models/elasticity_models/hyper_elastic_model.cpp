@@ -725,7 +725,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  int HyperElasticModel::Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo)
+  int HyperElasticModel::Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 

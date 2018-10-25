@@ -291,7 +291,7 @@ namespace Kratos {
         if (t<critical_timestep && t>0.0){critical_timestep = t;}
 
         r_process_info[DELTA_TIME] = critical_timestep;
-        KRATOS_INFO("DEM") << " Applied timestep is " << critical_timestep << ". " << "\n" << std::endl;
+        KRATOS_INFO("DEM") << " (Critical) Timestep set to " << critical_timestep << ". " << "\n" << std::endl;
 
 
        //PropertiesContainerType pprop1 = *mpInlet_model_part->pProperties();
@@ -489,10 +489,10 @@ namespace Kratos {
         GetForce(); // Basically only calls CalculateRightHandSide()
         //FastGetForce();
         GetClustersForce();
-        GetRigidBodyElementsForce();
 
         if (r_model_part.GetProcessInfo()[COMPUTE_FEM_RESULTS_OPTION]) {
             CalculateNodalPressuresAndStressesOnWalls();
+            GetRigidBodyElementsForce();
         }
 
         // 4. Synchronize (should be just FORCE and TORQUE)
@@ -742,7 +742,6 @@ namespace Kratos {
             mListOfSphericParticles[i]->Initialize(r_process_info);
             total_mass += mListOfSphericParticles[i]->GetMass();
         }
-
 
         KRATOS_CATCH("")
     }
