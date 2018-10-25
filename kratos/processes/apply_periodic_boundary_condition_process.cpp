@@ -18,12 +18,10 @@
 
 // External includes
 
-
 // Project includes
 #include "utilities/openmp_utils.h"
 #include "processes/apply_periodic_boundary_condition_process.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
-
 
 namespace Kratos
 {
@@ -310,9 +308,7 @@ namespace Kratos
         const double t6 = c * c;
         const double t7 = a * b;
         const double t8 = t5 + t6;
-        double t9 = 1.0 / t8;
-        if(std::isnan(t9))
-            t9 = 0.0;
+        const double t9 = std::abs(t8) < std::numeric_limits<double>::epsilon() ? 1.0e8 : 1.0 / t8;
         const double t10 = a * c;
         const double t11 = b * t3;
         const double t12 = a * t3 * t5;
@@ -343,10 +339,8 @@ namespace Kratos
 
         original_node[0] = rCoordinates(0); original_node[1] = rCoordinates(1); original_node[2] = rCoordinates(2); original_node[3] = 1.0;
         // Multiplying the point to get the rotated point
-        for (int i = 0; i < 4; i++)
-        {
-            for (int j = 0; j < 4; j++)
-            {
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
                 transformed_node[i] += mTransformationMatrix(i,j) * original_node[j];
             }
         }
