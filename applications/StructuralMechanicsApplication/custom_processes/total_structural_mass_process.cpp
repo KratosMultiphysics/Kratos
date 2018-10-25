@@ -95,7 +95,7 @@ void TotalStructuralMassProcess::Execute()
 
     // Making this loop omp-parallel requires locking all the geometries & nodes, which
     // is most probably not worth the effort
-    for(auto& elem_i : elements_array){
+    for (auto& elem_i : elements_array) {
         total_mass += CalculateElementMass(elem_i, domain_size);
     }
 

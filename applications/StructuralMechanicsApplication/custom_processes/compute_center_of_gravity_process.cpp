@@ -34,7 +34,7 @@ void ComputeCenterOfGravityProcess::Execute()
 
     // Making this loop omp-parallel requires locking all the geometries & nodes, which
     // is most probably not worth the effort
-    for(auto& elem_i : elements_array){
+    for (auto& elem_i : elements_array) {
         const double elem_mass = TotalStructuralMassProcess::CalculateElementMass(elem_i, domain_size);
         total_mass += elem_mass;
 
