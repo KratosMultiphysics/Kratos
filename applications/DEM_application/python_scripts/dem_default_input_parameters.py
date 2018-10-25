@@ -80,7 +80,6 @@ def GetDefaultInputParameters():
                 "PostVirtualSeaSurfaceY4"      : 0.0
             },
 
-            "TestType"                         : false,
             "ConfinementPressure"              : 0.0,
             "LoadingVelocity"                  : -0.10,
             "MeshType"                         : "1",
