@@ -16,10 +16,7 @@
 
 // Project includes
 #include "includes/condition.h"
-#include "includes/variables.h"
-#include "includes/element.h"
-
-#include "utilities/quaternion.h"
+#include "utilities/beam_math_utilities.hpp"
 
 namespace Kratos
 {
@@ -57,6 +54,7 @@ class RigidBodyPointLinkCondition
   typedef Quaternion<double>             QuaternionType;
   typedef Node<3>::DofsContainerType  DofsContainerType;
   typedef GeometryData::SizeType               SizeType;
+  typedef BeamMathUtils<double>       BeamMathUtilsType;
 
   ///@{
   // Counted pointer of RigidBodyPointLinkCondition
@@ -78,15 +76,20 @@ class RigidBodyPointLinkCondition
   typedef struct
   {
     Flags             Options;               //calculation options
-    int               SlaveNode;
-    int               SlaveDofs;
 
-    Vector            Distance;
-    Matrix            SkewSymDistance;
+    SizeType          MasterLinearBlockSize;
+    SizeType          MasterAngularBlockSize;
 
-    Vector            LagrangeMultipliers;
+    SizeType          SlaveNode;
+    SizeType          SlaveLinearBlockSize;
+    SizeType          SlaveAngularBlockSize;
 
-    ElementType::Pointer  pSlaveElement;
+    std::vector<SizeType> RigidNodes;
+
+    BoundedMatrix<double,3,3>               SlaveSkewSymDistance;
+    std::vector<BoundedMatrix<double,3,3>> RigidSkewSymDistances;
+
+    Element::Pointer      pSlaveElement;
 
   } GeneralVariables;
 
@@ -335,6 +338,9 @@ class RigidBodyPointLinkCondition
   ///@name Protected member Variables
   ///@{
 
+  const static std::array<const VariableData,6> mLinearDofs;
+  const static std::array<const VariableData,3> mAngularDofs;
+
   ///@}
   ///@name Protected Operators
   ///@{
@@ -360,7 +366,7 @@ class RigidBodyPointLinkCondition
    */
   virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
                                         LocalSystemComponents& rLinkedSystem,
-                                        ElementType::Pointer& rSlaveElement,
+                                        Element::Pointer& rSlaveElement,
                                         ProcessInfo& rCurrentProcessInfo);
   /**
    * Calculation and addition of the matrices of the LHS
@@ -407,11 +413,6 @@ class RigidBodyPointLinkCondition
    */
   virtual SizeType GetDofsSize();
 
-  /**
-   * Calculation of an SkewSymmetricTensor from a vector
-   */
-  void VectorToSkewSymmetricTensor(const Vector& rVector,
-                                   Matrix& rSkewSymmetricTensor);
   /**
    * Write Matrix usint rows
    */
