@@ -29,7 +29,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type" : "Super_LU",
+            "solver_type" : "SuperLUSolver",
             "scaling"     : false,
             "verbosity"   : 0
         },
