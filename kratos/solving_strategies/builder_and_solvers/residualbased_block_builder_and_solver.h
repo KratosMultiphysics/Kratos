@@ -120,7 +120,7 @@ public:
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedBlockBuilderAndSolver(Parameters ThisParameters)
-        : BaseType(LinearSolverFactoryType().Create(ThisParameters))
+        : BaseType(LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]))
     {
     }
 

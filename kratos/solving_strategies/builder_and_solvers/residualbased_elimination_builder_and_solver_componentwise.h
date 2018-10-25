@@ -138,7 +138,7 @@ public:
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedEliminationBuilderAndSolverComponentwise(Parameters ThisParameters)
-        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(LinearSolverFactoryType().Create(ThisParameters))
+        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]))
         , rVar(KratosComponents<TVariableType>::Get(ThisParameters["components_wise_variable"].GetString()))
     {
 

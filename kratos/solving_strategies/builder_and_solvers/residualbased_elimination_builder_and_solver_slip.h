@@ -140,7 +140,7 @@ public:
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedEliminationBuilderAndSolverSlip(Parameters ThisParameters)
-        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(LinearSolverFactoryType().Create(ThisParameters))
+        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]))
     {
     }
 

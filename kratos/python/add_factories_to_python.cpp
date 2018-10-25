@@ -23,6 +23,7 @@
 #include "includes/preconditioner_factory.h"
 #include "includes/convergence_criteria_factory.h"
 #include "includes/scheme_factory.h"
+#include "includes/builder_and_solver_factory.h"
 
 namespace Kratos
 {
@@ -36,6 +37,7 @@ void  AddFactoriesToPython(pybind11::module& m)
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
     typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
     typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
 
@@ -47,6 +49,7 @@ void  AddFactoriesToPython(pybind11::module& m)
     typedef PreconditionerFactory< SpaceType, LocalSpaceType > PreconditionerFactoryType;
     typedef ConvergenceCriteriaFactory< SpaceType, LocalSpaceType > ConvergenceCriteriaFactoryType;
     typedef SchemeFactory< SpaceType, LocalSpaceType > SchemeFactoryType;
+    typedef BuilderAndSolverFactory< SpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverFactoryType;
 
     class_<LinearSolverFactoryType, LinearSolverFactoryType::Pointer>(m, "LinearSolverFactory")
      .def( init< >() )
@@ -76,6 +79,12 @@ void  AddFactoriesToPython(pybind11::module& m)
      .def( init< >() )
      .def("Create",&SchemeFactoryType::Create)
      .def("Has",&SchemeFactoryType::Has)
+    ;
+
+    class_<BuilderAndSolverFactoryType, BuilderAndSolverFactoryType::Pointer >(m, "BuilderAndSolverFactory")
+     .def( init< >() )
+     .def("Create",&BuilderAndSolverFactoryType::Create)
+     .def("Has",&BuilderAndSolverFactoryType::Has)
     ;
 
 }

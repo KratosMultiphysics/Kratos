@@ -115,7 +115,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedBlockBuilderAndSolverWithConstraints(Parameters ThisParameters)
-        : BaseType(LinearSolverFactoryType().Create(ThisParameters))
+        : BaseType(LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]))
     {
     }
 

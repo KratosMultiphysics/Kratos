@@ -16,46 +16,39 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/standard_convergence_criteria_factory.h"
+#include "includes/standard_builder_and_solver_factory.h"
 #include "spaces/ublas_space.h"
 
-// Convergence criterias
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "solving_strategies/convergencecriterias/displacement_criteria.h"
-#include "solving_strategies/convergencecriterias/residual_criteria.h"
-#include "solving_strategies/convergencecriterias/and_criteria.h"
-#include "solving_strategies/convergencecriterias/or_criteria.h"
+// Builder And Solver
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 
 namespace Kratos
 {
-    void RegisterConvergenceCriterias()
+    void RegisterBuilderAndSolvers()
     {
         typedef TUblasSparseSpace<double> SpaceType;
         typedef TUblasDenseSpace<double> LocalSpaceType;
+        typedef LinearSolver<SpaceType, LocalSpaceType> LinearSolverType;
 
-//         typedef ConvergenceCriteria<SpaceType,  LocalSpaceType> ConvergenceCriteriaType;
-        typedef DisplacementCriteria<SpaceType,  LocalSpaceType> DisplacementCriteriaType;
-        typedef ResidualCriteria<SpaceType,  LocalSpaceType> ResidualCriteriaType;
-        typedef And_Criteria<SpaceType,  LocalSpaceType> And_CriteriaType;
-        typedef Or_Criteria<SpaceType,  LocalSpaceType> Or_CriteriaType;
+//         typedef BuilderAndSolver<SpaceType,  LocalSpaceType> BuilderAndSolverType;
+        typedef ResidualBasedEliminationBuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverType;
+        typedef ResidualBasedBlockBuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverType;
+        typedef ResidualBasedBlockBuilderAndSolverWithConstraints<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverWithConstraintsType;
 
-        //NOTE: here we must create persisting objects for the linear solvers
-//         static auto ConvergenceCriteriaFactory = StandardConvergenceCriteriaFactory<SpaceType,LocalSpaceType,ConvergenceCriteriaType>();
-        static auto DisplacementCriteriaFactory = StandardConvergenceCriteriaFactory<SpaceType,LocalSpaceType,DisplacementCriteriaType>();
-        static auto ResidualCriteriaFactory= StandardConvergenceCriteriaFactory<SpaceType,LocalSpaceType,ResidualCriteriaType>();
-        static auto And_CriteriaFactory= StandardConvergenceCriteriaFactory<SpaceType,LocalSpaceType,And_CriteriaType>();
-        static auto Or_CriteriaFactory= StandardConvergenceCriteriaFactory<SpaceType,LocalSpaceType,Or_CriteriaType>();
+        //NOTE: here we must create persisting objects for the builder and solvers
+//         static auto BuilderAndSolverFactory = StandardBuilderAndSolverFactory<SpaceType,LocalSpaceType, LinearSolverType,BuilderAndSolverType>();
+        static auto ResidualBasedEliminationBuilderAndSolverFactory = StandardBuilderAndSolverFactory<SpaceType,LocalSpaceType, LinearSolverType, ResidualBasedEliminationBuilderAndSolverType>();
+        static auto ResidualBasedBlockBuilderAndSolverFactory = StandardBuilderAndSolverFactory<SpaceType,LocalSpaceType, LinearSolverType, ResidualBasedBlockBuilderAndSolverType>();
+        static auto ResidualBasedBlockBuilderAndSolverWithConstraintsFactory = StandardBuilderAndSolverFactory<SpaceType,LocalSpaceType, LinearSolverType, ResidualBasedBlockBuilderAndSolverWithConstraintsType>();
 
         // Registration of convergence solvers
-//         KRATOS_REGISTER_CONVERGENCE_CRITERIA("ConvergenceCriteria", ConvergenceCriteriaFactory);
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA("DisplacementCriteria", DisplacementCriteriaFactory);
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA("displacement_criteria", DisplacementCriteriaFactory);
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA("ResidualCriteria", ResidualCriteriaFactory);
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA("residual_criteria", ResidualCriteriaFactory);
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA("And_Criteria",And_CriteriaFactory );
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA("and_criteria",And_CriteriaFactory );
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA("Or_Criteria",Or_CriteriaFactory );
-        KRATOS_REGISTER_CONVERGENCE_CRITERIA("or_criteria",Or_CriteriaFactory );
+//         KRATOS_REGISTER_BUILDER_AND_SOLVER("BuilderAndSolver", BuilderAndSolverFactory);
+        KRATOS_REGISTER_BUILDER_AND_SOLVER("ResidualBasedEliminationBuilderAndSolver", ResidualBasedEliminationBuilderAndSolverFactory);
+        KRATOS_REGISTER_BUILDER_AND_SOLVER("ResidualBasedBlockBuilderAndSolver", ResidualBasedBlockBuilderAndSolverFactory);
+        KRATOS_REGISTER_BUILDER_AND_SOLVER("ResidualBasedBlockBuilderAndSolverWithConstraints", ResidualBasedBlockBuilderAndSolverWithConstraintsFactory);
     };
 } // Namespace Kratos
 

@@ -22,6 +22,7 @@
 #include "includes/kratos_parameters.h"
 #include "includes/kratos_components.h"
 #include "includes/shared_pointers.h"
+#include "linear_solvers/linear_solver.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "spaces/ublas_space.h"
 
