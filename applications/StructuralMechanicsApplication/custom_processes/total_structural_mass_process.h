@@ -42,8 +42,8 @@ namespace Kratos
  *
  * @ingroup StructuralMechanicsApplication
  *
- * @brief This method computes the tonal mass of a structure
- * @details It takes into account the beam, shells and solid elements
+ * @brief This method computes the total mass of a structure
+ * @details It takes into account the noda-mass, beam, shells and solid elements
  *
  * @author Vicente Mataix Ferrandiz
 */
