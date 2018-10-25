@@ -1201,7 +1201,7 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
   }
 
   BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix;
-  if (this->mIterationCount == 1)
+  if (this->mIterationCount <= 1)
     transformation_matrix = this->CalculateInitialLocalCS();
   else
     this->AssembleSmallInBigMatrix(this->mLocalRotationMatrix,
@@ -1225,7 +1225,7 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     rOutput[1][2] = 1.0 * stress[5] * 0.50 - stress[11] * 0.50;
     rOutput[2][2] = 1.0 * stress[5] * 0.25 - stress[11] * 0.75;
   }
-  if (rVariable == FORCE) {
+  else if (rVariable == FORCE) {
     rOutput[0][0] = -1.0 * stress[0] * 0.75 + stress[6] * 0.25;
     rOutput[1][0] = -1.0 * stress[0] * 0.50 + stress[6] * 0.50;
     rOutput[2][0] = -1.0 * stress[0] * 0.25 + stress[6] * 0.75;
@@ -1239,6 +1239,19 @@ void CrBeamElement3D2N::CalculateOnIntegrationPoints(
     rOutput[2][2] = -1.0 * stress[2] * 0.25 + stress[8] * 0.75;
   }
 
+
+
+  else if (rVariable == LOCAL_AXIS_1){
+    for (SizeType i =0; i<this->msDimension; ++i) rOutput[1][i] = column (transformation_matrix, 0)[i];
+  }
+  else if (rVariable == LOCAL_AXIS_2){
+    for (SizeType i =0; i<this->msDimension; ++i) rOutput[1][i] = column (transformation_matrix, 1)[i];
+  }
+  else if (rVariable == LOCAL_AXIS_3){
+    for (SizeType i =0; i<this->msDimension; ++i) rOutput[1][i] = column (transformation_matrix, 2)[i];
+  }
+
+
   KRATOS_CATCH("")
 }
 
@@ -1251,40 +1264,6 @@ void CrBeamElement3D2N::GetValueOnIntegrationPoints(
   KRATOS_CATCH("")
 }
 
-void CrBeamElement3D2N::CalculateOnIntegrationPoints(
-    const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
-    const ProcessInfo &rCurrentProcessInfo) {
-  KRATOS_TRY;
-
-  if (rVariable == LOCAL_AXES_VECTOR) {
-    BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix;
-    if (this->mIterationCount == 1)
-      transformation_matrix = this->CalculateInitialLocalCS();
-    else
-      this->AssembleSmallInBigMatrix(this->mLocalRotationMatrix,
-                                     transformation_matrix);
-
-    rOutput.resize(3);
-    for (int i = 0; i < 3; ++i)
-      rOutput[i] = ZeroVector(3);
-
-    for (IndexType i = 0; i < 3; ++i) {
-      for (IndexType j = 0; j < 3; ++j) {
-        rOutput[i][j] = transformation_matrix(j, i);
-      }
-    }
-  }
-
-  KRATOS_CATCH("");
-}
-
-void CrBeamElement3D2N::GetValueOnIntegrationPoints(
-    const Variable<Vector> &rVariable, std::vector<Vector> &rValues,
-    const ProcessInfo &rCurrentProcessInfo) {
-  KRATOS_TRY;
-  this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-  KRATOS_CATCH("")
-}
 
 void CrBeamElement3D2N::AssembleSmallInBigMatrix(
     Matrix SmallMatrix,

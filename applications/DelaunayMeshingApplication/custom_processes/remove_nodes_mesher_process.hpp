@@ -1041,10 +1041,10 @@ class RemoveNodesMesherProcess
 
 
     unsigned int number_of_nodes = 0;
-    if( !rModelPart.IsSubModelPart() )
-      number_of_nodes = rModelPart.NumberOfNodes()+1;
+    if(mrRemesh.InputInitializedFlag)
+      number_of_nodes = mrRemesh.NodeMaxId+1;
     else
-      number_of_nodes = rModelPart.GetParentModelPart()->NumberOfNodes()+1;
+      number_of_nodes = MesherUtilities::GetMaxNodeId(rModelPart)+1;
 
 
     std::vector<std::vector<Condition::Pointer> > node_shared_conditions(number_of_nodes); //all domain nodes

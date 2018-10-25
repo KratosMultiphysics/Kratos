@@ -51,16 +51,11 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
         self.DesignSurface = ModelPartController.GetDesignSurface()
 
-        self.Mapper = mapper_factory.CreateMapper(self.DesignSurface, OptimizationSettings["design_variables"]["filter"])
+        self.Mapper = mapper_factory.CreateMapper(self.DesignSurface, self.DesignSurface, OptimizationSettings["design_variables"]["filter"])
         self.DataLogger = data_logger_factory.CreateDataLogger(ModelPartController, Communicator, OptimizationSettings)
 
-        self.GeometryUtilities = GeometryUtilities(self.DesignSurface)
         self.OptimizationUtilities = OptimizationUtilities(self.DesignSurface, OptimizationSettings)
 
-        self.isDampingSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
-        if self.isDampingSpecified:
-            damping_regions = self.ModelPartController.GetDampingRegions()
-            self.DampingUtilities = DampingUtilities(self.DesignSurface, damping_regions, OptimizationSettings)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -77,7 +72,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.relativeTolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
         self.ModelPartController.InitializeMeshController()
-        self.Mapper.InitializeMapping()
+        self.Mapper.Initialize()
         self.Analyzer.InitializeBeforeOptimizationLoop()
         self.DataLogger.InitializeDataLogging()
 
@@ -131,33 +126,22 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         WriteDictionaryDataOnNodalVariable(objGradientDict, self.OptimizationModelPart, DF1DX)
 
         if self.only_obj["project_gradient_on_surface_normals"].GetBool():
-            self.GeometryUtilities.ComputeUnitSurfaceNormals()
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
+            self.ModelPartController.ComputeUnitSurfaceNormals()
+            self.ModelPartController.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
 
-        if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(DF1DX)
+        self.ModelPartController.DampNodalVariableIfSpecified(DF1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
-        self.__mapSensitivitiesToDesignSpace()
+        self.Mapper.Update()
+        self.Mapper.InverseMap(DF1DX, DF1DX_MAPPED)
+
         self.OptimizationUtilities.ComputeSearchDirectionSteepestDescent()
         self.OptimizationUtilities.ComputeControlPointUpdate()
-        self.__mapDesignUpdateToGeometrySpace()
 
-        if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(SHAPE_UPDATE)
+        self.Mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
 
-    # --------------------------------------------------------------------------
-    def __mapSensitivitiesToDesignSpace(self):
-        self.Mapper.MapToDesignSpace(DF1DX, DF1DX_MAPPED)
-
-    # --------------------------------------------------------------------------
-    def __mapDesignUpdateToGeometrySpace(self):
-        self.Mapper.MapToGeometrySpace(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
-
-    # --------------------------------------------------------------------------
-    def __dampShapeUpdate(self):
-        self.DampingUtilities.DampNodalVariable(SHAPE_UPDATE)
+        self.ModelPartController.DampNodalVariableIfSpecified(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
@@ -186,6 +170,5 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     def __determineAbsoluteChanges(self):
         self.OptimizationUtilities.AddFirstVariableToSecondVariable(CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE)
         self.OptimizationUtilities.AddFirstVariableToSecondVariable(SHAPE_UPDATE, SHAPE_CHANGE)
-
 
 # ==============================================================================

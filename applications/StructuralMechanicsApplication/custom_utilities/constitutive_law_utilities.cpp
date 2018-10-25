@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Alejandro Cornejo
@@ -32,6 +32,9 @@ void ConstitutiveLawUtilities<6>::CalculateI1Invariant(
     for (IndexType i = 1; i < Dimension; ++i)
         rI1 += rStressVector[i];
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<>
 void ConstitutiveLawUtilities<3>::CalculateI1Invariant(
@@ -65,6 +68,7 @@ void ConstitutiveLawUtilities<3>::CalculateI2Invariant(
 {
     rI2 = rStressVector[0] * rStressVector[1] - std::pow(rStressVector[2], 2);
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -78,6 +82,9 @@ void ConstitutiveLawUtilities<6>::CalculateI3Invariant(
             rStressVector[1] * rStressVector[5] * rStressVector[5] - rStressVector[2] * rStressVector[3] * rStressVector[3] +
             2.0 * rStressVector[3] * rStressVector[4] * rStressVector[5];
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<>
 void ConstitutiveLawUtilities<3>::CalculateI3Invariant(
@@ -111,6 +118,9 @@ void ConstitutiveLawUtilities<6>::CalculateJ2Invariant(
         rJ2 += std::pow(rDeviator[i], 2);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<3>::CalculateJ2Invariant(
     const BoundedVectorType& rStressVector,
@@ -143,6 +153,9 @@ void ConstitutiveLawUtilities<6>::CalculateJ3Invariant(
             rDeviator[5] * (rDeviator[3] * rDeviator[4] - rDeviator[5] * rDeviator[1]);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<3>::CalculateJ3Invariant(
     const BoundedVectorType& rDeviator,
@@ -151,6 +164,7 @@ void ConstitutiveLawUtilities<3>::CalculateJ3Invariant(
 {
     rJ3 = rDeviator[0] * rDeviator[1] - std::pow(rDeviator[2], 2);
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -183,6 +197,9 @@ void ConstitutiveLawUtilities<6>::CalculateSecondVector(
         rSecondVector[i] *= 2.0;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<3>::CalculateSecondVector(
     const BoundedVectorType& rDeviator,
@@ -198,6 +215,7 @@ void ConstitutiveLawUtilities<3>::CalculateSecondVector(
     }
     rSecondVector[3] *= 2.0;
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -221,6 +239,9 @@ void ConstitutiveLawUtilities<6>::CalculateThirdVector(
     rThirdVector[5] = 2.0 * (rDeviator[5] * rDeviator[3] - rDeviator[0] * rDeviator[4]);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template<>
 void ConstitutiveLawUtilities<3>::CalculateThirdVector(
     const BoundedVectorType& rDeviator,
@@ -236,8 +257,9 @@ void ConstitutiveLawUtilities<3>::CalculateThirdVector(
     rThirdVector[0] = rDeviator[1] * rDeviator[2] + J2thirds;
     rThirdVector[1] = rDeviator[0] * rDeviator[2] + J2thirds;
     rThirdVector[2] = rDeviator[0] * rDeviator[1] - std::pow(rDeviator[3], 2) + J2thirds;
-	rThirdVector[3] = -2.0 * rDeviator[3] * rDeviator[2];
+    rThirdVector[3] = -2.0 * rDeviator[3] * rDeviator[2];
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -340,7 +362,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
 
     // Decompose matrix
-    MathUtils<double>::EigenSystem<Dimension>(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
+    MathUtils<double>::EigenSystem<Dimension>(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
     // Calculate the eigenvalues of the E matrix
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -371,7 +393,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
     BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
 
     // Decompose matrix
-    MathUtils<double>::EigenSystem<Dimension>(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
+    MathUtils<double>::EigenSystem<Dimension>(rCauchyTensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
     // Calculate the eigenvalues of the E matrix
     for (IndexType i = 0; i < Dimension; ++i) {
@@ -406,7 +428,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::PolarDecomposition(
 
     // Decompose matrix C
     BoundedMatrix<double, Dimension, Dimension> eigen_vector_matrix, eigen_values_matrix;
-    MathUtils<double>::EigenSystem<Dimension>(C, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
+    MathUtils<double>::EigenSystem<Dimension>(C, eigen_vector_matrix, eigen_values_matrix, 1.0e-16, 200);
 
     for (IndexType i = 0; i < Dimension; ++i)
         eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
@@ -436,13 +458,19 @@ void ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(
     CalculateI1Invariant(norm_stress_vector, I1);
     CalculateI2Invariant(norm_stress_vector, I2);
     CalculateI3Invariant(norm_stress_vector, I3);
+
     const double II1 = std::pow(I1, 2);
 
     const double R = (2.0 * II1 * I1 - 9.0 * I2 * I1 + 27.0 * I3) / 54.0;
     const double Q = (3.0 * I2 - II1) / 9.0;
 
     if (std::abs(Q) > tolerance) {
-        const double phi = std::acos(R / (std::sqrt(-std::pow(Q, 3))));
+        double cos_phi = R / (std::sqrt(-std::pow(Q, 3)));
+        if (cos_phi >= 1.0)
+            cos_phi = 1.0;
+        else if (cos_phi <= -1.0)
+            cos_phi = -1.0;
+        const double phi = std::acos(cos_phi);
         const double phi_3 = phi / 3.0;
 
         const double aux1 = 2.0 * std::sqrt(-Q);
@@ -458,6 +486,9 @@ void ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(
         }
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<>
 void ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
@@ -476,6 +507,7 @@ void ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
         std::sqrt(std::pow(0.5 * (rStressVector[0] - rStressVector[1]), 2)  +
         std::pow(rStressVector[2], 2));
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -534,20 +566,20 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
     BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
     BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
 
-    MathUtils<double>::EigenSystem<Dimension>(strain_tensor, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
+    MathUtils<double>::EigenSystem<Dimension>(strain_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
     std::vector<Vector> eigen_vectors_container;
 
     Vector auxiliar_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-		auxiliar_vector[0] = eigen_vectors_matrix(0, i);
-		auxiliar_vector[1] = eigen_vectors_matrix(1, i);
-		auxiliar_vector[2] = eigen_vectors_matrix(2, i);
+        auxiliar_vector[0] = eigen_vectors_matrix(0, i);
+        auxiliar_vector[1] = eigen_vectors_matrix(1, i);
+        auxiliar_vector[2] = eigen_vectors_matrix(2, i);
         eigen_vectors_container.push_back(auxiliar_vector);
     }
     
     Vector sigma_tension_vector;
-	Matrix sigma_tension_tensor;
+    Matrix sigma_tension_tensor;
     for (IndexType i = 0; i < Dimension; ++i) {
         if (eigen_values_matrix(i, i) > 0.0) {
             sigma_tension_tensor = outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
@@ -582,10 +614,15 @@ void ConstitutiveLawUtilities<6>::CalculateProjectionOperator(
         cross_p_ij_tensor = 0.5 * (outer_prod(eigen_vectors_container[i], eigen_vectors_container[j]) +
                                    outer_prod(eigen_vectors_container[j], eigen_vectors_container[i]));
         cross_p_ij_vector = MathUtils<double>::StressTensorToVector(cross_p_ij_tensor);
+        rProjectionOperatorTensor += (h_i + h_j) * (outer_prod(cross_p_ij_vector, cross_p_ij_vector));
+
         h_i = 0.0;
         h_j = 0.0;
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template<>
 void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
@@ -598,19 +635,19 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
     BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
     BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
 
-    MathUtils<double>::EigenSystem<Dimension>(strain_tensor, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
+    MathUtils<double>::EigenSystem<Dimension>(strain_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
     std::vector<Vector> eigen_vectors_container;
 
     Vector auxiliar_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-		auxiliar_vector[0] = eigen_vectors_matrix(0, i);
-		auxiliar_vector[1] = eigen_vectors_matrix(1, i);
+        auxiliar_vector[0] = eigen_vectors_matrix(0, i);
+        auxiliar_vector[1] = eigen_vectors_matrix(1, i);
         eigen_vectors_container.push_back(auxiliar_vector);
     }
     
     Vector sigma_tension_vector;
-	Matrix sigma_tension_tensor;
+    Matrix sigma_tension_tensor;
     for (IndexType i = 0; i < Dimension; ++i) {
         if (eigen_values_matrix(i, i) > 0.0) {
             sigma_tension_tensor = outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
@@ -638,34 +675,34 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void ConstitutiveLawUtilities<6>::SpectralDecomposition(
-    const array_1d<double, VoigtSize>& rStressVector,
-    array_1d<double, VoigtSize>& rStressVectorTension,
-    array_1d<double, VoigtSize>& rStressVectorCompression
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::SpectralDecomposition(
+    const BoundedVectorType& rStressVector,
+    BoundedVectorType& rStressVectorTension,
+    BoundedVectorType& rStressVectorCompression
     )
 {
-    rStressVectorTension     = ZeroVector(6);
-    rStressVectorCompression = ZeroVector(6);
+    rStressVectorTension     = ZeroVector(TVoigtSize);
+    rStressVectorCompression = ZeroVector(TVoigtSize);
 
     BoundedMatrix<double, Dimension, Dimension> stress_tensor;
     stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
     BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
     BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
 
-    MathUtils<double>::EigenSystem<Dimension>(stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
+    MathUtils<double>::EigenSystem<Dimension>(stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
     std::vector<Vector> eigen_vectors_container;
     Vector auxiliar_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
-		auxiliar_vector[0] = eigen_vectors_matrix(0, i);
-		auxiliar_vector[1] = eigen_vectors_matrix(1, i);
-		auxiliar_vector[2] = eigen_vectors_matrix(2, i);
+        for (IndexType j = 0; j < Dimension; ++j) {
+            auxiliar_vector[j] = eigen_vectors_matrix(j, i);
+        }
         eigen_vectors_container.push_back(auxiliar_vector);
     }
 
     Vector sigma_tension_vector;
-	Matrix sigma_tension_tensor;
+    Matrix sigma_tension_tensor;
     for (IndexType i = 0; i < Dimension; ++i) {
         if (eigen_values_matrix(i, i) > 0.0) {
             sigma_tension_tensor = eigen_values_matrix(i, i) * outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
@@ -675,41 +712,58 @@ void ConstitutiveLawUtilities<6>::SpectralDecomposition(
     rStressVectorCompression = rStressVector - rStressVectorTension;
 }
 
-template<>
-void ConstitutiveLawUtilities<3>::SpectralDecomposition(
-    const array_1d<double, VoigtSize>& rStressVector,
-	array_1d<double, VoigtSize>& rStressVectorTension,
-	array_1d<double, VoigtSize>& rStressVectorCompression
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateLinearPlasticDeformationGradientIncrement(
+    const BoundedVectorType& rPlasticPotentialDerivative,
+    const double PlasticConsistencyFactorIncrement
     )
 {
-    rStressVectorTension     = ZeroVector(3);
-    rStressVectorCompression = ZeroVector(3);
+    const MatrixType plastic_deformation_gradient_increment  = IdentityMatrix(Dimension, Dimension) + PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
 
-    BoundedMatrix<double, Dimension, Dimension> stress_tensor;
-    stress_tensor = MathUtils<double>::StressVectorToTensor(rStressVector);
-    BoundedMatrix<double, Dimension, Dimension> eigen_vectors_matrix;
-    BoundedMatrix<double, Dimension, Dimension> eigen_values_matrix;
-
-    MathUtils<double>::EigenSystem<Dimension>(stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
-
-    std::vector<Vector> eigen_vectors_container;
-    Vector auxiliar_vector = ZeroVector(Dimension);
-    for (IndexType i = 0; i < Dimension; ++i) {
-		auxiliar_vector[0] = eigen_vectors_matrix(0, i);
-		auxiliar_vector[1] = eigen_vectors_matrix(1, i);
-        eigen_vectors_container.push_back(auxiliar_vector);
-    }
-
-    Vector sigma_tension_vector;
-	Matrix sigma_tension_tensor;
-    for (IndexType i = 0; i < Dimension; ++i) {
-        if (eigen_values_matrix(i, i) > 0.0) {
-            sigma_tension_tensor = eigen_values_matrix(i, i) * outer_prod(eigen_vectors_container[i], eigen_vectors_container[i]); // p_i x p_i
-            rStressVectorTension += MathUtils<double>::StressTensorToVector(sigma_tension_tensor);
-        }
-    }
-    rStressVectorCompression = rStressVector - rStressVectorTension;
+    return plastic_deformation_gradient_increment;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformationGradientIncrement(
+    const BoundedVectorType& rPlasticPotentialDerivative,
+    const double PlasticConsistencyFactorIncrement,
+    const MatrixType& rRe
+    )
+{
+    // Define DeltaFp
+    MatrixType plastic_deformation_gradient_increment(Dimension, Dimension);
+
+    // Define plastic flow
+    const MatrixType plastic_flow = PlasticConsistencyFactorIncrement * MathUtils<double>::VectorToSymmetricTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+
+    // Declare the different eigen decomposition matrices
+    BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
+
+    // We compute the exponential matrix
+    // Decompose matrix
+    MathUtils<double>::EigenSystem<Dimension>(plastic_flow, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
+
+    // Calculate the eigenvalues of the E matrix
+    for (std::size_t i = 0; i < Dimension; ++i) {
+        eigen_values_matrix(i, i) = std::exp(eigen_values_matrix(i, i));
+    }
+
+    // Calculate exponential matrix
+    noalias(plastic_deformation_gradient_increment) = prod(trans(eigen_vectors_matrix), prod<Matrix>(eigen_values_matrix, eigen_vectors_matrix));
+
+    // Pre and post multiply by Re
+    plastic_deformation_gradient_increment = prod(plastic_deformation_gradient_increment, rRe);
+    plastic_deformation_gradient_increment = prod(trans(rRe), plastic_deformation_gradient_increment);
+
+    return plastic_deformation_gradient_increment;
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 

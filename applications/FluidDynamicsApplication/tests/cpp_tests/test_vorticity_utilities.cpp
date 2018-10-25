@@ -12,6 +12,7 @@
 //
 
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 
@@ -90,7 +91,8 @@ void TetrahedraModelPartForVorticityTests(ModelPart& rModelPart) {
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DQValue, FluidDynamicsApplicationFastSuite) {
-    ModelPart ModelPart("TestPart");
+    Model model;
+    ModelPart& ModelPart = model.CreateModelPart("TestPart");
     TriangleModelPartForVorticityTests(ModelPart);
 
     std::vector<double> QValues;
@@ -103,7 +105,8 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DQValue, FluidDynamicsApplicationFa
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DVorticityMagnitude, FluidDynamicsApplicationFastSuite) {
-    ModelPart ModelPart("TestPart");
+    Model model;
+    ModelPart& ModelPart = model.CreateModelPart("TestPart");
     TriangleModelPartForVorticityTests(ModelPart);
 
     std::vector<double> VorticityMagnitudes;
@@ -116,7 +119,8 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DVorticityMagnitude, FluidDynamicsA
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DVorticity, FluidDynamicsApplicationFastSuite) {
-    ModelPart ModelPart("TestPart");
+    Model model;
+    ModelPart& ModelPart = model.CreateModelPart("TestPart");
     TriangleModelPartForVorticityTests(ModelPart);
 
     std::vector< array_1d<double,3> > Vorticities;
@@ -132,7 +136,8 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities2DVorticity, FluidDynamicsApplicatio
 
 
 KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities3DQValue, FluidDynamicsApplicationFastSuite) {
-    ModelPart ModelPart("TestPart");
+    Model model;
+    ModelPart& ModelPart = model.CreateModelPart("TestPart");
     TetrahedraModelPartForVorticityTests(ModelPart);
 
     std::vector<double> QValues;
@@ -145,7 +150,8 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities3DQValue, FluidDynamicsApplicationFa
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities3DVorticityMagnitude, FluidDynamicsApplicationFastSuite) {
-    ModelPart ModelPart("TestPart");
+    Model model;
+    ModelPart& ModelPart = model.CreateModelPart("TestPart");
     TetrahedraModelPartForVorticityTests(ModelPart);
 
     std::vector<double> VorticityMagnitudes;
@@ -158,7 +164,8 @@ KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities3DVorticityMagnitude, FluidDynamicsA
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VorticityUtilities3DVorticity, FluidDynamicsApplicationFastSuite) {
-    ModelPart ModelPart("TestPart");
+    Model model;
+    ModelPart& ModelPart = model.CreateModelPart("TestPart");
     TetrahedraModelPartForVorticityTests(ModelPart);
 
     std::vector< array_1d<double,3> > Vorticities;

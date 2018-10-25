@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/MPM_yield_criterion.hpp"
 
 namespace Kratos
 {
@@ -48,7 +48,7 @@ namespace Kratos
 /** Detail class definition.
 */
 class MCYieldCriterion
-    : public YieldCriterion
+    : public MPMYieldCriterion
 {
 public:
     ///@name Type Definitions
