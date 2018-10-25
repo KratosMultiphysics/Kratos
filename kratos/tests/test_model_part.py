@@ -66,11 +66,30 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfSubModelParts(), 0)
         #print (model_part)
 
+    def test_clear_model_part(self):
+        current_model = Model()
 
-        ##test that the clear function works
+        model_part= current_model.CreateModelPart("Main")
+        model_part.CreateSubModelPart("Inlets")
+        model_part.CreateSubModelPart("Temp")
+        model_part.CreateSubModelPart("Outlet")
+
+        self.assertEqual(model_part.NumberOfSubModelParts(), 3)
+        sub_model_part_1 = model_part.GetSubModelPart("Inlets")
+        sub_model_part_1.CreateSubModelPart("Inlet1")
+        sub_model_part_1.CreateSubModelPart("Inlet2")
+
+        model_part.GetSubModelPart("Outlet").CreateSubModelPart("sub_outlet1")
+        self.assertEqual(model_part.GetSubModelPart("Outlet").NumberOfSubModelParts(), 1)
+        model_part.GetSubModelPart("Outlet").Clear()
+        self.assertEqual(model_part.GetSubModelPart("Outlet").NumberOfSubModelParts(), 0)
+
         model_part.Set(SLAVE)
         self.assertTrue(model_part.Is(SLAVE))
+ 
+        #here the 
         model_part.Clear()
+ 
         self.assertEqual(model_part.NumberOfSubModelParts(),0)
         self.assertEqual(len(model_part.Nodes),0)
         self.assertEqual(len(model_part.Properties),0)
