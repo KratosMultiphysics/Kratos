@@ -50,7 +50,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(init<ModelPart&>())
         ;
 
-
     class_<SolidShellThickComputeProcess, SolidShellThickComputeProcess::Pointer, Process>(m,"SolidShellThickComputeProcess")
         .def(init<ModelPart&>())
         ;

@@ -6,7 +6,8 @@
 //  License:             BSD License
 //                                       license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrandiz
+//  Main authors:    Philipp Bucher
+//                   Salman Yousaf
 //
 
 #if !defined(KRATOS_COMPUTE_CENTER_OF_GRAVITY_PROCESS)
