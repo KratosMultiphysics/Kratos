@@ -87,9 +87,19 @@ public:
     ///@{
 
     /**
+     * @brief Constructor. (with parameters)
+     * @detail The bossak method
+     * @param ThisParameters The parameters containing the configuration
+     */
+    explicit ResidualBasedBossakDisplacementScheme(Parameters ThisParameters)
+        : ResidualBasedBossakDisplacementScheme(ThisParameters.Has("damp_factor_m") ? ThisParameters["damp_factor_m"].GetDouble() : -0.3)
+    {
+    }
+
+    /**
      * @brief Constructor.
      * @detail The bossak method
-     * @rAlpham The Bossak parameter. Default value is 0, which is the Newmark method
+     * @param rAlpham The Bossak parameter. Default value is 0, which is the Newmark method
      */
     explicit ResidualBasedBossakDisplacementScheme(const double rAlpham = 0.0)
         :ImplicitBaseType()

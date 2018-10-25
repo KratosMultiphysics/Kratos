@@ -83,6 +83,20 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Constructor. The pseudo static scheme (parameters)
+     * @param ThisParameters Parameters with the Rayleigh variable
+     */
+    explicit ResidualBasedPseudoStaticDisplacementScheme(Parameters ThisParameters)
+      :DerivedBaseType(0.0),
+       mRayleighBeta(ThisParameters.Has("rayleigh_beta_variable") ? KratosComponents<Variable<double>>::Get(ThisParameters["rayleigh_beta_variable"].GetString()) : KratosComponents<Variable<double>>::Get("RAYLEIGH_BETA"))
+    {
+    }
+
+    /**
+     * @brief Default constructor. The pseudo static scheme
+     */
     explicit ResidualBasedPseudoStaticDisplacementScheme(const Variable<double> RayleighBetaVariable)
       :DerivedBaseType(0.0),
        mRayleighBeta(RayleighBetaVariable)
