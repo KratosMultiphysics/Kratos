@@ -150,7 +150,6 @@ void ModelPart::Clear()
     mTables.clear();
 
     this->AssignFlags( Flags() ); 
-
 }
 
 ModelPart::IndexType ModelPart::CreateSolutionStep()
