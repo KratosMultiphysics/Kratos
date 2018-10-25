@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/element.h"
 #include "includes/condition.h"
 #include "utilities/beam_math_utilities.hpp"
 
@@ -63,7 +64,6 @@ class RigidBodyPointLinkCondition
 
  protected:
 
-
   /**
    * Flags related to the condition computation
    */
@@ -81,15 +81,16 @@ class RigidBodyPointLinkCondition
     SizeType          MasterAngularBlockSize;
 
     SizeType          SlaveNode;
-    SizeType          SlaveLinearBlockSize;
-    SizeType          SlaveAngularBlockSize;
+    SizeType          SlaveNodeLinearBlockSize;
+    SizeType          SlaveNodeAngularBlockSize;
 
     std::vector<SizeType> RigidNodes;
+    std::vector<SizeType> DeformableNodes;
 
     BoundedMatrix<double,3,3>               SlaveSkewSymDistance;
     std::vector<BoundedMatrix<double,3,3>> RigidSkewSymDistances;
 
-    Element::Pointer      pSlaveElement;
+    Element::Pointer   pSlaveElement;
 
   } GeneralVariables;
 
@@ -338,8 +339,8 @@ class RigidBodyPointLinkCondition
   ///@name Protected member Variables
   ///@{
 
-  const static std::array<const VariableData,6> mLinearDofs;
-  const static std::array<const VariableData,3> mAngularDofs;
+  static const std::array<const VariableData,6> mLinearDofs;
+  static const std::array<const VariableData,3> mAngularDofs;
 
   ///@}
   ///@name Protected Operators
@@ -386,6 +387,13 @@ class RigidBodyPointLinkCondition
   virtual void CalculateAndAddTangent(MatrixType& rLeftHandSideMatrix,
                                       MatrixType& rLinkedLeftHandSideMatrix,
                                       GeneralVariables& rVariables);
+
+  /**
+   * Calculation of the Link Stiffness Matrix
+   */
+  virtual void CalculateAndAddTangentRotation(MatrixType& rLeftHandSideMatrix,
+                                              MatrixType& rLinkedLeftHandSideMatrix,
+                                              GeneralVariables& rVariables);
   /**
    * Calculation of the Link Force Vector
    */
