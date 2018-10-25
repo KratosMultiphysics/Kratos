@@ -43,7 +43,7 @@ class SolutionDEM(main_script.Solution):
     def SolverSolve(self):
         super(SolutionDEM, self).SolverSolve()
         self._ChangeGravityIfNecessary()
-        
+
     def _ChangeGravityIfNecessary(self):
         if self.changing_gravity_option:
             if self.stationarity_checker.CheckIfItsTimeToChangeGravity(self.spheres_model_part, self.velocity_threshold_for_gravity_change, self.min_time_between_gravity_changes, self.max_time_between_gravity_changes):
@@ -85,7 +85,7 @@ class SolutionFlex(SolutionDEM):
         self.dt = flex_delta_time
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, flex_delta_time)
         self.number_of_steps_until_flex_update = self.nvidia_flex_parameters["number_of_steps_until_flex_update"].GetInt()
-        
+
     def Run(self):
         self.nvidia_flex_wrapper = FlexWrapper(self.spheres_model_part, self.rigid_face_model_part, self.creator_destructor, self.nvidia_flex_parameters["physics_parameters"])
         super(SolutionFlex, self).Run()

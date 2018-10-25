@@ -1414,17 +1414,17 @@ class DEMIo(object):
             self.PostNormalImpactVelocity = 0
         else:
             self.PostNormalImpactVelocity = self.DEM_parameters["PostNormalImpactVelocity"].GetBool()
-        
+
         if not "PostTangentialImpactVelocity" in self.DEM_parameters.keys():
             self.PostTangentialImpactVelocity = 0
         else:
             self.PostTangentialImpactVelocity = self.DEM_parameters["PostTangentialImpactVelocity"].GetBool()
-        
+
         if not "PostFaceNormalImpactVelocity" in self.DEM_parameters.keys():
             self.PostFaceNormalImpactVelocity = 0
         else:
             self.PostFaceNormalImpactVelocity = self.DEM_parameters["PostFaceNormalImpactVelocity"].GetBool()
-            
+
         if not "PostFaceTangentialImpactVelocity" in self.DEM_parameters.keys():
             self.PostFaceTangentialImpactVelocity = 0
         else:
