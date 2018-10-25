@@ -124,7 +124,7 @@ public:
             if(it->Is(MARKER))
             {
                 //compute normal
-                const Vector& elemental_distances = it->GetValue(WAKE_ELEMENTAL_DISTANCES);
+                const Vector& elemental_distances = it->GetValue(ELEMENTAL_DISTANCES);
                 
                 double vol;
                 array_1d<double,4> N;
@@ -152,7 +152,7 @@ public:
         for(auto it=kutta_elements.begin(); it!=kutta_elements.end(); ++it)
         {
             it->Set(MARKER,false);
-            Vector& elemental_distances = it->GetValue(WAKE_ELEMENTAL_DISTANCES);
+            Vector& elemental_distances = it->GetValue(ELEMENTAL_DISTANCES);
             
             array_1d<double,3> n;
             auto geom = it->GetGeometry();
