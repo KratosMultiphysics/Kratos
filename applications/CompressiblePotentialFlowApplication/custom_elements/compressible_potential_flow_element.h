@@ -297,9 +297,12 @@ public:
         
         //TEST:
         bool kutta_element = false;
+        if (this->Is(INTERFACE))
+            kutta_element = true;
+
         for(unsigned int i=0; i<NumNodes; ++i)
             if(GetGeometry()[i].Is(STRUCTURE))
-            {
+            {   
                 kutta_element = true;
                 break;
             }
@@ -314,7 +317,7 @@ public:
 
             if (this->Is(BOUNDARY)){
                 for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                    elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(DISTANCE);
+                    elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
 
                 const Vector& r_elemental_distances=elemental_distance;
                 Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
@@ -325,24 +328,24 @@ public:
                     positive_side_sh_func,
                     positive_side_sh_func_gradients,
                     positive_side_weights,
-                    GeometryData::GI_GAUSS_2);
+                    GeometryData::GI_GAUSS_3);
+                for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
+                    MatrixType aux_matrix;
+                    bounded_matrix<double,NumNodes,Dim> DN_DX;
+                    DN_DX=positive_side_sh_func_gradients(i_gauss);
+                    //reading properties and conditions
+                    aux_matrix=(prod(DN_DX,trans(DN_DX)))*positive_side_weights(i_gauss);  // Bt D B
 
-                    for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-                        MatrixType aux_matrix;
-                        bounded_matrix<double,NumNodes,Dim> DN_DX;
-                        DN_DX=positive_side_sh_func_gradients(i_gauss);
-                        
-                        //reading properties and conditions
-                        aux_matrix=prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);  // Bt D B
+                    noalias(rLeftHandSideMatrix) += aux_matrix;                 
+                }
 
-                        noalias(rLeftHandSideMatrix) += aux_matrix;                       
-                    }
                 noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
             }
-            else //if (this->Is(FLUID) || this->IsNotDefined(FLUID)){
-                ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);          
+            else {
+                if (this->Is(FLUID) || this->IsNotDefined(FLUID))
+                ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data); 
+            }        
             noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
-            
         }
         else //it is a wake element
         {   
@@ -390,14 +393,33 @@ public:
             //compute the lhs and rhs that would correspond to it not being divided
             Matrix lhs_positive = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_negative = ZeroMatrix(NumNodes,NumNodes);
-            
+            Matrix lhs_penalty_positive = ZeroMatrix(NumNodes,NumNodes);
+            Matrix lhs_penalty_negative = ZeroMatrix(NumNodes,NumNodes);
+            bounded_matrix<double, 2, 1 > n;
+            n(0,0)=0;
+            n(1,0)=1;
+
+            Matrix test=prod(data.DN_DX,n);
+            // for(unsigned int i=0;i<test.size1();i++){
+            //     for(unsigned int j=0;j<test.size2();j++){
+            //         std::cout<<test(i,j)<<", ";
+            //     }
+            //     std::cout<<std::endl;
+            // }
+            // std::cout<<std::endl;
             for(unsigned int i=0; i<nsubdivisions; ++i)
             {
-                if(PartitionsSign[i] > 0)
+                if(PartitionsSign[i] > 0){
                     ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data);
-                else
+                    noalias(lhs_penalty_positive) += Volumes[i] * prod(test,trans(test));
+                }
+                else{
                     ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data);
+                    noalias(lhs_penalty_negative) += Volumes[i] * prod(test,trans(test));
+                }
             }
+            
+            double penalty = rCurrentProcessInfo[INITIAL_PENALTY];
 
             //also next version works - NON SYMMETRIC - but it does not require a penalty
 //                 array_1d<double,Dim> n = prod(data.DN_DX,data.distances); //rCurrentProcessInfo[VELOCITY]; 
@@ -409,16 +431,16 @@ public:
 //                 bounded_matrix<double,Dim,Dim> P = IdentityMatrix(Dim,Dim) - nn;
 //                 noalias(tmp) = prod(data.DN_DX,P);
 //                 bounded_matrix<double,NumNodes,NumNodes> tangent_constraint = /*1e3**/data.vol*prod(tmp, trans(data.DN_DX));
-                if(kutta_element == true)
+                if(kutta_element)
                 {
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)
                         {
-                            rLeftHandSideMatrix(i,j)            =  lhs_positive(i,j); 
+                            rLeftHandSideMatrix(i,j)            =  lhs_positive(i,j)+penalty*lhs_penalty_positive(i,j); 
                             rLeftHandSideMatrix(i,j+NumNodes)   =  0.0; 
                             
-                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j); 
+                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j)+penalty*lhs_penalty_negative(i,j); 
                             rLeftHandSideMatrix(i+NumNodes,j)          =  0.0; 
                         }
                     }
@@ -620,7 +642,7 @@ protected:
     ///@{
     void GetWakeDistances(array_1d<double,NumNodes>& distances)
     {
-        noalias(distances) = GetValue(WAKE_ELEMENTAL_DISTANCES);
+        noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
     }
 
     void ComputeLHSGaussPointContribution(
@@ -681,37 +703,37 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
 
-        if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
+        // if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
             // calculate shape functions
             GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);    
-
             noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
-        }
-        else if (this->Is(BOUNDARY)){
-            array_1d<double,NumNodes> elemental_distance;
-            for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(DISTANCE);
-      
-            const Vector& r_elemental_distances=elemental_distance;
-            Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
-            Matrix positive_side_sh_func;
-            ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
-            Vector positive_side_weights;
-            triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
-                positive_side_sh_func,
-                positive_side_sh_func_gradients,
-                positive_side_weights,
-                GeometryData::GI_GAUSS_2);
-            for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-                array_1d<double,Dim> aux_matrix;
-                bounded_matrix<double,NumNodes,Dim> DN_DX;
-                DN_DX=positive_side_sh_func_gradients(i_gauss);            
             
-                aux_matrix=-prod(trans(DN_DX),data.phis)*positive_side_weights(i_gauss);  // Bt D B
+        // }
+        // else if (this->Is(BOUNDARY)){
+        //     array_1d<double,NumNodes> elemental_distance;
+        //     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
+        //         elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
+      
+        //     const Vector& r_elemental_distances=elemental_distance;
+        //     Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
+        //     Matrix positive_side_sh_func;
+        //     ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
+        //     Vector positive_side_weights;
+        //     triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
+        //         positive_side_sh_func,
+        //         positive_side_sh_func_gradients,
+        //         positive_side_weights,
+        //         GeometryData::GI_GAUSS_3);
+        //     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
+        //         array_1d<double,Dim> aux_matrix;
+        //         bounded_matrix<double,NumNodes,Dim> DN_DX;
+        //         DN_DX=positive_side_sh_func_gradients(i_gauss);            
+            
+        //         aux_matrix=-prod(trans(DN_DX),data.phis)*positive_side_weights(i_gauss);  // Bt D B
 
-                noalias(velocity) += aux_matrix;         
-            }
-        }
+        //         noalias(velocity) += aux_matrix;         
+        //     }
+        // }
     }
 
     void ComputeVelocityUpperWakeElement(array_1d<double,Dim>& velocity)
@@ -730,38 +752,38 @@ protected:
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
         }
         
-        if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
-            // calculate shape functions
+        // if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
+        //     // calculate shape functions
             
             GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
             noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
-        }
-        else if (this->Is(BOUNDARY)){
-            array_1d<double,NumNodes> elemental_distance;
-            for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(DISTANCE);
+        // }
+        // else if (this->Is(BOUNDARY)){
+        //     array_1d<double,NumNodes> elemental_distance;
+        //     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
+        //         elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
       
-            const Vector& r_elemental_distances=elemental_distance;
-            Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
-            Matrix positive_side_sh_func;
-            ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
-            Vector positive_side_weights;
-            triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
-                positive_side_sh_func,
-                positive_side_sh_func_gradients,
-                positive_side_weights,
-                GeometryData::GI_GAUSS_2);
-            for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-                array_1d<double,Dim> aux_matrix;
-                bounded_matrix<double,NumNodes,Dim> DN_DX;
-                DN_DX=positive_side_sh_func_gradients(i_gauss);            
+        //     const Vector& r_elemental_distances=elemental_distance;
+        //     Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
+        //     Matrix positive_side_sh_func;
+        //     ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
+        //     Vector positive_side_weights;
+        //     triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
+        //         positive_side_sh_func,
+        //         positive_side_sh_func_gradients,
+        //         positive_side_weights,
+        //         GeometryData::GI_GAUSS_2);
+        //     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
+        //         array_1d<double,Dim> aux_matrix;
+        //         bounded_matrix<double,NumNodes,Dim> DN_DX;
+        //         DN_DX=positive_side_sh_func_gradients(i_gauss);            
             
-                aux_matrix=-prod(trans(DN_DX),data.phis)*positive_side_weights(i_gauss);  // Bt D B
+        //         aux_matrix=-prod(trans(DN_DX),data.phis)*positive_side_weights(i_gauss);  // Bt D B
 
-                noalias(velocity) += aux_matrix;         
-            }
-        }
+        //         noalias(velocity) += aux_matrix;         
+        //     }
+        // }
     }
 
     void ComputeVelocityLowerWakeElement(array_1d<double,Dim>& velocity)
@@ -790,7 +812,7 @@ protected:
         else if (this->Is(BOUNDARY)){
             array_1d<double,NumNodes> elemental_distance;
             for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(DISTANCE);
+                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
       
             const Vector& r_elemental_distances=elemental_distance;
             Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
@@ -801,7 +823,7 @@ protected:
                 positive_side_sh_func,
                 positive_side_sh_func_gradients,
                 positive_side_weights,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::GI_GAUSS_3);
             for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
                 array_1d<double,Dim> aux_matrix;
                 bounded_matrix<double,NumNodes,Dim> DN_DX;
