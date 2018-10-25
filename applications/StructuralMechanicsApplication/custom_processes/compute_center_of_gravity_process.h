@@ -43,10 +43,10 @@ namespace Kratos
  *
  * @ingroup StructuralMechanicsApplication
  *
- * @brief This method computes the tonal mass of a structure
- * @details It takes into account the beam, shells and solid elements
+ * @brief This method computes the center of gravity
+ * @details It takes into account all elements in the ModelPart
  *
- * @author Vicente Mataix Ferrandiz
+ * @author Philipp Bucher, Salman Yousaf
 */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ComputeCenterOfGravityProcess
     : public Process
