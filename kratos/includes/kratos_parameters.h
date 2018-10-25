@@ -402,7 +402,7 @@ public:
      */
     Parameters(const std::string& rJsonString)
     {
-        mpRoot = Kratos::shared_ptr<nlohmann::json>(new nlohmann::json( nlohmann::json::parse( rJsonString )));
+        mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse( rJsonString ));
         mpValue = mpRoot.get();
     }
 
@@ -429,7 +429,7 @@ public:
     Parameters& operator=(Parameters const& rOther)
     {
         if(mpRoot.get() ==  mpValue || mpRoot == nullptr) {
-            mpRoot = Kratos::shared_ptr<nlohmann::json>(new nlohmann::json( nlohmann::json::parse( rOther.WriteJsonString() )));
+            mpRoot = Kratos::make_shared<nlohmann::json>(nlohmann::json::parse(rOther.WriteJsonString()));
             mpValue = mpRoot.get();
         } else {
             *mpValue = nlohmann::json( nlohmann::json::parse( rOther.WriteJsonString() ) );
