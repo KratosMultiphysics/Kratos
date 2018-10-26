@@ -1,8 +1,8 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
 //  License:             BSD License
 //                                       Kratos default license: kratos/license.txt
@@ -11,25 +11,26 @@
 //
 
 // System includes
+#include "mpi.h"
 
 // External includes
+#include "Epetra_ConfigDefs.h"
+#include "Epetra_DataAccess.h"
 
 // Project includes
 #include "includes/define.h"
 #include "trilinos_application.h"
-#include "Epetra_ConfigDefs.h"
-#include "Epetra_DataAccess.h"
-#include "mpi.h"
-// #include "Epetra_MpiComm.h"
+// #include "custom_factories/trilinos_linear_solver_factory.h"
 
 namespace Kratos
 {
-// 	KRATOS_CREATE_VARIABLE( bool, IS_INACTIVE )
-
 void KratosTrilinosApplication::Register()
 {
     // calling base class register to register Kratos components
     KratosApplication::Register();
+
+    // Register the linear solvers
+//     RegisterTrilinosLinearSolvers();
 
     std::stringstream banner;
     banner << "     KRATOS   _____     _ _ _                 " << std::endl;

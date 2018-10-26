@@ -17,12 +17,7 @@
 #include <pybind11/pybind11.h>
 #include <string>
 
-// Project includes
-#include "includes/define_python.h"
-
-#include "custom_python/add_trilinos_strategies_to_python.h"
-
-//Trilinos includes
+/* Trilinos includes */
 #include "mpi.h"
 #include "Epetra_MpiComm.h"
 #include "Epetra_Comm.h"
@@ -34,18 +29,6 @@
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 
-// Project includes
-#include "trilinos_application.h"
-#include "trilinos_space.h"
-#include "spaces/ublas_space.h"
-#include "includes/model_part.h"
-
-//linear solvers
-#include "linear_solvers/linear_solver.h"
-
-//teuchos parameter list
-#include "Teuchos_ParameterList.hpp"
-
 #include "external_includes/epetra_default_utility.h"
 #include "external_includes/aztec_solver.h"
 #include "external_includes/amesos_solver.h"
@@ -54,6 +37,21 @@
 #include "external_includes/amgcl_mpi_solver.h"
 //#include "external_includes/amgcl_deflation_solver.h"
 #include "external_includes/amgcl_mpi_schur_complement_solver.h"
+
+// Project includes
+#include "includes/define_python.h"
+#include "custom_python/add_trilinos_strategies_to_python.h"
+#include "custom_factories/trilinos_linear_solver_factory.h"
+#include "trilinos_application.h"
+#include "trilinos_space.h"
+#include "spaces/ublas_space.h"
+#include "includes/model_part.h"
+
+// Linear solvers
+#include "linear_solvers/linear_solver.h"
+
+//teuchos parameter list
+#include "Teuchos_ParameterList.hpp"
 
 namespace Kratos
 {
@@ -89,7 +87,7 @@ void  AddLinearSolvers(pybind11::module& m)
     typedef AztecSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AztecSolverType;
     py::class_<AztecSolverType, typename AztecSolverType::Pointer, TrilinosLinearSolverType >
     (m,"AztecSolver")
-    .def( py::init< Teuchos::ParameterList&, std::string, Teuchos::ParameterList&, double, int, int >())
+    .def(py::init< Teuchos::ParameterList&, std::string, Teuchos::ParameterList&, double, int, int >())
     .def(py::init<Parameters>())
     .def("SetScalingType", &AztecSolverType::SetScalingType)
     ;
@@ -112,7 +110,8 @@ void  AddLinearSolvers(pybind11::module& m)
 
     typedef AmgclMPISolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISolverType;
     py::class_<AmgclMPISolverType, typename AmgclMPISolverType::Pointer, TrilinosLinearSolverType >
-    (m,"AmgclMPISolver").def( py::init<Parameters>())
+    (m,"AmgclMPISolver")
+    .def( py::init<Parameters>())
     ;
     
 #if 0
@@ -124,7 +123,8 @@ void  AddLinearSolvers(pybind11::module& m)
 
     typedef AmgclMPISchurComplementSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclMPISchurComplementSolverType;
     py::class_<AmgclMPISchurComplementSolverType, typename AmgclMPISchurComplementSolverType::Pointer, TrilinosLinearSolverType >
-    (m,"AmgclMPISchurComplementSolver").def( py::init<Parameters>())
+    (m,"AmgclMPISchurComplementSolver")
+    .def( py::init<Parameters>())
     ;
     
     py::enum_<AztecScalingType>(m,"AztecScalingType")
@@ -137,9 +137,7 @@ void  AddLinearSolvers(pybind11::module& m)
     .value("NoScaling", MLSolverType::NoScaling)
     .value("LeftScaling", MLSolverType::LeftScaling)
     ;
-    
 }
-
 
 } // namespace Python.
 
