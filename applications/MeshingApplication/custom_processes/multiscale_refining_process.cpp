@@ -56,7 +56,7 @@ MultiscaleRefiningProcess::MultiscaleRefiningProcess(
     mRefinedInterfaceName = interface_base_name + "_" + std::to_string(mrCoarseModelPart.GetValue(SUBSCALE_INDEX) + 1);
     mInterfaceConditionName = mParameters["subscale_boundary_condition"].GetString();
 
-    if (mEchoLevel > 1) KRATOS_WATCH(mParameters);
+    KRATOS_INFO_IF("MultiscaleRefiningProcess", mEchoLevel > 1) << "Parameters\n" << mParameters.Info() << std::endl;
 
     mStepDataSize = mrCoarseModelPart.GetNodalSolutionStepDataSize();
 
