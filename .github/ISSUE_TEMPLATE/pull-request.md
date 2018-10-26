@@ -9,7 +9,7 @@ A brief description of the PR. If it's a bugfix please add "Fixes #1234" to indi
 
 **Changelog**
 Please add here the change-log for the PR in the form of a summarized list of changes.
-Ex:
+E.g.:
 - Changed behavior of X
 - Fixed Y (#1234)
 - Implemented Z
