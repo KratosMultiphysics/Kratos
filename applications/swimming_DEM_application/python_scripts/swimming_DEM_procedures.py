@@ -467,6 +467,9 @@ class PostUtils:
         Logger.Flush()
 
         if self.pp.GiDMultiFileFlag == "Multiples":
+            renumbering_utility = RenumberingNodesUtility(self.fluid_model_part, self.rigid_faces_model_part, self.balls_model_part)
+            renumbering_utility.Renumber()
+
             self.mixed_model_part.Elements.clear()
             self.mixed_model_part.Nodes.clear()
             # here order is important!
@@ -486,6 +489,9 @@ class PostUtils:
                                                self.pp.rigid_faces_nodal_results,
                                                self.pp.mixed_nodal_results,
                                                self.pp.gauss_points_results)
+
+        if self.pp.GiDMultiFileFlag == "Multiples":
+            renumbering_utility.UndoRenumber()
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 

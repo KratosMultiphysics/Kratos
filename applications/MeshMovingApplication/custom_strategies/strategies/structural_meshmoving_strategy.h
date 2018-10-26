@@ -120,7 +120,7 @@ public:
 
   virtual ~StructuralMeshMovingStrategy()
   {
-    Model& owner_model = mpmesh_model_part->GetOwnerModel();
+    Model& owner_model = mpmesh_model_part->GetModel();
     std::string name = mpmesh_model_part->Name();
     owner_model.DeleteModelPart(name);
   }
