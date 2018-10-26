@@ -17,7 +17,7 @@
 
 // Project includes
 #include "python/add_linear_solvers_to_python.h"
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/kratos_parameters.h"
 #include "spaces/ublas_space.h"
 
@@ -118,7 +118,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(init<double>())
     .def(init<double, unsigned int>())
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
-    .def("__repr__", &GMRESSolverType::Info)
+    .def("__str__", PrintObject<GMRESSolverType>)
     ;
 
 //     ExternalSolversApplicationRegisterLinearSolvers();
