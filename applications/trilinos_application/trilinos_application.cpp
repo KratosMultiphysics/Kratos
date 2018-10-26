@@ -20,7 +20,6 @@
 // Project includes
 #include "includes/define.h"
 #include "trilinos_application.h"
-// #include "custom_factories/trilinos_linear_solver_factory.h"
 
 namespace Kratos
 {
@@ -28,9 +27,6 @@ void KratosTrilinosApplication::Register()
 {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-
-    // Register the linear solvers
-//     RegisterTrilinosLinearSolvers();
 
     std::stringstream banner;
     banner << "     KRATOS   _____     _ _ _                 " << std::endl;
