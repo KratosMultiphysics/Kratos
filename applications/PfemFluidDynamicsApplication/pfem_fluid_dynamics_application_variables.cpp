@@ -20,7 +20,7 @@ namespace Kratos
   ///@name Kratos Globals
   ///@{
 
-  //Create Variables 
+  //Create Variables
 
   // KRATOS_CREATE_VARIABLE(double, M_MODULUS )
   // KRATOS_CREATE_VARIABLE(int, PATCH_INDEX )
@@ -69,8 +69,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, NODAL_VOLUMETRIC_DEF_RATE )
   KRATOS_CREATE_VARIABLE(double, NODAL_MEAN_MESH_SIZE )
   KRATOS_CREATE_VARIABLE(double, NODAL_FREESURFACE_AREA )
-
-  KRATOS_CREATE_VARIABLE(double, FLUID_FRACTION_OLD )
 
 
   ///@}
