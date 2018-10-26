@@ -451,7 +451,7 @@ namespace Kratos {
                                                               array_1d<double, 3>& linear_velocity_changed, array_1d<double, 3>& center_position,
                                                               const bool fixed_mesh, const double dt, ModelPart::NodesContainerType& pNodes)
     {
-        if (mod_angular_velocity >= 0.0 || MathUtils<double>::Norm3(linear_velocity) >= 0.0) {
+        if (mod_angular_velocity > std::numeric_limits<double>::epsilon() || MathUtils<double>::Norm3(linear_velocity) > std::numeric_limits<double>::epsilon()) {
 
             #pragma omp parallel for
             for (int k = 0; k < (int)pNodes.size(); k++) {
@@ -742,7 +742,6 @@ namespace Kratos {
 
         if (L==0)
         {
-           // KRATOS_WATCH("WARNING! Null vector for the rotation!")
         }
         else
         {

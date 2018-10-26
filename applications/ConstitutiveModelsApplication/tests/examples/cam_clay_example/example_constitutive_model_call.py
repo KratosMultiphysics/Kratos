@@ -6,7 +6,8 @@ nnodes = 3
 dim = 3
 
 #define a model part and create new nodes
-model_part = ModelPart("test")
+model = Model()
+model_part = model.ModelPart("test")
 node1 = model_part.CreateNewNode(1,0.0,0.0,0.0)
 node2 = model_part.CreateNewNode(2,1.0,0.0,0.0)
 node3 = model_part.CreateNewNode(3,0.0,1.0,0.0)
@@ -56,7 +57,7 @@ cl_options.Set(ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
 #cl_options.Set(ConstitutiveLaw.FINALIZE_MATERIAL_RESPONSE, False)
 
 ##from here below it should be an output not an input
-#cl_options.Set(ConstitutiveLaw.FINITE_STRAINS, False) 
+#cl_options.Set(ConstitutiveLaw.FINITE_STRAINS, False)
 #cl_options.Set(ConstitutiveLaw.INFINITESIMAL_STRAINS, False)
 #cl_options.Set(ConstitutiveLaw.PLANE_STRAIN_LAW, False)
 #cl_options.Set(ConstitutiveLaw.PLANE_STRESS_LAW, False)
@@ -125,4 +126,3 @@ print( "C      = ", cl_params.GetConstitutiveMatrix() )
 
 cl.FinalizeMaterialResponseCauchy( cl_params )
 cl.FinalizeSolutionStep( properties, geom, N, model_part.ProcessInfo )
-

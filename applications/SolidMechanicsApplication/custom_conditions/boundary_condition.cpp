@@ -52,7 +52,7 @@ namespace Kratos
   //************************************************************************************
   BoundaryCondition::BoundaryCondition( BoundaryCondition const& rOther )
     : Condition(rOther)
-    ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)      
+    ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
   {
   }
 
@@ -62,7 +62,7 @@ namespace Kratos
 					       NodesArrayType const& ThisNodes,
 					       PropertiesType::Pointer pProperties) const
   {
-    return Condition::Pointer(new BoundaryCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<BoundaryCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
   }
 
 
@@ -72,14 +72,14 @@ namespace Kratos
   Condition::Pointer BoundaryCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
   {
     std::cout<<" Call base class BOUNDARY CONDITION Clone "<<std::endl;
-  
+
     BoundaryCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
     NewCondition.SetData(this->GetData());
     NewCondition.SetFlags(this->GetFlags());
 
-  
-    return Condition::Pointer( new BoundaryCondition(NewCondition) );
+
+    return Kratos::make_shared<BoundaryCondition>(NewCondition);
   }
 
 
@@ -92,33 +92,54 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
-  
-  bool BoundaryCondition::HasRotationDofs()
+
+  bool BoundaryCondition::HasVariableDof(VariableVectorType& rVariable)
   {
     KRATOS_TRY
 
-    //usually if the dofs do not exist condition adds them, standard conditions do not work like this  
-    if( GetGeometry()[0].HasDofFor(ROTATION_Z) == true )
+    typedef VectorComponentAdaptor<array_1d<double,3> >  VectorComponentType;
+    const VariableComponent<VectorComponentType>& var_x  = KratosComponents<VariableComponent<VectorComponentType> >::Get(rVariable.Name()+"_X");
+
+    //usually if the dofs do not exist condition adds them, standard conditions do not work like this
+    if( GetGeometry()[0].HasDofFor(var_x) == true )
       return true;
 
-    return false;      
-    
+    return false;
+
     KRATOS_CATCH( "" )
   }
-  
+
+
   //************************************************************************************
   //************************************************************************************
-  
+
+  bool BoundaryCondition::HasVariableDof(VariableScalarType& rVariable)
+  {
+    KRATOS_TRY
+
+    //usually if the dofs do not exist condition adds them, standard conditions do not work like this
+    if( GetGeometry()[0].HasDofFor(rVariable) == true )
+      return true;
+
+    return false;
+
+    KRATOS_CATCH( "" )
+  }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
   unsigned int BoundaryCondition::GetDofsSize()
   {
     KRATOS_TRY
-     
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();    
+
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
 
     unsigned int size = number_of_nodes * dimension;
-	
-    if( HasRotationDofs() ){
+
+    if( HasVariableDof(ROTATION) ){
       if(dimension == 2){
 	size += number_of_nodes;
       }
@@ -126,12 +147,12 @@ namespace Kratos
 	size += number_of_nodes * dimension;
       }
     }
-   
+
     return size;
-    
+
     KRATOS_CATCH( "" )
   }
-  
+
   //***********************************************************************************
   //***********************************************************************************
 
@@ -141,18 +162,25 @@ namespace Kratos
     KRATOS_TRY
 
     rConditionDofList.resize(0);
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for (SizeType i = 0; i < number_of_nodes; i++)
       {
-        rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-        rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-	if( dimension == 3 )
-	  rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+        if( HasVariableDof(DISPLACEMENT) ){
+          rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
+          rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+          if( dimension == 3 )
+            rConditionDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+        }
+        else if( HasVariableDof(VELOCITY) ){
+          rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
+          rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
+          if( dimension == 3 )
+            rConditionDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
+        }
 
-
-	if( HasRotationDofs() ){
+	if( HasVariableDof(ROTATION) ){
 	  if( dimension == 2 ){
 	    rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
 	  }
@@ -162,7 +190,7 @@ namespace Kratos
 	    rConditionDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
 	  }
 	}
-	
+
       }
 
 
@@ -177,48 +205,59 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = this->GetDofsSize();
-    
+
     if ( rResult.size() != dofs_size )
       rResult.resize( dofs_size, false );
 
     unsigned int index = 0;
-    
-    if( HasRotationDofs() ){
+
+    if( HasVariableDof(ROTATION) && HasVariableDof(DISPLACEMENT) ){
       if( dimension == 2 ){
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	  {	
-	    index = i * ( (dimension-1) * 3 );	  	  
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
+	  {
+	    index = i * ( (dimension-1) * 3 );
 	    rResult[index]   = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
 	    rResult[index+1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
 	    rResult[index+2] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
 	  }
       }
       else{
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
-	    index = i * ( (dimension-1) * 3 );	  	  
+	    index = i * ( (dimension-1) * 3 );
 	    rResult[index]   = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
 	    rResult[index+1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
 	    rResult[index+2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-	  
+
 	    rResult[index+3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
 	    rResult[index+4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
 	    rResult[index+5] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
 	  }
       }
     }
-    else{
+    else if( HasVariableDof(DISPLACEMENT) ){
 
-      for (unsigned int i = 0; i < number_of_nodes; i++)
+      for (SizeType i = 0; i < number_of_nodes; i++)
 	{
 	  index = i * dimension;
 	  rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
 	  rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
 	  if( dimension == 3)
 	    rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
+	}
+    }
+    else if( HasVariableDof(VELOCITY) ){
+
+      for (SizeType i = 0; i < number_of_nodes; i++)
+	{
+	  index = i * dimension;
+	  rResult[index]     = GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
+	  rResult[index + 1] = GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
+	  if( dimension == 3)
+	    rResult[index + 2] = GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
 	}
     }
 
@@ -232,45 +271,45 @@ namespace Kratos
   void BoundaryCondition::GetValuesVector(Vector& rValues, int Step)
   {
     KRATOS_TRY
-    
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = this->GetDofsSize();
 
-    if ( rValues.size() != dofs_size ) 
+    if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
     unsigned int index = 0;
-    
-    if( HasRotationDofs() ){
+
+    if( HasVariableDof(ROTATION) ){
 
       if( dimension == 2 ){
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
-	    index = i * ( (dimension-1) * 3 );	  
+	    index = i * ( (dimension-1) * 3 );
 	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
 	    rValues[index+1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
 	    rValues[index+2] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
 	  }
       }
       else{
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
-	    index = i * ( (dimension-1) * 3 );	  
+	    index = i * ( (dimension-1) * 3 );
 	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
 	    rValues[index+1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
 	    rValues[index+2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
-	  
+
 	    rValues[index+3] = GetGeometry()[i].GetSolutionStepValue( ROTATION_X, Step );
 	    rValues[index+4] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Y, Step );
-	    rValues[index+5] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );	  
+	    rValues[index+5] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
 	  }
       }
 
     }
     else{
 
-      for (unsigned int i = 0; i < number_of_nodes; i++)
+      for (SizeType i = 0; i < number_of_nodes; i++)
 	{
 	  index = i * dimension;
 	  rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
@@ -292,44 +331,44 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = this->GetDofsSize();
-    
+
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
     unsigned int index = 0;
-    
-    if( HasRotationDofs() ){
+
+    if( HasVariableDof(ROTATION) ){
 
       if( dimension == 2 ){
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
-	    index = i * ( (dimension-1) * 3 );	  
+	    index = i * ( (dimension-1) * 3 );
 	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
 	    rValues[index+1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
 	    rValues[index+2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
 	  }
       }
       else{
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
-	    index = i * ( (dimension-1) * 3 );	  
+	    index = i * ( (dimension-1) * 3 );
 	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
 	    rValues[index+1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
 	    rValues[index+2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
-	  
+
 	    rValues[index+3] = GetGeometry()[i].GetSolutionStepValue( ROTATION_X, Step );
 	    rValues[index+4] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Y, Step );
-	    rValues[index+5] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );	  
+	    rValues[index+5] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
 	  }
       }
 
     }
     else{
 
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  index = i * dimension;
 	  rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
@@ -340,8 +379,8 @@ namespace Kratos
 	}
 
     }
-    
-    KRATOS_CATCH( "" )  
+
+    KRATOS_CATCH( "" )
   }
 
 
@@ -352,20 +391,20 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
     unsigned int       dofs_size       = this->GetDofsSize();
 
     if ( rValues.size() != dofs_size )
       rValues.resize( dofs_size, false );
 
     unsigned int index = 0;
-    
-    if( HasRotationDofs() ){
+
+    if( HasVariableDof(ROTATION) ){
 
       if( dimension == 2 ){
-      
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    index = i * ( (dimension-1) * 3 );
 	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
@@ -374,23 +413,23 @@ namespace Kratos
 	  }
       }
       else{
-	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	for ( SizeType i = 0; i < number_of_nodes; i++ )
 	  {
 	    index = i * ( (dimension-1) * 3 );
 	    rValues[index]   = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
 	    rValues[index+1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
 	    rValues[index+2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
-	  
+
 	    rValues[index+3] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_X, Step );
 	    rValues[index+4] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Y, Step );
-	    rValues[index+5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );	  
+	    rValues[index+5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
 	  }
       }
-      
+
     }
     else{
 
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
 	{
 	  index = i * dimension;
 	  rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
@@ -400,39 +439,39 @@ namespace Kratos
 	    rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
 	}
     }
-    
-    KRATOS_CATCH( "" )  	  
+
+    KRATOS_CATCH( "" )
   }
 
 
   //************************************************************************************
   //************************************************************************************
-  
+
   void BoundaryCondition::InitializeExplicitContributions()
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
 	if( GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_FORCE) && GetGeometry()[i].SolutionStepsDataHas(FORCE_RESIDUAL) ){
-	  
+
 	  array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
 	  array_1d<double, 3 > & ResidualForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-	  
+
 	  GetGeometry()[i].SetLock();
 	  ExternalForce.clear();
 	  ResidualForce.clear();
 	  GetGeometry()[i].UnSetLock();
 	}
-	
-	if( HasRotationDofs() ){
+
+	if( HasVariableDof(ROTATION) ){
 
 	  if( GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_MOMENT) && GetGeometry()[i].SolutionStepsDataHas(MOMENT_RESIDUAL) ){
-	  
+
 	    array_1d<double, 3 > & ExternalMoment = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_MOMENT);
 	    array_1d<double, 3 > & ResidualMoment = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
-  
+
 	    GetGeometry()[i].SetLock();
 	    ExternalMoment.clear();
 	    ResidualMoment.clear();
@@ -450,27 +489,27 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  void BoundaryCondition::AddExplicitContribution(const VectorType& rRHS, 
+  void BoundaryCondition::AddExplicitContribution(const VectorType& rRHS,
 						  const Variable<VectorType>& rRHSVariable,
-						  Variable<array_1d<double,3> >& rDestinationVariable, 
+						  Variable<array_1d<double,3> >& rDestinationVariable,
 						  const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_FORCE )
       {
 
-	for(unsigned int i=0; i< number_of_nodes; i++)
+	for(SizeType i=0; i< number_of_nodes; i++)
 	  {
 	    int index = dimension * i;
 
 	    GetGeometry()[i].SetLock();
 
 	    array_1d<double, 3 > &ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
-	    for(unsigned int j=0; j<dimension; j++)
+	    for(SizeType j=0; j<dimension; j++)
 	      {
 		ExternalForce[j] += rRHS[index + j];
 	      }
@@ -482,14 +521,14 @@ namespace Kratos
     if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
       {
 
-	for(unsigned int i=0; i< number_of_nodes; i++)
+	for(SizeType i=0; i< number_of_nodes; i++)
 	  {
 	    int index = dimension * i;
 
 	    GetGeometry()[i].SetLock();
 
 	    array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-	    for(unsigned int j=0; j<dimension; j++)
+	    for(SizeType j=0; j<dimension; j++)
 	      {
 		ForceResidual[j] += rRHS[index + j];
 	      }
@@ -499,19 +538,19 @@ namespace Kratos
       }
 
 
-    if( HasRotationDofs() ){
+    if( HasVariableDof(ROTATION) ){
 
       if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_MOMENT )
 	{
 
-	  for(unsigned int i=0; i< number_of_nodes; i++)
+	  for(SizeType i=0; i< number_of_nodes; i++)
 	    {
 	      int index = dimension * i;
 
 	      GetGeometry()[i].SetLock();
 
 	      array_1d<double, 3 > &ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
-	      for(unsigned int j=0; j<dimension; j++)
+	      for(SizeType j=0; j<dimension; j++)
 		{
 		  ExternalForce[j] += rRHS[index + j];
 		}
@@ -523,14 +562,14 @@ namespace Kratos
       if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL )
 	{
 
-	  for(unsigned int i=0; i< number_of_nodes; i++)
+	  for(SizeType i=0; i< number_of_nodes; i++)
 	    {
 	      int index = dimension * i;
 
 	      GetGeometry()[i].SetLock();
 
 	      array_1d<double, 3 > &MomentResidual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
-	      for(unsigned int j=0; j<dimension; j++)
+	      for(SizeType j=0; j<dimension; j++)
 		{
 		  MomentResidual[j] += rRHS[index + j];
 		}
@@ -540,7 +579,7 @@ namespace Kratos
 	}
     }
 
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -564,7 +603,7 @@ namespace Kratos
     KRATOS_TRY
 
     InitializeExplicitContributions();
- 
+
     KRATOS_CATCH( "" )
   }
 
@@ -604,9 +643,9 @@ namespace Kratos
       {
         if ( rRightHandSideVector.size() != MatSize )
 	  rRightHandSideVector.resize( MatSize, false );
-      
+
 	noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
-	  
+
       }
   }
 
@@ -618,9 +657,9 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int local_dimension = GetGeometry().LocalSpaceDimension();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes  = GetGeometry().PointsNumber();
+    const SizeType& local_dimension = GetGeometry().LocalSpaceDimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     rVariables.Initialize(dimension, local_dimension, number_of_nodes);
 
@@ -631,7 +670,7 @@ namespace Kratos
 
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
-    
+
     KRATOS_CATCH( "" )
 
   }
@@ -666,7 +705,7 @@ namespace Kratos
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     double IntegrationWeight = 1;
-    
+
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
         //compute element kinematics B, F, DN_DX ...
@@ -678,7 +717,7 @@ namespace Kratos
         IntegrationWeight = Variables.Jacobian * integration_points[PointNumber].Weight();
 
 	// std::cout<<" Variables.Jacobian "<<Variables.Jacobian<<" Weight "<<integration_points[PointNumber].Weight()<<" / "<<std::endl;
-       
+
         if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	  {
             //contributions to stiffness matrix calculated on the reference config
@@ -687,15 +726,15 @@ namespace Kratos
 
         if ( rLocalSystem.CalculationFlags.Is(BoundaryCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
 	  {
-            //contribution to external forces 
+            //contribution to external forces
 	    this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
 	  }
 
       }
 
-    //VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();    
+    //VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
     //std::cout<<" rRightHandSideVector "<<rRightHandSideVector<<std::endl;
-    
+
     KRATOS_CATCH( "" )
   }
 
@@ -707,14 +746,14 @@ namespace Kratos
   void BoundaryCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
 
-    //contributions of the stiffness matrix calculated on the reference configuration   
-    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
+    //contributions of the stiffness matrix calculated on the reference configuration
+    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
     // operation performed: add Kg to the rLefsHandSideMatrix
     this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-    
+
     //KRATOS_WATCH( rLeftHandSideMatrix )
-    
+
   }
 
 
@@ -724,13 +763,13 @@ namespace Kratos
   void BoundaryCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ConditionVariables& rVariables, double& rIntegrationWeight)
   {
     //contribution of the internal and external forces
-       
-    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+
+    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
     // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
     this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
-    
-    //std::cout<<" rRightHandSideVectorPart "<<rRightHandSideVector<<std::endl;   
+
+    //std::cout<<" rRightHandSideVectorPart "<<rRightHandSideVector<<std::endl;
 
   }
 
@@ -886,12 +925,12 @@ namespace Kratos
     KRATOS_TRY
 
     KRATOS_ERROR << "calling the base class CalculateAndAddExternalEnergy method for a boundary condition... " << std::endl;
-      
+
     return rEnergy;
 
     KRATOS_CATCH( "" )
   }
-  
+
   //*************************COMPUTE DELTA POSITION*************************************
   //************************************************************************************
 
@@ -899,18 +938,18 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     rDeltaPosition.resize(number_of_nodes , dimension, false);
     rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
         array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
         array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
-        for ( unsigned int j = 0; j < dimension; j++ )
+        for ( SizeType j = 0; j < dimension; j++ )
 	  {
             rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
 	  }
@@ -930,17 +969,17 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType number_of_nodes = GetGeometry().PointsNumber();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     rDeltaPosition.resize(number_of_nodes , dimension, false);
     rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType i = 0; i < number_of_nodes; i++ )
       {
         array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
-        for ( unsigned int j = 0; j < dimension; j++ )
+        for ( SizeType j = 0; j < dimension; j++ )
 	  {
             rDeltaPosition(i,j) = CurrentDisplacement[j];
 	  }
@@ -950,7 +989,7 @@ namespace Kratos
 
     KRATOS_CATCH( "" )
   }
-  
+
   //************************************************************************************
   //************************************************************************************
 
@@ -958,13 +997,13 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension = GetGeometry().WorkingSpaceDimension();
 
     if( rValues.size() != dimension )
       rValues.resize(dimension);
 
     noalias(rValues) = ZeroVector(dimension);
-  
+
     Vector CurrentValueVector(3);
     noalias(CurrentValueVector) = ZeroVector(3);
     CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, rNode );
@@ -979,9 +1018,9 @@ namespace Kratos
 
     if( dimension == 3 )
       rValues[2] = CurrentValueVector[2] - PreviousValueVector[2];
-  
+
     KRATOS_CATCH( "" )
-	
+
   }
 
 
@@ -992,13 +1031,13 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
+
     if( rValue.size() != dimension )
       rValue.resize(dimension, false);
 
     rValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable );
-    
+
     return rValue;
 
     KRATOS_CATCH( "" )
@@ -1011,13 +1050,13 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType& dimension       = GetGeometry().WorkingSpaceDimension();
 
     if( rValue.size() != dimension )
       rValue.resize(dimension, false);
 
     rValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable, 1 );
-    
+
     return rValue;
 
     KRATOS_CATCH( "" )
@@ -1030,7 +1069,7 @@ namespace Kratos
   void BoundaryCondition::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
 						       std::vector<double>& rValues,
 						       const ProcessInfo& rCurrentProcessInfo )
-  { 
+  {
     this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
   }
 
@@ -1061,10 +1100,10 @@ namespace Kratos
 
 	//reading integration points
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-      
+
 	double Energy = 0;
 	double IntegrationWeight = 0;
-      
+
 	for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 	  {
 	    //compute element kinematics B, F, DN_DX ...
@@ -1073,8 +1112,8 @@ namespace Kratos
 	    IntegrationWeight = Variables.Jacobian * integration_points[PointNumber].Weight();
 
 	    Energy = 0;
-	  
-	    Energy = this->CalculateAndAddExternalEnergy( Energy, Variables, IntegrationWeight, rCurrentProcessInfo);	  	  
+
+	    Energy = this->CalculateAndAddExternalEnergy( Energy, Variables, IntegrationWeight, rCurrentProcessInfo);
 	    rOutput[PointNumber] = Energy;
 	  }
 
@@ -1094,7 +1133,7 @@ namespace Kratos
     // Perform base element checks
     int ErrorCode = 0;
     ErrorCode = Condition::Check(rCurrentProcessInfo);
-    
+
     return ErrorCode;
   }
 
@@ -1115,7 +1154,7 @@ namespace Kratos
     int IntMethod;
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
-  
+
   }
 
 

@@ -145,6 +145,45 @@ namespace Kratos
     };
     
     /**
+     * @brief This is a hasher for variables
+     * @tparam TVariable The type of variable to be hashed
+     */
+    template<class TVariable>
+    struct VariableHasher
+    {
+        /**
+         * @brief This is the () operator
+         * @param rVariable The variable to be hashed
+         * @return The corresponding hash
+         */
+        HashType operator()(const TVariable& rVariable) const
+        {
+            return rVariable.Key();
+        }
+    };
+
+    /**
+     * @brief This is a key comparer between two variables
+     * @tparam TVariable The type of variable to be compared
+     */
+    template<class TVariable>
+    struct VariableComparator
+    {
+        /**
+         * @brief This is the () operator
+         * @param first The first class to be compared
+         * @param second The second class to be compared
+         */
+        bool operator()(
+            const TVariable& first,
+            const TVariable& second
+            ) const
+        {
+            return first.Key() == second.Key();
+        }
+    };
+
+    /**
      * @brief This is a hasher for shared pointers
      * @tparam TSharedPointer The type of shared pointer to be hashed
      */

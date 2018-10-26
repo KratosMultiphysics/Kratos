@@ -1972,7 +1972,7 @@ class Benchmark12: ########## ROLLING FRICTION
         error_file.write("==== WENSRICH PAPER TEST. ROLLING FRICTION ====\n\n")
         error_file.write("DEM Benchmark 12:")
 
-        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
             error_file.write(" OK!........ Test 12 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 12 FAILED\n")
@@ -2067,7 +2067,7 @@ class Benchmark13: ########## DEM-FEM Facet
         error_file.write("======== DE/FE CONTACT BENCHMARKS ==========\n\n")
         error_file.write("DEM Benchmark 13:")
 
-        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
             error_file.write(" OK!........ Test 13 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 13 FAILED\n")
@@ -2152,7 +2152,7 @@ class Benchmark14: ########## DEM-FEM Edge
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 14:")
 
-        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
             error_file.write(" OK!........ Test 14 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 14 FAILED\n")
@@ -2237,7 +2237,7 @@ class Benchmark15: ########## DEM-FEM Vertex
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 15:")
 
-        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
             error_file.write(" OK!........ Test 15 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 15 FAILED\n")
@@ -2328,7 +2328,7 @@ class Benchmark16: ########## DEM-FEM Grid
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 16:")
 
-        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
             error_file.write(" OK!........ Test 16 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 16 FAILED\n")
@@ -2451,7 +2451,7 @@ class Benchmark17: ########## DEM-FEM Rolling
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 17:")
 
-        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
             error_file.write(" OK!........ Test 17 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 17 FAILED\n")
@@ -3778,7 +3778,7 @@ class Benchmark28:   #pendulo3D
 class Benchmark30: ########## Cylinder with imposed angular velocity (Velocity Verlet + Zhao)
 
     def __init__(self):
-        self.number = 29
+        self.number = 30
 
         self.cluster_graph_counter = 1   # deberia ser self.cluster_graph_counter = self.graph_frequency
 
@@ -3827,7 +3827,7 @@ class Benchmark30: ########## Cylinder with imposed angular velocity (Velocity V
         error_file.write("===== DISCONTINUUM CLUSTERS TESTS =====\n\n")
         error_file.write("DEM Benchmark 30:")
 
-        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
             error_file.write(" OK!........ Test 30 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 30 FAILED\n")
@@ -3942,7 +3942,7 @@ class Benchmark31: ########## Cylinder with imposed angular velocity (Symplectic
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 31:")
 
-        if (error1 < 1.0 and error2 < 1.0 and error3 < 1.0):
+        if (error1 < 0.1 and error2 < 0.1 and error3 < 0.1):
             error_file.write(" OK!........ Test 31 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 31 FAILED\n")
@@ -4054,7 +4054,7 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Veloci
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 32:")
 
-        if (error1 < 1.0 and error2 < 1.0):
+        if (error1 < 0.1 and error2 < 0.1):
             error_file.write(" OK!........ Test 32 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 32 FAILED\n")
@@ -4153,7 +4153,7 @@ class Benchmark33: ########## Fiber cluster bouncing without any damping (Veloci
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 33:")
 
-        if (error1 < 1.0 and error2 < 1.0):
+        if (error1 < 0.1 and error2 < 0.1):
             error_file.write(" OK!........ Test 33 SUCCESSFUL\n")
         else:
             error_file.write(" KO!........ Test 33 FAILED\n")

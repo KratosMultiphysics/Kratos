@@ -1,25 +1,24 @@
-/* *********************************************************
-*
-*   Last Modified by:    $Author: rrossi $
-*   Date:                $Date: 2007-03-06 10:30:32 $
-*   Revision:            $Revision: 1.2 $
-*
-* ***********************************************************/
-
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
+//
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:  Riccardo Rossi
+//
 
 #if !defined(KRATOS_RESIDUALBASED_SEMI_EULERIAN_CONVECTION_DIFFUSION_STRATEGY )
 #define  KRATOS_RESIDUALBASED_SEMI_EULERIAN_CONVECTION_DIFFUSION_STRATEGY
 
-
 /* System includes */
 
-
 /* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
@@ -119,12 +118,16 @@ public:
         bool ReformDofAtEachIteration = false,
         int dimension = 3
     )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
+        : 
+        mrReferenceModelPart(model_part),
+        SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
     {
         KRATOS_TRY
 
+        if(mrReferenceModelPart.GetOwnerModel().HasModelPart("ConvectionDiffusionPart"))
+            KRATOS_ERROR << "ConvectionDiffusionPart already exists when constructing ResidualBasedSemiEulerianConvectionDiffusionStrategy" << std::endl;
+
 		GenerateMeshPart(dimension);
-        KRATOS_WATCH(*mpConvectionModelPart);
 		mdimension = dimension;
         mOldDt = 0.00;
 
@@ -168,7 +171,10 @@ public:
 
     /** Destructor.
     */
-    virtual ~ResidualBasedSemiEulerianConvectionDiffusionStrategy() {}
+    virtual ~ResidualBasedSemiEulerianConvectionDiffusionStrategy() 
+    {
+        mrReferenceModelPart.GetOwnerModel().DeleteModelPart("ConvectionDiffusionPart");
+    }
 
     /** Destructor.
     */
@@ -409,7 +415,8 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    ModelPart::Pointer mpConvectionModelPart;
+    ModelPart& mrReferenceModelPart;
+    ModelPart* mpConvectionModelPart;
     typename BaseType::Pointer mstep1;
     double mOldDt;
     int mdimension;
@@ -428,7 +435,10 @@ private:
 
   void GenerateMeshPart(int dimension)
   {
-    mpConvectionModelPart = ModelPart::Pointer( new ModelPart("ConvectionPart",1) );
+    if(!mrReferenceModelPart.GetOwnerModel().HasModelPart("ConvectionDiffusionPart"))
+        mrReferenceModelPart.GetOwnerModel().DeleteModelPart("ConvectionDiffusionPart");
+
+    mpConvectionModelPart = &(mrReferenceModelPart.GetOwnerModel().CreateModelPart("ConvectionDiffusionPart"));
 
 	mpConvectionModelPart->SetProcessInfo(  BaseType::GetModelPart().pGetProcessInfo() );
     mpConvectionModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize());

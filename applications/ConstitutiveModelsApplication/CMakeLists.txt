@@ -25,7 +25,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/large_strain_laws/large_strain_3D_law.cpp
 
 	#strain rate laws
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/strain_rate_laws/strain_rate_3D_law.cpp	
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/strain_rate_laws/strain_rate_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/strain_rate_laws/newtonian_3D_law.cpp
 
 	#general constitutive models
@@ -34,7 +34,8 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_CORE
 
 	#elasticity models
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/linear_elastic_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/hyperelastic_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/hyper_elastic_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/hypo_elastic_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/ogden_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/mooney_rivlin_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/borja_model.cpp
@@ -53,6 +54,9 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/modified_exponential_damage_hardening_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/cam_clay_hardening_rule.cpp
 
+        #utilities
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/properties_layout.cpp
+
 )
 
 ## Generate variables with the sources
@@ -60,6 +64,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_PYTHON_INTERFACE
         # Custom python
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/constitutive_models_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )
 
 add_library(KratosConstitutiveModelsCore SHARED ${KRATOS_CONSTITUTIVE_MODELS_APPLICATION_CORE})

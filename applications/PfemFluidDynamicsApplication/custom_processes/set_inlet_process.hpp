@@ -16,21 +16,21 @@
 
 // System includes
 
-// Project includes 
+// Project includes
 #include "containers/variables_list_data_value_container.h"
 #include "spatial_containers/spatial_containers.h"
 
 #include "includes/model_part.h"
 #include "custom_utilities/mesh_error_calculation_utilities.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 
 ///VARIABLES used:
-//Data:      
+//Data:
 //StepData: CONTACT_FORCE, DISPLACEMENT
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -65,12 +65,12 @@ public:
 
     /// Default constructor.
     SetInletProcess(ModelPart& rModelPart,
-				int EchoLevel) 
+				int EchoLevel)
       : mrModelPart(rModelPart)
     {
-      std::cout<<" inlet_management CONSTRUCTOR "<<std::endl;
+        KRATOS_INFO("SetInletProcess") << " inlet_management CONSTRUCTOR ";
 
-      mEchoLevel = EchoLevel;
+        mEchoLevel = EchoLevel;
     }
 
 
@@ -94,7 +94,7 @@ public:
     ///@{
 
     /// Execute method is used to execute the Process algorithms.
-    virtual void Execute()
+    void Execute() override
   {
     KRATOS_TRY
 
@@ -125,49 +125,6 @@ public:
       }
 
 
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
-    {
-      KRATOS_TRY
-
-    KRATOS_CATCH(" ")
-
-    }
-
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
-    {
-
-    }
-
-    /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
-    {	
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
-    {
-    }
-
-    /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
-    {
-    }
-
-    /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
-    {
-    }
-
-    /// this function is designed for being called at the end of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
-    {
-    }
-
 
     ///@}
     ///@name Access
@@ -184,20 +141,15 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "SetInletProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SetInletProcess";
-    }
-
-    /// Print object's data.s
-    virtual void PrintData(std::ostream& rOStream) const
-    {
     }
 
 
@@ -216,8 +168,8 @@ private:
     ///@name Static Member Variables
     ///@{
     ModelPart& mrModelPart;
- 
-    ModelerUtilities mModelerUtilities;  
+
+    MesherUtilities mMesherUtilities;
 
     int mEchoLevel;
 
@@ -232,7 +184,7 @@ private:
 
 
 
- 
+
 
     ///@}
     ///@name Private  Access
@@ -294,6 +246,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SET_INLET_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_SET_INLET_PROCESS_H_INCLUDED  defined
 
 

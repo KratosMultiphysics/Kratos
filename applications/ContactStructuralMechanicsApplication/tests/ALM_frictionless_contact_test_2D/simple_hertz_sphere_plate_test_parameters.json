@@ -1,15 +1,14 @@
 {
     "problem_data"             : {
         "problem_name"    : "simple_hertz_popp_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.11,
         "start_time"      : 0.0,
         "end_time"        : 0.1,
         "echo_level"      : 0
     },
     "solver_settings"          : {
+    "model_part_name" : "Structure",
+        "domain_size"     : 2,
         "solver_type"                        : "Dynamic",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
@@ -23,6 +22,9 @@
         "contact_settings":
         {
             "mortar_type"                    : "ALMContactFrictionless"
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.11
         },
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
@@ -41,72 +43,74 @@
         										"Parts_parts_plate",
         										"DISPLACEMENT_bc_rolling_x"]
     },
-    "constraints_process_list" : [{
-        "python_module"   : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "AssignVectorVariableProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "Parts_parts_plate",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,true],
-            "value"           : [0.0,0.0,0.0]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module"   : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Parts_parts_plate",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module"   : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_bc_rolling_x",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module"   : "assign_vector_variable_to_conditions_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process sets a vector variable value over a condition",
+            "check"                 : "DirectorVectorNonZero direction",
+            "process_name"          : "AssignVectorVariableToConditionProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "LineLoad2D_bc_pressure",
+                "variable_name"   : "LINE_LOAD",
+                "interval"        : [0.0, 5e-1],
+                "value"           : [0.0, "-1.3e0*t/0.5", 0.0]
+            }
+        }],
+        "contact_process_list" :[{
+            "python_module"   : "alm_contact_process",
+            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "help"                  : "",
+            "process_name"          : "ALMContactProcess",
+            "Parameters"            : {
+                "model_part_name"             : "Structure",
+                "assume_master_slave"         : { "0" : ["Parts_parts_hemisphere"]},
+                "contact_model_part"          : { "0" : ["Contact_Part"]},
+                "contact_type"                : "Frictionless"
+            }
         }
-    },{
-        "python_module"   : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "AssignVectorVariableProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_bc_rolling_x",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,false,true],
-            "value"           : [0.0,0.0,0.0]
+        ],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["DISPLACEMENT_Y"],
+                "input_file_name"      : "ALM_frictionless_contact_test_2D/simple_hertz_sphere_plate_test_results.json",
+                "model_part_name"      : "Contact_Part",
+                "time_frequency"       : 0.11
+            }
         }
-    }],
-    "loads_process_list"       : [{
-        "python_module"   : "assign_vector_variable_to_conditions_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process sets a vector variable value over a condition",
-        "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "AssignVectorVariableToConditionProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "LineLoad2D_bc_pressure",
-            "variable_name"   : "LINE_LOAD",
-            "interval"        : [0.0, 5e-1],
-            "value"           : [0.0, "-1.3e0*t/0.5", 0.0]
-        }
-    }],
-    "contact_process_list" :[{
-        "python_module"   : "alm_contact_process",
-        "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
-        "help"                  : "",
-        "process_name"          : "ALMContactProcess",
-        "Parameters"            : {
-            "model_part_name"             : "Structure",
-            "assume_master_slave"         : "Parts_parts_hemisphere",
-            "contact_model_part"          : "Contact_Part",
-            "contact_type"                : "Frictionless"
-        }
-    }
-    ],
-    "json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_Y"],
-            "input_file_name"      : "ALM_frictionless_contact_test_2D/simple_hertz_sphere_plate_test_results.json",
-            "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 0.11
-        }
-    }
-    ],
+        ]
+    },
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",
@@ -121,7 +125,16 @@
         }
     }
     ],
-    "_output_configuration"     : {
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "test_solution",
+                "postprocess_parameters" : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -140,7 +153,7 @@
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },
-        "point_data_configuration"  : []
+        "point_data_configuration"  : []}}}]
     },
     "restart_options"          : {
         "SaveRestart"      : false,

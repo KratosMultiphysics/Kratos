@@ -399,7 +399,7 @@ namespace Kratos
 		
 		
 		//TOOL TO TRANSFER INFORMATION INITIALLY FROM ONE DOMAIN TO OTHER.
-		void IntializeTransferTool(ModelPart::Pointer topographic_model_part, array_1d<double, 3 > initial_domains_offset, bool ovewrite_particle_data)
+		void IntializeTransferTool(ModelPart* topographic_model_part, array_1d<double, 3 > initial_domains_offset, bool ovewrite_particle_data)
 			//mtopographic_model_part(topographic_model_part)
 		{
 			KRATOS_TRY
@@ -3622,7 +3622,7 @@ namespace Kratos
 		
 	
 	ModelPart& mr_model_part;
-	ModelPart::Pointer mtopographic_model_part_pointer;
+	ModelPart* mtopographic_model_part_pointer;
 	array_1d<double, 3 > mcalculation_domain_complete_displacement;
 	array_1d<double, 3 > mcalculation_domain_added_displacement;
 	bool mintialized_transfer_tool;

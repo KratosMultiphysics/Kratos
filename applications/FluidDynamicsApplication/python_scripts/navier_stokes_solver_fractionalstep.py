@@ -10,32 +10,24 @@ KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-import navier_stokes_base_solver
+from fluid_solver import FluidSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesSolverFractionalStep(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return NavierStokesSolverFractionalStep(model, custom_settings)
 
-class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBaseSolver):
+class NavierStokesSolverFractionalStep(FluidSolver):
 
-    def __init__(self, main_model_part, custom_settings):
-
-        self.element_name = "FractionalStep"
-        self.condition_name = "WallCondition"
-        self.min_buffer_size = 3
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
-
+    def _ValidateSettings(self, settings):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "FractionalStep",
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                     "input_type": "mdpa",
-                    "input_filename": "unknown_name"
+                    "input_filename": "unknown_name",
+                    "reorder": false
             },
             "predictor_corrector": false,
             "maximum_velocity_iterations": 3,
@@ -79,19 +71,27 @@ class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBas
             "skin_parts":[""],
             "no_skin_parts":[""],
             "time_stepping"                : {
-                "automatic_time_step" : true,
+                "automatic_time_step" : false,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01
             },
             "move_mesh_flag": false,
-            "use_slip_conditions": true,
-            "reorder": false
+            "use_slip_conditions": true
         }""")
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
+
+    def __init__(self, model, custom_settings):
+        super(NavierStokesSolverFractionalStep,self).__init__(model,custom_settings)
+
+        self.element_name = "FractionalStep"
+        self.condition_name = "WallCondition"
+        self.min_buffer_size = 3
+
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
 
         ## Construct the linear solvers
         import linear_solver_factory
@@ -132,19 +132,17 @@ class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBas
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Fluid solver variables added correctly.")
 
-    def ImportModelPart(self):
-        super(NavierStokesSolverFractionalStep, self).ImportModelPart()
-
-        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
-        self._set_physical_properties()
-
+    def PrepareModelPart(self):
+        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            self._set_physical_properties()
+        super(NavierStokesSolverFractionalStep, self).PrepareModelPart()
 
     def Initialize(self):
         self.computing_model_part = self.GetComputingModelPart()
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:

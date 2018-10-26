@@ -50,13 +50,13 @@ class ExplicitBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, 
 {
  public:
 
-  
+
   ///@name Type Definitions
   ///@{
 
   /// Pointer definition of ExplicitBuilderAndSolver
   KRATOS_CLASS_POINTER_DEFINITION( ExplicitBuilderAndSolver );
-  
+
   typedef SolutionBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>      BaseType;
 
   typedef typename BaseType::LocalFlagType                                   LocalFlagType;
@@ -84,9 +84,9 @@ class ExplicitBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, 
       : BaseType()
   {
   }
-  
+
   /// Destructor.
-  virtual ~ExplicitBuilderAndSolver() override
+  ~ExplicitBuilderAndSolver() override
   {
   }
   ///@}
@@ -99,7 +99,7 @@ class ExplicitBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, 
 
   void BuildLHS(SchemePointerType pScheme,
                 ModelPart& rModelPart,
-                SystemMatrixType& rA) override 
+                SystemMatrixType& rA) override
   {
     KRATOS_TRY
 
@@ -142,22 +142,22 @@ class ExplicitBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, 
 
     bool CalculateLumpedMassMatrix = false;
     if( rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ){
-      CalculateLumpedMassMatrix = rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX];	   
+      CalculateLumpedMassMatrix = rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX];
     }
-     
+
 #pragma omp parallel
     {
       int k = OpenMPUtils::ThisThread();
       typename ElementsContainerType::iterator ElemBegin = pElements.begin() + element_partition[k];
       typename ElementsContainerType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
 
-      for (typename ElementsContainerType::iterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)  //MSI: To be parallelized      
+      for (typename ElementsContainerType::iterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)  //MSI: To be parallelized
       {
         Matrix MassMatrix;
 
         Element::GeometryType& geometry = itElem->GetGeometry();
-		 
-        (itElem)->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo); 
+
+        (itElem)->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
 
         const unsigned int dimension   = geometry.WorkingSpaceDimension();
 
@@ -169,7 +169,7 @@ class ExplicitBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, 
           double& mass = geometry(i)->FastGetSolutionStepValue(NODAL_MASS);
 
           geometry(i)->SetLock();
-		     
+
           if(!CalculateLumpedMassMatrix){
             for (unsigned int j = 0; j <MassMatrix.size2(); j++)
             {
@@ -199,18 +199,18 @@ class ExplicitBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, 
                 SystemVectorType& rb) override
   {
     KRATOS_TRY
-        
+
     // Compute condition contributions to RHS.
     CalculateAndAddConditionsRHS(pScheme, rModelPart);
 
     // Compute element contributions to RHS.
     CalculateAndAddElementsRHS(pScheme, rModelPart);
 
-        
+
     KRATOS_CATCH( "" )
 
   }
-   
+
 
   void CalculateAndAddConditionsRHS(SchemePointerType pScheme,
                                     ModelPart& rModelPart )
@@ -231,7 +231,7 @@ class ExplicitBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, 
     OpenMPUtils::CreatePartition(number_of_threads, rConditions.size(), condition_partition);
 
 
-#pragma omp parallel for 
+#pragma omp parallel for
     for(int k=0; k<number_of_threads; k++)
     {
       typename ConditionsContainerType::ptr_iterator it_begin=rConditions.ptr_begin()+condition_partition[k];
@@ -258,7 +258,7 @@ class ExplicitBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, 
   {
 
     KRATOS_TRY
-        
+
     ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
     ElementsContainerType& pElements        = rModelPart.Elements();
 
@@ -271,7 +271,7 @@ class ExplicitBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, 
     vector<unsigned int> element_partition;
     OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
-#pragma omp parallel for 
+#pragma omp parallel for
     for(int k=0; k<number_of_threads; k++)
     {
       typename ElementsContainerType::ptr_iterator it_begin=pElements.ptr_begin()+element_partition[k];
@@ -289,7 +289,7 @@ class ExplicitBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, 
 
     KRATOS_CATCH("")
   }
-    
+
 
   /**
    * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
@@ -311,14 +311,14 @@ class ExplicitBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, 
     KRATOS_TRY
 
     return 0;
-    
+
     KRATOS_CATCH( "" )
   }
 
   ///@}
   ///@name Access
   ///@{
-  
+
   ///@}
   ///@name Inquiry
   ///@{
@@ -375,14 +375,14 @@ private:
   ///@name Un accessible methods
   ///@{
   ///@}
-  
+
 }; /// Class ExplicitBuilderAndSolver
 
 ///@}
 
 ///@name Type Definitions
 ///@{
-  
+
 ///@}
 ///@name Input and output
 ///@{

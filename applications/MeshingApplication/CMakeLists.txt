@@ -26,57 +26,50 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOp
 
 ## generate variables with the sources
 if(${INCLUDE_MMG} MATCHES ON)
-set( KRATOS_MESHING_APPLICATION_SOURCES    
-	${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_meshing_python_application.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
+set( KRATOS_MESHING_APPLICATION_CORE  
+    ${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refine_utility.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_error_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/integration_values_extrapolation_to_nodes_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
 )
 else(${INCLUDE_MMG} MATCHES ON)
-set( KRATOS_MESHING_APPLICATION_SOURCES    
-	${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_meshing_python_application.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
+set( KRATOS_MESHING_APPLICATION_CORE  
+    ${CMAKE_CURRENT_SOURCE_DIR}/meshing_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/uniform_refine_utility.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_error_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/integration_values_extrapolation_to_nodes_process.cpp
 )
 endif(${INCLUDE_MMG} MATCHES ON)
+
+set (KRATOS_MESHING_APPLICATION_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_meshing_python_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_meshers_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_processes_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+)
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON) 
     file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp) 
 endif(${KRATOS_BUILD_TESTING} MATCHES ON) 
 
-###############################################################
-## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosMeshingApplication MODULE THIN_LTO ${KRATOS_MESHING_APPLICATION_SOURCES} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosMeshingApplication PRIVATE KratosCore triangle tetMeshOpt)
-set_target_properties(KratosMeshingApplication PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
-set_target_properties(KratosMeshingApplication PROPERTIES PREFIX "")
-
-if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
-    target_link_libraries(KratosMeshingApplication ${TETGEN_LIBRARIES})
-endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
-
+add_library(KratosMeshingCore SHARED ${KRATOS_MESHING_APPLICATION_CORE} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
+target_link_libraries(KratosMeshingCore PUBLIC KratosCore triangle tetMeshOpt)
+set_target_properties(KratosMeshingCore PROPERTIES COMPILE_DEFINITIONS "MESHING_APPLICATION=EXPORT,API")
 
 if(${INCLUDE_MMG} MATCHES ON)
     add_definitions( -DINCLUDE_MMG )
@@ -86,19 +79,27 @@ if(${INCLUDE_MMG} MATCHES ON)
     INCLUDE_DIRECTORIES(${MMG3D_INCLUDE_DIR})
     INCLUDE_DIRECTORIES(${MMGS_INCLUDE_DIR})
 
-    target_link_libraries(KratosMeshingApplication KratosCore triangle ${MMG_LIBRARY} ${MMG2D_LIBRARY} ${MMG3D_LIBRARY} ${MMGS_LIBRARY})
+    target_link_libraries(KratosMeshingCore KratosCore triangle tetMeshOpt ${MMG_LIBRARY} ${MMG2D_LIBRARY} ${MMG3D_LIBRARY} ${MMGS_LIBRARY})
 endif(${INCLUDE_MMG} MATCHES ON)
 
+if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+    target_link_libraries(KratosMeshingCore ${TETGEN_LIBRARIES})
+endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
+
+###############################################################
+## define library Kratos which defines the basic python interface
+pybind11_add_module(KratosMeshingApplication MODULE THIN_LTO ${KRATOS_MESHING_APPLICATION_SOURCES})
+target_link_libraries(KratosMeshingApplication PRIVATE KratosMeshingCore)
 set_target_properties(KratosMeshingApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .pyd)
+    set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dylib suffix to .so 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .so)
+    set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(USE_COTIRE MATCHES ON)
@@ -107,6 +108,7 @@ if(USE_COTIRE MATCHES ON)
     cotire(KratosMeshingApplication)
 endif(USE_COTIRE MATCHES ON)
 
+install(TARGETS KratosMeshingCore DESTINATION libs )
 install(TARGETS KratosMeshingApplication DESTINATION libs )
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)

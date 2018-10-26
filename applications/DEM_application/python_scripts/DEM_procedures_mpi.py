@@ -71,7 +71,7 @@ class Procedures(DEM_procedures.Procedures):
     def FindMaxNodeIdInModelPart(self, model_part):
 
         node_max = super(Procedures,self).FindMaxNodeIdInModelPart(model_part)
-        node_max_gath = mpi.allgather(mpi.world,node_max)
+        node_max_gath = mpi.allgather_int(mpi.world,node_max)
         total_max = reduce(lambda x,y: max(x,y), node_max_gath)
         return total_max
 
@@ -83,8 +83,8 @@ class Procedures(DEM_procedures.Procedures):
 
     def KRATOSprint(self, message):
         if (mpi.rank == 0):
-            print(message)
-            self.Flush(sys.stdout)
+            Logger.Print(*args, label="DEM")
+            Logger.Flush()
 
 
 class DEMFEMProcedures(DEM_procedures.DEMFEMProcedures):
@@ -140,8 +140,8 @@ class MultifileList(object):
 
 class DEMIo(DEM_procedures.DEMIo):
 
-    def __init__(self, DEM_parameters, post_path):
-        super(DEMIo,self).__init__(DEM_parameters, post_path)
+    def __init__(self, model, DEM_parameters, post_path, all_model_parts):
+        super(DEMIo,self).__init__(model, DEM_parameters, post_path, all_model_parts)
 
     def AddMpiVariables(self):
         self.spheres_variables.append(PARTITION_INDEX)

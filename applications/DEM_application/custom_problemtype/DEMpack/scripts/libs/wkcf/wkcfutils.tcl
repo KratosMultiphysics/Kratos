@@ -1959,7 +1959,7 @@ proc ::wkcf::FindBoundaries {entity} {
     return $boundarylist
 }
 
-proc ::wkcf::FindBoundaries_no_spheric_elems {entity} {
+proc ::wkcf::FindBoundariesOfNonSphericElements {entity} {
     # ABSTRACT: Return a list containing all boundaries entities
     # Arguments
     # entity => Entity to be processed
@@ -1996,7 +1996,7 @@ proc ::wkcf::FindBoundaries_no_spheric_elems {entity} {
     return $boundarylist
 }
 
-proc ::wkcf::FindBoundariesOfNonSphericElements {entity} {
+proc ::wkcf::FindAllSurfacesOfNonSphericElements {entity} {
     # ABSTRACT: Return a list containing all boundaries entities
     # Arguments
     # entity => surface

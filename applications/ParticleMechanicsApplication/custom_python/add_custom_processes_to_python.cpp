@@ -12,7 +12,6 @@
 //
 
 
-
 // System includes
 
 // External includes
@@ -22,8 +21,6 @@
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/particle_erase_process.h"
-
-
 #include "includes/node.h"
 
 namespace Kratos
@@ -35,7 +32,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    class_<ParticleEraseProcess, Process>(m,"ParticleEraseProcess")
+    class_<ParticleEraseProcess, ParticleEraseProcess::Pointer, Process>(m,"ParticleEraseProcess")
     .def(init<ModelPart&>());
       
 }

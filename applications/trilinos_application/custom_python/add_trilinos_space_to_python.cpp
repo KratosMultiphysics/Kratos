@@ -27,19 +27,18 @@
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 
-
 // Project includes
 #include "includes/define.h"
 #include "trilinos_application.h"
 #include "trilinos_space.h"
+#include "custom_python/trilinos_pointer_wrapper.h"
 #include "custom_python/add_trilinos_space_to_python.h"
 // #include "spaces/ublas_space.h"
 // #include "add_trilinos_linear_solvers_to_python.h"
 #include "includes/model_part.h"
 
-//teuchos parameter list
+// Teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
-
 
 namespace Kratos
 {
@@ -52,36 +51,6 @@ typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceTy
 //typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
 
 typedef Epetra_FECrsMatrix FECrsMatrix;
-
-
-////////////////////////////// DEFINE WRAPPER CLASSES -- needed for PYBIND11
-
-class AuxiliaryMatrixWrapper
-{
-public:
-    AuxiliaryMatrixWrapper(TrilinosSparseSpaceType::MatrixPointerType p): mp(p){};
-
-    TrilinosSparseSpaceType::MatrixPointerType& GetPointer(){return mp;}
-    TrilinosSparseSpaceType::MatrixType& GetReference(){return *mp;}
-
-private:
-    TrilinosSparseSpaceType::MatrixPointerType mp;
-};
-
-class AuxiliaryVectorWrapper
-{
-public:
-    AuxiliaryVectorWrapper(TrilinosSparseSpaceType::VectorPointerType p): mp(p){};
-
-    TrilinosSparseSpaceType::VectorPointerType& GetPointer(){return mp;}
-    TrilinosSparseSpaceType::VectorType& GetReference(){return *mp;}
-
-private:
-    TrilinosSparseSpaceType::VectorPointerType mp;
-};
-
-
-
 
 void EraseAll(std::string& ThisString, std::string ToBeRemoved)
 {
@@ -100,18 +69,6 @@ std::string ErrorCleaner(std::string const& Input)
     EraseAll(output, "boost::numeric::");
 
     return output;
-}
-
-
-
-
-
-
-
-
-void prova(TrilinosSparseSpaceType& dummy, FECrsMatrix& rX)
-{
-    rX.PutScalar(0.0);
 }
 
 double Dot(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorType& rX, TrilinosSparseSpaceType::VectorType& rY)

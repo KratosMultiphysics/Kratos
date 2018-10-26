@@ -7,23 +7,22 @@
 //
 //
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 
 // Project includes
-#include "spaces/ublas_space.h"
 #include "custom_python/add_custom_strategies_to_python.h"
+#include "spaces/ublas_space.h"
 
 // Schemes
 #include "custom_strategies/schemes/residual_based_bossak_scheme.hpp"
-#include "custom_strategies/schemes/residual_based_U_W_bossak_scheme.hpp"
 
 namespace Kratos
 {
 
 namespace Python
-{		
+{
 using namespace  pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
@@ -34,28 +33,19 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   //custom scheme types
   typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >              ResidualBasedBossakSchemeType;
-  typedef ResidualBasedUWBossakScheme< SparseSpaceType, LocalSpaceType >          ResidualBasedUWBossakSchemeType;
 
-      
+
   //*************************SHCHEME CLASSES****************************
 
-     
+
   // Residual Based Bossak Scheme Type
   class_<ResidualBasedBossakSchemeType, typename ResidualBasedBossakSchemeType::Pointer, SchemeType>
       (m,"ResidualBasedBossakScheme")
       .def(init< double , double >())
-	
       .def("Initialize", &ResidualBasedBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
       ;
-      
 
-  // Residual Based Bossak Scheme Type
-  class_<ResidualBasedUWBossakSchemeType, typename ResidualBasedUWBossakSchemeType::Pointer, SchemeType>
-      (m,"ResidualBasedUWBossakScheme")
-      .def(init< double , double >())
-      .def("Initialize", &ResidualBasedUWBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-      ;
-                     
+
 }
 
 }  // namespace Python.

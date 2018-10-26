@@ -20,6 +20,7 @@
 
 /* Project includes */
 #include "includes/model_part.h"
+#include "containers/model.h"
 #include "includes/mesh_moving_variables.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
@@ -92,9 +93,14 @@ public:
                                          bool ComputeReactions = false,
                                          bool CalculateMeshVelocities = true,
                                          int EchoLevel = 0)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part)
+        :
+        SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part),
+        mrReferenceModelPart(model_part)
     {
         KRATOS_TRY
+
+        if(mrReferenceModelPart.GetOwnerModel().HasModelPart("StructuralMeshMovingPart"))
+            KRATOS_ERROR << "StructuralMeshMovingPart already existing when constructing TrilinosLaplacianMeshMovingStrategy";
 
         // Passed variables
         m_reform_dof_set_at_each_step = ReformDofSetAtEachStep;
@@ -138,6 +144,7 @@ public:
      */
     virtual ~TrilinosStructuralMeshMovingStrategy()
     {
+        mrReferenceModelPart.GetOwnerModel().DeleteModelPart("StructuralMeshMovingPart");
     }
 
     /** Destructor.
@@ -302,7 +309,8 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    ModelPart::Pointer mpmesh_model_part;
+    ModelPart& mrReferenceModelPart;
+    ModelPart* mpmesh_model_part;
 
     typename BaseType::Pointer mstrategy;
 
@@ -322,8 +330,10 @@ private:
 
     void GenerateMeshPart()
     {
-        // Initialize auxiliary model part storing the mesh elements
-        mpmesh_model_part = ModelPart::Pointer(new ModelPart("MeshPart", 1));
+        if(!mrReferenceModelPart.GetOwnerModel().HasModelPart("StructuralMeshMovingPart"))
+            mrReferenceModelPart.GetOwnerModel().DeleteModelPart("StructuralMeshMovingPart");
+
+        mpmesh_model_part  = &mrReferenceModelPart.GetOwnerModel().CreateModelPart("StructuralMeshMovingPart");
 
         // Initializing mesh nodes
         mpmesh_model_part->Nodes() = BaseType::GetModelPart().Nodes();

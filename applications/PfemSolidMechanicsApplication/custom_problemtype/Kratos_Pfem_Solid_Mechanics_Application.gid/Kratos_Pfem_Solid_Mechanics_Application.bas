@@ -84,6 +84,8 @@ Begin Properties *MatNum
 *format "%10.5e"
  PERMEABILITY *MatProp(PERMEABILITY,real)
 *format "%10.5e"
+ INITIAL_POROSITY *MatProp(POROSITY,real)
+*format "%10.5e"
  STABILIZATION_FACTOR *MatProp(STABILIZATION_FACTOR,real)
 *format "%10.5e"
  CONTACT_ADHESION *MatProp(CONTACT_ADHESION,real)
@@ -234,6 +236,24 @@ Begin Elements UpdatedLagrangianUWwPElement2D3N
 End Elements
 
 *endif
+*set cond surface_UpdatedLagrangianUJWwPElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements UpdatedLagrangianUJWwPElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
 *set cond surface_UpdatedLagrangianUwPStabElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements UpdatedLagrangianUwPStabElement2D3N
@@ -273,6 +293,24 @@ End Elements
 *set cond surface_AxisymUpdatedLagrangianUJwPElement2D3N *elems
 *if(CondNumEntities > 0)
 Begin Elements AxisymUpdatedLagrangianUJwPElement2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var ielem=operation(ielem+1)
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum *ElemsMat*\
+*for(i=1;i<=j;i=i+1)*\
+ *ElemsConec(*i)*\
+*end
+
+*end elems
+End Elements
+
+*endif
+*set cond surface_AxisymUpdatedLagrangianUJWwPElement2D3N *elems
+*if(CondNumEntities > 0)
+Begin Elements AxisymUpdatedLagrangianUJWwPElement2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var ielem=operation(ielem+1)

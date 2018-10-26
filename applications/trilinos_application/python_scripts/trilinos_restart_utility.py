@@ -24,6 +24,8 @@ class TrilinosRestartUtility(restart_utility.RestartUtility):
         # Construct the base class
         super(TrilinosRestartUtility, self).__init__(model_part, settings)
 
+        self.set_mpi_communicator = settings["set_mpi_communicator"].GetBool()
+
     #### Protected functions ####
 
     def _GetFileLabelLoad(self):
@@ -33,10 +35,8 @@ class TrilinosRestartUtility(restart_utility.RestartUtility):
         return str(KratosMPI.mpi.rank) + '_' + str(file_label)
 
     def _ExecuteAfterLoad(self):
-        import trilinos_import_model_part_utility
-        trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.model_part,
-                                                                                                         KratosMultiphysics.Parameters('''{"model_import_settings":[]}'''))
-        trilinos_model_part_importer.CreateCommunicators() # parallel fill communicator
+        if self.set_mpi_communicator:
+            KratosTrilinos.ParallelFillCommunicator(self.main_model_part.GetRootModelPart()).Execute()
 
     def _PrintOnRankZero(self, *args):
         KratosMPI.mpi.world.barrier()

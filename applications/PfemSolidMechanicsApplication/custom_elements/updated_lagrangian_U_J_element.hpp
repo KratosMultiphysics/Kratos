@@ -39,7 +39,7 @@ namespace Kratos
    /// Updated Lagrangian Large Displacement Lagrangian U-wP Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
 
 
-   class UpdatedLagrangianUJElement
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) UpdatedLagrangianUJElement
       : public LargeDisplacementElement
    {
       public:
@@ -54,6 +54,10 @@ namespace Kratos
          typedef ConstitutiveLawType::StressMeasure StressMeasureType;
          ///Type definition for integration methods
          typedef GeometryData::IntegrationMethod IntegrationMethod;
+         ///Type for size
+         typedef GeometryData::SizeType SizeType;
+         ///Type for element variables
+         typedef LargeDisplacementElement::ElementDataType ElementDataType;
 
          /// Counted pointer of LargeDisplacementUPElement
          KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUJElement );
@@ -208,7 +212,7 @@ namespace Kratos
          /**
           * Calculate Element Kinematics
           */
-         void CalculateKinematics(ElementVariables& rVariables,
+         void CalculateKinematics(ElementDataType& rVariables,
                const double& rPointNumber) override;
 
 
@@ -259,19 +263,20 @@ namespace Kratos
           */
          Vector mDeterminantF0;
 
-         /**** 
+         /****
           * Some double member variable
-          ****/    
+          ****/
          double mElementStabilizationNumber;
 
-         /*** 
-           Just to check a few things
-          ***/
-         //bool mCompressibleWater;
 
          ///@}
          ///@name Protected Operators
          ///@{
+
+         /**
+          * Get element size from the dofs
+          */
+         virtual SizeType GetDofsSize() override;
 
          /**
           * Calculates the elemental contributions
@@ -290,7 +295,7 @@ namespace Kratos
           */
 
          void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-               ElementVariables& rVariables,
+               ElementDataType& rVariables,
                double& rIntegrationWeight) override;
 
          /**
@@ -298,19 +303,19 @@ namespace Kratos
           */
 
          void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-               ElementVariables& rVariables,
+               ElementDataType& rVariables,
                Vector& rVolumeForce,
                double& rIntegrationWeight) override;
 
          /**
           * Initialize Element General Variables
           */
-         void InitializeElementVariables(ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+         void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Finalize Element Internal Variables
           */
-         void FinalizeStepVariables(ElementVariables & rVariables, const double& rPointNumber) override;
+         void FinalizeStepVariables(ElementDataType & rVariables, const double& rPointNumber) override;
 
 
 
@@ -318,7 +323,7 @@ namespace Kratos
           * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
           */
          void CalculateAndAddKuum(MatrixType& rK,
-               ElementVariables & rVariables,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
                ) override;
 
@@ -326,7 +331,7 @@ namespace Kratos
           * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
           */
          void CalculateAndAddKuug(MatrixType& rK,
-               ElementVariables & rVariables,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
                ) override;
 
@@ -334,7 +339,7 @@ namespace Kratos
           * Calculation of the Kup matrix
           */
          virtual void CalculateAndAddKuJ (MatrixType& rK,
-               ElementVariables & rVariables,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
                );
 
@@ -342,7 +347,7 @@ namespace Kratos
           * Calculation of the Kpu matrix
           */
          virtual void CalculateAndAddKJu(MatrixType& rK,
-               ElementVariables & rVariables,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
                );
 
@@ -351,7 +356,7 @@ namespace Kratos
           * Calculation of the Kpp matrix
           */
          virtual void CalculateAndAddKJJ(MatrixType& rK,
-               ElementVariables & rVariables,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
                );
 
@@ -359,14 +364,14 @@ namespace Kratos
          /**
           * Calculation of the Kpp Stabilization Term matrix
           */
-         virtual void CalculateAndAddKJJStab(MatrixType& rK, ElementVariables & rVariables,
+         virtual void CalculateAndAddKJJStab(MatrixType& rK, ElementDataType & rVariables,
                double& rIntegrationWeight
                );
          /**
           * Calculation of the External Forces Vector. Fe = N * t + N * b
           */
          void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-               ElementVariables& rVariables,
+               ElementDataType& rVariables,
                Vector& rVolumeForce,
                double& rIntegrationWeight
                ) override;
@@ -376,7 +381,7 @@ namespace Kratos
           * Calculation of the Internal Forces due to Pressure-Balance
           */
          virtual void CalculateAndAddJacobianForces(VectorType& rRightHandSideVector,
-               ElementVariables & rVariables,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
                );
 
@@ -385,7 +390,7 @@ namespace Kratos
           * Calculation of the Internal Forces due to Pressure-Balance
           */
          virtual void CalculateAndAddStabilizedJacobian(VectorType& rRightHandSideVector,
-               ElementVariables & rVariables,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
                );
 
@@ -393,16 +398,10 @@ namespace Kratos
           * Calculation of the Internal Forces due to sigma. Fi = B * sigma
           */
          void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-               ElementVariables & rVariables,
+               ElementDataType & rVariables,
                double& rIntegrationWeight
                ) override;
 
-         /**
-          * Initialize System Matrices
-          */
-         void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-               VectorType& rRightHandSideVector,
-               Flags& rCalculationFlags) override;
 
          //on integration points:
          /**
@@ -418,18 +417,18 @@ namespace Kratos
          /**
           * Get the Historical Deformation Gradient to calculate after finalize the step
           */
-         void GetHistoricalVariables( ElementVariables& rVariables, 
+         void GetHistoricalVariables( ElementDataType& rVariables,
                const double& rPointNumber ) override;
 
          /**
           * Calculation of the Volume Change of the Element
           */
-         double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables) override;
+         double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
          /*
           * Function to modify the deformation gradient to the constitutitve equation
           */
-         virtual void ComputeConstitutiveVariables( ElementVariables& rVariables, Matrix& rFT, double& rdetFT); 
+         virtual void ComputeConstitutiveVariables( ElementDataType& rVariables, Matrix& rFT, double& rdetFT);
 
          ///@}
          ///@name Protected  Access
@@ -492,4 +491,3 @@ namespace Kratos
 
 } // namespace Kratos
 #endif // KRATOS_UPDATED_LAGRANGIAN_U_J_ELEMENT_H_INCLUDED
-

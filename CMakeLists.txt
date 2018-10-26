@@ -107,6 +107,11 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
   endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0)
+      # pybind requires min. version 17, but we need at least 18:
+      message( "DEPRECATED: detected compiler as Intel " ${CMAKE_CXX_COMPILER_VERSION} )
+      message( FATAL_ERROR "Please use Version 18 or greater")
+    endif()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC  -funroll-loops -lpthread -wd654 -wd10010  ")
     set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -lpthread -wd654 -wd10010  ")
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
@@ -158,6 +163,8 @@ if(${MSVC})
   message("Detected compiler as MSVC")
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+  string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
+  string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
 endif(${MSVC})
 
 # Specific flags for different versions of MSVC
@@ -188,6 +195,12 @@ endif(USE_COTIRE MATCHES ON)
 ################### PYBIND11
 include(pybind11Tools)
 
+# Reset pybind11 config and remove -LTO on FullDebug to speedup linking time,
+if(CMAKE_BUILD_TYPE MATCHES FullDebug)
+    set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
+    set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
+endif(CMAKE_BUILD_TYPE MATCHES FullDebug)
+
 ######################################################################################
 ######################################################################################
 ######################################################################################
@@ -201,7 +214,10 @@ if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 	message("**********************************************************")
 	message("OpenMP calculation was excluced artificially. Remove the var")
 	message("KRATOS_EXCLUDE_OPENMP from the configuration script or set it to off to include it")
-	message("**********************************************************")
+    message("**********************************************************")
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable 3180 ") # Disabling warning abt unrecognized omp pragmas
+    endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
 else(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 	message("OpenMP included")
 	find_package(OpenMP)
@@ -369,7 +385,21 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 # include subdirectories
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
+
+# Applications
+# Internal applicatons work as usual.
 add_subdirectory(applications)
+
+# External applications
+# if -DKRATOS_EXTERNAL_APPLICATION_DIR is defined iterate over all the directories and look for applications
+# in them
+if(DEFINED KRATOS_EXTERNAL_APPLICATION_DIR)
+    foreach(APPLICATION_EXTERNAL_DIR ${KRATOS_EXTERNAL_APPLICATION_DIR})
+        get_filename_component(APPLICATION_EXTERNAL_FOLDER ${APPLICATION_EXTERNAL_DIR} NAME)
+        message("Trying to add external application directory '${APPLICATION_EXTERNAL_FOLDER}' located in '${APPLICATION_EXTERNAL_DIR}'")
+        add_subdirectory(${APPLICATION_EXTERNAL_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_EXTERNAL_FOLDER})
+    endforeach(APPLICATION_EXTERNAL_DIR ${KRATOS_EXTERNAL_APPLICATION_DIR})
+endif(DEFINED KRATOS_EXTERNAL_APPLICATION_DIR)
 
 #compiling the triangle library
 add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)

@@ -128,63 +128,67 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ExtractSurfaceNodes( std::string const& NewSubModelPartName )
+    void ExtractBoundaryNodes( std::string const& rBoundarySubModelPartName )
     {
     	KRATOS_TRY;
 
-    	if(mrModelPart.HasSubModelPart(NewSubModelPartName))
-    	{
-    		std::cout << "> Specified name for sub-model part already defined. Skipping extraction of surface nodes!" << std::endl;
-    		return;
-    	}
+        ModelPart& r_boundary_model_part = mrModelPart.GetSubModelPart(rBoundarySubModelPartName);
 
-    	// Create new sub-model part within the given main model part that shall list all surface nodes
-    	mrModelPart.CreateSubModelPart(NewSubModelPartName);
+        KRATOS_ERROR_IF(r_boundary_model_part.Nodes().size() != 0) << "ExtractBoundaryNodes: The boundary model part already has nodes!" << std::endl;
 
     	// Some type-definitions
         typedef std::unordered_map<vector<unsigned int>, unsigned int, KeyHasherRange<vector<unsigned int>>, KeyComparorRange<vector<unsigned int>> > hashmap;
 
     	// Create map to ask for number of faces for the given set of node ids representing one face in the model part
-    	hashmap n_faces_map;
+    	hashmap n_boundaries_map;
+
+        unsigned int domain_size = static_cast<unsigned int>(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
 
     	// Fill map that counts number of faces for given set of nodes
-    	for (ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); itElem++)
+    	for (auto& elem_i : mrModelPart.Elements())
     	{
-    		Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
+            KRATOS_ERROR_IF(elem_i.GetGeometry().Dimension() < domain_size) << "ExtractBoundaryNodes: This function does only work"
+                <<" for solid elements in 3D and surface elements in 2D!" << std::endl;
 
-    		for(unsigned int face=0; face<faces.size(); face++)
-    		{
-    			// Create vector that stores all node is of current face
-    			vector<unsigned int> ids(faces[face].size());
+            Element::GeometryType::GeometriesArrayType boundaries;
+            if (domain_size==3)
+                boundaries = elem_i.GetGeometry().Faces();
+            else if (domain_size == 2)
+                boundaries = elem_i.GetGeometry().Edges();
 
-    			// Store node ids
-    			for(unsigned int i=0; i<faces[face].size(); i++)
-    				ids[i] = faces[face][i].Id();
+            for(unsigned int boundary=0; boundary<boundaries.size(); boundary++)
+            {
+                // Create vector that stores all node is of current face
+                DenseVector<unsigned int> ids(boundaries[boundary].size());
 
-    			//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-    			std::sort(ids.begin(), ids.end());
+                // Store node ids
+                for(unsigned int i=0; i<boundaries[boundary].size(); i++)
+                    ids[i] = boundaries[boundary][i].Id();
 
-    			// Fill the map
-    			n_faces_map[ids] += 1;
-    		}
+                //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+                std::sort(ids.begin(), ids.end());
+
+                // Fill the map
+                n_boundaries_map[ids] += 1;
+            }
     	}
 
     	// Vector to store all nodes on surface. Node ids may be listed several times
-    	std::vector<std::size_t> temp_surface_node_ids;
+    	std::vector<std::size_t> temp_boundary_node_ids;
 
     	// Add surface nodes to sub-model part
-    	for(auto it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
+    	for(auto it=n_boundaries_map.begin(); it!=n_boundaries_map.end(); it++)
     	{
     		// If given node set represents face that is not overlapping with a face of another element, add it as skin element
     		if(it->second == 1)
     		{
     			for(unsigned int i=0; i<it->first.size(); i++)
-    				temp_surface_node_ids.push_back(it->first[i]);
+    				temp_boundary_node_ids.push_back(it->first[i]);
     		}
     	}
 
     	// Add nodes and remove double entries
-    	mrModelPart.GetSubModelPart(NewSubModelPartName).AddNodes(temp_surface_node_ids);
+    	r_boundary_model_part.AddNodes(temp_boundary_node_ids);
 
     	KRATOS_CATCH("");
     }

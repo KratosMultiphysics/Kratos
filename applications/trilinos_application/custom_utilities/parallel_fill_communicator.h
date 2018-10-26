@@ -95,19 +95,19 @@ public:
     ///************************************************************************************************
     ///function to print DETAILED mesh information. WARNING: to be used for debugging only as many informations
     ///are plotted
-    
+
     void PrintDebugInfo()
     {
         PrintModelPartDebugInfo(mrBaseModelPart);
     }
-    
+
     void PrintModelPartDebugInfo(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
         std::cout.flush();
         MPI_Barrier(MPI_COMM_WORLD);
-        
+
 
 
         int rank;
@@ -312,7 +312,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -320,7 +320,7 @@ protected:
     void ComputeCommunicationPlan(ModelPart& rModelPart)
     {
         constexpr unsigned root_id = 0;
-        
+
         Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&rModelPart.GetNodalSolutionStepVariablesList());
         rModelPart.SetCommunicator(pnew_comm);
 
@@ -390,11 +390,12 @@ protected:
             }
 
         // Create the colored graph for communication.
-        matrix<int> domains_colored_graph;
+        DenseMatrix<int> domains_colored_graph;
         int max_color_found = -1;
         if (my_rank == root_id)
         {
-            matrix<int> domains_graph = scalar_matrix<int>(num_processors, num_processors, 0);
+            ///@TODO for large problems, this should use a compressed matrix.
+            DenseMatrix<int> domains_graph = ZeroMatrix(num_processors, num_processors);
             for (unsigned index1 = 0; index1 < num_processors; ++index1)
                 for (unsigned index2 : receive_neighbours[index1])
                 {
@@ -722,6 +723,6 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_PARALLEL_FILL_COMMUNICATOR_H_INCLUDED  defined 
+#endif // KRATOS_PARALLEL_FILL_COMMUNICATOR_H_INCLUDED  defined
 
 

@@ -13,26 +13,18 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # Import base class file
 import trilinos_navier_stokes_embedded_solver
 
-def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesMPIEmbeddedAusasMonolithicSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return NavierStokesMPIEmbeddedAusasMonolithicSolver(model, custom_settings)
 
 class NavierStokesMPIEmbeddedAusasMonolithicSolver(trilinos_navier_stokes_embedded_solver.NavierStokesMPIEmbeddedMonolithicSolver):
 
-    def __init__(self, main_model_part, custom_settings):
-
-        self.element_name = "EmbeddedAusasNavierStokes"
-        self.condition_name = "EmbeddedAusasNavierStokesWallCondition"
-        self.min_buffer_size = 3
-
-        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
-
+    def _ValidateSettings(self, settings):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "EmbeddedAusas",
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -74,13 +66,16 @@ class NavierStokesMPIEmbeddedAusasMonolithicSolver(trilinos_navier_stokes_embedd
             "move_mesh_flag": false
         }""")
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
 
-        ## Construct the linear solver
-        import trilinos_linear_solver_factory
-        self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+    def __init__(self, model, custom_settings):
+
+        super(NavierStokesMPIEmbeddedAusasMonolithicSolver,self).__init__(model,custom_settings)
+
+        self.element_name = "EmbeddedAusasNavierStokes"
+        self.condition_name = "EmbeddedAusasNavierStokesWallCondition"
+        self.min_buffer_size = 3
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.

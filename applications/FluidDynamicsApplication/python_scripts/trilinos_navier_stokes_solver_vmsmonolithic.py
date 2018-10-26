@@ -14,34 +14,28 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD     # Fluid dyna
 
 # Import base class file
 import navier_stokes_solver_vmsmonolithic
+import trilinos_import_model_part_utility
 
-def CreateSolver(main_model_part, custom_settings):
-    return TrilinosNavierStokesSolverMonolithic(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return TrilinosNavierStokesSolverMonolithic(model, custom_settings)
 
 class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
-    def __init__(self, main_model_part, custom_settings):
-
-        self.element_name = "VMS"
-        self.condition_name = "MonolithicWallCondition"
-        self.min_buffer_size = 2
-
-        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = main_model_part
-
+    def _ValidateSettings(self, settings):
         ## Default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "trilinos_navier_stokes_solver_vmsmonolithic",
+            "model_part_name": "",
+            "domain_size": -1,
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "stabilization": {
+                "formulation": "vms"
+            },
             "maximum_iterations": 10,
-            "dynamic_tau": 0.01,
-            "oss_switch": 0,
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "time_order": 2,
@@ -64,7 +58,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "skin_parts": [""],
             "no_skin_parts":[""],
             "time_stepping": {
-                "automatic_time_step" : true,
+                "automatic_time_step" : false,
                 "CFL_number"          : 1,
                 "minimum_delta_time"  : 1e-4,
                 "maximum_delta_time"  : 0.01
@@ -78,9 +72,46 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "turbulence_model": "None"
         }""")
 
-        ## Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        ## Backwards compatibility -- deprecation warnings
+        if settings.Has("oss_switch"):
+            msg  = "Input JSON data contains deprecated setting \'oss_switch\' (int).\n"
+            msg += "Please define \'stabilization/formulation\' (set it to \'vms\')\n"
+            msg += "and set \'stabilization/use_orthogonal_subscales\' (bool) instead."
+            if self._IsPrintingRank():
+                #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+                KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
+            if not settings.Has("stabilization"):
+                settings.AddValue("stabilization",KratosMultiphysics.Parameters(r'{"formulation":"vms"}'))
+            settings["stabilization"].AddEmptyValue("use_orthogonal_subscales")
+            settings["stabilization"]["use_orthogonal_subscales"].SetBool(bool(settings["oss_switch"].GetInt()))
+            settings.RemoveValue("oss_switch")
+        if settings.Has("dynamic_tau"):
+            msg  = "Input JSON data contains deprecated setting \'dynamic_tau\' (float).\n"
+            msg += "Please define \'stabilization/formulation\' (set it to \'vms\') and \n"
+            msg += "set \'stabilization/dynamic_tau\' (float) instead."
+            if self._IsPrintingRank():
+                #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+                KratosMultiphysics.Logger.PrintWarning("NavierStokesVMSMonolithicSolver",msg)
+            if not settings.Has("stabilization"):
+                settings.AddValue("stabilization",KratosMultiphysics.Parameters(r'{"formulation":"vms"}'))
+            settings["stabilization"].AddEmptyValue("dynamic_tau")
+            settings["stabilization"]["dynamic_tau"].SetDouble(settings["dynamic_tau"].GetDouble())
+            settings.RemoveValue("dynamic_tau")
+
+        settings.ValidateAndAssignDefaults(default_settings)
+        return settings
+
+
+    def __init__(self, model, custom_settings):
+        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
+
+        # Note: deliberately calling the constructor of the base python solver (the parent of my parent)
+        super(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic, self).__init__(model,custom_settings)
+
+        self.stabilization = navier_stokes_solver_vmsmonolithic.StabilizedFormulation(self.settings["stabilization"])
+        self.element_name = self.stabilization.element_name
+        self.condition_name = self.stabilization.condition_name
+        self.min_buffer_size = 2
 
         ## Construct the linear solver
         import trilinos_linear_solver_factory
@@ -103,28 +134,20 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             KratosMultiphysics.Logger.Print("Variables for the VMS fluid Trilinos solver added correctly in each processor.")
 
-
     def ImportModelPart(self):
         ## Construct the Trilinos import model part utility
-        import trilinos_import_model_part_utility
-        TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+        self.trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
         ## Execute the Metis partitioning and reading
-        TrilinosModelPartImporter.ExecutePartitioningAndReading()
-        ## Replace default elements and conditions
-        super(TrilinosNavierStokesSolverMonolithic, self)._replace_elements_and_conditions()
-        ## Executes the check and prepare model process
-        super(TrilinosNavierStokesSolverMonolithic, self)._execute_check_and_prepare()
-        ## Call the base class set buffer size
-        super(TrilinosNavierStokesSolverMonolithic, self)._set_buffer_size()
-        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
-        super(TrilinosNavierStokesSolverMonolithic, self)._set_physical_properties()
-        ## Construct Trilinos the communicators
-        TrilinosModelPartImporter.CreateCommunicators()
+        self.trilinos_model_part_importer.ImportModelPart()
 
         if self._IsPrintingRank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            KratosMultiphysics.Logger.Print("MPI model reading finished.")
+            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverMonolithic","MPI model reading finished.")
 
+    def PrepareModelPart(self):
+        super(TrilinosNavierStokesSolverMonolithic,self).PrepareModelPart()
+        ## Construct Trilinos the communicators
+        self.trilinos_model_part_importer.CreateCommunicators()
 
     def AddDofs(self):
         ## Base class DOFs addition
@@ -145,7 +168,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
         ## If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         ## Creating the Trilinos convergence criteria
         self.conv_criteria = KratosTrilinos.TrilinosUPCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
@@ -153,11 +176,12 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                                                                self.settings["relative_pressure_tolerance"].GetDouble(),
                                                                self.settings["absolute_pressure_tolerance"].GetDouble())
 
+        (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
+
         ## Creating the Trilinos time scheme
         if (self.settings["turbulence_model"].GetString() == "None"):
             if self.settings["consider_periodic_conditions"].GetBool() == True:
                 self.time_scheme = KratosTrilinos.TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(self.settings["alpha"].GetDouble(),
-                                                                                                          self.settings["move_mesh_strategy"].GetInt(),
                                                                                                           self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
                                                                                                           KratosCFD.PATCH_INDEX)
             else:
@@ -196,11 +220,10 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
+        self.stabilization.SetProcessInfo(self.computing_model_part)
+
         (self.solver).Initialize()
         (self.solver).Check()
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
         if self._IsPrintingRank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED

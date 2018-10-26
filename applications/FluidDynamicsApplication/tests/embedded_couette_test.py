@@ -108,6 +108,23 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
         self.settings = "EmbeddedDevelopmentCouette3DTestParameters.json"
         self.ExecuteEmbeddedCouetteTest()
 
+    # Embedded Ausas development element tests
+    def testEmbeddedAusasDevelopmentCouette2D(self):
+        self.distance = 0.25
+        self.slip_flag = True
+        self.work_folder = "EmbeddedCouette2DTest"
+        self.reference_file = "reference_couette_ausas_development_2D"
+        self.settings = "EmbeddedAusasDevelopmentCouette2DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
+
+    def testEmbeddedAusasDevelopmentCouette3D(self):
+        self.distance = 0.25
+        self.slip_flag = True
+        self.work_folder = "EmbeddedCouette3DTest"
+        self.reference_file = "reference_couette_ausas_development_3D"
+        self.settings = "EmbeddedAusasDevelopmentCouette3DTestParameters.json"
+        self.ExecuteEmbeddedCouetteTest()
+
     def ExecuteEmbeddedCouetteTest(self):
         with WorkFolderScope(self.work_folder):
             self.setUp()
@@ -140,19 +157,21 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
             with open(self.settings, 'r') as parameter_file:
                 self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-            self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
-
-            Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
+            self.model = KratosMultiphysics.Model()
 
             ## Solver construction
             import python_solvers_wrapper_fluid
-            self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.ProjectParameters)
+            self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
+
+            ## Set the "is_slip" field in the json settings (to avoid duplication it is set to false in all tests)
+            if self.slip_flag and self.solver.settings.Has("is_slip"):
+                self.solver.settings["is_slip"].SetBool(True)
 
             self.solver.AddVariables()
 
             ## Read the model - note that SetBufferSize is done here
             self.solver.ImportModelPart()
+            self.solver.PrepareModelPart()
 
             ## Add AddDofs
             self.solver.AddDofs()
@@ -160,20 +179,12 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
             ## Solver initialization
             self.solver.Initialize()
 
-            ## Get the list of the skin submodel parts in the object Model
-            for i in range(self.ProjectParameters["solver_settings"]["skin_parts"].size()):
-                skin_part_name = self.ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
-                Model.update({skin_part_name: self.main_model_part.GetSubModelPart(skin_part_name)})
-
-            ## Get the gravity submodel part in the object Model
-            for i in range(self.ProjectParameters["gravity"].size()):
-                gravity_part_name = self.ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
-                Model.update({gravity_part_name: self.main_model_part.GetSubModelPart(gravity_part_name)})
-
             ## Processes construction
             import process_factory
-            self.list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
-            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
+            self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
+            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
+
+            self.main_model_part = self.model.GetModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
 
             ## Processes initialization
             for process in self.list_of_processes:
@@ -270,23 +281,21 @@ class EmbeddedCouetteTest(UnitTest.TestCase):
             end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
 
             time = 0.0
-            step = 0
 
             for process in self.list_of_processes:
                 process.ExecuteBeforeSolutionLoop()
 
             while(time <= end_time):
 
-                Dt = self.solver.ComputeDeltaTime()
-                step += 1
-                time += Dt
-                self.main_model_part.CloneTimeStep(time)
-                self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
+                time = self.solver.AdvanceInTime(time)
 
                 for process in self.list_of_processes:
                     process.ExecuteInitializeSolutionStep()
 
-                self.solver.Solve()
+                self.solver.InitializeSolutionStep()
+                self.solver.Predict()
+                self.solver.SolveSolutionStep()
+                self.solver.FinalizeSolutionStep()
 
                 for process in self.list_of_processes:
                     process.ExecuteFinalizeSolutionStep()
@@ -370,20 +379,19 @@ if __name__ == '__main__':
     test.setUp()
     test.distance = 0.25
     test.slip_flag = False
-    test.print_output = False
-    test.print_reference_values = False
-    test.work_folder = "EmbeddedCouette2DTest"
-    test.reference_file = "reference_couette_embedded_2D"
-    test.settings = "EmbeddedCouette2DTestParameters.json"
+    test.print_output = True
+    test.print_reference_values = True
+    test.work_folder = "EmbeddedCouette3DTest"
+    test.reference_file = "reference_couette_development_3D"
+    test.settings = "EmbeddedDevelopmentCouette3DTestParameters.json"
     test.setUpProblem()
     test.setUpDistanceField()
     if (test.slip_flag):
         test.setUpSlipInitialCondition()
-        test.setUpSLipBoundaryConditions()
+        test.setUpSlipBoundaryConditions()
     else:
         test.setUpNoSlipInitialCondition()
         test.setUpNoSlipBoundaryConditions()
     test.runTest()
     test.tearDown()
     test.checkResults()
-

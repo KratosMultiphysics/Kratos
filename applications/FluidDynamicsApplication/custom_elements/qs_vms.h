@@ -47,12 +47,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-// Forward decalration of auxiliary class
-namespace Internals {
-template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class SpecializedAddTimeIntegratedSystem;
-}
-
 template< class TElementData >
 class QSVMS : public FluidElement<TElementData>
 {
@@ -291,7 +285,7 @@ protected:
         MatrixType& rMassMatrix) override;
 
     // This function integrates the traction over a cut. It is only required to implement embedded formulations
-    void AddBoundaryIntegral(
+    void AddBoundaryTraction(
         TElementData& rData,
         const Vector& rUnitNormal,
         MatrixType& rLHS,
@@ -388,11 +382,6 @@ private:
     ///@{
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    friend class Internals::SpecializedAddTimeIntegratedSystem<TElementData, TElementData::ElementManagesTimeIntegration>;
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -469,33 +458,7 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 }
 ///@}
 
-
-namespace Internals {
-
-template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class SpecializedAddTimeIntegratedSystem {
-   public:
-    static void AddSystem(QSVMS<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
-template <class TElementData>
-class SpecializedAddTimeIntegratedSystem<TElementData, true> {
-   public:
-    static void AddSystem(QSVMS<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
-template <class TElementData>
-class SpecializedAddTimeIntegratedSystem<TElementData, false> {
-   public:
-    static void AddSystem(QSVMS<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
-};
-
 ///@} // Fluid Dynamics Application group
-
-} // namespace Internals
 
 } // namespace Kratos.
 

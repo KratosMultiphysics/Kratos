@@ -39,12 +39,16 @@ void TestSuite::ResetResult() {
 
 void TestSuite::Run() {
     for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
+    {
         (*i_test)->Run();
+    }
 }
 
 void TestSuite::Profile() {
     for (auto i_test = mTestCases.begin(); i_test != mTestCases.end(); i_test++)
+    {
         (*i_test)->Profile();
+    }
 }
 
 void TestSuite::Enable() {

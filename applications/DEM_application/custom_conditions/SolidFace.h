@@ -18,19 +18,19 @@
 namespace Kratos
 {
 
-class SolidFace3D : public DEMWall
+class KRATOS_API(DEM_APPLICATION) SolidFace3D : public DEMWall
 {
 public:
 
     // Counted pointer of SolidFace3D
     KRATOS_CLASS_POINTER_DEFINITION( SolidFace3D );
-	
-	
-    typedef WeakPointerVector<Element> ParticleWeakVectorType; 
+
+
+    typedef WeakPointerVector<Element> ParticleWeakVectorType;
     typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
     typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 
-    typedef WeakPointerVector<Condition> ConditionWeakVectorType; 
+    typedef WeakPointerVector<Condition> ConditionWeakVectorType;
     typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
 
 
@@ -49,13 +49,13 @@ public:
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
 
     void Initialize() override;
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;		
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
     void CalculateNormal(array_1d<double, 3>& rnormal) override;
-    void FinalizeSolutionStep(ProcessInfo& r_process_info) override;    
+    void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
     void GetDeltaDisplacement( array_1d<double, 3> & delta_displacement, int inode) override;
 
 protected:
-  
+
 private:
 
     friend class Serializer;
@@ -74,4 +74,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_SOLIDFACE3D_H_INCLUDED  defined 
+#endif // KRATOS_SOLIDFACE3D_H_INCLUDED  defined

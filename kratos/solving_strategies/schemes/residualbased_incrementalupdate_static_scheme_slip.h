@@ -18,7 +18,6 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */
@@ -90,7 +89,7 @@ public:
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
     typedef CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> RotationToolType;
     typedef typename CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double>::Pointer RotationToolPointerType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{

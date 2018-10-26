@@ -11,14 +11,12 @@
 #define  KRATOS_ADD_CUSTOM_MODELERS_TO_PYTHON_H_INCLUDED
 
 // System includes
-
+#include <pybind11/pybind11.h>
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
-
+#include "includes/define_python.h"
 
 namespace Kratos
 {
@@ -26,7 +24,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomModelersToPython();
+  void  AddCustomModelersToPython(pybind11::module& m);
 
 }  // namespace Python.
 

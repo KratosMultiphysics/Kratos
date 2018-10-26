@@ -58,7 +58,7 @@ public:
      */
     PythonOutfittedConstitutiveLaw(PyObject* pPyConstitutiveLaw);
 
-    
+
     /**
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
@@ -103,7 +103,7 @@ public:
      * Voigt tensor size:
      */
     SizeType GetStrainSize()
-    {      
+    {
       return boost::python::call_method<int>(mpPyConstitutiveLaw->ptr(),"GetStrainSize");
     };
 
@@ -129,17 +129,17 @@ public:
     /**
      * Material parameters are inizialized
      */
-    void InitializeMaterial( const Properties& rMaterialProperties,
+    void InitializeMaterial( const Properties& rProperties,
                              const GeometryType& rElementGeometry,
                              const Vector& rShapeFunctionsValues );
 
 
-    void InitializeSolutionStep( const Properties& rMaterialProperties,
+    void InitializeSolutionStep( const Properties& rProperties,
                                  const GeometryType& rElementGeometry, //this is just to give the array of nodes
                                  const Vector& rShapeFunctionsValues ,
                                  const ProcessInfo& rCurrentProcessInfo);
 
-    void FinalizeSolutionStep( const Properties& rMaterialProperties,
+    void FinalizeSolutionStep( const Properties& rProperties,
                                const GeometryType& rElementGeometry, //this is just to give the array of nodes
                                const Vector& rShapeFunctionsValues ,
                                const ProcessInfo& rCurrentProcessInfo);
@@ -221,12 +221,12 @@ public:
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param rMaterialProperties
+     * @param rProperties
      * @param rElementGeometry
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
+    int Check(const Properties& rProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Input and output
@@ -282,7 +282,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     //PyObject* mpPyConstitutiveLaw;
     boost::shared_ptr<boost::python::object> mpPyConstitutiveLaw;
 
@@ -294,7 +294,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
      * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 1 in the diagonal
      * if the matrix passed is 3D is does nothing
@@ -335,4 +335,4 @@ private:
 
 }; // Class PythonOutfittedConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_PYTHON_OUTFITTED_CONSTITUTIVE_LAW_H_INCLUDED  defined 
+#endif // KRATOS_PYTHON_OUTFITTED_CONSTITUTIVE_LAW_H_INCLUDED  defined

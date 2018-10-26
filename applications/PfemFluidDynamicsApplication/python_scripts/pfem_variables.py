@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import os
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.PfemApplication               as KratosPfem
+import KratosMultiphysics.DelaunayMeshingApplication  as KratosDelaunay
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -16,10 +16,10 @@ def AddVariables(main_model_part):
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_NORMAL);
     
-    main_model_part.AddNodalSolutionStepVariable(KratosPfem.OFFSET);
-    main_model_part.AddNodalSolutionStepVariable(KratosPfem.SHRINK_FACTOR);
-    main_model_part.AddNodalSolutionStepVariable(KratosPfem.MEAN_ERROR);
-    main_model_part.AddNodalSolutionStepVariable(KratosPfem.RIGID_WALL);
+    main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.OFFSET);
+    main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR);
+    main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.MEAN_ERROR);
+    main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.RIGID_WALL);
        
     #transfer variables
     main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DETERMINANT_F);

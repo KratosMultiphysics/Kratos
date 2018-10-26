@@ -37,7 +37,8 @@ class TimeStepTester(object):
 
     @classmethod
     def RunTestCaseWithCustomizedDtAndScheme(self, dt, scheme):
-        CustomizedSolutionForTimeStepTesting(dt, scheme).Run()
+        model = Kratos.Model()
+        CustomizedSolutionForTimeStepTesting(model, dt, scheme).Run()
 
     def Finalize(self):
 
@@ -53,10 +54,10 @@ class TimeStepTester(object):
 
 class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
 
-    def __init__(self, dt, scheme):
+    def __init__(self, model, dt, scheme):
         self.customized_time_step = dt
         self.customized_scheme = scheme
-        super(CustomizedSolutionForTimeStepTesting, self).__init__()
+        super(CustomizedSolutionForTimeStepTesting, self).__init__(model)
 
     def LoadParametersFile(self):
         self.DEM_parameters = Kratos.Parameters(
@@ -240,7 +241,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
         properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEMContinuumConstitutiveLaw"
         properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME] = "DEM_D_Hertz_viscous_Coulomb"
 
-        properties_walls[WALL_FRICTION] = 0.0
+        properties_walls[FRICTION] = 0.0
         properties_walls[WALL_COHESION] = 0.0
         properties_walls[COMPUTE_WEAR] = 0
         properties_walls[SEVERITY_OF_WEAR] = 0.001

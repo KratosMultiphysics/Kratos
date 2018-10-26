@@ -1,17 +1,18 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
 //
 
+
 #include "flux_condition.h"
 #include "includes/convection_diffusion_settings.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -46,7 +47,16 @@ Condition::Pointer FluxCondition<TNodeNumber>::Create(
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Condition::Pointer(new FluxCondition(NewId, GetGeometry().Create(ThisNodes), pProperties) );
+    return Kratos::make_shared<FluxCondition<TNodeNumber>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+template< unsigned int TNodeNumber >
+Condition::Pointer FluxCondition<TNodeNumber>::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    Properties::Pointer pProperties) const
+{
+    return Kratos::make_shared<FluxCondition<TNodeNumber>>(NewId, pGeom, pProperties);
 }
 
 template< unsigned int TNodeNumber >

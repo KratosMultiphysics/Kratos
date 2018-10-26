@@ -29,12 +29,12 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
 
   typedef double RealType;
 
-  typedef bounded_matrix<RealType, 3, 3> TransformationMatrixType;
+  typedef BoundedMatrix<RealType, 3, 3> TransformationMatrixType;
 
   typedef array_1d<RealType, 3> Vector3Type;
-		
+
   typedef std::vector<Vector3Type> Vector3ContainerType;
-		
+
   typedef Vector VectorType;
 
   typedef Matrix MatrixType;
@@ -168,7 +168,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
   }
 
  public:
-		
+
   /**
    * Computes the Translational Projector Matrix.
    * The output is a square matrix of size num_nodes*6.
@@ -180,15 +180,15 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
   {
     RealType a = RealType(num_nodes - 1) / RealType(num_nodes);
     RealType b = -1.0 / RealType(num_nodes);
-			
+
     size_t num_dofs = num_nodes * 6;
-			
+
     MatrixType P( IdentityMatrix(num_dofs, num_dofs) );
 
     for(size_t i = 0; i < num_nodes; i++)
     {
       size_t j = i * 6;
-				
+
       // diagonal block
       P(j    ,     j) = a;
       P(j + 1, j + 1) = a;
@@ -211,7 +211,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
 
     return P;
   }
-		
+
   /**
    * Computes the Spin Lever Matrix.
    * The output is a rectangular matrix of 3 columns and nodes.size()*6 rows.
@@ -223,15 +223,15 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
   {
     size_t num_nodes = nodes.size();
     size_t num_dofs = num_nodes * 6;
-			
+
     MatrixType S(num_dofs, 3, 0.0);
 
     for(size_t i = 0; i < num_nodes; i++)
     {
       size_t j = i * 6;
-				
+
       Spin_AtRow( nodes[i], S, -1.0, 0, j );
-				
+
       S(j + 3, 0) = 1.0;
       S(j + 4, 1) = 1.0;
       S(j + 5, 2) = 1.0;
@@ -239,7 +239,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
 
     return S;
   }
-		
+
   /**
    * Computes the Axial Vector Jacobian.
    * The output is a square matrix of size displacements.size() (which is num_nodes * 6).
@@ -251,7 +251,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
   {
     size_t num_dofs = displacements.size();
     size_t num_nodes = num_dofs / 6;
-			
+
     MatrixType H( IdentityMatrix(num_dofs, num_dofs) );
 
     MatrixType Omega(3, 3);
@@ -304,7 +304,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
   {
     size_t num_dofs = displacements.size();
     size_t num_nodes = num_dofs / 6;
-			
+
     MatrixType L(num_dofs, num_dofs, 0.0);
 
     Vector3Type rotationVector;
@@ -357,7 +357,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
       noalias( LiTemp1 ) -= LiTemp2;
 
       noalias( LiTemp1 ) += eta * Li;
-				
+
       noalias( Li ) = prod( LiTemp1, project( H, iRange, iRange ) );
 
       project( L, iRange, iRange ) = Li;
@@ -366,7 +366,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) EICR
     return L;
   }
 
-		
+
 };
 
 }

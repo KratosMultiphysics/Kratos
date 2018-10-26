@@ -29,9 +29,32 @@
 namespace Kratos
 {
 /**
- * An six node prism geometry with linear shape functions
+ * @class Prism3D6
+ * @ingroup KratosCore
+ * @brief A six node prism geometry with linear shape functions
+ * @details The node ordering corresponds with: 
+ *                 w
+ *                 ^
+ *                 |
+ *                 3                                      
+ *               ,/|`\                              
+ *             ,/  |  `\                          
+ *           ,/    |    `\                   
+ *          4------+------5             
+ *          |      |      |            
+ *          |    ,/|`\    |           
+ *          |  ,/  |  `\  |       
+ *          |,/    |    `\|           
+ *         ,|      |      |\           
+ *       ,/ |      0      | `\         
+ *      u   |    ,/ `\    |    v          
+ *          |  ,/     `\  |               
+ *          |,/         `\|                
+ *          1-------------2         
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Prism3D6 : public Geometry<TPointType>
 {
 public:
@@ -347,7 +370,7 @@ public:
         Vector temp;
         this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
+        double Volume = 0.0;
 
         for ( unsigned int i = 0; i < integration_points.size(); i++ )
         {
@@ -355,7 +378,7 @@ public:
         }
 
         return std::pow(Volume, 1.0/3.0)/3.0;
-//        return sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
+//        return std::sqrt( fabs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
     /**
@@ -374,30 +397,37 @@ public:
      */
     double Area() const override
     {
-        return fabs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
 
 
-
+    /**
+     * This method calculates and returns the volume of this geometry.
+     * This method calculates and returns the volume of this geometry.
+     *
+     * This method uses the V = (A x B) * C / 6 formula.
+     *
+     * @return double value contains length, area or volume.
+     *
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     *
+     * :TODO: might be necessary to reimplement
+     */
     double Volume() const override
     {
-
         Vector temp;
         this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
+        double Volume = 0.0;
 
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
+        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
             Volume += temp[i] * integration_points[i].Weight();
         }
 
-        //KRATOS_WATCH(temp)
         return Volume;
     }
-
-
-
 
     /**
      * This method calculate and return length, area or volume of
@@ -414,9 +444,8 @@ public:
      */
     double DomainSize() const override
     {
-        return fabs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
-
 
     /**
     * Returns a matrix of the local coordinates of all points
@@ -426,7 +455,7 @@ public:
     Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
         if ( rResult.size1() != 6 || rResult.size2() != 3 )
-            rResult.resize( 6, 3 );
+            rResult.resize( 6, 3 ,false);
 
         rResult( 0, 0 ) = 0.0;
         rResult( 0, 1 ) = 0.0;
@@ -463,7 +492,7 @@ public:
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
+    bool IsInside(
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult, 
         const double Tolerance = std::numeric_limits<double>::epsilon() 
@@ -482,13 +511,14 @@ public:
 
 
 
-    /** This method gives you number of all edges of this
+    /**
+     * This method gives you number of all edges of this
     geometry.
-    @return SizeType containes number of this geometry edges.
-    @see Edges()
-    @see Edge()
-     */
-    // will be used by refinement algorithm, thus uncommented. janosch.
+    * @return SizeType containes number of this geometry edges.
+    * @see Edges()
+    * @see Edge()
+    * @note It will be used by refinement algorithm, thus uncommented. Janosch.
+    */
     SizeType EdgesNumber() const override
     {
         return 9;
@@ -610,6 +640,53 @@ public:
     }
 
     /**
+     * This method gives all non-zero shape functions values
+     * evaluated at the rCoordinates provided
+     * @return Vector of values of shape functions \f$ F_{i} \f$ where i is the shape function index (for NURBS it is the index of the local enumeration in the element).
+     * @see ShapeFunctionValue
+     * @see ShapeFunctionsLocalGradients
+     * @see ShapeFunctionLocalGradient
+    */
+    Vector& ShapeFunctionsValues (
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates
+        ) const override
+    {
+        if(rResult.size() != 6)
+            rResult.resize(6,false);
+
+        rResult[0] =  1.0 -( rCoordinates[0] + rCoordinates[1] + rCoordinates[2] - ( rCoordinates[0] *  rCoordinates[2] ) - ( rCoordinates[1] * rCoordinates[2] ) );
+        rResult[1] =  rCoordinates[0] - ( rCoordinates[0] * rCoordinates[2] );
+        rResult[2] =  rCoordinates[1] - ( rCoordinates[1] * rCoordinates[2] );
+        rResult[3] =  rCoordinates[2] - ( rCoordinates[0] * rCoordinates[2] ) - ( rCoordinates[1] * rCoordinates[2] );
+        rResult[4] =  rCoordinates[0] * rCoordinates[2];
+        rResult[5] =  rCoordinates[1] * rCoordinates[2];
+
+        return rResult;
+    }
+
+    /**
+     * Calculates the gradients in terms of local coordinateds
+     * of all shape functions in a given point.
+     * @param rPoint the current point at which the gradients are calculated
+     * @return the gradients of all shape functions
+     * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
+     */
+    Matrix& ShapeFunctionsLocalGradients(
+        Matrix& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
+    {
+        if(rResult.size1() != this->PointsNumber() || rResult.size2() != this->LocalSpaceDimension())
+            rResult.resize(this->PointsNumber(),this->LocalSpaceDimension(),false);
+
+        CalculateShapeFunctionsLocalGradients(rResult, rPoint);
+
+        return rResult;
+    }
+
+
+    /**
      * Input and output
      */
 
@@ -703,7 +780,10 @@ private:
      * @return the gradients of all shape functions
      * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
-    static Matrix& CalculateShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint )
+    static Matrix& CalculateShapeFunctionsLocalGradients(
+        Matrix& rResult,
+        const CoordinatesArrayType& rPoint
+        )
     {
         rResult( 0, 0 ) = -1.0 + rPoint[2];
         rResult( 0, 1 ) = -1.0 + rPoint[2];
@@ -737,13 +817,10 @@ private:
      * @return the matrix of values of every shape function in each integration point
      *
      */
-    static Matrix CalculateShapeFunctionsIntegrationPointsValues(
-        typename BaseType::IntegrationMethod ThisMethod )
+    static Matrix CalculateShapeFunctionsIntegrationPointsValues(typename BaseType::IntegrationMethod ThisMethod )
     {
-        IntegrationPointsContainerType all_integration_points =
-            AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
+        IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -752,8 +829,7 @@ private:
         Matrix shape_function_values( integration_points_number, points_number );
         //loop over all integration points
 
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
+        for ( int pnt = 0; pnt < integration_points_number; pnt++ ) {
             shape_function_values( pnt, 0 ) = ( 1.0
                                                 - integration_points[pnt].X()
                                                 - integration_points[pnt].Y()

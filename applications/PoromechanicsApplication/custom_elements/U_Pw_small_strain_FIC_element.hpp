@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:                May 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_U_PW_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED )
 #define  KRATOS_U_PW_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED
@@ -17,7 +23,6 @@
 // Application includes
 #include "custom_elements/U_Pw_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "custom_utilities/element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos

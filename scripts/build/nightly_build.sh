@@ -15,11 +15,25 @@ export LIBC_FATAL_STDERR_=1
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/ubuntu/Kratos/libs:/home/ubuntu/CompiledLibs/clang-3.8.0-16.04-prebuilt/lib
 export PYTHONPATH=$PYTHONPATH:/home/ubuntu/Kratos
 
-## Step0: Let it rest some time so the unassisted updated can finish
-sleep 300 # 5 minutes
+## Step0: Prevent apt-get from triggering before the unasisted updates have finished
+while fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
+  echo "Waiting for apt-get to finish"
+done
+
+# Download additional dependencies
+sudo apt-get install -y unzip python3-h5py libhdf5-dev libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
+
+# We move to home directory
+cd ${HOME}
+# mmg library
+wget https://drive.google.com/uc\?export\=download\&id\=1ythlWTtOCqm2nSKQzvc6QLiFYeFgC1NX -O mmg.zip
+unzip mmg.zip
+# Eigen library
+wget https://bitbucket.org/eigen/eigen/get/dbed8786ceed.tar.gz -O eigen.tar.gz
+tar xzf eigen.tar.gz
+mv ${HOME}/eigen-eigen-dbed8786ceed ${HOME}/eigen
 
 ## Step1: Prepare
-cd ${HOME}
 wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli
 chmod 777 smtp-cli
 
@@ -75,11 +89,6 @@ cat ${LOG_DIR}/unittest_gcc.log >> ${MAIL_GCC};
 # echo "Benchmarking: \n" >> ${MAIL_GCC}
 # echo "============= \n" >> ${MAIL_GCC}
 # cat ${LOG_DIR}/benchmarking_gcc.log >> ${MAIL_GCC};
-
-#### Ugly Fix ####
-# Apparently, this needs to go here because someone didn't had anything else to do apart from adding autoupdates in ubuntu 16....
-sudo apt-get install -y libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
-##################
 
 cd ${HOME}
 tar -zcvf /tmp/logs_gcc.tar.gz ${LOG_DIR}/*

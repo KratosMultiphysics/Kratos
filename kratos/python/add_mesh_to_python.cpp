@@ -1,11 +1,11 @@
-//    |  /           |             
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -57,8 +57,8 @@ typedef Geometry<Node<3> >::PointsArrayType NodesArrayType;
 typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
 typedef Point::CoordinatesArrayType CoordinatesArrayType;
 
-array_1d<double,3> GetNormalFromCondition( 
-    Condition& dummy, 
+array_1d<double,3> GetNormalFromCondition(
+    Condition& dummy,
     CoordinatesArrayType& LocalCoords
     )
 {
@@ -120,7 +120,7 @@ NodeType::Pointer GetNodeFromCondition( Condition& dummy, unsigned int index )
     return( dummy.GetGeometry().pGetPoint(index) );
 }
 
-void ConditionCalculateLocalSystemStandard( Condition& dummy, 
+void ConditionCalculateLocalSystemStandard( Condition& dummy,
                                                 Matrix& rLeftHandSideMatrix,
                                                 Vector& rRightHandSideVector,
                                                 ProcessInfo& rCurrentProcessInfo)
@@ -250,7 +250,7 @@ void SetValuesOnIntegrationPointsDouble( TObject& dummy, const Variable<double>&
 
     if(values.size() != integration_points.size())
         KRATOS_ERROR << "size of values is : " << values.size() << " while the integration points size is " << integration_points.size() << std::endl;
-    
+
     dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
@@ -445,21 +445,37 @@ void  AddMeshToPython(pybind11::module& m)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
-    .def("SetValue", [](Element& self, const Variable< array_1d<double,3>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,3>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
+
+    .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
+    .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
+    .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 4>  > >)
+    .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
+    .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 4>  > >)
+
+    .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
+    .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
+    .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 6>  > >)
+    .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
+    .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 6>  > >)
+
+    .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
+    .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
+    .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 9>  > >)
+    .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
+    .def("GetValue", GetValueHelperFunction< Element, Variable< array_1d<double, 9>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< Vector > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< Vector > >)
     .def("Has", HasHelperFunction< Element, Variable< Vector > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< Vector > >)
-    .def("SetValue", [](Element& self, const Variable< array_1d<double,3>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,3>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Element, Variable< Vector > >)
 
-    .def("__setitem__", SetValueHelperFunction< Element, Variable< vector<int> > >)
-    .def("__getitem__", GetValueHelperFunction< Element, Variable< vector<int> > >)
-    .def("Has", HasHelperFunction< Element, Variable< vector<int> > >)
-    .def("SetValue", SetValueHelperFunction< Element, Variable< vector<int> > >)
-    .def("GetValue", GetValueHelperFunction< Element, Variable< vector<int> > >)
+    .def("__setitem__", SetValueHelperFunction< Element, Variable< DenseVector<int> > >)
+    .def("__getitem__", GetValueHelperFunction< Element, Variable< DenseVector<int> > >)
+    .def("Has", HasHelperFunction< Element, Variable< DenseVector<int> > >)
+    .def("SetValue", SetValueHelperFunction< Element, Variable< DenseVector<int> > >)
+    .def("GetValue", GetValueHelperFunction< Element, Variable< DenseVector<int> > >)
 
     .def("__setitem__", SetValueHelperFunction< Element, Variable< Matrix > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< Matrix > >)
@@ -485,6 +501,11 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Element, Variable< bool > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< bool > >)
 
+    .def("__setitem__", SetValueHelperFunction< Element, Variable< std::string > >)
+    .def("__getitem__", GetValueHelperFunction< Element, Variable< std::string > >)
+    .def("Has", HasHelperFunction< Element, Variable< std::string > >)
+    .def("SetValue", SetValueHelperFunction< Element, Variable< std::string > >)
+    .def("GetValue", GetValueHelperFunction< Element, Variable< std::string > >)
 
     .def("GetArea", GetAreaFromElement )
     .def("GetNode", GetNodeFromElement )
@@ -525,18 +546,18 @@ void  AddMeshToPython(pybind11::module& m)
     //.def("SetValue", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
     //.def("GetValue", GetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
 
-    /*                  .def(VariableIndexingPython<Element, Variable<int> >())
-                        .def(VariableIndexingPython<Element, Variable<double> >())
-                        .def(VariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
-                        .def(VariableIndexingPython<Element, Variable< Vector > >())
-                        .def(VariableIndexingPython<Element, Variable< Matrix > >())
-                        .def(VariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
-                        .def(SolutionStepVariableIndexingPython<Element, Variable<int> >())
-                        .def(SolutionStepVariableIndexingPython<Element, Variable<double> >())
-                        .def(SolutionStepVariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
-                        .def(SolutionStepVariableIndexingPython<Element, Variable<vector<double> > >())
-                        .def(SolutionStepVariableIndexingPython<Element, Variable<DenseMatrix<double> > >())
-                        .def(SolutionStepVariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >()) */
+//     .def(VariableIndexingPython<Element, Variable<int> >())
+//     .def(VariableIndexingPython<Element, Variable<double> >())
+//     .def(VariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
+//     .def(VariableIndexingPython<Element, Variable< Vector > >())
+//     .def(VariableIndexingPython<Element, Variable< Matrix > >())
+//     .def(VariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
+//     .def(SolutionStepVariableIndexingPython<Element, Variable<int> >())
+//     .def(SolutionStepVariableIndexingPython<Element, Variable<double> >())
+//     .def(SolutionStepVariableIndexingPython<Element, Variable<array_1d<double, 3> > >())
+//     .def(SolutionStepVariableIndexingPython<Element, Variable<vector<double> > >())
+//     .def(SolutionStepVariableIndexingPython<Element, Variable<DenseMatrix<double> > >())
+//     .def(SolutionStepVariableIndexingPython<Element, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
     .def("Initialize", &Element::Initialize)
     //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
     .def("__repr__", &Element::Info) //self_ns::str(self))
@@ -552,8 +573,25 @@ void  AddMeshToPython(pybind11::module& m)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
-    .def("SetValue", [](Condition& self, const Variable< array_1d<double,3>>& rVar, const Vector& value){self.SetValue(rVar, array_1d<double,3>(value));  }  )  //to allow passing a Vector instead of an array_1d
     .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
+
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
+    .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 4>  > >)
+
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
+    .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 6>  > >)
+
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
+    .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< array_1d<double, 9>  > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< Vector > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< Vector > >)
@@ -561,11 +599,11 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< Vector > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< Vector > >)
 
-    .def("__setitem__", SetValueHelperFunction< Condition, Variable< vector<int> > >)
-    .def("__getitem__", GetValueHelperFunction< Condition, Variable< vector<int> > >)
-    .def("Has", HasHelperFunction< Condition, Variable< vector<int> > >)
-    .def("SetValue", SetValueHelperFunction< Condition, Variable< vector<int> > >)
-    .def("GetValue", GetValueHelperFunction< Condition, Variable< vector<int> > >)
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< DenseVector<int> > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< DenseVector<int> > >)
+    .def("Has", HasHelperFunction< Condition, Variable< DenseVector<int> > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< DenseVector<int> > >)
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< DenseVector<int> > >)
 
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< Matrix > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< Matrix > >)
@@ -591,6 +629,12 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< bool > >)
     .def("GetValue", GetValueHelperFunction< Condition, Variable< bool > >)
 
+    .def("__setitem__", SetValueHelperFunction< Condition, Variable< std::string > >)
+    .def("__getitem__", GetValueHelperFunction< Condition, Variable< std::string > >)
+    .def("Has", HasHelperFunction< Condition, Variable< std::string > >)
+    .def("SetValue", SetValueHelperFunction< Condition, Variable< std::string > >)
+    .def("GetValue", GetValueHelperFunction< Condition, Variable< std::string > >)
+
     .def("GetNode", GetNodeFromCondition )
     .def("GetNodes", GetNodesFromCondition )
 
@@ -606,21 +650,20 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetNormal",FastGetNormalFromCondition)
     .def("GetArea",GetAreaFromCondition)
 
+//     .def(VariableIndexingPython<Condition, Variable<int> >())
+//     .def(VariableIndexingPython<Condition, Variable<double> >())
+//     .def(VariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
+//     .def(VariableIndexingPython<Condition, Variable< Vector > >())
+//     .def(VariableIndexingPython<Condition, Variable< Matrix > >())
+//     .def(VariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
+//     .def(SolutionStepVariableIndexingPython<Condition, Variable<int> >())
+//     .def(SolutionStepVariableIndexingPython<Condition, Variable<double> >())
+//     .def(SolutionStepVariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
+//     .def(SolutionStepVariableIndexingPython<Condition, Variable<vector<double> > >())
+//     .def(SolutionStepVariableIndexingPython<Condition, Variable<DenseMatrix<double> > >())
+//     .def(SolutionStepVariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
 
 
-//				.def(VariableIndexingPython<Condition, Variable<int> >())
-//				.def(VariableIndexingPython<Condition, Variable<double> >())
-//				.def(VariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
-//				.def(VariableIndexingPython<Condition, Variable< Vector > >())
-//				.def(VariableIndexingPython<Condition, Variable< Matrix > >())
-//				.def(VariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
-    /*				.def(SolutionStepVariableIndexingPython<Condition, Variable<int> >())
-    				.def(SolutionStepVariableIndexingPython<Condition, Variable<double> >())
-    				.def(SolutionStepVariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
-    				.def(SolutionStepVariableIndexingPython<Condition, Variable<vector<double> > >())
-    				.def(SolutionStepVariableIndexingPython<Condition, Variable<DenseMatrix<double> > >())
-    				.def(SolutionStepVariableIndexingPython<Condition, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
-    */
     .def("Initialize", &Condition::Initialize)
     .def("CalculateLocalSystem", &ConditionCalculateLocalSystemStandard)
     .def("Info", &Condition::Info)
@@ -639,10 +682,10 @@ void  AddMeshToPython(pybind11::module& m)
     .def("ConditionsArray", &MeshType::ConditionsArray, return_value_policy::reference_internal)
     .def_property("Properties", &MeshType::pProperties,&MeshType::SetProperties)
     .def("PropertiesArray", &MeshType::PropertiesArray, return_value_policy::reference_internal)
-	.def("HasNode", &MeshType::HasNode)
-	.def("HasProperties", &MeshType::HasProperties)
-	.def("HasElement", &MeshType::HasElement)
-	.def("HasCondition", &MeshType::HasCondition)
+    .def("HasNode", &MeshType::HasNode)
+    .def("HasProperties", &MeshType::HasProperties)
+    .def("HasElement", &MeshType::HasElement)
+    .def("HasCondition", &MeshType::HasCondition)
     .def("__repr__", &MeshType::Info)
     ;
 }

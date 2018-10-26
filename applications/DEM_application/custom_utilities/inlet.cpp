@@ -70,6 +70,7 @@ namespace Kratos {
     }
 
     void DEM_Inlet::CheckSubModelPart(ModelPart& smp) {
+        CheckIfSubModelPartHasVariable(smp, RADIUS);
         CheckIfSubModelPartHasVariable(smp, IDENTIFIER);
         CheckIfSubModelPartHasVariable(smp, VELOCITY);
         CheckIfSubModelPartHasVariable(smp, MAX_RAND_DEVIATION_ANGLE);
@@ -115,6 +116,8 @@ namespace Kratos {
             ModelPart& mp = *smp_it;
 
             CheckSubModelPart(mp);
+            mp[MAXIMUM_RADIUS] = 1.5 * mp[RADIUS];
+            mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
 
             int mesh_size = smp_it->NumberOfNodes();
             if (!mesh_size) continue;
@@ -212,8 +215,8 @@ namespace Kratos {
                 Node<3>& neighbour_node = p_neighbour_particle->GetGeometry()[0];
 
                 const double indentation = CalculateNormalizedIndentation(spheric_particle, *p_neighbour_particle);
-                const bool indentation_is_significant_for_release = indentation > mNormalizedMaxIndentationForRelease;
-                const bool indentation_is_significant_for_injection = indentation > mNormalizedMaxIndentationForNewParticleCreation;
+                const bool indentation_is_significant_for_release = indentation > mNormalizedMaxIndentationForRelease*spheric_particle.GetInteractionRadius();
+                const bool indentation_is_significant_for_injection = indentation > mNormalizedMaxIndentationForNewParticleCreation*spheric_particle.GetInteractionRadius();
                 const bool i_am_injected_he_is_injector = r_node.IsNot(BLOCKED) && neighbour_node.Is(BLOCKED);
                 const bool i_am_injector_he_is_injected = r_node.Is(BLOCKED) && neighbour_node.IsNot(BLOCKED);
 
@@ -301,27 +304,31 @@ namespace Kratos {
             #pragma omp for
             for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
                 ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;
+            if (elem_it->Is(BLOCKED)) continue;
 
                 SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(*elem_it);
+
+            if (!(*(spheric_particle.mpInlet))[DENSE_INLET]) continue;
                 Node<3>& node = spheric_particle.GetGeometry()[0];
 
-                const array_1d<double,3> inlet_velocity = (*(spheric_particle.mpInlet))[VELOCITY];
+            if (!node.Is(DEMFlags::CUMULATIVE_ZONE)) continue;
+
+            const array_1d<double,3>& inlet_velocity = (*(spheric_particle.mpInlet))[VELOCITY];
                 const double inlet_velocity_magnitude = DEM_MODULUS_3(inlet_velocity);
                 const array_1d<double, 3> unitary_inlet_velocity =  inlet_velocity/inlet_velocity_magnitude;
 
                 const array_1d<double,3>& initial_coordinates = node.GetInitialPosition();
                 const array_1d<double,3>& coordinates = node.Coordinates();
                 const array_1d<double,3> distance = coordinates - initial_coordinates;
-                const double reference_distance = 12.0 * (*(spheric_particle.mpInlet))[RADIUS];
+            const double reference_distance = 15.0 * (*(spheric_particle.mpInlet))[RADIUS];
 
                 /// Projection over injection axis
                 const double projected_distance = DEM_INNER_PRODUCT_3(distance, unitary_inlet_velocity);
-                if (projected_distance < reference_distance) {
-                    node.Set(DEMFlags::CUMULATIVE_ZONE, true);
-                    spheric_particle.Set(DEMFlags::CUMULATIVE_ZONE, true);
-                }else{
+
+            if (projected_distance > reference_distance) {
                     node.Set(DEMFlags::CUMULATIVE_ZONE, false);
                     spheric_particle.Set(DEMFlags::CUMULATIVE_ZONE, false);
+
                 }
             }
             }
@@ -433,11 +440,17 @@ namespace Kratos {
 
     void DEM_Inlet::InitializeStep(ModelPart& r_modelpart) {
 
+        bool is_there_any_dense_inlet = false;
         for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
             ModelPart& mp = *smp_it;
-            const bool dense_inlet = mp[DENSE_INLET];
-            if (dense_inlet){CheckDistanceAndSetFlag(r_modelpart);}
+            if (mp[DENSE_INLET]) {
+                is_there_any_dense_inlet = true;
+                break;
+            }
         }
+        if (is_there_any_dense_inlet){
+            CheckDistanceAndSetFlag(r_modelpart);}
+
     }
 
     void DEM_Inlet::CreateElementsFromInletMesh(ModelPart& r_modelpart, ModelPart& r_clusters_modelpart, ParticleCreatorDestructor& creator) {
@@ -448,6 +461,7 @@ namespace Kratos {
         DettachClusters(r_clusters_modelpart, max_Id);
 
         int smp_number = 0;
+        int inter_smp_number = 0;
         for (ModelPart::SubModelPartsContainerType::iterator smp_it = mInletModelPart.SubModelPartsBegin(); smp_it != mInletModelPart.SubModelPartsEnd(); ++smp_it) {
             ModelPart& mp = *smp_it;
 
@@ -459,12 +473,13 @@ namespace Kratos {
             ModelPart::ElementsContainerType::ContainerType& all_elements = smp_it->ElementsArray();
 
             if (current_time > mp[INLET_STOP_TIME]) {
-                if (mLayerRemoved[smp_number]) continue;
+                if (mLayerRemoved[inter_smp_number]) continue;
                 for (int i = 0; i < mesh_size_elements; i++) {
-                    all_elements[i]->Set(TO_ERASE);
-                    all_elements[i]->GetGeometry()[0].Set(TO_ERASE);
+                    all_elements[i]->Set(TO_ERASE, true);
+                    all_elements[i]->GetGeometry()[0].Set(TO_ERASE, true);
                 }
-                mLayerRemoved[smp_number] = true;
+                mLayerRemoved[inter_smp_number] = true;
+                inter_smp_number++;
                 continue;
             }
 
@@ -488,10 +503,14 @@ namespace Kratos {
                     const double estimated_mass_of_a_particle = density * 4.0/3.0 * Globals::Pi * mean_radius * mean_radius * mean_radius;
                     const double maximum_time_until_release = estimated_mass_of_a_particle * mesh_size_elements / mass_flow;
                     const double minimum_velocity = mean_radius * 3.0 / maximum_time_until_release; //The distance necessary to get out of the injector, over the time.
-                    array_1d<double, 3> & proposed_velocity = mp[VELOCITY];
+                    array_1d<double, 3> & proposed_velocity = mp[INLET_INITIAL_PARTICLES_VELOCITY];
+                    double& limited_velocity = mp[INLET_MAX_PARTICLES_VELOCITY];
                     const double modulus_of_proposed_velocity = DEM_MODULUS_3(proposed_velocity);
                     const double factor = 2.0;
-                    DEM_MULTIPLY_BY_SCALAR_3(proposed_velocity, factor * minimum_velocity / modulus_of_proposed_velocity);
+                    double injection_speed = factor * minimum_velocity;
+                    const bool dense_option = mp[DENSE_INLET];
+                    if (!dense_option && injection_speed > limited_velocity) {injection_speed = limited_velocity;}
+                    DEM_MULTIPLY_BY_SCALAR_3(proposed_velocity, injection_speed / modulus_of_proposed_velocity);
                 }
             }
             else {
@@ -509,7 +528,6 @@ namespace Kratos {
             }
 
             if (number_of_particles_to_insert) {
-
                 //randomizing mesh
                 srand(/*time(NULL)* */r_modelpart.GetProcessInfo()[TIME_STEPS]);
 
@@ -560,7 +578,6 @@ namespace Kratos {
                 // Dot product to compute the updated inlet velocity from the initial one:
                 mp[LINEAR_VELOCITY] = new_axes1 * inlet_initial_velocity[0] + new_axes2 * inlet_initial_velocity[1] + new_axes3 * inlet_initial_velocity[2];
                 mp[VELOCITY] = new_axes1 * inlet_initial_particles_velocity[0] + new_axes2 * inlet_initial_particles_velocity[1] + new_axes3 * inlet_initial_particles_velocity[2];
-
                 std::string& ElementNameString = mp[ELEMENT_TYPE];
                 const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
 
@@ -630,7 +647,6 @@ namespace Kratos {
                         }
 
                         else {
-                            KRATOS_WATCH(new_component_spheres.size())
                             for (unsigned int i = 0; i < new_component_spheres.size(); ++i) {
                                 mOriginInletSubmodelPartIndexes[new_component_spheres[i]->Id()] = smp_it->Name();
                                 UpdateInjectedParticleVelocity(*new_component_spheres[i], *p_injector_element);
@@ -815,3 +831,4 @@ namespace Kratos {
 
 
 } // namespace Kratos
+

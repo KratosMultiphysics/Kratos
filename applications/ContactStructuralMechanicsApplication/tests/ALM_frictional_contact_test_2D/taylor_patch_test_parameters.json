@@ -1,15 +1,14 @@
 {
     "problem_data"             : {
         "problem_name"    : "taylor_patch_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1e-0,
         "start_time"      : 0.0,
         "end_time"        : 1.0e-0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
+        "model_part_name" : "Structure",
+        "domain_size"     : 2,
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
@@ -24,12 +23,16 @@
         {
             "mortar_type"                    : "ALMContactFrictional"
         },
+        "time_stepping"                      : {
+            "time_step" : 1.1e-0
+        },
         "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 20,
+        "buffer_size"                        : 3,
         "linear_solver_settings"             : {
             "solver_type" : "SkylineLUFactorizationSolver"
         },
@@ -43,71 +46,97 @@
                                                 "LineLoad2D_line_load"
                                                 ]
     },
-    "constraints_process_list" : [{
-        "python_module"   : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "AssignVectorVariableProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_fixed_support",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,true,true],
-            "value"           : [0.0,0.0,0.0]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module"   : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_fixed_support",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module"   : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_rolling_support_y",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module"   : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process fixes the selected components of a given vector variable",
+            "process_name"          : "AssignVectorVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_rolling_support_x",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module"   : "assign_vector_by_direction_to_condition_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process sets a vector variable value over a condition",
+            "check"                 : "DirectorVectorNonZero direction",
+            "process_name"          : "ApplyVectorOnConditionsProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "LineLoad2D_line_load",
+                "variable_name"   : "LINE_LOAD",
+                "modulus"         : 20.0,
+                "direction"       : [5.0e-2,-1.0e0,0.0]
+            }
+        }],
+        "contact_process_list" :[{
+            "python_module"   : "alm_contact_process",
+            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "help"                  : "",
+            "process_name"          : "ALMContactProcess",
+            "Parameters"            : {
+                "model_part_name"             : "Structure",
+                "contact_model_part"          : { "0" : ["Contact_Part"]},
+                "contact_type"                : "Frictional",
+                "assume_master_slave"         : { "0" : ["Parts_punch"]}
+            }
         }
-    },{
-        "python_module"   : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "AssignVectorVariableProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_rolling_support_y",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [false,true,true],
-            "value"           : [0.0,0.0,0.0]
+        ],
+
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
+                "input_file_name"     : "ALM_frictional_contact_test_2D/taylor_patch_test_results.json",
+                "model_part_name"      : "Contact_Part",
+                "time_frequency"       : 1.0
+            }
         }
-    },{
-        "python_module"   : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "AssignVectorVariableProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_rolling_support_x",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,false,true],
-            "value"           : [0.0,0.0,0.0]
-        }
-    }],
-    "loads_process_list"       : [{
-        "python_module"   : "assign_vector_by_direction_to_condition_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process sets a vector variable value over a condition",
-        "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "ApplyVectorOnConditionsProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "LineLoad2D_line_load",
-            "variable_name"   : "LINE_LOAD",
-            "modulus"         : 20.0,
-            "direction"       : [5.0e-2,-1.0e0,0.0]
-        }
-    }],
-    "contact_process_list" :[{
-        "python_module"   : "alm_contact_process",
-        "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
-        "help"                  : "",
-        "process_name"          : "ALMContactProcess",
-        "Parameters"            : {
-            "model_part_name"             : "Structure",
-            "contact_model_part"          : "Contact_Part",
-            "contact_type"                : "Frictional",
-            "assume_master_slave"         : "Parts_punch"
-        }
-    }
-    ],
-    "_output_configuration"     : {
+        ]
+    },
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "test_solution",
+                "postprocess_parameters" : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -126,22 +155,8 @@
             "nodal_flags_results": ["ACTIVE","SLAVE","SLIP"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },
-        "point_data_configuration"  : []
+        "point_data_configuration"  : []}}}]
     },
-    "json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
-            "input_file_name"     : "ALM_frictional_contact_test_2D/taylor_patch_test_results.json",
-            "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 1.0
-        }
-    }
-    ],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",

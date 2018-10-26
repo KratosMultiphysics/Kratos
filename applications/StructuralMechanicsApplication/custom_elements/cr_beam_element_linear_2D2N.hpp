@@ -4,7 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:     BSD License
-//  license: 	 structural_mechanics_application/license.txt
+//  license:      structural_mechanics_application/license.txt
 //
 //  Main authors: Klaus B. Sautter
 //
@@ -27,7 +27,7 @@
 
 namespace Kratos
 {
-	/**
+    /**
      * @class CrBeamElementLinear2D2N
      *
      * @brief This is a linear 2D-2node beam element with 2 translational dofs and 1 rotational dof per node inheriting from CrBeamElement2D2N
@@ -35,74 +35,95 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-	class CrBeamElementLinear2D2N : public CrBeamElement2D2N
-	{
-	public:
-		KRATOS_CLASS_POINTER_DEFINITION(CrBeamElementLinear2D2N);
+    class CrBeamElementLinear2D2N : public CrBeamElement2D2N
+    {
+    public:
+        KRATOS_CLASS_POINTER_DEFINITION(CrBeamElementLinear2D2N);
 
 
-		CrBeamElementLinear2D2N(IndexType NewId, GeometryType::Pointer pGeometry);
-		CrBeamElementLinear2D2N(IndexType NewId, GeometryType::Pointer pGeometry,
-						PropertiesType::Pointer pProperties);
+        CrBeamElementLinear2D2N(IndexType NewId, GeometryType::Pointer pGeometry);
+        CrBeamElementLinear2D2N(IndexType NewId, GeometryType::Pointer pGeometry,
+                        PropertiesType::Pointer pProperties);
 
-		BaseType::Pointer Create(
-			IndexType NewId,
-			NodesArrayType const& rThisNodes,
-			PropertiesType::Pointer pProperties) const override;
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
 
-		~CrBeamElementLinear2D2N() override;
+        ~CrBeamElementLinear2D2N() override;
 
-		void CalculateLocalSystem(
-			MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateLocalSystem(
+            MatrixType& rLeftHandSideMatrix,
+            VectorType& rRightHandSideVector,
+            ProcessInfo& rCurrentProcessInfo) override;
 
-		void CalculateRightHandSide(
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateRightHandSide(
+            VectorType& rRightHandSideVector,
+            ProcessInfo& rCurrentProcessInfo) override;
 
-		void CalculateLeftHandSide(
-			MatrixType& rLeftHandSideMatrix,
-			ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateLeftHandSide(
+            MatrixType& rLeftHandSideMatrix,
+            ProcessInfo& rCurrentProcessInfo) override;
 
 
-	/////////////////////////////////////////////////
-	///////////// CUSTOM FUNCTIONS --->>
-	/////////////////////////////////////////////////
+    /////////////////////////////////////////////////
+    ///////////// CUSTOM FUNCTIONS --->>
+    /////////////////////////////////////////////////
 
-		/**
+        /**
          * @brief This function calculates the transformation matrix to globalize/localize vectors and/or matrices
          */
-		BoundedMatrix<double,msElementSize,msElementSize> CreateRotationMatrix() override;
+        BoundedMatrix<double,msElementSize,msElementSize> CreateRotationMatrix() override;
 
-		/**
+        /**
          * @brief This function calculates the reference length
          */
-		double CalculateLength() override;
+        double CalculateLength() override;
 
 
-		void GetValueOnIntegrationPoints(
-			const Variable<array_1d<double, 3 > >& rVariable,
-			std::vector< array_1d<double, 3 > >& rOutput,
-			const ProcessInfo& rCurrentProcessInfo) override;
+        void GetValueOnIntegrationPoints(
+            const Variable<array_1d<double, 3 > >& rVariable,
+            std::vector< array_1d<double, 3 > >& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
 
-		void CalculateOnIntegrationPoints(
-			const Variable<array_1d<double, 3 > >& rVariable,
-			std::vector< array_1d<double, 3 > >& rOutput,
-			const ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateOnIntegrationPoints(
+            const Variable<array_1d<double, 3 > >& rVariable,
+            std::vector< array_1d<double, 3 > >& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
 
-	private:
-		CrBeamElementLinear2D2N() {};
+    private:
+        CrBeamElementLinear2D2N() {};
 
-		// stores the globalized master stiffness matrix for reaction forces
-		Matrix mK_Master = ZeroMatrix(msElementSize,msElementSize);
+        // stores the globalized master stiffness matrix for reaction forces
+        Matrix mK_Master = ZeroMatrix(msElementSize,msElementSize);
 
 
-		friend class Serializer;
-		void save(Serializer& rSerializer) const override;
-		void load(Serializer& rSerializer) override;
-	};
+        friend class Serializer;
+        void save(Serializer& rSerializer) const override;
+        void load(Serializer& rSerializer) override;
+    };
 
 }
 

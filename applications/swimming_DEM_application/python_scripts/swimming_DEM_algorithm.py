@@ -12,12 +12,16 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
-from DEM_procedures import KratosPrint as Say
 import CFD_DEM_coupling
 import swimming_DEM_procedures as SDP
 import swimming_DEM_gid_output
 import embedded
 import variables_management as vars_man
+
+def Say(*args):
+    Logger.PrintInfo("DEM-FLUID", *args)
+    Logger.Flush()
+
 
 try:
     import define_output  # MA: some GUI write this file, some others not!
@@ -44,7 +48,7 @@ else:
 
 sys.path.insert(0,'')
 
-class Logger(object):
+class SDEMLogger(object):
     def __init__(self):
         self.terminal = sys.stdout
         self.console_output_file_name = 'console_output.txt'
@@ -64,15 +68,16 @@ class Logger(object):
 
 class Algorithm(object):
     def __enter__ (self):
-        # sys.stdout = Logger()
+        # sys.stdout = SDEMLogger()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
-    def __init__(self, varying_parameters = Parameters("{}")):
-        sys.stdout = Logger()
+    def __init__(self, model, varying_parameters = Parameters("{}")):
+        sys.stdout = SDEMLogger()
         self.StartTimer()
+        self.model = model
         self.main_path = os.getcwd()
 
         self.SetFluidAlgorithm()
@@ -91,6 +96,7 @@ class Algorithm(object):
         # creating a basset_force tool to perform the operations associated
         # with the calculation of this force along the path of each particle
         self.GetBassetForceTools()
+        self.disperse_phase_solution.SetAnalyticFaceWatcher()
 
         # defining member variables for the model_parts (for convenience)
         self.fluid_model_part = self.fluid_solution.fluid_model_part
@@ -101,12 +107,12 @@ class Algorithm(object):
 
     def SetFluidAlgorithm(self):
         import eulerian_fluid_ready_for_coupling
-        self.fluid_solution = eulerian_fluid_ready_for_coupling.Solution()
+        self.fluid_solution = eulerian_fluid_ready_for_coupling.Solution(self.model)
         self.fluid_solution.main_path = self.main_path
 
     def SetDispersePhaseAlgorithm(self):
         import dem_main_script_ready_for_coupling as DEM_algorithm
-        self.disperse_phase_solution = DEM_algorithm.Solution(self.pp)
+        self.disperse_phase_solution = DEM_algorithm.Solution(self.model, self.pp)
 
     def ReadDispersePhaseAndCouplingParameters(self):
 
@@ -150,7 +156,7 @@ class Algorithm(object):
         self.all_model_parts.Add(self.fluid_model_part)
 
         # defining a model part for the mixed part
-        self.all_model_parts.Add(ModelPart("MixedPart"))
+        self.all_model_parts.Add(self.model.CreateModelPart("MixedPart"))
 
         self.mixed_model_part = self.all_model_parts.Get('MixedPart')
 
@@ -258,6 +264,9 @@ class Algorithm(object):
 
         self.pp.fluid_fraction_fields.append(field1)
 
+        # Setting body_force_per_unit_mass_variable_name
+        Add("body_force_per_unit_mass_variable_name").SetString('BODY_FORCE')
+
     def SetDoSolveDEMVariable(self):
         self.do_solve_dem = self.pp.CFD_DEM["do_solve_dem"].GetBool()
 
@@ -294,7 +303,7 @@ class Algorithm(object):
         self.disperse_phase_solution.BaseReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
 
     def Initialize(self):
-        Say('\nInitializing Problem...\n')
+        Say('Initializing Problem...\n')
 
         self.run_code = self.GetRunCode()
 
@@ -319,7 +328,7 @@ class Algorithm(object):
 
         self.swimming_DEM_gid_io = \
         swimming_DEM_gid_output.SwimmingDEMGiDOutput(
-            self.pp.problem_name,
+            self.pp.CFD_DEM["problem_name"].GetString(),
             self.pp.VolumeOutput,
             self.pp.GiDPostMode,
             self.pp.GiDMultiFileFlag,
@@ -339,6 +348,8 @@ class Algorithm(object):
         self.SetPointGraphPrinter()
 
         self.TransferGravityFromDisperseToFluid()
+
+        self.AssignKinematicViscosityFromDynamicViscosity()
 
         # coarse-graining: applying changes to the physical properties of the model to adjust for
         # the similarity transformation if required (fluid effects only).
@@ -377,10 +388,10 @@ class Algorithm(object):
                         RADIUS
                         )
                     )
-                self.pp.CFD_DEM.meso_scale_length = 20 * biggest_size
+                self.pp.CFD_DEM["meso_scale_length"].SetDouble(20 * biggest_size)
 
             elif self.spheres_model_part.NumberOfElements(0) == 0:
-                self.pp.CFD_DEM.meso_scale_length = 1.0
+                self.pp.CFD_DEM["meso_scale_length"].SetDouble(1.0)
 
             self.projection_module = CFD_DEM_coupling.ProjectionModule(
                 self.fluid_model_part,
@@ -389,6 +400,7 @@ class Algorithm(object):
                 self.pp,
                 flow_field=self.GetFieldUtility()
                 )
+
             self.projection_module.UpdateDatabase(self.h_min)
 
         # creating a custom functions calculator for the implementation of
@@ -465,6 +477,8 @@ class Algorithm(object):
         self.debug_info_counter           = self.GetDebugInfo()
         self.particles_results_counter    = self.GetParticlesResultsCounter()
         self.quadrature_counter           = self.GetHistoryForceQuadratureCounter()
+        #Phantom
+        self.analytic_data_counter        = self.ProcessAnalyticDataCounter()
         self.mat_deriv_averager           = SDP.Averager(1, 3)
         self.laplacian_averager           = SDP.Averager(1, 3)
 
@@ -579,6 +593,15 @@ class Algorithm(object):
 
     def TheSimulationMustGoOn(self):
         return self.time <= self.final_time
+
+    def GetAnalyticFacesModelParts(self):
+        analytic_face_submodelpart_number = 1
+        analytic_face_submodelpart_name = self.rigid_face_model_part.GetSubModelPart(str(analytic_face_submodelpart_number))
+        return analytic_face_submodelpart_name
+
+    def MakeAnalyticsMeasurements(self):
+        self.analytic_face_watcher.MakeMeasurements()
+        self.analytic_particle_watcher.MakeMeasurements()
 
     def RunMainTemporalLoop(self):
         coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
@@ -720,6 +743,9 @@ class Algorithm(object):
                 if self.DEM_to_fluid_counter.Tick() and self.time >= interaction_start_time:
                     self.projection_module.ProjectFromParticles()
 
+                #Phantom
+                self.disperse_phase_solution.RunAnalytics(self.time, is_time_to_print=self.analytic_data_counter.Tick())
+
             #### PRINTING GRAPHS ####
             os.chdir(self.graphs_path)
             # measuring mean velocities in a certain control volume (the 'velocity trap')
@@ -803,13 +829,6 @@ class Algorithm(object):
 
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor)
 
-    def SetAnalyticFaceWatcher(self):
-        from analytic_tools import analytic_data_procedures
-        self.watcher = AnalyticFaceWatcher()
-        self.watcher_analyser = analytic_data_procedures.FaceWatcherAnalyzer(
-            analytic_face_watcher=self.watcher,
-            path=self.main_path)
-
     def SetAnalyticParticleWatcher(self):
         from analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
@@ -817,11 +836,14 @@ class Algorithm(object):
             analytic_particle_watcher=self.particle_watcher,
             path=self.main_path)
 
+    def ProcessAnalyticData(self):
+        self.disperse_phase_solution.WriteAnalyticDataToFileAndClear()
+
     def SetInletWatcher(self):
         self.watcher_analyser.SetInlet(self.DEM_inlet)
 
     def TellTime(self, time):
-        Say('\nTIME = ', time)
+        Say('TIME = ', time)
         Say('ELAPSED TIME = ', self.timer.time() - self.simulation_start_time, '\n')
 
     def TellFinalSummary(self, time, step, DEM_step):
@@ -899,6 +921,12 @@ class Algorithm(object):
             1,
             self.pp.CFD_DEM["basset_force_type"].GetInt())
 
+    def ProcessAnalyticDataCounter(self):
+        return SDP.Counter(
+            steps_in_cycle=self.pp.CFD_DEM["time_steps_per_analytic_processing_step"].GetInt(),
+            beginning_step=1,
+            is_active=self.pp.CFD_DEM["do_process_analytic_data"].GetBool())
+
     def GetVolumeDebugTool(self):
         return SDP.ProjectionDebugUtils(
             self.pp.CFD_DEM["fluid_domain_volume"].GetDouble(),
@@ -907,7 +935,8 @@ class Algorithm(object):
             self.custom_functions_tool)
 
     def GetRunCode(self):
-        return SDP.CreateRunCode(self.pp)
+        return ""
+        #return SDP.CreateRunCode(self.pp)
 
     def FillHistoryForcePrecalculatedVectors(self):
         # Warning: this estimation is based on a constant time step for DEM.
@@ -1016,6 +1045,10 @@ class Algorithm(object):
                 node.SetSolutionStepValue(BODY_FORCE_X, 0, self.pp.CFD_DEM["GravityX"].GetDouble())
                 node.SetSolutionStepValue(BODY_FORCE_Y, 0, self.pp.CFD_DEM["GravityY"].GetDouble())
                 node.SetSolutionStepValue(BODY_FORCE_Z, 0, self.pp.CFD_DEM["GravityZ"].GetDouble())
+
+    def AssignKinematicViscosityFromDynamicViscosity(self):
+        # Eulerian fluid already works with kinematic viscosity
+        pass
 
     def yield_DEM_time(self, current_time, current_time_plus_increment, delta_time):
         current_time += delta_time

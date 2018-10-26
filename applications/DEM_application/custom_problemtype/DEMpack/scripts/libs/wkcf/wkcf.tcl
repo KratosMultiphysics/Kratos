@@ -187,6 +187,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 		    ::wkcf::WriteDemNodalVariables2 $AppId $filechannel
 		    ::wkcf::WriteGroupMeshProperties $AppId
 		    ::wkcf::WriteInletGroupMeshProperties $AppId
+			::wkcf::WriteCustomSubModelParts $AppId
 		}
 	    }
 	    ::wkcf::CloseChannels $AppId
@@ -199,7 +200,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
     }
     ::wkcf::SelectPythonScript
     ::wkcf::CopyClusterDefinitionFiles
-    
+
     if {$AppId == "DEM"} {
 	::wkcf::WriteExplicitSolverVariables
 	::wkcf::WriteExplicitSolverVariablesInJsonFile
@@ -281,11 +282,11 @@ proc ::wkcf::CopyClusterDefinitionFiles {} {
 
     set PDir [file native [::KUtils::GetPaths "PDir"]]
     set PTDir [::KUtils::GetPaths "PTDir"]
-    
+
     foreach f $KPriv(list_of_cluster_files) {
 	set fromfname [file native [file join "$PTDir/clusters" $f]]
-	set tofname [file native [file join $PDir $f]] 
-	
+	set tofname [file native [file join $PDir $f]]
+
 	if {[catch {file copy -force "$fromfname" "$tofname"} error]} {
 	    WarnWin [= "Could not copy the cluster information file (%s) to (%s): Error (%s)" $fromfname $tofname $error ]
 	    return ""
@@ -410,7 +411,7 @@ proc ::wkcf::WriteProperties {AppId} {
 		        set propvalue [::xmlutils::setXml $cxpath "dv" "read" "" "mat"]
 		        set pi 3.1415926535897931
 		        set propvalue [expr {tan($propvalue*$pi/180.0)}]
-		        GiD_File fprintf $filechannel "PARTICLE_FRICTION $propvalue"
+		        GiD_File fprintf $filechannel "FRICTION $propvalue"
 
 		        set cxpath "DEMMaterial//m.$material//p.ParticleCohesion"
 		        set propvalue [::xmlutils::setXml $cxpath "dv" "read" "" "mat"]
@@ -427,16 +428,16 @@ proc ::wkcf::WriteProperties {AppId} {
 		        set cxpath "DEMMaterial//m.$material//p.RollingFriction"
 		        set propvalue [::xmlutils::setXml $cxpath "dv" "read" "" "mat"]
 		        GiD_File fprintf $filechannel "ROLLING_FRICTION $propvalue"
-		        
+
 		        set cxpath "DEMMaterial//m.$material//p.RollingFrictionWithWalls"
 		        set propvalue [::xmlutils::setXml $cxpath "dv" "read" "" "mat"]
 		        GiD_File fprintf $filechannel "ROLLING_FRICTION_WITH_WALLS $propvalue"
 
-                        if {$KPriv(what_dempack_package) eq "F-DEMPack"} {
-                            set cxpath "DEMMaterial//m.$material//p.ParticleSphericity"
+		        if {$KPriv(what_dempack_package) eq "F-DEMPack"} {
+		            set cxpath "DEMMaterial//m.$material//p.ParticleSphericity"
 		            set propvalue [::xmlutils::setXml $cxpath "dv" "read" "" "mat"]
 		            GiD_File fprintf $filechannel "PARTICLE_SPHERICITY $propvalue"
-                        }
+		        }
 
 		        #Constitutive Law names
 		        if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
@@ -461,7 +462,7 @@ proc ::wkcf::WriteProperties {AppId} {
 		                } elseif {$propvalue == "KDEM"} {
 		                    set using_dem_kdem 1
 		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM"
-		        } elseif {$propvalue == "KDEM_Rankine"} {
+		        		} elseif {$propvalue == "KDEM_Rankine"} {
 		                    set using_dem_kdem 1
 		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM_Rankine"
 		                } elseif {$propvalue == "KDEM_Mohr_Coulomb"} {
@@ -469,6 +470,10 @@ proc ::wkcf::WriteProperties {AppId} {
 		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM_Mohr_Coulomb"
 		                    GiD_File fprintf $filechannel "INTERNAL_COHESION [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_internal_cohesion" dv read {} mat]"
 		                    GiD_File fprintf $filechannel "INTERNAL_FRICTION_ANGLE [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_internal_friction_angle" dv read {} mat]"
+						} elseif {$propvalue == "KDEM_Fissured_Rock"} {
+		                    set using_dem_kdem 1
+		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM_Fissured_Rock"
+		                    GiD_File fprintf $filechannel "TENSION_LIMIT_INCREASE_SLOPE [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_stress_limit_growth_slope" dv read {} mat]"
 		                } elseif {$propvalue == "KDEMFabric"} {
 		                    set using_dem_kdem 1
 		                    GiD_File fprintf $filechannel "FABRIC_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
@@ -522,6 +527,10 @@ proc ::wkcf::WriteProperties {AppId} {
 		                } else {
 		                    GiD_File fprintf $filechannel "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_viscous_Coulomb"
 		                }
+
+					} elseif {$contact_law eq "Linear_HighStiffness"} {
+		                    GiD_File fprintf $filechannel "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_HighStiffness"
+
 		            } elseif {$contact_law eq "LinearCustomized"} {
 		                GiD_File fprintf $filechannel "K_NORMAL [::xmlutils::setXml DEMMaterial//m.$material//p.KNormal dv read {} mat]"
 		                GiD_File fprintf $filechannel "K_TANGENTIAL [::xmlutils::setXml DEMMaterial//m.$material//p.KTangential dv read {} mat]"
@@ -615,7 +624,7 @@ proc ::wkcf::WriteProperties {AppId} {
 	    set friction_value [::xmlutils::setXml $cxpath $cproperty]
 	    set pi 3.1415926535897931
 	    set friction_value [expr {tan($friction_value*$pi/180.0)}]
-	    GiD_File fprintf $demfemchannel "WALL_FRICTION $friction_value"
+	    GiD_File fprintf $demfemchannel "FRICTION $friction_value"
 	    set cxpath "$rootid//c.DEM-Conditions//c.DEM-FEM-Wall//c.[list ${cgroupid}]//c.$options_container//i.WallCohesion"
 	    set cohesive_wall [::xmlutils::setXml $cxpath $cproperty]
 	    GiD_File fprintf $demfemchannel "WALL_COHESION $cohesive_wall"
@@ -678,14 +687,14 @@ proc ::wkcf::WriteProperties {AppId} {
 	set young_modulus [::xmlutils::setXml "DEMMaterial//m.$material//p.YoungModulus" "dv" "read" "" "mat"]
 	GiD_File fprintf $deminletchannel "  YOUNG_MODULUS $young_modulus"
 	set poisson_ratio [::xmlutils::setXml "DEMMaterial//m.$material//p.PoissonRatio" "dv" "read" "" "mat"]
-	GiD_File fprintf $deminletchannel "  POISSON_RATIO $poisson_ratio"  
+	GiD_File fprintf $deminletchannel "  POISSON_RATIO $poisson_ratio"
 	set friction_angle [::xmlutils::setXml "DEMMaterial//m.$material//p.ParticleFrictionAngle" "dv" "read" "" "mat"]
 	set friction_angle [expr {tan(3.1415926535897931*$friction_angle/180.0)}]
-	GiD_File fprintf $deminletchannel "  PARTICLE_FRICTION $friction_angle"
+	GiD_File fprintf $deminletchannel "  FRICTION $friction_angle"
 	set cohesion [::xmlutils::setXml "DEMMaterial//m.$material//p.ParticleCohesion" "dv" "read" "" "mat"]
-	GiD_File fprintf $deminletchannel "  PARTICLE_COHESION $cohesion"            
+	GiD_File fprintf $deminletchannel "  PARTICLE_COHESION $cohesion"
 	set coeff_of_rest [::xmlutils::setXml "DEMMaterial//m.$material//p.CoefficientOfRestitution" "dv" "read" "" "mat"]
-	GiD_File fprintf $deminletchannel "  COEFFICIENT_OF_RESTITUTION $coeff_of_rest"            
+	GiD_File fprintf $deminletchannel "  COEFFICIENT_OF_RESTITUTION $coeff_of_rest"
 	set particle_material [::xmlutils::setXml "DEMMaterial//m.$material//p.Color" "dv" "read" "" "mat"]
 	GiD_File fprintf $deminletchannel "  PARTICLE_MATERIAL $particle_material"
 	set rolling_friction [::xmlutils::setXml "DEMMaterial//m.$material//p.RollingFriction" "dv" "read" "" "mat"]
@@ -757,20 +766,20 @@ proc ::wkcf::WriteProperties {AppId} {
 	    set contact_sigma_min [::xmlutils::setXml "DEMMaterial//m.$material//p.NormalTensileStrength" "dv" "read" "" "mat"]
 	    GiD_File fprintf $deminletchannel "  CONTACT_SIGMA_MIN $contact_sigma_min"
 	    set internal_friction [::xmlutils::setXml "DEMMaterial//m.$material//p.InternalFrictionAngleCoeff" "dv" "read" "" "mat"]
-	    GiD_File fprintf $deminletchannel "  CONTACT_INTERNAL_FRICC $internal_friction"                    
-	}    
+	    GiD_File fprintf $deminletchannel "  CONTACT_INTERNAL_FRICC $internal_friction"
+	}
 
 	if {"Fluid" in $ActiveAppList} {
 	    set list_of_cluster_files [list]
-	} else {       
+	} else {
 	    if {[::xmlutils::setXml "${properties_path}//i.InletElementType" "dv"] eq "Cluster3D"} {
 	    set inlet_element_type [::xmlutils::setXml "${properties_path}//i.Cluster3D" dv]
 	    set contains_clusters 1
-	    lassign [::wkcf::GetClusterFileNameAndReplaceInletElementType $inlet_element_type] inlet_element_type cluster_file_name               
+	    lassign [::wkcf::GetClusterFileNameAndReplaceInletElementType $inlet_element_type] inlet_element_type cluster_file_name
 	    }
 	    if {$inlet_element_type eq "Cluster3D"} {
 	    lappend KPriv(list_of_cluster_files) $cluster_file_name
-	    GiD_File fprintf $deminletchannel "  CLUSTER_FILE_NAME $cluster_file_name" 
+	    GiD_File fprintf $deminletchannel "  CLUSTER_FILE_NAME $cluster_file_name"
 	    }
 	}
 
@@ -778,9 +787,9 @@ proc ::wkcf::WriteProperties {AppId} {
 	GiD_File fprintf $deminletchannel ""
 	incr dem_props_number
     }
-	
+
 	set KPriv(list_of_cluster_files) [lsort -unique $KPriv(list_of_cluster_files)]
-	
+
     }
     return [list 0 ""]
 }
@@ -865,7 +874,7 @@ proc ::wkcf::WriteDSOLIDContactProperties {AppId} {
 	set poisson_ratio [::xmlutils::setXml $cxpath $cproperty]
 	set pi 3.1415926535897931
 	set friction_value [expr {tan($friction_value*$pi/180.0)}]
-	GiD_File fprintf $demfemchannel "WALL_FRICTION $friction_value"
+	GiD_File fprintf $demfemchannel "FRICTION $friction_value"
 	GiD_File fprintf $demfemchannel "WALL_COHESION 0.0"
 	GiD_File fprintf $demfemchannel "COMPUTE_WEAR 0.0"
 	GiD_File fprintf $demfemchannel "SEVERITY_OF_WEAR 0.0"
@@ -1226,7 +1235,7 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
 		            if {[dict get [::wkcf::GetFluidMaterialProperties $AppId] "NonNewtonianFluid"] eq "Yes"} {
 		                set kelemtype "HerschelBulkleyVMS3D"
 		            }
-		            
+
 		            #set GlobalPId $dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId)
 		            set cproperty "dv"
 		            set container [GetAnalysisDataContainer]
@@ -1317,7 +1326,14 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
     # Get the group node list
     set nlist [GiD_EntitiesGroups get $cgroupid elements]
     if {[llength $nlist]} {
-		set elemname [::wkcf::GetDEMFEMElementName [lindex $nlist 0] ]
+		set elemname [::wkcf::GetDEMFEMElementName [lindex $nlist 0]]
+		#
+		set cxpath "$rootid//c.DEM-Conditions//c.DEM-FEM-Wall//c.[list ${cgroupid}]//c.Options//i.AnalyticProps"
+	    set compute_analytic_data [::xmlutils::setXml $cxpath dv]
+	    if {$compute_analytic_data == "Yes"} {
+	    set elemname AnalyticRigidFace3D3N
+	    }
+		#
 		GiD_File fprintf $demfemchannel "Begin Conditions $elemname // GUI DEM-FEM-Wall group identifier: $cgroupid"
 		foreach elemid $nlist {
 		    GiD_File fprintf $demfemchannel "$elemid $demwall_element_props($cgroupid) [lrange [GiD_Mesh get element $elemid] 3 end]"
@@ -1829,7 +1845,7 @@ proc ::wkcf::Compute_External_Elements {ndime cgroupid element_ids} {
     } else {
 	set elements_in_common 3 ; #TODO: Check this constant
     }
-    
+
     foreach list_elem $unrepeated_list {
 	set result($list_elem) [lsearch -all $list_of_faces $list_elem]
 	set length($list_elem) [llength $result($list_elem)]
@@ -1845,7 +1861,7 @@ proc ::wkcf::Compute_External_Elements {ndime cgroupid element_ids} {
 	}
     }
     set unrepeated_list_exterior_nodes [lsort -integer -unique $list_of_faces]
-    
+
     foreach element_id $element_ids { ; # Here we loop on each of the elements by id
 	if {$ndime == "3D"} {
 	    set element_nodes [lrange [GiD_Mesh get element $element_id] 3 end] ; # We get the nodes of the element
@@ -1874,18 +1890,18 @@ proc ::wkcf::Elements_Substitution {} {
     foreach celemid $gelemlist {
 	set cgroupidlist [::xmlutils::setXmlContainerIds {DEM//c.DEM-Elements//c.DEM-Element}]
 	set cohesive_groups_list [::xmlutils::setXmlContainerIds {DEM//c.DEM-Cohesivegroup}]
-	
+
 	if {![GiD_Groups exists SKIN_SPHERE_DO_NOT_DELETE]} {
 	    GiD_Groups create SKIN_SPHERE_DO_NOT_DELETE
 	}
-	
+
 	foreach cgroupid $cgroupidlist { ; #Loop on each of the groups, be it a point, a line, a triangle, etc
 	    set list_of_elements_to_add_to_skin_sphere_group [list]
 	    array set my_prop [join [::xmlutils::setXmlContainerPairs "DEM//c.DEM-Elements//c.DEM-Element//c.$cgroupid//c.Properties" {} dv]]
 	    set use_advanced_meshing_features $my_prop(AdvancedMeshingFeatures)
 	    if {([lsearch $cohesive_groups_list $cgroupid] == -1) && ($KPriv(what_dempack_package) eq "C-DEMPack") && ($use_advanced_meshing_features eq "No")} { ; #Non-cohesive, already meshed with cuban mesher
 		set cgroupid_elements [GiD_EntitiesGroups get $cgroupid elements]
-		
+
 		foreach cgroupid_element $cgroupid_elements {
 		    if {[lsearch [GiD_EntitiesGroups get SKIN_SPHERE_DO_NOT_DELETE elements] $cgroupid_element] == -1} {
 		        lappend list_of_elements_to_add_to_skin_sphere_group $cgroupid_element
@@ -1907,7 +1923,7 @@ proc ::wkcf::Elements_Substitution {} {
 		        set nodes_to_delete [list]
 		        set element_ids [GiD_EntitiesGroups get $cgroupid elements] ; # We get the ids of all the elements in cgroupid
 		        array set is_external_element [::wkcf::Compute_External_Elements $ndime $cgroupid $element_ids]
-		        
+
 		        foreach element_id $element_ids { ; # Here we loop on each of the elements by id
 		            if {$ndime == "3D"} {
 		                set element_nodes [lrange [GiD_Mesh get element $element_id] 3 end] ; # We get the nodes of the element
@@ -1921,7 +1937,7 @@ proc ::wkcf::Elements_Substitution {} {
 		                set final_elem_radius [::wkcf::LognormalDistribution $element_radius $standard_deviation $min_radius $max_radius]
 		            }
 		            set node_id [GiD_Mesh create node append [wkcf::GetElementCenter $element_id]] ; # We create a new node starting from the center of the given element
-		            
+
 		            if {$ndime == "3D"} {
 		                set new_element_id [GiD_Mesh create element append sphere 1 $node_id $final_elem_radius] ; # We create a new sphere element starting from the previous node and obtain its id
 		                lappend list_of_elements_to_add_to_skin_sphere_group {*}$new_element_id
@@ -1939,14 +1955,14 @@ proc ::wkcf::Elements_Substitution {} {
 		                GiD_EntitiesGroups assign $container_group elements $new_element_id ; # We assign the element with id $new_element_id to each of the groups in the loop
 		            }
 		        }
-		        
+
 		        if {[lsearch $cohesive_groups_list $cgroupid] == -1} {
 		            GiD_EntitiesGroups assign SKIN_SPHERE_DO_NOT_DELETE elements $list_of_elements_to_add_to_skin_sphere_group
 		        }
-		        
+
 		        GiD_Mesh delete element [GiD_EntitiesGroups get $cgroupid elements -element_type hexahedra]
 		        GiD_Mesh delete element [GiD_EntitiesGroups get $cgroupid elements -element_type tetrahedra]
-		        set nodes_to_delete [lsort -integer -unique $nodes_to_delete] ; # We reorder the list and remove repeated nodes 
+		        set nodes_to_delete [lsort -integer -unique $nodes_to_delete] ; # We reorder the list and remove repeated nodes
 		        foreach node_id $nodes_to_delete {
 		            set gid_info [GiD_Info list_entities nodes $node_id]
 		            if {![wkcf::GetNodeHigherentities $node_id]} { ; # if this node does not have higher entities
@@ -1982,64 +1998,6 @@ proc ::wkcf::Elements_Substitution {} {
 		        # We first delete the elements (lines, triangles, quadrilaterals, tetraedra or hexahedra) of this group,
 		        # but not their nodes, which will be used for creating the new sheres
 		        GiD_Mesh delete element [GiD_EntitiesGroups get $cgroupid elements]
-		        foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {    
-		            if {$probldistr == "NormalDistribution"} {
-		                set final_elem_radius [::wkcf::NormalDistribution $element_radius $standard_deviation $min_radius $max_radius]
-		            } else {
-		                set final_elem_radius [::wkcf::LognormalDistribution $element_radius $standard_deviation $min_radius $max_radius]
-		            }
-		            if {$ndime == "3D"} {
-		                set new_element_id [GiD_Mesh create element append sphere 1 $node_id $final_elem_radius] ; # We create a new sphere element starting from the previous node and obtain its id
-		                lappend list_of_elements_to_add_to_skin_sphere_group {*}$new_element_id
-		            } else {
-		                set new_element_id [GiD_Mesh create element append circle 1 $node_id $final_elem_radius 0 0 1] ; # We assume the 2D problem is contained in the XY plane
-		                lappend list_of_elements_to_add_to_skin_sphere_group {*}$new_element_id
-		            }
-		            
-		            set list_of_groups_containing_this_elem [GiD_EntitiesGroups entity_groups nodes $node_id]
-		            foreach container_group $list_of_groups_containing_this_elem {
-		                GiD_EntitiesGroups assign $container_group elements $new_element_id
-		            }
-		        }
-		        
-		        if {[lsearch $cohesive_groups_list $cgroupid] == -1} {
-		            GiD_EntitiesGroups assign SKIN_SPHERE_DO_NOT_DELETE elements $list_of_elements_to_add_to_skin_sphere_group
-		        }
-		        
-		    } elseif {$use_fem_to_dem == "AtBothNodesAndCentroids"} {
-		        set nodes_to_delete [list]
-		        set element_ids [GiD_EntitiesGroups get $cgroupid elements] ; # We get the ids of all the elements in cgroupid
-		        
-		        foreach element_id $element_ids { ; # Here we loop on each of the elements by id
-		            if {$ndime == "3D"} {
-		                set element_nodes [lrange [GiD_Mesh get element $element_id] 3 end] ; # We get the nodes of the element
-		            } else {
-		                set element_nodes [lrange [GiD_Mesh get element $element_id] 3 end]
-		            }
-		            lappend nodes_to_delete {*}$element_nodes ; # We add those nodes to the nodes_to_delete list
-		            if {$probldistr == "NormalDistribution"} {
-		                set final_elem_radius [::wkcf::NormalDistribution $element_radius $standard_deviation $min_radius $max_radius]
-		            } else {
-		                set final_elem_radius [::wkcf::LognormalDistribution $element_radius $standard_deviation $min_radius $max_radius]
-		            }
-		            set node_id [GiD_Mesh create node append [wkcf::GetElementCenter $element_id]] ; # We create a new node starting from the center of the given element
-		            
-		            if {$ndime == "3D"} {
-		                set new_element_id [GiD_Mesh create element append sphere 1 $node_id $final_elem_radius] ; # We create a new sphere element starting from the previous node and obtain its id
-		                lappend list_of_elements_to_add_to_skin_sphere_group {*}$new_element_id
-		            } else {
-		                set new_element_id [GiD_Mesh create element append circle 1 $node_id $final_elem_radius 0 0 1] ; # We assume the 2D problem is contained in the XY plane
-		                lappend list_of_elements_to_add_to_skin_sphere_group {*}$new_element_id
-		            }
-		            
-		            foreach container_group [GiD_EntitiesGroups entity_groups elements $element_id] { ; # We get the list of groups to which the element with id $element_id belongs
-		                GiD_EntitiesGroups assign $container_group elements $new_element_id ; # We assign the element with id $new_element_id to each of the groups in the loop
-		            }
-		        }
-		    
-		        GiD_Mesh delete element [GiD_EntitiesGroups get $cgroupid elements -element_type hexahedra] ; # TODO done again at the end?
-		        GiD_Mesh delete element [GiD_EntitiesGroups get $cgroupid elements -element_type tetrahedra] ; # TODO done again at the end?
-		        
 		        foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
 		            if {$probldistr == "NormalDistribution"} {
 		                set final_elem_radius [::wkcf::NormalDistribution $element_radius $standard_deviation $min_radius $max_radius]
@@ -2053,17 +2011,75 @@ proc ::wkcf::Elements_Substitution {} {
 		                set new_element_id [GiD_Mesh create element append circle 1 $node_id $final_elem_radius 0 0 1] ; # We assume the 2D problem is contained in the XY plane
 		                lappend list_of_elements_to_add_to_skin_sphere_group {*}$new_element_id
 		            }
-		            
+
 		            set list_of_groups_containing_this_elem [GiD_EntitiesGroups entity_groups nodes $node_id]
 		            foreach container_group $list_of_groups_containing_this_elem {
 		                GiD_EntitiesGroups assign $container_group elements $new_element_id
 		            }
 		        }
-		    
+
 		        if {[lsearch $cohesive_groups_list $cgroupid] == -1} {
 		            GiD_EntitiesGroups assign SKIN_SPHERE_DO_NOT_DELETE elements $list_of_elements_to_add_to_skin_sphere_group
 		        }
-		        
+
+		    } elseif {$use_fem_to_dem == "AtBothNodesAndCentroids"} {
+		        set nodes_to_delete [list]
+		        set element_ids [GiD_EntitiesGroups get $cgroupid elements] ; # We get the ids of all the elements in cgroupid
+
+		        foreach element_id $element_ids { ; # Here we loop on each of the elements by id
+		            if {$ndime == "3D"} {
+		                set element_nodes [lrange [GiD_Mesh get element $element_id] 3 end] ; # We get the nodes of the element
+		            } else {
+		                set element_nodes [lrange [GiD_Mesh get element $element_id] 3 end]
+		            }
+		            lappend nodes_to_delete {*}$element_nodes ; # We add those nodes to the nodes_to_delete list
+		            if {$probldistr == "NormalDistribution"} {
+		                set final_elem_radius [::wkcf::NormalDistribution $element_radius $standard_deviation $min_radius $max_radius]
+		            } else {
+		                set final_elem_radius [::wkcf::LognormalDistribution $element_radius $standard_deviation $min_radius $max_radius]
+		            }
+		            set node_id [GiD_Mesh create node append [wkcf::GetElementCenter $element_id]] ; # We create a new node starting from the center of the given element
+
+		            if {$ndime == "3D"} {
+		                set new_element_id [GiD_Mesh create element append sphere 1 $node_id $final_elem_radius] ; # We create a new sphere element starting from the previous node and obtain its id
+		                lappend list_of_elements_to_add_to_skin_sphere_group {*}$new_element_id
+		            } else {
+		                set new_element_id [GiD_Mesh create element append circle 1 $node_id $final_elem_radius 0 0 1] ; # We assume the 2D problem is contained in the XY plane
+		                lappend list_of_elements_to_add_to_skin_sphere_group {*}$new_element_id
+		            }
+
+		            foreach container_group [GiD_EntitiesGroups entity_groups elements $element_id] { ; # We get the list of groups to which the element with id $element_id belongs
+		                GiD_EntitiesGroups assign $container_group elements $new_element_id ; # We assign the element with id $new_element_id to each of the groups in the loop
+		            }
+		        }
+
+		        GiD_Mesh delete element [GiD_EntitiesGroups get $cgroupid elements -element_type hexahedra] ; # TODO done again at the end?
+		        GiD_Mesh delete element [GiD_EntitiesGroups get $cgroupid elements -element_type tetrahedra] ; # TODO done again at the end?
+
+		        foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		            if {$probldistr == "NormalDistribution"} {
+		                set final_elem_radius [::wkcf::NormalDistribution $element_radius $standard_deviation $min_radius $max_radius]
+		            } else {
+		                set final_elem_radius [::wkcf::LognormalDistribution $element_radius $standard_deviation $min_radius $max_radius]
+		            }
+		            if {$ndime == "3D"} {
+		                set new_element_id [GiD_Mesh create element append sphere 1 $node_id $final_elem_radius] ; # We create a new sphere element starting from the previous node and obtain its id
+		                lappend list_of_elements_to_add_to_skin_sphere_group {*}$new_element_id
+		            } else {
+		                set new_element_id [GiD_Mesh create element append circle 1 $node_id $final_elem_radius 0 0 1] ; # We assume the 2D problem is contained in the XY plane
+		                lappend list_of_elements_to_add_to_skin_sphere_group {*}$new_element_id
+		            }
+
+		            set list_of_groups_containing_this_elem [GiD_EntitiesGroups entity_groups nodes $node_id]
+		            foreach container_group $list_of_groups_containing_this_elem {
+		                GiD_EntitiesGroups assign $container_group elements $new_element_id
+		            }
+		        }
+
+		        if {[lsearch $cohesive_groups_list $cgroupid] == -1} {
+		            GiD_EntitiesGroups assign SKIN_SPHERE_DO_NOT_DELETE elements $list_of_elements_to_add_to_skin_sphere_group
+		        }
+
 		    }
 		} else {
 		    # 2D to 3D algorithm
@@ -2079,7 +2095,7 @@ proc ::wkcf::Elements_Substitution {} {
 		    }
 
 		    GiD_Mesh delete element [GiD_EntitiesGroups get $cgroupid elements]
-		    foreach node_id $group_nodes($cgroupid) radius $group_radius($cgroupid) {    
+		    foreach node_id $group_nodes($cgroupid) radius $group_radius($cgroupid) {
 		        set final_elem_radius $radius
 		        set new_element_id [GiD_Mesh create element append sphere 1 $node_id $final_elem_radius] ; # We create a new sphere element starting from the previous node and obtain its id
 		        lappend list_of_elements_to_add_to_skin_sphere_group {*}$new_element_id
@@ -2088,22 +2104,22 @@ proc ::wkcf::Elements_Substitution {} {
 		            GiD_EntitiesGroups assign $container_group elements $new_element_id
 		        }
 		    }
-		
+
 		    if {[lsearch $cohesive_groups_list $cgroupid] == -1} {
 		        GiD_EntitiesGroups assign SKIN_SPHERE_DO_NOT_DELETE elements $list_of_elements_to_add_to_skin_sphere_group
-		    }    
+		    }
 		}
 	    }
 	    lappend final_list_of_isolated_nodes {*}[lindex [GiD_EntitiesGroups get $cgroupid all_mesh] 0]
-	    
+
 	    ::wkcf::Delete_Unnecessary_Elements_From_Mesh $cgroupid
 	}
     }
 
     ::wkcf::Cleaning_Up_Skin_And_Removing_Isolated_Nodes $final_list_of_isolated_nodes
-    
+
     ::wkcf::Destroy_Skin_Sphere_Group $KPriv(what_dempack_package) ; # Getting rid of the SKIN_SPHERE_DO_NOT_DELETE group when in discontinuum or swimming
-    
+
     return $fail
 }
 
@@ -2125,7 +2141,7 @@ proc ::wkcf::Cleaning_Up_Skin_And_Removing_Isolated_Nodes {final_list_of_isolate
     GiD_EntitiesGroups unassign SKIN_SPHERE_DO_NOT_DELETE elements [GiD_EntitiesGroups get SKIN_SPHERE_DO_NOT_DELETE elements -element_type linear]
     GiD_EntitiesGroups unassign SKIN_SPHERE_DO_NOT_DELETE elements [GiD_EntitiesGroups get SKIN_SPHERE_DO_NOT_DELETE elements -element_type triangle]
     GiD_EntitiesGroups unassign SKIN_SPHERE_DO_NOT_DELETE elements [GiD_EntitiesGroups get SKIN_SPHERE_DO_NOT_DELETE elements -element_type quadrilateral]
-    
+
     foreach node_id [lsort -integer -unique $final_list_of_isolated_nodes] {
 	if {![wkcf::GetNodeHigherentities $node_id]} {
 	    GiD_Mesh delete node $node_id
@@ -2135,17 +2151,17 @@ proc ::wkcf::Cleaning_Up_Skin_And_Removing_Isolated_Nodes {final_list_of_isolate
 
 proc ::wkcf::NormalDistribution {mean standard_deviation min_rad max_rad} {
     if {$standard_deviation} {
-        set max_iterations 1000 ; #set a maximun number of iterations to avoid an infinite loop
-        for {set i 0} {$i < $max_iterations} {incr i} {
-            set u1 [::tcl::mathfunc::rand]
-            set u2 [::tcl::mathfunc::rand]
-            #set distribution [expr {$mean + $standard_deviation * sqrt(-2.0 * log($u1)) * cos(6.28318530717958647692 * $u2)}]
-            set distribution [math::statistics::random-normal $mean $standard_deviation 1] ; # We use the math::statistics library instead
-            if {$distribution > $min_rad && $distribution < $max_rad} {
-                return $distribution
-            }
-        }
-        error "wkcf::NormalDistribution failed after $max_iterations iterations. mean=$mean std_dev=$standard_deviation min_rad=$min_rad max_rad=$max_rad"
+	set max_iterations 1000 ; #set a maximun number of iterations to avoid an infinite loop
+	for {set i 0} {$i < $max_iterations} {incr i} {
+	    set u1 [::tcl::mathfunc::rand]
+	    set u2 [::tcl::mathfunc::rand]
+	    #set distribution [expr {$mean + $standard_deviation * sqrt(-2.0 * log($u1)) * cos(6.28318530717958647692 * $u2)}]
+	    set distribution [math::statistics::random-normal $mean $standard_deviation 1] ; # We use the math::statistics library instead
+	    if {$distribution > $min_rad && $distribution < $max_rad} {
+		return $distribution
+	    }
+	}
+	error "wkcf::NormalDistribution failed after $max_iterations iterations. mean=$mean std_dev=$standard_deviation min_rad=$min_rad max_rad=$max_rad"
     }
     return $mean
 }

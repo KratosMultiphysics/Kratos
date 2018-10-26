@@ -42,8 +42,10 @@
 
 #include "custom_elements/updated_lagrangian_U_W_element.hpp"
 #include "custom_elements/updated_lagrangian_U_W_wP_element.hpp"
+#include "custom_elements/updated_lagrangian_U_W_wP_DME_element.hpp"
 #include "custom_elements/updated_lagrangian_U_J_W_wP_element.hpp"
-#include "custom_elements/updated_lagrangian_U_J_W_wP_stab_element.hpp"
+#include "custom_elements/updated_lagrangian_U_J_W_wP_HO_element.hpp"
+#include "custom_elements/updated_lagrangian_U_J_W_wP_DME_element.hpp"
 #include "custom_elements/small_displacement_U_W_wP_element.hpp"
 
 
@@ -56,6 +58,8 @@
 
 #include "custom_elements/axisym_updated_lagrangian_U_J_element.hpp"
 #include "custom_elements/axisym_updated_lagrangian_U_J_wP_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_J_W_wP_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_J_W_wP_DME_element.hpp"
 
 #include "custom_elements/axisym_updated_lagrangian_U_Pressure_element.hpp"
 #include "custom_elements/axisym_updated_lagrangian_U_P_wP_element.hpp"
@@ -69,6 +73,7 @@
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/tresca_yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/new_tresca_yield_criterion.hpp"
 
 //flow rule
 #include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
@@ -87,7 +92,9 @@
 #include "custom_constitutive/hencky_J2_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_3D_law.hpp"
 #include "custom_constitutive/hencky_tresca_plane_strain_2D_law.hpp"
+#include "custom_constitutive/new_hencky_tresca_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_axisym_2D_law.hpp"
+#include "custom_constitutive/new_hencky_tresca_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_J2_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_Tresca_axisym_2D_law.hpp"
@@ -121,7 +128,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KratosPfemSolidMechanicsApplication : public KratosApplication
+  class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) KratosPfemSolidMechanicsApplication : public KratosApplication
   {
   public:
 
@@ -275,8 +282,12 @@ namespace Kratos
 
     const UpdatedLagrangianUWElement                        mUpdatedLagrangianUWElement2D3N;
     const UpdatedLagrangianUWwPElement                    mUpdatedLagrangianUWwPElement2D3N;
+    const UpdatedLagrangianUWwPDMEElement        mUpdatedLagrangianUWwPDMEElement2D3N;
     const UpdatedLagrangianUJWwPElement                  mUpdatedLagrangianUJWwPElement2D3N;
-    const UpdatedLagrangianUJWwPStabElement          mUpdatedLagrangianUJWwPStabElement2D3N;
+    const UpdatedLagrangianUJWwPHOElement              mUpdatedLagrangianUJWwPHOElement2D3N;
+    const UpdatedLagrangianUJWwPDMEElement            mUpdatedLagrangianUJWwPDMEElement2D3N;
+    const UpdatedLagrangianUJWwPElement                  mUpdatedLagrangianUJWwPElement3D4N;
+    const UpdatedLagrangianUJWwPDMEElement            mUpdatedLagrangianUJWwPDMEElement3D4N;
     const SmallDisplacementUWwPElement                    mSmallDisplacementUWwPElement2D3N;
 
     const AxisymUpdatedLagrangianUwPElement          mAxisymUpdatedLagrangianUwPElement2D3N;
@@ -292,8 +303,10 @@ namespace Kratos
     const UpdatedLagrangianUJwPElement   mUpdatedLagrangianUJwPElement3D4N;
     const UpdatedLagrangianUPwPElement mUpdatedLagrangianUPwPElement2D3N;
 
-    const AxisymUpdatedLagrangianUJElement      mAxisymUpdatedLagrangianUJElement2D3N; 
-    const AxisymUpdatedLagrangianUJwPElement    mAxisymUpdatedLagrangianUJwPElement2D3N; 
+    const AxisymUpdatedLagrangianUJElement                mAxisymUpdatedLagrangianUJElement2D3N; 
+    const AxisymUpdatedLagrangianUJwPElement            mAxisymUpdatedLagrangianUJwPElement2D3N; 
+    const AxisymUpdatedLagrangianUJWwPElement          mAxisymUpdatedLagrangianUJWwPElement2D3N; 
+    const AxisymUpdatedLagrangianUJWwPDMEElement    mAxisymUpdatedLagrangianUJWwPDMEElement2D3N; 
 
     const AxisymUpdatedLagrangianUPressureElement mAxisymUpdatedLagrangianUPressureElement2D3N; 
     const AxisymUpdatedLagrangianUPwPElement mAxisymUpdatedLagrangianUPwPElement2D3N; 
@@ -305,7 +318,9 @@ namespace Kratos
     const HenckyJ2PlasticPlaneStrain2DLaw                                  mHenckyJ2PlasticPlaneStrain2DLaw;
     const HenckyJ2PlasticAxisym2DLaw                                            mHenckyJ2PlasticAxisym2DLaw;
     const HenckyTrescaPlasticAxisym2DLaw                                    mHenckyTrescaPlasticAxisym2DLaw;
+    const NewHenckyTrescaPlasticAxisym2DLaw                              mNewHenckyTrescaPlasticAxisym2DLaw;
     const HenckyTrescaPlasticPlaneStrain2DLaw                          mHenckyTrescaPlasticPlaneStrain2DLaw;
+    const NewHenckyTrescaPlasticPlaneStrain2DLaw                    mNewHenckyTrescaPlasticPlaneStrain2DLaw;
     const HenckyTresca3DLaw                                                              mHenckyTresca3DLaw;
 
     const HenckyPlasticUPJ2Axisym2DLaw                        mHenckyPlasticUPJ2Axisym2DLaw;
@@ -322,6 +337,7 @@ namespace Kratos
 
     const J2YieldCriterion                   mJ2YieldCriterion;
     const TrescaYieldCriterion               mTrescaYieldCriterion;
+    const NewTrescaYieldCriterion            mNewTrescaYieldCriterion;
     const CamClayYieldCriterion              mCamClayYieldCriterion;
 
     const CamClayHardeningLaw       mCamClayHardeningLaw;

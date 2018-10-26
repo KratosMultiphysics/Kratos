@@ -80,7 +80,7 @@ public:
      *  @return a std::unique_pointer to the new instance.
      *  @see UblasSpace::CreateDofUpdater(), TrilinosSpace::CreateDofUpdater().
      */
-    virtual DofUpdater::UniquePointer Create() const
+    virtual typename DofUpdater::UniquePointer Create() const
     {
         return Kratos::make_unique<DofUpdater>();
     }

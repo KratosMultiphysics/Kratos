@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "utilities/math_utils.h"
 
 // Application includes
 #include "custom_utilities/fluid_element_data.h"
@@ -87,6 +88,19 @@ public:
      *  @return The computed size.
      */
     static double MinimumElementSize(const Geometry<Node<3> >& rGeometry);
+
+    /// Average element size based on the geometry.
+    /** @param rGeometry The geometry of calling element.
+     *  @return The computed size.
+     */
+    static double AverageElementSize(const Geometry<Node<3> >& rGeometry);
+
+    /// Projected element size in the direction of the velocity vector.
+    /** @param rGeometry The geometry of calling element.
+     *  @param rVelocity The velocity defining the direction of projection.
+     *  @return The computed size.
+     */
+    static double ProjectedElementSize(const Geometry<Node<3> >& rGeometry, const array_1d<double,3>& rVelocity);
 
     /// Element size based on the shape functions gradients. Triangle element version.
     /** @param rDN_DX The shape functions gradients.

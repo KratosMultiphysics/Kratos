@@ -81,6 +81,8 @@ def GetDefaultInputParameters():
             "max_pressure_variation_rate_tol_comment": " for stationary problems, criterion to stop the fluid calculations",
             "time_steps_per_stationarity_step"       : 15,
             "time_steps_per_stationarity_step_comment": " number of fluid time steps between consecutive assessment of stationarity steps",
+            "time_steps_per_analytic_processing_step": 1,
+            "do_process_analytic_data"               : true,
             "meso_scale_length"                      : 0.2,
             "meso_scale_length_comment"              : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
             "shape_factor"                           : 0.5,

@@ -9,7 +9,7 @@ from math import sqrt, sin, cos, pi, exp, atan
 class TestTruss3D2N(KratosUnittest.TestCase):
     def setUp(self):
         pass
-
+        
     def _add_dofs(self,mp):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
@@ -24,6 +24,12 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
 
 
+    def _add_constitutive_law(self,mp,elastic_flag):
+        cl = StructuralMechanicsApplication.TrussPlasticityConstitutiveLaw()
+        if elastic_flag:
+            cl = StructuralMechanicsApplication.TrussConstitutiveLaw()
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
+
     def _apply_material_properties(self,mp,dim):
         #define properties
         mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,210e9)
@@ -36,8 +42,14 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         g = [0,0,0]
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
-        cl = StructuralMechanicsApplication.LinearElastic3DLaw()
-        mp.GetProperties()[0].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
+    def _apply_material_properties_plasticity(self,mp,dim,H,A):
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,1000)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.DENSITY,7850)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.CROSS_AREA,A)
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.YIELD_STRESS,100)
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.HARDENING_MODULUS_1D,H)
+        g = [0,0,0]
+        mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
 
     def _apply_BCs(self,mp,which_dof):
@@ -85,6 +97,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
                                                                 move_mesh_flag)
         strategy.SetEchoLevel(0)
 
+        strategy.Initialize()
         strategy.Check()
         strategy.Solve()
 
@@ -109,7 +122,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
                                                                 reform_step_dofs,
                                                                 move_mesh_flag)
         strategy.SetEchoLevel(0)
-
+        strategy.Initialize()
         strategy.Check()
         strategy.Solve()
 
@@ -136,6 +149,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
                                                                 move_mesh_flag)
         strategy.SetEchoLevel(0)
 
+        strategy.Initialize()
         strategy.Check()
         strategy.Solve()
 
@@ -271,21 +285,33 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self.assertAlmostEqual(r_u_1, -Force_X,6)
         self.assertAlmostEqual(r_u_3, 0.00 ,4)
 
-    def _check_results_dynamic_explicit_nonlinear(self,mp,time_i,time_step):
+    def _check_results_dynamic_explicit(self,mp,time_i,time_step,linear_flag):
 
         simulated_disp_temp = mp.Nodes[2].GetSolutionStepValue(
             KratosMultiphysics.DISPLACEMENT_Y)
-        test_disp_temp = [-0.02187643575439285,-0.06200584852673985,-0.12659001916294776,
-            -0.19946368685547383,-0.2668662857344121,-0.31996689568889486,
-            -0.3542336049715639,-0.3677972374869337,-0.36013540742558275,
-            -0.3315283526375912,-0.2833671144362512,-0.21927539369421717,
-            -0.14674331873257762,-0.07823551896414549,-0.029752996236702217,
-            -0.015285489977120799,-0.039456188280874,-0.09465825378001311,
-            -0.16565728745639585,-0.2370016587070386,-0.29751601542655876,
-            -0.3408633097298418,-0.36414189975011835,-0.366323940323949,
-            -0.34733143050033766,-0.30794836454906194,-0.25057916520759693,
-            -0.18071645080606016,-0.10848951449562776,-0.048693226040445785,
-            -0.017174322907726747]
+        test_disp_temp=[]
+
+        if (linear_flag==False):
+            test_disp_temp = [-0.02187643575439285,-0.06200584852673985,-0.12659001916294776,
+                -0.19946368685547383,-0.2668662857344121,-0.31996689568889486,
+                -0.3542336049715639,-0.3677972374869337,-0.36013540742558275,
+                -0.3315283526375912,-0.2833671144362512,-0.21927539369421717,
+                -0.14674331873257762,-0.07823551896414549,-0.029752996236702217,
+                -0.015285489977120799,-0.039456188280874,-0.09465825378001311,
+                -0.16565728745639585,-0.2370016587070386,-0.29751601542655876,
+                -0.3408633097298418,-0.36414189975011835,-0.366323940323949,
+                -0.34733143050033766,-0.30794836454906194,-0.25057916520759693,
+                -0.18071645080606016,-0.10848951449562776,-0.048693226040445785,
+                -0.017174322907726747]
+        else:
+            test_disp_temp = [-0.02187643575439285,-0.061883838517458295,-0.12445382515428678,
+                -0.1881611569285987,-0.23119114494748316,-0.23880944426893233,-0.20840739392784358,
+                -0.15039527562063051,-0.08463762106828532,-0.03365119147293591,-0.01489477954188152,
+                -0.03479096301660944,-0.08652688314806617,-0.15238710639314917,-0.209819749938765,
+                -0.23915870603324285,-0.2303577181183718,-0.18643042383939673,-0.12241842409082543,
+                -0.0602407322897484,-0.02118825742486547,-0.018633362863922306,-0.0534508965788702,
+                -0.11371862536897262,-0.17879965050966987,-0.22640890250055518,-0.2402440030802908,
+                -0.21556753182106447,-0.16082921544195866,-0.09477256915660874,-0.04001673503062233]
 
         self.assertAlmostEqual(simulated_disp_temp, test_disp_temp[time_step],6)
 
@@ -308,9 +334,11 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_linear(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
+        self._add_constitutive_law(mp,True)
 
         #create nodes
         mp.CreateNewNode(1,0.0,0.0,0.0)
@@ -348,9 +376,11 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def test_truss3D2N_nonlinear(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
+        self._add_constitutive_law(mp,True)
 
         #create nodes
         mp.CreateNewNode(1,0.0,0.0,0.0)
@@ -396,122 +426,136 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             time_step += 1
 
     def test_truss3D2N_prestress_nonlinear_fix(self):
-            dim = 3
-            mp = KratosMultiphysics.ModelPart("solid_part")
-            self._add_variables(mp)
-            self._apply_material_properties(mp,dim)
-            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,1000000.00)
-            #create nodes
-            mp.CreateNewNode(1,0.0,0.0,0.0)
-            mp.CreateNewNode(2,2.0,0.0,0.0)
-            #add dofs
-            self._add_dofs(mp)
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+        self._add_constitutive_law(mp,True)
 
-            #create submodelparts for dirichlet boundary conditions
-            bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
-            bcs_xyz.AddNodes([1])
-            bcs_xz = mp.CreateSubModelPart("Dirichlet_XZ")
-            bcs_xz.AddNodes([2])
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,1000000.00)
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,2.0,0.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_xz = mp.CreateSubModelPart("Dirichlet_XZ")
+        bcs_xz.AddNodes([2])
 
 
-            #create Element
-            mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        #create Element
+        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
 
-            #apply constant boundary conditions
-            self._apply_BCs(bcs_xyz,'xyz')
-            self._apply_BCs(bcs_xz,'xz')
-            self._solve_nonlinear(mp)
-            self._check_pre_stress_output(mp,10000.0)
+        #apply constant boundary conditions
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_xz,'xz')
+        self._solve_nonlinear(mp)
+        self._check_pre_stress_output(mp,10000.0)
 
     def test_truss3D2N_prestress_nonlinear_free(self):
-            dim = 3
-            mp = KratosMultiphysics.ModelPart("solid_part")
-            self._add_variables(mp)
-            self._apply_material_properties(mp,dim)
-            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,1000000.00)
-            #create nodes
-            mp.CreateNewNode(1,0.0,0.0,0.0)
-            mp.CreateNewNode(2,2.0,0.0,0.0)
-            #add dofs
-            self._add_dofs(mp)
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+        self._add_constitutive_law(mp,True)
 
-            #create submodelparts for dirichlet boundary conditions
-            bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
-            bcs_xyz.AddNodes([1])
-            bcs_xz = mp.CreateSubModelPart("Dirichlet_XZ")
-            bcs_xz.AddNodes([2])
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,1000000.00)
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,2.0,0.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_xz = mp.CreateSubModelPart("Dirichlet_XZ")
+        bcs_xz.AddNodes([2])
 
 
-            #create Element
-            mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        #create Element
+        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
 
-            #apply constant boundary conditions
-            self._apply_BCs(bcs_xyz,'xyz')
-            self._apply_BCs(bcs_xz,'yz')
-            self._solve_nonlinear(mp)
-            self._check_pre_stress_output(mp,0.0,6)
+        #apply constant boundary conditions
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_xz,'yz')
+        self._solve_nonlinear(mp)
+        self._check_pre_stress_output(mp,0.0,6)
 
     def test_truss3D2N_prestress_linear_fix(self):
-            dim = 3
-            mp = KratosMultiphysics.ModelPart("solid_part")
-            self._add_variables(mp)
-            self._apply_material_properties(mp,dim)
-            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,1000000.00)
-            #create nodes
-            mp.CreateNewNode(1,0.0,0.0,0.0)
-            mp.CreateNewNode(2,2.0,0.0,0.0)
-            #add dofs
-            self._add_dofs(mp)
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+        self._add_constitutive_law(mp,True)
 
-            #create submodelparts for dirichlet boundary conditions
-            bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
-            bcs_xyz.AddNodes([1])
-            bcs_xz = mp.CreateSubModelPart("Dirichlet_XZ")
-            bcs_xz.AddNodes([2])
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,1000000.00)
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,2.0,0.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_xz = mp.CreateSubModelPart("Dirichlet_XZ")
+        bcs_xz.AddNodes([2])
 
 
-            #create Element
-            mp.CreateNewElement("TrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        #create Element
+        mp.CreateNewElement("TrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
 
-            #apply constant boundary conditions
-            self._apply_BCs(bcs_xyz,'xyz')
-            self._apply_BCs(bcs_xz,'xz')
-            self._solve_linear(mp)
-            self._check_pre_stress_output(mp,10000.0)
+        #apply constant boundary conditions
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_xz,'xz')
+        self._solve_linear(mp)
+        self._check_pre_stress_output(mp,10000.0)
 
     def test_truss3D2N_prestress_linear_free(self):
-            dim = 3
-            mp = KratosMultiphysics.ModelPart("solid_part")
-            self._add_variables(mp)
-            self._apply_material_properties(mp,dim)
-            mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,1000000.00)
-            #create nodes
-            mp.CreateNewNode(1,0.0,0.0,0.0)
-            mp.CreateNewNode(2,2.0,0.0,0.0)
-            #add dofs
-            self._add_dofs(mp)
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+        self._add_constitutive_law(mp,True)
 
-            #create submodelparts for dirichlet boundary conditions
-            bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
-            bcs_xyz.AddNodes([1])
-            bcs_xz = mp.CreateSubModelPart("Dirichlet_XZ")
-            bcs_xz.AddNodes([2])
+        mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2,1000000.00)
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,2.0,0.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_xz = mp.CreateSubModelPart("Dirichlet_XZ")
+        bcs_xz.AddNodes([2])
 
 
-            #create Element
-            mp.CreateNewElement("TrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        #create Element
+        mp.CreateNewElement("TrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
 
-            #apply constant boundary conditions
-            self._apply_BCs(bcs_xyz,'xyz')
-            self._apply_BCs(bcs_xz,'yz')
-            self._solve_linear(mp)
-            self._check_pre_stress_output(mp,0.0)
+        #apply constant boundary conditions
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_xz,'yz')
+        self._solve_linear(mp)
+        self._check_pre_stress_output(mp,0.0)
 
     def test_truss3D2N_dynamic(self):
         dim = 3
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
+        self._add_constitutive_law(mp,True)
 
         #create nodes
         mp.CreateNewNode(1,0.0,0.0,0.0)
@@ -557,87 +601,246 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             time_step += 1
 
     def test_truss3D2N_cable(self):
-            dim = 3
-            mp = KratosMultiphysics.ModelPart("solid_part")
-            self._add_variables(mp)
-            self._apply_material_properties(mp,dim)
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+        self._add_constitutive_law(mp,True)
 
-            #create nodes
-            mp.CreateNewNode(1,0.0,0.0,0.0)
-            mp.CreateNewNode(2,0.5,0.0,0.0)
-            mp.CreateNewNode(3,1.0,0.0,0.0)
-            #add dofs
-            self._add_dofs(mp)
-            #create condition
-            mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
-            #create submodelparts for dirichlet boundary conditions
-            bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
-            bcs_xyz.AddNodes([1,3])
-            bcs_yz = mp.CreateSubModelPart("Dirichlet_YZ")
-            bcs_yz.AddNodes([2])
-            #create a submodalpart for neumann boundary conditions
-            bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
-            bcs_neumann.AddNodes([2])
-            bcs_neumann.AddConditions([1])
-            #create Elements
-            mp.CreateNewElement("CableElement3D2N", 1, [1,2], mp.GetProperties()[0])
-            mp.CreateNewElement("CableElement3D2N", 2, [2,3], mp.GetProperties()[0])
-            #apply constant boundary conditions
-            Force_X = 100000000
-            self._apply_BCs(bcs_xyz,'xyz')
-            self._apply_BCs(bcs_yz,'yz')
-            self._apply_Neumann_BCs(bcs_neumann,'x',Force_X)
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,0.5,0.0,0.0)
+        mp.CreateNewNode(3,1.0,0.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1,3])
+        bcs_yz = mp.CreateSubModelPart("Dirichlet_YZ")
+        bcs_yz.AddNodes([2])
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([2])
+        bcs_neumann.AddConditions([1])
+        #create Elements
+        mp.CreateNewElement("CableElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        mp.CreateNewElement("CableElement3D2N", 2, [2,3], mp.GetProperties()[0])
+        #apply constant boundary conditions
+        Force_X = 100000000
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_yz,'yz')
+        self._apply_Neumann_BCs(bcs_neumann,'x',Force_X)
 
-            self._solve_nonlinear(mp)
-            self._check_results_cable(mp,Force_X)
+        self._solve_nonlinear(mp)
+        self._check_results_cable(mp,Force_X)
 
     def test_truss3D2N_dynamic_explicit_nonlinear(self):
-                dim = 3
-                mp = KratosMultiphysics.ModelPart("solid_part")
-                self._add_variables(mp)
-                _add_explicit_variables(mp)
-                self._apply_material_properties(mp,dim)
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        _add_explicit_variables(mp)
+        self._apply_material_properties(mp,dim)
+        self._add_constitutive_law(mp,True)
 
-                #create nodes
-                mp.CreateNewNode(1,0.0,0.0,0.0)
-                mp.CreateNewNode(2,2.0,1.0,0.0)
-                #add dofs
-                self._add_dofs(mp)
-                #create condition
-                mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
-                #create submodelparts for dirichlet boundary conditions
-                bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
-                bcs_xyz.AddNodes([1])
-                bcs_yz = mp.CreateSubModelPart("Dirichlet_XZ")
-                bcs_yz.AddNodes([2])
-                #create a submodalpart for neumann boundary conditions
-                bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
-                bcs_neumann.AddNodes([2])
-                bcs_neumann.AddConditions([1])
-                #create Elementsdb
-                mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
-                #apply constant boundary conditions
-                Force_Y = -24000000
-                self._apply_BCs(bcs_xyz,'xyz')
-                self._apply_BCs(bcs_yz,'xz')
-                self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,2.0,1.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_yz = mp.CreateSubModelPart("Dirichlet_XZ")
+        bcs_yz.AddNodes([2])
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([2])
+        bcs_neumann.AddConditions([1])
+        #create Elementsdb
+        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        #apply constant boundary conditions
+        Force_Y = -24000000
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_yz,'xz')
+        self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
 
-                #loop over time
-                time_start = 0.00
-                time_end = 0.012
-                time_delta = 0.0004
-                time_i = time_start
-                time_step = 0
-                self._set_and_fill_buffer(mp,2,time_delta)
+        #loop over time
+        time_start = 0.00
+        time_end = 0.012
+        time_delta = 0.0004
+        time_i = time_start
+        time_step = 0
+        self._set_and_fill_buffer(mp,2,time_delta)
 
-                strategy_expl = _create_dynamic_explicit_strategy(mp)
-                while (time_i <= time_end):
-                    time_i += time_delta
-                    mp.CloneTimeStep(time_i)
-                    #solve + compare
-                    strategy_expl.Solve()
-                    self._check_results_dynamic_explicit_nonlinear(mp,time_i,time_step)
-                    time_step += 1
+        strategy_expl = _create_dynamic_explicit_strategy(mp)
+        while (time_i <= time_end):
+            time_i += time_delta
+            mp.CloneTimeStep(time_i)
+            #solve + compare
+            strategy_expl.Solve()
+            self._check_results_dynamic_explicit(mp,time_i,time_step,False)
+            time_step += 1
+
+    def test_truss3D2N_dynamic_explicit_linear(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        _add_explicit_variables(mp)
+        self._apply_material_properties(mp,dim)
+        self._add_constitutive_law(mp,True)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,2.0,1.0,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_yz = mp.CreateSubModelPart("Dirichlet_XZ")
+        bcs_yz.AddNodes([2])
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([2])
+        bcs_neumann.AddConditions([1])
+        #create Elementsdb
+        mp.CreateNewElement("TrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
+        #apply constant boundary conditions
+        Force_Y = -24000000
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_yz,'xz')
+        self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+
+        #loop over time
+        time_start = 0.00
+        time_end = 0.012
+        time_delta = 0.0004
+        time_i = time_start
+        time_step = 0
+        self._set_and_fill_buffer(mp,2,time_delta)
+
+        strategy_expl = _create_dynamic_explicit_strategy(mp)
+        while (time_i <= time_end):
+            time_i += time_delta
+            mp.CloneTimeStep(time_i)
+            #solve + compare
+            strategy_expl.Solve()
+            self._check_results_dynamic_explicit(mp,time_i,time_step,True)
+            time_step += 1
+
+
+    def test_truss3D2N_linear_plasticity(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties_plasticity(mp,dim,200,1.5)
+        self._add_constitutive_law(mp,False)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,0.0,1.2,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
+
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_xz = mp.CreateSubModelPart("Dirichlet_XZ")
+        bcs_xz.AddNodes([2])
+
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([2])
+        bcs_neumann.AddConditions([1])
+
+        #create Element
+        mp.CreateNewElement("TrussLinearElement3D2N", 1, [1,2], mp.GetProperties()[0])
+
+        #apply boundary conditions
+        Force_Y = 211.00
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_xz,'xz')
+        self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+
+        #solve + compare
+        self._solve_nonlinear(mp)
+
+        displacement_nodes = [mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT),
+        mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)]
+        reaction_nodes = [mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.REACTION),
+        mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.REACTION)]
+
+
+        self.assertAlmostEqual(reaction_nodes[0][1], -Force_Y)
+        for i in range(2): self.assertAlmostEqual(reaction_nodes[0][2*i], 0.0)
+        for i in range(3): self.assertAlmostEqual(reaction_nodes[1][i], 0.0)
+
+        plastic_disp = (0.1+((Force_Y/1.5)-100)/((1000*200)/(1000+200)))*1.2
+        self.assertAlmostEqual(displacement_nodes[1][1], plastic_disp)
+
+    def test_truss3D2N_nonlinear_plasticity(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties_plasticity(mp,dim,750,0.1)
+        self._add_constitutive_law(mp,False)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0,0.0,0.0)
+        mp.CreateNewNode(2,0.0,1.2,0.0)
+        #add dofs
+        self._add_dofs(mp)
+        #create condition
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
+
+        #create submodelparts for dirichlet boundary conditions
+        bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+        bcs_xyz.AddNodes([1])
+        bcs_xz = mp.CreateSubModelPart("Dirichlet_XZ")
+        bcs_xz.AddNodes([2])
+
+        #create a submodalpart for neumann boundary conditions
+        bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+        bcs_neumann.AddNodes([2])
+        bcs_neumann.AddConditions([1])
+
+        #create Element
+        mp.CreateNewElement("TrussElement3D2N", 1, [1,2], mp.GetProperties()[0])
+
+        #apply boundary conditions
+        Force_Y = 14.00
+        self._apply_BCs(bcs_xyz,'xyz')
+        self._apply_BCs(bcs_xz,'xz')
+        self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+
+        #solve + compare
+        self._solve_nonlinear(mp)
+
+        displacement_nodes = [mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT),
+        mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)]
+        reaction_nodes = [mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.REACTION),
+        mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.REACTION)]
+
+
+        self.assertAlmostEqual(reaction_nodes[0][1], -Force_Y,6)
+        for i in range(2): self.assertAlmostEqual(reaction_nodes[0][2*i], 0.0,6)
+        for i in range(3): self.assertAlmostEqual(reaction_nodes[1][i], 0.0,6)
+
+        plastic_disp = 0.170945051
+        self.assertAlmostEqual(displacement_nodes[1][1], plastic_disp)
 
 def _add_explicit_variables(mp):
     mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)

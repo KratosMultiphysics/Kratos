@@ -60,7 +60,7 @@ public:
     AxisymmetricPointLoadCondition( AxisymmetricPointLoadCondition const& rOther);
 
     /// Destructor
-    virtual ~AxisymmetricPointLoadCondition();
+    ~AxisymmetricPointLoadCondition() override;
 
     ///@}
     ///@name Operators
@@ -90,7 +90,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const override;
 
 
@@ -103,7 +103,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -132,25 +132,25 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-   
+
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(ConditionVariables& rVariables, 
+    void CalculateKinematics(ConditionVariables& rVariables,
 				     const double& rPointNumber) override;
 
 
     /**
      * Calculation and addition of the matrices of the LHS
      */
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                                     ConditionVariables& rVariables,
                                     double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                     ConditionVariables& rVariables,
 				    double& rIntegrationWeight) override;
 
@@ -210,13 +210,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
 }; // class AxisymmetricPointLoadCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_AXISYMMETRIC_POINT_LOAD_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_AXISYMMETRIC_POINT_LOAD_CONDITION_H_INCLUDED defined

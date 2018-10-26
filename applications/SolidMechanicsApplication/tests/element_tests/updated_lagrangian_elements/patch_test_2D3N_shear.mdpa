@@ -5,11 +5,11 @@ End ModelPartData
 Begin Properties 0
 End Properties
 Begin Properties 5
-    DENSITY   1.00000E+03 
-    YOUNG_MODULUS   1.00000E+03 
+    DENSITY   1.00000E+03
+    YOUNG_MODULUS   1.00000E+03
     POISSON_RATIO   3.00000E-01
     C10    192.30769
-    BULK_MODULUS 833.333333    
+    BULK_MODULUS 833.333333
 End Properties
 
 Begin Nodes
@@ -26,7 +26,7 @@ End Nodes
 
 Begin Elements UpdatedLagrangianElement2D3N// GUI group identifier: Parts Auto1
          1          5          5          7          3
-         2          5          5          8          7 
+         2          5          5          8          7
          3          5          8          6          4
          4          5          8          4          7
          5          5          1          2          6

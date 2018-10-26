@@ -295,7 +295,7 @@ extern "C" {
 NAMESPACE_BEGIN(PYBIND11_NAMESPACE)
 
 using ssize_t = Py_ssize_t;
-using size_t  = std::size_t;
+using std::size_t;
 
 /// Approach used to cast a previously unknown C++ instance into a Python object
 enum class return_value_policy : uint8_t {

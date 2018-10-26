@@ -8,11 +8,8 @@
 //
 
 // System includes
-#include <iostream>
-#include <cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/custom_flow_rules/isotropic_damage_flow_rule.hpp"
 #include "custom_constitutive/custom_yield_criteria/simo_ju_yield_criterion.hpp"
 #include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
@@ -59,8 +56,7 @@ IsotropicDamageSimoJu3DLaw::IsotropicDamageSimoJu3DLaw(const IsotropicDamageSimo
 
 ConstitutiveLaw::Pointer IsotropicDamageSimoJu3DLaw::Clone() const
 {
-    IsotropicDamageSimoJu3DLaw::Pointer p_clone(new IsotropicDamageSimoJu3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<IsotropicDamageSimoJu3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -78,7 +74,7 @@ IsotropicDamageSimoJu3DLaw::~IsotropicDamageSimoJu3DLaw()
 //************************************************************************************
 
 void IsotropicDamageSimoJu3DLaw::CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry )
-{   
+{
     //rCharacteristicSize is the diameter of a sphere with the same volume as the element
     rCharacteristicSize = pow((6.0*DomainGeometry.Volume()/Globals::Pi),0.33333333333333);
 }
@@ -101,7 +97,7 @@ int IsotropicDamageSimoJu3DLaw::Check(const Properties& rMaterialProperties,
         KRATOS_THROW_ERROR( std::invalid_argument,"STRENGTH_RATIO has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
     if(FRACTURE_ENERGY.Key() == 0 || rMaterialProperties.Has( FRACTURE_ENERGY ) == false || rMaterialProperties[FRACTURE_ENERGY] <= 0.0)
         KRATOS_THROW_ERROR( std::invalid_argument,"FRACTURE_ENERGY has Key zero, is not defined or has an invalid value for property", rMaterialProperties.Id() )
-    
+
     return ierr;
 }
 

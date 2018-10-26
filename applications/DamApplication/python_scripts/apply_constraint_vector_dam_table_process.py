@@ -1,14 +1,12 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DamApplication import *
-from KratosMultiphysics.PoromechanicsApplication import *
-
 
 def Factory(settings, Model):
     if not isinstance(settings, Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyConstraintVectorDamTableProcess(Model, settings["Parameters"])
 
-## All the python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 
 class ApplyConstraintVectorDamTableProcess(Process):
     def __init__(self, Model, settings ):
@@ -28,7 +26,7 @@ class ApplyConstraintVectorDamTableProcess(Process):
             self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, x_params))
         else:
             x_params.AddValue("table",settings["Value_Table"][0])
-            self.components_process_list.append(ApplyComponentTableProcess(model_part, x_params))
+            self.components_process_list.append(ApplyComponentTableProcessDam(model_part, x_params))
 
         y_params = Parameters("{}")
         y_params.AddValue("model_part_name",settings["model_part_name"])
@@ -39,7 +37,7 @@ class ApplyConstraintVectorDamTableProcess(Process):
             self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, y_params))
         else:
             y_params.AddValue("table",settings["Value_Table"][1])
-            self.components_process_list.append(ApplyComponentTableProcess(model_part, y_params))
+            self.components_process_list.append(ApplyComponentTableProcessDam(model_part, y_params))
 
         z_params = Parameters("{}")
         z_params.AddValue("model_part_name",settings["model_part_name"])
@@ -50,7 +48,7 @@ class ApplyConstraintVectorDamTableProcess(Process):
             self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, z_params))
         else:
             z_params.AddValue("table",settings["Value_Table"][2])
-            self.components_process_list.append(ApplyComponentTableProcess(model_part, z_params))
+            self.components_process_list.append(ApplyComponentTableProcessDam(model_part, z_params))
 
     def ExecuteInitialize(self):
 

@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES)
@@ -402,8 +402,8 @@ public:
         MathUtils<double>::InvertMatrix(metric_right,inv_metric_right,det);
 
         // Compute dual target base vectors
-        BoundedMatrix<double,TDim,TDim> target_left_dual = ZeroMatrix(TDim,TDim);
-        BoundedMatrix<double,TDim,TDim> target_right_dual = ZeroMatrix(TDim,TDim);
+        BoundedMatrix<double,TDim,TDim> target_left_dual = ZeroMatrix(TDim,TDim); // Anna noalias?
+        BoundedMatrix<double,TDim,TDim> target_right_dual = ZeroMatrix(TDim,TDim); // Anna noalias?
         for(int i=0;i<TDim;i++){
             for(int j=0;j<TDim;j++){
                 column(target_left_dual,i) += inv_metric_left(i,j)*column(rTargetLeft,j);
@@ -412,7 +412,7 @@ public:
         }
 
         // Tensor transformation
-        BoundedMatrix<double, TDim, TDim> transformed_tensor = ZeroMatrix(TDim, TDim);
+        BoundedMatrix<double, TDim, TDim> transformed_tensor = ZeroMatrix(TDim, TDim); // Anna noalias?
         for(int k=0;k<TDim;k++){
             for(int l=0;l<TDim;l++){
                 for(int i=0;i<TDim;i++){

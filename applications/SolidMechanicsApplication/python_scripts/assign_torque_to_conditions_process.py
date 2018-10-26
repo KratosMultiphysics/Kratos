@@ -11,7 +11,7 @@ def Factory(custom_settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignModulusAndDirectionToConditionsProcess(Model, custom_settings["Parameters"])
 
-## All the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class AssignModulusAndDirectionToConditionsProcess(BaseProcess.AssignModulusAndDirectionToConditionsProcess):
     def __init__(self, Model, custom_settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -58,7 +58,7 @@ class AssignModulusAndDirectionToConditionsProcess(BaseProcess.AssignModulusAndD
 
         # set model part
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
+        if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         # set processes

@@ -1,4 +1,9 @@
 {
+    "time_settings" : {
+	"time_step"  : 1.1,
+	"start_time" : 0.0,
+	"end_time"   : 1.0
+    },
     "model_settings"           : {
         "domain_parts_list"    : ["Parts_plate"],
         "processes_parts_list" : ["DISPLACEMENT_support"]
@@ -6,11 +11,6 @@
     "solver_settings"          : {
 	"solver_type" : "solid_mechanics_eigensolver",
 	"Parameters"  : {
-	    "time_settings" : {
-		"time_step"       : 1.1,
-		"start_time"      : 0.0,
-		"end_time"        : 1.0
-	    },
             "time_integration_settings" : {
                 "solution_type"      : "Dynamic",
 		"analysis_type"      : "Linear"
@@ -28,7 +28,7 @@
 		    "solver_type": "complex_skyline_lu_solver"
 		}
 	    },
-	    "dofs" : ["ROTATION"]
+	    "dofs" : ["DISPLACEMENT","ROTATION"]
 	}
     },
     "constraints_process_list" : [{
@@ -40,7 +40,7 @@
         "process_name"  : "CheckEigenvaluesProcess",
         "Parameters"    : {
             "model_part_name" : "solid_domain",
-	    "variable_name"   : "EIGENVALUE_VECTOR",                                              
+	    "variable_name"   : "EIGENVALUE_VECTOR",
             "reference_values": "[138.05922354056685, 3955.0855388258715, 7796.83946434412]"
         }
     }]

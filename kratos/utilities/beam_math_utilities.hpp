@@ -760,6 +760,78 @@ public:
     KRATOS_CATCH( "" )
   }
 
+
+  //****************GID DEFINITION OF THE CUSTOM LOCAL AXES***********************
+  //*****************************************************************************
+
+  /**
+   * Deffault expression for GID local beam axes:: E1 is considered the local beam axial direction
+   * @param rLocalX Local Beam axis vector (input parameter)
+   * @param rLocalY Local axis 2 vector (input parameter)
+   * @param rRotationMatrix transformation matrix from local to global frame (output parameter)
+   */
+  template<class TVector3>
+  static inline  void CalculateLocalAxesMatrix(const TVector3& rLocalX, const TVector3& rLocalY, MatrixType& rRotationMatrix)
+  {
+
+    KRATOS_TRY
+
+    TVector3 LocalX = rLocalX;
+    TVector3 LocalY = rLocalY;
+    TVector3 LocalZ = ZeroVector(3);
+
+    BeamMathUtilsType::CalculateLocalAxisVector(LocalX,LocalY,LocalZ);
+        
+    //Transformation matrix T = [e1_local, e2_local, e3_local] 
+    if( rRotationMatrix.size1() != 3 )
+      rRotationMatrix.resize(3, 3, false);
+    
+    //Building the rotation matrix
+    for (unsigned int i=0; i<3; i++)
+      {
+	rRotationMatrix(i,0) = LocalX[i];  // column distribution	
+    	rRotationMatrix(i,1) = LocalY[i];
+    	rRotationMatrix(i,2) = LocalZ[i];
+      }
+    
+    KRATOS_CATCH( "" )
+
+  }
+  
+  //*****************************************************************************
+  //*****************************************************************************
+
+  /**
+   * Deffault expression for GID local beam axes:: E1 is considered the local beam axial direction
+   * @param rLocalX Local Beam axis director vector E1 (input parameter) (output parameter)
+   * @param rLocalY Local Beam axis director vector E2 (input parameter) (output parameter)
+   * @param rLocalZ Local Beam axis director vector E3 (output parameter)
+   */
+  template<class TVector3>
+  static inline  void CalculateLocalAxisVector(TVector3& rLocalX, TVector3& rLocalY, TVector3& rLocalZ)
+  {
+    KRATOS_TRY
+
+    // local x-axis (e1_local) is the beam axis
+    double VectorNorm = MathUtilsType::Norm(rLocalX);
+    if( VectorNorm != 0)
+      rLocalX /= VectorNorm;
+    
+    // local y-axis (e2_local) supplied
+    VectorNorm = MathUtilsType::Norm(rLocalY);
+    if( VectorNorm != 0)
+      rLocalY /= VectorNorm;
+    
+    // local z-axis (e3_local)
+    MathUtilsType::CrossProduct(rLocalZ,rLocalX,rLocalY);
+    
+    VectorNorm = MathUtilsType::Norm(rLocalZ);
+    if( VectorNorm != 0 )
+      rLocalZ /= VectorNorm;
+            
+    KRATOS_CATCH( "" )
+  }
+
   //*****************************************************************************
   //*****************************************************************************
 

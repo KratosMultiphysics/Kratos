@@ -29,10 +29,10 @@ namespace Kratos
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) Newtonian3DLaw : public ConstitutiveLaw
   {
   public:
-  
+
     ///@name Type Definitions
     ///@{
-	
+
     /// Pointer definition of Newtonian3DLaw
     KRATOS_CLASS_POINTER_DEFINITION(Newtonian3DLaw);
 
@@ -42,7 +42,7 @@ namespace Kratos
 
     /// Default constructor.
     Newtonian3DLaw();
-    
+
     /// Copy constructor.
     Newtonian3DLaw (const Newtonian3DLaw& rOther);
 
@@ -53,21 +53,21 @@ namespace Kratos
     Newtonian3DLaw& operator=(const Newtonian3DLaw& rOther);
 
     /// Destructor.
-    virtual ~Newtonian3DLaw();
+    ~Newtonian3DLaw() override;
 
     ///@}
     ///@name Operators
     ///@{
 
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * Material parameters are inizialized
      */
-    void InitializeMaterial(const Properties& rMaterialProperties,
+    void InitializeMaterial(const Properties& rProperties,
 			    const GeometryType& rElementGeometry,
 			    const Vector& rShapeFunctionsValues ) override;
 
@@ -79,7 +79,22 @@ namespace Kratos
      */
     void CalculateMaterialResponseCauchy (Parameters & rValues) override;
 
-    
+    /**
+     * Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponseCauchy(Parameters & rValues) override;
+
+
+    /// Law Dimension
+    SizeType WorkingSpaceDimension() override { return 3; }
+
+    /// Law Voigt Strain Size
+    SizeType GetStrainSize() override { return 6; }
+
+
     /**
      * This function is designed to be called once to check compatibility with element
      * @param rFeatures
@@ -91,13 +106,13 @@ namespace Kratos
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param rMaterialProperties
+     * @param rProperties
      * @param rElementGeometry
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
-    
+    int Check(const Properties& rProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -111,7 +126,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Newtonian3DLaw";
@@ -119,13 +134,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Newtonian3DLaw";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "Newtonian3DLaw Data";
     }
@@ -138,12 +153,12 @@ namespace Kratos
 
     ///@}
 
-    
+
   protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -151,7 +166,7 @@ namespace Kratos
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -162,29 +177,29 @@ namespace Kratos
      * Calculates the stresses for given strain state
      * @param rStressVector the stress vector corresponding to the deformation
      * @param rStrainVector strain rates
-     * @param rMaterialProperties properties of the material
+     * @param rProperties properties of the material
      */
     virtual void CalculateStress(Vector& rStressVector,
                                  const Vector &rStrainVector,
-				 const Properties& rMaterialProperties);
+				 const Properties& rProperties);
 
     /**
      * calculates the linear elastic constitutive matrix in terms of Young's modulus and
      * @param rConstitutiveMatrix constitutive matrix return value
-     * @param rMaterialProperties properties of the material     
+     * @param rProperties properties of the material
      */
 
     virtual void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-					     const Properties& rMaterialProperties);
-    
-    
+					     const Properties& rProperties);
+
+
     ///@}
 
   private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -206,12 +221,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
@@ -241,6 +256,6 @@ namespace Kratos
   ///@}
 
   ///@} addtogroup block
-    
+
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_NEWTONIAN_3D_LAW_H_INCLUDED  defined

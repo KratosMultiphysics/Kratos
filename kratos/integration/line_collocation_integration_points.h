@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-//                    
+//
 //
 
 
@@ -34,7 +34,7 @@ public:
 
     typedef IntegrationPoint<1> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 3> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 3> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -77,7 +77,7 @@ public:
 
     typedef IntegrationPoint<1> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 5> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 5> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -121,7 +121,7 @@ public:
 
     typedef IntegrationPoint<1> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 7> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 7> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -168,7 +168,7 @@ public:
 
     typedef IntegrationPoint<1> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 9> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 9> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -217,7 +217,7 @@ public:
 
     typedef IntegrationPoint<1> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 11> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 11> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -291,6 +291,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_COLLOCATION_INTEGRATION_POINTS_H_INCLUDED  defined 
+#endif // KRATOS_LINE_COLLOCATION_INTEGRATION_POINTS_H_INCLUDED  defined
 
 

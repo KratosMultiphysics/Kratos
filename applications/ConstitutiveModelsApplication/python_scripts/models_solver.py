@@ -93,7 +93,7 @@ class MaterialsSolver(object):
 
         measure = self.settings["stress_measure"].GetString()
         self._set_stress_measure(measure)
-        
+
         # Print output
         self.print_output = self.settings["print_output"].GetBool()
 
@@ -167,7 +167,7 @@ class MaterialsSolver(object):
         elif( measure == "Kirchhoff" ):
             self.Kirchhoff = True
         elif( measure == "Cauchy" ):
-            self.Cauchy    = True           
+            self.Cauchy    = True
         else:
             raise Exception("Not valid stress measure:",measure)
 
@@ -209,7 +209,7 @@ class MaterialsSolver(object):
                 print( "strain = ", self.parameters.GetStrainVector() )
                 print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
-            self.material_law.FinalizeMaterialResponsePK2( self.parameters )      
+            self.material_law.FinalizeMaterialResponsePK2( self.parameters )
             self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
 
         if( self.Kirchhoff ):
@@ -264,25 +264,30 @@ class MaterialsSolver(object):
         self.constitutive_matrix = KratosMultiphysics.Matrix(strain_size,strain_size)
 
         self.initialize_calculation_variables()
-        
+
     #
     def initialize_calculation_variables(self):
-        
+
         strain_size = self.material_law.GetStrainSize()
-        
+
         #set to zero
         for i in range(0,strain_size):
             self.stress_vector[i] = 0.0;
             self.strain_vector[i] = 0.0;
             for j in range(0,strain_size):
                 self.constitutive_matrix[i,j] = 0.0;
-                
+
         self.parameters.SetStrainVector( self.strain_vector )
         self.parameters.SetStressVector( self.stress_vector )
         self.parameters.SetConstitutiveMatrix( self.constitutive_matrix )
 
     #
     def _build_dummy_geometry(self):
+
+        #tables depent on this nodal variables (TODO: get them from assign_materials_process.py)
+        nodal_variables = {"TEMPERATURE":293.15 , "PRESSURE":0.0}
+        for variable in nodal_variables:
+            self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
 
         #build a dummy geometry
         self.dimension = self.material_law.WorkingSpaceDimension()
@@ -301,6 +306,10 @@ class MaterialsSolver(object):
             self.nodes.append(self.model_part.CreateNewNode(2,0.0,1.0,0.0))
             self.geometry = KratosMultiphysics.Triangle2D3(self.nodes[0],self.nodes[1],self.nodes[2])
 
+
+        for node in self.nodes:
+            for variable, value in nodal_variables.items():
+                node.SetSolutionStepValue(KratosMultiphysics.KratosGlobals.GetVariable(variable), value)
 
     #
     def _set_strain_parameters(self):

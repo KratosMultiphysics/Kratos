@@ -129,10 +129,11 @@ def GetDefaultInputParameters():
             "PostTangentialImpactVelocity"     : false,
             "PostFaceNormalImpactVelocity"     : false,
             "PostFaceTangentialImpactVelocity" : false,
+            "post_vtk_option"                  : false,
 
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",
-            "LoadingVelocityTop"               : "deprecated_key_since_may_2018",
-            "LoadingVelocityBot"               : "deprecated_key_since_may_2018",
+            "LoadingVelocityTop"               : 0.0,
+            "LoadingVelocityBot"               : 0.0,
 
             "problem_name" : "dummy_name.Provide_a_real_one"
             }""")

@@ -31,10 +31,12 @@
 #ifdef KRATOS_INDEPENDENT
 #else
 #include "includes/define.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
+#include "utilities/intersection_utilities.h"
 #endif
 
 #include "octree_binary_cell.h"
-
 
 #define KRATOS_WATCH_3(name) std::cout << #name << " : " << name[0] << ", " << name[1] << ", " << name[2] << std::endl;
 
@@ -1256,7 +1258,7 @@ namespace Kratos {
 
 
     /// detect if  triangle and box are intersected
-    virtual bool HasIntersection(Element::GeometryType& geom_1, const Point& rLowPoint, const Point& rHighPoint )
+      virtual bool HasIntersection(Geometry<Node<3> >& geom_1, const Point& rLowPoint, const Point& rHighPoint )
     {
 //        const BaseType& geom_1 = rGeometry;
 
@@ -1283,8 +1285,11 @@ namespace Kratos {
             triverts[i] =  geom_1.GetPoint( i );
         }
 
-
-
+        if (size == 2) { // object is a line
+            return LinBoxOverlap( boxcenter, boxhalfsize, triverts);
+        } else if(size == 3) { // object is just a triangle
+            return TriBoxOverlap( boxcenter, boxhalfsize, triverts );
+        } else if(size == 4) { // object is a tetrahedra --> consider 4 triangles
         // Having 4 Intersection nodes, one can build 4 triangles. The 4 possible combinations are defined by indices in a matrix.
         BoundedMatrix<unsigned int,4,3> IndexNodesTriangles;
 
@@ -1304,13 +1309,6 @@ namespace Kratos {
         IndexNodesTriangles(3,1) = 2;
         IndexNodesTriangles(3,2) = 3;
 
-//        std::cout << "triangle: " << triverts[0] << ", " << triverts[1] << ", " << triverts[2];
-
-        if(size == 3) // object is just a triangle
-            return TriBoxOverlap( boxcenter, boxhalfsize, triverts );
-        else if(size == 4) // object is a tetrahedra --> consider 4 triangles
-        {
-
             for( unsigned int i = 0; i < 4 ; i++ )
             {
                 triverts[0] = geom_1.GetPoint( IndexNodesTriangles(i,0) );
@@ -1324,6 +1322,23 @@ namespace Kratos {
         }
         else
             return false;
+    }
+
+    inline bool LinBoxOverlap(
+        Point &rBoxCenter,
+        Point &rBoxHalfSize,
+        std::vector<Point> &rVertices)
+    {
+        const Point box_min_point = rBoxCenter - rBoxHalfSize; // Bounding box min point
+        const Point box_max_point = rBoxCenter + rBoxHalfSize; // Bounding box max point
+       
+        const int int_id = IntersectionUtilities::ComputeLineBoxIntersection(
+            box_min_point.Coordinates(),
+            box_max_point.Coordinates(),
+            rVertices[0].Coordinates(),
+            rVertices[1].Coordinates());
+
+        return int_id;
     }
 
         inline bool TriBoxOverlap( Point& boxcenter, Point& boxhalfsize, std::vector< Point >& triverts )

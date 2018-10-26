@@ -5,9 +5,18 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
+try:
+    import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+    missing_external_dependencies = False
+    missing_application = ''
+except ImportError as e:
+    missing_external_dependencies = True
+    # extract name of the missing application from the error message
+    import re
+    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
+                                    '{0}'.format(e)).group(1)
 import os
 import sys
-
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -26,7 +35,9 @@ class TestModelPartIO(KratosUnittest.TestCase):
         kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.time"))
 
     def test_model_part_io_read_model_part(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read"))
@@ -132,22 +143,53 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(outlet_model_part.NumberOfConditions(), 1)
         self.assertEqual(outlet_model_part.NumberOfSubModelParts(), 0)
 
+        properties_1 = model_part.GetProperties()[1]
+        #Bools
+        self.assertTrue(properties_1[KratosMultiphysics.IS_RESTARTED])
+        self.assertFalse(properties_1[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT])
+        #Double
+        self.assertEqual(properties_1[KratosMultiphysics.DENSITY], 3.4E-5)
+        #Array3
+        self.assertEqual(properties_1[KratosMultiphysics.VOLUME_ACCELERATION][0], 0.00)
+        self.assertEqual(properties_1[KratosMultiphysics.VOLUME_ACCELERATION][1], 0.00)
+        self.assertEqual(properties_1[KratosMultiphysics.VOLUME_ACCELERATION][2], 9.8)
+        #Matrix3x3
+        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][0,0], 0)
+        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][0,1], 0.27)
+        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][0,2], 0.27)
+        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][1,0], 0.087)
+        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][1,1], 0)
+        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][1,2], 0.27)
+        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][2,0], 0.075)
+        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][2,1], 0.23)
+        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][2,2], 0)
+
+        #SubModelPartData
+        self.assertTrue(inlets_model_part[KratosMultiphysics.IS_RESTARTED])
+        self.assertFalse(inlets_model_part[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT])
+
     def test_model_part_io_write_model_part(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write"))
-        model_part_io.ReadModelPart(model_part)
+        if (missing_external_dependencies is False):
+            current_model = KratosMultiphysics.Model()
+            model_part = current_model.CreateModelPart("Main")
+            model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+            model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write"))
+            model_part_io.ReadModelPart(model_part)
 
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write.out"), KratosMultiphysics.IO.WRITE)
-        model_part_io.WriteModelPart(model_part)
+            model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write.out"), KratosMultiphysics.IO.WRITE)
+            model_part_io.WriteModelPart(model_part)
 
-        import filecmp
-        value = filecmp.cmp(GetFilePath("test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
-        self.assertEqual(value, True)
+            import filecmp
+            value = filecmp.cmp(GetFilePath("test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
+            self.assertEqual(value, True)
+        else:
+            KratosMultiphysics.Logger.PrintInfo("TestModelPartIO", "Please compile StructuralMechanicsApplication in order to test output in IO")
 
     @KratosUnittest.expectedFailure
     def test_error_on_wrong_input(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model =  KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("wrong_properties_input"))
 
         #an error shall be thrown while reading the input since the format is not correct
@@ -163,7 +205,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
 
 
     #def test_model_part_io_properties_block(self):
-    #    model_part = ModelPart("Main")
+    #    model_part= current_model.CreateModelPart("Main")
     #    model_part_io = ModelPartIO("test_model_part_io")
     #    model_part_io.ReadProperties(model_part.Properties)
 

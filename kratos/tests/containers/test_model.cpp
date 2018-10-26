@@ -16,22 +16,22 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 
+
 namespace Kratos {
 	namespace Testing {
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelGetModelPart, KratosCoreFastSuite)
 		{
-            auto model_part = Kratos::make_shared<ModelPart>("Main");
-
-			model_part->CreateSubModelPart("Inlet1");
-
             Model model;
+                
+            auto& model_part = model.CreateModelPart("Main");
 
-            model.AddModelPart(model_part);
+            model_part.CreateSubModelPart("Inlet1");
 
-            KRATOS_CHECK_EQUAL(model.GetModelPart("Main").Name(), model_part->Name());
+    
+            KRATOS_CHECK_EQUAL(model.GetModelPart("Main").Name(), model_part.Name());
 
-            ModelPart& smp = model_part->GetSubModelPart("Inlet1");
+            ModelPart& smp = model_part.GetSubModelPart("Inlet1");
             KRATOS_CHECK_EQUAL(model.GetModelPart("Main.Inlet1").Name(), smp.Name());
 
             KRATOS_CHECK_EXCEPTION_IS_THROWN(model.GetModelPart("Main.Random"),
@@ -41,26 +41,26 @@ namespace Kratos {
             // KRATOS_CHECK_EXCEPTION_IS_THROWN(model.GetModelPart("Inlet1"),
             //     "Error: The ModelPart named : \"Inlet1\" was not found as root-ModelPart. The total input string was \"Inlet1\"");
 
-            KRATOS_CHECK_EXCEPTION_IS_THROWN(model.GetModelPart("Maiiiiin"),
-                "Error: The ModelPart named : \"Maiiiiin\" was not found as root-ModelPart. The total input string was \"Maiiiiin\"");
-		}
+            KRATOS_CHECK_EXCEPTION_IS_THROWN(
+                model.GetModelPart("Maiiiiin"),
+                "Error: The ModelPart named : \"Maiiiiin\" was not found either as root-ModelPart or as a flat name. The total input string was \"Maiiiiin\"");
+        }
 
 		KRATOS_TEST_CASE_IN_SUITE(ModelHasModelPart, KratosCoreFastSuite)
 		{
-            auto model_part = Kratos::make_shared<ModelPart>("Main");
-
-			model_part->CreateSubModelPart("Inlet1");
-
             Model model;
 
-            model.AddModelPart(model_part);
+            auto& model_part = model.CreateModelPart("Main");
+
+			model_part.CreateSubModelPart("Inlet1");
+
 
             KRATOS_CHECK(model.HasModelPart("Main"));
             KRATOS_CHECK(model.HasModelPart("Main.Inlet1"));
 
             KRATOS_CHECK_IS_FALSE(model.HasModelPart("Inlet1"));
 
-            ModelPart& smp = model_part->GetSubModelPart("Inlet1");
+            ModelPart& smp = model_part.GetSubModelPart("Inlet1");
             smp.CreateSubModelPart("SubInlet");
 
             KRATOS_CHECK(model.HasModelPart("Main.Inlet1.SubInlet"));
@@ -69,6 +69,59 @@ namespace Kratos {
             KRATOS_CHECK_IS_FALSE(model.HasModelPart("Random"));
 		}
 
+		KRATOS_TEST_CASE_IN_SUITE(ModelDeleteModelPart, KratosCoreFastSuite)
+		{
+            Model model;
+
+            auto& model_part = model.CreateModelPart("Main");
+			model_part.CreateSubModelPart("Inlet1");
+            model_part.GetSubModelPart("Inlet1").CreateSubModelPart("SubSub");
+
+            KRATOS_CHECK(model.HasModelPart("Main"));
+            KRATOS_CHECK(model.HasModelPart("Main.Inlet1"));
+            KRATOS_CHECK(model.HasModelPart("Main.Inlet1.SubSub"));
+
+            model.DeleteModelPart("Main");
+
+            KRATOS_CHECK_IS_FALSE(model.HasModelPart("Main"));
+            KRATOS_CHECK_IS_FALSE(model.HasModelPart("Main.Inlet1"));
+            KRATOS_CHECK_IS_FALSE(model.HasModelPart("Main.Inlet1.SubSub"));
+		}
+
+		KRATOS_TEST_CASE_IN_SUITE(ModelRenameModelPart, KratosCoreFastSuite)
+		{
+            Model model;
+
+            auto& model_part = model.CreateModelPart("Main");
+			model_part.CreateSubModelPart("Inlet1");
+            model_part.GetSubModelPart("Inlet1").CreateSubModelPart("SubSub");
+
+            KRATOS_CHECK(model.HasModelPart("Main"));
+            KRATOS_CHECK(model.HasModelPart("Main.Inlet1"));
+            KRATOS_CHECK(model.HasModelPart("Main.Inlet1.SubSub"));
+
+            model.RenameModelPart("Main", "Renamed");
+
+            KRATOS_CHECK_IS_FALSE(model.HasModelPart("Main"));
+            KRATOS_CHECK_IS_FALSE(model.HasModelPart("Main.Inlet1"));
+            KRATOS_CHECK_IS_FALSE(model.HasModelPart("Main.Inlet1.SubSub"));
+            
+            KRATOS_CHECK(model.HasModelPart("Renamed"));
+            KRATOS_CHECK(model.HasModelPart("Renamed.Inlet1"));
+            KRATOS_CHECK(model.HasModelPart("Renamed.Inlet1.SubSub"));
+		}
+
+		KRATOS_TEST_CASE_IN_SUITE(ModelGetOwnerModel, KratosCoreFastSuite)
+		{
+            Model model;
+
+            auto& model_part = model.CreateModelPart("Main");
+			model_part.CreateSubModelPart("Inlet1");
+            model_part.GetSubModelPart("Inlet1").CreateSubModelPart("SubSub");
+
+            KRATOS_CHECK(&model == &model_part.GetOwnerModel());
+            
+		}
 	}   // namespace Testing
 }  // namespace Kratos.
 

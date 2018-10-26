@@ -27,7 +27,7 @@ namespace Python
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
   using namespace pybind11;
-	
+
   class_<RigidBodyElementCreationUtility>(m,"RigidBodyCreationUtility")
       .def(init<>())
       .def("CreateRigidBodyElement",&RigidBodyElementCreationUtility::CreateRigidBodyElement)

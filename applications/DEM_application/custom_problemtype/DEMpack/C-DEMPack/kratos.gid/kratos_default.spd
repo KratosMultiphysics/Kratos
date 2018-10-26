@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.33">
+<Kratos_Data version="1.2.36">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -107,7 +107,7 @@
             <Item id="MinZ" pid="Min Z" DEM-BBox="Yes" DEM-BBoxType="Fixed" dv="-10" help="Min Z"/>
             <Item id="StartTime" pid="Start Time" DEM-BBox="Yes" dv="0.0" help="Time at which the bounding box gets active."/>
             <Item id="StopTime" pid="Stop Time" DEM-BBox="Yes" dv="1000.0" help="Time at which the bounding box stops acting."/>
-            <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="No" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
+            <Item id="PrintBoundingBox" pid="Print Bounding Box" DEM-BBox="Yes" dv="Yes" ivalues="Yes,No" values="Active,Not Active" help="If activated, the bounding box will be printed in the postprocess."/>
         </Container>
         <Container id="DEM-Physical-opts" pid="Physical options" class="Tab" help="DEM general physical options" open="0">
             <Item id="GravityValue" pid="Gravity value" dv="9.81" help="Gravity value"/>
@@ -134,7 +134,7 @@
             <Item id="DEM-Thermal" pid="Thermal Analysis" dv="No" class="DEM-Thermal" ivalues="No,Yes" values="No,Yes" help="Changes the default DEM element to Thermal-type elements and shows additional options"/>
             <Item id="DEM-ExportModelDataInformation" pid="Export model data information" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Export Model Data Information"/>
         </Container>
-    </Container>
+        </Container>
         <Container id="DEM-SolutionStrategy" pid="Solution strategy" class="Tab" help="Options and parameters that change the numerical strategy" icon="gear.gif" open="0">
             <Item id="DEM-TimeTranslationalIntegrationScheme" pid="Translational integration scheme" dv="Symplectic_Euler" ivalues="Symplectic_Euler,Forward_Euler,Taylor_Scheme,Newmark_Beta_Method,Velocity_Verlet" values="Symplectic Euler,Forward Euler,Taylor Scheme,Newmark Beta Method,Velocity Verlet" help="Time Integration Scheme for translational motion"/>
             <Item id="DEM-TimeRotationalIntegrationScheme" pid="Rotational integration scheme" dv="Direct_Integration" ivalues="Direct_Integration,Runge_Kutta,Quaternion_Integration" values="Direct Integration,Runge Kutta,Quaternion Integration" help="Time Integration Scheme for rotational motion"/>
@@ -150,7 +150,7 @@
             <Item id="DEM-ScreenInfoOutput" pid="Info screen output" dv="4.0" unit="s" help="How often the user gets information on the running process (in seconds)"/>
             <Item id="DEM-NeighbourSearchFrequency" pid="Neighbour search frequency" dv="10" unit="Hz" help="Neighbour search frequency can be modified to speed up the simulation. Set to 1 to search every timestep with increased accuracy and increased computational cost."/>
         </Container>
-    </Container>
+        </Container>
         <Container id="DEM-MaterialTest" pid="Material test" DEM-MaterialTestLab="Yes" class="Tab" help="Material test virtual lab (UCS,Triaxial,Oedometric,Hydrostatic,BTS) " >
             <Item id="DEM-TestType" pid="Test type" dv="UCS" ivalues="UCS,Triaxial,Oedometric,Hydrostatic,BTS,Shear" values="UCS,Triaxial,Oedometric,Hydrostatic,BTS,Shear" class="DEM-TestType" help="Select test type"/>
             <Item id="DEM-LoadVelocity" pid="Load velocity" dv="0.1" help="Applied velocity on the press"/>
@@ -172,6 +172,7 @@
             <Item id="DEM-PressureIncrementPerTimeUnit" pid="Pressure Increment" dv="0.0"  unit="MPa/s" help="Pressure Increment Per Time Unit"/>
             <Item id="DEM-LoadingVelocity" pid="Loading Velocity" dv="0.0"   help="Loading Velocity"/>
         </Container>
+        <Container id="DEM-CustomSubModelParts" pid="Custom SubModelParts" class="Groups" idTemplate="DEM-CustomSubModelPartTemp" GiDEntity="all" icon="demelements.gif" help="It allows the creation of SubModelParts that will be printed in the mpda input files for Kratos. Double click to add a group." open="0"/>
         <Container id="DEM-Results" pid="Results" help="Adjust the level of detail, frequency and type of the results that must be printed on disk during the computation" icon="bouncingball.gif" open="0">
             <Item id="DEM-OTimeStepType" pid="Set Output Criterion" dv="Detail_priority" icon="hourglass.gif" class="DEM-OTimestepType" ivalues="Detail_priority,Storage_priority" values="Time interval,Total number of files" help="Select printing interval or the total amount of result files to print"/>
             <Item id="DEM-OTimeStepDetail" pid="Time interval (s)" dv="1e-2" DEM-OTimestepType="Detail_priority" state="normal" help="Set printing interval for GiD results"/>
@@ -324,6 +325,7 @@
                 <Item id="TypeOfFlowMeasurement" pid="Flow measurement" DEM-GeneralActivation="Yes" dv="number_of_particles" ivalues="number_of_particles,mass_flow" values="Particles per second, Kilograms per second" class="DEM-Inlet_measurement_type" help="Choose the type of measurement of the inlet"/>
                 <Item id="NumberOfParticles" pid="Number of particles" DEM-GeneralActivation="Yes" DEM-Inlet_measurement_type="number_of_particles" dv="200.0" help="Number of particles per second generated by this inlet"/>
                 <Item id="InletMassFlow" pid="Mass flow (Kg/s)" DEM-GeneralActivation="Yes" DEM-Inlet_measurement_type="mass_flow" dv="0.5" help="Mass generated by this inlet per second"/>
+                <Item id="InletLimitedVelocity" pid="Inlet injection speed limit (m/s)" DEM-GeneralActivation="Yes" DEM-Inlet_measurement_type="mass_flow" dv="2.0" help="Inlet injection speed limit (m/s)"/>
                 <Item id="InletStartTime" pid="Inlet start time (s)" DEM-GeneralActivation="Yes" dv="0.0" help="Inlet start time"/>
                 <Item id="InletStopTime" pid="Inlet stop time (s)" DEM-GeneralActivation="Yes" dv="1000.0" help="Inlet stop time"/>
                 <Item id="MatModel" pid="Material model" DEM-GeneralActivation="Yes" dv="" GCV="MatModel" help="Material model" state="hidden"/>
@@ -385,7 +387,7 @@
             </Container>
         </Template>
         <Template id="DEM-VelocityIC" help="DEM velocity initial conditions">
-            <Item id="SetActive" pid="Activate" class="DEM-GeneralActivation" dv="Yes" ivalues="Yes,No" values="Yes,No" icon="active.gif" help="Set Yes to activate the group"/>   
+            <Item id="SetActive" pid="Activate" class="DEM-GeneralActivation" dv="Yes" ivalues="Yes,No" values="Yes,No" icon="active.gif" help="Set Yes to activate the group"/>
             <Container id="Values" pid="Values" DEM-GeneralActivation="Yes" help="Velocities Values">
                 <Item id="Vx" pid="Velocity X (m/s)" DEM-GeneralActivation="Yes" dv="0.0" help="Initial Velocity X"/>
                 <Item id="Vy" pid="Velocity Y (m/s)" DEM-GeneralActivation="Yes" dv="0.0" help="Initial Velocity Y"/>
@@ -452,9 +454,6 @@
                 <Item id="Bz" pid="Set Initial Angular Velocity Z" class="DEM-RBE-SetInitialAngularVelocityZ" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="No" ivalues="No,Yes" values="No,Yes" help="Set Initial Ang Velocity Z"/>
                 <Item id="AVz" pid="   Value (rad/s)" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" DEM-RBE-SetInitialAngularVelocityZ="Yes" dv="0.0" help="Z Angular Velocity"/>
             </Container>
-            <Container id="IceSettings" pid="IceSettings" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="">
-                <Item id="Buoyancy" pid="Subjected to Buoyancy" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" dv="0" ivalues="0,1" values="No,Yes" help="Choose if the body feels the action of water or not."/>
-            </Container>
             <Container id="Options" pid="Settings" DEM-GeneralActivation="Yes" help="Options that will affect the behaviour during the contact bewteen Discrete Elements and this wall">
                 <Item id="fixed_wall" pid="Update velocity, not displacements" DEM-RBImposedMotion="LinearPeriodic" dv="No" ivalues="No,Yes" values="No,Yes" help="If activated, the wall will not move and will just have an imposed velocity field"/>
                 <Item id="friction_coeff" pid="Friction angle (deg)" DEM-GeneralActivation="Yes" dv="30.0" help="Coulomb friction coefficient"/>
@@ -468,6 +467,14 @@
                 <Item id="RigidPlane" pid="Rigid Structure" class="DEM-RigidWall" DEM-GeneralActivation="Yes" help="Give this DEM-FEM group an ideally rigid behaviour or an elastic response with a particular Young Modulus" dv="Yes" values="Yes,No"/>
                 <Item id="YoungModulus" pid="Young Modulus (Pa)" DEM-RigidWall="No" DEM-GeneralActivation="Yes" dv="1e20" help=""/>
                 <Item id="PoissonRatio" pid="Poisson Ratio" DEM-RigidWall="No" DEM-GeneralActivation="Yes" dv="0.25" help=""/>
+                <Item id="ShipElement" pid="Ship Element" class="DEM-ShipElement" DEM-RBImposedMotion="FreeMotion" DEM-GeneralActivation="Yes" help="Lets the DEM-FEM wall behave as a ship structure" dv="No" values="No,Yes"/>
+                <Item id="EnginePower" pid="Engine Power (W)" DEM-ShipElement="Yes" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
+                <Item id="MaxEngineForce" pid="Max Engine Force (N)" DEM-ShipElement="Yes" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
+                <Item id="ThresholdVelocity" pid="Threshold Velocity (m/s)" DEM-ShipElement="Yes" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
+                <Item id="EnginePerformance" pid="Engine Performance" DEM-ShipElement="Yes" DEM-GeneralActivation="Yes" dv="1.0" help=""/>
+                <Item id="DragConstantX" pid="Drag Constant X" DEM-ShipElement="Yes" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
+                <Item id="DragConstantY" pid="Drag Constant Y" DEM-ShipElement="Yes" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
+                <Item id="DragConstantZ" pid="Drag Constant Z" DEM-ShipElement="Yes" DEM-GeneralActivation="Yes" dv="0.0" help=""/>
             </Container>
         </Template>
         <Template id="DEM-FEM-Solid-Wall" help="DEM-FEM wall boundary condition">
@@ -527,6 +534,11 @@
                 <Item id="Material" pid="Material" dv="" GCV="Materials" help="Material"/>
             </Container>
         </Template>
+        <Template id="DEM-CustomSubModelPartTemp" help="DEM custom SubModelPart">
+            <Container id="MainProperties" pid="New property" state="hidden" help="Values">
+                <Item id="WhatMdpa" pid="Destination mdpa" dv="DEM" ivalues="DEM,DEM-Inlet,FEM" values="DEM,DEM-Inlet,FEM" help="Decide what mpda file you want this SubModelPart to be added to"/>
+            </Container>
+        </Template>
     </Templates>
     <GlobalProjectSettings>
         <Item id="ValidateModel" pid="Validate model before calculate" dv="1" widget="check" help=""/>
@@ -539,10 +551,10 @@
         <Class>,DEM-CohesiveWall,DEM-ShowGraphsVars,DEM-ComputeEnergy,DEM-InletElementType,DEM-RigidWall,DEM-AdvancedMeshingFeatures,DEM-VelocityBCMotionType,DEM-InletImposedMotion,</Class>
         <Class>,DEM-FEMImposedMotion,DEM-FEMWallActivation,DEM-VelocityBCActivation,DEM-InletBCActivation,DEM-ElementActivation,DEM-FEMtoDEMAlgorithm,DEM-RBImposedMotion,</Class>
         <Class>,DEM-GeneralActivation,DEM-FixVelocityX,DEM-FixVelocityY,DEM-FixVelocityZ,DEM-FixAngularVelocityX,DEM-FixAngularVelocityY,DEM-FixAngularVelocityZ,DEM-ConstitutiveLaw,</Class>
-        <Class>,DEM-Cluster,DEM-AdvancedMeshingFeaturesAlgorithmType,DEM-PrintSeaSurface,DEM-RBE-FixVelocityX,DEM-RBE-FixVelocityY,DEM-RBE-FixVelocityZ,</Class> 
+        <Class>,DEM-Cluster,DEM-AdvancedMeshingFeaturesAlgorithmType,DEM-PrintSeaSurface,DEM-RBE-FixVelocityX,DEM-RBE-FixVelocityY,DEM-RBE-FixVelocityZ,</Class>
         <Class>,DEM-RBE-FixAngularVelocityX,DEM-RBE-FixAngularVelocityY,DEM-RBE-FixAngularVelocityZ,</Class>
         <Class>,DEM-RBE-SetInitialVelocityX,DEM-RBE-SetInitialVelocityY,DEM-RBE-SetInitialVelocityZ,</Class>
         <Class>,DEM-RBE-SetInitialAngularVelocityX,DEM-RBE-SetInitialAngularVelocityY,DEM-RBE-SetInitialAngularVelocityZ,</Class>
-        <Class>,DEM-Inlet_measurement_type</Class> 
+        <Class>,DEM-Inlet_measurement_type,DEM-ShipElement</Class>
     </ClassConfiguration>
 </Kratos_Data>

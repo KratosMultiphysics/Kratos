@@ -1,52 +1,13 @@
-/*
-==============================================================================
-KratosIncompressibleFluidApplication 
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
-rrossi@cimne.upc.edu
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-
-
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
-
-==============================================================================
-*/
- 
-//   
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author: pbecker $
-//   Date:                $Date: 2011-09-21 12:30:32 $
-//   Revision:            $Revision: 1.0 $
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+//       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
+//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
+//  License: BSD License
+//					 Kratos default license: kratos/license.txt
 //
-
+//  Main authors:  Pablo Becker
+//
 
 #if !defined(KRATOS_MOVE_PARTICLE_UTILITY_FLUID_PFEM2_TRANSPORT_INCLUDED)
 #define  KRATOS_MOVE_PARTICLE_UTILITY_FLUID_PFEM2_TRANSPORT_INCLUDED
@@ -225,8 +186,8 @@ namespace Kratos
 			
 
             //matrix containing the position of the 4/15/45 particles that we will seed at the beggining
-            boost::numeric::ublas::bounded_matrix<double, 5*(1+TDim), 3 > pos;
-            boost::numeric::ublas::bounded_matrix<double, 5*(1+TDim), (1+TDim) > N;
+            BoundedMatrix<double, 5*(1+TDim), 3 > pos;
+            BoundedMatrix<double, 5*(1+TDim), (1+TDim) > N;
             
             int particle_id=0;
 			mnelems = mr_model_part.Elements().size();
@@ -833,7 +794,7 @@ namespace Kratos
 			{
 				
 				//creating a matrix for each of the problems.
-				boost::numeric::ublas::bounded_matrix<double, TDim+1 , TDim+1  > mass_matrix; // WE ONLY NEED ONE! they are the same for all the variables!  //_x,mass_matrix_y,mass_matrix_z,mass_matrix_d; //mass matrices for the projected vel (x,y,z) and the distance
+				BoundedMatrix<double, TDim+1 , TDim+1  > mass_matrix; // WE ONLY NEED ONE! they are the same for all the variables!  //_x,mass_matrix_y,mass_matrix_z,mass_matrix_d; //mass matrices for the projected vel (x,y,z) and the distance
 				array_1d<double,(TDim+1)> rhs_scalar1;
 
 				array_1d<double,3*(TDim+1)> nodes_positions;
@@ -914,7 +875,7 @@ namespace Kratos
 					}
 					
 					//now we invert the matrix
-					boost::numeric::ublas::bounded_matrix<double, TDim+1 , TDim+1  > inverse_mass_matrix=ZeroMatrix(TDim+1 , TDim+1);
+					BoundedMatrix<double, TDim+1 , TDim+1  > inverse_mass_matrix=ZeroMatrix(TDim+1 , TDim+1);
 					if(TDim==3)
 						InvertMatrix( mass_matrix,  inverse_mass_matrix);
 					else
@@ -1082,8 +1043,8 @@ namespace Kratos
 				//ModelPart::NodesContainerType local_list=aux[k];
 				//PointerVectorSet<Convection_Particle, IndexedObject> & list=aux[k];
 				//KRATOS_WATCH(k);
-			    boost::numeric::ublas::bounded_matrix<double, (TDim+1), 3 > pos;
-				boost::numeric::ublas::bounded_matrix<double, (TDim+1) , (TDim+1) > N;
+			    BoundedMatrix<double, (TDim+1), 3 > pos;
+				BoundedMatrix<double, (TDim+1) , (TDim+1) > N;
 				unsigned int freeparticle=0; //we start with the first position in the particles array
 
 				//int local_id=1;
@@ -1211,8 +1172,8 @@ namespace Kratos
 				//ModelPart::ElementsContainerType::iterator it_begin = mr_model_part.ElementsBegin() +  elem_partition[k]; 
 				//ModelPart::ElementsContainerType::iterator it_end = mr_model_part.ElementsBegin() + elem_partition[k+1] ; 
 
-				boost::numeric::ublas::bounded_matrix<double, (3+2*TDim), 3 > pos; //7 particles (2D) or 9 particles (3D)
-				boost::numeric::ublas::bounded_matrix<double, (3+2*TDim), (TDim+1) > N;
+				BoundedMatrix<double, (3+2*TDim), 3 > pos; //7 particles (2D) or 9 particles (3D)
+				BoundedMatrix<double, (3+2*TDim), (TDim+1) > N;
 				
 				double mesh_scalar1;
 
@@ -1993,7 +1954,7 @@ namespace Kratos
         
         
         
-		void ComputeGaussPointPositions_4(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 7, 3 > & pos,boost::numeric::ublas::bounded_matrix<double, 7, 3 > & N)
+		void ComputeGaussPointPositions_4(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 7, 3 > & pos,BoundedMatrix<double, 7, 3 > & N)
         {
             double one_third = 1.0 / 3.0;
             double one_sixt = 0.15; //1.0 / 6.0;
@@ -2035,7 +1996,7 @@ namespace Kratos
         }
         
         
-        void ComputeGaussPointPositionsForPostReseed(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 7, 3 > & pos,boost::numeric::ublas::bounded_matrix<double, 7, 3 > & N) //2d
+        void ComputeGaussPointPositionsForPostReseed(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 7, 3 > & pos,BoundedMatrix<double, 7, 3 > & N) //2d
         {
             double one_third = 1.0 / 3.0;
             double one_eight = 0.12; //1.0 / 6.0;
@@ -2110,7 +2071,7 @@ namespace Kratos
 
         }
         
-        void ComputeGaussPointPositionsForPostReseed(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 9, 3 > & pos,boost::numeric::ublas::bounded_matrix<double, 9, 4 > & N) //3D
+        void ComputeGaussPointPositionsForPostReseed(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 9, 3 > & pos,BoundedMatrix<double, 9, 4 > & N) //3D
         {
             double one_quarter = 0.25;
             double small_fraction = 0.1; //1.0 / 6.0;
@@ -2178,7 +2139,7 @@ namespace Kratos
         
         
         
-        void ComputeGaussPointPositionsForPreReseed(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 3, 3 > & pos,boost::numeric::ublas::bounded_matrix<double, 3, 3 > & N) //2D
+        void ComputeGaussPointPositionsForPreReseed(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 3, 3 > & pos,BoundedMatrix<double, 3, 3 > & N) //2D
         {
 
             N(0, 0) = 0.5;
@@ -2210,7 +2171,7 @@ namespace Kratos
 
         }
         
-        void ComputeGaussPointPositionsForPreReseed(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 4, 3 > & pos,boost::numeric::ublas::bounded_matrix<double, 4, 4 > & N) //3D
+        void ComputeGaussPointPositionsForPreReseed(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 4, 3 > & pos,BoundedMatrix<double, 4, 4 > & N) //3D
         {
 			//creating 4 particles, each will be closer to a node and equidistant to the other nodes
 			
@@ -2250,7 +2211,7 @@ namespace Kratos
         
 
 		
-		void ComputeGaussPointPositions_45(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 45, 3 > & pos,boost::numeric::ublas::bounded_matrix<double, 45, 3 > & N)
+		void ComputeGaussPointPositions_45(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 45, 3 > & pos,BoundedMatrix<double, 45, 3 > & N)
         {
 			//std::cout << "NEW ELEMENT" << std::endl;
 			unsigned int counter=0;
@@ -2272,7 +2233,7 @@ namespace Kratos
 					
         }
         
-        void ComputeGaussPointPositions_initial(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 15, 3 > & pos,boost::numeric::ublas::bounded_matrix<double, 15, 3 > & N) //2D
+        void ComputeGaussPointPositions_initial(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 15, 3 > & pos,BoundedMatrix<double, 15, 3 > & N) //2D
         {
 			//std::cout << "NEW ELEMENT" << std::endl;
 			unsigned int counter=0;
@@ -2294,7 +2255,7 @@ namespace Kratos
 					
         }
         
-        void ComputeGaussPointPositions_initial(Geometry< Node < 3 > >& geom, boost::numeric::ublas::bounded_matrix<double, 20, 3 > & pos,boost::numeric::ublas::bounded_matrix<double, 20, 4 > & N) //3D
+        void ComputeGaussPointPositions_initial(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 20, 3 > & pos,BoundedMatrix<double, 20, 4 > & N) //3D
         {
 			//std::cout << "NEW ELEMENT" << std::endl;
 			//double total;
@@ -2354,7 +2315,7 @@ namespace Kratos
 			return true;
 		}
 		
-		bool InvertMatrix3x3(const boost::numeric::ublas::bounded_matrix<double, TDim+1 , TDim+1  >& A, boost::numeric::ublas::bounded_matrix<double, TDim+1 , TDim+1  >& result)
+		bool InvertMatrix3x3(const BoundedMatrix<double, TDim+1 , TDim+1  >& A, BoundedMatrix<double, TDim+1 , TDim+1  >& result)
 		{
 			double determinant =    +A(0,0)*(A(1,1)*A(2,2)-A(2,1)*A(1,2))
                         -A(0,1)*(A(1,0)*A(2,2)-A(1,2)*A(2,0))

@@ -1,3 +1,5 @@
+from __future__ import print_function, absolute_import, division
+
 import sys
 
 from classes.elementCreator import ElementCreator
@@ -42,11 +44,6 @@ debugApp.AddElements([
 
 debugApp.AddConditions([
     ConditionCreator('CustomTestCondition')
-])
-
-debugApp.AddProcesses([
-    ProcessCreator('CustomTestProcessAlpha'),
-    ProcessCreator('CustomTestProcessDelta')
 ])
 
 debugApp.Generate()

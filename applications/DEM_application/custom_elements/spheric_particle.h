@@ -63,15 +63,17 @@ public:
 
     virtual ~ParticleDataBuffer(){}
 
-bool SetNextNeighbourOrExit(const int& i)
+virtual bool SetNextNeighbourOrExit(int& i)
 {
     if (i < int(mpThisParticle->mNeighbourElements.size())){
         SetCurrentNeighbour(mpThisParticle->mNeighbourElements[i]);
+        mpOtherParticleNode = &(mpOtherParticle->GetGeometry()[0]);
         return true;
     }
 
     else { // other_neighbour is nullified upon exiting loop
         mpOtherParticle = NULL;
+        mpOtherParticleNode = NULL;
         return false;
     }
 }
@@ -103,6 +105,9 @@ array_1d<double, 3> mDomainMin;
 array_1d<double, 3> mDomainMax;
 SphericParticle* mpThisParticle;
 SphericParticle* mpOtherParticle;
+Node<3>* mpOtherParticleNode;
+double mLocalCoordSystem[3][3];
+double mOldLocalCoordSystem[3][3];
 
 std::vector<DEMWall*> mNeighbourRigidFaces; // why repeated? it is in the sphere as well!
 
@@ -241,8 +246,6 @@ double SlowGetDensity();
 double SlowGetParticleCohesion();
 int    SlowGetParticleMaterial();
 
-double GetBoundDeltaDispSq();
-
 /// Turn back information as a string.
 virtual std::string Info() const override
 {
@@ -341,6 +344,14 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(do
                                                                               const array_1d<double, 3>& ang_vel,
                                                                               SphericParticle* p_neighbour);
 
+virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(double DeltDesp[3],
+                                                                                  double RelVel[3],
+                                                                                  const double OldLocalCoordSystem[3][3],
+                                                                                  const double &other_radius,
+                                                                                  const double &dt,
+                                                                                  const array_1d<double, 3> &angl_vel,
+                                                                                  SphericParticle* neighbour_iterator);
+
 virtual void ComputeMoments(double normalLocalContactForce,
                             double GlobalElasticContactForces[3],
                             double& RollingResistance,
@@ -397,7 +408,8 @@ virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
                                       const double cohesive_force,
                                       array_1d<double, 3>& rElasticForce,
                                       array_1d<double, 3>& rContactForce,
-                                      const unsigned int iRigidFaceNeighbour) final;
+                                      array_1d<double, 3>& elastic_force_backup,
+                                      array_1d<double, 3>& total_force_backup) final;
 
 virtual void AddUpMomentsAndProject(double LocalCoordSystem[3][3],
                                     double ElasticLocalRotationalMoment[3],
@@ -425,7 +437,7 @@ virtual void AddWallContributionToStressTensor(const double GlobalElasticContact
 
 virtual void RotateOldContactForces(const double LocalCoordSystem[3][3], const double OldLocalCoordSystem[3][3], array_1d<double, 3>& mNeighbourElasticContactForces) final;
 
-virtual void ApplyGlobalDampingToContactForces();
+virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment);
 
 DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
 double mRadius;
@@ -433,7 +445,6 @@ double mSearchRadius;
 double mRealMass;
 PropertiesProxy* mFastProperties;
 int mClusterId;
-double mBoundDeltaDispSq;
 DEMIntegrationScheme* mpTranslationalIntegrationScheme;
 DEMIntegrationScheme* mpRotationalIntegrationScheme;
 double mGlobalDamping;
@@ -449,7 +460,6 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mSearchRadius", mSearchRadius);
     rSerializer.save("mRealMass",mRealMass);
     rSerializer.save("mClusterId",mClusterId);
-    rSerializer.save("mBoundDeltaDispSq",mBoundDeltaDispSq);
     rSerializer.save("HasStressTensor", (int)this->Is(DEMFlags::HAS_STRESS_TENSOR));
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
         rSerializer.save("mSymmStressTensor", mSymmStressTensor);
@@ -463,7 +473,6 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mSearchRadius", mSearchRadius);
     rSerializer.load("mRealMass",mRealMass);
     rSerializer.load("mClusterId",mClusterId);
-    rSerializer.load("mBoundDeltaDispSq",mBoundDeltaDispSq);
     int aux_int=0;
     rSerializer.load("HasStressTensor", aux_int);
     if(aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);

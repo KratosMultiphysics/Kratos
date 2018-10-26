@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED )
@@ -71,12 +71,18 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
-     */
-    //TODO: ADD THE OTHER CREATE FUNCTION
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
     //std::string Info() const;
 
@@ -114,11 +120,11 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     AxisymPointLoadCondition() : PointLoadCondition()
     {
     }
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -144,13 +150,13 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
 
      /**
-     * It calcules the integration load for the point load 
+     * It calcules the integration load for the point load
      */
     double GetPointLoadIntegrationWeight() override;
 
@@ -162,7 +168,7 @@ private:
     ///@}
     ///@name Serialization
     ///@{
-    
+
     friend class Serializer;
 
     // A private default constructor necessary for serialization
@@ -193,4 +199,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_POINT_LOAD_CONDITION_H_INCLUDED  defined

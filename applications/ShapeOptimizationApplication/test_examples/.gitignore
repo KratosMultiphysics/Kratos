@@ -1,3 +1,1 @@
-# output files of test examples
-*post.*
-*.csv
+**/*.csv

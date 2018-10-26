@@ -14,6 +14,10 @@
 
 
 // External includes
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#include "boost/numeric/ublas/matrix.hpp" // for the sparse space dense vector
+#else
+#endif // KRATOS_USE_AMATRIX
 
 // Project includes
 #include "includes/define_python.h"
@@ -36,6 +40,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.hpp"
+#include "solving_strategies/schemes/residual_based_pseudo_static_displacement_scheme.h"
 #include "solving_strategies/schemes/residual_based_bdf_displacement_scheme.h"
 #include "solving_strategies/schemes/residual_based_bdf_custom_scheme.h"
 
@@ -49,6 +54,7 @@
 // Builder And Solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -62,7 +68,7 @@ namespace Kratos
 
 
 
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+        typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
         //ADDED BY PAOLO (next two)
@@ -148,9 +154,9 @@ namespace Kratos
         void MoveMesh(Scheme< SparseSpaceType, LocalSpaceType >& dummy, ModelPart::NodesContainerType& rNodes)
         {
             int numNodes = static_cast<int>(rNodes.size());
-            
+
             #pragma omp parallel for
-            for(int i = 0; i < numNodes; i++)  
+            for(int i = 0; i < numNodes; i++)
             {
                 auto itNode = rNodes.begin() + i;
 
@@ -186,16 +192,16 @@ namespace Kratos
 //             .def(init<Kratos::shared_ptr<CompressedMatrix> >())
 //                     .def("GetReference", GetMatRef, return_value_policy::reference_internal)
 //                     ;
-// 
+//
 //             class_< Kratos::shared_ptr<Vector> >(m,"VectorPointer")
 //             .def(init< Kratos::shared_ptr<Vector> >())
 //                     .def("GetReference", GetVecRef, return_value_policy::reference_internal)
 //                     ;
 
             typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-            
-            
-            
+
+
+
 
 
             //********************************************************************
@@ -203,6 +209,7 @@ namespace Kratos
             typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
             typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
             typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
+            typedef ResidualBasedPseudoStaticDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedPseudoStaticDisplacementSchemeType;
             typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFDisplacementSchemeType;
             typedef ResidualBasedBDFCustomScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFCustomSchemeType;
 
@@ -233,19 +240,19 @@ namespace Kratos
                     (m, "ResidualBasedIncrementalUpdateStaticScheme")
                     .def(init< >()
                     );
-                    
-            
+
+
             typedef typename ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>::RotationToolPointerType RotationToolPointerType;
-            
-            
-                   
+
+
+
             class_< ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>,
                     typename ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>::Pointer,
                     ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> >
                     (m,"ResidualBasedIncrementalUpdateStaticSchemeSlip")
                     .def(init<unsigned int, unsigned int>())
-                    .def(init<RotationToolPointerType>());                   
- 
+                    .def(init<RotationToolPointerType>());
+
 
 	         // Residual Based Bossak Scheme Type
 	         class_< ResidualBasedBossakDisplacementSchemeType,
@@ -253,7 +260,6 @@ namespace Kratos
                     BaseSchemeType  >
                     (m,"ResidualBasedBossakDisplacementScheme")
                     .def(init< double >() )
-                    .def("Initialize", &ResidualBasedBossakDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
                     ;
 
 	         // Residual Based Newmark Scheme Type
@@ -261,15 +267,21 @@ namespace Kratos
                    typename ResidualBasedNewmarkDisplacementSchemeType::Pointer,
                    BaseSchemeType >(m,"ResidualBasedNewmarkDisplacementScheme")
                    .def(init< >() )
-                   .def("Initialize", &ResidualBasedNewmarkDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
                    ;
-            
+
+	         // Residual Based Pseudo-Static Scheme Type
+	         class_< ResidualBasedPseudoStaticDisplacementSchemeType,
+                   typename ResidualBasedPseudoStaticDisplacementSchemeType::Pointer,
+                   BaseSchemeType >(m,"ResidualBasedPseudoStaticDisplacementScheme")
+                   .def(init< const Variable<double> >() )
+                   ;
+
             // Residual Based BDF displacement Scheme Type
             class_< ResidualBasedBDFDisplacementSchemeType,typename ResidualBasedBDFDisplacementSchemeType::Pointer, BaseSchemeType  >(m,"ResidualBasedBDFDisplacementScheme")
                 .def(init<  >() )
                 .def(init <const std::size_t>())
             ;
-            
+
             // Residual Based BDF custom Scheme Type
             class_< ResidualBasedBDFCustomSchemeType, typename ResidualBasedBDFCustomSchemeType::Pointer, BaseSchemeType  >(m,"ResidualBasedBDFCustomScheme")
                 .def(init<  >() )
@@ -285,7 +297,7 @@ namespace Kratos
             //********************************************************************
             typedef ConvergenceCriteria<SparseSpaceType, LocalSpaceType> ConvergenceCriteriaType;
             typedef typename ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointerType;
-            
+
             // Convergence criteria base class
             class_< ConvergenceCriteriaType,
                     ConvergenceCriteriaPointerType >(m,"ConvergenceCriteria")
@@ -308,7 +320,6 @@ namespace Kratos
                     ConvergenceCriteriaType >
                     (m,"DisplacementCriteria")
                     .def(init< double, double>())
-//                     .def("SetEchoLevel", &DisplacementCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
                     ;
 
             class_<ResidualCriteria<SparseSpaceType, LocalSpaceType >,
@@ -316,7 +327,6 @@ namespace Kratos
                     ConvergenceCriteriaType >
                     (m,"ResidualCriteria")
                     .def(init< double, double>())
-//                     .def("SetEchoLevel", &ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
                     ;
 
             class_<And_Criteria<SparseSpaceType, LocalSpaceType >,
@@ -324,7 +334,6 @@ namespace Kratos
                     ConvergenceCriteriaType >
                     (m,"AndCriteria")
                     .def(init<ConvergenceCriteriaPointerType, ConvergenceCriteriaPointerType > ())
-                    .def("SetEchoLevel",&And_Criteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
                     ;
 
             class_<Or_Criteria<SparseSpaceType, LocalSpaceType >,
@@ -332,7 +341,6 @@ namespace Kratos
                     ConvergenceCriteriaType >
                     (m,"OrCriteria")
                     .def(init<ConvergenceCriteriaPointerType, ConvergenceCriteriaPointerType > ())
-                    .def("SetEchoLevel",&Or_Criteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
                     ;
 
             //********************************************************************
@@ -343,8 +351,8 @@ namespace Kratos
             //********************************************************************
             //Builder and Solver
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-            
-            
+
+
             class_< BuilderAndSolverType::DofsArrayType, BuilderAndSolverType::DofsArrayType::Pointer>(m,"DofsArrayType")
             .def(init<>());
 
@@ -378,11 +386,15 @@ namespace Kratos
                     ;
 
             typedef ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
-            class_< ResidualBasedEliminationBuilderAndSolverType, typename ResidualBasedEliminationBuilderAndSolverType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolver")
+            class_< ResidualBasedEliminationBuilderAndSolverType, ResidualBasedEliminationBuilderAndSolverType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolver")
             .def(init< LinearSolverType::Pointer > ());
 
             typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
-            class_< ResidualBasedBlockBuilderAndSolverType, typename ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
+            class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
+            .def(init< LinearSolverType::Pointer > ());
+
+            typedef ResidualBasedBlockBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsType;
+            class_< ResidualBasedBlockBuilderAndSolverWithConstraintsType, ResidualBasedBlockBuilderAndSolverWithConstraintsType::Pointer,ResidualBasedBlockBuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolverWithConstraints")
             .def(init< LinearSolverType::Pointer > ());
 
             //********************************************************************
@@ -414,7 +426,7 @@ namespace Kratos
                     .def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer)
                     .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
                     ;
-                    
+
             //********************************************************************
             //********************************************************************
             //********************************************************************
@@ -423,7 +435,7 @@ namespace Kratos
             //********************************************************************
             //strategy base class
             typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-            
+
             class_< BaseSolvingStrategyType, typename BaseSolvingStrategyType::Pointer >(m,"SolvingStrategy")
             .def(init < ModelPart&, bool >())
                     .def("Predict", &BaseSolvingStrategyType::Predict)
@@ -440,23 +452,24 @@ namespace Kratos
                     .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh)
                     .def("Clear", &BaseSolvingStrategyType::Clear)
                     .def("Check", &BaseSolvingStrategyType::Check)
-					.def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
-					.def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
-					.def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
+                    .def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
+                    .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
+                    .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
                     //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
                     ;
 
-            
 
-            class_< ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-                typename ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
-                BaseSolvingStrategyType >
+            typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;
+
+            class_< ResidualBasedLinearStrategyType, typename ResidualBasedLinearStrategyType::Pointer,BaseSolvingStrategyType >
                     (m,"ResidualBasedLinearStrategy")
                     .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool >())
                     .def(init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool  >())
-                    .def("GetResidualNorm", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetResidualNorm)
-                    .def("SetBuilderAndSolver", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
-                    .def("GetSystemMatrix", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetSystemMatrix, return_value_policy::reference_internal)
+                    .def("GetResidualNorm", &ResidualBasedLinearStrategyType::GetResidualNorm)
+                    .def("SetBuilderAndSolver", &ResidualBasedLinearStrategyType::SetBuilderAndSolver)
+                    .def("GetSystemMatrix", &ResidualBasedLinearStrategyType::GetSystemMatrix, return_value_policy::reference_internal)
+                    .def("GetSystemVector", &ResidualBasedLinearStrategyType::GetSystemVector, return_value_policy::reference_internal)
+                    .def("GetSolutionVector", &ResidualBasedLinearStrategyType::GetSolutionVector, return_value_policy::reference_internal)
                     ;
 
             typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
@@ -465,13 +478,15 @@ namespace Kratos
                     (m,"ResidualBasedNewtonRaphsonStrategy")
                     .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
                     .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-                    .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
-                    .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
-                    .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
-                    .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
-                    .def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetInitializePerformedFlag)
-                    .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetInitializePerformedFlag)
-                    .def("GetSystemMatrix", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetSystemMatrix, return_value_policy::reference_internal)
+                    .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategyType::SetMaxIterationNumber)
+                    .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategyType::GetMaxIterationNumber)
+                    .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
+                    .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
+                    .def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::SetInitializePerformedFlag)
+                    .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
+                    .def("GetSystemMatrix", &ResidualBasedNewtonRaphsonStrategyType::GetSystemMatrix, return_value_policy::reference_internal)
+                    .def("GetSystemVector", &ResidualBasedNewtonRaphsonStrategyType::GetSystemVector, return_value_policy::reference_internal)
+                    .def("GetSolutionVector", &ResidualBasedNewtonRaphsonStrategyType::GetSolutionVector, return_value_policy::reference_internal)
                     ;
 
             class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
@@ -482,7 +497,7 @@ namespace Kratos
                     >())
                     ;
 
-            class_< LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, 
+            class_< LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
                     typename LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
                     ResidualBasedNewtonRaphsonStrategyType  >
                     (m,"LineSearchStrategy")

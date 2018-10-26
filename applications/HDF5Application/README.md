@@ -12,10 +12,14 @@ The HDF5 C libraries are used with the *HDF5Application*. If Kratos is configure
 
 ### Serial HDF5 Library
 #### Ubuntu
-sudo apt-get install libhdf5-dev
+```
+    sudo apt-get install libhdf5-dev
+```
 ### Parallel HDF5 Library
 #### Ubuntu
-sudo apt-get install libhdf5-openmpi-dev
+```
+    sudo apt-get install libhdf5-openmpi-dev
+```
 
 ## Build Instructions
 
@@ -28,3 +32,12 @@ sudo apt-get install libhdf5-openmpi-dev
     ```
 
 3. Build Kratos
+
+## Installing h5py
+This package is needed to use some of the python-files, e.g. `create_xdmf_file.py`
+```
+    sudo apt-get install python-h5py / python3-h5py
+```
+
+## Note
+The minimum version for the GCC compiler is **4.9**. This is because earlier version don't fully support *regular expressions*.

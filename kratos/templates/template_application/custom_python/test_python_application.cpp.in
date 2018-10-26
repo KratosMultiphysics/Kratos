@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author1 Fullname
-//                   Author2 Fullname 
+//                   Author2 Fullname
 //
 
 
@@ -30,26 +30,24 @@
 namespace Kratos {
 namespace Python {
 
-  using namespace pybind11;
+PYBIND11_MODULE(Kratos@{APP_NAME_CAMEL}Application,m)
+{
+    namespace py = pybind11;
 
-  PYBIND11_MODULE(Kratos@{APP_NAME_CAMEL}Application,m)
-  {
+    py::class_<Kratos@{APP_NAME_CAMEL}Application,
+        Kratos@{APP_NAME_CAMEL}Application::Pointer,
+        KratosApplication>(m, "Kratos@{APP_NAME_CAMEL}Application")
+        .def(py::init<>())
+        ;
 
-	  class_<Kratos@{APP_NAME_CAMEL}Application,
-			  Kratos@{APP_NAME_CAMEL}Application::Pointer,
-			  KratosApplication>(m, "Kratos@{APP_NAME_CAMEL}Application")
-			;
+    AddCustomStrategiesToPython(m);
+    AddCustomUtilitiesToPython(m);
 
-	AddCustomStrategiesToPython(m);
-	AddCustomUtilitiesToPython(m);
+    //registering variables in python
+    @{KRATOS_APP_REGISTER_PYTHON_VARIABLE_LIST}
+    //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
-	//registering variables in python
-@{KRATOS_APP_REGISTER_PYTHON_VARIABLE_LIST}
-//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
-
-
-  }
-
+}
 
 } // namespace Python.
 } // namespace Kratos.

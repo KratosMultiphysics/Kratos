@@ -41,7 +41,7 @@ namespace Kratos
 
    ConstitutiveModel::Pointer LargeStrainUmatModel::Clone() const
    {
-      return ( LargeStrainUmatModel::Pointer(new LargeStrainUmatModel(*this)) );
+     return Kratos::make_shared<LargeStrainUmatModel>(*this);
    }
 
    //********************************ASSIGNMENT******************************************
@@ -62,7 +62,7 @@ namespace Kratos
 
    // ************************* CREATE STRAIN VECTORS **********************************
    //***********************************************************************************
-   void LargeStrainUmatModel::CreateStrainsVectors( UmatDataType & rVariables,  double* & rpStrain, double* & rpIncrementalStrain) 
+   void LargeStrainUmatModel::CreateStrainsVectors( UmatDataType & rVariables,  double* & rpStrain, double* & rpIncrementalStrain)
    {
       KRATOS_TRY
 
@@ -76,7 +76,7 @@ namespace Kratos
       StrainMatrix *= (-0.5);
 
       VectorType StrainVector;
-      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(StrainMatrix, StrainVector);
+      ConstitutiveModelUtilities::StrainTensorToVector(StrainMatrix, StrainVector);
 
       rpIncrementalStrain = new double[6];
       rpStrain = new double[6];
@@ -153,7 +153,7 @@ namespace Kratos
                      auxi = i;
                      auxj = j;
                   } else {
-                     auxi = j; 
+                     auxi = j;
                      auxj = i;
                   }
                   unsigned int auxk, auxl;

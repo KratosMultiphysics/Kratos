@@ -115,3 +115,4 @@ namespace Kratos {
 }// namespace Kratos.
 
 #endif // DEM_INLET_H defined
+
