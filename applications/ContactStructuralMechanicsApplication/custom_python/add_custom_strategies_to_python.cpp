@@ -241,7 +241,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     // Displacement and lagrange multiplier residual Convergence Criterion (frictional)
-    class_< DisplacementLagrangeMultiplierResidualFrictionalContactCriteriaType, typename DisplacementLagrangeMultiplierResidualFrictionalContactCriteriaType::Pointer,
+    py::class_< DisplacementLagrangeMultiplierResidualFrictionalContactCriteriaType, typename DisplacementLagrangeMultiplierResidualFrictionalContactCriteriaType::Pointer,
         ConvergenceCriteriaType >
         (m, "DisplacementLagrangeMultiplierResidualFrictionalContactCriteria")
         .def(py::init<>())
