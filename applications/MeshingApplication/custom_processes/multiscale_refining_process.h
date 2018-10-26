@@ -50,21 +50,36 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// This class provides a refining utility to perform multi scale analysis
 /**
- * This process manages two model parts, the origin or the coarse model part
- * and the refined or the subscale model part
- * This process can be constructed again with the subscale as the origin model part
- * to get several subscales levels
+ * @class MultiscaleRefiningProcess
+ * @ingroup MeshingApplication
+ * @brief This class provides a non conforming refinement to perform multi scale analysis
+ * @detail This process manages three model parts, the coarse model part, refined model part
+ * and the visualization model part.
+ * This process can be constructed again with the refined model part as the coarse model part
+ * in order to get several subscales levels.
+ * The refinement is executed by the UniformRefinementUtility where the nodal flag TO_REFINE
+ * is set to True. Then, the coarse elements are removed from the visualization model part and
+ * the refined elements are added to the visualization model part.
+ * The coarsening is executed by the UniformRefinementUtility where the nodal flag TO_REFINE
+ * is set to False. Then, the refined elements are deleted and the corresponding coarse elements
+ * are added again to the visualization model part.
  * Flags used by the process:
- *     SUBSCALE_INDEX
- *     TO_REFINE
- *     MeshingFlags::REFINED
- *     MeshingFlags::TO_COARSEN
- *     TO_ERASE
- *     NEW_ENTITY
- *     INTERFACE
- *     INSIDE
+ *     TO_REFINE                : Those entities will be refined
+ *     MeshingFlags::REFINED    : Once they are refined
+ *     MeshingFlags::TO_COARSEN : When they aren't TO_REFINE and they doesn't have dependencies
+ *     TO_ERASE                 : auxiliary flag
+ *     NEW_ENTITY               : auxiliary flag
+ *     INTERFACE                : the boundary of the refined model part
+ *     INSIDE                   : the refined nodes which are not boundary
+ * Variables used by the process:
+ *     SUBSCALE_INDEX           : is increased from the coarse model part to the refined one
+ *     FATHER_NODES             : the pointers to the coarse nodes
+ *     FATHER_NODES_WEIGHTS     : the weights of the father nodes
+ *     SLAVE_NODE               : a pointer to the refined node (matching nodes between coarse and refined model parts)
+ *     FATHER_ELEMENT           : the pointer to the coarse element
+ *     FATHER_CONDITION         : the pointer to the coarse condition
+ * @author Miguel Maso Sotomayor
  */
 class MultiscaleRefiningProcess : public Process
 {

@@ -62,11 +62,22 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Divide the elements to uniformly refine a mesh
 /**
- *  A node is added on each element edge (an additional node is added inside quadrilaterals
- *  and tetrahedrons) to split the elements.
- *  If a higher refinement is needed, the utility can be called recursively.
+ * @class UniformRefinementUtility
+ * @ingroup MeshingApplication
+ * @brief This class splits all the elements until NUMBER_OF_DIVISIONS reaches the desired value
+ * @detail A node is added on the middle of each edge (and an extra node is added
+ * inside the quadrilaterals and tetrahedrons) and the nodal values are interpolated
+ * Once the element is split, the NUMBER_OF_DIVISIONS variable in increased by one
+ * Each division will create the following entities and delete the origin entity:
+ *  Lines:          2 new lines
+ *  Triangles:      4 new triangles      (mesh quality is conserved)
+ *  Quadrilaterals: 4 new quadrilaterals (mesh quality is conserved)
+ *  Tetrahedrons:   8 new tetrahedrons   (mesh quality is not conserved)
+ *  Hexahedrons:    8 new hexahedrons    (mesh quality is conserved)
+ * It only works with linear elements
+ * The splitting keeps the sub model parts
+ * @author Miguel Maso Sotomayor
  */
 class UniformRefinementUtility
 {
