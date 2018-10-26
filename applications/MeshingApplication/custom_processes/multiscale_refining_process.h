@@ -387,15 +387,9 @@ public:
     /**
      * @brief InitializeVisualizationModelPart adds all the nodes, elements
      * and conditions to the visualization model part
-     * @param rNemes The vector containing the sub model part names
+     * @param rNames The vector containing the sub model part names
      */
-    void InitializeVisualizationModelPart(const StringVectorType& rNames); 
-
-    /**
-     * @brief AddVariablesToRefinedModelPart copies the variables from the
-     * coarse to the refined model part
-     */
-    void AddVariablesToRefinedModelPart();
+    void InitializeVisualizationModelPart(const StringVectorType& rNames);
 
     /**
      * @brief AddAllPropertiesToModelPart adds all properties from an origin

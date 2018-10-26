@@ -195,9 +195,6 @@ void MultiscaleRefiningProcess::InitializeRefinedModelPart(const StringVectorTyp
     int subscale_index = mrCoarseModelPart.GetValue(SUBSCALE_INDEX);
     mrRefinedModelPart.SetValue(SUBSCALE_INDEX, ++subscale_index);
 
-    // Copy the variables
-    AddVariablesToRefinedModelPart();
-
     // Create a model part to store the interface boundary conditions
     if (mrRefinedModelPart.HasSubModelPart(mRefinedInterfaceName))
     {
@@ -265,17 +262,6 @@ void MultiscaleRefiningProcess::UpdateVisualizationAfterCoarsening()
         FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, MeshingFlags::TO_COARSEN)();
     FastTransferBetweenModelPartsProcess(mrVisualizationModelPart, mrCoarseModelPart,
         FastTransferBetweenModelPartsProcess::EntityTransfered::NODES, INTERFACE)();
-}
-
-
-void MultiscaleRefiningProcess::AddVariablesToRefinedModelPart()
-{
-    auto variables_list = mrCoarseModelPart.GetNodalSolutionStepVariablesList();
-
-    for (auto variable : variables_list)
-    {
-        // mrRefinedModelPart.AddNodalSolutionStepVariable(variable);
-    }
 }
 
 
