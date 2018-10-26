@@ -108,7 +108,6 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
         // Calculating the local RHS
         noalias(rRightHandSideVector) += heat_flux_local * IntToReferenceWeight;
     }
-    // noalias(rRightHandSideVector) = ZeroVector(number_of_points); //case of zero ext forces
 
 
     // RHS = ExtForces - K*temp;
