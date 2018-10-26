@@ -36,6 +36,7 @@ import test_variable_component
 import test_variable_redistribution
 import test_object_printing
 import test_array_1d_interface
+import test_linear_master_slave_constraints
 
 
 def AssembleTestSuites():
@@ -90,6 +91,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testNodalArea'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_object_printing.TestObjectPrinting]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_array_1d_interface.TestArray1DInterface]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_linear_master_slave_constraints.TestLinearMultipointConstraints]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

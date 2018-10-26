@@ -348,7 +348,6 @@ public:
      */
     virtual double GetResidualNorm()
     {
-        KRATOS_ERROR << "You are calling to the base class method GetResidualNorm, please define in you derived class the method" << std::endl;
         return 0.0;
     }
 

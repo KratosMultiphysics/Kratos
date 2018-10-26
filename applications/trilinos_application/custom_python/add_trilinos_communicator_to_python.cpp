@@ -31,11 +31,7 @@ using namespace pybind11;
 void  AddTrilinosCommunicatorToPython(pybind11::module& m)
 {
     class_<MPICommunicator,Communicator>(m,"MPICommunicator")
-    .def("__repr__",[](const MPICommunicator& self){
-            std::stringstream ss;
-            self.PrintInfo(ss);
-            return ss.str();
-        })
+    .def("__str__", PrintObject<MPICommunicator>)
     ;
 }
 }  // namespace Python.
