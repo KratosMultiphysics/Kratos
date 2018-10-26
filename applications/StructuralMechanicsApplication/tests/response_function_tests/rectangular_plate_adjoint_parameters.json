@@ -1,7 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "rectangular_plate_structure",
-        "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "parallel_type"   : "OpenMP",
@@ -10,6 +9,9 @@
     "solver_settings"          : {
         "solver_type"                        : "adjoint_static",
         "analysis_type"                      : "linear",
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
         "compute_reactions"			         : false,
         "move_mesh_flag"                     : false,
 
@@ -41,6 +43,7 @@
         },
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -69,7 +72,7 @@
             }
         }
      }],
-    "loads_process_list"       : [],
+    "loads_process_list"       : []},
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -89,18 +92,5 @@
             "gauss_point_results" : ["SHELL_MOMENT","SHELL_MOMENT_GLOBAL"]
         },
         "point_data_configuration"  : []
-    },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
-    "material_import_settings" : {
-        "materials_filename" : "StructuralMaterials.json"
     }
 }

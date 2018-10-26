@@ -32,13 +32,13 @@ using namespace pybind11;
 PYBIND11_MODULE(KratosEigenSolversApplication, m)
 {
 
-	class_<KratosEigenSolversApplication,
-		   KratosEigenSolversApplication::Pointer,
-		   KratosApplication>(m, "KratosEigenSolversApplication")
+    class_<KratosEigenSolversApplication,
+           KratosEigenSolversApplication::Pointer,
+           KratosApplication>(m, "KratosEigenSolversApplication")
         .def(init<>())
-		;
+        ;
 
-	AddCustomSolversToPython(m);
+    AddCustomSolversToPython(m);
 }
 
 } // namespace Python

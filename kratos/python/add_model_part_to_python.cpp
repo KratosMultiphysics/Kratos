@@ -727,7 +727,7 @@ void AddModelPartToPython(pybind11::module& m)
     PointerVectorSetPythonInterface<ModelPart::MasterSlaveConstraintContainerType>().CreateInterface(m,"MasterSlaveConstraintsArray");
 
     class_<ModelPart, Kratos::shared_ptr<ModelPart>, DataValueContainer, Flags >(m,"ModelPart")
-        .def(init([](const std::string& name) { 
+        .def(init([](const std::string& name) {
                     KRATOS_WARNING("DEPRECATION") << "************************************************************" << std::endl;
                     KRATOS_WARNING("DEPRECATION") << "USING OLD DEPRECATED CONSTRUCTOR OF MODELPART" << std::endl;
                     KRATOS_WARNING("DEPRECATION") << "THIS WILL BE REMOVED ON NOV 1 2018" << std::endl;
@@ -876,7 +876,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AddElements",AddElementsByIds)
         .def("GetParentModelPart", &ModelPart::GetParentModelPart, return_value_policy::reference_internal)
         .def("GetRootModelPart", &ModelPart::GetRootModelPart, return_value_policy::reference_internal)
-        .def("GetOwnerModel", &ModelPart::GetOwnerModel, return_value_policy::reference_internal)
+        .def("GetModel", &ModelPart::GetModel, return_value_policy::reference_internal)
         .def_property("SubModelParts",  [](ModelPart& self){ return self.SubModelParts(); },
                                         [](ModelPart& self, ModelPart::SubModelPartsContainerType& subs){ KRATOS_ERROR << "setting submodelparts is not allowed"; })
 
@@ -894,7 +894,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint1, return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint2, return_value_policy::reference_internal)
         .def("CreateNewMasterSlaveConstraint",CreateNewMasterSlaveConstraint3, return_value_policy::reference_internal)
-        .def("__str__", KRATOS_DEF_PYTHON_STR(ModelPart))
+        .def("__str__", PrintObject<ModelPart>)
         ;
 }
 

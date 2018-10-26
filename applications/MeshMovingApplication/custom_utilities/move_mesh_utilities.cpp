@@ -129,7 +129,7 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName) {
   KRATOS_TRY;
 
-  ModelPart* pmesh_model_part = &(rModelPart.GetOwnerModel().CreateModelPart("MeshPart", 1));
+  ModelPart* pmesh_model_part = &(rModelPart.GetModel().CreateModelPart("MeshPart", 1));
 
   // initializing mesh nodes and variables
   pmesh_model_part->Nodes() = rModelPart.Nodes();

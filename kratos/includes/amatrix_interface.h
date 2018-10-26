@@ -273,6 +273,23 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     void swap(Matrix& Other){
         base_type::swap(Other);
     }
+
+
+	void fill(data_type const& value) {
+		for (std::size_t i = 0; i < size(); i++)
+			at(i) = value;
+
+	}
+
+	void fill_identity() {
+        KRATOS_ERROR_IF(size1() != size2()) << "fill_identity is only supported for square matrices." << std::endl;
+		fill(0.00);
+		const std::size_t next_diagonal = size1() + 1;
+		for (std::size_t i = 0; i < size(); i += next_diagonal)
+			at(i) = 1.00;
+
+	}
+
 };
 
 template <typename TDataType, std::size_t TSize1, std::size_t TSize2>

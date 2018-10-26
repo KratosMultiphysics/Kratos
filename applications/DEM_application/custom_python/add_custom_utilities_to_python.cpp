@@ -28,6 +28,7 @@
 #include "custom_utilities/excavator_utility.h"
 #include "custom_utilities/analytic_tools/particles_history_watcher.h"
 #include "custom_utilities/move_mesh_utility.h"
+#include "custom_utilities/stationarity_checker.h"
 
 namespace Kratos {
 
@@ -345,6 +346,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("MoveDemMesh", &MoveMeshUtility::MoveDemMesh)
         .def("CheckContact", &MoveMeshUtility::CheckContact)
         .def("CheckIsNearToWall", &MoveMeshUtility::CheckIsNearToWall)
+        ;
+    
+    class_<StationarityChecker, StationarityChecker::Pointer>(m, "StationarityChecker")
+        .def(init<>())
+        .def("CheckIfItsTimeToChangeGravity", &StationarityChecker::CheckIfItsTimeToChangeGravity)
         ;
     }
 
