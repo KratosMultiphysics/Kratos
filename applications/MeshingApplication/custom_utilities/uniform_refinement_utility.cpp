@@ -119,9 +119,7 @@ void UniformRefinementUtility::Refine(int& rFinalRefinementLevel)
     IndexIndexVectorMapType tag_nodes, tag_elements, tag_conditions;
 
     for (int divisions = minimum_divisions_level; divisions < rFinalRefinementLevel; divisions++)
-    {
         ExecuteDivision(divisions, tag_nodes, tag_elements, tag_conditions);
-    }
 
     // Finally, add the new entities to the sub model parts
     for (auto& collection : mCollections)
@@ -366,7 +364,7 @@ void UniformRefinementUtility::ExecuteDivision(
             for (int position = 0; position < 4; position++) // there are 4 sub triangles
             {
                 sub_condition_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
-                CreateCondition(i_condition, sub_condition_nodes, step_divisions_level, rTagElems);
+                CreateCondition(i_condition, sub_condition_nodes, step_divisions_level, rTagConds);
             }
         }
         else if (geom.GetGeometryType() == GeometryData::Kratos_Quadrilateral3D4)
@@ -383,7 +381,7 @@ void UniformRefinementUtility::ExecuteDivision(
             for (int position = 0; position < 4; position++) // there are 4 sub quadrilaterals
             {
                 sub_condition_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
-                CreateCondition(i_condition, sub_condition_nodes, step_divisions_level, rTagElems);
+                CreateCondition(i_condition, sub_condition_nodes, step_divisions_level, rTagConds);
             }
         }
         else
