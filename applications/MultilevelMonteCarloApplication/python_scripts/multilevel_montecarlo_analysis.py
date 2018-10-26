@@ -197,8 +197,8 @@ def EstimateBayesianVariance(mean,variance,settings_ML,ratesLS,nDoF,nsam,level_l
     return BayesianVariance
 
 
-def compute_tollerance_i(settings_ML,iE,iter_def):
-    # compute tollerance for iteration i, using (24) of [PNL16]
+def compute_tolerance_i(settings_ML,iE,iter_def):
+    # compute tolerance for iteration i, using (24) of [PNL16]
     r1 = settings_ML[2]
     r2 = settings_ML[3]
     tolF = settings_ML[5]
@@ -383,8 +383,8 @@ def exact_execution_task(model_part_file_name, parameter_file_name):
     simulation = MultilevelMonteCarloAnalysis(model,local_parameters, sample)
     simulation.Run()
     ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
-    return ExactExpectedValueQoI
-
+    return simulation,ExactExpectedValueQoI
+    # return ExactExpectedValueQoI
 
 #@task(returns=1)
 def compare_mean(AveragedMeanQoI,ExactExpectedValueQoI):
@@ -434,7 +434,18 @@ if __name__ == '__main__':
     print("Maximum number of levels = ",L_max)
 
     ## evaluate the exact expected value of Q (sample = 1.0)
-    ExactExpectedValueQoI = exact_execution_task(local_parameters_3["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[3])
+    simulation,ExactExpectedValueQoI = exact_execution_task(local_parameters_1["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[1])
+    KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
+    error = 0.0
+    L2norm_analyticalsolution = 0.0
+    for node in simulation._GetSolver().main_model_part.Nodes:
+        local_error = ((node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5))**2) * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+        error = error + local_error
+        local_analyticalsolution = (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5)**2 * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+        L2norm_analyticalsolution = L2norm_analyticalsolution + local_analyticalsolution
+    error = np.sqrt(error)
+    L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
+    print("\n L2 relative error = ", error/L2norm_analyticalsolution,"\n")
 
     # define setting parameters of the ML simulation
     settings_ML_simulation = [0.1, 0.1, 1.25, 1.15, 0.25, 0.1, 1.0]
@@ -569,7 +580,7 @@ if __name__ == '__main__':
         print("\n ######## CMLMC iter = ",iter_MLMC,"######## \n")
         # Compute Tolerance for the iteration i
         # eventually, we may still run the algorithm for a few more iterations wrt iE_cmlmc
-        tol_i = compute_tollerance_i(settings_ML_simulation,iE_cmlmc,iter_MLMC)
+        tol_i = compute_tolerance_i(settings_ML_simulation,iE_cmlmc,iter_MLMC)
         
         # Compute Optimal Number of Levels L_i
         # print("Bayesian variance before computing optimal number of levels",BayesianVariance)
@@ -714,7 +725,7 @@ if __name__ == '__main__':
         L_old = L_opt
 
         if iter_MLMC >= iE_cmlmc: # in [PNL16] go out of the cycle if: i) iter >= iE_cmlmc
-                                  #                                   ii) TErr < tollerance_iter
+                                  #                                   ii) TErr < tolerance_iter
             if (TErr < tol_i):
                 convergence = True
         else:

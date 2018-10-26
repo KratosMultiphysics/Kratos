@@ -123,10 +123,10 @@ class PureDiffusionSolver(PythonSolver):
         # print ("Pure diffusion solver initialization finished")
 
         
-    def Solve(self):
-        # Solve equations on mesh
-        print("!!!WARNING: YOU SHOULD NOT USE solver.Solve()!!!")
-        (self.solver).Solve()
+    # def Solve(self):
+    #     # Solve equations on mesh
+    #     print("!!!WARNING: YOU SHOULD NOT USE solver.Solve()!!!")
+    #     (self.solver).Solve()
 
         
     def SolveSolutionStep(self):
