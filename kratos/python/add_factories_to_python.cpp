@@ -69,19 +69,19 @@ void  AddFactoriesToPython(pybind11::module& m)
      .def("Has",&PreconditionerFactoryType::Has)
     ;
 
-    class_<ConvergenceCriteriaFactoryType, ConvergenceCriteriaFactoryType::Pointer >(m, "ConvergenceCriteriaFactory")
-     .def( init< >() )
+    py::class_<ConvergenceCriteriaFactoryType, ConvergenceCriteriaFactoryType::Pointer >(m, "ConvergenceCriteriaFactory")
+     .def( py::init< >() )
      .def("Create",&ConvergenceCriteriaFactoryType::Create)
      .def("Has",&ConvergenceCriteriaFactoryType::Has)
     ;
 
-    class_<SchemeFactoryType, SchemeFactoryType::Pointer >(m, "SchemeFactory")
-     .def( init< >() )
+    py::class_<SchemeFactoryType, SchemeFactoryType::Pointer >(m, "SchemeFactory")
+     .def( py::init< >() )
      .def("Create",&SchemeFactoryType::Create)
      .def("Has",&SchemeFactoryType::Has)
     ;
 
-    class_<BuilderAndSolverFactoryType, BuilderAndSolverFactoryType::Pointer >(m, "BuilderAndSolverFactory")
+    py::class_<BuilderAndSolverFactoryType, BuilderAndSolverFactoryType::Pointer >(m, "BuilderAndSolverFactory")
      .def( init< >() )
      .def("Create",&BuilderAndSolverFactoryType::Create)
      .def("Has",&BuilderAndSolverFactoryType::Has)
