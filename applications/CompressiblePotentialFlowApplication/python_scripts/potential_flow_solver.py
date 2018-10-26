@@ -19,6 +19,7 @@ class LaplacianSolver(PythonSolver):
             "model_part_name"        : "model",                   
              "domain_size"            : 2,
             "solver_type": "potential_flow_solver",
+            "problem_type"	         : "incompressible",
             "echo_level": 1,
             "relative_tolerance": 1e-5,
             "absolute_tolerance": 1e-9,
@@ -70,6 +71,9 @@ class LaplacianSolver(PythonSolver):
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY, 1000)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340)
+        
                     
         #construct the linear solvers
         import linear_solver_factory
@@ -108,7 +112,7 @@ class LaplacianSolver(PythonSolver):
             self.settings["reform_dofs_at_each_step"].GetBool(), 
             self.settings["calculate_solution_norm"].GetBool(), 
             move_mesh_flag)
-        
+
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Check()
     def PrepareModelPart(self):
@@ -127,28 +131,48 @@ class LaplacianSolver(PythonSolver):
             KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part,throw_errors).Execute()
             #here we replace the dummy elements we read with proper elements
             self.settings.AddEmptyValue("element_replace_settings")
-            if(self.domain_size == 3):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                    {
-                    "element_name":"CompressiblePotentialFlowElement3D4N",
-                    "condition_name": "PotentialWallCondition3D3N"
-                    }
-                    """)
-            elif(self.domain_size == 2):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                    {
-                    "element_name":"CompressiblePotentialFlowElement2D3N",
-                    "condition_name": "PotentialWallCondition2D2N"
-                    }
-                    """)
+            if (self.settings["problem_type"].GetString() == "incompressible"):
+                if(self.domain_size == 3):
+                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                        {
+                        "element_name":"IncompressiblePotentialFlowElement3D4N",
+                        "condition_name": "IncompressiblePotentialWallCondition3D3N"
+                        }
+                        """)
+                elif(self.domain_size == 2):
+                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                        {
+                        "element_name":"IncompressiblePotentialFlowElement2D3N",
+                        "condition_name": "IncompressiblePotentialWallCondition2D2N"
+                        }
+                        """)
+                else:
+                    raise Exception("Domain size is not 2 or 3!!")
+            elif (self.settings["problem_type"].GetString() == "compressible"):
+                if(self.domain_size == 3):
+                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                        {
+                        "element_name":"CompressiblePotentialFlowElement3D4N",
+                        "condition_name": "CompressiblePotentialWallCondition3D3N"
+                        }
+                        """)
+                elif(self.domain_size == 2):
+                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                        {
+                        "element_name":"CompressiblePotentialFlowElement2D3N",
+                        "condition_name": "CompressiblePotentialWallCondition2D2N"
+                        }
+                        """)
+                else:
+                    raise Exception("Domain size is not 2 or 3!!")
             else:
-                raise Exception("Domain size is not 2 or 3!!")
+                raise Exception("Problem type not defined!!")
             
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
             
         else:
             raise Exception("other input options are not yet implemented")
-        
+        print("Solving",self.settings["problem_type"].GetString() ,"case")
         current_buffer_size = self.main_model_part.GetBufferSize()
         if(self.GetMinimumBufferSize() > current_buffer_size):
             self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
@@ -171,7 +195,7 @@ class LaplacianSolver(PythonSolver):
         pass #one should write the restart file here
     
     def AdvanceInTime(self, current_time):
-        dt = 1000 #self._ComputeDeltaTime()
+        dt = 1 #self._ComputeDeltaTime()
         new_time = current_time + dt
 
         # self.main_model_part.CloneTimeStep(new_time)
@@ -184,6 +208,7 @@ class LaplacianSolver(PythonSolver):
 
 
     def SolveSolutionStep(self):
+        print(self.main_model_part)
         (self.solver).SolveSolutionStep()   
 
     def FinalizeSolutionStep(self):        

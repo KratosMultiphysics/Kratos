@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED )
-#define KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED )
+#define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED
 
 // #define SYMMETRIC_CONSTRAINT_APPLICATION
 
@@ -54,7 +54,7 @@ namespace Kratos
 ///@{
 
 template< int Dim, int NumNodes >
-class CompressiblePotentialFlowElement : public Element
+class IncompressiblePotentialFlowElement : public Element
 {
 public:
 
@@ -62,7 +62,6 @@ public:
     struct ElementalData
     {
         array_1d<double,TNumNodes> phis, distances;
-        double density;
         double rho;
         double vol;
 
@@ -79,8 +78,8 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of CompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(CompressiblePotentialFlowElement);
+    /// Pointer definition of IncompressiblePotentialFlowElement
+    KRATOS_CLASS_POINTER_DEFINITION(IncompressiblePotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -89,39 +88,39 @@ public:
     /**
      * Constructor.
      */
-    CompressiblePotentialFlowElement(IndexType NewId = 0) {};
+    IncompressiblePotentialFlowElement(IndexType NewId = 0) {};
 
     /**
      * Constructor using an array of nodes
      */
-    CompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes):Element(NewId, ThisNodes) {};
+    IncompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes):Element(NewId, ThisNodes) {};
 
     /**
      * Constructor using Geometry
      */
-    CompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry):Element(NewId, pGeometry) {};
+    IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry):Element(NewId, pGeometry) {};
 
     /**
      * Constructor using Properties
      */
-    CompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Element(NewId, pGeometry, pProperties) {};
+    IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Element(NewId, pGeometry, pProperties) {};
 
     /**
      * Copy Constructor
      */
-    CompressiblePotentialFlowElement(CompressiblePotentialFlowElement const& rOther) {};
+    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement const& rOther) {};
 
     /**
      * Destructor
      */
-    ~CompressiblePotentialFlowElement() override {};
+    ~IncompressiblePotentialFlowElement() override {};
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    CompressiblePotentialFlowElement & operator=(CompressiblePotentialFlowElement const& rOther)
+    IncompressiblePotentialFlowElement & operator=(IncompressiblePotentialFlowElement const& rOther)
     {
         BaseType::operator=(rOther);
         Flags::operator =(rOther);
@@ -142,7 +141,7 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Element::Pointer(new CompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
         KRATOS_CATCH("");
     }
 
@@ -156,7 +155,7 @@ public:
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
-        return Element::Pointer(new CompressiblePotentialFlowElement(NewId, pGeom, pProperties));
+        return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, pGeom, pProperties));
         KRATOS_CATCH("");
     }
 
@@ -170,7 +169,7 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
-        return Element::Pointer(new CompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
+        return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
         KRATOS_CATCH("");
     }
 
@@ -285,21 +284,12 @@ public:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override
-    {        
-        array_1d<double,NumNodes> elemental_distance;
-
-        //Matrix to compute the residual
-        MatrixType rLaplacianMatrix;
-
+    {
         ElementalData<NumNodes,Dim> data;
-
+        array_1d<double,NumNodes> elemental_distance;
         //calculate shape functions
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-        array_1d<double,Dim> velocity;
-        double density = GetProperties().GetValue(DENSITY);
-        double derivative = 0;
-        Vector DNV = ZeroVector(NumNodes);
-
+    
         //gather nodal data
         for(unsigned int i=0; i<NumNodes; i++)
             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
@@ -315,7 +305,7 @@ public:
             {   
                 kutta_element = true;
                 break;
-            }       
+            }
 
         if(this->IsNot(MARKER))//normal element (non-wake) - eventually an embedded
         {
@@ -324,9 +314,6 @@ public:
             if (rRightHandSideVector.size() != NumNodes)
                 rRightHandSideVector.resize(NumNodes, false);
             rLeftHandSideMatrix.clear();
-            if(rLaplacianMatrix.size1() != NumNodes || rLaplacianMatrix.size2() != NumNodes)
-                rLaplacianMatrix.resize(NumNodes,NumNodes,false);
-            rLaplacianMatrix.clear();
 
             if (this->Is(BOUNDARY)){
                 for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
@@ -355,20 +342,10 @@ public:
                 noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
             }
             else {
-                if (this->Is(FLUID) || this->IsNotDefined(FLUID)){
-                        this->ComputeDensity(density,derivative,velocity,rCurrentProcessInfo);
-                        DNV = prod(data.DN_DX, velocity);
-                        //std::cout << "density normal = " << density  << std::endl;
-
-                        noalias(rLeftHandSideMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
-                        noalias(rLeftHandSideMatrix) += data.vol*derivative*outer_prod(DNV, trans(DNV));
-
-                        noalias(rLaplacianMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
-
-                        noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, data.phis); 
-                }
+                if (this->Is(FLUID) || this->IsNotDefined(FLUID))
+                ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data); 
             }        
-           
+            noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
         }
         else //it is a wake element
         {   
@@ -381,11 +358,6 @@ public:
             if(rRightHandSideVector.size() != 2*NumNodes)
                 rRightHandSideVector.resize(2*NumNodes,false);
             rLeftHandSideMatrix.clear();
-
-
-            if(rLaplacianMatrix.size1() != 2*NumNodes || rLaplacianMatrix.size2() != 2*NumNodes)
-                rLaplacianMatrix.resize(2*NumNodes,2*NumNodes,false);
-            rLaplacianMatrix.clear(); 
             
             //subdivide the element
             constexpr unsigned int nvolumes = 3*(Dim-1);
@@ -421,9 +393,6 @@ public:
             //compute the lhs and rhs that would correspond to it not being divided
             Matrix lhs_positive = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_negative = ZeroMatrix(NumNodes,NumNodes);
-
-            Matrix laplacian_positive = ZeroMatrix(NumNodes,NumNodes);
-            Matrix laplacian_negative = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_penalty_positive = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_penalty_negative = ZeroMatrix(NumNodes,NumNodes);
             bounded_matrix<double, 2, 1 > n;
@@ -440,27 +409,17 @@ public:
             // std::cout<<std::endl;
             for(unsigned int i=0; i<nsubdivisions; ++i)
             {
-                this->ComputeDensityOnSplitElement(density,derivative,velocity,PartitionsSign[i],rCurrentProcessInfo);
-                DNV = prod(data.DN_DX, velocity);
                 if(PartitionsSign[i] > 0){
-                    noalias(lhs_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
-                    noalias(lhs_positive) += Volumes[i]*derivative*outer_prod(DNV, trans(DNV));
-
-                    noalias(laplacian_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX)); 
-
+                    ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data);
                     noalias(lhs_penalty_positive) += Volumes[i] * prod(test,trans(test));
                 }
                 else{
-                    noalias(lhs_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
-                    noalias(lhs_negative) += Volumes[i]*derivative*outer_prod(DNV, trans(DNV));
-
-                    noalias(laplacian_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
-
+                    ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data);
                     noalias(lhs_penalty_negative) += Volumes[i] * prod(test,trans(test));
                 }
             }
             
-            // double penalty = rCurrentProcessInfo[INITIAL_PENALTY];
+            double penalty = rCurrentProcessInfo[INITIAL_PENALTY];
 
             //also next version works - NON SYMMETRIC - but it does not require a penalty
 //                 array_1d<double,Dim> n = prod(data.DN_DX,data.distances); //rCurrentProcessInfo[VELOCITY]; 
@@ -478,49 +437,11 @@ public:
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)
                         {
-                            rLeftHandSideMatrix(i,j)            =  lhs_positive(i,j); 
+                            rLeftHandSideMatrix(i,j)            =  lhs_positive(i,j)+penalty*lhs_penalty_positive(i,j); 
                             rLeftHandSideMatrix(i,j+NumNodes)   =  0.0; 
                             
-                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j); 
-                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
-
-                            rLaplacianMatrix(i,j)            =  laplacian_positive(i,j); 
-                            rLaplacianMatrix(i,j+NumNodes)   =  0.0; 
-                            
-                            rLaplacianMatrix(i+NumNodes,j+NumNodes) =  laplacian_negative(i,j); 
-                            rLaplacianMatrix(i+NumNodes,j) = 0.0;
-                        }
-                    }
-                    for(unsigned int i=0; i<NumNodes; ++i)
-                    {
-                        if(data.distances[i]<0)
-                        {
-                            std::cout << "LOWER WAKE NODE = " << GetGeometry()[i].Id()  << std::endl;
-                            for(unsigned int j=0; j<NumNodes; ++j)
-                            {
-                                rLeftHandSideMatrix(i,j)          = lhs_positive(i,j); 
-                                rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j); 
-
-                                rLaplacianMatrix(i,j)          = laplacian_positive(i,j); 
-                                rLaplacianMatrix(i,j+NumNodes) = -laplacian_positive(i,j);
-                            }
-                        }
-                    }
-                    
-                    //side2 -assign constraint only on the NEGATIVE_POTENTIAL dofs
-                    for(unsigned int i=0; i<NumNodes; ++i)
-                    {                            
-                        if(data.distances[i]>0)
-                        {   
-                            std::cout << "UPPER WAKE NODE = " << GetGeometry()[i].Id()  << std::endl;
-                            for(unsigned int j=0; j<NumNodes; ++j)
-                            {
-                                rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = lhs_negative(i,j);
-                                //rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j);
-
-                                rLaplacianMatrix(i+NumNodes,j+NumNodes) = laplacian_negative(i,j);
-                                //rLaplacianMatrix(i+NumNodes,j) = -laplacian_negative(i,j);
-                            }
+                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j)+penalty*lhs_penalty_negative(i,j); 
+                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0; 
                         }
                     }
                 }
@@ -534,13 +455,7 @@ public:
                             rLeftHandSideMatrix(i,j+NumNodes)          =  0.0; 
                             
                             rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j); 
-                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
-
-                            rLaplacianMatrix(i,j)            =  laplacian_positive(i,j); 
-                            rLaplacianMatrix(i,j+NumNodes)   =  0.0; 
-                            
-                            rLaplacianMatrix(i+NumNodes,j+NumNodes) =  laplacian_negative(i,j); 
-                            rLaplacianMatrix(i+NumNodes,j)          =  0.0; 
+                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0; 
                         }
                     }
                     
@@ -550,14 +465,11 @@ public:
                     {
                         if(data.distances[i]<0)
                         {
-                            for(unsigned int j=0; j<NumNodes; ++j)
-                            {
-                                rLeftHandSideMatrix(i,j)          = lhs_positive(i,j); 
-                                rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j); 
-
-                                rLaplacianMatrix(i,j)          = laplacian_positive(i,j); 
-                                rLaplacianMatrix(i,j+NumNodes) = -laplacian_positive(i,j);
-                            }
+                                for(unsigned int j=0; j<NumNodes; ++j)
+                                {
+                                    rLeftHandSideMatrix(i,j)          = lhs_positive(i,j); 
+                                    rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j); 
+                                }
                         }
                     }
                     
@@ -567,19 +479,16 @@ public:
                         if(data.distances[i]>0)
                         {   
                             for(unsigned int j=0; j<NumNodes; ++j)
-                            {
-                                rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = lhs_negative(i,j);
-                                rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j);
-
-                                rLaplacianMatrix(i+NumNodes,j+NumNodes) = laplacian_negative(i,j);
-                                rLaplacianMatrix(i+NumNodes,j) = -laplacian_negative(i,j);
-                            }
+                                {
+                                    rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = lhs_negative(i,j);
+                                    rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j); 
+                                }
                         }
                     }
                 }
             Vector split_element_values(NumNodes*2);
             GetValuesOnSplitElement(split_element_values, data.distances);
-            noalias(rRightHandSideVector) = -prod(rLaplacianMatrix,split_element_values);
+            noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
         }
         
     }
@@ -624,12 +533,12 @@ public:
 
         if (this->Id() < 1)
         {
-            KRATOS_THROW_ERROR(std::logic_error, "CompressiblePotentialFlowElement found with Id 0 or negative", "")
+            KRATOS_THROW_ERROR(std::logic_error, "IncompressiblePotentialFlowElement found with Id 0 or negative", "")
         }
 
         if (this->GetGeometry().Area() <= 0)
         {
-            std::cout << "error on CompressiblePotentialFlowElement -> " << this->Id() << std::endl;
+            std::cout << "error on IncompressiblePotentialFlowElement -> " << this->Id() << std::endl;
             KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than or equal to 0", "")
         }
 
@@ -650,186 +559,12 @@ public:
     {
         if(rValues.size() != 1) rValues.resize(1);
 
-        if (rVariable == PRESSURE)//actually it computes pressure coefficient cp
+        if (rVariable == PRESSURE)
         {
-            double cp = 0.0;
-
-            bool active = true;
-            if ((this)->IsDefined(ACTIVE))
-                active = (this)->Is(ACTIVE);
-
-            if(active && !this->Is(MARKER))//normal element
-            {
-                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
-                const double gamma = rCurrentProcessInfo[LAMBDA];
-                const double a = rCurrentProcessInfo[SOUND_VELOCITY];
-
-                const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
-
-                ElementalData<NumNodes,Dim> data;
-
-                //calculate shape functions
-                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-                //gather nodal data
-                for(unsigned int i=0; i<NumNodes; i++)
-                {
-                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                }
-
-                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
-
-                const double v_norm2 = inner_prod(v,v);
-
-                const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
-
-                const double exponent = gamma/(gamma -1);
-
-                cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
-                //double cp1 = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
-
-                // double cp1 = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
-                //cp =  (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
-
-                // std::cout << "cp =" << cp << std::endl;
-                // std::cout << "Mach =" << vinfinity_norm2/(a*a) << std::endl;
-                // std::cout << "cp1 =" << cp1 << std::endl;
-            }
-            else if(this->Is(MARKER) && active==true)//wake element
-            {
-                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
-                const double gamma = rCurrentProcessInfo[LAMBDA];
-                const double a = rCurrentProcessInfo[SOUND_VELOCITY];
-
-                const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
-
-                ElementalData<NumNodes,Dim> data;
-
-                //calculate shape functions
-                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-                array_1d<double,NumNodes> distances;
-                GetWakeDistances(distances);
-
-                //taking only positive part
-                // for (unsigned int i = 0; i < NumNodes; i++)
-                // {
-                //     if(distances[i] > 0)
-                //         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                //     else
-                //         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-                // }
-
-                //negative part - sign is opposite to the previous case
-                for (unsigned int i = 0; i < NumNodes; i++)
-                {
-                    if(distances[i] < 0)                    
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);                    
-                    else                    
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);                    
-                }
-
-                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
-
-                const double v_norm2 = inner_prod(v,v);
-                const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
-                const double exponent = gamma/(gamma -1);
-
-                cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);                
-                
-                //cp =  (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
-            }
-
-            rValues[0] = cp;
-
+            double p = 0.0;
+            p = ComputePressure(rCurrentProcessInfo);
+            rValues[0] = p;
         }
-        if (rVariable == DENSITY)
-        {
-            double density = 0.0;
-
-            bool active = true;
-            if ((this)->IsDefined(ACTIVE))
-                active = (this)->Is(ACTIVE);
-
-            if(active && !this->Is(MARKER))//normal element
-            {
-                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
-                //const double densityinfinity = rCurrentProcessInfo[DENSITY];
-                const double densityinfinity = GetProperties().GetValue(DENSITY);
-                const double gamma = rCurrentProcessInfo[LAMBDA];
-                const double a = rCurrentProcessInfo[SOUND_VELOCITY];
-
-                const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
-
-                ElementalData<NumNodes,Dim> data;
-
-                //calculate shape functions
-                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-                
-                //gather nodal data
-                for(unsigned int i=0; i<NumNodes; i++)
-                {
-                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                }
-
-                //compute local velocity
-                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
-
-                const double v_norm2 = inner_prod(v,v);
-                const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
-                const double exponent = 1/(gamma -1);
-
-                density = densityinfinity*pow(base,exponent); 
-            }
-            else if(this->Is(MARKER) && active==true)//wake element
-            {
-                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
-                //const double densityinfinity = rCurrentProcessInfo[DENSITY];
-                const double densityinfinity = GetProperties().GetValue(DENSITY);
-                const double gamma = rCurrentProcessInfo[LAMBDA];
-                const double a = rCurrentProcessInfo[SOUND_VELOCITY];
-
-                const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
-
-                ElementalData<NumNodes,Dim> data;
-
-                //calculate shape functions
-                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-                array_1d<double,NumNodes> distances;
-                GetWakeDistances(distances);
-
-                //taking only positive part
-                // for (unsigned int i = 0; i < NumNodes; i++)
-                // {
-                //     if(distances[i] > 0)
-                //         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                //     else
-                //         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-                // }
-
-                //negative part - sign is opposite to the previous case
-                for (unsigned int i = 0; i < NumNodes; i++)
-                {
-                    if(distances[i] < 0)                    
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);                    
-                    else                    
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);                    
-                }
-
-                const array_1d<double,Dim> v = prod(trans(data.DN_DX), data.phis);
-
-                const double v_norm2 = inner_prod(v,v);
-                const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
-                const double exponent = 1/(gamma -1);
-
-                density = densityinfinity*pow(base,exponent);          
-            }
-
-            rValues[0] = density;
-
-        }
-        
     }
 
     void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
@@ -840,115 +575,13 @@ public:
 
         if (rVariable == VELOCITY)
         {
-            bool active = true;
-            if ((this)->IsDefined(ACTIVE))
-                active = (this)->Is(ACTIVE);
-
-            array_1d<double,3> v = ZeroVector();
-            if(this->IsNot(MARKER) && active==true)
-            {
-                ElementalData<NumNodes,Dim> data;
-
-                //calculate shape functions
-                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-                //gather nodal data
-                for(unsigned int i=0; i<NumNodes; i++)
-                {
-                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                }
-
-                array_1d<double,Dim> vaux = prod(trans(data.DN_DX), data.phis);
-                
-                for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
-            }
-            else if(this->Is(MARKER) && active==true)
-            {
-                ElementalData<NumNodes,Dim> data;
-                
-                //calculate shape functions
-                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-                array_1d<double,NumNodes> distances;
-                GetWakeDistances(distances);
-
-                //taking only positive part
-                for (unsigned int i = 0; i < NumNodes; i++)
-                {
-                    if(distances[i] > 0)
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                    else
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-                }
-
-                array_1d<double,Dim> vaux = prod(trans(data.DN_DX), data.phis);
-                double vupnorm = inner_prod(vaux,vaux);
-
-                //taking only negative part
-                for (unsigned int i = 0; i < NumNodes; i++)
-                {
-                    if(distances[i] < 0)
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                    else
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-                }
-
-                array_1d<double,Dim> vtest = prod(trans(data.DN_DX), data.phis);
-                double vdownnorm = inner_prod(vtest,vtest);
-
-                if( abs(vupnorm - vdownnorm) > 0.1)
-                {
-                   std::cout << "WAKE CONDITION NOT FULFILLED ELEMENT = " << this->Id()  << std::endl; 
-                }
-                
-                for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
-            }
-
-
-
+            array_1d<double,3> v(3,0.0);
+            array_1d<double,Dim> vaux;
+            ComputeVelocity(vaux);
+            for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
             rValues[0] = v;
         }
-        else if (rVariable == NORMAL)
-        {
-            rValues[0] = this->GetValue(NORMAL);
-        }
-        else if (rVariable == VELOCITY_LAPLACIAN)
-        {
-            bool active = true;
-            if ((this)->IsDefined(ACTIVE))
-                active = (this)->Is(ACTIVE);
-
-            array_1d<double,3> v = ZeroVector();
-            if(this->Is(MARKER) && active==true)
-            {
-                ElementalData<NumNodes,Dim> data;
-                
-                //calculate shape functions
-                GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-                array_1d<double,NumNodes> distances;
-                GetWakeDistances(distances);
-
-                //taking only negative part
-                for (unsigned int i = 0; i < NumNodes; i++)
-                {
-                    if(distances[i] < 0)
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                    else
-                        data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-                }
-
-                array_1d<double,Dim> vaux = prod(trans(data.DN_DX), data.phis);
-                
-                for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
-            }
-
-
-
-            rValues[0] = v;
-        }
-    }    
-
+    }
 
 
     ///@}
@@ -969,7 +602,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "CompressiblePotentialFlowElement #" << Id();
+        buffer << "IncompressiblePotentialFlowElement #" << Id();
         return buffer.str();
     }
 
@@ -977,7 +610,7 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "CompressiblePotentialFlowElement #" << Id();
+        rOStream << "IncompressiblePotentialFlowElement #" << Id();
     }
 
 /// Print object's data.
@@ -1049,133 +682,6 @@ protected:
                 split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
         }
     }
-    void ComputeDensityOnSplitElement(  double& density, 
-                                        double& derivative, 
-                                        array_1d<double,Dim>& velocity, 
-                                        double& rPartitionsSign, 
-                                        const ProcessInfo& rCurrentProcessInfo)
-    {
-        //This function computes density, velocity and the derivative of the density w.r.t. the square of the local velocity
-        //for a split element
-
-        const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
-        //const double densityinfinity = rCurrentProcessInfo[DENSITY];
-        const double densityinfinity = GetProperties().GetValue(DENSITY);
-        const double gamma = rCurrentProcessInfo[LAMBDA];
-        const double a = rCurrentProcessInfo[SOUND_VELOCITY];
-
-        const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
-
-        ElementalData<NumNodes,Dim> data;
-
-        //calculate shape functions
-        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-        array_1d<double,NumNodes> distances;
-        GetWakeDistances(distances);
-
-        if(rPartitionsSign > 0)//taking positive part
-        {
-            for (unsigned int i = 0; i < NumNodes; i++)
-            {
-                if(distances[i] > 0)
-                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                else
-                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-            }
-        }
-        else if(rPartitionsSign < 0)//taking negative part
-        {
-            for (unsigned int i = 0; i < NumNodes; i++)
-            {
-                if(distances[i] < 0)                    
-                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);                    
-                else                    
-                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);                    
-            }
-        }       
-
-        velocity = prod(trans(data.DN_DX), data.phis);
-
-        const double v_norm2 = inner_prod(velocity,velocity);
-        const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
-
-        density = densityinfinity*pow(base,1/(gamma -1));
-        derivative = -densityinfinity*pow(base,(2 - gamma)/(gamma -1))/(2*a*a);
-    }
-
-    void ComputeDensity(double& density, 
-                        double& derivative, 
-                        array_1d<double,Dim>& velocity, 
-                        const ProcessInfo& rCurrentProcessInfo)
-    {
-        //This function computes density, velocity and the derivative of the density w.r.t. the square of the local velocity
-        //for a normal element
-        
-        // const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
-        const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-        //const double densityinfinity = rCurrentProcessInfo[DENSITY];
-        const double densityinfinity = GetProperties().GetValue(DENSITY);
-        const double gamma = rCurrentProcessInfo[LAMBDA];
-        const double a = rCurrentProcessInfo[SOUND_VELOCITY];
-
-        const double vinfinity_norm2 = inner_prod(vinfinity,vinfinity);
-        
-        // Check that all required variables have been read correctly
-        if(vinfinity_norm2 == 0 || densityinfinity == 0 || gamma == 0 || a==0 )
-            KRATOS_ERROR << "One input variable is 0. Check if the variables are correctly read.";
-
-        
-
-        ElementalData<NumNodes,Dim> data;
-
-        //calculate shape functions
-        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-        
-        //gather nodal data
-        for(unsigned int i=0; i<NumNodes; i++)
-        {
-            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-        }
-        
-        //compute local velocity
-        velocity = prod(trans(data.DN_DX), data.phis);
-
-        double v_norm2 = inner_prod(velocity,velocity);
-        if(v_norm2/a > 0.94)
-        {
-            //std::cout << "Local mach larger than 0.94. Using density correction" << std::endl;
-            v_norm2 = 0.94*a;
-        }
-
-        const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
-        // std::cout<<data.phis<<std::endl;
-        // std::cout<<vinfinity_norm2<<std::endl;
-        // std::cout<<base<<std::endl;
-        // std::cout<<base<<std::endl;
-        if(base > 0)
-        {
-            density = densityinfinity*pow(base,1/(gamma -1));
-            derivative = -densityinfinity*pow(base,(2 - gamma)/(gamma -1))/(2*a*a); 
-        }
-        else
-        {
-            std::cout << "Base smaller than 0. Using density correction" << std::endl;
-            std::cout << "vinfinity_norm2 =" << vinfinity_norm2 << std::endl;
-            std::cout << "v_norm2 =" << v_norm2 << std::endl;
-            std::cout << "base =" << base << std::endl;
-            density = densityinfinity*0.00001;
-            derivative = -densityinfinity*pow(densityinfinity*0.00001,(2 - gamma)/(gamma -1))/(2*a*a); 
-        }
-
-        // if(base < 0)
-        //     KRATOS_THROW_ERROR( std::invalid_argument, "element with density below zero ", this->Id() )
-
-        // density = densityinfinity*pow(base,1/(gamma -1));
-        // derivative = -densityinfinity*pow(base,(2 - gamma)/(gamma -1))/(2*a*a);        
-    }
-
-
 
     void ComputeVelocity(array_1d<double,Dim>& velocity)
     {
@@ -1465,7 +971,7 @@ private:
 
     ///@}
 
-}; // Class CompressiblePotentialFlowElement
+}; // Class IncompressiblePotentialFlowElement
 
 ///@}
 
