@@ -1,0 +1,89 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "multilevel_montecarlo_laplacian",
+        "model_part_name" : "MCLaplacianModelPart",
+        "domain_size"     : 2,
+        "parallel_type"   : "OpenMP",
+        "time_step"       : 1.1,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 1,
+	"number_samples"  : 2,
+	"stochastic_pdf"  : {
+			"beta_distribution"      : {
+				"alpha"       : 2.0,
+				"beta"	      : 6.0
+			}
+	}	
+    },
+    "solver_settings"          : {
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "../tests/Level0/Level0"
+        },
+	"model_part_name" : "MCLaplacianModelPart",
+	"buffer_size"     : 2,
+	"domain_size"     : 2,
+        "echo_level"                         : 1,
+        "maximum_iterations"                 : 20,
+        "relative_tolerance"                 : 1e-6,
+        "absolute_tolerance"                 : 1e-9,
+	"compute_reactions"          	     : false,
+	"reform_dofs_at_each_step"    	     : false,
+	"calculate_norm_dx"           	     : true,
+	"move_mesh_flag"             	     : false,
+        "problem_domain_sub_model_part_list" : ["Parts_Domain"],
+        "processes_sub_model_part_list"      : ["Subpart_Boundary"],
+	"linear_solver_settings"       : {
+			"solver_type"     : "SkylineLUFactorizationSolver"
+	},
+    "time_stepping" : {
+    "automatic_time_step" : false,
+    "time_step" : 1.1
+    }
+    },
+    "processes" : {
+	"constraints_process_list" : [{
+        "python_module" : "assign_scalar_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "Parameters"    : {
+            "model_part_name" : "Subpart_Boundary",
+            "variable_name"   : "TEMPERATURE",
+            "constrained"     : true,
+            "value"           : 0.0,
+            "interval"        : [0.0,"End"]
+           }
+       }]
+    },
+    "output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "MCLaplacianModelPart",
+                "output_name"            : "MCLaplacian",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteUndeformed",
+                            "WriteConditionsFlag"   : "WriteElementsOnly",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["TEMPERATURE"]
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }]
+    }
+}
