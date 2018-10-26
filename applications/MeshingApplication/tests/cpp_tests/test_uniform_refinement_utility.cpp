@@ -333,7 +333,117 @@ namespace Kratos
             // Check the number of conditions (quadrilaterals)
             unsigned int final_conditions = initial_conditions * std::pow(4, refinement_level);
             KRATOS_CHECK_EQUAL(final_conditions, r_sub_model_part_2.NumberOfConditions());
-        }
+        } // UniformRefineHexahedronsUtility
+
+
+
+        /**
+         * Checks the correct refining utility with tetrahedrons
+         */
+        KRATOS_TEST_CASE_IN_SUITE(UniformRefineTetrahedronsUtility, KratosMeshingApplicationFastSuite)
+        {
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
+
+            this_model_part.AddNodalSolutionStepVariable(VELOCITY);
+
+            Properties::Pointer p_properties = this_model_part.pGetProperties(0);
+
+            // Creating the sub model parts
+            ModelPart& r_sub_model_part_1 = this_model_part.CreateSubModelPart("BodySubModelPart");
+            ModelPart& r_sub_model_part_2 = this_model_part.CreateSubModelPart("SkinSubModelPart");
+
+            // Creating the nodes
+            NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+            NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+            NodeType::Pointer p_node_4 = this_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
+            NodeType::Pointer p_node_5 = this_model_part.CreateNewNode(5, 0.0, 0.0, 1.0);
+            NodeType::Pointer p_node_6 = this_model_part.CreateNewNode(6, 1.0, 0.0, 1.0);
+            NodeType::Pointer p_node_7 = this_model_part.CreateNewNode(7, 1.0, 1.0, 1.0);
+            NodeType::Pointer p_node_8 = this_model_part.CreateNewNode(8, 0.0, 1.0, 1.0);
+
+            // Creating the elements
+            PointerVector<NodeType> tetrahedra_nodes_1(4);
+            tetrahedra_nodes_1(0) = p_node_1;
+            tetrahedra_nodes_1(1) = p_node_2;
+            tetrahedra_nodes_1(2) = p_node_3;
+            tetrahedra_nodes_1(3) = p_node_5;
+
+            PointerVector<NodeType> tetrahedra_nodes_2(4);
+            tetrahedra_nodes_2(0) = p_node_2;
+            tetrahedra_nodes_2(1) = p_node_6;
+            tetrahedra_nodes_2(2) = p_node_3;
+            tetrahedra_nodes_2(3) = p_node_5;
+
+            PointerVector<NodeType> tetrahedra_nodes_3(4);
+            tetrahedra_nodes_3(0) = p_node_3;
+            tetrahedra_nodes_3(1) = p_node_6;
+            tetrahedra_nodes_3(2) = p_node_7;
+            tetrahedra_nodes_3(3) = p_node_5;
+
+            PointerVector<NodeType> tetrahedra_nodes_4(4);
+            tetrahedra_nodes_4(0) = p_node_3;
+            tetrahedra_nodes_4(1) = p_node_7;
+            tetrahedra_nodes_4(2) = p_node_8;
+            tetrahedra_nodes_4(3) = p_node_5;
+
+            PointerVector<NodeType> tetrahedra_nodes_5(4);
+            tetrahedra_nodes_5(0) = p_node_3;
+            tetrahedra_nodes_5(1) = p_node_8;
+            tetrahedra_nodes_5(2) = p_node_4;
+            tetrahedra_nodes_5(3) = p_node_5;
+
+            PointerVector<NodeType> tetrahedra_nodes_6(4);
+            tetrahedra_nodes_6(0) = p_node_1;
+            tetrahedra_nodes_6(1) = p_node_3;
+            tetrahedra_nodes_6(2) = p_node_4;
+            tetrahedra_nodes_6(3) = p_node_5;
+
+            Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element3D4N", 1, tetrahedra_nodes_1, p_properties);
+            Element::Pointer p_elem_2 = this_model_part.CreateNewElement("Element3D4N", 2, tetrahedra_nodes_2, p_properties);
+            Element::Pointer p_elem_3 = this_model_part.CreateNewElement("Element3D4N", 3, tetrahedra_nodes_3, p_properties);
+            Element::Pointer p_elem_4 = this_model_part.CreateNewElement("Element3D4N", 4, tetrahedra_nodes_4, p_properties);
+            Element::Pointer p_elem_5 = this_model_part.CreateNewElement("Element3D4N", 5, tetrahedra_nodes_5, p_properties);
+            Element::Pointer p_elem_6 = this_model_part.CreateNewElement("Element3D4N", 6, tetrahedra_nodes_6, p_properties);
+
+            // Creating the conditions
+            PointerVector<NodeType> triangle_nodes_1(3);
+            triangle_nodes_1(0) = p_node_1;
+            triangle_nodes_1(1) = p_node_5;
+            triangle_nodes_1(2) = p_node_4;
+
+            PointerVector<NodeType> triangle_nodes_2(3);
+            triangle_nodes_2(0) = p_node_4;
+            triangle_nodes_2(1) = p_node_5;
+            triangle_nodes_2(2) = p_node_8;
+
+            Condition::Pointer p_cond_1 = this_model_part.CreateNewCondition("SurfaceCondition3D3N", 1, triangle_nodes_1, p_properties);
+            Condition::Pointer p_cond_2 = this_model_part.CreateNewCondition("SurfaceCondition3D3N", 2, triangle_nodes_2, p_properties);
+
+            r_sub_model_part_1.AddElement(p_elem_1);
+            r_sub_model_part_1.AddElement(p_elem_2);
+            r_sub_model_part_1.AddElement(p_elem_3);
+            r_sub_model_part_2.AddCondition(p_cond_1);
+            r_sub_model_part_2.AddCondition(p_cond_2);
+
+            // Get the initial values
+            unsigned int initial_elements = r_sub_model_part_1.NumberOfElements();
+            unsigned int initial_conditions = r_sub_model_part_2.NumberOfConditions();
+
+            // Execute the utility
+            int refinement_level = 2;
+            UniformRefinementUtility uniform_refinement(this_model_part);
+            uniform_refinement.Refine(refinement_level);
+
+            // Check the number of elements (tetrahedrons)
+            unsigned int final_elements = initial_elements * std::pow(8, refinement_level);
+            KRATOS_CHECK_EQUAL(final_elements, r_sub_model_part_1.NumberOfElements());
+
+            // Check the number of conditions (quadrilaterals)
+            unsigned int final_conditions = initial_conditions * std::pow(4, refinement_level);
+            KRATOS_CHECK_EQUAL(final_conditions, r_sub_model_part_2.NumberOfConditions());
+        } // UniformRefineTetrahedronsUtility
 
     } // namespace Testing
 } // namespace Kratos
