@@ -66,7 +66,7 @@ namespace Python
         binder.def("__imul__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1*=value; return m1;}, is_operator());
         binder.def("__itruediv__", [](TMatrixType& m1, const typename TMatrixType::value_type& value){ m1/=value; return m1;}, is_operator());
 
-        binder.def("__repr__", [](const TMatrixType& self)-> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; });      
+        binder.def("__str__", PrintObject<TMatrixType>);
         return std::move(binder);
     }
 

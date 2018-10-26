@@ -137,7 +137,7 @@ void  AddNodeToPython(pybind11::module& m)
 
     class_<IndexedObject, IndexedObject::Pointer>(m,"IndexedObject")
     .def_property("Id", &IndexedObject::GetId, &IndexedObject::SetId)
-    .def("__repr__", &IndexedObject::Info)
+    .def("__str__", PrintObject<IndexedObject>)
     ;
 
     class_<Dof<double>, Dof<double>::Pointer, IndexedObject >(m,"Dof")
@@ -206,7 +206,7 @@ void  AddNodeToPython(pybind11::module& m)
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >);
     node_binder.def("SolutionStepsDataHas", &NodeSolutionStepsDataHas<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >);
-    node_binder.def("__repr__", &NodeType::Info);
+    node_binder.def("__str__", PrintObject<NodeType>);
     node_binder.def("OverwriteSolutionStepData", &NodeType::OverwriteSolutionStepData);
     node_binder.def_property("X0", PointGetX0, PointSetX0);
     node_binder.def_property("Y0", PointGetY0, PointSetY0);
