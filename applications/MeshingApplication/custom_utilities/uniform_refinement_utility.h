@@ -258,8 +258,6 @@ private:
     IndexType mLastCondId;           /// The condition Id
     IndexType mStepDataSize;         /// The size of the nodal database
     IndexType mBufferSize;           /// The buffer size
-    IndexType mElementMiddleNodes;   /// The number of middle nodes to create
-    IndexType mConditionMiddleNodes; /// The number of middle nodes to create
 
     NodeType::DofsContainerType mDofs;  /// Storage for the dof of the node
 

@@ -99,25 +99,6 @@ void UniformRefinementUtility::Refine(int& rFinalRefinementLevel)
     else
         mDofs = mrModelPart.NodesBegin()->GetDofs();
 
-    if (mrModelPart.Elements().size() != 0)
-    {
-        // Get the geometry type
-        // NOTE: the geometry type should be the same for all the nodes and elements
-        Geometry<NodeType>& geom = mrModelPart.ElementsBegin()->GetGeometry();
-        if (geom.GetGeometryType() == GeometryData::Kratos_Triangle2D3)
-            mElementMiddleNodes = 4;
-        else if (geom.GetGeometryType() == GeometryData::Kratos_Triangle3D3)
-            mElementMiddleNodes = 4;
-        else if (geom.GetGeometryType() == GeometryData::Kratos_Quadrilateral2D4)
-            mElementMiddleNodes = 5;
-        else if (geom.GetGeometryType() == GeometryData::Kratos_Quadrilateral3D4)
-            mElementMiddleNodes = 5;
-        else if (geom.GetGeometryType() == GeometryData::Kratos_Tetrahedra3D4)
-            mElementMiddleNodes = 6;
-        else if (geom.GetGeometryType() == GeometryData::Kratos_Hexahedra3D8)
-            mElementMiddleNodes = 19;
-    }
-
     // Get the lowest refinement level
     int minimum_divisions_level = 1e6;
     const IndexType n_elements = mrModelPart.Elements().size();
@@ -260,56 +241,85 @@ void UniformRefinementUtility::ExecuteDivision(
         // Get the geometry
         Geometry<NodeType>& geom = i_element->GetGeometry();
 
-        // Initialize the vector of middle nodes
-        IndexType i_node = 0;
-        std::vector<NodeType::Pointer> middle_nodes(mElementMiddleNodes);
-
-        // Loop the edges to get or create the middle nodes
-        for (auto edge : geom.Edges())
-            middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
-
-        switch(mElementMiddleNodes)
+        if (geom.GetGeometryType() == GeometryData::Kratos_Triangle2D3)
         {
-            case 3: // Split the triangle
+            // Initialize the vector of middle nodes
+            IndexType i_node = 0;
+            std::vector<NodeType::Pointer> middle_nodes(3); // 3 edges
+
+            // Loop the edges to get or create the middle nodes
+            for (auto edge : geom.Edges())
+                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+            
+            // Split the triangle
+            PointerVector<NodeType> sub_element_nodes(3);    // a triangle is defined by 3 nodes
+            for (int position = 0; position < 4; position++) // there are 4 sub triangles
             {
-                PointerVector<NodeType> sub_element_nodes(3);    // a triangle is defined by 3 nodes
-                for (int position = 0; position < 4; position++) // there are 4 sub triangles
-                {
-                    sub_element_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
-                    CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
-                }
+                sub_element_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
+                CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
             }
-            case 5: // Split the quadrilateral
+        }
+        else if (geom.GetGeometryType() == GeometryData::Kratos_Quadrilateral2D4)
+        {
+            // Initialize the vector of middle nodes
+            IndexType i_node = 0;
+            std::vector<NodeType::Pointer> middle_nodes(5); // 4 edges and the quadrilateral itself
+
+            // Loop the edges to get or create the middle nodes
+            for (auto edge : geom.Edges())
+                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+            middle_nodes[i_node++] = GetNodeInFace(geom, step_divisions_level, rTagNodes);
+
+            // Split the quadrilateral
+            PointerVector<NodeType> sub_element_nodes(4);    // a quadrilateral is defined by 4 nodes
+            for (int position = 0; position < 4; position++) // there are 4 sub quadrilateral
             {
-                middle_nodes[i_node++] = GetNodeInFace(geom, step_divisions_level, rTagNodes);
-                PointerVector<NodeType> sub_element_nodes(4);    // a quadrilateral is defined by 4 nodes
-                for (int position = 0; position < 4; position++) // there are 4 sub quadrilateral
-                {
-                    sub_element_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
-                    CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
-                }
+                sub_element_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
+                CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
             }
-            case 6: // Split the tetrahedra
+        }
+        else if (geom.GetGeometryType() == GeometryData::Kratos_Tetrahedra3D4)
+        {
+            // Initialize the vector of middle nodes
+            IndexType i_node = 0;
+            std::vector<NodeType::Pointer> middle_nodes(6); // 6 edges
+
+            // Loop the edges to get or create the middle nodes
+            for (auto edge : geom.Edges())
+                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+
+            // Split the tetrahedra
+            PointerVector<NodeType> sub_element_nodes(4);    // a tetrahedra is defined by 4 nodes
+            for (int position = 0; position < 8; position++) // there are 8 sub tetrahedrons
             {
-                PointerVector<NodeType> sub_element_nodes(4);    // a tetrahedra is defined by 4 nodes
-                for (int position = 0; position < 8; position++) // there are 8 sub tetrahedrons
-                {
-                    sub_element_nodes = GetSubTetrahedraNodes(position, geom, middle_nodes);
-                    CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
-                }
+                sub_element_nodes = GetSubTetrahedraNodes(position, geom, middle_nodes);
+                CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
             }
-            case 19: // Split the hexahedra
+        }
+        else if (geom.GetGeometryType() == GeometryData::Kratos_Hexahedra3D8)
+        {
+            // Initialize the vector of middle nodes
+            IndexType i_node = 0;
+            std::vector<NodeType::Pointer> middle_nodes(19); // 12 edges, 6 faces and the hexahedra itself
+
+            // Loop the edges to get or create the middle nodes
+            for (auto edge : geom.Edges())
+                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+            for (auto face : geom.Faces())
+                middle_nodes[i_node++] = GetNodeInFace(face, step_divisions_level, rTagNodes);
+            middle_nodes[i_node++] = GetNodeInBody(geom, step_divisions_level, rTagNodes);
+
+            // Split the hexahedra
+            PointerVector<NodeType> sub_element_nodes(8);    // an hexahedra is defined by 8 nodes
+            for (int position = 0; position < 8; position++) // there are 8 sub hexahedrons
             {
-                for (auto face : geom.Faces())
-                    middle_nodes[i_node++] = GetNodeInFace(face, step_divisions_level, rTagNodes);
-                middle_nodes[i_node++] = GetNodeInBody(geom, step_divisions_level, rTagNodes);
-                PointerVector<NodeType> sub_element_nodes(8);    // an hexahedra is defined by 8 nodes
-                for (int position = 0; position < 8; position++) // there are 8 sub hexahedrons
-                {
-                    sub_element_nodes = GetSubHexahedraNodes(position, geom, middle_nodes);
-                    CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
-                }
+                sub_element_nodes = GetSubHexahedraNodes(position, geom, middle_nodes);
+                CreateElement(i_element, sub_element_nodes, step_divisions_level, rTagElems);
             }
+        }
+        else
+        {
+            KRATOS_ERROR << "Your geometry contains " << geom.GetGeometryType() << " which cannot be refined" << std::endl;
         }
 
         // Once we have created all the sub elements, the origin element must be deleted
@@ -331,7 +341,7 @@ void UniformRefinementUtility::ExecuteDivision(
         // Get the geometry
         Geometry<NodeType>& geom = i_condition->GetGeometry();
 
-        if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
+        if (geom.GetGeometryType() == GeometryData::Kratos_Line2D2)
         {
             NodeType::Pointer middle_node = GetNodeInEdge(geom, step_divisions_level, rTagNodes);
 
@@ -341,6 +351,39 @@ void UniformRefinementUtility::ExecuteDivision(
             {
                 sub_condition_nodes = GetSubLineNodes(position, geom, middle_node);
                 CreateCondition(i_condition, sub_condition_nodes, step_divisions_level, rTagConds);
+            }
+        }
+        else if (geom.GetGeometryType() == GeometryData::Kratos_Triangle3D3)
+        {
+            // Initialize the middle nodes vector
+            IndexType i_node = 0;
+            std::vector<NodeType::Pointer> middle_nodes(3);
+            // Loop the edges to get or create the middle nodes
+            for (auto edge : geom.Edges())
+                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+
+            PointerVector<NodeType> sub_condition_nodes(3);    // a triangle is defined by 3 nodes
+            for (int position = 0; position < 4; position++) // there are 4 sub triangles
+            {
+                sub_condition_nodes = GetSubTriangleNodes(position, geom, middle_nodes);
+                CreateCondition(i_condition, sub_condition_nodes, step_divisions_level, rTagElems);
+            }
+        }
+        else if (geom.GetGeometryType() == GeometryData::Kratos_Quadrilateral3D4)
+        {
+            // Initialize the middle nodes vector
+            IndexType i_node = 0;
+            std::vector<NodeType::Pointer> middle_nodes(5);
+            // Loop the edges to get or create the middle nodes
+            for (auto edge : geom.Edges())
+                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+            middle_nodes[i_node++] = GetNodeInFace(geom, step_divisions_level, rTagNodes);
+
+            PointerVector<NodeType> sub_condition_nodes(4);    // a quadrilateral is defined by 4 nodes
+            for (int position = 0; position < 4; position++) // there are 4 sub quadrilaterals
+            {
+                sub_condition_nodes = GetSubQuadrilateralNodes(position, geom, middle_nodes);
+                CreateCondition(i_condition, sub_condition_nodes, step_divisions_level, rTagElems);
             }
         }
         else
