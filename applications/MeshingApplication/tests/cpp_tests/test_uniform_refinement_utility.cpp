@@ -187,7 +187,6 @@ namespace Kratos
 
             // Creating the sub model parts
             ModelPart& r_sub_model_part_1 = this_model_part.CreateSubModelPart("BodySubModelPart");
-//             ModelPart& r_sub_model_part_2 = this_model_part.CreateSubModelPart("SkinSubModelPart");
 
             // Creating the nodes
             NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -267,6 +266,74 @@ namespace Kratos
                 KRATOS_CHECK_NEAR(value, velocity_y, Tolerance);
             }
         } // UniformRefineQuadrilateralsUtility
+
+
+        /**
+         * Checks the correct refining utility with hexahedrons
+         */
+        KRATOS_TEST_CASE_IN_SUITE(UniformRefineHexahedronsUtility, KratosMeshingApplicationFastSuite)
+        {
+            Model this_model;
+            ModelPart& this_model_part = this_model.CreateModelPart("Main", 2);
+
+            this_model_part.AddNodalSolutionStepVariable(VELOCITY);
+
+            Properties::Pointer p_properties = this_model_part.pGetProperties(0);
+
+            // Creating the sub model parts
+            ModelPart& r_sub_model_part_1 = this_model_part.CreateSubModelPart("BodySubModelPart");
+            ModelPart& r_sub_model_part_2 = this_model_part.CreateSubModelPart("SkinSubModelPart");
+
+            // Creating the nodes
+            NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+            NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+            NodeType::Pointer p_node_4 = this_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
+            NodeType::Pointer p_node_5 = this_model_part.CreateNewNode(5, 0.0, 0.0, 1.0);
+            NodeType::Pointer p_node_6 = this_model_part.CreateNewNode(6, 1.0, 0.0, 1.0);
+            NodeType::Pointer p_node_7 = this_model_part.CreateNewNode(7, 1.0, 1.0, 1.0);
+            NodeType::Pointer p_node_8 = this_model_part.CreateNewNode(8, 0.0, 1.0, 1.0);
+
+            // Creating the elements
+            PointerVector<NodeType> hexahedra_nodes(8);
+            hexahedra_nodes(0) = p_node_1;
+            hexahedra_nodes(1) = p_node_2;
+            hexahedra_nodes(2) = p_node_3;
+            hexahedra_nodes(3) = p_node_4;
+            hexahedra_nodes(4) = p_node_5;
+            hexahedra_nodes(5) = p_node_6;
+            hexahedra_nodes(6) = p_node_7;
+            hexahedra_nodes(7) = p_node_8;
+            Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element3D8N", 1, hexahedra_nodes, p_properties);
+
+            // Creating the conditions
+            PointerVector<NodeType> quadrilateral_nodes(4);
+            quadrilateral_nodes(0) = p_node_1;
+            quadrilateral_nodes(1) = p_node_2;
+            quadrilateral_nodes(2) = p_node_3;
+            quadrilateral_nodes(3) = p_node_4;
+            Condition::Pointer p_cond_1 = this_model_part.CreateNewCondition("SurfaceCondition3D4N", 1, quadrilateral_nodes, p_properties);
+
+            r_sub_model_part_1.AddElement(p_elem_1);
+            r_sub_model_part_2.AddCondition(p_cond_1);
+
+            // Get the initial values
+            unsigned int initial_elements = r_sub_model_part_1.NumberOfElements();
+            unsigned int initial_conditions = r_sub_model_part_2.NumberOfConditions();
+
+            // Execute the utility
+            int refinement_level = 2;
+            UniformRefinementUtility uniform_refinement(this_model_part);
+            uniform_refinement.Refine(refinement_level);
+
+            // Check the number of elements (tetrahedrons)
+            unsigned int final_elements = initial_elements * std::pow(8, refinement_level);
+            KRATOS_CHECK_EQUAL(final_elements, r_sub_model_part_1.NumberOfElements());
+
+            // Check the number of conditions (quadrilaterals)
+            unsigned int final_conditions = initial_conditions * std::pow(4, refinement_level);
+            KRATOS_CHECK_EQUAL(final_conditions, r_sub_model_part_2.NumberOfConditions());
+        }
 
     } // namespace Testing
 } // namespace Kratos
