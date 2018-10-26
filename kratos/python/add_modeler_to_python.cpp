@@ -19,6 +19,7 @@
 
 
 // Project includes
+#include "includes/define_python.h"
 #include "add_modeler_to_python.h"
 #include "modeler/modeler.h"
 #include "modeler/edge_swapping_2d_modeler.h"
@@ -53,11 +54,11 @@ void GenerateMesh(Modeler& GM, ModelPart& model_part, const char* ElementName, c
 void  AddModelerToPython(pybind11::module& m)
 {
     class_<Modeler, Modeler::Pointer>(m,"Modeler")
-            .def(init<>())
-            .def("GenerateModelPart",&GenerateModelPart)
-            .def("GenerateMesh",&GenerateMesh)
-            .def("GenerateNodes",&Modeler::GenerateNodes)
-    .def("__repr__", &Modeler::Info)
+    .def(init<>())
+    .def("GenerateModelPart",&GenerateModelPart)
+    .def("GenerateMesh",&GenerateMesh)
+    .def("GenerateNodes",&Modeler::GenerateNodes)
+    .def("__str__", PrintObject<Modeler>)
     ;
 
     class_<ConnectivityPreserveModeler,ConnectivityPreserveModeler::Pointer,Modeler>(m,"ConnectivityPreserveModeler")

@@ -275,13 +275,13 @@ class DEMEnergyCalculator(object):
                 self.kinematic_energy = 0.0
                 self.gravitational_energy = 0.0
                 self.elastic_energy = 0.0
-                self.inelastic_frictonal_energy = 0.0
+                self.inelastic_frictional_energy = 0.0
                 self.inelastic_viscodamping_energy = 0.0
                 self.external_energy = 0.0
                 self.total_energy = 0.0
                 self.graph_frequency = int(self.DEM_parameters["GraphExportFreq"].GetDouble() / spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))  # TODO: change the name GraphExportFreq to GraphExportTimeInterval
                 self.energy_graph_counter = 0
-                self.energy_plot.write(str("Time").rjust(9) + "   " + str("Trans kinematic energy").rjust(22) + "   " + str("Rot kinematic energy").rjust(20) + "   " + str("Kinematic energy").rjust(16) + "   " + str("Gravitational energy").rjust(20) + "   " + str("Elastic energy").rjust(14) + "   " + str("Frictonal energy").rjust(16) + "   " + str("Viscodamping energy").rjust(19) + "   " + str("Total energy").rjust(12) + "\n")
+                self.energy_plot.write(str("Time").rjust(9) + "   " + str("Trans kinematic energy").rjust(22) + "   " + str("Rot kinematic energy").rjust(20) + "   " + str("Kinematic energy").rjust(16) + "   " + str("Gravitational energy").rjust(20) + "   " + str("Elastic energy").rjust(14) + "   " + str("Frictional energy").rjust(16) + "   " + str("Viscodamping energy").rjust(19) + "   " + str("Total energy").rjust(12) + "\n")
 
     def CalculateEnergyAndPlot(self, time):
         if self.calculate_option:
@@ -1412,17 +1412,25 @@ class DEMIo(object):
         #Analytic
         if not "PostNormalImpactVelocity" in self.DEM_parameters.keys():
             self.PostNormalImpactVelocity = 0
-            self.PostTangentialImpactVelocity = 0
-            self.PostFaceTangentialImpactVelocity = 0
-            self.PostFaceNormalImpactVelocity = 0
         else:
             self.PostNormalImpactVelocity = self.DEM_parameters["PostNormalImpactVelocity"].GetBool()
+
+        if not "PostTangentialImpactVelocity" in self.DEM_parameters.keys():
+            self.PostTangentialImpactVelocity = 0
+        else:
             self.PostTangentialImpactVelocity = self.DEM_parameters["PostTangentialImpactVelocity"].GetBool()
-            self.PostFaceTangentialImpactVelocity = 1
-            self.PostFaceNormalImpactVelocity = 1
+
+        if not "PostFaceNormalImpactVelocity" in self.DEM_parameters.keys():
+            self.PostFaceNormalImpactVelocity = 0
+        else:
+            self.PostFaceNormalImpactVelocity = self.DEM_parameters["PostFaceNormalImpactVelocity"].GetBool()
+
+        if not "PostFaceTangentialImpactVelocity" in self.DEM_parameters.keys():
+            self.PostFaceTangentialImpactVelocity = 0
+        else:
+            self.PostFaceTangentialImpactVelocity = self.DEM_parameters["PostFaceTangentialImpactVelocity"].GetBool()
 
         # Ice
-
         self.sea_settings = self.DEM_parameters["virtual_sea_surface_settings"]
 
         if self.sea_settings["print_sea_surface"].GetBool():
