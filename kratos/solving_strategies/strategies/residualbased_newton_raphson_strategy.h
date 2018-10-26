@@ -26,6 +26,12 @@
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
+/* Factories */
+#include "includes/linear_solver_factory.h"
+#include "includes/convergence_criteria_factory.h"
+#include "includes/builder_and_solver_factory.h"
+#include "includes/scheme_factory.h"
+
 namespace Kratos
 {
 
@@ -97,6 +103,18 @@ class ResidualBasedNewtonRaphsonStrategy
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    /// Linear solver factory
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+
+    /// Convergence criteria factory
+    typedef ConvergenceCriteriaFactory< TSparseSpace, TDenseSpace > ConvergenceCriteriaFactoryType;
+
+    /// Scheme factory
+    typedef SchemeFactory< TSparseSpace, TDenseSpace > SchemeFactoryType;
+
+    /// Builder and solver factory
+    typedef BuilderAndSolverFactory< TSparseSpace, TDenseSpace, TLinearSolver > BuilderAndSolverFactoryType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -109,6 +127,47 @@ class ResidualBasedNewtonRaphsonStrategy
     explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : BaseType(rModelPart, ThisParameters)
     {
+        mKeepSystemConstantDuringIterations = false;
+
+        // Set flags to default values
+        SetMaxIterationNumber(ThisParameters["max_iteration"].GetInt());
+
+        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+
+        // Saving the convergence criteria to be used
+        mpConvergenceCriteria = ConvergenceCriteriaFactoryType().Create(ThisParameters["convergence_criteria_settings"]);
+
+        // Saving the scheme
+        mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+
+        // Saving the linear solver
+        mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+        // Setting up the default builder and solver
+        mpBuilderAndSolver = BuilderAndSolverFactoryType().Create(mpLinearSolver, ThisParameters["builder_and_solver_settings"]);
+
+        // Set flags to start correcty the calculations
+        mSolutionStepIsInitialized = false;
+        mInitializeWasPerformed = false;
+
+        // Tells to the builder and solver if the reactions have to be Calculated or not
+        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+
+        // Tells to the Builder And Solver if the system matrix and vectors need to
+        // be reshaped at each step or not
+        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+
+        // Set EchoLevel to the default value (only time is displayed)
+        SetEchoLevel(1);
+
+        // By default the matrices are rebuilt at each iteration
+        this->SetRebuildLevel(2);
+
+        mpA = TSparseSpace::CreateEmptyMatrixPointer();
+        mpDx = TSparseSpace::CreateEmptyVectorPointer();
+        mpb = TSparseSpace::CreateEmptyVectorPointer();
     }
 
     /**

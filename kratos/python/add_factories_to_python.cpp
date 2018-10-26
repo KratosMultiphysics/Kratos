@@ -24,6 +24,7 @@
 #include "includes/convergence_criteria_factory.h"
 #include "includes/scheme_factory.h"
 #include "includes/builder_and_solver_factory.h"
+#include "includes/strategy_factory.h"
 
 namespace Kratos
 {
@@ -50,6 +51,7 @@ void  AddFactoriesToPython(pybind11::module& m)
     typedef ConvergenceCriteriaFactory< SpaceType, LocalSpaceType > ConvergenceCriteriaFactoryType;
     typedef SchemeFactory< SpaceType, LocalSpaceType > SchemeFactoryType;
     typedef BuilderAndSolverFactory< SpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverFactoryType;
+    typedef StrategyFactory< SpaceType, LocalSpaceType, LinearSolverType > StrategyFactoryType;
 
     py::class_<LinearSolverFactoryType, LinearSolverFactoryType::Pointer>(m, "LinearSolverFactory")
      .def( py::init< >() )
@@ -85,6 +87,12 @@ void  AddFactoriesToPython(pybind11::module& m)
      .def( py::init< >() )
      .def("Create",&BuilderAndSolverFactoryType::Create)
      .def("Has",&BuilderAndSolverFactoryType::Has)
+    ;
+
+    py::class_<StrategyFactoryType, StrategyFactoryType::Pointer >(m, "StrategyFactory")
+     .def( py::init< >() )
+     .def("Create",&StrategyFactoryType::Create)
+     .def("Has",&StrategyFactoryType::Has)
     ;
 
 }

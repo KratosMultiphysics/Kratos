@@ -136,8 +136,10 @@ public:
     /**
      * @brief Default constructor. (with parameters)
      */
-    explicit ResidualBasedEliminationBuilderAndSolverSlip(Parameters ThisParameters)
-        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(ThisParameters)
+    explicit ResidualBasedEliminationBuilderAndSolverSlip(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver, ThisParameters)
     {
     }
 

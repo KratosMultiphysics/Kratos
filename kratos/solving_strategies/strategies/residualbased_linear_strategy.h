@@ -23,9 +23,13 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "utilities/builtin_timer.h"
 
-//default builder and solver
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+/* Default builder and solver */
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+
+/* Factories */
+#include "includes/linear_solver_factory.h"
+#include "includes/builder_and_solver_factory.h"
+#include "includes/scheme_factory.h"
 
 namespace Kratos
 {
@@ -93,6 +97,14 @@ public:
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    /// Linear solver factory
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+
+    /// Scheme factory
+    typedef SchemeFactory< TSparseSpace, TDenseSpace > SchemeFactoryType;
+
+    /// Builder and solver factory
+    typedef BuilderAndSolverFactory< TSparseSpace, TDenseSpace, TLinearSolver > BuilderAndSolverFactoryType;
 
     ///@}
     ///@name Life Cycle
@@ -106,10 +118,41 @@ public:
     explicit ResidualBasedLinearStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : BaseType(rModelPart, ThisParameters)
     {
+        mCalculateNormDxFlag = ThisParameters["compute_norm_dx"].GetBool();
+
+        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+
+        // Saving the scheme
+        mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+
+        // Saving the linear solver
+        mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+        // Setting up the default builder and solver
+        mpBuilderAndSolver = BuilderAndSolverFactoryType().Create(mpLinearSolver, ThisParameters["builder_and_solver_settings"]);
+
+        // Set flags to start correcty the calculations
+        mSolutionStepIsInitialized = false;
+        mInitializeWasPerformed = false;
+
+        // Tells to the builder and solver if the reactions have to be Calculated or not
+        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+
+        // Tells to the Builder And Solver if the system matrix and vectors need to
+        // be reshaped at each step or not
+        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+
+        // Set EchoLevel to the default value (only time is displayed)
+        SetEchoLevel(1);
+
+        // By default the matrices are rebuilt at each solution step
+        this->SetRebuildLevel(1);
     }
 
     /**
-     * Default constructor
+     * @brief Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
@@ -126,8 +169,7 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false
-    )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
 
@@ -168,7 +210,7 @@ public:
     }
 
     /**
-     * Constructor specifying the builder and solver
+     * @brief Constructor specifying the builder and solver
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
@@ -178,7 +220,7 @@ public:
      * @param CalculateNormDxFlag The flag sets if the norm of Dx is computed
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ResidualBasedLinearStrategy(
+    explicit ResidualBasedLinearStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -187,8 +229,7 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false
-    )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
 

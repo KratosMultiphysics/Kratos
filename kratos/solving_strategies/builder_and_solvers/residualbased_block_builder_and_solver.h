@@ -116,8 +116,10 @@ public:
     /**
      * @brief Default constructor. (with parameters)
      */
-    explicit ResidualBasedBlockBuilderAndSolver(Parameters ThisParameters)
-        : BaseType(ThisParameters)
+    explicit ResidualBasedBlockBuilderAndSolver(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver, ThisParameters)
     {
     }
 

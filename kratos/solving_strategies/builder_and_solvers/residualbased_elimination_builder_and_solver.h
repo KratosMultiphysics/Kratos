@@ -115,8 +115,10 @@ public:
     /**
      * @brief Default constructor. (with parameters)
      */
-    explicit ResidualBasedEliminationBuilderAndSolver(Parameters ThisParameters)
-        : BaseType(ThisParameters)
+    explicit ResidualBasedEliminationBuilderAndSolver(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver, ThisParameters)
     {
     }
 

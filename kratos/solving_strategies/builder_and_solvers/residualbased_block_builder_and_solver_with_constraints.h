@@ -111,8 +111,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     /**
      * @brief Default constructor. (with parameters)
      */
-    explicit ResidualBasedBlockBuilderAndSolverWithConstraints(Parameters ThisParameters)
-        : BaseType(ThisParameters)
+    explicit ResidualBasedBlockBuilderAndSolverWithConstraints(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver, ThisParameters)
     {
     }
 

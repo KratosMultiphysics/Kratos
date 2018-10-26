@@ -135,12 +135,71 @@ public:
     explicit AdaptiveResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : BaseType(rModelPart, ThisParameters)
     {
+        // Set flags to default values
+        SetMaxIterationNumber(ThisParameters["max_iteration"].GetInt());
+
+        mMinIterationNumber = ThisParameters["min_iteration"].GetInt();
+
+        mReductionFactor = ThisParameters["reduction_factor"].GetDouble();
+
+        mIncreaseFactor = ThisParameters["increase_factor"].GetDouble();
+
+        mNumberOfCycles = ThisParameters["number_of_cycles"].GetInt();
+
+        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+
+        // Saving the convergence criteria to be used
+        mpConvergenceCriteria = ConvergenceCriteriaFactoryType().Create(ThisParameters["convergence_criteria_settings"]);
+
+        // Saving the scheme
+        mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+
+        // Saving the linear solver
+        mpLinearSolver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+        // Setting up the default builder and solver
+        mpBuilderAndSolver = BuilderAndSolverFactoryType().Create(mpLinearSolver, ThisParameters["builder_and_solver_settings"]);
+
+        // Set flags to start correcty the calculations
+        mSolutionStepIsInitialized = false;
+        mInitializeWasPerformed = false;
+
+        // Tells to the builder and solver if the reactions have to be Calculated or not
+        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+
+        // Tells to the Builder And Solver if the system matrix and vectors need to
+        // be reshaped at each step or not
+        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+
+        // Set EchoLevel to the default value (only time is displayed)
+        SetEchoLevel(1);
+
+        // By default the matrices are rebuilt at each iteration
+        this->SetRebuildLevel(2);
+
+        mpA = TSparseSpace::CreateEmptyMatrixPointer();
+        mpDx = TSparseSpace::CreateEmptyVectorPointer();
+        mpb = TSparseSpace::CreateEmptyVectorPointer();
     }
 
-    /** Constructor.
-    */
+    /**
+     * @brief Default constructor
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     * @param ReductionFactor The factor of reduction
+     * @param IncreaseFactor The increase factor
+     * @param NumberOfCycles The number of cycles
+     */
     explicit AdaptiveResidualBasedNewtonRaphsonStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -152,8 +211,7 @@ public:
         double ReductionFactor = 0.5,
         double IncreaseFactor = 1.3,
         int NumberOfCycles = 5
-    )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
         //set flags to default values
@@ -209,8 +267,23 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * Constructor specifying the builder and solver
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param pNewBuilderAndSolver The builder and solver employed
+     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     * @param ReductionFactor The factor of reduction
+     * @param IncreaseFactor The increase factor
+     * @param NumberOfCycles The number of cycles
+     */
     explicit AdaptiveResidualBasedNewtonRaphsonStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -223,8 +296,7 @@ public:
         double ReductionFactor = 0.5,
         double IncreaseFactor = 1.3,
         int NumberOfCycles = 5
-    )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+        ) : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
         //set flags to default values

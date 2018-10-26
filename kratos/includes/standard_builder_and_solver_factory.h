@@ -62,6 +62,9 @@ class StandardBuilderAndSolverFactory
     ///@name Type Definitions
     ///@{
 
+    // The definition of the linear solver type
+    typedef LinearSolver<TSparseSpace,TLocalSpace> LinearSolverType;
+
     /// The definition of the convergence criteria
     typedef BuilderAndSolver<TSparseSpace,TLocalSpace, TLinearSolver> BuilderAndSolverType;
 
@@ -75,9 +78,9 @@ protected:
      * @brief This method is an auxiliar method to create a new convergence criteria
      * @return The pointer to the convergence criteria of interest
      */
-    typename BuilderAndSolverType::Pointer CreateBuilderAndSolver(Kratos::Parameters Settings) const override
+    typename BuilderAndSolverType::Pointer CreateBuilderAndSolver(typename LinearSolverType::Pointer pLinearSolver, Kratos::Parameters Settings) const override
     {
-        return typename BuilderAndSolverType::Pointer(new TBuilderAndSolverType(Settings));
+        return typename BuilderAndSolverType::Pointer(new TBuilderAndSolverType(pLinearSolver, Settings));
     }
 
     ///@}

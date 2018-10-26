@@ -348,12 +348,11 @@ namespace Kratos
             //Builder and Solver
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 
-
             class_< BuilderAndSolverType::DofsArrayType, BuilderAndSolverType::DofsArrayType::Pointer>(m,"DofsArrayType")
             .def(init<>());
 
             class_< BuilderAndSolverType, typename BuilderAndSolverType::Pointer>(m,"BuilderAndSolver")
-                    .def(init<Parameters >() )
+                    .def(init<LinearSolverType::Pointer, Parameters >() )
                     .def(init<LinearSolverType::Pointer > ())
                     .def("SetCalculateReactionsFlag", &BuilderAndSolverType::SetCalculateReactionsFlag)
                     .def("GetCalculateReactionsFlag", &BuilderAndSolverType::GetCalculateReactionsFlag)
@@ -384,17 +383,17 @@ namespace Kratos
 
             typedef ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
             class_< ResidualBasedEliminationBuilderAndSolverType, ResidualBasedEliminationBuilderAndSolverType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolver")
-            .def(init<Parameters >() )
+            .def(init<LinearSolverType::Pointer, Parameters >() )
             .def(init< LinearSolverType::Pointer > ());
 
             typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
             class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
-            .def(init<Parameters >() )
+            .def(init<LinearSolverType::Pointer, Parameters >() )
             .def(init< LinearSolverType::Pointer > ());
 
             typedef ResidualBasedBlockBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsType;
             class_< ResidualBasedBlockBuilderAndSolverWithConstraintsType, ResidualBasedBlockBuilderAndSolverWithConstraintsType::Pointer,ResidualBasedBlockBuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolverWithConstraints")
-            .def(init<Parameters >() )
+            .def(init<LinearSolverType::Pointer, Parameters >() )
             .def(init< LinearSolverType::Pointer > ());
 
             //********************************************************************

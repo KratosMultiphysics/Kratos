@@ -68,6 +68,9 @@ public:
     /// The definition of the custom class
     typedef BuilderAndSolverFactory<TSparseSpace,TLocalSpace, TLinearSolver> FactoryType;
 
+    // The definition of the linear solver type
+    typedef LinearSolver<TSparseSpace,TLocalSpace> LinearSolverType;
+
     /// The definition of the builder and solver
     typedef BuilderAndSolver<TSparseSpace,TLocalSpace, TLinearSolver> BuilderAndSolverType;
 
@@ -99,7 +102,7 @@ public:
      * @brief This method creates a new builder and solver
      * @return The pointer to the builder and solver of interest
      */
-    virtual typename BuilderAndSolverType::Pointer Create(Kratos::Parameters Settings)
+    virtual typename BuilderAndSolverType::Pointer Create(typename LinearSolverType::Pointer pLinearSolver, Kratos::Parameters Settings)
     {
         const std::string& builder_and_solver_type = Settings["builder_and_solver_type"].GetString();
         if(Has( builder_and_solver_type ) == false) {
@@ -108,7 +111,7 @@ public:
                          KratosComponents< FactoryType >() << std::endl;
         }
         const auto& aux = KratosComponents< FactoryType >::Get( builder_and_solver_type );
-        return aux.CreateBuilderAndSolver(Settings);
+        return aux.CreateBuilderAndSolver(pLinearSolver, Settings);
     }
     ///@}
 protected:
@@ -119,7 +122,7 @@ protected:
      * @brief This method is an auxiliar method to create a new builder and solver
      * @return The pointer to the builder and solver of interest
      */
-    virtual typename BuilderAndSolverType::Pointer CreateBuilderAndSolver(Kratos::Parameters Settings)  const
+    virtual typename BuilderAndSolverType::Pointer CreateBuilderAndSolver(typename LinearSolverType::Pointer pLinearSolver, Kratos::Parameters Settings)  const
     {
         KRATOS_ERROR << "calling the base class BuilderAndSolverFactory" << std::endl;
     }
