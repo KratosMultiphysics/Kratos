@@ -314,6 +314,15 @@ struct crs {
         return row_iterator(col + p, col + e, val + p);
     }
 
+    size_t bytes() const {
+        if (own_data) {
+            return sizeof(ptr_type) * (nrows + 1)
+                 + sizeof(col_type) * nnz
+                 + sizeof(val_type) * nnz;
+        } else {
+            return 0;
+        }
+    }
 };
 
 /// Sort rows of the matrix column-wise.
@@ -521,6 +530,8 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
 
                     while(beg < end) {
                         ptrdiff_t c = A.col[beg];
+                        S v = math::norm(A.val[beg]);
+                        ++beg;
 
                         if (c >= col_end) {
                             if (done) {
@@ -533,7 +544,6 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
                             break;
                         }
 
-                        S v = math::norm(A.val[beg]);
 
                         if (first) {
                             first = false;
@@ -541,8 +551,6 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
                         } else {
                             cur_val = std::max(cur_val, v);
                         }
-
-                        ++beg;
                     }
 
                     j[k] = beg;
@@ -921,13 +929,6 @@ template < typename V, typename C, typename P >
 struct cols_impl< crs<V, C, P> > {
     static size_t get(const crs<V, C, P> &A) {
         return A.ncols;
-    }
-};
-
-template < typename V, typename C, typename P >
-struct bytes_impl< crs<V, C, P> > {
-    static size_t get(const crs<V, C, P> &A) {
-        return sizeof(P) * (A.nrows + 1) + sizeof(C) * A.nnz + sizeof(V) * A.nnz;
     }
 };
 

@@ -383,16 +383,6 @@ class make_scaling_solver {
         std::shared_ptr<vector> t;
 };
 
-namespace backend {
-
-template <class P, class S>
-struct bytes_impl< make_solver<P, S> > {
-    static size_t get(const make_solver<P, S> &s) {
-        return s.bytes();
-    }
-};
-
-} // namespace backend
 } // namespace amgcl
 
 #endif

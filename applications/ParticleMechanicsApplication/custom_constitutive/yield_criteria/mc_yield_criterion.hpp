@@ -10,17 +10,16 @@
 //  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 
+
 #if !defined(KRATOS_MC_YIELD_CRITERION_H_INCLUDED)
 #define      KRATOS_MC_YIELD_CRITERION_H_INCLUDED
-
-
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/MPM_yield_criterion.hpp"
 
 namespace Kratos
 {
@@ -49,7 +48,7 @@ namespace Kratos
 /** Detail class definition.
 */
 class MCYieldCriterion
-    : public YieldCriterion
+    : public MPMYieldCriterion
 {
 public:
     ///@name Type Definitions
@@ -88,7 +87,7 @@ public:
     ///@name Operations
     ///@{
 
-    double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rAlpha, const double& rBeta) override;
+    double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rCohesion, const double& rFrictionAngle) override;
 
     ///@name Access
     ///@{
@@ -129,11 +128,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    double GetSmoothingLodeAngle();
-
     double GetPI();
-
-    double GetSmoothingHiperbolic();
     
     ///@}
     ///@name Protected  Access

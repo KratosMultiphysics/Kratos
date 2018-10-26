@@ -17,6 +17,7 @@
 #include "includes/checks.h"
 #include "input_output/logger.h"
 #include "utilities/geometry_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_elements/solid_shell_element_sprism_3D6N.h"
 
 namespace Kratos
@@ -993,7 +994,7 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
             } else if( rVariable == ALMANSI_STRAIN_VECTOR ) {
                 mConstitutiveLawVector[point_number]->CalculateMaterialResponse(values, ConstitutiveLaw::StressMeasure_Cauchy);
             } else if( rVariable == HENCKY_STRAIN_VECTOR ) {
-                this->CalculateHenckyStrain( general_variables.C, general_variables.StrainVector );
+                mConstitutiveLawVector[point_number]->CalculateValue(values, HENCKY_STRAIN_VECTOR, general_variables.StrainVector);
             }
 
             if (rOutput[point_number].size() != general_variables.StrainVector.size())
@@ -3718,20 +3719,10 @@ void SolidShellElementSprism3D6N::CbartoFbar(
         noalias(F) = prod( rVariables.j[rPointNumber], InvJ );
     }
 
-    const Matrix C = prod( trans(F), F );
-
-    // Decompose matrix C
-    MathUtils<double>::EigenSystem<3>(C, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
-
-    for (IndexType i = 0; i < 3; ++i)
-        eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
-
-    const Matrix U  = prod( eigen_values_matrix, eigen_vector_matrix );
-
-    double AuxDet;
-    Matrix invU(3, 3);
-    MathUtils<double>::InvertMatrix(U, invU, AuxDet);
-    const Matrix R  = prod( F, invU );
+    // Compute R
+    Matrix R(3, 3);
+    Matrix U(3, 3);
+    ConstitutiveLawUtilities<6>::PolarDecomposition(F, R, U);
 
     /* Calculate F_bar */
     noalias(rVariables.F) = prod(R, U_bar);
@@ -3885,49 +3876,6 @@ void SolidShellElementSprism3D6N::GetHistoricalVariables(
 
     rVariables.detF  = 1.0;
     rVariables.F     = IdentityMatrix(size);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SolidShellElementSprism3D6N::CalculateHenckyStrain(
-    const Vector& rC,
-    Vector& rStrainVector
-    )
-{
-    KRATOS_TRY;
-
-    // Declare the different matrix
-    BoundedMatrix<double, 3, 3> eigen_values_matrix, eigen_vectors_matrix;
-
-    // Assemble matrix C
-    const Matrix C_matrix = MathUtils<double>::VectorToSymmetricTensor(rC);
-
-    // Decompose matrix
-    MathUtils<double>::EigenSystem<3>(C_matrix, eigen_vectors_matrix, eigen_values_matrix, 1e-24, 10);
-
-    // Calculate the eigenvalues of the E matrix
-    eigen_values_matrix(0, 0) = 0.5 * std::log(eigen_values_matrix(0, 0));
-    eigen_values_matrix(1, 1) = 0.5 * std::log(eigen_values_matrix(1, 1));
-    eigen_values_matrix(2, 2) = 0.5 * std::log(eigen_values_matrix(2, 2));
-
-    // Calculate E matrix
-    BoundedMatrix<double, 3, 3 > E_matrix;
-    noalias(E_matrix) = prod(trans(eigen_vectors_matrix), eigen_values_matrix);
-    noalias(E_matrix) = prod(E_matrix, eigen_vectors_matrix);
-
-    // Hencky Strain Calculation
-    if (rStrainVector.size() != 6)
-        rStrainVector.resize(6, false);
-
-    rStrainVector[0] = E_matrix(0, 0); // xx
-    rStrainVector[1] = E_matrix(1, 1); // yy
-    rStrainVector[2] = E_matrix(2, 2); // zz
-    rStrainVector[3] = 2.0 * E_matrix(0, 1); // xy
-    rStrainVector[4] = 2.0 * E_matrix(1, 2); // yz
-    rStrainVector[5] = 2.0 * E_matrix(0, 2); // xz
-
-    KRATOS_CATCH( "" );
 }
 
 /**************************** CALCULATE VOLUME CHANGE ******************************/

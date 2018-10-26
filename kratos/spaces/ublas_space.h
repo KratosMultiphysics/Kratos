@@ -90,6 +90,16 @@ public:
 ///@name Type Definitions
 ///@{
 
+template <class TDataType, class TMatrixType, class TVectorType>
+class UblasSpace;
+
+template <class TDataType>
+using TUblasSparseSpace =
+    UblasSpace<TDataType, boost::numeric::ublas::compressed_matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+template <class TDataType>
+using TUblasDenseSpace =
+    UblasSpace<TDataType, boost::numeric::ublas::matrix<TDataType>, boost::numeric::ublas::vector<TDataType>>;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -128,6 +138,10 @@ public:
 
     typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
+
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+    template<typename T> using compressed_matrix = boost::numeric::ublas::compressed_matrix<T>;
+#endif // ifdef KRATOS_USE_AMATRIX
 
     typedef DofUpdater< UblasSpace<TDataType,TMatrixType,TVectorType> > DofUpdaterType;
     typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
@@ -190,20 +204,27 @@ public:
     }
 
     /// rXi = rMij
+	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+	template<typename TColumnType>
+	static void GetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+	{
+		if (rX.size() != rM.size1())
+			rX.resize(rM.size1(), false);
 
-    static void GetColumn(unsigned int j, MatrixType& rM, VectorType& rX)
-    {
-        rX = column(rM, j);
-    }
+		for (std::size_t i = 0; i < rM.size1(); i++) {
+			rX[i] = rM(i, j);
+		}
+	}
 
+	// This version is needed in order to take one column of multi column solve from AMatrix matrix and pass it to an ublas vector
+	template<typename TColumnType>
+	static void SetColumn(unsigned int j, Matrix& rM, TColumnType& rX)
+	{
+		for (std::size_t i = 0; i < rM.size1(); i++) {
+			rM(i,j) = rX[i];
+		}
+	}
 
-    ///////////////////////////////// TODO: Take a close look to this method!!!!!!!!!!!!!!!!!!!!!!!!!
-    /// rMij = rXi
-
-    static void SetColumn(unsigned int j, MatrixType& rM, VectorType& rX)
-    {
-        rX = row(rM, j);
-    }
 
     /// rY = rX
 
@@ -333,7 +354,7 @@ public:
 
     static void TransposeMult(MatrixType& rA, VectorType& rX, VectorType& rY)
     {
-        axpy_prod(rX, rA, rY, true);
+		boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
     } // rY = rAT * rX
 
     static inline SizeType GraphDegree(IndexType i, TMatrixType& A)
@@ -712,7 +733,7 @@ public:
 
     //***********************************************************************
 
-    inline static bool IsDistributed()
+    inline static constexpr bool IsDistributed()
     {
         return false;
     }

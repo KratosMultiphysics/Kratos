@@ -26,8 +26,8 @@
 
 #include "custom_processes/parametric_wall_contact_search_process.hpp"
 
-#include "custom_conditions/hydraulic_rigid_contact_penalty_3D_condition.hpp"
-#include "custom_conditions/hydraulic_axisym_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/hydraulic_contact/hydraulic_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/hydraulic_contact/hydraulic_axisym_rigid_contact_penalty_2D_condition.hpp"
 
 #include "contact_mechanics_application_variables.h"
 

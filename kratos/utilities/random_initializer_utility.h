@@ -61,7 +61,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef UblasSpace<TDataType, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<TDataType, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     
     typedef UblasSpace<TDataType, Matrix, Vector> LocalSpaceType;
     
@@ -95,7 +95,7 @@ public:
      * @param VarianceValue The variance value used in the normal distribution
      */
     static inline void NormalDestributionRandom(
-        DenseVectorType& R,
+        VectorType& R,
         const TDataType& MeanValue,
         const TDataType& VarianceValue
         )
@@ -119,7 +119,7 @@ public:
      */
     static inline void RandomInitialize(
         const SparseMatrixType& K,
-        DenseVectorType& R,
+        VectorType& R,
         const bool Inverse = false 
         )
     {

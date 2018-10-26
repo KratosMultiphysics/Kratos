@@ -320,22 +320,22 @@ protected:
   /**
    * Add volumetric part to Stress Vector
    */
-  void AddVolumetricPart(Vector& rStressVector, double& rMeanPressure);
+  void AddVolumetricPart(Vector& rStressVector, const double& rMeanPressure);
 
   /**
    * Remove volumetric part from Stress Vector
    */
-  void RemoveVolumetricPart(Vector& rStressVector, double& rMeanPressure);
+  void RemoveVolumetricPart(Vector& rStressVector, const double& rMeanPressure);
 
   /**
    * Add volumetric part to Constitutive Matrix
    */
-  void AddVolumetricPart(Matrix& rConstitutiveMatrix, double& rBulkFactor);
+  void AddVolumetricPart(Matrix& rConstitutiveMatrix, const double& rBulkFactor);
 
   /**
    * Remove volumetric part from Constitutive Matrix
    */
-  void RemoveVolumetricPart(Matrix& rConstitutiveMatrix, double& rBulkFactor);
+  void RemoveVolumetricPart(Matrix& rConstitutiveMatrix, const double& rBulkFactor);
 
   /**
    * Calculation of the Mean value considering a Dense Matrix.
@@ -347,8 +347,13 @@ protected:
    */
   void CalculateLumpedMatrixMeanValue(MatrixType& rMatrix, double& rMeanValue);
 
-
-
+  /**
+   * Calculation of the Stiffness factor to improve matrix condition number
+   */
+  void CalculateStiffnessFactor(MatrixType& rLeftHandSideMatrix,
+                                ElementDataType& rVariables,
+                                const double& rBulkFactor,
+                                double& rStiffnessFactor);
   /**
    * Set Variables of the Element to the Parameters of the Constitutive Law
    */

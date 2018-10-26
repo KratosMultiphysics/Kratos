@@ -71,12 +71,12 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const ModelDataType& rModelData       = rVariables.GetModelData();
-    const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
-    const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];
-    const double& rResidualStrength       = rMaterialProperties[RESIDUAL_STRENGTH];
-    const double& rSofteningSlope         = rMaterialProperties[SOFTENING_SLOPE];
-    const double& rStateVariable          = rVariables.GetInternalVariables()[0];
+    const ModelDataType& rModelData  = rVariables.GetModelData();
+    const Properties& rProperties    = rModelData.GetProperties();
+    const double& rDamageThreshold   = rProperties[DAMAGE_THRESHOLD];
+    const double& rResidualStrength  = rProperties[RESIDUAL_STRENGTH];
+    const double& rSofteningSlope    = rProperties[SOFTENING_SLOPE];
+    const double& rStateVariable     = rVariables.GetInternalVariables()[0];
 
     //Compute Damage variable from the internal historical variable
     rHardening  = 1.0-rDamageThreshold*(1.0-rResidualStrength)/rStateVariable;
@@ -105,12 +105,12 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const ModelDataType& rModelData       = rVariables.GetModelData();
-    const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
-    const double& rDamageThreshold        = rMaterialProperties[DAMAGE_THRESHOLD];
-    const double& rResidualStrength       = rMaterialProperties[RESIDUAL_STRENGTH];
-    const double& rSofteningSlope         = rMaterialProperties[SOFTENING_SLOPE];
-    const double& rStateVariable          = rVariables.GetInternalVariables()[0];
+    const ModelDataType& rModelData  = rVariables.GetModelData();
+    const Properties& rProperties    = rModelData.GetProperties();
+    const double& rDamageThreshold   = rProperties[DAMAGE_THRESHOLD];
+    const double& rResidualStrength  = rProperties[RESIDUAL_STRENGTH];
+    const double& rSofteningSlope    = rProperties[SOFTENING_SLOPE];
+    const double& rStateVariable     = rVariables.GetInternalVariables()[0];
 
     //Damage derivative with respect to the internal historical variable
     rDeltaHardening  = rDamageThreshold*(1.0-rResidualStrength)/(rStateVariable*rStateVariable);

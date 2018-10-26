@@ -236,7 +236,7 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
             const auto& r_dndx = shape_derivatives[g];
             data.UpdateGeometryValues(
                 g, gauss_weights[g], row(shape_functions, g), r_dndx);
-            
+
             this->CalculateMaterialResponse(data);
 
             this->AddVelocitySystem(data, rDampMatrix, rRightHandSideVector);
@@ -476,6 +476,11 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
 
         VorticityUtilities<Dim>::CalculateVorticityMagnitude(this->GetGeometry(),shape_function_gradients,rValues);
     }
+    else if (rVariable == UPDATE_STATISTICS)
+    {
+        KRATOS_DEBUG_ERROR_IF(!rCurrentProcessInfo.Has(STATISTICS_CONTAINER)) << "Trying to compute turbulent statistics, but ProcessInfo does not have STATISTICS_CONTAINER defined." << std::endl;
+        rCurrentProcessInfo.GetValue(STATISTICS_CONTAINER)->UpdateStatistics(this);
+    }
 }
 
 template <class TElementData>
@@ -541,7 +546,7 @@ array_1d<double, 3> FluidElement<TElementData>::GetAtCoordinate(
     const typename TElementData::NodalVectorData& rValues,
     const typename TElementData::ShapeFunctionsType& rN) const
 {
-    array_1d<double, 3> result(3, 0.0);
+    array_1d<double, 3> result = ZeroVector(3);
 
     for (size_t i = 0; i < NumNodes; i++) {
         for (size_t j = 0; j < Dim; j++) {
@@ -689,12 +694,12 @@ void FluidElement<TElementData>::AddMassLHS(
 }
 
 template <class TElementData>
-void FluidElement<TElementData>::AddBoundaryIntegral(TElementData& rData,
+void FluidElement<TElementData>::AddBoundaryTraction(TElementData& rData,
     const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
 
     KRATOS_TRY;
 
-    KRATOS_ERROR << "Calling base FluidElement::AddBoundaryIntegral "
+    KRATOS_ERROR << "Calling base FluidElement::AddBoundaryTraction "
                     "implementation. This method is not supported by your "
                     "element."
                  << std::endl;
@@ -706,7 +711,7 @@ template <class TElementData>
 void FluidElement<TElementData>::GetCurrentValuesVector(
     const TElementData& rData,
     array_1d<double,LocalSize>& rValues) const {
-        
+
     int local_index = 0;
 
     const auto& r_velocities = rData.Velocity;

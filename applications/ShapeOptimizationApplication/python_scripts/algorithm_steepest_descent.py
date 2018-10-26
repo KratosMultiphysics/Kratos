@@ -51,16 +51,11 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
         self.DesignSurface = ModelPartController.GetDesignSurface()
 
-        self.Mapper = mapper_factory.CreateMapper(self.DesignSurface, OptimizationSettings["design_variables"]["filter"])
+        self.Mapper = mapper_factory.CreateMapper(self.DesignSurface, self.DesignSurface, OptimizationSettings["design_variables"]["filter"])
         self.DataLogger = data_logger_factory.CreateDataLogger(ModelPartController, Communicator, OptimizationSettings)
 
-        self.GeometryUtilities = GeometryUtilities(self.DesignSurface)
         self.OptimizationUtilities = OptimizationUtilities(self.DesignSurface, OptimizationSettings)
 
-        self.isDampingSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
-        if self.isDampingSpecified:
-            damping_regions = self.ModelPartController.GetDampingRegions()
-            self.DampingUtilities = DampingUtilities(self.DesignSurface, damping_regions, OptimizationSettings)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -77,7 +72,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.relativeTolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
         self.ModelPartController.InitializeMeshController()
-        self.Mapper.InitializeMapping()
+        self.Mapper.Initialize()
         self.Analyzer.InitializeBeforeOptimizationLoop()
         self.DataLogger.InitializeDataLogging()
 
@@ -86,9 +81,9 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         timer = Timer()
         timer.StartTimer()
 
-        for self.optimizationIteration in range(1,self.maxIterations):
+        for self.optimization_iteration in range(1,self.maxIterations):
             print("\n>===================================================================")
-            print("> ",timer.GetTimeStamp(),": Starting optimization iteration ",self.optimizationIteration)
+            print("> ",timer.GetTimeStamp(),": Starting optimization iteration ",self.optimization_iteration)
             print(">===================================================================\n")
 
             timer.StartNewLap()
@@ -125,58 +120,48 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.Communicator.requestValueOf(self.only_obj["identifier"].GetString())
         self.Communicator.requestGradientOf(self.only_obj["identifier"].GetString())
 
-        self.Analyzer.AnalyzeDesignAndReportToCommunicator(self.DesignSurface, self.optimizationIteration, self.Communicator)
+        self.Analyzer.AnalyzeDesignAndReportToCommunicator(self.DesignSurface, self.optimization_iteration, self.Communicator)
 
         objGradientDict = self.Communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
         WriteDictionaryDataOnNodalVariable(objGradientDict, self.OptimizationModelPart, DF1DX)
 
         if self.only_obj["project_gradient_on_surface_normals"].GetBool():
-            self.GeometryUtilities.ComputeUnitSurfaceNormals()
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
+            self.ModelPartController.ComputeUnitSurfaceNormals()
+            self.ModelPartController.ProjectNodalVariableOnUnitSurfaceNormals(DF1DX)
 
-        if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(DF1DX)
+        self.ModelPartController.DampNodalVariableIfSpecified(DF1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
-        self.__mapSensitivitiesToDesignSpace()
+        self.Mapper.Update()
+        self.Mapper.InverseMap(DF1DX, DF1DX_MAPPED)
+
         self.OptimizationUtilities.ComputeSearchDirectionSteepestDescent()
         self.OptimizationUtilities.ComputeControlPointUpdate()
-        self.__mapDesignUpdateToGeometrySpace()
 
-        if self.isDampingSpecified:
-            self.DampingUtilities.DampNodalVariable(SHAPE_UPDATE)
+        self.Mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
 
-    # --------------------------------------------------------------------------
-    def __mapSensitivitiesToDesignSpace(self):
-        self.Mapper.MapToDesignSpace(DF1DX, DF1DX_MAPPED)
-
-    # --------------------------------------------------------------------------
-    def __mapDesignUpdateToGeometrySpace(self):
-        self.Mapper.MapToGeometrySpace(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
-
-    # --------------------------------------------------------------------------
-    def __dampShapeUpdate(self):
-        self.DampingUtilities.DampNodalVariable(SHAPE_UPDATE)
+        self.ModelPartController.DampNodalVariableIfSpecified(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.algorithm_settings["line_search"]["step_size"].GetDouble()
-        self.DataLogger.LogCurrentValues(self.optimizationIteration, additional_values_to_log)
+        self.DataLogger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
+        self.DataLogger.LogCurrentDesign(self.optimization_iteration)
 
     # --------------------------------------------------------------------------
     def __isAlgorithmConverged(self):
 
-        if self.optimizationIteration > 1 :
+        if self.optimization_iteration > 1 :
 
             # Check if maximum iterations were reached
-            if self.optimizationIteration == self.maxIterations:
+            if self.optimization_iteration == self.maxIterations:
                 print("\n> Maximal iterations of optimization problem reached!")
                 return True
 
             # Check for relative tolerance
-            relativeChangeOfObjectiveValue = self.DataLogger.GetValue("rel_change_obj", self.optimizationIteration)
+            relativeChangeOfObjectiveValue = self.DataLogger.GetValue("rel_change_obj", self.optimization_iteration)
             if abs(relativeChangeOfObjectiveValue) < self.relativeTolerance:
                 print("\n> Optimization problem converged within a relative objective tolerance of ",self.relativeTolerance,"%.")
                 return True
@@ -185,6 +170,5 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     def __determineAbsoluteChanges(self):
         self.OptimizationUtilities.AddFirstVariableToSecondVariable(CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE)
         self.OptimizationUtilities.AddFirstVariableToSecondVariable(SHAPE_UPDATE, SHAPE_CHANGE)
-
 
 # ==============================================================================

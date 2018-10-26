@@ -45,7 +45,7 @@ namespace Kratos
 
     /// Definition of the geometry type with given NodeType
     typedef Geometry<NodeType> GeometryType;
-    
+
     /// Type definitions for the tree
     typedef GaussPointItem                                        PointType;
     typedef PointType::Pointer                             PointTypePointer;
@@ -54,16 +54,6 @@ namespace Kratos
     typedef std::vector<double>                              DistanceVector;
     typedef DistanceVector::iterator                       DistanceIterator;
 
-    /// KDtree definitions
-    typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > KDTree;
-    
-    /// Definitions for the variables
-    typedef Variable<double>             DoubleVarType;
-    typedef Variable<array_1d<double, 3>> ArrayVarType;
-    typedef Variable<Vector>             VectorVarType;
-    typedef Variable<Matrix>             MatrixVarType;
-    
 ///@}
 ///@name  Enum's
 ///@{
@@ -76,20 +66,29 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class InternalVariablesInterpolationProcess
  * @ingroup MeshingApplication
  * @brief This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
  * @details The process employs the projection.h from MeshingApplication, which works internally using a kd-tree
  * @author Vicente Mataix Ferrandiz
  */
-
-class InternalVariablesInterpolationProcess 
+class KRATOS_API(MESHING_APPLICATION) InternalVariablesInterpolationProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    /// KDtree definitions
+    typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
+    typedef Tree< KDTreePartition<BucketType> > KDTree;
+
+    /// Definitions for the variables
+    typedef Variable<double>             DoubleVarType;
+    typedef Variable<array_1d<double, 3>> ArrayVarType;
+    typedef Variable<Vector>             VectorVarType;
+    typedef Variable<Matrix>             MatrixVarType;
 
     // General type definitions
     typedef ModelPart::NodesContainerType                    NodesArrayType;
@@ -290,7 +289,7 @@ private:
      * @return The total number of variables to be interpolated
      */
     std::size_t ComputeTotalNumberOfVariables();
-    
+
     /**
      * @brief This method saves the values on the gauss point object
      * @param rThisVar The variable to transfer
@@ -340,7 +339,7 @@ private:
      * @param pPointOrigin The pointer to the current GP
      * @param itElemDestination The destination element iterato where to set the values
      * @param GaussPointId The index of te current GaussPoint computed
-     * @param rCurrentProcessInfo The process info 
+     * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
     inline void GetAndSetDirectVariableOnElements(
@@ -348,7 +347,7 @@ private:
         PointTypePointer pPointOrigin,
         ElementsArrayType::iterator itElemDestination,
         const IndexType GaussPointId,
-        const ProcessInfo& rCurrentProcessInfo 
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
         std::vector<TVarType> values;
@@ -357,7 +356,7 @@ private:
         values[GaussPointId] = pPointOrigin->GetValue(rThisVar, aux_value);
         itElemDestination->SetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
-    
+
     /**
      * @brief Gets a origin value from near points and it sets on the destination CL using a weighted proportion
      * @param rThisVar The variable to transfer
@@ -448,7 +447,7 @@ private:
         values[GaussPointId] = destination_value;
         itElemDestination->SetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
-    
+
     /**
      * @brief This method interpolates and add values from  the CL using shape functions
      * @param rThisGeometry The geometry of the element
@@ -506,7 +505,7 @@ private:
             rThisGeometry[i_node].GetValue(rThisVar) += N[i_node] * origin_values[GaussPointId] * Weight;
         }
     }
-    
+
     /**
      * @brief This method ponderates a value by the total integration weight
      * @param rThisGeometry The geometry of the element
@@ -525,7 +524,7 @@ private:
             rThisGeometry[i_node].GetValue(rThisVar) /= TotalWeight;
         }
     }
-    
+
     /**
      * @brief This method interpolates using shape functions and the values from the elemental nodes
      * @param rThisVar The variable to transfer
@@ -543,7 +542,7 @@ private:
     {
         // An auxiliar value
         TVarType aux_value = rThisVar.Zero();
-        
+
         // Interpolate with shape function
         const std::size_t number_nodes = pElement->GetGeometry().size();
         for (std::size_t i_node = 0; i_node < number_nodes; ++i_node)
@@ -551,7 +550,7 @@ private:
 
         pNode->SetValue(rThisVar, aux_value);
     }
-    
+
     /**
      * @brief Gets a origin value from near points and it sets on the destination CL using a weighted proportion
      * @param rThisGeometry The geometry of the element
@@ -587,7 +586,7 @@ private:
      * @param N The shape function used
      * @param itElemDestination The destination element iterato where to set the values
      * @param GaussPointId The index of te current GaussPoint computed
-     * @param rCurrentProcessInfo The process info 
+     * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
     inline void SetInterpolatedValueOnElement(
@@ -596,12 +595,12 @@ private:
         const Vector& N,
         ElementsArrayType::iterator itElemDestination,
         const IndexType GaussPointId,
-        const ProcessInfo& rCurrentProcessInfo 
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
         // An auxiliar value
         TVarType destination_value = rThisVar.Zero();
-        
+
         // Interpolate with shape function
         const std::size_t number_nodes = rThisGeometry.size();
         for (std::size_t i_node = 0; i_node < number_nodes; ++i_node)
@@ -612,7 +611,7 @@ private:
         values[GaussPointId] = destination_value;
         itElemDestination->SetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
-    
+
     /**
      * @brief This converts the interpolation string to an enum
      * @param Str The string that you want to comvert in the equivalent enum
