@@ -21,7 +21,7 @@ A clear and concise description of what you expected to happen.
 
 **Environment**
 Please specify your operating system, kratos branch, python version and any other library versions that you consider relevant.
-Ex:
+E.g.:
 - OS: Ubuntu 18.04
 - Branch: master
 - Python 3.7
