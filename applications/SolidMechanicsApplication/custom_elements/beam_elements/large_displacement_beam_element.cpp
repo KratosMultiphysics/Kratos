@@ -1699,7 +1699,7 @@ namespace Kratos
 
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
-    unsigned int MatSize               = number_of_nodes * ( dimension * 2 );
+    unsigned int MatSize            = number_of_nodes * ( dimension * 2 );
 
     if(rLeftHandSideMatrix.size1() != MatSize)
       rLeftHandSideMatrix.resize (MatSize, MatSize, false);

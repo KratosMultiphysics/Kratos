@@ -222,8 +222,8 @@ namespace Kratos
         if(i_cond->Is(BOUNDARY)) //composite condition
           ++composite_conditions;
 
-        if(mEchoLevel >= 1){
-          std::cout<<" BeforeSearch::Condition ("<<i_cond->Id()<<")";
+        if(mEchoLevel > 1){
+          std::cout<<" Masters::Condition ("<<i_cond->Id()<<")";
           if(i_cond->GetValue(MASTER_NODES).size()!=0)
             std::cout<<" ME="<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id();
           if(i_cond->GetValue(MASTER_NODES).size()!=0)
@@ -404,8 +404,8 @@ namespace Kratos
 
         //********************************************************************
 
-        if(mEchoLevel >= 1){
-          std::cout<<" AfterSearch::Condition ("<<i_cond->Id()<<")";
+        if(mEchoLevel > 1){
+          std::cout<<" SearchResult::Condition ("<<i_cond->Id()<<")";
           if(i_cond->GetValue(MASTER_NODES).size()!=0)
             std::cout<<" ME="<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id();
           if(i_cond->GetValue(MASTER_NODES).size()!=0)

@@ -205,7 +205,7 @@ public:
 
       if(BodyIsFixed){
         pRigidBodyElement->Set(RIGID,true);
-        pRigidBodyElement->Set(ACTIVE,false);
+        //pRigidBodyElement->Set(ACTIVE,false);
       }
 
       //add rigid body element node to boundary model part where there is an imposition:
@@ -228,8 +228,13 @@ public:
               break;
           }
         }
-
+        //set interval end time to apply fixity
+        if(set)
+          rModelPart.GetProcessInfo()[INTERVAL_END_TIME] = rModelPart.GetProcessInfo()[TIME];
       }
+
+
+
 
       //add rigid body element to solving model part:
       for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin() ; i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
@@ -239,6 +244,7 @@ public:
           pRigidBodyElement->Set(ACTIVE,true);
           rMainModelPart.GetSubModelPart(i_mp->Name()).AddElement(pRigidBodyElement);
           rMainModelPart.GetSubModelPart(i_mp->Name()).AddNode(NodeCenterOfGravity);
+          std::cout<<rMainModelPart.GetSubModelPart(i_mp->Name())<<std::endl;
         }
       }
 
@@ -306,10 +312,14 @@ public:
               pGeometry = Kratos::make_shared<Point2DType>(*(it.base()));
 
             LinkConditions.push_back(this->CreateRigidBodyLinkCondition(ConditionName, Id, pGeometry, pProperties));
+            LinkConditions.back().Set(INTERACTION);
             ++Id;
           }
         }
       }
+
+      //First remove conditions identified as INTERACTION
+      rModelPart.RemoveConditions(INTERACTION);
 
       // add links to rigid body model part:
       rModelPart.AddConditions(LinkConditions.begin(),LinkConditions.end());
@@ -318,6 +328,8 @@ public:
       for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin() ; i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
       {
         if( (i_mp->Is(ACTIVE)) ){ //computing_domain
+          //First remove conditions identified as INTERACTION
+          rMainModelPart.GetSubModelPart(i_mp->Name()).RemoveConditions(INTERACTION);
           rMainModelPart.GetSubModelPart(i_mp->Name()).AddConditions(LinkConditions.begin(),LinkConditions.end());
         }
       }

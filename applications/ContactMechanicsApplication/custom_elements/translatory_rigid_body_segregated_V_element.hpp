@@ -315,6 +315,12 @@ protected:
      */
     SizeType GetDofsSize() override;
 
+    /**
+      * Update rigid body nodes and positions
+      */
+    void UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo) override;
+
+
     ///@}
     ///@name Protected  Access
     ///@{

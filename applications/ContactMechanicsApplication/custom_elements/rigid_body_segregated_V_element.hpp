@@ -228,8 +228,15 @@ public:
 				       ProcessInfo& rCurrentProcessInfo) override;
 
 
-    //************************************************************************************
-    //************************************************************************************
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental mass matrix
+     * @param rMassMatrix: the elemental mass matrix
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -307,6 +314,13 @@ protected:
      * Get element size from the dofs
      */
     SizeType GetDofsSize() override;
+
+
+    /**
+      * Update rigid body nodes and positions
+      */
+    void UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo) override;
+
 
     ///@}
     ///@name Protected  Access

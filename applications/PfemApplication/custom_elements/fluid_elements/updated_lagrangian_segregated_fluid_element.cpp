@@ -743,6 +743,82 @@ void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddRHS(LocalSystemComp
   KRATOS_CATCH( "" )
 }
 
+
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables)
+{
+  KRATOS_TRY
+
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        FluidElement::CalculateAndAddDynamicLHS(rLeftHandSideMatrix, rVariables);
+
+        //KRATOS_WARNING("")<<" DynamicLHS "<<rLeftHandSideMatrix<<std::endl;
+
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+
+        const unsigned int MatSize = this->GetDofsSize();
+
+        if(rLeftHandSideMatrix.size1() != MatSize)
+          rLeftHandSideMatrix.resize (MatSize, MatSize, false);
+
+        noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
+
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+  }
+
+  KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianSegregatedFluidElement::CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables)
+{
+  KRATOS_TRY
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        FluidElement::CalculateAndAddDynamicRHS(rRightHandSideVector, rVariables);
+
+        //KRATOS_WARNING("")<<" DynamicRHS "<<rRightHandSideVector<<std::endl;
+
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        const unsigned int MatSize = this->GetDofsSize();
+
+        if ( rRightHandSideVector.size() != MatSize )
+          rRightHandSideVector.resize( MatSize, false );
+
+        noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
+
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+  }
+
+  KRATOS_CATCH( "" )
+}
+
+
 //************************************************************************************
 //************************************************************************************
 

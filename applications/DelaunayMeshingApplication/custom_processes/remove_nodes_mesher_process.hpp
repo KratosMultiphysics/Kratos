@@ -161,6 +161,7 @@ class RemoveNodesMesherProcess
       // REMOVE ON DISTANCE
       ////////////////////////////////////////////////////////////
 
+
       ////////////////////////////////////////////////////////////
       // REMOVE CONTACT NODES (and boundary near the contact)
       if ( mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE) )
@@ -178,8 +179,10 @@ class RemoveNodesMesherProcess
         any_condition_removed = true;
 
 
-      if(any_node_removed)
+      if(any_node_removed){
+        std::cout<<" error "<<any_node_removed_on_error<<" distance "<<any_node_removed_on_distance<<" conv_cond "<<any_convex_condition_removed<<" cond "<< any_condition_removed<<std::endl;
         this->CleanRemovedNodes(mrModelPart);
+      }
 
       if(any_condition_removed){
         //Clean Conditions
@@ -366,6 +369,7 @@ class RemoveNodesMesherProcess
 
     for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
     {
+
       bool on_contact_tip = false;
       bool contact_active = false;
 

@@ -105,14 +105,14 @@ class RigidBody(object):
     ####
 
     def ExecuteInitialize(self):
+        pass
 
+    #
+    def ExecuteInitializeSolutionStep(self):
         if self.settings["create_links"].GetBool():
             print(self._class_prefix()+" Create Links")
             self.creation_utility.CreateLinks(self.model_part, self.settings["link_settings"])
 
-    #
-    def ExecuteInitializeSolutionStep(self):
-        pass
     #
     def ExecuteFinalizeSolutionStep(self):
         pass

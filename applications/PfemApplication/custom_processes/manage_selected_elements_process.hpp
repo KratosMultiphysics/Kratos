@@ -197,14 +197,18 @@ public:
 
             }
 
+            //check if free surface nodes are outside the bounding box
+            if( it->Is(FREE_SURFACE) ){
+              if( !mBoundingBox.IsInside( it->Coordinates() ) ){
+                it->Set(TO_ERASE,true);
+                std::cout<<" SELECTED to erase "<<std::endl;
+              }
+            }
+
             it->Set(SELECTED,false);
           }
 
-          //check if free surface nodes are outside the bounding box
-          if( it->Is(FREE_SURFACE) ){
-            if( !mBoundingBox.IsInside( it->Coordinates() ) )
-              it->Set(TO_ERASE,true);
-          }
+
         }
       }
       KRATOS_CATCH("")

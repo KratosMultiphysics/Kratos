@@ -260,8 +260,15 @@ class SolutionScheme:
 
         integration_method_name = self.settings["integration_method"].GetString()
 
-        if(dof == 'ROTATION' and integration_method_name.find("Step") != -1):
-            integration_method_name  = integration_method_name+'Rotation'
+        if integration_method_name.find("Step") != -1:
+            if dof == 'ROTATION':
+                integration_method_name  = integration_method_name+'Rotation'
+            elif dof != 'DISPLACEMENT':
+                start = 0
+                end   = integration_method_name.find("Step")
+                integration_method_name = integration_method_name[start:end]
+
+        print(" integration method name ", integration_method_name, dof)
 
         return integration_method_name
 

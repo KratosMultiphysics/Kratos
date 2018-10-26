@@ -50,7 +50,6 @@ TranslatoryRigidBodyElement::TranslatoryRigidBodyElement(IndexType NewId, Geomet
 {
     KRATOS_TRY
 
-    //DO NOT ADD DOFS HERE!!!
 
     KRATOS_CATCH( "" )
 }
@@ -364,14 +363,14 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHa
       rRightHandSideVector.resize(MatSize, false);
 
     rRightHandSideVector = ZeroVector( MatSize );
-    
+
     ArrayType CurrentLinearAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
     CurrentLinearAccelerationVector = MapToInitialLocalFrame(CurrentLinearAccelerationVector);
     ArrayType PreviousLinearAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION,1);
     PreviousLinearAccelerationVector = MapToInitialLocalFrame(PreviousLinearAccelerationVector);
-    
+
     double AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-    
+
     ArrayType LinearAccelerationVector = (1.0-AlphaM) * CurrentLinearAccelerationVector + AlphaM * (PreviousLinearAccelerationVector);
 
     //-----------------

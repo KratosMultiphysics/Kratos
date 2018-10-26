@@ -39,7 +39,7 @@ RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId, Geomet
 //************************************************************************************
 
 RigidBodySegregatedVElement::RigidBodySegregatedVElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, NodesContainerType::Pointer pNodes)
-    :RigidBodyElement(NewId, pGeometry, pProperties)
+    :RigidBodyElement(NewId, pGeometry, pProperties, pNodes)
 {
   mStepVariable = VELOCITY_STEP;
 }
@@ -73,7 +73,7 @@ Element::Pointer RigidBodySegregatedVElement::Clone(IndexType NewId, NodesArrayT
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
   NewElement.mStepVariable = mStepVariable;
-  
+
   return Kratos::make_shared<RigidBodySegregatedVElement>(NewElement);
 }
 
@@ -129,7 +129,7 @@ void RigidBodySegregatedVElement::GetDofList(DofsVectorType& rElementalDofList,P
 void RigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
   this->SetProcessInformation(rCurrentProcessInfo);
-  
+
   switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
   {
     case VELOCITY_STEP:
@@ -512,6 +512,36 @@ void RigidBodySegregatedVElement::CalculateSecondDerivativesRHS(VectorType& rRig
 //************************************************************************************
 //************************************************************************************
 
+void RigidBodySegregatedVElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+  KRATOS_TRY
+
+  //process information
+  this->SetProcessInformation(rCurrentProcessInfo);
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        RigidBodyElement::CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << rCurrentProcessInfo[SEGREGATED_STEP] << std::endl;
+  }
+
+  //KRATOS_INFO("")<<mStepVariable<<" MassM:"<<rMassMatrix<<std::endl;
+
+  KRATOS_CATCH( "" )
+}
+
+//************************************************************************************
+//************************************************************************************
+
 void RigidBodySegregatedVElement::GetTimeIntegrationParameters(double& rP0,double& rP1,double& rP2, const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
@@ -554,6 +584,35 @@ RigidBodySegregatedVElement::SizeType RigidBodySegregatedVElement::GetDofsSize()
 
   KRATOS_CATCH( "" )
 }
+
+
+//***********************************************************************************
+//***********************************************************************************
+
+void RigidBodySegregatedVElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
+{
+  KRATOS_TRY
+
+  this->SetProcessInformation(rCurrentProcessInfo);
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        RigidBodyElement::UpdateRigidBodyNodes(rCurrentProcessInfo);
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+  }
+
+  KRATOS_CATCH("")
+}
+
 
 //************************************************************************************
 //************************************************************************************

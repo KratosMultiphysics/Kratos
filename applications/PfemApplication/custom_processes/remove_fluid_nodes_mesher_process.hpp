@@ -174,9 +174,10 @@ class RemoveFluidNodesMesherProcess
     {
       if(in->Is(TO_ERASE)){
         any_node_removed = true;
+        std::cout<<" TO_ERASE "<<in->Id()<<std::endl;
       }
 
-      if( in->IsNot(NEW_ENTITY) &&  in->IsNot(INLET) && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(TO_ERASE) )
+      if( in->IsNot(NEW_ENTITY) && in->IsNot(INLET) && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(TO_ERASE) )
       {
         radius = size_for_distance_inside;
 
@@ -283,6 +284,7 @@ class RemoveFluidNodesMesherProcess
     if( this->mEchoLevel > 0 ){
       std::cout<<"boundary_nodes_removed "<<boundary_nodes_removed<<std::endl;
       std::cout<<"inside_nodes_removed "<<inside_nodes_removed<<std::endl;
+      std::cout<<"critical_nodes_removec "<<critical_nodes_removed<<std::endl;
     }
 
     //Build boundary after removing boundary nodes due distance criterion

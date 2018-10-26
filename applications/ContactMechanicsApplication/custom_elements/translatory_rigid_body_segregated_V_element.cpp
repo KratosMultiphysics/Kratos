@@ -52,7 +52,7 @@ TranslatoryRigidBodySegregatedVElement::TranslatoryRigidBodySegregatedVElement(I
 
 TranslatoryRigidBodySegregatedVElement::TranslatoryRigidBodySegregatedVElement(TranslatoryRigidBodySegregatedVElement const& rOther)
     :TranslatoryRigidBodyElement(rOther)
-    ,mStepVariable(rOther.mStepVariable)      
+    ,mStepVariable(rOther.mStepVariable)
 {
 }
 
@@ -77,7 +77,7 @@ Element::Pointer TranslatoryRigidBodySegregatedVElement::Clone(IndexType NewId, 
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
   NewElement.mStepVariable = mStepVariable;
-  
+
   return Kratos::make_shared<TranslatoryRigidBodySegregatedVElement>(NewElement);
 
 }
@@ -129,7 +129,7 @@ void TranslatoryRigidBodySegregatedVElement::GetDofList(DofsVectorType& rElement
 void TranslatoryRigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
   this->SetProcessInformation(rCurrentProcessInfo);
-  
+
   switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
   {
     case VELOCITY_STEP:
@@ -157,7 +157,7 @@ void TranslatoryRigidBodySegregatedVElement::EquationIdVector(EquationIdVectorTy
 
         if ( rResult.size() != dofs_size )
           rResult.resize(dofs_size, false);
-        
+
         break;
       }
     default:
@@ -580,6 +580,33 @@ TranslatoryRigidBodySegregatedVElement::SizeType TranslatoryRigidBodySegregatedV
   return size;
 
   KRATOS_CATCH( "" )
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
+void TranslatoryRigidBodySegregatedVElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
+{
+  KRATOS_TRY
+
+  this->SetProcessInformation(rCurrentProcessInfo);
+
+  switch(mStepVariable)
+  {
+    case VELOCITY_STEP:
+      {
+        TranslatoryRigidBodyElement::UpdateRigidBodyNodes(rCurrentProcessInfo);
+        break;
+      }
+    case PRESSURE_STEP:
+      {
+        break;
+      }
+    default:
+      KRATOS_ERROR << "Unexpected value for SEGREGATED_STEP index: " << mStepVariable << std::endl;
+  }
+
+  KRATOS_CATCH("")
 }
 
 //************************************************************************************
