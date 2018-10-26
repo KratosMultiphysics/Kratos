@@ -128,7 +128,6 @@ void ConnectivityPreserveModeler::DuplicateElements(
     ModelPart &rDestinationModelPart,
     Element const &rReferenceElement)
 {
-    std::cout << "duplicating element with new create" << std::endl;
     // Generate the elements
     ModelPart::ElementsContainerType temp_elements;
     temp_elements.reserve(rOriginModelPart.NumberOfElements());
