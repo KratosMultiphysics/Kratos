@@ -22,7 +22,7 @@
 #include "geometries/point.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
-#include "custom_utilities/meshing_flags.h"
+#include "custom_includes/meshing_flags.h"
 
 namespace Kratos
 {
