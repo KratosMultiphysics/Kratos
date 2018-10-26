@@ -174,6 +174,22 @@ namespace Kratos {
         SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
         ComputeNewRigidFaceNeighboursHistoricalData();
 
+        if (mRemoveBallsInitiallyTouchingWallsOption) {
+            MarkToDeleteAllSpheresInitiallyIndentedWithFEM(*mpDem_model_part);
+            mpParticleCreatorDestructor->DestroyParticles(r_model_part);
+            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
+            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
+
+            // Search Neighbours and related operations
+            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
+            SearchNeighbours();
+            ComputeNewNeighboursHistoricalData();
+
+            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
+            SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
+            ComputeNewRigidFaceNeighboursHistoricalData();
+        }
+
         //set flag to 2 (search performed this timestep)
         mSearchControl = 2;
 
@@ -195,6 +211,23 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }// Initialize()
+
+    void ExplicitSolverStrategy::MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart) {
+
+        ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
+
+        #pragma omp parallel for
+        for (int k = 0; k < (int)pElements.size(); k++) {
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            Element* p_element = &(*it);
+            SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(p_element);
+
+            if (p_sphere->mNeighbourRigidFaces.size()) {
+                p_sphere->Set(TO_ERASE);
+                p_sphere->GetGeometry()[0].Set(TO_ERASE);
+            }
+        }
+    }
 
     void ExplicitSolverStrategy::ComputeNodalArea() {
 
