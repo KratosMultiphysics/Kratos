@@ -33,7 +33,7 @@ namespace Python
 
 void  AddFactoriesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -51,20 +51,20 @@ void  AddFactoriesToPython(pybind11::module& m)
     typedef SchemeFactory< SpaceType, LocalSpaceType > SchemeFactoryType;
     typedef BuilderAndSolverFactory< SpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverFactoryType;
 
-    class_<LinearSolverFactoryType, LinearSolverFactoryType::Pointer>(m, "LinearSolverFactory")
-     .def( init< >() )
+    py::class_<LinearSolverFactoryType, LinearSolverFactoryType::Pointer>(m, "LinearSolverFactory")
+     .def( py::init< >() )
      .def("Create",&LinearSolverFactoryType::Create)
      .def("Has",&LinearSolverFactoryType::Has)
     ;
 
-    class_<ComplexLinearSolverFactoryType, ComplexLinearSolverFactoryType::Pointer>(m, "ComplexLinearSolverFactory")
-     .def( init< >() )
+    py::class_<ComplexLinearSolverFactoryType, ComplexLinearSolverFactoryType::Pointer>(m, "ComplexLinearSolverFactory")
+     .def( py::init< >() )
      .def("Create",&ComplexLinearSolverFactoryType::Create)
      .def("Has",&ComplexLinearSolverFactoryType::Has)
     ;
 
-    class_<PreconditionerFactoryType, PreconditionerFactoryType::Pointer >(m, "PreconditionerFactory")
-     .def( init< >() )
+    py::class_<PreconditionerFactoryType, PreconditionerFactoryType::Pointer >(m, "PreconditionerFactory")
+     .def( py::init< >() )
      .def("Create",&PreconditionerFactoryType::Create)
      .def("Has",&PreconditionerFactoryType::Has)
     ;
