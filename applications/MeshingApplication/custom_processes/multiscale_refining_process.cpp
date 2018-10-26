@@ -549,7 +549,6 @@ void MultiscaleRefiningProcess::CreateElementsToRefine(IndexType& rElemId, Index
     // The map to add the elements to the sub model parts
     IndexVectorMapType tag_elems_map;
 
-    // #pragma omp parallel for
     for (int i = 0; i < nelems; i++)
     {
         auto coarse_elem = elements_begin + i;
