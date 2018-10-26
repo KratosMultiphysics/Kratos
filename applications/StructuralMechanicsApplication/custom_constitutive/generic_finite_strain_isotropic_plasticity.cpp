@@ -115,11 +115,11 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
         // Initialize Plastic Parameters
         double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-        BoundedArrayType yield_surface_derivative = ZeroVector(VoigtSize); // DF/DS
+        BoundedArrayType yield_surface_derivative = ZeroVector(VoigtSize);     // DF/DS
         BoundedArrayType plastic_potential_derivative = ZeroVector(VoigtSize); // DG/DS
         const BoundedArrayType dummy_plastic_strain_increment = ZeroVector(VoigtSize);
 
-        const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, dummy_plastic_strain_increment, rValues);
+        const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, dummy_plastic_strain_increment, plastic_strain, rValues);
 
         if (plastic_indicator <= std::abs(1.0e-4 * r_threshold)) { // Elastic case
             noalias(integrated_stress_vector) = predictive_stress_vector;
@@ -243,11 +243,11 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
         // Initialize Plastic Parameters
         double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-        BoundedArrayType yield_surface_derivative = ZeroVector(VoigtSize); // DF/DS
+        BoundedArrayType yield_surface_derivative = ZeroVector(VoigtSize);     // DF/DS
         BoundedArrayType plastic_potential_derivative = ZeroVector(VoigtSize); // DG/DS
         const BoundedArrayType dummy_plastic_strain_increment = ZeroVector(VoigtSize);
 
-        const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, dummy_plastic_strain_increment, rValues);
+        const double plastic_indicator = TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, uniaxial_stress, r_threshold, plastic_denominator, yield_surface_derivative, plastic_potential_derivative, r_plastic_dissipation, dummy_plastic_strain_increment, plastic_strain, rValues);
 
         if (plastic_indicator <= std::abs(1.0e-4 * r_threshold)) { // Elastic case
             noalias(integrated_stress_vector) = predictive_stress_vector;
@@ -534,9 +534,35 @@ template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
 double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
-    double& rValue)
+    double& rValue
+    )
 {
-    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
+        // The plastic deformation gradient
+        const Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
+
+        // We backup the deformation gradient
+        const double& deformation_gradient_determinant_backup = rParameterValues.GetDeterminantF();
+        const Matrix& deformation_gradient_backup = rParameterValues.GetDeformationGradientF();
+
+        rParameterValues.SetDeterminantF(MathUtils<double>::DetMat(r_plastic_deformation_gradient));
+        rParameterValues.SetDeformationGradientF(r_plastic_deformation_gradient);
+        Vector plastic_strain;
+        this->CalculateValue(rParameterValues, GREEN_LAGRANGE_STRAIN_VECTOR, plastic_strain);
+
+        const Vector& r_stress_vector = rParameterValues.GetStressVector();
+        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(r_stress_vector, mUniaxialStress, plastic_strain, 0.0, rParameterValues, rValue);
+
+        // We revert the deformation gradient
+        rParameterValues.SetDeterminantF(deformation_gradient_determinant_backup);
+        rParameterValues.SetDeformationGradientF(deformation_gradient_backup);
+
+        return rValue;
+    } else {
+        return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    }
+
+    return rValue;
 }
 
 /***********************************************************************************/

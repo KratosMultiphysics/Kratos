@@ -41,8 +41,8 @@ namespace Python
     //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     class_<Variable<TurbulenceStatisticsContainer::Pointer>,VariableData>(m, "TurbulenceStatisticsContainerVariable")
-      .def( "__repr__", &Variable<TurbulenceStatisticsContainer::Pointer>::Info )
-      ;
+    .def("__str__", PrintObject<Variable<TurbulenceStatisticsContainer::Pointer>>)
+    ;
   }
 
 }  // namespace Python.
