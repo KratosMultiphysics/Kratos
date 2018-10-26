@@ -77,7 +77,7 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 
     py::class_<AdjointLocalStressResponseFunction, AdjointLocalStressResponseFunction::Pointer, AdjointStructuralResponseFunction>
         (m, "AdjointLocalStressResponseFunction")
-        .def(init<ModelPart&, Parameters>());
+        .def(py::init<ModelPart&, Parameters>());
 
     py::class_<AdjointNodalDisplacementResponseFunction, AdjointNodalDisplacementResponseFunction::Pointer, AdjointStructuralResponseFunction>
         (m, "AdjointNodalDisplacementResponseFunction")

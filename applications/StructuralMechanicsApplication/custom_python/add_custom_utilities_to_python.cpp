@@ -24,6 +24,8 @@ namespace Python {
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
+
     py::class_<FormfindingIOUtility>(m,"FormfindingIOUtility")
         .def(py::init<ModelPart&, const Parameters>())
         .def("PrintModelPart",&FormfindingIOUtility::PrintModelPart)

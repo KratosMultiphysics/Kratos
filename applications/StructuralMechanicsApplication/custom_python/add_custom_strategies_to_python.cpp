@@ -139,7 +139,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     // Eigensolver Scheme Type
-    class_< EigensolverDynamicSchemeType,typename EigensolverDynamicSchemeType::Pointer, BaseSchemeType>(m,"EigensolverDynamicScheme")
+    py::class_< EigensolverDynamicSchemeType,typename EigensolverDynamicSchemeType::Pointer, BaseSchemeType>(m,"EigensolverDynamicScheme")
         .def(py::init<>() )
         ;
 
