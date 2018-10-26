@@ -2230,6 +2230,19 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 	puts $fileid "\"CleanIndentationsOption\"          : false,"
     }
 
+	puts $fileid "\"strategy_parameters\" : {"
+
+	# Remove initially indented balls with walls
+	set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-RemoveBallsInitiallyTouchingWalls"
+    set RemoveBallsInitiallyTouchingWallsOption [::xmlutils::setXml $cxpath $cproperty]
+  	if {$RemoveBallsInitiallyTouchingWallsOption == "Yes"} {
+		puts $fileid "    \"RemoveBallsInitiallyTouchingWalls\"          : true"
+    } else {
+		puts $fileid "    \"RemoveBallsInitiallyTouchingWalls\"          : false"
+    }
+
+	puts $fileid "},"
+
     if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
 	# RemoveBallsInEmbedded
 	set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-RemoveBallsInEmbedded"

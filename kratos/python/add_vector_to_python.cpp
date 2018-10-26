@@ -100,7 +100,7 @@ namespace Python
     #endif // KRATOS_USE_AMATRIX
 
         binder.def("__iter__", [](TVectorType& self){ return make_iterator(self.begin(), self.end(), return_value_policy::reference_internal); } , keep_alive<0,1>() ) ;
-        binder.def("__repr__", [](const TVectorType& self) -> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; });
+        binder.def("__str__", PrintObject<TVectorType>);
 
         return std::move(binder);
     }
@@ -194,7 +194,7 @@ namespace Python
 #else
         .def("__iter__", [](VectorSlice& self){ return make_iterator(self.begin(), self.end(), return_value_policy::reference_internal); } , keep_alive<0,1>() )
 #endif // ifdef KRATOS_USE_AMATRIX
-        .def("__repr__", [](const VectorSlice& self) -> const std::string { std::stringstream ss;  ss << self; const std::string out = ss.str();  return out; })
+        .def("__str__", PrintObject<VectorSlice>)
         ;
 
         auto vector_binder = CreateVectorInterface<Vector>(m, "Vector");
