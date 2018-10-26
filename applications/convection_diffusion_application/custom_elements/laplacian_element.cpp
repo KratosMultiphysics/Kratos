@@ -102,7 +102,7 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
         //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[PointNumber],InvJ0);
         
-        double IntToReferenceWeight = integration_points[PointNumber].Weight() * DetJ0;
+        const double IntToReferenceWeight = integration_points[PointNumber].Weight() * DetJ0;
         noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(DN_DX, trans(DN_DX)); //
 
         // Calculating the local RHS
