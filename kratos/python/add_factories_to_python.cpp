@@ -82,7 +82,7 @@ void  AddFactoriesToPython(pybind11::module& m)
     ;
 
     py::class_<BuilderAndSolverFactoryType, BuilderAndSolverFactoryType::Pointer >(m, "BuilderAndSolverFactory")
-     .def( init< >() )
+     .def( py::init< >() )
      .def("Create",&BuilderAndSolverFactoryType::Create)
      .def("Has",&BuilderAndSolverFactoryType::Has)
     ;
