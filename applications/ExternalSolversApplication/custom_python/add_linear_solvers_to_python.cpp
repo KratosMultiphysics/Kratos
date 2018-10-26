@@ -58,8 +58,6 @@ void  AddLinearSolversToPython(pybind11::module& m)
 {
     typedef TUblasSparseSpace<double> SpaceType;
     typedef TUblasDenseSpace<double> LocalSpaceType;
-    typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
-    typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
     typedef TLinearSolverType<double> LinearSolverType;
     typedef TDirectSolverType<double> DirectSolverType;
     typedef SuperLUSolver<SpaceType,  LocalSpaceType> SuperLUSolverType;
