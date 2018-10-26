@@ -94,13 +94,22 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /**
+     * @brief Constructor. The pseudo static scheme (parameters)
+     * @param ThisParameters Configuration parameters
+     */
+    explicit ResidualBasedIncrementalUpdateStaticSchemeSlip(Parameters ThisParameters)
+        : BaseType(),
+          mpRotationTool(Kratos::make_shared<RotationToolType>(ThisParameters["domain_size"].GetInt(),ThisParameters["block_size"].GetInt(),IS_STRUCTURE,0.0))
+    {}
+
     /// Constructor.
     /** @param DomainSize Number of spatial dimensions (2 or 3).
       * @param BlockSize Number of matrix and vector rows associated to each node. Only the first DomainSize rows will be rotated.
       */
-    ResidualBasedIncrementalUpdateStaticSchemeSlip(unsigned int DomainSize,
+    explicit ResidualBasedIncrementalUpdateStaticSchemeSlip(unsigned int DomainSize,
                                                    unsigned int BlockSize):
-        ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
+        BaseType(),
         mpRotationTool(Kratos::make_shared<RotationToolType>(DomainSize,BlockSize,IS_STRUCTURE,0.0))
     {}
 
@@ -108,8 +117,8 @@ public:
 
     /** @param pRotationTool a pointer to the helper class that manages DOF rotation.
       */
-    ResidualBasedIncrementalUpdateStaticSchemeSlip(RotationToolPointerType pRotationTool):
-        ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
+    explicit ResidualBasedIncrementalUpdateStaticSchemeSlip(RotationToolPointerType pRotationTool):
+        BaseType(),
         mpRotationTool(pRotationTool)
     {}
 

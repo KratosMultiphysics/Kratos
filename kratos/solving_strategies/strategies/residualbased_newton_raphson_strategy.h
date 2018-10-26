@@ -107,7 +107,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param ThisParameters The configuration parameters
      */
     explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters["move_mesh_flag"].GetBool())
+        : BaseType(rModelPart, ThisParameters)
     {
     }
 
@@ -131,7 +131,7 @@ class ResidualBasedNewtonRaphsonStrategy
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
+        : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY;
 
@@ -192,7 +192,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ResidualBasedNewtonRaphsonStrategy(
+    explicit ResidualBasedNewtonRaphsonStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
@@ -202,7 +202,7 @@ class ResidualBasedNewtonRaphsonStrategy
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false)
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
+        : BaseType(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
 

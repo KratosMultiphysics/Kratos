@@ -108,7 +108,7 @@ namespace Kratos
      * @param ThisParameters The configuration parameters
      */
     explicit ExplicitStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters["move_mesh_flag"].GetBool())
+        : BaseType(rModelPart, ThisParameters)
     {
     }
 

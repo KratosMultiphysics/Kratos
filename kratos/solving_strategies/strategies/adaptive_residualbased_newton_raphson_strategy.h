@@ -133,7 +133,7 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit AdaptiveResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters["move_mesh_flag"].GetBool())
+        : BaseType(rModelPart, ThisParameters)
     {
     }
 
@@ -209,7 +209,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    AdaptiveResidualBasedNewtonRaphsonStrategy(
+    explicit AdaptiveResidualBasedNewtonRaphsonStrategy(
         ModelPart& model_part,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,

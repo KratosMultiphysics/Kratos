@@ -24,6 +24,7 @@
 #include "solving_strategies/schemes/scheme.h"
 
 //default linear solver
+#include "includes/linear_solver_factory.h"
 //#include "linear_solvers/linear_solver.h"
 
 namespace Kratos
@@ -115,6 +116,7 @@ public:
 
     typedef PointerVectorSet<Element, IndexedObject> ElementsContainerType;
 
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
 
     /**
      * This struct is used in the component wise calculation only
@@ -206,9 +208,21 @@ public:
      */
     /*@{ */
 
+    /**
+     * @brief Default constructor. (with parameters)
+     */
+    explicit BuilderAndSolver(Parameters ThisParameters)
+    {
+        mpLinearSystemSolver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+        mDofSetIsInitialized = false;
+
+        mReshapeMatrixFlag = false;
+    }
+
     /** Constructor.
      */
-    BuilderAndSolver(
+    explicit BuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
     {
         mpLinearSystemSolver = pNewLinearSystemSolver;

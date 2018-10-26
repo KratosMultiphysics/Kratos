@@ -34,7 +34,6 @@
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
 #include "includes/kratos_flags.h"
-#include "includes/linear_solver_factory.h"
 
 namespace Kratos
 {
@@ -110,8 +109,6 @@ public:
 
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
-    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -120,14 +117,14 @@ public:
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedBlockBuilderAndSolver(Parameters ThisParameters)
-        : BaseType(LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]))
+        : BaseType(ThisParameters)
     {
     }
 
     /**
      * @brief Default constructor.
      */
-    ResidualBasedBlockBuilderAndSolver(
+    explicit ResidualBasedBlockBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver)
     {

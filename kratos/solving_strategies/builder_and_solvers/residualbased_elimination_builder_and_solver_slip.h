@@ -30,7 +30,6 @@
 /* Project includes */
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "includes/linear_solver_factory.h"
 
 namespace Kratos
 {
@@ -130,8 +129,6 @@ public:
 
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
-    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -140,7 +137,7 @@ public:
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedEliminationBuilderAndSolverSlip(Parameters ThisParameters)
-        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]))
+        : ResidualBasedEliminationBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(ThisParameters)
     {
     }
 

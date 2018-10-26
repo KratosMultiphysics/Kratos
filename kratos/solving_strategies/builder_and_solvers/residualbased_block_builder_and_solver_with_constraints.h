@@ -32,7 +32,6 @@
 #include "containers/pointer_vector_map.h"
 #include "containers/pointer_hash_map_set.h"
 #include "containers/data_value_container.h"
-#include "includes/linear_solver_factory.h"
 
 namespace Kratos
 {
@@ -105,8 +104,6 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     typedef Vector VectorType;
     typedef Internals::ConstraintImposer<TSparseSpace, TDenseSpace, TLinearSolver> ConstraintImposerType;
 
-    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -115,7 +112,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      * @brief Default constructor. (with parameters)
      */
     explicit ResidualBasedBlockBuilderAndSolverWithConstraints(Parameters ThisParameters)
-        : BaseType(LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]))
+        : BaseType(ThisParameters)
     {
     }
 

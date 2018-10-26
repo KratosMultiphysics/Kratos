@@ -90,6 +90,7 @@ public:
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(LineSearchStrategy);
 
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> SolvingStrategyType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
@@ -125,15 +126,23 @@ public:
      * @param ThisParameters The configuration parameters
      */
     explicit LineSearchStrategy(ModelPart& rModelPart, Parameters ThisParameters)
-        : BaseType(rModelPart, ThisParameters["move_mesh_flag"].GetBool())
+        : BaseType(rModelPart, ThisParameters)
     {
     }
 
     /**
-     * Constructor.
+     * @brief Default constructor
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
      */
     explicit LineSearchStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -141,11 +150,23 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
-    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
+        ) : BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {}
 
-    LineSearchStrategy(
-        ModelPart& model_part,
+    /**
+     * @brief Constructor specifying the builder and solver
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param pNewBuilderAndSolver The builder and solver employed
+     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     */
+    explicit LineSearchStrategy(
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
@@ -154,7 +175,7 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
-    ): ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
+        ) : BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {}
 
     /**
@@ -164,7 +185,6 @@ public:
     ~LineSearchStrategy() override
     {
     }
-
 
 
     ///@}
