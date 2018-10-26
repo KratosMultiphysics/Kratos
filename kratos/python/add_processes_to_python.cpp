@@ -49,6 +49,7 @@
 #include "processes/assign_scalar_variable_to_conditions_process.h"
 #include "processes/assign_scalar_field_to_conditions_process.h"
 #include "processes/reorder_and_optimize_modelpart_process.h"
+#include "processes/calculate_distance_to_skin_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/simple_mortar_mapper_process.h"
 #include "processes/skin_detection_process.h"
@@ -81,14 +82,14 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteBeforeOutputStep",&Process::ExecuteBeforeOutputStep)
     .def("ExecuteAfterOutputStep",&Process::ExecuteAfterOutputStep)
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
-    .def("__repr__", &Process::Info)
+    .def("__str__", PrintObject<Process>)
     ;
 
     // Find NODAL_H (Historical variables stored)
     class_<FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>, FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>::Pointer, Process>(m,"FindNodalHProcess")
     .def(init<ModelPart&>())
     ;
-    
+
     // Find NODAL_H (Non-historical variables stored)
     class_<FindNodalHProcess<FindNodalH::SaveAsNonHistoricalVariable>, FindNodalHProcess<FindNodalH::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"FindNodalHNonHistoricalProcess")
     .def(init<ModelPart&>())
@@ -256,9 +257,23 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
-    class_<CalculateDiscontinuousDistanceToSkinProcess, CalculateDiscontinuousDistanceToSkinProcess::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess")
+    // Discontinuous distance computation methods
+    class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
             .def(init<ModelPart&, ModelPart&>())
             ;
+
+    class_<CalculateDiscontinuousDistanceToSkinProcess<3>, CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
+            .def(init<ModelPart&, ModelPart&>())
+            ;
+
+    // Continuous distance computation methods
+    class_<CalculateDistanceToSkinProcess<2>, CalculateDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDistanceToSkinProcess2D")
+            .def(init<ModelPart&, ModelPart&>())
+    ;
+
+    class_<CalculateDistanceToSkinProcess<3>, CalculateDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDistanceToSkinProcess3D")
+            .def(init<ModelPart&, ModelPart&>())
+    ;
 
     class_<ReorderAndOptimizeModelPartProcess, ReorderAndOptimizeModelPartProcess::Pointer, Process>(m,"ReorderAndOptimizeModelPartProcess")
             .def(init<ModelPart&, Parameters>())

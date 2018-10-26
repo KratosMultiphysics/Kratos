@@ -23,34 +23,6 @@ class ShallowWaterAnalysis(AnalysisStage):
     def _GetSimulationName(self):
         return "Shallow Water Analysis"
 
-    def _CreateProcesses(self, parameter_name, initialization_order):
-        """Create a list of Processes
-        This method is TEMPORARY to not break existing code
-        It will be removed in the future
-        """
-        list_of_processes = super(ShallowWaterAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
-
-        if parameter_name == "output_processes":
-            if self.project_parameters.Has("output_configuration"):
-                gid_output = self._SetUpGiDOutput()
-                list_of_processes += [gid_output,]
-        
-        return list_of_processes
-
-    def _SetUpGiDOutput(self):
-        '''Initialize self.output as a GiD output instance.'''
-        if self.parallel_type == "OpenMP":
-            from gid_output_process import GiDOutputProcess as OutputProcess
-        elif self.parallel_type == "MPI":
-            from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
-
-        output = OutputProcess(self._GetSolver().GetComputingModelPart(),
-                                self.project_parameters["problem_data"]["problem_name"].GetString(),
-                                self.project_parameters["output_configuration"])
-
-        return output
-
-
 if __name__ == "__main__":
     from sys import argv
 
