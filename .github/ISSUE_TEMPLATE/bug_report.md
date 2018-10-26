@@ -10,7 +10,7 @@ Where in Kratos is this bug happening. E.g.,
 - KratosCore
 - FooApplication
 
-**Description the bug**
+**Description of the bug**
 A clear and concise description of what the bug is.
 
 **To Reproduce**
