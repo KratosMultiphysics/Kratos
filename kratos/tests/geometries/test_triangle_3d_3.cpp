@@ -444,7 +444,7 @@ namespace Testing
 			);
 
 		KRATOS_CHECK(triangle_1.HasIntersection(triangle_2));
-	}
+    }
 
     /** 
      * Test an overlaping box and triangle (intersects a triangle edge) HasIntersection
@@ -500,6 +500,126 @@ namespace Testing
         Point point_1( 0.4, 0.5, 0.6);
         Point point_2( 1.0, 1.0, 1.0);
         KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
+    }
+
+    /** 
+     * Test an overlaping non-cubic box and triangle (intersects a triangle edge) HasIntersection
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneX, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point > triangle_1(
+			GeneratePoint<Node<3> >(0.55, -0.25, 0.25),
+			GeneratePoint<Node<3> >(0.50, -0.25, 0.75),
+			GeneratePoint<Node<3> >(0.50,  0.25, 0.25)
+		);
+        
+        auto aabb_min = GeneratePoint<Node<3>>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<Node<3>>(2.0, 1.0, 1.0);
+
+		KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+    
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneY, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point > triangle_1(
+			GeneratePoint<Node<3> >(-0.25, 0.50, 0.25),
+			GeneratePoint<Node<3> >(-0.25, 0.55, 0.75),
+			GeneratePoint<Node<3> >( 0.25, 0.50, 0.25)
+		);
+        
+        auto aabb_min = GeneratePoint<Node<3>>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<Node<3>>(2.0, 1.0, 1.0);
+
+		KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+    
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneZ, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point > triangle_1(
+			GeneratePoint<Node<3> >(-0.25, 0.25, 0.50),
+			GeneratePoint<Node<3> >(-0.25, 0.75, 0.50),
+			GeneratePoint<Node<3> >( 0.25, 0.25, 0.55)
+		);
+        
+        auto aabb_min = GeneratePoint<Node<3>>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<Node<3>>(2.0, 1.0, 1.0);
+
+		KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneX, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point > triangle_1(
+			GeneratePoint<Node<3> >(0.55, -0.25, 0.25),
+			GeneratePoint<Node<3> >(0.50, -0.25, 0.75),
+			GeneratePoint<Node<3> >(0.50,  0.25, 0.25)
+		);
+        
+        auto aabb_min = GeneratePoint<Node<3>>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<Node<3>>(1.0, 2.0, 1.0);
+
+		KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+    
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneY, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point > triangle_1(
+			GeneratePoint<Node<3> >(-0.25, 0.50, 0.25),
+			GeneratePoint<Node<3> >(-0.25, 0.55, 0.75),
+			GeneratePoint<Node<3> >( 0.25, 0.50, 0.25)
+		);
+        
+        auto aabb_min = GeneratePoint<Node<3>>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<Node<3>>(1.0, 2.0, 1.0);
+
+		KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+    
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneZ, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point > triangle_1(
+			GeneratePoint<Node<3> >(-0.25, 0.25, 0.50),
+			GeneratePoint<Node<3> >(-0.25, 0.75, 0.50),
+			GeneratePoint<Node<3> >( 0.25, 0.25, 0.55)
+		);
+        
+        auto aabb_min = GeneratePoint<Node<3>>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<Node<3>>(1.0, 2.0, 1.0);
+
+		KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneX, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point > triangle_1(
+			GeneratePoint<Node<3> >(0.55, -0.25, 0.25),
+			GeneratePoint<Node<3> >(0.50, -0.25, 0.75),
+			GeneratePoint<Node<3> >(0.50,  0.25, 0.25)
+		);
+        
+        auto aabb_min = GeneratePoint<Node<3>>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<Node<3>>(1.0, 1.0, 2.0);
+
+		KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+    
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneY, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point > triangle_1(
+			GeneratePoint<Node<3> >(-0.25, 0.50, 0.25),
+			GeneratePoint<Node<3> >(-0.25, 0.55, 0.75),
+			GeneratePoint<Node<3> >( 0.25, 0.50, 0.25)
+		);
+        
+        auto aabb_min = GeneratePoint<Node<3>>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<Node<3>>(1.0, 1.0, 2.0);
+
+		KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+    
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneZ, KratosCoreGeometriesFastSuite) {
+		Triangle3D3<Point > triangle_1(
+			GeneratePoint<Node<3> >(-0.25, 0.25, 0.50),
+			GeneratePoint<Node<3> >(-0.25, 0.75, 0.50),
+			GeneratePoint<Node<3> >( 0.25, 0.25, 0.55)
+		);
+        
+        auto aabb_min = GeneratePoint<Node<3>>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<Node<3>>(1.0, 1.0, 2.0);
+
+		KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
