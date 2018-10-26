@@ -101,7 +101,9 @@ class MonteCarloAnalysis(AnalysisStage):
 #     return sample
 
 
-def GenerateBetaSample(alpha,beta):
+def GenerateBetaSample():
+    alpha = 2.0
+    beta = 6.0
     number_samples = 1
     sample = np.random.beta(alpha,beta,number_samples)
     return sample
@@ -132,7 +134,8 @@ def update_onepass_M(sample, old_mean, old_M2, nsam):
     else:
         new_mean = old_mean + np.divide(delta,nsam)
         new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
-    return new_mean, new_M2
+    new_sample_variance = compute_sample_variance_from_M2(new_M2,nsam)
+    return new_mean, new_M2, new_sample_variance
 
 
 def compute_sample_variance_from_M2(M2,nsam):
@@ -140,36 +143,38 @@ def compute_sample_variance_from_M2(M2,nsam):
     return sample_variance
 
 
-@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN, returns=4)
+#@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN, returns=4)
+# def execution_task(model_part_file_name, parameter_file_name):
+#     with open(parameter_file_name,'r') as parameter_file:
+#         parameters = KratosMultiphysics.Parameters(parameter_file.read())
+#     local_parameters = parameters # in case there are more parameters file, we rename them
+#     model = KratosMultiphysics.Model()      
+
+#     local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
+#     alpha = 2.0
+#     beta = 6.0
+#     sample = GenerateBetaSample(alpha,beta)
+#     simulation = MonteCarloAnalysis(model,local_parameters, sample)
+#     simulation.Run() 
+#     QoI =  EvaluateQuantityOfInterest(simulation)
+#     KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
+#     node_information = []
+#     for node in simulation._GetSolver().main_model_part.Nodes:
+#         node_information.append([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA), node.X, node.Y])
+#     return 1, QoI, node_information, simulation.sample
+
+@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN, returns=1)
 def execution_task(model_part_file_name, parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters # in case there are more parameters file, we rename them
-    model = KratosMultiphysics.Model()      
-
-    local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
-    alpha = 2.0
-    beta = 6.0
-    sample = GenerateBetaSample(alpha,beta)
-    simulation = MonteCarloAnalysis(model,local_parameters, sample)
-    simulation.Run() 
+    model = KratosMultiphysics.Model()
+    # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
+    sample = GenerateBetaSample()
+    simulation = MonteCarloAnalysis(model,local_parameters,sample)
+    simulation.Run()
     QoI =  EvaluateQuantityOfInterest(simulation)
-    KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
-    node_information = []
-    for node in simulation._GetSolver().main_model_part.Nodes:
-        node_information.append([node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA), node.X, node.Y])
-    return 1, QoI, node_information, simulation.sample
-
-
-# def execution_task(parameter_file_name, sample):
-#     with open(parameter_file_name,'r') as parameter_file:
-#         parameters = KratosMultiphysics.Parameters(parameter_file.read())
-#     local_parameters = parameters # in case there are more parameters file, we rename them
-#     model = KratosMultiphysics.Model()
-#     simulation = MultilevelMonteCarloAnalysis(model,local_parameters,sample)
-#     simulation.Run()
-#     QoI =  EvaluateQuantityOfInterest(simulation)
-# return QoI
+    return QoI
 
 
 # @task(returns=2)
@@ -222,78 +227,78 @@ if __name__ == '__main__':
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters # in case there are more parameters file, we rename them
     '''Read the number of cycles of the Monte Carlo algorithm from the .json file'''
-    instances = local_parameters["problem_data"]["number_samples"].GetInt()
+    number_samples = local_parameters["problem_data"]["number_samples"].GetInt()
     
-    instances = 5
+    number_samples = 5
     Qlist = []
     run_results = []
 
     '''evaluate the exact expected value of Q (sample = 1.0)'''
     ExactExpectedValueQoI = exact_execution_task(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name)
     
-    for instance in range (0,instances):
+    for instance in range (0,number_samples):
 #        model = KratosMultiphysics.Model()      
 #        sample = GenerateStochasticContribute(local_parameters)
 #        simulation = MonteCarloAnalysis(model,local_parameters,sample)
 #        simulation.Run()
 #        QoI =  EvaluateQuantityOfInterest(simulation)
 #        Qlist.append(QoI)
-        run_results.append(execution_task(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name))
+        Qlist.append(execution_task(local_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name))
         
     
-    for elem in run_results:
+    '''The following lines compute the mean using the mean_task function'''
+    # for elem in Qlist:
         #curr_elem = compss_wait_on(elem[0])
-        Qlist.append(elem[0])
-        Qlist.append(elem[1])
+        # Qlist_aux.append(1)
+        # Qlist_aux.append(elem)
 
-    chunk_size = 4
-    ## use this second while loop if you want to append at the end of Qlist the mean value you evaluate
-    while len(Qlist) > 2:
-        newQlist = Qlist[2*chunk_size:]
-        card, val = mean_task(*Qlist[0:2*chunk_size])
-        newQlist.append(card)
-        newQlist.append(val)
-        Qlist = newQlist
-    ## use this second while loop if you want to append at the beginning of Qlist the mean value you evaluate
-    # while len(Qlist) > 2:
-    #     card, val = mean_task(*Qlist[0:2*chunk_size])
+    # chunk_size = 4
+    '''use this second while loop if you want to append at the end of Qlist the mean value you evaluate'''
+    # while len(Qlist_aux) > 2:
+    #     newQlist = Qlist_aux[2*chunk_size:]
+    #     card, val = mean_task(*Qlist_aux[0:2*chunk_size])
+    #     newQlist.append(card)
+    #     newQlist.append(val)
+    #     Qlist_aux = newQlist
+    '''use this second while loop if you want to append at the beginning of Qlist the mean value you evaluate'''
+    # while len(Qlist_aux) > 2:
+    #     card, val = mean_task(*Qlist_aux[0:2*chunk_size])
     #     newQlist = []
     #     newQlist.append(card)
     #     newQlist.append(val)
-    #     newQlist.extend(Qlist[2*chunk_size:])
-    #     Qlist = newQlist
-    # variance = CalcVariance(Qlist,mean)
-    # print("Variance value QoI:",variance)
-    print("Size of Qlist: " + str(len(Qlist)) + " " + str(Qlist))
-    mean = Qlist[1]
-    
-    ## evaluate now the exact expected value of Q (sample = 1.0)
-    # model = KratosMultiphysics.Model()
-    # sample = 1.0
-    # simulation = MonteCarloAnalysis(model,local_parameters, sample)
-    # simulation.Run()
-    # ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
-    
-    print("")
-    print("!!!Evaluation of the relative error between the computed mean value and the expected value of the QoI!!!")
-    relative_error = compare_mean(mean,ExactExpectedValueQoI)
+    #     newQlist.extend(Qlist_aux[2*chunk_size:])
+    #     Qlist_aux = newQlist
+
+    # print("Size of Qlist_aux: " + str(len(Qlist_aux)) + " " + str(Qlist_aux))
+    # mean = Qlist_aux[1]
+
+    '''Compute mean, second moment and sample variance'''
+    MC_mean = 0.0
+    MC_second_moment = 0.0
+    for i in range (0,number_samples):
+        nsam = i+1
+        MC_mean, MC_second_moment, MC_variance = update_onepass_M(Qlist[i], MC_mean, MC_second_moment, nsam)
+    '''Evaluation of the relative error between the computed mean value and the expected value of the QoI'''
+    relative_error = compare_mean(MC_mean,ExactExpectedValueQoI)
     # print("Values QoI:",Qlist)
-    mean = compss_wait_on(mean)
+    MC_mean = compss_wait_on(MC_mean)
     ExactExpectedValueQoI = compss_wait_on(ExactExpectedValueQoI)
     relative_error = compss_wait_on(relative_error)
-    print("stochastic mean = ",mean,"exact mean = ",ExactExpectedValueQoI)
+    print("\nMC mean = ",MC_mean,"exact mean = ",ExactExpectedValueQoI)
     print("relative error: ",relative_error)
-    print("")
 
 
     """ The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
     Analytical solution available in case FORCING = sample * -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)"""
-    # print("!!!Evaluation of the L2 relative error between the numerical and the analytical solutions!!!")
+    # model = KratosMultiphysics.Model()
+    # sample = 1.0
+    # simulation = MonteCarloAnalysis(model,local_parameters,sample)
+    # simulation.Run()
     # KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
     # error = 0.0
     # L2norm_analyticalsolution = 0.0
     # for node in simulation._GetSolver().main_model_part.Nodes:
-    #     local_error = ((node.GetSolutionStepValue(Poisson.SOLUTION) - (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5))**2) * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+    #     local_error = ((node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5))**2) * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
     #     error = error + local_error
     #     local_analyticalsolution = (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5)**2 * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
     #     L2norm_analyticalsolution = L2norm_analyticalsolution + local_analyticalsolution
