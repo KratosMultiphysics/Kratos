@@ -20,7 +20,7 @@ Steps to reproduce the bug (if possible). Add any custom example files here if t
 A clear and concise description of what you expected to happen.
 
 **Environment**
-Please specify your operating system, kratos branch and python version and any other library versions that you consider relevant.
+Please specify your operating system, kratos branch, python version and any other library versions that you consider relevant.
 Ex:
 - OS: Ubuntu 18.04
 - Branch: master
