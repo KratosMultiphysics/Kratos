@@ -54,10 +54,9 @@
 
 namespace Kratos
 {
-
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -108,32 +107,32 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
 
     // Residual Based Newton Raphson Contact Strategy
-    class_< ResidualBasedNewtonRaphsonContactStrategyType,
-            typename ResidualBasedNewtonRaphsonContactStrategyType::Pointer,
-            BaseSolvingStrategyType  >  (m, "ResidualBasedNewtonRaphsonContactStrategy")
-            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
-            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType>())
-            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType, ProcessesListType>())
-            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
-            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType>())
-            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType, ProcessesListType>())
-            .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
-            .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
-            .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
-            .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
-            ;
+    py::class_< ResidualBasedNewtonRaphsonContactStrategyType,
+        typename ResidualBasedNewtonRaphsonContactStrategyType::Pointer,
+        BaseSolvingStrategyType  >  (m, "ResidualBasedNewtonRaphsonContactStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType>())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType, ProcessesListType>())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType>())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType, ProcessesListType>())
+        .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
+        .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
+        .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
+        .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
+        ;
 
     // Line search Contact Strategy
-    class_< LineSearchContactStrategyType,
-            typename LineSearchContactStrategyType::Pointer,
-            BaseSolvingStrategyType  >(m, "LineSearchContactStrategy")
-            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
-            .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
-            .def("SetMaxIterationNumber", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
-            .def("GetMaxIterationNumber", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
-            .def("SetKeepSystemConstantDuringIterations", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
-            .def("GetKeepSystemConstantDuringIterations", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
-            ;
+    py::class_< LineSearchContactStrategyType,
+        typename LineSearchContactStrategyType::Pointer,
+        BaseSolvingStrategyType  >(m, "LineSearchContactStrategy")
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+        .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
+        .def("SetMaxIterationNumber", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
+        .def("GetMaxIterationNumber", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
+        .def("SetKeepSystemConstantDuringIterations", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
+        .def("GetKeepSystemConstantDuringIterations", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
+        ;
 
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
@@ -144,117 +143,117 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
 
     // Custom mortar and criteria
-    class_< MortarAndConvergenceCriteriaType, typename MortarAndConvergenceCriteriaType::Pointer,
-            ConvergenceCriteriaType >
-            (m, "MortarAndConvergenceCriteria")
-            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
-            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer, bool>())
-            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer, bool, ConditionNumberUtilityPointerType>())
-            ;
+    py::class_< MortarAndConvergenceCriteriaType, typename MortarAndConvergenceCriteriaType::Pointer,
+        ConvergenceCriteriaType >
+        (m, "MortarAndConvergenceCriteria")
+        .def(py::init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
+        .def(py::init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer, bool>())
+        .def(py::init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer, bool, ConditionNumberUtilityPointerType>())
+        ;
 
     // Weighted residual values update
-    class_< MeshTyingMortarConvergenceCriteriaType, typename MeshTyingMortarConvergenceCriteriaType::Pointer,
-            ConvergenceCriteriaType >
-            (m, "MeshTyingMortarConvergenceCriteria")
-            .def(init< >())
-            ;
+    py::class_< MeshTyingMortarConvergenceCriteriaType, typename MeshTyingMortarConvergenceCriteriaType::Pointer,
+        ConvergenceCriteriaType >
+        (m, "MeshTyingMortarConvergenceCriteria")
+        .def(py::init< >())
+        ;
 
     // Dual set strategy for SSNM Convergence Criterion (frictionless case)
-    class_< ALMFrictionlessMortarConvergenceCriteriaType, typename ALMFrictionlessMortarConvergenceCriteriaType::Pointer,
-            ConvergenceCriteriaType >
-            (m, "ALMFrictionlessMortarConvergenceCriteria")
-            .def(init< >())
-            .def(init<bool>())
-            .def(init<bool, bool>())
-            ;
+    py::class_< ALMFrictionlessMortarConvergenceCriteriaType, typename ALMFrictionlessMortarConvergenceCriteriaType::Pointer,
+        ConvergenceCriteriaType >
+        (m, "ALMFrictionlessMortarConvergenceCriteria")
+        .def(py::init< >())
+        .def(py::init<bool>())
+        .def(py::init<bool, bool>())
+        ;
 
     // Dual set strategy for SSNM Convergence Criterion (frictionless components case)
-    class_< ALMFrictionlessComponentsMortarConvergenceCriteriaType, typename ALMFrictionlessComponentsMortarConvergenceCriteriaType::Pointer,
-            ConvergenceCriteriaType >
-            (m, "ALMFrictionlessComponentsMortarConvergenceCriteria")
-            .def(init< >())
-            .def(init<bool>())
-            .def(init<bool, bool>())
-            ;
+    py::class_< ALMFrictionlessComponentsMortarConvergenceCriteriaType, typename ALMFrictionlessComponentsMortarConvergenceCriteriaType::Pointer,
+        ConvergenceCriteriaType >
+        (m, "ALMFrictionlessComponentsMortarConvergenceCriteria")
+        .def(py::init< >())
+        .def(py::init<bool>())
+        .def(py::init<bool, bool>())
+        ;
 
     // Dual set strategy for SSNM Convergence Criterion (frictional case)
-    class_< ALMFrictionalMortarConvergenceCriteriaType, typename ALMFrictionalMortarConvergenceCriteriaType::Pointer,
-            ConvergenceCriteriaType >
-            (m, "ALMFrictionalMortarConvergenceCriteria")
-            .def(init< >())
-            .def(init<bool>())
-            .def(init<bool, bool>())
-            ;
+    py::class_< ALMFrictionalMortarConvergenceCriteriaType, typename ALMFrictionalMortarConvergenceCriteriaType::Pointer,
+        ConvergenceCriteriaType >
+        (m, "ALMFrictionalMortarConvergenceCriteria")
+        .def(py::init< >())
+        .def(py::init<bool>())
+        .def(py::init<bool, bool>())
+        ;
 
     // Displacement and lagrange multiplier Convergence Criterion
-    class_< DisplacementLagrangeMultiplierContactCriteriaType, typename DisplacementLagrangeMultiplierContactCriteriaType::Pointer,
-            ConvergenceCriteriaType >
-            (m, "DisplacementLagrangeMultiplierContactCriteria")
-            .def(init<>())
-            .def(init<Parameters>())
-            .def(init< double, double, double, double >())
-            .def(init< double, double, double, double, bool >())
-            .def(init< double, double, double, double, bool, bool >())
-            ;
+    py::class_< DisplacementLagrangeMultiplierContactCriteriaType, typename DisplacementLagrangeMultiplierContactCriteriaType::Pointer,
+        ConvergenceCriteriaType >
+        (m, "DisplacementLagrangeMultiplierContactCriteria")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        .def(py::init< double, double, double, double >())
+        .def(py::init< double, double, double, double, bool >())
+        .def(py::init< double, double, double, double, bool, bool >())
+        ;
 
     // Displacement and lagrange multiplier Convergence Criterion (frictional)
-    class_< DisplacementLagrangeMultiplierFrictionalContactCriteriaType, typename DisplacementLagrangeMultiplierFrictionalContactCriteriaType::Pointer,
-            ConvergenceCriteriaType >
-            (m, "DisplacementLagrangeMultiplierFrictionalContactCriteria")
-            .def(init<>())
-            .def(init<Parameters>())
-            .def(init< double, double, double, double, double, double  >())
-            .def(init< double, double, double, double, double, double , bool >())
-            .def(init< double, double, double, double, double, double , bool, bool >())
-            ;
+    py::class_< DisplacementLagrangeMultiplierFrictionalContactCriteriaType, typename DisplacementLagrangeMultiplierFrictionalContactCriteriaType::Pointer,
+        ConvergenceCriteriaType >
+        (m, "DisplacementLagrangeMultiplierFrictionalContactCriteria")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        .def(py::init< double, double, double, double, double, double  >())
+        .def(py::init< double, double, double, double, double, double , bool >())
+        .def(py::init< double, double, double, double, double, double , bool, bool >())
+        ;
             
     // Displacement and lagrange multiplier mixed Convergence Criterion
-    class_< DisplacementLagrangeMultiplierMixedContactCriteriaType, typename DisplacementLagrangeMultiplierMixedContactCriteriaType::Pointer,
-            ConvergenceCriteriaType >
-            (m, "DisplacementLagrangeMultiplierMixedContactCriteria")
-            .def(init<>())
-            .def(init<Parameters>())
-            .def(init< double, double, double, double >())
-            .def(init< double, double, double, double, bool >())
-            .def(init< double, double, double, double, bool, bool >())
-            ;
+    py::class_< DisplacementLagrangeMultiplierMixedContactCriteriaType, typename DisplacementLagrangeMultiplierMixedContactCriteriaType::Pointer,
+        ConvergenceCriteriaType >
+        (m, "DisplacementLagrangeMultiplierMixedContactCriteria")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        .def(py::init< double, double, double, double >())
+        .def(py::init< double, double, double, double, bool >())
+        .def(py::init< double, double, double, double, bool, bool >())
+        ;
   
     // Displacement and lagrange multiplier mixed Convergence Criterion (frictional)
-    class_< DisplacementLagrangeMultiplierMixedFrictionalContactCriteriaType, typename DisplacementLagrangeMultiplierMixedFrictionalContactCriteriaType::Pointer,
-            ConvergenceCriteriaType >
-            (m, "DisplacementLagrangeMultiplierMixedFrictionalContactCriteria")
-            .def(init<>())
-            .def(init<Parameters>())
-            .def(init< double, double, double, double, double, double >())
-            .def(init< double, double, double, double, double, double, bool >())
-            .def(init< double, double, double, double, double, double, bool, bool >())
-            ;
+    py::class_< DisplacementLagrangeMultiplierMixedFrictionalContactCriteriaType, typename DisplacementLagrangeMultiplierMixedFrictionalContactCriteriaType::Pointer,
+        ConvergenceCriteriaType >
+        (m, "DisplacementLagrangeMultiplierMixedFrictionalContactCriteria")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        .def(py::init< double, double, double, double, double, double >())
+        .def(py::init< double, double, double, double, double, double, bool >())
+        .def(py::init< double, double, double, double, double, double, bool, bool >())
+        ;
             
     // Displacement and lagrange multiplier residual Convergence Criterion
-    class_< DisplacementLagrangeMultiplierResidualContactCriteriaType, typename DisplacementLagrangeMultiplierResidualContactCriteriaType::Pointer,
-            ConvergenceCriteriaType >
-            (m, "DisplacementLagrangeMultiplierResidualContactCriteria")
-            .def(init<>())
-            .def(init<Parameters>())
-            .def(init< double, double, double, double >())
-            .def(init< double, double, double, double, bool >())
-            .def(init< double, double, double, double, bool, bool >())
-            ;
+    py::class_< DisplacementLagrangeMultiplierResidualContactCriteriaType, typename DisplacementLagrangeMultiplierResidualContactCriteriaType::Pointer,
+        ConvergenceCriteriaType >
+        (m, "DisplacementLagrangeMultiplierResidualContactCriteria")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        .def(py::init< double, double, double, double >())
+        .def(py::init< double, double, double, double, bool >())
+        .def(py::init< double, double, double, double, bool, bool >())
+        ;
 
     // Displacement and lagrange multiplier residual Convergence Criterion (frictional)
     class_< DisplacementLagrangeMultiplierResidualFrictionalContactCriteriaType, typename DisplacementLagrangeMultiplierResidualFrictionalContactCriteriaType::Pointer,
-            ConvergenceCriteriaType >
-            (m, "DisplacementLagrangeMultiplierResidualFrictionalContactCriteria")
-            .def(init<>())
-            .def(init<Parameters>())
-            .def(init< double, double, double, double, double, double >())
-            .def(init< double, double, double, double, double, double , bool >())
-            .def(init< double, double, double, double, double, double , bool, bool >())
-            ;
+        ConvergenceCriteriaType >
+        (m, "DisplacementLagrangeMultiplierResidualFrictionalContactCriteria")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        .def(py::init< double, double, double, double, double, double >())
+        .def(py::init< double, double, double, double, double, double , bool >())
+        .def(py::init< double, double, double, double, double, double , bool, bool >())
+        ;
             
     // Error mesh Convergence Criterion
-    class_< ContactErrorMeshCriteriaType, typename ContactErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ContactErrorMeshCriteria")
-    .def(init<Parameters>())
+    py::class_< ContactErrorMeshCriteriaType, typename ContactErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ContactErrorMeshCriteria")
+    .def(py::init<Parameters>())
     ;
 
     //********************************************************************
@@ -262,12 +261,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
 
     // Contact block builder and solver
-    class_< ContactResidualBasedBlockBuilderAndSolverType, ContactResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolver")
-    .def(init< LinearSolverType::Pointer > ());
+    py::class_< ContactResidualBasedBlockBuilderAndSolverType, ContactResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer > ());
 
     // Contact block buiklder and sokver with constraints
-    class_< ContactResidualBasedBlockBuilderAndSolverWithConstraintsType, ContactResidualBasedBlockBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolverWithConstraints")
-    .def(init< LinearSolverType::Pointer > ());
+    py::class_< ContactResidualBasedBlockBuilderAndSolverWithConstraintsType, ContactResidualBasedBlockBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolverWithConstraints")
+    .def(py::init< LinearSolverType::Pointer > ());
 }
 
 }  // namespace Python.
