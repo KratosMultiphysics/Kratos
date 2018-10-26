@@ -2,22 +2,14 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import KratosMultiphysics
 
+def CreateSolverByParameters(model, solver_settings, parallelism):
 
-def CreateSolver(model, custom_settings):
-
-    if (type(model) != KratosMultiphysics.Model):
-        raise Exception("input is expected to be provided as a Kratos Model object")
-
-    if (type(custom_settings) != KratosMultiphysics.Parameters):
-        raise Exception("input is expected to be provided as a Kratos Parameters object")
-
-    parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
-    solver_type = custom_settings["solver_settings"]["solver_type"].GetString()
+    solver_type = solver_settings["solver_type"].GetString()
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
         if (solver_type == "dynamic" or solver_type == "Dynamic"):
-            time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
+            time_integration_method = solver_settings["time_integration_method"].GetString()
             if (time_integration_method == "implicit"):
                 solver_module_name = "structural_mechanics_implicit_dynamic_solver"
             elif ( time_integration_method == "explicit"):
@@ -50,7 +42,7 @@ def CreateSolver(model, custom_settings):
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
         if (solver_type == "dynamic" or solver_type == "Dynamic"):
-            time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
+            time_integration_method = solver_settings["time_integration_method"].GetString()
             if (time_integration_method == "implicit"):
                 solver_module_name = "trilinos_structural_mechanics_implicit_dynamic_solver"
             else:
@@ -71,10 +63,24 @@ def CreateSolver(model, custom_settings):
         raise Exception(err_msg)
 
     # Remove settings that are not needed any more
-    custom_settings["solver_settings"].RemoveValue("solver_type")
-    custom_settings["solver_settings"].RemoveValue("time_integration_method") # does not throw even if the value is not existing
+    solver_settings.RemoveValue("solver_type")
+    solver_settings.RemoveValue("time_integration_method") # does not throw even if the value is not existing
 
     solver_module = __import__(solver_module_name)
-    solver = solver_module.CreateSolver(model, custom_settings["solver_settings"])
+    solver = solver_module.CreateSolver(model, solver_settings)
 
     return solver
+
+
+def CreateSolver(model, custom_settings):
+
+    if (type(model) != KratosMultiphysics.Model):
+        raise Exception("input is expected to be provided as a Kratos Model object")#
+
+    if (type(custom_settings) != KratosMultiphysics.Parameters):
+        raise Exception("input is expected to be provided as a Kratos Parameters object")
+
+    solver_settings = custom_settings["solver_settings"]
+    parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
+
+    return CreateSolverByParameters(model, solver_settings, parallelism)
