@@ -57,6 +57,8 @@
 #include "includes/deprecated_variables.h"
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
+#include "includes/standard_linear_solver_factory.h"
+#include "includes/standard_preconditioner_factory.h"
 
 #include "includes/kratos_flags.h"
 #include "utilities/indirect_scalar.h"
@@ -1004,6 +1006,9 @@ void KratosApplication::RegisterVariables() {
 
     KRATOS_REGISTER_VARIABLE(TABLE_UTILITY)
 
+    // Register linear solvers and preconditioners
+    RegisterLinearSolvers();
+    RegisterPreconditioners();
 
     //Register objects with general definition
     Serializer::Register("Node", NodeType());

@@ -43,7 +43,7 @@ void  AddProcessInfoToPython(pybind11::module& m)
     .def(init<>())
     .def("CreateSolutionStepInfo", &ProcessInfo::CreateSolutionStepInfo)
 	.def("GetPreviousSolutionStepInfo", ProcessInfoGetPreviousSolutionStepInfo)
-    .def("__repr__", &ProcessInfo::Info)
+    .def("__str__", PrintObject<ProcessInfo>)
     ;
 }
 }  // namespace Python.

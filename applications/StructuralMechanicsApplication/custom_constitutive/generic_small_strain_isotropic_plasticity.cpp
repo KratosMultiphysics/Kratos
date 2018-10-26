@@ -372,9 +372,19 @@ template <class TConstLawIntegratorType>
 double& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
-    double& rValue)
+    double& rValue
+    )
 {
-    return this->GetValue(rThisVariable, rValue);
+    if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
+        const Vector& r_stress_vector = rParameterValues.GetStressVector();
+        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(r_stress_vector, mUniaxialStress, mPlasticStrain, 0.0, rParameterValues, rValue);
+
+        return rValue;
+    } else {
+        return this->GetValue(rThisVariable, rValue);
+    }
+
+    return rValue;
 }
 
 /***********************************************************************************/
