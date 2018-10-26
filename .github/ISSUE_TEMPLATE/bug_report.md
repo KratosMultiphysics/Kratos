@@ -5,7 +5,7 @@ about: Create a report to help us improve
 ---
 
 **Scope of the bug**
-Where in Kratos is this bug happening. Ex
+Where in Kratos is this bug happening. E.g.,
 - Compilation
 - KratosCore
 - FooApplication
