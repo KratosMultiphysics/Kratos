@@ -100,9 +100,7 @@ void MultiscaleRefiningProcess::ExecuteRefinement()
     model_part_collection.ComputeTags(node_tag, cond_tag, elem_tag, mCollections);
 
     // Get the Id's
-    IndexType node_id;
-    IndexType elem_id;
-    IndexType cond_id;
+    IndexType node_id, elem_id, cond_id;
     GetLastId(node_id, elem_id, cond_id);
 
     // Clone the nodes and set the nodal flags
