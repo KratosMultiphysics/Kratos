@@ -99,6 +99,16 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ResidualBasedLinearStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart, ThisParameters["move_mesh_flag"].GetBool())
+    {
+    }
+
+    /**
      * Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
@@ -108,7 +118,7 @@ public:
      * @param CalculateNormDxFlag The flag sets if the norm of Dx is computed
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ResidualBasedLinearStrategy(
+    explicit ResidualBasedLinearStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,

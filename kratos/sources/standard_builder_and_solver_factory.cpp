@@ -33,7 +33,7 @@ namespace Kratos
         typedef TUblasDenseSpace<double> LocalSpaceType;
         typedef LinearSolver<SpaceType, LocalSpaceType> LinearSolverType;
 
-//         typedef BuilderAndSolver<SpaceType,  LocalSpaceType> BuilderAndSolverType;
+//         typedef BuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> BuilderAndSolverType;
         typedef ResidualBasedEliminationBuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverType;
         typedef ResidualBasedBlockBuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverType;
         typedef ResidualBasedBlockBuilderAndSolverWithConstraints<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverWithConstraintsType;
@@ -47,8 +47,11 @@ namespace Kratos
         // Registration of convergence solvers
 //         KRATOS_REGISTER_BUILDER_AND_SOLVER("BuilderAndSolver", BuilderAndSolverFactory);
         KRATOS_REGISTER_BUILDER_AND_SOLVER("ResidualBasedEliminationBuilderAndSolver", ResidualBasedEliminationBuilderAndSolverFactory);
+        KRATOS_REGISTER_BUILDER_AND_SOLVER("elimination_builder_and_solver", ResidualBasedEliminationBuilderAndSolverFactory);
         KRATOS_REGISTER_BUILDER_AND_SOLVER("ResidualBasedBlockBuilderAndSolver", ResidualBasedBlockBuilderAndSolverFactory);
+        KRATOS_REGISTER_BUILDER_AND_SOLVER("block_builder_and_solver", ResidualBasedBlockBuilderAndSolverFactory);
         KRATOS_REGISTER_BUILDER_AND_SOLVER("ResidualBasedBlockBuilderAndSolverWithConstraints", ResidualBasedBlockBuilderAndSolverWithConstraintsFactory);
+        KRATOS_REGISTER_BUILDER_AND_SOLVER("block_builder_and_solver_with_constraints", ResidualBasedBlockBuilderAndSolverWithConstraintsFactory);
     };
 } // Namespace Kratos
 

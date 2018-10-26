@@ -127,9 +127,19 @@ public:
     */
     /*@{ */
 
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit AdaptiveResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart, ThisParameters["move_mesh_flag"].GetBool())
+    {
+    }
+
     /** Constructor.
     */
-    AdaptiveResidualBasedNewtonRaphsonStrategy(
+    explicit AdaptiveResidualBasedNewtonRaphsonStrategy(
         ModelPart& model_part,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,

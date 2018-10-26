@@ -117,14 +117,22 @@ public:
 
     ///@}
     ///@name Life Cycle
-
     ///@{
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit LineSearchStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart, ThisParameters["move_mesh_flag"].GetBool())
+    {
+    }
 
     /**
      * Constructor.
      */
-
-    LineSearchStrategy(
+    explicit LineSearchStrategy(
         ModelPart& model_part,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,

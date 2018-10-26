@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:
 //
@@ -51,45 +51,45 @@ namespace Kratos
  class ExplicitStrategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
      {
 
-	  public:
+      public:
 
-	  KRATOS_CLASS_POINTER_DEFINITION(ExplicitStrategy);
+      KRATOS_CLASS_POINTER_DEFINITION(ExplicitStrategy);
 
-	  typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+      typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
-	  typedef typename BaseType::TDataType TDataType;
+      typedef typename BaseType::TDataType TDataType;
 
-	  typedef TSparseSpace SparseSpaceType;
+      typedef TSparseSpace SparseSpaceType;
 
-	  typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+      typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
-	  typedef typename BaseType::TSchemeType TSchemeType;
+      typedef typename BaseType::TSchemeType TSchemeType;
 
-	  typedef typename BaseType::DofsArrayType DofsArrayType;
+      typedef typename BaseType::DofsArrayType DofsArrayType;
 
-	  typedef typename Element::DofsVectorType DofsVectorType;
+      typedef typename Element::DofsVectorType DofsVectorType;
 
-	  typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+      typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
-	  typedef typename BaseType::TSystemVectorType TSystemVectorType;
+      typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-	  typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+      typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
-	  typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+      typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-	  typedef ModelPart::NodesContainerType NodesArrayType;
+      typedef ModelPart::NodesContainerType NodesArrayType;
 
-	  typedef ModelPart::ElementsContainerType ElementsArrayType;
+      typedef ModelPart::ElementsContainerType ElementsArrayType;
 
-	  typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+      typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
-	  typedef ModelPart::ConditionsContainerType::ContainerType ConditionsContainerType;
+      typedef ModelPart::ConditionsContainerType::ContainerType ConditionsContainerType;
 
-	  typedef ConditionsContainerType::iterator                 ConditionsContainerIterator;
+      typedef ConditionsContainerType::iterator                 ConditionsContainerIterator;
 
-	  typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+      typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
 
-	  typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+      typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
           typedef ModelPart::PropertiesType PropertiesType;
 
@@ -102,23 +102,34 @@ namespace Kratos
           //typedef WeakPointerVector<Element >::iterator ParticleWeakIterator;
 
 
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ExplicitStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart, ThisParameters["move_mesh_flag"].GetBool())
+    {
+    }
 
+    /**
+     * @brief Constructor.
+     */
+    explicit ExplicitStrategy(
+                    ModelPart& model_part,
+            const int        dimension,
+            const bool       move_mesh_flag
+            )
 
-	  ExplicitStrategy(
-	                ModelPart& model_part,
-			const int        dimension,
-			const bool       move_mesh_flag
-			)
-
-	  : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, move_mesh_flag)
-	      {
-			std::cout<< "*************************************"<< std::endl;
-	        std::cout <<"*   EXPLICIT CALCULATIONS STRATEGY  *"<< std::endl;
+      : BaseType(model_part, move_mesh_flag)
+          {
+            std::cout<< "*************************************"<< std::endl;
+            std::cout <<"*   EXPLICIT CALCULATIONS STRATEGY  *"<< std::endl;
             std::cout<< "*************************************"<< std::endl;
 
-	      }
+          }
 
-	  ~ExplicitStrategy () override {}
+      ~ExplicitStrategy () override {}
 
 
 
@@ -128,31 +139,31 @@ namespace Kratos
 void AssembleLoop()
 {
 
-	KRATOS_TRY
-	ModelPart& r_model_part = BaseType::GetModelPart();
-	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-	ElementsArrayType& pElements = r_model_part.Elements();
+    KRATOS_TRY
+    ModelPart& r_model_part = BaseType::GetModelPart();
+    ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+    ElementsArrayType& pElements = r_model_part.Elements();
 
 
-	typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() ;
-	typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
-	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
-	{
-	  //	Element::GeometryType& geom = it->GetGeometry();
+    typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() ;
+    typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
+    for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+    {
+      //    Element::GeometryType& geom = it->GetGeometry();
 
-	   //for (unsigned int i = 0; i < geom.size(); i++)
-	   //			 geom(i)->SetLock();
-
-
-		it->AddExplicitContribution(CurrentProcessInfo);
-
-	   //for (unsigned int i = 0; i < geom.size(); i++)
-	   //			 geom(i)->UnSetLock();
-
-	}
+       //for (unsigned int i = 0; i < geom.size(); i++)
+       //             geom(i)->SetLock();
 
 
-	KRATOS_CATCH("")
+        it->AddExplicitContribution(CurrentProcessInfo);
+
+       //for (unsigned int i = 0; i < geom.size(); i++)
+       //             geom(i)->UnSetLock();
+
+    }
+
+
+    KRATOS_CATCH("")
 }
 
 //***************************************************************************
@@ -164,7 +175,7 @@ void NormalizeVariable(const Variable<array_1d<double, 3 > >& rRHSVariable, cons
 
       ModelPart& r_model_part  = BaseType::GetModelPart();
       NodesArrayType& pNodes   = r_model_part.Nodes();
-	  //const double delta_t = CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
+      //const double delta_t = CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
 
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -177,18 +188,18 @@ void NormalizeVariable(const Variable<array_1d<double, 3 > >& rRHSVariable, cons
 
       #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
-	{
-	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+    {
+      typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+      typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
       for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
-	  {
-		   array_1d<double,3>& node_rhs_variable = (i)->FastGetSolutionStepValue(rRHSVariable);
-		   double& normalization_variable = (i)->FastGetSolutionStepValue(rNormalizationVariable);
+      {
+           array_1d<double,3>& node_rhs_variable = (i)->FastGetSolutionStepValue(rRHSVariable);
+           double& normalization_variable = (i)->FastGetSolutionStepValue(rNormalizationVariable);
 
-		   node_rhs_variable /= normalization_variable;
-	  }
-	}
+           node_rhs_variable /= normalization_variable;
+      }
+    }
 
      KRATOS_CATCH("")
 }
@@ -199,7 +210,7 @@ void ExplicitUpdateLoop(const Variable<array_1d<double, 3 > >& rUpdateVariable, 
 
       ModelPart& r_model_part  = BaseType::GetModelPart();
       NodesArrayType& pNodes   = r_model_part.Nodes();
-	  //const double delta_t = CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
+      //const double delta_t = CurrentProcessInfo.GetValue(DELTA_TIME); //included in factor
 
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -212,18 +223,18 @@ void ExplicitUpdateLoop(const Variable<array_1d<double, 3 > >& rUpdateVariable, 
 
       #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
-	{
-	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+    {
+      typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+      typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
       for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
-	  {
-		   array_1d<double,3>& node_update_variable = (i)->FastGetSolutionStepValue(rUpdateVariable);
-		   array_1d<double,3>& node_rhs_variable = (i)->FastGetSolutionStepValue(rRHSVariable);
-		   noalias(node_update_variable) += factor* node_rhs_variable  ;
+      {
+           array_1d<double,3>& node_update_variable = (i)->FastGetSolutionStepValue(rUpdateVariable);
+           array_1d<double,3>& node_rhs_variable = (i)->FastGetSolutionStepValue(rRHSVariable);
+           noalias(node_update_variable) += factor* node_rhs_variable  ;
 
-	  }
-	}
+      }
+    }
 
      KRATOS_CATCH("")
 }
@@ -249,40 +260,40 @@ inline void CreatePartition(unsigned int number_of_threads, const int number_of_
   //********************************************
 void InitializeSolutionStep() override
 {
-	KRATOS_TRY
+    KRATOS_TRY
 
-	ModelPart& r_model_part = BaseType::GetModelPart();
-	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-	ElementsArrayType& pElements = r_model_part.Elements();
+    ModelPart& r_model_part = BaseType::GetModelPart();
+    ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+    ElementsArrayType& pElements = r_model_part.Elements();
 
 
-	typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() ;
-	typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
-	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
-	{
-		it->InitializeSolutionStep(CurrentProcessInfo);
-	}
+    typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() ;
+    typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
+    for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+    {
+        it->InitializeSolutionStep(CurrentProcessInfo);
+    }
 
-	KRATOS_CATCH("")
+    KRATOS_CATCH("")
 }
 
 void FinalizeSolutionStep() override
 {
-	KRATOS_TRY
+    KRATOS_TRY
 
-	ModelPart& r_model_part = BaseType::GetModelPart();
-	ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-	ElementsArrayType& pElements = r_model_part.Elements();
+    ModelPart& r_model_part = BaseType::GetModelPart();
+    ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+    ElementsArrayType& pElements = r_model_part.Elements();
 
 
-	typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() ;
-	typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
-	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
-	{
-		it->FinalizeSolutionStep(CurrentProcessInfo);
-	}
+    typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() ;
+    typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
+    for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+    {
+        it->FinalizeSolutionStep(CurrentProcessInfo);
+    }
 
-	KRATOS_CATCH("")
+    KRATOS_CATCH("")
 }
 
 };
