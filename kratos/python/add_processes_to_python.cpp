@@ -82,14 +82,14 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ExecuteBeforeOutputStep",&Process::ExecuteBeforeOutputStep)
     .def("ExecuteAfterOutputStep",&Process::ExecuteAfterOutputStep)
     .def("ExecuteFinalize",&Process::ExecuteFinalize)
-    .def("__repr__", &Process::Info)
+    .def("__str__", PrintObject<Process>)
     ;
 
     // Find NODAL_H (Historical variables stored)
     class_<FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>, FindNodalHProcess<FindNodalH::SaveAsHistoricalVariable>::Pointer, Process>(m,"FindNodalHProcess")
     .def(init<ModelPart&>())
     ;
-    
+
     // Find NODAL_H (Non-historical variables stored)
     class_<FindNodalHProcess<FindNodalH::SaveAsNonHistoricalVariable>, FindNodalHProcess<FindNodalH::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"FindNodalHNonHistoricalProcess")
     .def(init<ModelPart&>())

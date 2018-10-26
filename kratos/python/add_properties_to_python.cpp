@@ -177,7 +177,7 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("HasVariables", &Properties::HasVariables)
     .def("HasTables", &Properties::HasTables)
     .def("IsEmpty", &Properties::IsEmpty)
-    .def("__str__", KRATOS_DEF_PYTHON_STR(Properties))
+    .def("__str__", PrintObject<Properties>)
     ;
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");
