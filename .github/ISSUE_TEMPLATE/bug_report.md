@@ -11,7 +11,7 @@ Where in Kratos is this bug happening. E.g.,
 - FooApplication
 
 **Description of the bug**
-A clear and concise description of what the bug is.
+A clear and concise description of the bug.
 
 **To Reproduce**
 Steps to reproduce the bug (if possible). Add here any custom example files as well in case they are relevant.
