@@ -78,10 +78,6 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
     Matrix(AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other)
         : base_type(Other) {}
 
-    template <typename TExpressionType>
-    Matrix(AMatrix::MatrixExpression<TExpressionType, AMatrix::row_major_access> const& Other)
-        : base_type(Other) {}
-
     // template <typename TOtherMatrixType>
     // explicit Matrix(TOtherMatrixType const& Other) : base_type(Other) {}
 
@@ -91,14 +87,6 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
 	template <typename TExpressionType, std::size_t TCategory>
 	Matrix& operator=(
 		AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other) {
-        KRATOS_DEBUG_ERROR_IF(Other.expression().check_aliasing(data(), data()+size())) << "Aliasing found in assigning Matrix";
-		base_type::operator=(Other.expression());
-		return *this;
-	}
-
-	template <typename TExpressionType>
-	Matrix& operator=(
-		AMatrix::MatrixExpression<TExpressionType, AMatrix::row_major_access> const& Other) {
 		base_type::operator=(Other.expression());
 		return *this;
 	}
@@ -145,8 +133,6 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
             << "LHS has size (" << this->expression().size1() << "," << this->expression().size2() <<"), RHS has size ("
             << Other.expression().size1() << "," << Other.expression().size2() << ")." << std::endl;
 
-        KRATOS_DEBUG_ERROR_IF(Other.expression().check_aliasing(data(), data()+size())) << "Aliasing found in += operator";
-
         for (std::size_t i = 0; i < size1(); i++)
             for (std::size_t j = 0; j < size2(); j++)
                 at(i, j) += Other.expression()(i, j);
@@ -177,8 +163,6 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
             << "Size mismatch in Matrix operator-=" << std::endl
             << "LHS has size (" << this->expression().size1() << "," << this->expression().size2() <<"), RHS has size ("
             << Other.expression().size1() << "," << Other.expression().size2() << ")." << std::endl;
-
-        KRATOS_DEBUG_ERROR_IF(Other.expression().check_aliasing(data(), data()+size())) << "Aliasing found in -= operator";
 
         for (std::size_t i = 0; i < size1(); i++)
             for (std::size_t j = 0; j < size2(); j++)
@@ -290,14 +274,6 @@ class Matrix : public AMatrix::MatrixExpression<Matrix<TDataType, TSize1, TSize2
         base_type::swap(Other);
     }
 
-    bool check_aliasing(const data_type* From, const data_type* To) const {
-        const data_type* const end_pointer = data() + size();
-        bool check1 = ((From <= data()) && (data() < To));
-        bool check2 = ((From < end_pointer) && (end_pointer < To));  // I'm not sure if should be =< To. Pooyan.
-        bool check3 = ((From > data()) && (To <= end_pointer));
-
-        return (check1 || check2 || check3);
-    }
 
 	void fill(data_type const& value) {
 		for (std::size_t i = 0; i < size(); i++)
@@ -325,7 +301,7 @@ bool operator!=(Matrix<TDataType, TSize1, TSize2> const& First,
 /// output stream function
 ///  format for a vector : [size](value1, value2, ...., valueN)
 ///  format for a matrix : [size1, size2](()()...())
-template <typename TExpressionType, std::size_t TCategory>
+template <typename TExpressionType, std::size_t TCategory = AMatrix::unordered_access>
 inline std::ostream& operator<<(std::ostream& rOStream,
 	AMatrix::MatrixExpression<TExpressionType, TCategory> const& TheMatrix) {
 	TExpressionType const& the_expression = TheMatrix.expression();
@@ -518,10 +494,6 @@ class KratosZeroMatrix
     inline std::size_t size2() const { return _size2; }
 
     inline std::size_t size() const { return _size1 * _size2; }
-
-    bool check_aliasing(const data_type* From, const data_type* To) const {
-        return false;
-    }
 };
 
 
@@ -550,10 +522,6 @@ class KratosZeroVector
     inline std::size_t size2() const { return 1; }
 
     inline std::size_t size() const { return _size1; }
-
-    bool check_aliasing(const data_type* From, const data_type* To) const {
-        return false;
-    }
 };
 
 using ZeroMatrix = KratosZeroMatrix<double>;
@@ -707,10 +675,6 @@ template <typename TExpressionType, std::size_t TCategory>
 
 		inline std::size_t size1() const { return _size1; }
 		inline std::size_t size2() const { return _size2; }
-
-        bool check_aliasing(const data_type* From, const data_type* To) const {
-            return false;
-        }
 	};
 
 	using ScalarMatrix = scalar_matrix<double>;
@@ -747,10 +711,6 @@ template <typename TExpressionType, std::size_t TCategory>
 		inline std::size_t size() const { return size1() * size2(); }
 		inline std::size_t size1() const { return _permutation_indices_i.size(); }
 		inline std::size_t size2() const { return _permutation_indices_j.size(); }
-
-        bool check_aliasing(const data_type* From, const data_type* To) const {
-            return _original_expression.check_aliasing(From, To);
-        }
 
 	};
 
