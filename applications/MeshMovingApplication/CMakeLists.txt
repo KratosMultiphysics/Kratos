@@ -14,6 +14,7 @@ set( KRATOS_MESH_MOVING_APPLICATION_SOURCES
 	      ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/mesh_moving_python_application.cpp
 		  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/move_mesh_utilities.cpp
 		  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/explicit_mesh_moving_utilities.cpp
+		  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/calculate_mesh_velocity_utility.cpp
 )
 
 ## define mesh moving test sources
