@@ -136,19 +136,19 @@ public:
         : BaseType(rModelPart, ThisParameters)
     {
         // Set flags to default values
-        SetMaxIterationNumber(ThisParameters["max_iteration"].GetInt());
+        SetMaxIterationNumber(ThisParameters.Has("max_iteration") ? ThisParameters["max_iteration"].GetInt() : 10);
 
-        mMinIterationNumber = ThisParameters["min_iteration"].GetInt();
+        mMinIterationNumber = ThisParameters.Has("min_iteration") ? ThisParameters["min_iteration"].GetInt() : 4;
 
-        mReductionFactor = ThisParameters["reduction_factor"].GetDouble();
+        mReductionFactor = ThisParameters.Has("reduction_factor") ? ThisParameters["reduction_factor"].GetDouble() : 0.5;
 
-        mIncreaseFactor = ThisParameters["increase_factor"].GetDouble();
+        mIncreaseFactor = ThisParameters.Has("increase_factor") ? ThisParameters["increase_factor"].GetDouble() : 1.3;
 
-        mNumberOfCycles = ThisParameters["number_of_cycles"].GetInt();
+        mNumberOfCycles = ThisParameters.Has("number_of_cycles") ? ThisParameters["number_of_cycles"].GetInt() : 5;
 
-        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+        mCalculateReactionsFlag = ThisParameters.Has("compute_reactions") ? ThisParameters["compute_reactions"].GetBool() : false;
 
-        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mReformDofSetAtEachStep = ThisParameters.Has("reform_dofs_at_each_step") ? ThisParameters["reform_dofs_at_each_step"].GetBool() : false;
 
         // Saving the convergence criteria to be used
         mpConvergenceCriteria = ConvergenceCriteriaFactoryType().Create(ThisParameters["convergence_criteria_settings"]);

@@ -130,11 +130,11 @@ class ResidualBasedNewtonRaphsonStrategy
         mKeepSystemConstantDuringIterations = false;
 
         // Set flags to default values
-        SetMaxIterationNumber(ThisParameters["max_iteration"].GetInt());
+        SetMaxIterationNumber(ThisParameters.Has("max_iteration") ? ThisParameters["max_iteration"].GetInt() : 10);
 
-        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+        mCalculateReactionsFlag = ThisParameters.Has("compute_reactions") ? ThisParameters["compute_reactions"].GetBool() : false;
 
-        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mReformDofSetAtEachStep = ThisParameters.Has("reform_dofs_at_each_step") ? ThisParameters["reform_dofs_at_each_step"].GetBool() : false;
 
         // Saving the convergence criteria to be used
         mpConvergenceCriteria = ConvergenceCriteriaFactoryType().Create(ThisParameters["convergence_criteria_settings"]);

@@ -118,11 +118,11 @@ public:
     explicit ResidualBasedLinearStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : BaseType(rModelPart, ThisParameters)
     {
-        mCalculateNormDxFlag = ThisParameters["compute_norm_dx"].GetBool();
+        mCalculateNormDxFlag = ThisParameters.Has("compute_reactions") ? ThisParameters["compute_norm_dx"].GetBool() : false;
 
-        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+        mCalculateReactionsFlag = ThisParameters.Has("compute_reactions") ? ThisParameters["compute_reactions"].GetBool() : false;
 
-        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mReformDofSetAtEachStep = ThisParameters.Has("reform_dofs_at_each_step") ? ThisParameters["reform_dofs_at_each_step"].GetBool() : false;
 
         // Saving the scheme
         mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
