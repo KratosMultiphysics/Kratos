@@ -58,14 +58,14 @@ void Append(Parameters &rParameters, const T& obj) {
 
 void  AddKratosParametersToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
 
 
-    class_<Parameters, Parameters::Pointer >(m,"Parameters")
-    .def(init<>())
-    .def(init<const std::string&>())
-    .def(init<Parameters const&>())
+    py::class_<Parameters, Parameters::Pointer >(m,"Parameters")
+    .def(py::init<>())
+    .def(py::init<const std::string&>())
+    .def(py::init<Parameters const&>())
     .def("WriteJsonString", &Parameters::WriteJsonString)
     .def("PrettyPrintJsonString", &Parameters::PrettyPrintJsonString)
     .def("Has", &Parameters::Has)
@@ -106,7 +106,7 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("__getitem__", &Parameters::GetValue)
     .def("__setitem__", &Parameters::SetArrayItem)
     .def("__getitem__", &Parameters::GetArrayItem)
-    .def("__iter__", [](Parameters& self){ return make_iterator(self.begin(), self.end()); } , keep_alive<0,1>())
+    .def("__iter__", [](Parameters& self){ return py::make_iterator(self.begin(), self.end()); } , py::keep_alive<0,1>())
     .def("items", &items )
     .def("keys", &keys )
     .def("values", &values )
