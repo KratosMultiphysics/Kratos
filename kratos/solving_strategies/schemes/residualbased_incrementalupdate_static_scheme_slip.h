@@ -100,7 +100,7 @@ public:
      */
     explicit ResidualBasedIncrementalUpdateStaticSchemeSlip(Parameters ThisParameters)
         : BaseType(),
-          mpRotationTool(Kratos::make_shared<RotationToolType>(ThisParameters["domain_size"].GetInt(),ThisParameters["block_size"].GetInt(),IS_STRUCTURE,0.0))
+          mpRotationTool(Kratos::make_shared<RotationToolType>(ThisParameters.Has("domain_size") ? ThisParameters["domain_size"].GetInt() : 3, ThisParameters.Has("block_size") ? ThisParameters["block_size"].GetInt() : 3, IS_STRUCTURE, 0.0))
     {}
 
     /// Constructor.
