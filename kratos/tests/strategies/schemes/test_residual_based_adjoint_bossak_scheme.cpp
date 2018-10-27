@@ -630,7 +630,7 @@ void InitializeAdjointModelPart(ModelPart& rModelPart)
 
 } // unnamed namespace
 
-KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem, KratosCoreSchemesFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem, KratosCoreFastSuite)
 {
     namespace Nlsmd = NonLinearSpringMassDamper;
     // Solve the primal problem.

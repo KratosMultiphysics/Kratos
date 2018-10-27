@@ -157,35 +157,35 @@ void TestThisGeometry(Geometry<Point>& rGeom,
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_2, KratosSensitivityTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_2, KratosCoreFastSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateQuadrilateral2D4N();
     Geometry<Point>& r_geom = *p_geom;
     TestThisGeometry(r_geom, GeometryData::GI_GAUSS_2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_1, KratosSensitivityTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_1, KratosCoreFastSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateQuadrilateral2D4N();
     Geometry<Point>& r_geom = *p_geom;
     TestThisGeometry(r_geom, GeometryData::GI_GAUSS_1);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Hexahedra3D8N_GAUSS_2, KratosSensitivityTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Hexahedra3D8N_GAUSS_2, KratosCoreFastSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateHexahedra3D8N();
     Geometry<Point>& r_geom = *p_geom;
     TestThisGeometry(r_geom, GeometryData::GI_GAUSS_2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Triangle2D3N_GAUSS_1, KratosSensitivityTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Triangle2D3N_GAUSS_1, KratosCoreFastSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateTriangle2D3N();
     Geometry<Point>& r_geom = *p_geom;
     TestThisGeometry(r_geom, GeometryData::GI_GAUSS_1, 1e-8);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Tetrahedra3D4N_GAUSS_1, KratosSensitivityTestSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Tetrahedra3D4N_GAUSS_1, KratosCoreFastSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateTetrahedra3D4N();
     Geometry<Point>& r_geom = *p_geom;

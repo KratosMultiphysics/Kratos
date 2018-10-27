@@ -99,7 +99,7 @@ namespace Kratos {
     /** Checks if the number of edges is correct.
      * Checks if the number of edges is correct.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4EdgesNumber, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4EdgesNumber, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -114,7 +114,7 @@ namespace Kratos {
     /** Checks if the number of faces is correct.
      * Checks if the number of faces is correct.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4FacesNumber, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4FacesNumber, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -131,7 +131,7 @@ namespace Kratos {
     /** Checks if the characteristic length of the tetrahedra is calculated correctly.
      * Checks if the characteristic length of the tetrahedra is calculated correctly.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Length, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Length, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -146,7 +146,7 @@ namespace Kratos {
     /** Checks if the area of the tetrahedra is calculated correctly.
      * Checks if the area of the tetrahedra is calculated correctly.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Area, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Area, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -162,7 +162,7 @@ namespace Kratos {
      * Checks if the volume of the tetrahedra is calculated correctly.
      * For tetrahedra 3D4 'volume()' call defaults to 'area()'
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Volume, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Volume, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -177,7 +177,7 @@ namespace Kratos {
     /** Checks if the minimum edge length is calculated correctly.
      * Checks if the minimum edge length is calculated correctly.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4MinEdgeLength, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4MinEdgeLength, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -192,7 +192,7 @@ namespace Kratos {
     /** Checks if the maximum edge length is calculated correctly.
      * Checks if the maximum edge length is calculated correctly.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4MaxEdgeLength, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4MaxEdgeLength, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -207,7 +207,7 @@ namespace Kratos {
     /** Checks if the average edge length is calculated correctly.
      * Checks if the average edge length is calculated correctly.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4AverageEdgeLength, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4AverageEdgeLength, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -222,7 +222,7 @@ namespace Kratos {
     /** Checks if the circumradius is calculated correctly.
      * Checks if the circumradius is calculated correctly.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Circumradius, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Circumradius, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -237,7 +237,7 @@ namespace Kratos {
     /** Checks if the inradius is calculated correctly.
      * Checks if the inradius is calculated correctly.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Inradius, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4Inradius, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -254,7 +254,7 @@ namespace Kratos {
      * - Regular tetrahedra, which should return a perfect score.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4InradiusToCircumradiusQuality, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4InradiusToCircumradiusQuality, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -273,7 +273,7 @@ namespace Kratos {
      * - Regular tetrahedra, which should return a perfect score.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4InradiusToLongestEdgeQuality, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4InradiusToLongestEdgeQuality, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -292,7 +292,7 @@ namespace Kratos {
      * - Regular tetrahedra, which should return a perfect score.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4ShortestToLongestEdgeQuality, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4ShortestToLongestEdgeQuality, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -311,7 +311,7 @@ namespace Kratos {
      * - Regular tetrahedra, which should return a perfect score.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4RegularityQuality, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4RegularityQuality, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -334,7 +334,7 @@ namespace Kratos {
      * - Regular tetrahedra, which should return a perfect score.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4VolumeToSurfaceAreaQuality, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4VolumeToSurfaceAreaQuality, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -357,7 +357,7 @@ namespace Kratos {
      * - Regular tetrahedra, which should return a perfect score.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4VolumeToEdgeLengthQuality, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4VolumeToEdgeLengthQuality, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -376,7 +376,7 @@ namespace Kratos {
      * - Regular tetrahedra, which should return a perfect score.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4VolumeToAverageEdgeLength, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4VolumeToAverageEdgeLength, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -395,7 +395,7 @@ namespace Kratos {
      * - Regular tetrahedra, which should return a perfect score.
      * - TriRectangular tetrahedra, which should return a sub-optimal score.
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4VolumeToRMSEdgeLength, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4VolumeToRMSEdgeLength, KratosCoreFastSuite) {
       auto geomInvLen1 = GenerateRegInvtLen1Tetrahedra3D4();
       auto geomRegLen1 = GenerateRegularLen1Tetrahedra3D4();
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
@@ -412,7 +412,7 @@ namespace Kratos {
     /**
      * This test performs the check of the box intersection method
      */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4BoxIntersection, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4BoxIntersection, KratosCoreFastSuite) {
       auto tetrahedron = GenerateTriRectangularTetrahedra3D4();
 
       //tetrahedron inside the box
@@ -436,7 +436,7 @@ namespace Kratos {
     * A Point over a vertex of the tetrahedra: Expected result TRUE
     * A Point over an edge of the tetrahedra: Expected result TRUE
     */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4IsInside, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4IsInside, KratosCoreFastSuite) {
         auto geom = GenerateTriRectangularTetrahedra3D4();
 
         Point PointInside(0.1666, 0.1666, 0.1666);
@@ -456,7 +456,7 @@ namespace Kratos {
     * tetrahedra. The baricentre of the tetrahedra is selected due to its known
     * solution.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4PointLocalCoordinates, KratosCoreFastSuite) {
         auto geom = GenerateTriRectangularTetrahedra3D4();
 
         // Compute the global coordinates of the baricentre
@@ -525,7 +525,7 @@ namespace Kratos {
         KRATOS_CHECK_NEAR(local_coords_outside_point(2), 0.5, TOLERANCE);
     }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4ShapeFunctionsValues, KratosCoreFastSuite) {
       auto geom = GenerateTriRectangularTetrahedra3D4();
       array_1d<double, 3> coord(3);
       coord[0] = 1.0 / 2.0;
@@ -538,7 +538,7 @@ namespace Kratos {
       CrossCheckShapeFunctionsValues(*geom);
   }
 
-  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4ShapeFunctionsLocalGradients, KratosCoreFastSuite) {
       auto geom = GenerateTriRectangularTetrahedra3D4();
       TestAllShapeFunctionsLocalGradients(*geom);
   }

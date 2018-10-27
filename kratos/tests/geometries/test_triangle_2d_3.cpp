@@ -99,7 +99,7 @@ namespace Testing {
   /** Checks if the number of edges is correct.
    * Checks if the number of edges is correct.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3EdgesNumber, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3EdgesNumber, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
     KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 3);
@@ -108,7 +108,7 @@ namespace Testing {
   /** Checks if the number of faces is correct.
    * Checks if the number of faces is correct.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3FacesNumber, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3FacesNumber, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
     // Charlie: I will let this to 3 but probably 'FacesNumber' needs to be documented to state
@@ -119,7 +119,7 @@ namespace Testing {
   /** Checks if the area of the triangle is calculated correctly.
    * Checks if the area of the triangle is calculated correctly.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Area, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Area, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
     KRATOS_CHECK_NEAR(geom->Area(), 0.5, TOLERANCE);
@@ -129,7 +129,7 @@ namespace Testing {
    * Checks if the area of the triangle is calculated correctly using the Jaccobian matrix.
    * This test correctness is tied to the correctness of 'TestTriangle2D3Area'.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3AreaJaccobi, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3AreaJaccobi, KratosCoreFastSuite) {
 		auto geom = GenerateNodesRightTriangle2D3();
 
     BoundedMatrix<double,3,2> DN_DX;
@@ -145,7 +145,7 @@ namespace Testing {
    * Checks if the volume of the triangle is calculated correctly.
    * For triangle 2D3 'volume()' call defaults to 'area()'
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Volume, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Volume, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
@@ -154,7 +154,7 @@ namespace Testing {
   /** Checks if the minimum edge length is calculated correctly.
    * Checks if the minimum edge length is calculated correctly.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3MinEdgeLength, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3MinEdgeLength, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
     KRATOS_CHECK_NEAR(geom->MinEdgeLength(), 1.0, TOLERANCE);
@@ -163,7 +163,7 @@ namespace Testing {
   /** Checks if the maximum edge length is calculated correctly.
    * Checks if the maximum edge length is calculated correctly.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3MaxEdgeLength, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3MaxEdgeLength, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
     KRATOS_CHECK_NEAR(geom->MaxEdgeLength(), 1.414213, TOLERANCE);
@@ -172,7 +172,7 @@ namespace Testing {
   /** Checks if the average edge length is calculated correctly.
    * Checks if the average edge length is calculated correctly.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3AverageEdgeLength, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3AverageEdgeLength, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
     KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 1.138071, TOLERANCE);
@@ -181,7 +181,7 @@ namespace Testing {
   /** Checks if the circumradius is calculated correctly.
    * Checks if the circumradius is calculated correctly.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Circumradius, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Circumradius, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
     KRATOS_CHECK_NEAR(geom->Circumradius(), 0.707107, TOLERANCE);
@@ -190,7 +190,7 @@ namespace Testing {
   /** Checks if the inradius is calculated correctly.
    * Checks if the inradius is calculated correctly.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Inradius, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3Inradius, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
     KRATOS_CHECK_NEAR(geom->Inradius(), 0.292893, TOLERANCE);
@@ -204,7 +204,7 @@ namespace Testing {
    * A Point over a vertex of the triangle: Expected result TRUE
    * A Point over an edge of the triangle: Expected result TRUE
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IsInside, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IsInside, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
 
     Point PointInside(0.33, 0.33);
@@ -224,7 +224,7 @@ namespace Testing {
    * triangle. The baricentre of the triangle is selected due to its known
    * solution.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3PointLocalCoordinates, KratosCoreFastSuite) {
     auto geom = GeneratePointsIrregularTriangle2D3();
 
     // Compute the global coordinates of the baricentre
@@ -244,7 +244,7 @@ namespace Testing {
   /** Tests the area using 'GI_GAUSS_1' integration method.
    * Tests the area using 'GI_GAUSS_1' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint1, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint1, KratosCoreFastSuite) {
     auto geom = GenerateNodesRightTriangle2D3();
 
     BoundedMatrix<double,3,2> DN_DX;
@@ -260,7 +260,7 @@ namespace Testing {
   /** Tests the area using 'GI_GAUSS_2' integration method.
    * Tests the area using 'GI_GAUSS_2' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint2, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint2, KratosCoreFastSuite) {
     auto geom = GenerateNodesRightTriangle2D3();
 
     BoundedMatrix<double,3,2> DN_DX;
@@ -276,7 +276,7 @@ namespace Testing {
   /** Tests the area using 'GI_GAUSS_3' integration method.
    * Tests the area using 'GI_GAUSS_3' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint3, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint3, KratosCoreFastSuite) {
     auto geom = GenerateNodesRightTriangle2D3();
 
     BoundedMatrix<double,3,2> DN_DX;
@@ -292,7 +292,7 @@ namespace Testing {
   /** Tests the area using 'GI_GAUSS_4' integration method.
    * Tests the area using 'GI_GAUSS_4' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint4, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint4, KratosCoreFastSuite) {
     auto geom = GenerateNodesRightTriangle2D3();
 
     BoundedMatrix<double,3,2> DN_DX;
@@ -308,7 +308,7 @@ namespace Testing {
   /** Tests the area using 'GI_GAUSS_5' integration method.
    * Tests the area using 'GI_GAUSS_5' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint5, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3GaussPoint5, KratosCoreFastSuite) {
     auto geom = GenerateNodesRightTriangle2D3();
 
     BoundedMatrix<double,3,2> DN_DX;
@@ -324,7 +324,7 @@ namespace Testing {
   /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
    * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray1, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
     const double ExpectedJacobian = 1.0;
 
@@ -340,7 +340,7 @@ namespace Testing {
   /** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
    * Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray2, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray2, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
     const double ExpectedJacobian = 1.0;
 
@@ -356,7 +356,7 @@ namespace Testing {
   /** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
    * Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray3, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray3, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
     const double ExpectedJacobian = 1.0;
 
@@ -372,7 +372,7 @@ namespace Testing {
   /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
    * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray4, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray4, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
     const double ExpectedJacobian = 1.0;
 
@@ -388,7 +388,7 @@ namespace Testing {
   /** Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
    * Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray5, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianArray5, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
     const double ExpectedJacobian = 1.0;
 
@@ -404,7 +404,7 @@ namespace Testing {
   /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
    * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex1, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex1, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
     const double ExpectedJacobian = 1.0;
 
@@ -415,7 +415,7 @@ namespace Testing {
   /** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
    * Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex2, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex2, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
     double JacobianDeterminant = 0.0;
     const double ExpectedJacobian = 1.0;
@@ -430,7 +430,7 @@ namespace Testing {
   /** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
    * Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex3, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex3, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
     double JacobianDeterminant = 0.0;
     const double ExpectedJacobian = 1.0;
@@ -448,7 +448,7 @@ namespace Testing {
   /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
    * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex4, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex4, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
     double JacobianDeterminant = 0.0;
     const double ExpectedJacobian = 1.0;
@@ -469,7 +469,7 @@ namespace Testing {
   /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
    * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
    */
-  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex5, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3DeterminantOfJacobianIndex5, KratosCoreFastSuite) {
     auto geom = GeneratePointsRightTriangle2D3();
     double JacobianDeterminant = 0.0;
     const double ExpectedJacobian = 1.0;
@@ -493,7 +493,7 @@ namespace Testing {
     /**
      * Test an overlaping box and triangle (intersects a triangle edge) HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxEdge, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxEdge, KratosCoreFastSuite) {
         auto geom = GeneratePointsRightTriangle2D3();
         Point point_1(-0.1, 0.1, 0.0);
         Point point_2( 0.1, 0.3, 0.0);
@@ -511,7 +511,7 @@ namespace Testing {
     /**
      * Test an overlaping box and triangle (intersects a triangle node) HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxNode, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxNode, KratosCoreFastSuite) {
         auto geom = GeneratePointsRightTriangle2D3();
         Point point_1(-0.5, 0.8, 0.0);
         Point point_2( 0.5, 1.2, 0.0);
@@ -529,7 +529,7 @@ namespace Testing {
     /**
      * Test a box inside a triangle HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxInside, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxInside, KratosCoreFastSuite) {
         auto geom = GeneratePointsRightTriangle2D3();
         Point point_1( 0.1, 0.1, 0.0);
         Point point_2( 0.3, 0.4, 0.0);
@@ -539,7 +539,7 @@ namespace Testing {
     /**
      * Test a non overlaping box and triangle HasIntersection
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxNoIntersect, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxNoIntersect, KratosCoreFastSuite) {
         auto geom = GeneratePointsRightTriangle2D3();
         Point point_1( 0.6, 0.5, 0.0);
         Point point_2( 1.0, 1.0, 0.0);
@@ -550,14 +550,14 @@ namespace Testing {
      * Test a box outside the triangle plane
      * HasIntersection should return true, because a 2D-space does not take care about Z-coordinates
      */
-    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxOutsidePlane, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxOutsidePlane, KratosCoreFastSuite) {
         auto geom = GeneratePointsRightTriangle2D3();
         Point point_1( 0.2, 0.1, 0.1);
         Point point_2( 0.3, 0.5, 1.0);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3ShapeFunctionsValues, KratosCoreFastSuite) {
       auto geom = GenerateNodesRightTriangle2D3();
       array_1d<double, 3> coord(3);
       coord[0] = 1.0 / 2.0;
@@ -569,7 +569,7 @@ namespace Testing {
       CrossCheckShapeFunctionsValues(*geom);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Triangle2D3ShapeFunctionsLocalGradients, KratosCoreFastSuite) {
       auto geom = GenerateNodesRightTriangle2D3();
       TestAllShapeFunctionsLocalGradients(*geom);
     }
