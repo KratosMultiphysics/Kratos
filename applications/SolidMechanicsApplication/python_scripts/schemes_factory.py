@@ -332,7 +332,7 @@ class SolutionScheme:
             if(self.settings["solution_type"].GetString() == "Dynamic"):
                 self.dof_derivatives = self.dof_derivatives + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
             # Add large rotation variables
-            self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT','STEP_ROTATION','DELTA_ROTATION']
+            self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT','STEP_ROTATION']
 
         # Add pressure variables
         if self._check_input_dof("PRESSURE"):
