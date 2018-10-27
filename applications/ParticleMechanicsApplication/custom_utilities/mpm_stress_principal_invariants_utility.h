@@ -122,10 +122,18 @@ namespace Kratos
 
                   // Purely calculate invariant J3
                   rJ3 = 0;
-                  Matrix tensor = MathUtils<double>::StressVectorToTensor( rVector);
+                  Vector s_vector = rVector;
                   for (unsigned int i = 0; i < 3; ++i)
-                        tensor(i,i) -= rI1/3.0;
-                  rJ3 = MathUtils<double>::Det(tensor); // J_3 = det(tensor)
+                        s_vector[i] -= rI1/3.0;
+                  if (s_vector.size() == 3)
+                  {
+                        rJ3 = s_vector[0] * s_vector[1] * s_vector[2]; // J_3 = det(tensor)
+                  }
+                  else if (s_vector.size() == 6)
+                  {
+                        Matrix tensor = MathUtils<double>::StressVectorToTensor( s_vector );
+                        rJ3 = MathUtils<double>::Det(tensor); // J_3 = det(tensor)
+                  }
             }
 
             // Calculate derivatives of invariants dI1/dtensor, dJ2/dtensor, and dJ3/dtensor
