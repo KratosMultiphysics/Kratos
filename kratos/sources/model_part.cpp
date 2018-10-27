@@ -146,8 +146,12 @@ void ModelPart::Clear()
 {
     // Wipe all of the submodelparts
     mSubModelParts.clear();
-    mMeshes.clear();
     mTables.clear();
+
+    mpCommunicator->Clear();
+
+    for(auto i_mesh = mMeshes.begin() ; i_mesh != mMeshes.end() ; i_mesh++)
+      i_mesh->Clear();
 
     this->AssignFlags( Flags() ); 
 }
