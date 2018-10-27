@@ -39,79 +39,76 @@
 #include "custom_io/hdf5_partitioned_model_part_io.h"
 #endif
 
-namespace Kratos
-{
-
-namespace Python
-{
+namespace Kratos {
+namespace Python {
 
 void AddCustomIOToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     m.def("WriteDataValueContainer", &HDF5::Internals::WriteDataValueContainer, "");
     m.def("ReadDataValueContainer", &HDF5::Internals::ReadDataValueContainer, "");
 
-    class_<HDF5::File, HDF5::File::Pointer >(m,"HDF5File")
-    .def("HasPath",&HDF5::File::HasPath)
-    .def("IsGroup",&HDF5::File::IsGroup)
-    .def("IsDataSet",&HDF5::File::IsDataSet)
-    .def("CreateGroup",&HDF5::File::CreateGroup)
-    .def("AddPath",&HDF5::File::AddPath)
-    .def("GetDataDimensions",&HDF5::File::GetDataDimensions)
-    .def("HasIntDataType",&HDF5::File::HasIntDataType)
-    .def("HasFloatDataType",&HDF5::File::HasFloatDataType)
-    .def("Flush",&HDF5::File::Flush)
-    .def("GetFileSize",&HDF5::File::GetFileSize)
-    .def("GetFileName",&HDF5::File::GetFileName)
-    ;
+    py::class_<HDF5::File, HDF5::File::Pointer >(m,"HDF5File")
+        .def("HasPath",&HDF5::File::HasPath)
+        .def("IsGroup",&HDF5::File::IsGroup)
+        .def("IsDataSet",&HDF5::File::IsDataSet)
+        .def("CreateGroup",&HDF5::File::CreateGroup)
+        .def("AddPath",&HDF5::File::AddPath)
+        .def("GetDataDimensions",&HDF5::File::GetDataDimensions)
+        .def("HasIntDataType",&HDF5::File::HasIntDataType)
+        .def("HasFloatDataType",&HDF5::File::HasFloatDataType)
+        .def("Flush",&HDF5::File::Flush)
+        .def("GetFileSize",&HDF5::File::GetFileSize)
+        .def("GetFileName",&HDF5::File::GetFileName)
+        ;
 
-    class_<HDF5::FileSerial, HDF5::FileSerial::Pointer, HDF5::File>(m,"HDF5FileSerial")
-    .def(init<Parameters&>())
-    ;
+    py::class_<HDF5::FileSerial, HDF5::FileSerial::Pointer, HDF5::File>(m,"HDF5FileSerial")
+        .def(py::init<Parameters&>())
+        ;
 
-    class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")
-    .def(init<HDF5::File::Pointer, std::string const&>())
-    ;
+    py::class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")
+        .def(py::init<HDF5::File::Pointer, std::string const&>())
+        ;
 
-    class_<HDF5::NodalSolutionStepDataIO, HDF5::NodalSolutionStepDataIO::Pointer>(
+    py::class_<HDF5::NodalSolutionStepDataIO, HDF5::NodalSolutionStepDataIO::Pointer>(
         m,"HDF5NodalSolutionStepDataIO")
-        .def(init<Parameters, HDF5::File::Pointer>())
+        .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteNodalResults", &HDF5::NodalSolutionStepDataIO::WriteNodalResults)
         .def("ReadNodalResults", &HDF5::NodalSolutionStepDataIO::ReadNodalResults)
-    ;
+        ;
 
-    class_<HDF5::NodalSolutionStepBossakIO, HDF5::NodalSolutionStepBossakIO::Pointer>(
+    py::class_<HDF5::NodalSolutionStepBossakIO, HDF5::NodalSolutionStepBossakIO::Pointer>(
         m,"HDF5NodalSolutionStepBossakIO")
-        .def(init<Parameters, HDF5::File::Pointer>())
+        .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteNodalResults", &HDF5::NodalSolutionStepBossakIO::WriteNodalResults)
         .def("ReadNodalResults", &HDF5::NodalSolutionStepBossakIO::ReadNodalResults)
         .def("SetAlphaBossak", &HDF5::NodalSolutionStepBossakIO::SetAlphaBossak)
-    ;
+        ;
 
-    class_<HDF5::ElementDataValueIO, HDF5::ElementDataValueIO::Pointer>(
+    py::class_<HDF5::ElementDataValueIO, HDF5::ElementDataValueIO::Pointer>(
         m,"HDF5ElementDataValueIO")
-        .def(init<Parameters, HDF5::File::Pointer>())
+        .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteElementResults", &HDF5::ElementDataValueIO::WriteElementResults)
         .def("ReadElementResults", &HDF5::ElementDataValueIO::ReadElementResults)
-    ;
+        ;
 
-    class_<HDF5::NodalDataValueIO, HDF5::NodalDataValueIO::Pointer>(
+    py::class_<HDF5::NodalDataValueIO, HDF5::NodalDataValueIO::Pointer>(
         m,"HDF5NodalDataValueIO")
-        .def(init<Parameters, HDF5::File::Pointer>())
+        .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteNodalResults", &HDF5::NodalDataValueIO::WriteNodalResults)
         .def("ReadNodalResults", &HDF5::NodalDataValueIO::ReadNodalResults)
-    ;
+        ;
 
 #ifdef KRATOS_USING_MPI
-    class_<HDF5::FileParallel, HDF5::FileParallel::Pointer, HDF5::File>(m,"HDF5FileParallel")
-    .def(init<Parameters&>())
-    ;
+    py::class_<HDF5::FileParallel, HDF5::FileParallel::Pointer, HDF5::File>(m,"HDF5FileParallel")
+        .def(py::init<Parameters&>())
+        ;
 
-    class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>
+    py::class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>
         (m,"HDF5PartitionedModelPartIO")
-        .def(init<HDF5::File::Pointer, std::string const&>())
-    ;
+        .def(py::init<HDF5::File::Pointer, std::string const&>())
+        ;
 #endif
 
 }

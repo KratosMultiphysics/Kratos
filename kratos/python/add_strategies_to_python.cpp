@@ -14,7 +14,7 @@
 
 
 // External includes
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
 #include "boost/numeric/ublas/matrix.hpp" // for the sparse space dense vector
 #else
 #endif // KRATOS_USE_AMATRIX
@@ -65,7 +65,7 @@ namespace Kratos
 {
     namespace Python
     {
-        using namespace pybind11;
+        namespace py = pybind11;
 
 
 
@@ -190,7 +190,6 @@ namespace Kratos
         {
 
             typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
 
             //********************************************************************
             //********************************************************************
@@ -403,28 +402,28 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
 
-            class_< SparseSpaceType>(m,"UblasSparseSpace")
-                    .def(init<>())
-                    .def("ClearMatrix", ClearMatrix)
-                    .def("ClearVector", ClearVector)
-                    .def("ResizeMatrix", ResizeMatrix)
-                    .def("ResizeVector", ResizeVector)
-                    .def("SetToZeroMatrix", SetToZeroMatrix)
-                    .def("SetToZeroVector", SetToZeroVector)
-                    .def("TwoNorm", TwoNorm)
-                    //the dot product of two vectors
-                    .def("Dot", Dot)
-                    //the matrix-vector multiplication
-                    .def("Mult", Mult)
-                    .def("TransposeMult", TransposeMult)
-                    .def("Size", Size)
-                    .def("Size1", Size1)
-                    .def("Size2", Size2)
-                    .def("UnaliasedAdd", UnaliasedAdd)
-                    .def("ScaleAndAdd", ScaleAndAdd)
-                    .def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer)
-                    .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
-                    ;
+            py::class_< SparseSpaceType>(m,"UblasSparseSpace")
+                .def(py::init<>())
+                .def("ClearMatrix", ClearMatrix)
+                .def("ClearVector", ClearVector)
+                .def("ResizeMatrix", ResizeMatrix)
+                .def("ResizeVector", ResizeVector)
+                .def("SetToZeroMatrix", SetToZeroMatrix)
+                .def("SetToZeroVector", SetToZeroVector)
+                .def("TwoNorm", TwoNorm)
+                //the dot product of two vectors
+                .def("Dot", Dot)
+                //the matrix-vector multiplication
+                .def("Mult", Mult)
+                .def("TransposeMult", TransposeMult)
+                .def("Size", Size)
+                .def("Size1", Size1)
+                .def("Size2", Size2)
+                .def("UnaliasedAdd", UnaliasedAdd)
+                .def("ScaleAndAdd", ScaleAndAdd)
+                .def("CreateEmptyMatrixPointer", CreateEmptyMatrixPointer)
+                .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
+                ;
 
             //********************************************************************
             //********************************************************************
