@@ -71,28 +71,67 @@ class TestModelPart(KratosUnittest.TestCase):
         model_part= current_model.CreateModelPart("Main")
         model_part.CreateSubModelPart("Inlets")
         model_part.CreateSubModelPart("Temp")
-        model_part.CreateSubModelPart("Outlet")
+        out = model_part.CreateSubModelPart("Outlet")
+        subout=out.CreateSubModelPart("sub_outlet1")
 
         self.assertEqual(model_part.NumberOfSubModelParts(), 3)
         sub_model_part_1 = model_part.GetSubModelPart("Inlets")
-        sub_model_part_1.CreateSubModelPart("Inlet1")
-        sub_model_part_1.CreateSubModelPart("Inlet2")
+        subsub1 = sub_model_part_1.CreateSubModelPart("Inlet1")
+        subsub2 = sub_model_part_1.CreateSubModelPart("Inlet2")
 
-        model_part.GetSubModelPart("Outlet").CreateSubModelPart("sub_outlet1")
-        self.assertEqual(model_part.GetSubModelPart("Outlet").NumberOfSubModelParts(), 1)
-        model_part.GetSubModelPart("Outlet").Clear()
-        self.assertEqual(model_part.GetSubModelPart("Outlet").NumberOfSubModelParts(), 0)
+        model_part.CreateNewNode(1,1.0,0.0,0.0)
+        sub_model_part_1.CreateNewNode(2,2.0,0.0,0.0)
+        subsub1.CreateNewNode(3,3.0,0.0,0.0)
+        subsub2.CreateNewNode(4,4.0,0.0,0.0)
+        subout.CreateNewNode(5,5.0,0.0,0.0)
+        
+
+        self.assertTrue(1 in model_part.Nodes)
+        self.assertTrue(2 in model_part.Nodes)
+        self.assertTrue(3 in model_part.Nodes)
+        self.assertTrue(4 in model_part.Nodes)
+        self.assertTrue(5 in model_part.Nodes)
+        self.assertTrue(2 in sub_model_part_1.Nodes)
+        self.assertTrue(3 in sub_model_part_1.Nodes)
+        self.assertTrue(3 in subsub1.Nodes)
+        self.assertTrue(4 in sub_model_part_1.Nodes)
+        self.assertTrue(4 in subsub2.Nodes)
+        self.assertTrue(5 in out.Nodes)
+        self.assertTrue(5 in subout.Nodes)
+
+        self.assertEqual(out.NumberOfSubModelParts(), 1)
+
+        ##clearing modelpart out
+        out.Clear()
+        self.assertEqual(out.NumberOfSubModelParts(), 0)
+        self.assertTrue(1 in model_part.Nodes)
+        self.assertTrue(2 in model_part.Nodes)
+        self.assertTrue(3 in model_part.Nodes)
+        self.assertTrue(4 in model_part.Nodes)
+        self.assertTrue(5 in model_part.Nodes) #note that node 5 still exists in the root modelpart
+        self.assertTrue(2 in sub_model_part_1.Nodes)
+        self.assertTrue(3 in sub_model_part_1.Nodes)
+        self.assertTrue(3 in subsub1.Nodes)
+        self.assertTrue(4 in sub_model_part_1.Nodes)
+        self.assertTrue(4 in subsub2.Nodes)
+        self.assertFalse(5 in out.Nodes) #however node 5 does not belong any longer to the submodelpart out
+        # self.assertTrue(5 in subout.Nodes) #cannot query this since subout does not exist any longer
 
         model_part.Set(SLAVE)
         self.assertTrue(model_part.Is(SLAVE))
- 
-        #here the 
+        
         model_part.Clear()
- 
+
         self.assertEqual(model_part.NumberOfSubModelParts(),0)
         self.assertEqual(len(model_part.Nodes),0)
         self.assertEqual(len(model_part.Properties),0)
         self.assertEqual(len(model_part.Conditions),0)
+        self.assertFalse(1 in model_part.Nodes)
+        self.assertFalse(2 in model_part.Nodes)
+        self.assertFalse(3 in model_part.Nodes)
+        self.assertFalse(4 in model_part.Nodes)
+        self.assertFalse(5 in model_part.Nodes)
+
         self.assertFalse(model_part.Is(SLAVE))
 
     def test_variables_list(self):
