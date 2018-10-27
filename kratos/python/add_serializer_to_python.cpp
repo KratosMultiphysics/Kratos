@@ -25,7 +25,7 @@ namespace Kratos
 {
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 template< class TObjectType >
 void SerializerSave(Serializer& rSerializer, std::string const & rName, TObjectType& rObject)
@@ -47,17 +47,17 @@ void SerializerPrint(Serializer& rSerializer)
 
 void  AddSerializerToPython(pybind11::module& m)
 {
-    class_<Serializer, Serializer::Pointer >(m,"Serializer")
-    .def(init<>())
-    .def(init<std::string const&>())
-    .def(init<Serializer::TraceType>())
-    .def(init<std::string const&, Serializer::TraceType>())
+    py::class_<Serializer, Serializer::Pointer >(m,"Serializer")
+    .def(py::init<>())
+    .def(py::init<std::string const&>())
+    .def(py::init<Serializer::TraceType>())
+    .def(py::init<std::string const&, Serializer::TraceType>())
     .def("Load",SerializerLoad<ModelPart>)
     .def("Save",SerializerSave<ModelPart>)
     .def("Print", SerializerPrint)
     ;
 
-    enum_<Serializer::TraceType>(m,"SerializerTraceType")
+    py::enum_<Serializer::TraceType>(m,"SerializerTraceType")
     .value("SERIALIZER_NO_TRACE", Serializer::SERIALIZER_NO_TRACE)
     .value("SERIALIZER_TRACE_ERROR", Serializer::SERIALIZER_TRACE_ERROR)
     .value("SERIALIZER_TRACE_ALL", Serializer::SERIALIZER_TRACE_ALL)

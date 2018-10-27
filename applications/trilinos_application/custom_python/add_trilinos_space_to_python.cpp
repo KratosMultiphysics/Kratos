@@ -302,7 +302,6 @@ void  AddBasicOperations(pybind11::module& m)
     .def("CreateEmptyVectorPointer", CreateEmptyVectorPointer)
     .def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix)
     .def("SetValue", SetValue)
-    .def("__str__", PrintObject<TrilinosSparseSpaceType>)
     ;
 
 

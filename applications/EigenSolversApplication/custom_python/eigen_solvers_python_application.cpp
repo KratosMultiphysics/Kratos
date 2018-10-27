@@ -21,28 +21,25 @@
 #include "eigen_solvers_application.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 
-namespace Kratos
-{
-
-namespace Python
-{
+namespace Kratos {
+namespace Python {
 
 using namespace pybind11;
 
 PYBIND11_MODULE(KratosEigenSolversApplication, m)
 {
+    namespace py = pybind11;
 
-    class_<KratosEigenSolversApplication,
+    py::class_<KratosEigenSolversApplication,
            KratosEigenSolversApplication::Pointer,
            KratosApplication>(m, "KratosEigenSolversApplication")
-        .def(init<>())
+        .def(py::init<>())
         ;
 
     AddCustomSolversToPython(m);
 }
 
 } // namespace Python
-
 } // namespace Kratos
 
 #endif // defined(KRATOS_PYTHON)
