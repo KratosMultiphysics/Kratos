@@ -2,6 +2,7 @@
 from KratosMultiphysics import Parameters
 from KratosMultiphysics import Vector
 from KratosMultiphysics import Matrix
+from KratosMultiphysics import Serializer, SerializerTraceType
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -599,7 +600,6 @@ class TestParameters(KratosUnittest.TestCase):
         null_custom.ValidateAndAssignDefaults(null_default)
 
     def test_double_vs_null_validation(self):
-
         # supplied settings
         double_custom = Parameters("""{
         "parameter": 0.0
@@ -612,6 +612,26 @@ class TestParameters(KratosUnittest.TestCase):
 
         with self.assertRaises(RuntimeError):
             double_custom.ValidateAndAssignDefaults(null_default)
+
+    def test_serialization(self):
+        tmp = Parameters(defaults)
+        check = tmp.WriteJsonString()
+
+        file_name = "parameters_serialization"
+        serializer_flag = SerializerTraceType.SERIALIZER_NO_TRACE
+        Serializer(file_name, serializer_flag).Save("ParametersSerialization",tmp)
+        tmp = 0
+
+        loaded_parameters = Parameters()
+        Serializer(file_name, serializer_flag).Load("ParametersSerialization",loaded_parameters)
+
+        self.assertEqual(check, loaded_parameters.WriteJsonString())
+
+        import os
+        os.remove('parameters_serialization.rest')
+
+        
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

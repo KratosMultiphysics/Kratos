@@ -25,6 +25,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 #include "input_output/logger.h"
 #include "includes/ublas_interface.h"
 
@@ -1416,6 +1417,20 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const 
+    {
+        rSerializer.save("Data", this->WriteJsonString());
+    }
+
+    void load(Serializer& rSerializer) 
+    {
+        std::string parameters_data;
+        rSerializer.load("Data", parameters_data);
+        *this = Parameters(parameters_data);
+    }
 
     ///@}
     ///@name Member Variables
