@@ -623,9 +623,11 @@ class TestParameters(KratosUnittest.TestCase):
 
         loaded_parameters = Parameters()
         Serializer(file_name, serializer_flag).Load("ParametersSerialization",loaded_parameters)
-        print(loaded_parameters.PrettyPrintJsonString())
 
         self.assertEqual(check, loaded_parameters.WriteJsonString())
+
+        import os
+        os.remove('parameters_serialization.rest')
 
         
 
