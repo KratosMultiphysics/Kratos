@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/scheme_factory.h"
+#include "factories/scheme_factory.h"
 #include "solving_strategies/schemes/scheme.h"
 
 namespace Kratos

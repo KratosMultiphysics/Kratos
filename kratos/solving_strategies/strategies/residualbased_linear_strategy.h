@@ -27,9 +27,9 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 /* Factories */
-#include "includes/linear_solver_factory.h"
-#include "includes/builder_and_solver_factory.h"
-#include "includes/scheme_factory.h"
+#include "factories/linear_solver_factory.h"
+#include "factories/builder_and_solver_factory.h"
+#include "factories/scheme_factory.h"
 
 namespace Kratos
 {

@@ -30,12 +30,12 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/standard_linear_solver_factory.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/standard_preconditioner_factory.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/standard_convergence_criteria_factory.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/standard_scheme_factory.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/standard_builder_and_solver_factory.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/sources/standard_strategy_factory.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/factories/standard_linear_solver_factory.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/factories/standard_preconditioner_factory.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/factories/standard_convergence_criteria_factory.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/factories/standard_scheme_factory.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/factories/standard_builder_and_solver_factory.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/factories/standard_strategy_factory.cpp;
     #${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/fast_transfer_between_model_parts_process.cpp;

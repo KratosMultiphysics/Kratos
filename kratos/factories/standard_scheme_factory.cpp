@@ -16,7 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/standard_scheme_factory.h"
+#include "factories/standard_scheme_factory.h"
 #include "spaces/ublas_space.h"
 
 // Schemes

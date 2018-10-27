@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/builder_and_solver_factory.h"
+#include "factories/builder_and_solver_factory.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 
 namespace Kratos

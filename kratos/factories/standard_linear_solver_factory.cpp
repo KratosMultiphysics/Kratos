@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/standard_linear_solver_factory.h"
+#include "factories/standard_linear_solver_factory.h"
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/cg_solver.h"
 #include "linear_solvers/deflated_cg_solver.h"

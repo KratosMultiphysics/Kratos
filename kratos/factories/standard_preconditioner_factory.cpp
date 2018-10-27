@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/standard_preconditioner_factory.h"
+#include "factories/standard_preconditioner_factory.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/preconditioner.h"

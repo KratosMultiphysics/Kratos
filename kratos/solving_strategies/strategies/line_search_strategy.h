@@ -23,7 +23,6 @@
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
-
 namespace Kratos
 {
 

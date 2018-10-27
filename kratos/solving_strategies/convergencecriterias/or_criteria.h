@@ -22,7 +22,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "includes/convergence_criteria_factory.h"
+#include "factories/convergence_criteria_factory.h"
 
 namespace Kratos
 {
