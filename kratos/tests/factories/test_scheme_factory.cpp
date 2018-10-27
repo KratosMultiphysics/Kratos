@@ -46,8 +46,8 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedIncrementalUpdateStaticSchemeFactory, KratosCoreFastSuite)
         {
             Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedIncrementalUpdateStaticScheme"})");
-            SchemeType::Pointer scheme = FactoryType().Create(this_parameters);
-            KRATOS_CHECK_C_STRING_EQUAL((scheme->Info()).c_str(), "ResidualBasedIncrementalUpdateStaticScheme");
+            SchemeType::Pointer p_scheme = FactoryType().Create(this_parameters);
+            KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedIncrementalUpdateStaticScheme");
         }
 
         /**
@@ -56,8 +56,8 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedIncrementalUpdateStaticSchemeSlipFactory, KratosCoreFastSuite)
         {
             Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedIncrementalUpdateStaticSchemeSlip"})");
-            SchemeType::Pointer scheme = FactoryType().Create(this_parameters);
-            KRATOS_CHECK_C_STRING_EQUAL((scheme->Info()).c_str(), "ResidualBasedIncrementalUpdateStaticSchemeSlip");
+            SchemeType::Pointer p_scheme = FactoryType().Create(this_parameters);
+            KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedIncrementalUpdateStaticSchemeSlip");
         }
 
         /**
@@ -66,8 +66,8 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedBossakDisplacementSchemeFactory, KratosCoreFastSuite)
         {
             Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedBossakDisplacementScheme"})");
-            SchemeType::Pointer scheme = FactoryType().Create(this_parameters);
-            KRATOS_CHECK_C_STRING_EQUAL((scheme->Info()).c_str(), "ResidualBasedBossakDisplacementScheme");
+            SchemeType::Pointer p_scheme = FactoryType().Create(this_parameters);
+            KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedBossakDisplacementScheme");
         }
 
         /**
@@ -76,8 +76,8 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedNewmarkDisplacementSchemeFactory, KratosCoreFastSuite)
         {
             Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedNewmarkDisplacementScheme"})");
-            SchemeType::Pointer scheme = FactoryType().Create(this_parameters);
-            KRATOS_CHECK_C_STRING_EQUAL((scheme->Info()).c_str(), "ResidualBasedNewmarkDisplacementScheme");
+            SchemeType::Pointer p_scheme = FactoryType().Create(this_parameters);
+            KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedNewmarkDisplacementScheme");
         }
 
         /**
@@ -86,8 +86,8 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedPseudoStaticDisplacementSchemeFactory, KratosCoreFastSuite)
         {
             Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedPseudoStaticDisplacementScheme"})");
-            SchemeType::Pointer scheme = FactoryType().Create(this_parameters);
-            KRATOS_CHECK_C_STRING_EQUAL((scheme->Info()).c_str(), "ResidualBasedPseudoStaticDisplacementScheme");
+            SchemeType::Pointer p_scheme = FactoryType().Create(this_parameters);
+            KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedPseudoStaticDisplacementScheme");
         }
 
         /**
@@ -96,8 +96,8 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedBDFDisplacementSchemeFactory, KratosCoreFastSuite)
         {
             Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedBDFDisplacementScheme"})");
-            SchemeType::Pointer scheme = FactoryType().Create(this_parameters);
-            KRATOS_CHECK_C_STRING_EQUAL((scheme->Info()).c_str(), "ResidualBasedBDFDisplacementScheme");
+            SchemeType::Pointer p_scheme = FactoryType().Create(this_parameters);
+            KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedBDFDisplacementScheme");
         }
 
         /**
@@ -106,8 +106,8 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedBDFCustomSchemeFactory, KratosCoreFastSuite)
         {
             Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedBDFCustomScheme"})");
-            SchemeType::Pointer scheme = FactoryType().Create(this_parameters);
-            KRATOS_CHECK_C_STRING_EQUAL((scheme->Info()).c_str(), "ResidualBasedBDFCustomScheme");
+            SchemeType::Pointer p_scheme = FactoryType().Create(this_parameters);
+            KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedBDFCustomScheme");
         }
         
     } // namespace Testing

@@ -97,9 +97,9 @@ public:
             mpFirstCriterion = ConvergenceCriteriaFactoryType().Create(Settings["first_criterion_settings"]);
             mpSecondCriterion = ConvergenceCriteriaFactoryType().Create(Settings["second_criterion_settings"]);
         } else { // Displacement criteria and residual criteria will be combined
-            Settings["convergence_criterion"].SetString("displacement_criterion");
+            Settings["convergence_criterion"].SetString("displacement_criteria");
             mpFirstCriterion = ConvergenceCriteriaFactoryType().Create(Settings);
-            Settings["convergence_criterion"].SetString("residual_criterion");
+            Settings["convergence_criterion"].SetString("residual_criteria");
             mpSecondCriterion = ConvergenceCriteriaFactoryType().Create(Settings);
         }
     }
