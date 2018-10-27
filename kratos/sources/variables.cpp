@@ -59,6 +59,10 @@
 #include "includes/radiation_settings.h"
 #include "factories/standard_linear_solver_factory.h"
 #include "factories/standard_preconditioner_factory.h"
+#include "factories/standard_scheme_factory.h"
+#include "factories/standard_strategy_factory.h"
+#include "factories/standard_convergence_criteria_factory.h"
+#include "factories/standard_builder_and_solver_factory.h"
 
 #include "includes/kratos_flags.h"
 #include "utilities/indirect_scalar.h"
@@ -1009,6 +1013,12 @@ void KratosApplication::RegisterVariables() {
     // Register linear solvers and preconditioners
     RegisterLinearSolvers();
     RegisterPreconditioners();
+
+    // Register of solving strategies
+    RegisterBuilderAndSolvers();
+    RegisterConvergenceCriterias();
+    RegisterStrategies();
+    RegisterSchemes();
 
     //Register objects with general definition
     Serializer::Register("Node", NodeType());
