@@ -61,7 +61,7 @@ class StandardSchemeFactory
     ///@name Type Definitions
     ///@{
 
-    /// The definition of the convergence criteria
+    /// The definition of the scheme
     typedef Scheme<TSparseSpace,TLocalSpace> SchemeType;
 
     ///@}
