@@ -34,13 +34,13 @@ namespace Python
 
   void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    class_<Variable<TurbulenceStatisticsContainer::Pointer>,VariableData>(m, "TurbulenceStatisticsContainerVariable")
+    py::class_<Variable<TurbulenceStatisticsContainer::Pointer>,VariableData>(m, "TurbulenceStatisticsContainerVariable")
     .def("__str__", PrintObject<Variable<TurbulenceStatisticsContainer::Pointer>>)
     ;
   }
