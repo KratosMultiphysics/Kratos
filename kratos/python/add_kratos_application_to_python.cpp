@@ -27,14 +27,14 @@ using namespace pybind11;
 void RegisterToPythonApplicationVariables(std::string ApplicationName)
 {
     auto comp = KratosComponents<VariableData>::GetComponents();
-    auto m = pybind11::module::import(ApplicationName.c_str()); //Note that this is added to KratosMultiphysics not to 
-    
+    auto m = pybind11::module::import(ApplicationName.c_str()); //Note that this is added to KratosMultiphysics not to
+
     for(auto item = comp.begin(); item!=comp.end(); item++)
     {
-        auto& var = (item->second);            
+        auto& var = (item->second);
         std::string name = item->first;
-        
-        m.attr(name.c_str()) = var; 
+
+        m.attr(name.c_str()) = var;
     }
 }
 
@@ -49,7 +49,8 @@ void AddKratosApplicationToPython(pybind11::module& m) {
             RegisterToPythonApplicationVariables(self.Name());
         }
         )
-        .def("__repr__", &KratosApplication::Info);
+        .def("__str__", PrintObject<KratosApplication>)
+        ;
 }
 
 }  // namespace Python.
