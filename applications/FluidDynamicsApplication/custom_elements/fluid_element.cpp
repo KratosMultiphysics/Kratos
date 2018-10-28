@@ -476,6 +476,11 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
 
         VorticityUtilities<Dim>::CalculateVorticityMagnitude(this->GetGeometry(),shape_function_gradients,rValues);
     }
+    else if (rVariable == UPDATE_STATISTICS)
+    {
+        KRATOS_DEBUG_ERROR_IF(!rCurrentProcessInfo.Has(STATISTICS_CONTAINER)) << "Trying to compute turbulent statistics, but ProcessInfo does not have STATISTICS_CONTAINER defined." << std::endl;
+        rCurrentProcessInfo.GetValue(STATISTICS_CONTAINER)->UpdateStatistics(this);
+    }
 }
 
 template <class TElementData>

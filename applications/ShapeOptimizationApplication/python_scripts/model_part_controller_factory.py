@@ -52,10 +52,7 @@ class ModelPartController:
 
         model_part_name = self.model_settings["model_part_name"].GetString()
 
-        self.optimization_model_part = ModelPart(model_part_name)
-        self.model.AddModelPart(self.optimization_model_part)
-        # TODO use this line after model_v3 is merged:
-        # self.optimization_model_part = model.CreateModelPart(model_part_name)
+        self.optimization_model_part = model.CreateModelPart(model_part_name)
 
         self.optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.model_settings["domain_size"].GetInt())
 

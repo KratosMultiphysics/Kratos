@@ -87,9 +87,9 @@ public:
         typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer& pSolutionStrategy = BaseType::mpSolutionStrategy;
 
         // Initialize new model part (same nodes, new elements, no conditions)
-        if(rModelPart.GetOwnerModel().HasModelPart("StokesModelPart"))
-            rModelPart.GetOwnerModel().DeleteModelPart("StokesModelPart");
-        ModelPart& rStokesModelPart = rModelPart.GetOwnerModel().CreateModelPart("StokesModelPart");
+        if(rModelPart.GetModel().HasModelPart("StokesModelPart"))
+            rModelPart.GetModel().DeleteModelPart("StokesModelPart");
+        ModelPart& rStokesModelPart = rModelPart.GetModel().CreateModelPart("StokesModelPart");
         rStokesModelPart.GetNodalSolutionStepVariablesList() = rReferenceModelPart.GetNodalSolutionStepVariablesList();
         rStokesModelPart.SetBufferSize(1);
         rStokesModelPart.SetNodes( rReferenceModelPart.pNodes() );

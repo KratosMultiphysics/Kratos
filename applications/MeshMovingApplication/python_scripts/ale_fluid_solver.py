@@ -22,7 +22,7 @@ class ALEFluidSolver(PythonSolver):
 
         fluid_model_part_name = solver_settings["model_part_name"].GetString()
         if not self.model.HasModelPart(fluid_model_part_name):
-            fluid_mesh_model_part = model.CreateModelPart(fluid_model_part_name)
+            model.CreateModelPart(fluid_model_part_name)
 
         ## Checking if reactions are being computed in the fluid
         if solver_settings.Has("compute_reactions"):
