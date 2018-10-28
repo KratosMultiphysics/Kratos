@@ -796,6 +796,23 @@ public:
      */
     void AddProperties(PropertiesType::Pointer pNewProperties, IndexType ThisIndex = 0);
 
+    /** Returns the Properties corresponding to it's identifier is defined */
+    bool HasProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
+    {
+        auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
+        if(pprop_it != GetMesh(ThisIndex).Properties().end()) { //property does exist
+            return true;
+        } else {
+            if(IsSubModelPart()) {
+                return mpParentModelPart->HasProperties(PropertiesId, ThisIndex);
+            } else {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
     /** Returns the Properties::Pointer  corresponding to it's identifier */
     PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
     {
