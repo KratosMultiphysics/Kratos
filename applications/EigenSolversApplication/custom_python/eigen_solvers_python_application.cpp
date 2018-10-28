@@ -24,8 +24,6 @@
 namespace Kratos {
 namespace Python {
 
-using namespace pybind11;
-
 PYBIND11_MODULE(KratosEigenSolversApplication, m)
 {
     namespace py = pybind11;
