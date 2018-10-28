@@ -73,7 +73,7 @@ public:
                                  Parameters Settings);
 
     /// Destructor.
-    virtual ~CalculateMeshVelocityUtility();
+    virtual ~CalculateMeshVelocityUtility() {}
 
 
     ///@}
@@ -103,13 +103,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    // virtual std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    // virtual void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    // virtual void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
@@ -192,10 +192,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    CalculateMeshVelocityUtility& operator=(CalculateMeshVelocityUtility const& rOther);
+    // CalculateMeshVelocityUtility& operator=(CalculateMeshVelocityUtility const& rOther);
 
     /// Copy constructor.
-    CalculateMeshVelocityUtility(CalculateMeshVelocityUtility const& rOther);
+    // CalculateMeshVelocityUtility(CalculateMeshVelocityUtility const& rOther);
 
 
     ///@}
@@ -213,20 +213,20 @@ private:
 ///@{
 
 
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                CalculateMeshVelocityUtility& rThis);
+// /// input stream function
+// inline std::istream& operator >> (std::istream& rIStream,
+//                 CalculateMeshVelocityUtility& rThis);
 
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                const CalculateMeshVelocityUtility& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
+// /// output stream function
+// inline std::ostream& operator << (std::ostream& rOStream,
+//                 const CalculateMeshVelocityUtility& rThis)
+// {
+//     rThis.PrintInfo(rOStream);
+//     rOStream << std::endl;
+//     rThis.PrintData(rOStream);
 
-    return rOStream;
-}
+//     return rOStream;
+// }
 ///@}
 
 ///@} addtogroup block

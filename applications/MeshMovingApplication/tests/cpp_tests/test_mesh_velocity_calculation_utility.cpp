@@ -20,7 +20,6 @@
 #include "utilities/variable_utils.h"
 
 // Application includes
-#include "mesh_moving_application.h"
 #include "custom_utilities/calculate_mesh_velocity_utility.h"
 
 namespace Kratos {
