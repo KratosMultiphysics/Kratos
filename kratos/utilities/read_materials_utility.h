@@ -49,6 +49,7 @@ namespace Kratos {
  * @brief Process to read constitutive law and material properties from a json file
  * @details This process reads constitutive law and material properties from a json file
  * and assign them to elements and conditions.
+ * The definition includes the creation of subproperties
  * @author Marcelo Raschi
  * @author Vicente Mataix Ferrandiz
  */
@@ -59,11 +60,14 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@name Type Definitions
     ///@{
 
+    /// Definition of the index type
     typedef std::size_t IndexType;
 
-    //typedef std::size_t SizeType;
+    /// Definition of the size type
+    typedef std::size_t SizeType;
 
-    //typedef ModelPart::NodeType::DofsContainerType DofsContainerType;
+    /// Definition of the mesh id (always zero)
+    static constexpr IndexType mesh_id = 0;
 
     ///@}
     ///@name Pointer Definitions
