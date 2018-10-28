@@ -152,26 +152,24 @@ namespace Testing
         auto positive_hydrostatic = CreateHydrostaticStressVector();
         MPMStressPrincipalInvariantsUtility::CalculateTensorInvariants(positive_hydrostatic, I1, J2, J3);
 
-        KRATOS_CHECK_LESS_EQUAL((9.0e6 - I1)/I1, tolerance);
-        KRATOS_CHECK_LESS_EQUAL((0.0 - J2)/J2, tolerance);
-        KRATOS_CHECK_LESS_EQUAL((0.0 - J3)/J3, tolerance);
+        KRATOS_CHECK_NEAR(I1, 9.0e6, tolerance);
+        KRATOS_CHECK_NEAR(J2, 0.0  , tolerance);
+        KRATOS_CHECK_NEAR(J3, 0.0  , tolerance);
 
         auto random_sorted = CreateRandomSortedStressVector();
         MPMStressPrincipalInvariantsUtility::CalculateTensorInvariants(random_sorted, I1, J2, J3);
 
-        KRATOS_CHECK_LESS_EQUAL((  7.0e6      - I1)/I1, tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 56.333333e6 - J2)/J2, tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-18.740722e6 - J3)/J3, tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 7.0e6      -I1)/I1,  tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 5.633333e13-J2)/J2,  tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 1.874072e19-J3)/J3,  tolerance);
 
         auto random_unsorted_large = CreateRandomUnsortedLargeStressVector();
         MPMStressPrincipalInvariantsUtility::CalculateTensorInvariants(random_unsorted_large, I1, J2, J3);
 
-        KRATOS_CHECK_LESS_EQUAL((   -2.27e+07 - I1)/I1, tolerance);
-        KRATOS_CHECK_LESS_EQUAL((-1.70812e+14 - J2)/J2, tolerance);
-        KRATOS_CHECK_LESS_EQUAL((  4.8859e+20 - J3)/J3, tolerance);
-
+        KRATOS_CHECK_LESS_EQUAL((-2.27e7      - I1)/I1, tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 3.425758e14 - J2)/J2, tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 4.885897e20 - J3)/J3, tolerance);
     }
-
     /**
     * Check whether the tensor invariant derivatives calculation is performed correctly
     */
@@ -181,40 +179,41 @@ namespace Testing
         auto negative_hydrostatic  = CreateNegativeHydrostaticStressVector();
         MPMStressPrincipalInvariantsUtility::CalculateTensorInvariantsDerivatives(negative_hydrostatic, derivative_I1, derivative_J2, derivative_J3);
 
-        KRATOS_CHECK_LESS_EQUAL(( 1.0 - derivative_I1[0])/derivative_I1[0], tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 1.0 - derivative_I1[1])/derivative_I1[1], tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 1.0 - derivative_I1[2])/derivative_I1[2], tolerance);
+        KRATOS_CHECK_NEAR(derivative_I1[0], 1.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_I1[1], 1.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_I1[2], 1.0, tolerance);
 
-        KRATOS_CHECK_LESS_EQUAL(( 0.0 - derivative_J2[0])/derivative_J2[0], tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.0 - derivative_J2[1])/derivative_J2[1], tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.0 - derivative_J2[2])/derivative_J2[2], tolerance);
+        KRATOS_CHECK_NEAR(derivative_J2[0], 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_J2[1], 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_J2[2], 0.0, tolerance);
 
-        KRATOS_CHECK_LESS_EQUAL(( 0.0 - derivative_J3[0])/derivative_J3[0], tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.0 - derivative_J3[1])/derivative_J3[1], tolerance);
-        KRATOS_CHECK_LESS_EQUAL(( 0.0 - derivative_J3[2])/derivative_J3[2], tolerance);
+        KRATOS_CHECK_NEAR(derivative_J3[0], 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_J3[1], 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_J3[2], 0.0, tolerance);
 
-        // auto random_unsorted_large = CreateRandomUnsortedLargeStressVector();
-        // MPMStressPrincipalInvariantsUtility::CalculateTensorInvariantsDerivatives(random_unsorted_large, derivative_I1, derivative_J2, derivative_J3);
+        auto random_unsorted_large = CreateRandomUnsortedLargeStressVector();
+        MPMStressPrincipalInvariantsUtility::CalculateTensorInvariantsDerivatives(random_unsorted_large, derivative_I1, derivative_J2, derivative_J3);
 
-        // KRATOS_CHECK_LESS_EQUAL(( 1.0 - derivative_I1[0])/derivative_I1[0], tolerance);
-        // KRATOS_CHECK_LESS_EQUAL(( 1.0 - derivative_I1[1])/derivative_I1[1], tolerance);
-        // KRATOS_CHECK_LESS_EQUAL(( 1.0 - derivative_I1[2])/derivative_I1[2], tolerance);
-        // KRATOS_CHECK_LESS_EQUAL(( 0.0 - derivative_I1[3])/derivative_I1[3], tolerance);
-        // KRATOS_CHECK_LESS_EQUAL(( 0.0 - derivative_I1[4])/derivative_I1[4], tolerance);
-        // KRATOS_CHECK_LESS_EQUAL(( 0.0 - derivative_I1[5])/derivative_I1[5], tolerance);
+        KRATOS_CHECK_NEAR(derivative_I1[0], 1.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_I1[1], 1.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_I1[2], 1.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_I1[3], 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_I1[4], 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_I1[5], 0.0, tolerance);
 
-        // KRATOS_CHECK_LESS_EQUAL(( -11433333.333333 - derivative_J2[0])/derivative_J2[0], tolerance);
-        // KRATOS_CHECK_LESS_EQUAL(( -12166666.666667 - derivative_J2[1])/derivative_J2[1], tolerance);
-        // KRATOS_CHECK_LESS_EQUAL((   -733333.333333 - derivative_J2[2])/derivative_J2[2], tolerance);
-        // KRATOS_CHECK_LESS_EQUAL(( random_unsorted_large[3] - derivative_J2[3])/derivative_J2[3], tolerance);
-        // KRATOS_CHECK_LESS_EQUAL(( random_unsorted_large[4] - derivative_J2[4])/derivative_J2[4], tolerance);
-        // KRATOS_CHECK_LESS_EQUAL(( random_unsorted_large[5] - derivative_J2[5])/derivative_J2[5], tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( -11433333.333333 - derivative_J2[0])/derivative_J2[0], tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( -12166666.666667 - derivative_J2[1])/derivative_J2[1], tolerance);
+        KRATOS_CHECK_LESS_EQUAL((   -733333.333333 - derivative_J2[2])/derivative_J2[2], tolerance);
+        KRATOS_CHECK_NEAR(derivative_J2[3], random_unsorted_large[3], tolerance);
+        KRATOS_CHECK_NEAR(derivative_J2[4], random_unsorted_large[4], tolerance);
+        KRATOS_CHECK_NEAR(derivative_J2[5], random_unsorted_large[5], tolerance);
 
-        // std::cout << "TEST J3" << derivative_J3 << std::endl;
-
-        // KRATOS_CHECK_LESS_EQUAL(( 0.0 - derivative_J3[0])/derivative_J3[0], tolerance);
-        // KRATOS_CHECK_LESS_EQUAL(( 0.0 - derivative_J3[1])/derivative_J3[1], tolerance);
-        // KRATOS_CHECK_LESS_EQUAL(( 0.0 - derivative_J3[2])/derivative_J3[2], tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( -3.397028e13 - derivative_J3[0])/derivative_J3[0], tolerance);
+        KRATOS_CHECK_LESS_EQUAL((  8.097389e13 - derivative_J3[1])/derivative_J3[1], tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( -4.700361e13 - derivative_J3[2])/derivative_J3[2], tolerance);
+        KRATOS_CHECK_LESS_EQUAL((  7.266333e13 - derivative_J3[3])/derivative_J3[3], tolerance);
+        KRATOS_CHECK_LESS_EQUAL((  1.045983e14 - derivative_J3[4])/derivative_J3[4], tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( -1.339350e14 - derivative_J3[5])/derivative_J3[5], tolerance);
     }
 
     /**
@@ -222,9 +221,52 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(MPMStressPrincipalInvariantsUtilityTensorInvariantSecondDerivativesCalculation, KratosParticleMechanicsFastSuite)
     {
-        auto random_sorted         = CreateRandomSortedStressVector();
-        auto random_unsorted_large = CreateRandomUnsortedLargeStressVector();
+        Matrix derivative2_I1, derivative2_J2, derivative2_J3;
+        auto random_sorted = CreateRandomSortedStressVector();
+        MPMStressPrincipalInvariantsUtility::CalculateTensorInvariantsSecondDerivatives(random_sorted, derivative2_I1, derivative2_J2, derivative2_J3);
 
+        KRATOS_CHECK_EQUAL(derivative2_I1(0,0), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_I1(0,1), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_I1(0,2), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_I1(1,0), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_I1(1,1), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_I1(1,2), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_I1(2,0), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_I1(2,1), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_I1(2,2), 0.0);
+
+        KRATOS_CHECK_NEAR(derivative2_J2(0,0),  2.0/3.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J2(0,1), -1.0/3.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J2(0,2), -1.0/3.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J2(1,0), -1.0/3.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J2(1,1),  2.0/3.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J2(1,2), -1.0/3.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J2(2,0), -1.0/3.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J2(2,1), -1.0/3.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J2(2,2),  2.0/3.0, tolerance);
+
+        KRATOS_CHECK_LESS_EQUAL(( 5.111111e6 - derivative2_J3(0,0))/derivative2_J3(0,0), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-4.888889e6 - derivative2_J3(0,1))/derivative2_J3(0,1), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-2.222222e5 - derivative2_J3(0,2))/derivative2_J3(0,2), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-4.888889e6 - derivative2_J3(1,0))/derivative2_J3(1,0), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-2.222222e5 - derivative2_J3(1,1))/derivative2_J3(1,1), tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 5.111111e6 - derivative2_J3(1,2))/derivative2_J3(1,2), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-2.222222e5 - derivative2_J3(2,0))/derivative2_J3(2,0), tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 5.111111e6 - derivative2_J3(2,1))/derivative2_J3(2,1), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-4.888889e6 - derivative2_J3(2,2))/derivative2_J3(2,2), tolerance);
+
+        auto negative_hydrostatic = CreateNegativeHydrostaticStressVector();
+        MPMStressPrincipalInvariantsUtility::CalculateTensorInvariantsSecondDerivatives(negative_hydrostatic, derivative2_I1, derivative2_J2, derivative2_J3);
+
+        KRATOS_CHECK_NEAR(derivative2_J3(0,0), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J3(0,1), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J3(0,2), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J3(1,0), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J3(1,1), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J3(1,2), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J3(2,0), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J3(2,1), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_J3(2,2), 0.0, tolerance);
 
     }
 
@@ -234,11 +276,26 @@ namespace Testing
     KRATOS_TEST_CASE_IN_SUITE(MPMStressPrincipalInvariantsUtilityStressInvariantsCalculation, KratosParticleMechanicsFastSuite)
     {
         double p, q, lode_angle;
-        auto negative_hydrostatic  = CreateNegativeHydrostaticStressVector();
+        auto positive_hydrostatic = CreateHydrostaticStressVector();
+        MPMStressPrincipalInvariantsUtility::CalculateStressInvariants(positive_hydrostatic, p, q, lode_angle);
 
-        auto random_unsorted       = CreateRandomUnsortedStressVector();
+        KRATOS_CHECK_LESS_EQUAL((3.0e6 -         p)/         p, tolerance);
+        KRATOS_CHECK_LESS_EQUAL((0.0   -         q)/         q, tolerance);
+        KRATOS_CHECK_LESS_EQUAL((0.0   -lode_angle)/lode_angle, tolerance);
+
+        auto random_sorted = CreateRandomSortedStressVector();
+        MPMStressPrincipalInvariantsUtility::CalculateStressInvariants(random_sorted, p, q, lode_angle);
+
+        KRATOS_CHECK_LESS_EQUAL(( 2.333333e6  -         p)/         p,  tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 1.300000e7  -         q)/         q,  tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-3.847103e-2 -lode_angle)/lode_angle,  tolerance);
 
         auto random_unsorted_large = CreateRandomUnsortedLargeStressVector();
+        MPMStressPrincipalInvariantsUtility::CalculateStressInvariants(random_unsorted_large, p, q, lode_angle);
+
+        KRATOS_CHECK_LESS_EQUAL((-7.566667e6  -          p)/         p, tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 3.205819e7  -          q)/         q, tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-6.718688e-2 - lode_angle)/lode_angle, tolerance);
     }
 
     /**
@@ -246,8 +303,45 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(MPMStressPrincipalInvariantsUtilityStressInvariantDerivativesCalculation, KratosParticleMechanicsFastSuite)
     {
-        auto random_unsorted       = CreateRandomUnsortedStressVector();
+        Vector derivative_p, derivative_q, derivative_lode_angle;
+        auto negative_hydrostatic  = CreateNegativeHydrostaticStressVector();
+        MPMStressPrincipalInvariantsUtility::CalculateDerivativeVectors(negative_hydrostatic, derivative_p, derivative_q, derivative_lode_angle);
+
+        KRATOS_CHECK_NEAR(derivative_p[0], 0.333333, tolerance);
+        KRATOS_CHECK_NEAR(derivative_p[1], 0.333333, tolerance);
+        KRATOS_CHECK_NEAR(derivative_p[2], 0.333333, tolerance);
+
+        KRATOS_CHECK_NEAR(derivative_q[0], 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_q[1], 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_q[2], 0.0, tolerance);
+
+        KRATOS_CHECK_NEAR(derivative_lode_angle[0], 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_lode_angle[1], 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_lode_angle[2], 0.0, tolerance);
+
         auto random_unsorted_large = CreateRandomUnsortedLargeStressVector();
+        MPMStressPrincipalInvariantsUtility::CalculateDerivativeVectors(random_unsorted_large, derivative_p, derivative_q, derivative_lode_angle);
+
+        KRATOS_CHECK_NEAR(derivative_p[0], 0.333333, tolerance);
+        KRATOS_CHECK_NEAR(derivative_p[1], 0.333333, tolerance);
+        KRATOS_CHECK_NEAR(derivative_p[2], 0.333333, tolerance);
+        KRATOS_CHECK_NEAR(derivative_p[3], 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_p[4], 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative_p[5], 0.0, tolerance);
+
+        KRATOS_CHECK_LESS_EQUAL(( -5.349647e-01 - derivative_q[0])/derivative_q[0], tolerance);
+        KRATOS_CHECK_LESS_EQUAL((  5.692773e-01 - derivative_q[1])/derivative_q[1], tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( -3.431261e-02 - derivative_q[2])/derivative_q[2], tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( -2.199126e-01 - derivative_q[3])/derivative_q[3], tolerance);
+        KRATOS_CHECK_LESS_EQUAL((  5.521210e-01 - derivative_q[4])/derivative_q[4], tolerance);
+        KRATOS_CHECK_LESS_EQUAL((  3.017950e-01 - derivative_q[5])/derivative_q[5], tolerance);
+
+        KRATOS_CHECK_LESS_EQUAL(( 1.325816e-09 - derivative_lode_angle[0])/derivative_lode_angle[0], tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-7.659644e-09 - derivative_lode_angle[1])/derivative_lode_angle[1], tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 6.333827e-09 - derivative_lode_angle[2])/derivative_lode_angle[2], tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-1.153132e-08 - derivative_lode_angle[3])/derivative_lode_angle[3], tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-1.106236e-08 - derivative_lode_angle[4])/derivative_lode_angle[4], tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 2.059480e-08 - derivative_lode_angle[5])/derivative_lode_angle[5], tolerance);
     }
 
     /**
@@ -255,8 +349,10 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(MPMStressPrincipalInvariantsUtilityStressInvariantSecondDerivativesCalculation, KratosParticleMechanicsFastSuite)
     {
-        auto positive_hydrostatic  = CreateHydrostaticStressVector();
-        auto random_unsorted_large = CreateRandomUnsortedLargeStressVector();
+        // auto positive_hydrostatic  = CreateHydrostaticStressVector();
+        // auto random_unsorted_large = CreateRandomUnsortedLargeStressVector();
+        // std::cout << std::scientific << std::setprecision(6) << derivative_p << " " << derivative_q << " " << derivative_lode_angle << std::endl;
+
     }
 
 
