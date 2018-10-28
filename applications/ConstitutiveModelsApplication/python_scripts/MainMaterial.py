@@ -70,8 +70,8 @@ class Solution(object):
 
         # start model
         model_part_name = self.materials[0]["Parameters"]["model_part_name"].GetString()
-        self.model_part = KratosMultiphysics.ModelPart(model_part_name)
-        self.model = {model_part_name : self.model_part}
+        self.model = KratosMultiphysics.Model()
+        self.model_part = self.model.CreateModelPart(model_part_name)
 
         # construct material process
         self._construct_material_processes(self.materials)

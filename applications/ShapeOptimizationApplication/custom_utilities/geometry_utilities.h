@@ -145,13 +145,16 @@ public:
         unsigned int domain_size = static_cast<unsigned int>(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
 
     	// Fill map that counts number of faces for given set of nodes
-    	for (ModelPart::ElementIterator itElem = mrModelPart.ElementsBegin(); itElem != mrModelPart.ElementsEnd(); itElem++)
+    	for (auto& elem_i : mrModelPart.Elements())
     	{
+            KRATOS_ERROR_IF(elem_i.GetGeometry().Dimension() < domain_size) << "ExtractBoundaryNodes: This function does only work"
+                <<" for solid elements in 3D and surface elements in 2D!" << std::endl;
+
             Element::GeometryType::GeometriesArrayType boundaries;
             if (domain_size==3)
-                boundaries = itElem->GetGeometry().Faces();
+                boundaries = elem_i.GetGeometry().Faces();
             else if (domain_size == 2)
-                boundaries = itElem->GetGeometry().Edges();
+                boundaries = elem_i.GetGeometry().Edges();
 
             for(unsigned int boundary=0; boundary<boundaries.size(); boundary++)
             {

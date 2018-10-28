@@ -55,7 +55,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.design_surface = model_part_controller.GetDesignSurface()
 
-        self.mapper = mapper_factory.CreateMapper(self.design_surface, optimization_settings["design_variables"]["filter"])
+        self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, optimization_settings["design_variables"]["filter"])
         self.data_logger = data_logger_factory.CreateDataLogger(model_part_controller, communicator, optimization_settings)
 
         self.optimization_utilities = OptimizationUtilities(self.design_surface, optimization_settings)
@@ -68,7 +68,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
         self.model_part_controller.InitializeMeshController()
-        self.mapper.InitializeMapping()
+        self.mapper.Initialize()
         self.analyzer.InitializeBeforeOptimizationLoop()
         self.data_logger.InitializeDataLogging()
 
@@ -169,8 +169,9 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
         # Mapping
         nodal_variable_mapped = KratosGlobals.GetVariable("DF1DX_MAPPED")
-        self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
-        self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
+        self.mapper.Update()
+        self.mapper.InverseMap(nodal_variable, nodal_variable_mapped)
+        self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
 
         # Damping
         self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable_mapped)
@@ -194,8 +195,8 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
             # Mapping
             nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
-            self.mapper.MapToDesignSpace(nodal_variable, nodal_variable_mapped)
-            self.mapper.MapToGeometrySpace(nodal_variable_mapped, nodal_variable_mapped)
+            self.mapper.InverseMap(nodal_variable, nodal_variable_mapped)
+            self.mapper.Map(nodal_variable_mapped, nodal_variable_mapped)
 
             # Damping
             self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable_mapped)

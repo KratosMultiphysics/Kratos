@@ -1,8 +1,8 @@
 //
 //   Project Name:        KratosPfemFluidDynamicsApplication $
-//   Created by:          $Author:               JMCarbonell $
+//   Created by:          $Author:                   AFranci $
 //   Last modified by:    $Co-Author:                        $
-//   Date:                $Date:               February 2016 $
+//   Date:                $Date:                October 2018 $
 //   Revision:            $Revision:                     0.0 $
 //
 //
@@ -35,6 +35,9 @@
 #include "custom_processes/split_elements_process.hpp"
 #include "custom_processes/set_active_flag_process.hpp"
 #include "custom_processes/set_active_flag_mesher_process.hpp"
+#include "custom_processes/set_material_properties_to_fluid_nodes_process.hpp"
+#include "custom_processes/set_material_properties_from_fluid_to_rigid_nodes_process.hpp"
+#include "custom_processes/set_material_properties_to_solid_nodes_process.hpp"
 #include "custom_processes/adaptive_time_interval_process.hpp"
 #include "custom_processes/transfer_model_part_elements_process.hpp"
 #include "custom_processes/build_mesh_boundary_for_fluids_process.hpp"
@@ -92,6 +95,18 @@ namespace Kratos
 	(m, "SetActiveFlagProcess")
 	.def(init<ModelPart&, bool, bool, int>());
 
+      class_<SetMaterialPropertiesToFluidNodesProcess, SetMaterialPropertiesToFluidNodesProcess::Pointer, MesherProcess>
+	(m, "SetMaterialPropertiesToFluidNodes")
+	.def(init<ModelPart&>());
+      
+      class_<SetMaterialPropertiesFromFluidToRigidNodesProcess, SetMaterialPropertiesFromFluidToRigidNodesProcess::Pointer, MesherProcess>
+	(m, "SetMaterialPropertiesFromFluidToRigidNodes")
+	.def(init<ModelPart&, ModelPart&>());
+
+      class_<SetMaterialPropertiesToSolidNodesProcess, SetMaterialPropertiesToSolidNodesProcess::Pointer, MesherProcess>
+	(m, "SetMaterialPropertiesToSolidNodes")
+	.def(init<ModelPart&>());
+      
      class_<SetActiveFlagMesherProcess, SetActiveFlagMesherProcess::Pointer, SetActiveFlagProcess>
 	(m, "SetActiveFlagMesherProcess")
 	.def(init<ModelPart&, bool, bool, int>());

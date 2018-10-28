@@ -190,6 +190,7 @@ class MassResponseFunction(ResponseFunctionBase):
 
     def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
+
         self.response_settings = response_settings
         self.model = model
         self.model_part_needs_to_be_imported = False
@@ -198,6 +199,10 @@ class MassResponseFunction(ResponseFunctionBase):
         input_type = response_settings["model_import_settings"]["input_type"].GetString()
         if input_type == "mdpa":
             self.model_part = self.model.CreateModelPart(model_part_name, 2)
+            domain_size = response_settings["domain_size"].GetInt()
+            if domain_size not in [2, 3]:
+                raise Exception("MassResponseFunction: Invalid 'domain_size': {}".format(domain_size))
+            self.model_part.ProcessInfo.SetValue(DOMAIN_SIZE, domain_size)
             self.model_part_needs_to_be_imported = True
         elif input_type == "use_input_model_part":
             self.model_part = self.model.GetModelPart(model_part_name)
@@ -214,7 +219,6 @@ class MassResponseFunction(ResponseFunctionBase):
         if self.model_part_needs_to_be_imported:
             # import model part
             model_part_io = ModelPartIO(self.response_settings["model_import_settings"]["input_filename"].GetString())
-            self.model_part.ProcessInfo.SetValue(DOMAIN_SIZE, 3)
             model_part_io.ReadModelPart(self.model_part)
 
         # Add constitutive laws and material properties from json file to model parts.

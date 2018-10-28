@@ -193,52 +193,8 @@ private:
     }
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
-    {
-        //we construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
-        std::vector<VariablesList* > aux_var_lists;
-        std::vector<std::string> aux_names;
-        std::vector<ModelPart* > aux_model_part_pointers;
-        aux_var_lists.reserve(GetListOfVariableLists().size());
-        aux_names.reserve(mRootModelPartMap.size());
-        aux_model_part_pointers.reserve(mRootModelPartMap.size());
-
-        for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it)
-        {
-            aux_names.push_back(it->first);
-            aux_model_part_pointers.push_back((it->second).get());
-        }
-
-        for(auto it = GetListOfVariableLists().begin(); it!=GetListOfVariableLists().end(); ++it)
-            aux_var_lists.push_back(it->get());
-
-        rSerializer.save("ListOfVariablesLists", aux_var_lists);
-        rSerializer.save("ModelPartNames", aux_names);
-        rSerializer.save("ModelPartPointers", aux_model_part_pointers);
-    }
-
-    void load(Serializer& rSerializer)
-    {
-        //we construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
-        std::vector<VariablesList* > aux_var_lists;
-        std::vector<std::string> aux_names;
-        std::vector<ModelPart* > aux_model_part_pointers;
-
-        rSerializer.load("ListOfVariablesLists", aux_var_lists);
-        rSerializer.load("ModelPartNames", aux_names);
-        rSerializer.load("ModelPartPointers", aux_model_part_pointers);
-
-        for(IndexType i=0; i<aux_var_lists.size(); ++i) {
-            auto p_aux_list = std::unique_ptr<VariablesList>(aux_var_lists[i]);
-            GetListOfVariableLists().insert(std::move(p_aux_list)); //NOTE: the ordering may be changed since the pointers are changed, however it should not matter
-        }
-
-        for(IndexType i=0; i<aux_names.size(); ++i) {
-            mRootModelPartMap.insert(std::make_pair(aux_names[i],std::unique_ptr<ModelPart>(aux_model_part_pointers[i])));
-        }
-
-
-    }
+    void save(Serializer& rSerializer) const;
+    void load(Serializer& rSerializer);
 
 
     ///@}
