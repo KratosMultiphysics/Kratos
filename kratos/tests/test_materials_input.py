@@ -93,12 +93,12 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         prop1 = self.model_part.GetProperties()[1]
         self.assertEqual(prop1.NumberOfSubproperties(), 3)
 
-        sub_prop1 = prop1.GetSubProperty(1)
-        self.assertEqual(sub_prop1.GetValue(KratosMultiphysics.YOUNG_MODULUS), 206900000000.0)
-        self.assertEqual(sub_prop1.GetValue(KratosMultiphysics.POISSON_RATIO), 0.29)
-        self.assertEqual(sub_prop1.GetValue(KratosMultiphysics.THICKNESS), 0.000889)
+        sub_prop11 = prop1.GetSubProperty(11)
+        self.assertEqual(sub_prop11.GetValue(KratosMultiphysics.YOUNG_MODULUS), 206900000000.0)
+        self.assertEqual(sub_prop11.GetValue(KratosMultiphysics.POISSON_RATIO), 0.29)
+        self.assertEqual(sub_prop11.GetValue(KratosMultiphysics.THICKNESS), 0.000889)
 
-        self.assertEqual(sub_prop1.NumberOfSubproperties(), 2)
+        self.assertEqual(sub_prop11.NumberOfSubproperties(), 3)
 
     def test_input_python(self):
 
