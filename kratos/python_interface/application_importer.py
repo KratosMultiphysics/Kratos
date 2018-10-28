@@ -31,7 +31,7 @@ def ImportApplication(application, application_name, application_folder, caller,
         constitutive_laws_path = os.path.join(python_path, 'constitutive_laws')
         sys.path.append(constitutive_laws_path)
 
-        if mod_path is not None:
+        if mod_path is not None: # optional for backwards compatibility
             mod_path.append(python_path)
 
         # Add application to kernel
