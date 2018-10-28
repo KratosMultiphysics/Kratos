@@ -93,6 +93,15 @@ public:
     ///@{
 
     /**
+     * @brief Constructor. The BDF method (parameters)
+     * @param ThisParameters Parameters with the integration order
+     */
+    explicit ResidualBasedBDFDisplacementScheme(Parameters ThisParameters)
+        : ResidualBasedBDFDisplacementScheme(ThisParameters.Has("integration_order") ? static_cast<std::size_t>(ThisParameters["integration_order"].GetInt()) : 2)
+    {
+    }
+
+    /**
      * @brief Constructor. The BDF method
      * @param Order The integration order
      * @todo The ideal would be to use directly the dof or the variable itself to identify the type of variable and is derivatives
