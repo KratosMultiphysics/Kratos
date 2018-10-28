@@ -125,15 +125,8 @@ namespace Kratos
                   Vector s_vector = rVector;
                   for (unsigned int i = 0; i < 3; ++i)
                         s_vector[i] -= rI1/3.0;
-                  if (s_vector.size() == 3)
-                  {
-                        rJ3 = s_vector[0] * s_vector[1] * s_vector[2]; // J_3 = det(tensor)
-                  }
-                  else if (s_vector.size() == 6)
-                  {
-                        Matrix tensor = MathUtils<double>::StressVectorToTensor( s_vector );
-                        rJ3 = MathUtils<double>::Det(tensor); // J_3 = det(tensor)
-                  }
+                  Matrix tensor = PrincipalVectorToMatrix( s_vector , rVector.size());
+                  rJ3 = MathUtils<double>::Det(tensor); // J_3 = det(tensor)
             }
 
             // Calculate derivatives of invariants dI1/dtensor, dJ2/dtensor, and dJ3/dtensor
@@ -144,42 +137,63 @@ namespace Kratos
 
                   // dI1/dtensor
                   rDI1 = ZeroVector(rVector.size());
-                  for (unsigned int i = 0; i < 3; i++)
+                  for (unsigned int i = 0; i < 3; ++i)
                         rDI1[i] = 1.0;
 
                   // dJ2/dtensor
+                  rDJ2 = ZeroVector(rVector.size());
                   rDJ2 = rVector;
                   for (unsigned int i = 0; i < 3; ++i)
                         rDJ2[i] -= i_1/3.0;
 
                   // dJ3/dtensor
-                  Matrix s_tensor = MathUtils<double>::StressVectorToTensor( rDJ2 );
+                  rDJ3 = ZeroVector(rVector.size());
+                  Matrix s_tensor = PrincipalVectorToMatrix( rDJ2, rVector.size() );
                   Matrix t_tensor = prod(s_tensor,s_tensor);
                   for (unsigned int i = 0; i < 3; ++i)
                         t_tensor(i,i) -= 2.0/3.0 * j_2;
-                  rDJ3 = MathUtils<double>::StrainTensorToVector( t_tensor, rVector.size());
+                  rDJ3 = PrincipalMatrixtoVector( t_tensor, rVector.size());
+
             }
 
             // Calculate second derivatives of invariants d2I1/d2tensor, d2J2/d2tensor, and d2J3/d2tensor
             static inline void CalculateTensorInvariantsSecondDerivatives( const Vector& rVector, Matrix& rD2I1, Matrix& rD2J2, Matrix& rD2J3 )
             {
-                  double i_1, j_2;
-                  CalculateTensorInvariants(rVector, i_1, j_2);
+                  // This function should return a forth-order tensor and thus the current usage is limited only to rVector.size() = 3
+                  if (rVector.size() == 3)
+                  {
+                        double i_1, j_2;
+                        CalculateTensorInvariants(rVector, i_1, j_2);
 
-                  // change given vector to tensor
-                  const Matrix aux_tensor = MathUtils<double>::StressVectorToTensor( rVector );
+                        // d2I1/d2tensor
+                        rD2I1 = ZeroMatrix(3);
 
-                  // d2I1/d2tensor
-                  rD2I1 = ZeroMatrix(3);
+                        // d2J2/d2tensor = delta_mp * delta_nq - 1/3 delta_pq * delta_mn
+                        rD2J2 = ZeroMatrix(3);
+                        for (unsigned int i = 0; i < 3; ++i)
+                              for (unsigned int j = 0; j < 3; ++j)
+                              {
+                                    if (i == j) rD2J2(i,j) = 2.0/3.0;
+                                    else rD2J2(i,j) = -1.0/3.0;
+                              }
 
-                  // d2J2/d2tensor
-                  rD2J2 = IdentityMatrix(3);
+                        // d2J3/d2tensor
+                        rD2J3 = ZeroMatrix(3);
+                        Vector s_vector = rVector;
+                        for (unsigned int i = 0; i < 3; ++i)
+                              s_vector[i] -= i_1/3.0;
 
-                  // d2J3/d2tensor
-                  rD2J3  = aux_tensor;
-                  for (unsigned int i = 0; i < 3; ++i)
-                        rD2J3(i,i) -= i_1/3.0;
-                  rD2J3 *= 2.0;
+                        for (unsigned int i = 0; i < 3; ++i)
+                              for (unsigned int j = 0; j < 3; ++j)
+                              {
+                                    if (i == j) rD2J3(i,j) = 2.0/3.0 * s_vector[i];
+                                    else rD2J3(i,j) = - 2.0/3.0* (s_vector[i] + s_vector[j]);
+                              }
+                  }
+                  else
+                  {
+                        KRATOS_ERROR <<  "The given vector dimension is wrong! Given: " << rVector.size() << "; Expected: 3" << std::endl;
+                  }
 
             }
 
@@ -202,17 +216,16 @@ namespace Kratos
                   CalculateTensorInvariants( rStress, i_1, j_2, j_3);
 
                   // Lode Angle
-                  rLodeAngle   = -j_3 / 2.0 * std::pow(3.0/j_2, 1.5);
                   double epsilon = 1.0e-9;
-                  if ( std::abs(j_2) < epsilon ) {                                               // if j_2 is 0
-                        rLodeAngle = GetPI() / 6.0;
-                  }
-                  else if ( std::abs( rLodeAngle ) > (1.0 - epsilon) ) {                        // if current rLodeAngle magnitude is larger than 1.0
+                  if ( std::abs(j_2) < epsilon ) // if j_2 is 0
+                        j_2 = 1.e-9;
+
+                  rLodeAngle   = -j_3 / 2.0 * std::pow(3.0/j_2, 1.5);
+                  if ( std::abs( rLodeAngle ) > 1.0 )                                           // if current rLodeAngle magnitude is larger than 1.0
                         rLodeAngle = ( GetPI() / 6.0 ) * rLodeAngle / std::abs(rLodeAngle);
-                  }
-                  else {                                                                        // otherwise
+                  else                                                                          // otherwise
                         rLodeAngle = std::asin( rLodeAngle ) / 3.0;
-                  }
+
             }
 
             // Calculate stress invariants p, q, and lode angle
@@ -240,8 +253,9 @@ namespace Kratos
                   // dQ/dstress
                   rC2 = ZeroVector(rStress.size());
                   if ( std::abs(j_2) > 1E-9) {
+                        rC2 = rStress;
                         for (unsigned int i = 0; i < 3; i++)
-                              rC2[i] = rStress[i] - i_1/3.0;
+                              rC2[i] -= i_1/3.0;
 
                         rC2 *= 3.0 / (2.0 * std::sqrt(3 * j_2));
                   }
@@ -265,6 +279,10 @@ namespace Kratos
                   CalculateThirdStressInvariant(rStress, lode_angle);
 
                   // Compute dLodeAngle/dstress
+                  rC3  = ZeroVector(rStress.size());
+                  double tolerance = 1.e-9;
+                  if (std::abs(j_2) < tolerance) j_2 = 1.e-9;
+
                   rC3  = dj_3 - (3.0/2.0 * j_3/j_2) * dj_2;
                   rC3 *= - std::sqrt(3.0) / (2.0 * std::cos(3*lode_angle) * std::pow(j_2, 1.5));
             }
@@ -291,19 +309,71 @@ namespace Kratos
                   double i_1, j_2, j_3;
                   CalculateTensorInvariants(rStress, i_1, j_2, j_3);
 
+                  Vector di_1, dj_2, dj_3;
+                  CalculateTensorInvariantsDerivatives(rStress, di_1, dj_2, dj_3);
+
                   Matrix d2i_1, d2j_2, d2j_3;
                   CalculateTensorInvariantsSecondDerivatives(rStress, d2i_1, d2j_2, d2j_3);
+
+                  Vector dp, dq, dlode_angle;
+                  CalculateDerivativeVectors(rStress, dp, dq, dlode_angle);
 
                   // Compute d2P/d2stress and d2Q/d2stress
                   CalculateSecondDerivativeMatrices(rStress, r2C1, r2C2);
 
-                  // Compute dLodeAngle/dstress
+                  // Compute lode_angle
                   double lode_angle;
                   CalculateThirdStressInvariant(rStress, lode_angle);
 
-                  // Compute dLodeAngle/dstress
-                  r2C3  = d2j_3 - (3.0/2.0 * j_3/j_2) * d2j_2;
-                  r2C3 *= - std::sqrt(3.0) / (2.0 * std::cos(3*lode_angle) * std::pow(j_2, 1.5));
+                  // Compute d2LodeAngle/d2stress
+                  r2C3 = ZeroMatrix(3);
+                  double tolerance = 1.e-9;
+                  if (std::abs(j_2) < tolerance) j_2 = 1.e-9;
+
+                  // To reduce complication, we assume a product rule: d2/d2stress(LodeAngle) = dA b + A * db
+                  // First we prepare A
+                  // double denominator = (2.0 * std::cos(3*lode_angle) * std::pow(j_2, 1.5));
+                  // double scalar_A    = - std::sqrt(3.0) / denominator;
+                  // Vector dA_dsigma_vector = - 3.0 * std::sqrt(3.0) * (std::sqrt(j_2) * std::cos(3*lode_angle) * dj_2 - 2.0 * std::pow(j_2, 1.5) * std::sin(3*lode_angle) * dlode_angle);
+                  // dA_dsigma_vector *= 1.0/std::pow(denominator, 2);
+
+                  // // Convert A to a correct order matrix
+                  // Matrix dA_dsigma_matrix = PrincipalVectorToMatrix(dA_dsigma_vector, rStress.size());
+
+                  // Vector vector_B = dj_3 - (3.0/2.0 * j_3/j_2) * dj_2;
+                  // Matrix dB_dsigma_matrix = d2j_3;
+
+                  // r2C3 *= - std::sqrt(3.0) / (2.0 * std::cos(3*lode_angle) * std::pow(j_2, 1.5));
+            }
+
+            static Matrix PrincipalVectorToMatrix(const Vector& rVector, const unsigned int& size)
+            {
+                  Matrix matrix = ZeroMatrix(3);
+                  if (size == 3)
+                  {
+                        for(unsigned int i=0; i<3; ++i)
+                              matrix(i,i) = rVector[i];
+                  }
+                  else if (size == 6)
+                  {
+                        matrix = MathUtils<double>::StressVectorToTensor( rVector );
+                  }
+                  return matrix;
+            }
+
+            static Vector PrincipalMatrixtoVector(const Matrix& rMatrix, const unsigned int& size)
+            {
+                  Vector vector = ZeroVector(3);
+                  if (size == 3)
+                  {
+                        for(unsigned int i=0; i<3; ++i)
+                              vector[i] = rMatrix(i,i);
+                  }
+                  else if (size == 6)
+                  {
+                        vector = MathUtils<double>::StressTensorToVector( rMatrix, size );
+                  }
+                  return vector;
             }
 
             static double GetPI()
