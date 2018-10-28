@@ -176,7 +176,7 @@ void Create3DGeometryHexahedra(ModelPart& rThisModelPart, std::size_t NumberOfLa
     Parameters parameters = NumberOfLayers == 2 ? GetTwoLayersParameters() : GetThreeLayersParameters();
 
     // Read properties
-    auto read_util = ReadMaterialsUtility(rThisModelPart.GetOwnerModel());
+    auto read_util = ReadMaterialsUtility(rThisModelPart.GetModel());
     read_util.ReadMaterials(parameters);
 
     // Create nodes and elements
@@ -225,7 +225,7 @@ void Create3DGeometryTetrahedra(ModelPart& rThisModelPart, std::size_t NumberOfL
     Parameters parameters = NumberOfLayers == 2 ? GetTwoLayersParameters() : GetThreeLayersParameters();
 
     // Read properties
-    auto read_util = ReadMaterialsUtility(rThisModelPart.GetOwnerModel());
+    auto read_util = ReadMaterialsUtility(rThisModelPart.GetModel());
     read_util.ReadMaterials(parameters);
 
     // Create nodes and elements
