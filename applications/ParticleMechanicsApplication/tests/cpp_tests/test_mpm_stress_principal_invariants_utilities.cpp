@@ -349,14 +349,64 @@ namespace Testing
     */
     KRATOS_TEST_CASE_IN_SUITE(MPMStressPrincipalInvariantsUtilityStressInvariantSecondDerivativesCalculation, KratosParticleMechanicsFastSuite)
     {
-        // auto positive_hydrostatic  = CreateHydrostaticStressVector();
-        // auto random_unsorted_large = CreateRandomUnsortedLargeStressVector();
-        // std::cout << std::scientific << std::setprecision(6) << derivative_p << " " << derivative_q << " " << derivative_lode_angle << std::endl;
+        Matrix derivative2_p, derivative2_q, derivative2_lode_angle;
+        auto positive_hydrostatic  = CreateHydrostaticStressVector();
+        MPMStressPrincipalInvariantsUtility::CalculateSecondDerivativeMatrices(positive_hydrostatic, derivative2_p, derivative2_q, derivative2_lode_angle);
+
+        KRATOS_CHECK_EQUAL(derivative2_p(0,0), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_p(0,1), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_p(0,2), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_p(1,0), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_p(1,1), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_p(1,2), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_p(2,0), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_p(2,1), 0.0);
+        KRATOS_CHECK_EQUAL(derivative2_p(2,2), 0.0);
+
+        KRATOS_CHECK_NEAR(derivative2_q(0,0), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_q(0,1), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_q(0,2), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_q(1,0), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_q(1,1), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_q(1,2), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_q(2,0), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_q(2,1), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_q(2,2), 0.0, tolerance);
+
+        KRATOS_CHECK_NEAR(derivative2_lode_angle(0,0), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_lode_angle(0,1), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_lode_angle(0,2), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_lode_angle(1,0), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_lode_angle(1,1), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_lode_angle(1,2), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_lode_angle(2,0), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_lode_angle(2,1), 0.0, tolerance);
+        KRATOS_CHECK_NEAR(derivative2_lode_angle(2,2), 0.0, tolerance);
+
+        auto random_sorted = CreateRandomSortedStressVector();
+        MPMStressPrincipalInvariantsUtility::CalculateSecondDerivativeMatrices(random_sorted, derivative2_p, derivative2_q, derivative2_lode_angle);
+
+        KRATOS_CHECK_LESS_EQUAL(( 1.672736e-08 - derivative2_q(0,0))/derivative2_q(0,0), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-3.584433e-08 - derivative2_q(0,1))/derivative2_q(0,1), tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 1.911698e-08 - derivative2_q(0,2))/derivative2_q(0,2), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-3.584433e-08 - derivative2_q(1,0))/derivative2_q(1,0), tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 7.680929e-08 - derivative2_q(1,1))/derivative2_q(1,1), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-4.096495e-08 - derivative2_q(1,2))/derivative2_q(1,2), tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 1.911698e-08 - derivative2_q(2,0))/derivative2_q(2,0), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-4.096495e-08 - derivative2_q(2,1))/derivative2_q(2,1), tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 2.184797e-08 - derivative2_q(2,2))/derivative2_q(2,2), tolerance);
+
+        KRATOS_CHECK_LESS_EQUAL(( 4.881835e-15 - derivative2_lode_angle(0,0))/derivative2_lode_angle(0,0), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-5.336664e-15 - derivative2_lode_angle(0,1))/derivative2_lode_angle(0,1), tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 4.548293e-16 - derivative2_lode_angle(0,2))/derivative2_lode_angle(0,2), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-5.336664e-15 - derivative2_lode_angle(1,0))/derivative2_lode_angle(1,0), tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 4.548293e-16 - derivative2_lode_angle(1,1))/derivative2_lode_angle(1,1), tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 4.881835e-15 - derivative2_lode_angle(1,2))/derivative2_lode_angle(1,2), tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 4.548293e-16 - derivative2_lode_angle(2,0))/derivative2_lode_angle(2,0), tolerance);
+        KRATOS_CHECK_LESS_EQUAL(( 4.881835e-15 - derivative2_lode_angle(2,1))/derivative2_lode_angle(2,1), tolerance);
+        KRATOS_CHECK_LESS_EQUAL((-5.336664e-15 - derivative2_lode_angle(2,2))/derivative2_lode_angle(2,2), tolerance);
 
     }
-
-
-
 
 } // namespace Testing
 } // namespace Kratos
