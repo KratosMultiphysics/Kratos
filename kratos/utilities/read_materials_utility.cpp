@@ -219,12 +219,10 @@ void ReadMaterialsUtility::CreateSubProperties(
 
         const std::size_t number_of_subproperties = Data["sub_properties"].size();
 
-        // We do a check of ordered ids
-        int counter = 1;
+        // We do a check of ids
         for(std::size_t i_sub_prop=0; i_sub_prop < number_of_subproperties; ++i_sub_prop) {
             const int sub_property_id = Data["sub_properties"][i_sub_prop]["properties_id"].GetInt();
-            KRATOS_ERROR_IF_NOT(sub_property_id == counter) << "Id's of the subproperties must be ordered and start on 1. Change your suproperties ids" << std::endl;
-            ++counter;
+            KRATOS_ERROR_IF(sub_property_id == pNewProperty->Id()) << "You cannot assign to a property a subproperty with the same Id" << std::endl;
         }
 
         // We assign the subproperties now
@@ -232,14 +230,22 @@ void ReadMaterialsUtility::CreateSubProperties(
             // Copy of the current parameters
             Parameters sub_prop = Data["sub_properties"][i_sub_prop];
 
+            // We get the subproperty id
             const int sub_property_id = sub_prop["properties_id"].GetInt();
-            Properties::Pointer p_new_sub_prop = Kratos::make_shared<Properties>(sub_property_id);
+
+            // We check if already defined
+            const bool already_defined = rModelPart.HasProperties(sub_property_id);
+            KRATOS_INFO_IF("ReadMaterialsUtility", already_defined) << "Subproperty " << sub_property_id << " already defined. The first material definition will be taken into account" << std::endl;
+
+            // We get or create the new subproperty
+            Properties::Pointer p_new_sub_prop = rModelPart.pGetProperties(sub_property_id, mesh_id);
 
             // Read the recursively subproperties
             CreateSubProperties(rModelPart, sub_prop, p_new_sub_prop);
 
             // We create the new sub property
-            CreateProperty(sub_prop["Material"], p_new_sub_prop);
+            if (sub_prop.Has("Material") && !already_defined)
+                CreateProperty(sub_prop["Material"], p_new_sub_prop);
 
             list_sub_properties.insert(list_sub_properties.begin(), p_new_sub_prop);
         }
@@ -256,7 +262,6 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     // Get the properties for the specified model part.
     ModelPart& r_model_part = mrModel.GetModelPart(Data["model_part_name"].GetString());
     const IndexType property_id = Data["properties_id"].GetInt();
-    const IndexType mesh_id = 0;
     Properties::Pointer p_prop = r_model_part.pGetProperties(property_id, mesh_id);
 
     // Compute the size using the iterators
