@@ -67,7 +67,7 @@ Parameters GetTwoLayersParameters()
             "Tables"           : {}
         },
         "sub_properties" : [{
-            "properties_id"   : 1,
+            "properties_id"   : 11,
             "Material"        : {
                 "constitutive_law" : {
                     "name" : "LinearElastic3DLaw"
@@ -80,7 +80,7 @@ Parameters GetTwoLayersParameters()
                 "Tables"           : {}
             }
         },{
-            "properties_id"   : 2,
+            "properties_id"   : 12,
             "Material"        : {
                 "constitutive_law" : {
                     "name" : "HyperElastic3DLaw"
@@ -120,7 +120,7 @@ Parameters GetThreeLayersParameters()
             "Tables"           : {}
         },
         "sub_properties" : [{
-            "properties_id"   : 1,
+            "properties_id"   : 11,
             "Material"        : {
                 "constitutive_law" : {
                     "name" : "LinearElastic3DLaw"
@@ -133,7 +133,7 @@ Parameters GetThreeLayersParameters()
                 "Tables"           : {}
             }
         },{
-            "properties_id"   : 2,
+            "properties_id"   : 12,
             "Material"        : {
                 "constitutive_law" : {
                     "name" : "LinearElastic3DLaw"
@@ -146,7 +146,7 @@ Parameters GetThreeLayersParameters()
                 "Tables"           : {}
             }
         },{
-            "properties_id"   : 3,
+            "properties_id"   : 13,
             "Material"        : {
                 "constitutive_law" : {
                     "name" : "HyperElastic3DLaw"
