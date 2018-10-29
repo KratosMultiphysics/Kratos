@@ -784,6 +784,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("NumberOfTables", &ModelPart::NumberOfTables)
         .def("AddTable", &ModelPart::AddTable)
         .def("GetTable", &ModelPart::pGetTable)
+        .def("HasProperties", &ModelPart::HasProperties)
         .def("GetProperties", ModelPartGetPropertiesById) //new method where one asks for one specific property on one given mesh
         .def_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
         .def("AddProperties", ModelPartAddProperties1)
