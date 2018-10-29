@@ -346,15 +346,15 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", ( this->GetEchoLevel() > 2)) << "Initializing lock array" << std::endl;
 
 #ifdef _OPENMP
-        if (BaseType::mlock_array.size() != 0) {
-            for (int i = 0; i < static_cast<int>(BaseType::mlock_array.size()); ++i) {
-                omp_destroy_lock(&BaseType::mlock_array[i]);
+        if (BaseType::mLockArray.size() != 0) {
+            for (int i = 0; i < static_cast<int>(BaseType::mLockArray.size()); ++i) {
+                omp_destroy_lock(&BaseType::mLockArray[i]);
             }
         }
-        BaseType::mlock_array.resize(BaseType::mDofSet.size());
+        BaseType::mLockArray.resize(BaseType::mDofSet.size());
 
-        for (int i = 0; i < static_cast<int>(BaseType::mlock_array.size()); ++i) {
-            omp_init_lock(&BaseType::mlock_array[i]);
+        for (int i = 0; i < static_cast<int>(BaseType::mLockArray.size()); ++i) {
+            omp_init_lock(&BaseType::mLockArray[i]);
         }
 #endif
 
@@ -577,13 +577,13 @@ protected:
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
-                omp_set_lock(&BaseType::mlock_array[ids[i]]);
+                omp_set_lock(&BaseType::mLockArray[ids[i]]);
 #endif
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
 
 #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mlock_array[ids[i]]);
+                omp_unset_lock(&BaseType::mLockArray[ids[i]]);
 #endif
             }
         }
@@ -598,12 +598,12 @@ protected:
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
-                omp_set_lock(&BaseType::mlock_array[ids[i]]);
+                omp_set_lock(&BaseType::mLockArray[ids[i]]);
 #endif
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
 #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mlock_array[ids[i]]);
+                omp_unset_lock(&BaseType::mLockArray[ids[i]]);
 #endif
             }
         }
@@ -619,23 +619,23 @@ protected:
             for (std::size_t i = 0; i < ids.size(); i++)
             {
 #ifdef _OPENMP
-                omp_set_lock(&BaseType::mlock_array[ids[i]]);
+                omp_set_lock(&BaseType::mLockArray[ids[i]]);
 #endif
                 auto& row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
 #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mlock_array[ids[i]]);
+                omp_unset_lock(&BaseType::mLockArray[ids[i]]);
 #endif
             }
             for (std::size_t i = 0; i < aux_ids.size(); i++)
             {
 #ifdef _OPENMP
-                omp_set_lock(&BaseType::mlock_array[aux_ids[i]]);
+                omp_set_lock(&BaseType::mLockArray[aux_ids[i]]);
 #endif
                 auto& row_indices = indices[aux_ids[i]];
                 row_indices.insert(aux_ids.begin(), aux_ids.end());
 #ifdef _OPENMP
-                omp_unset_lock(&BaseType::mlock_array[aux_ids[i]]);
+                omp_unset_lock(&BaseType::mLockArray[aux_ids[i]]);
 #endif
             }
         }
@@ -733,7 +733,7 @@ protected:
 
                     // Assemble the elemental contribution
                 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mlock_array);
+                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mLockArray);
                 #else
                     this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 #endif
@@ -760,7 +760,7 @@ protected:
 
                     // Assemble the elemental contribution
                 #ifdef USE_LOCKS_IN_ASSEMBLY
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mlock_array);
+                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mLockArray);
                 #else
                     this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 #endif
