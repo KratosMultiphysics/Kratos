@@ -27,26 +27,24 @@
 #include "custom_processes/spr_error_process.h"
 #include "custom_processes/impose_rigid_movement_process.h"
 
-namespace Kratos
-{
-namespace Python
-{
+namespace Kratos {
+namespace Python {
 
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     /// Processes
-    class_<PostprocessEigenvaluesProcess, PostprocessEigenvaluesProcess::Pointer, Process>(m,"PostprocessEigenvaluesProcess")
-        .def(init<ModelPart&, Parameters>());
+    py::class_<PostprocessEigenvaluesProcess, PostprocessEigenvaluesProcess::Pointer, Process>(m,"PostprocessEigenvaluesProcess")
+        .def(py::init<ModelPart&, Parameters>());
 
-    class_<TotalStructuralMassProcess, TotalStructuralMassProcess::Pointer, Process>(m,"TotalStructuralMassProcess")
-        .def(init<ModelPart&>())
+    py::class_<TotalStructuralMassProcess, TotalStructuralMassProcess::Pointer, Process>(m,"TotalStructuralMassProcess")
+        .def(py::init<ModelPart&>())
         .def_static("CalculateElementMass", &TotalStructuralMassProcess::CalculateElementMass);
         ;
 
-    class_<SolidShellThickComputeProcess, SolidShellThickComputeProcess::Pointer, Process>(m,"SolidShellThickComputeProcess")
-        .def(init<ModelPart&>())
+    py::class_<SolidShellThickComputeProcess, SolidShellThickComputeProcess::Pointer, Process>(m,"SolidShellThickComputeProcess")
+        .def(py::init<ModelPart&>())
         ;
 
 
@@ -54,40 +52,39 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(init<ModelPart&,Parameters&>())
         .def("CoupleModelParts", &CableNetMpcProcess::CoupleModelParts)
         ;  */
+    py::class_<PrismNeighboursProcess, PrismNeighboursProcess::Pointer, Process>(m, "PrismNeighboursProcess")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, const bool >())
 
-    class_<PrismNeighboursProcess, PrismNeighboursProcess::Pointer, Process>(m, "PrismNeighboursProcess")
-        .def(init<ModelPart&>())
-        .def(init<ModelPart&, const bool >())
         ;
 
-    class_<ShellToSolidShellProcess<3>, ShellToSolidShellProcess<3>::Pointer, Process>(m, "TriangleShellToSolidShellProcess")
-        .def(init<ModelPart&>())
-        .def(init< ModelPart&, Parameters >())
+    py::class_<ShellToSolidShellProcess<3>, ShellToSolidShellProcess<3>::Pointer, Process>(m, "TriangleShellToSolidShellProcess")
+        .def(py::init<ModelPart&>())
+        .def(py::init< ModelPart&, Parameters >())
         ;
 
-    class_<ShellToSolidShellProcess<4>, ShellToSolidShellProcess<4>::Pointer, Process>(m, "QuadrilateralShellToSolidShellProcess")
-        .def(init<ModelPart&>())
-        .def(init< ModelPart&, Parameters >())
+    py::class_<ShellToSolidShellProcess<4>, ShellToSolidShellProcess<4>::Pointer, Process>(m, "QuadrilateralShellToSolidShellProcess")
+        .def(py::init<ModelPart&>())
+        .def(py::init< ModelPart&, Parameters >())
         ;
 
     //SPR_ERROR
-    class_<SPRErrorProcess<2>, SPRErrorProcess<2>::Pointer, Process >(m, "SPRErrorProcess2D")
-        .def(init<ModelPart&>())
-        .def(init<ModelPart&, Parameters>())
+    py::class_<SPRErrorProcess<2>, SPRErrorProcess<2>::Pointer, Process >(m, "SPRErrorProcess2D")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, Parameters>())
         ;
 
-    class_<SPRErrorProcess<3>, SPRErrorProcess<3>::Pointer, Process >(m, "SPRErrorProcess3D")
-        .def(init<ModelPart&>())
-        .def(init<ModelPart&, Parameters>())
+    py::class_<SPRErrorProcess<3>, SPRErrorProcess<3>::Pointer, Process >(m, "SPRErrorProcess3D")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, Parameters>())
         ;
 
-    class_<ImposeRigidMovementProcess, ImposeRigidMovementProcess::Pointer, Process>(m, "ImposeRigidMovementProcess")
-        .def(init<ModelPart&>())
-        .def(init< ModelPart&, Parameters >())
+    py::class_<ImposeRigidMovementProcess, ImposeRigidMovementProcess::Pointer, Process>(m, "ImposeRigidMovementProcess")
+        .def(py::init<ModelPart&>())
+        .def(py::init< ModelPart&, Parameters >())
         ;
 }
 
 }  // namespace Python.
-
 } // Namespace Kratos
 

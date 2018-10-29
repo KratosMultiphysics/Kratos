@@ -23,47 +23,42 @@
 #include "includes/standard_linear_solver_factory.h"
 #include "eigen_solvers_application.h"
 
-namespace Kratos
-{
-
-namespace Python
-{
+namespace Kratos {
+namespace Python {
 
 template <typename SolverType>
 void register_solver(pybind11::module& m, const std::string& name)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     using Base = DirectSolver<typename SolverType::TGlobalSpace, typename SolverType::TLocalSpace>;
 
     using EigenDirectSolverType = EigenDirectSolver<SolverType>;
 
-    class_<EigenDirectSolverType, typename EigenDirectSolverType::Pointer, Base >
+    py::class_<EigenDirectSolverType, typename EigenDirectSolverType::Pointer, Base >
         (m, name.c_str())
-        .def(init<>())
-        .def(init<Parameters>())
+        .def(py::init<>())
+        .def(py::init<Parameters>())
     ;
 }
 
 template <typename SolverType>
 void register_eigensystem_solver(pybind11::module& m, const std::string& name = SolverType::Name)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     using Base = LinearSolver<typename SolverType::TGlobalSpace, typename SolverType::TLocalSpace>;
 
     using EigenSystemSolverType = EigensystemSolver<SolverType>;
 
-    class_<EigenSystemSolverType, typename EigenSystemSolverType::Pointer, Base >
+    py::class_<EigenSystemSolverType, typename EigenSystemSolverType::Pointer, Base >
         (m, name.c_str())
-        .def(init<Parameters>())
+        .def(py::init<Parameters>())
     ;
 }
 
 void AddCustomSolversToPython(pybind11::module& m)
 {
-    using namespace pybind11;
-
     using complex = std::complex<double>;
 
     // --- direct solvers
