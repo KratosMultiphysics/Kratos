@@ -2,7 +2,7 @@
 from KratosMultiphysics import Parameters
 from KratosMultiphysics import Vector
 from KratosMultiphysics import Matrix
-from KratosMultiphysics import Serializer, SerializerTraceType
+from KratosMultiphysics import Serializer, StreamSerializer, SerializerTraceType
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -616,48 +616,28 @@ class TestParameters(KratosUnittest.TestCase):
         tmp = Parameters(defaults)
         check = tmp.WriteJsonString()
 
-        #file_name = "parameters_serialization"
-        serializer_flag = SerializerTraceType.SERIALIZER_NO_TRACE
-        serializer = Serializer(serializer_flag)
+        serializer = StreamSerializer(SerializerTraceType.SERIALIZER_NO_TRACE)
         serializer.Save("ParametersSerialization",tmp)
-        #print("-----------------------")
-        print(serializer.Print())
-        print("\n")
-        #print("-----------------------")
-        serialized_data = serializer.GetStringRepresentation()
-        tmp = 0
-        serializer = 0 #
-
-        #print("*********************")
-        #print(serialized_data.GetData())
-
-        # ######## herserialized_data pickle through kratos
+        del(tmp)
+        
+        # ######## here we pickle the serializer
         try:
             import cickle as pickle  # Use cPickle on Python 2.7
         except ImportError:
             import pickle
 
         #pickle dataserialized_data
-        pickled_data = pickle.dumps(serialized_data, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
-        serialized_data = 0 #wiping old data
+        pickled_data = pickle.dumps(serializer, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
+        del(serializer)
 
-        # #unpickle data - note that here i override "serialized_data"
-        serialized_data = pickle.loads(pickled_data)
-        # print("*********************")
-        # print(serialized_data.GetData())
+        #unpickle data - note that here i override "serialized_data"
+        serializer = pickle.loads(pickled_data)
 
         loaded_parameters = Parameters()
-        other_serializer = Serializer(serializer_flag)
-        other_serializer.FillBuffer(serialized_data)
-        #print("-----------------------")
-        print(other_serializer.Print())
-        #print("-----------------------")
-        other_serializer.Load("ParametersSerialization",loaded_parameters)
+        serializer.Load("ParametersSerialization",loaded_parameters)
         
         self.assertEqual(check, loaded_parameters.WriteJsonString())
 
-        # import os
-        # os.remove('parameters_serialization.rest')
 
         
 
