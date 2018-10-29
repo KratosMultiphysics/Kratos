@@ -6,7 +6,7 @@
 #include <pybind11/pybind11.h>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 
 #include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"
 #include "../custom_constitutive/DEM_continuum_constitutive_law.h"
@@ -59,7 +59,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     class_<Variable<DEMDiscontinuumConstitutiveLaw::Pointer>, Variable<DEMDiscontinuumConstitutiveLaw::Pointer>::Pointer>(m, "DEMDiscontinuumConstitutiveLawPointerVariable")
-        .def("__repr__", &Variable<DEMDiscontinuumConstitutiveLaw::Pointer>::Info)
+        .def("__str__", PrintObject<Variable<DEMDiscontinuumConstitutiveLaw::Pointer>>)
         ;
 
     class_<DEM_D_Linear_viscous_Coulomb, DEM_D_Linear_viscous_Coulomb::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_viscous_Coulomb")
@@ -134,7 +134,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     class_<Variable<DEMContinuumConstitutiveLaw::Pointer>, Variable<DEMContinuumConstitutiveLaw::Pointer>::Pointer>(m, "DEMContinuumConstitutiveLawPointerVariable")
-        .def("__repr__", &Variable<DEMContinuumConstitutiveLaw::Pointer>::Info)
+        .def("__str__", PrintObject<Variable<DEMContinuumConstitutiveLaw::Pointer>>)
         ;
 
     class_<DEM_Dempack, DEM_Dempack::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_Dempack")
