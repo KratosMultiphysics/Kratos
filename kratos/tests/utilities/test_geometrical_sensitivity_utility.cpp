@@ -157,7 +157,7 @@ void TestThisGeometry(Geometry<Point>& rGeom,
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_2, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalSensitivityUtility_Quadrilateral2D4N_GAUSS_2, KratosSensitivityTestSuite)
 {
     Geometry<Point>::Pointer p_geom = CreateQuadrilateral2D4N();
     Geometry<Point>& r_geom = *p_geom;
