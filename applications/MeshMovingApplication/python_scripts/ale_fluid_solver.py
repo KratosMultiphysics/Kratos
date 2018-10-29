@@ -83,6 +83,9 @@ class ALEFluidSolver(PythonSolver):
     def AddVariables(self):
         self.mesh_motion_solver.AddVariables()
         self.fluid_solver.AddVariables()
+        main_model_part = self.model[self.settings["model_part_name"].GetString()]
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_ACCELERATION)
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("::[ALEFluidSolver]::", "Variables Added")
 

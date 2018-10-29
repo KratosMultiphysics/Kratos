@@ -40,7 +40,7 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
         << "The ModelPart does not have the variable \"MESH_ACCELERATION\" as "
         << "nodal-solutionstepvariable!" << std::endl;
 
-    const std::string integration_method = Settings["integration_method"].GetString();
+    const std::string time_scheme = Settings["time_scheme"].GetString();
 
     const std::map<std::string, CalculateMeshVelocityUtility::IntegrationMethod>
     available_integration_methods {
@@ -55,13 +55,13 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
         {"newmark",           generalized_alpha}
     };
 
-    if (available_integration_methods.find(integration_method) != available_integration_methods.end()) {
-        mIntegrationMethod = available_integration_methods.at(integration_method);
+    if (available_integration_methods.find(time_scheme) != available_integration_methods.end()) {
+        mIntegrationMethod = available_integration_methods.at(time_scheme);
     }
     else {
         std::stringstream err_msg;
 
-        err_msg << "The requested integration-method \"" << integration_method
+        err_msg << "The requested integration-method \"" << time_scheme
                 << "\" is not available!"
                 << "The following methods are available:" << std::endl;
 
@@ -72,18 +72,18 @@ CalculateMeshVelocityUtility::CalculateMeshVelocityUtility(ModelPart& rModelPart
         KRATOS_ERROR << err_msg.str() << std::endl;
     }
 
-    const SizeType min_buffer_size = GetMinimumBufferSize(integration_method);
+    const SizeType min_buffer_size = GetMinimumBufferSize(time_scheme);
     const SizeType current_buffer_size = rModelPart.GetBufferSize();
 
     KRATOS_ERROR_IF(current_buffer_size < min_buffer_size) << "Insufficient buffer size: "
         << current_buffer_size << " < " << min_buffer_size << "!" << std::endl;
 
     // setting mAlphaF and mAlphaM
-    if (integration_method == "generalized_alpha") {
+    if (time_scheme == "generalized_alpha") {
 
-    } else if (integration_method == "bossak") {
+    } else if (time_scheme == "bossak") {
 
-    } else if (integration_method == "newmark") {
+    } else if (time_scheme == "newmark") {
 
     }
 }
