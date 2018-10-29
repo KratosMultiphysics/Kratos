@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
 //
@@ -29,9 +29,9 @@ namespace Kratos
 {
 namespace Testing 
 {
-    typedef Node<3> NodeType;
-
     /// Factory functions
+
+    typedef Node<3> NodeType;
 
     /** Generates a sample Triangle3D3.
     * Generates a triangle defined by three random points in the space.
@@ -39,14 +39,14 @@ namespace Testing
     */
     template<class TPointType>
     typename Triangle3D3<TPointType>::Pointer GenerateTriangle3D3(
-        typename TPointType::Pointer PointA = GeneratePoint<TPointType>(),
-        typename TPointType::Pointer PointB = GeneratePoint<TPointType>(),
-        typename TPointType::Pointer PointC = GeneratePoint<TPointType>()) {
-    return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
+    typename TPointType::Pointer PointA = GeneratePoint<TPointType>(),
+    typename TPointType::Pointer PointB = GeneratePoint<TPointType>(),
+    typename TPointType::Pointer PointC = GeneratePoint<TPointType>()) {
+        return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
         PointA,
         PointB,
         PointC
-    ));
+        ));
     }
 
     /** Generates a sample Triangle3D3.
@@ -55,11 +55,11 @@ namespace Testing
     */
     template<class TPointType>
     typename Triangle3D3<TPointType>::Pointer GenerateRightTriangle3D3() {
-    return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
+        return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
         GeneratePoint<TPointType>(0.0, 0.0, 0.0),
         GeneratePoint<TPointType>(std::cos(Globals::Pi/4), 0.0, std::sin(Globals::Pi/4)),
         GeneratePoint<TPointType>(0.0, 1.0, 0.0)
-    ));
+        ));
     }
 
     /** Generates a sample Triangle3D3.
@@ -68,11 +68,11 @@ namespace Testing
     */
     template<class TPointType>
     typename Triangle3D3<TPointType>::Pointer GenerateEquilateralTriangle3D3() {
-    return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
+        return typename Triangle3D3<TPointType>::Pointer(new Triangle3D3<TPointType>(
         GeneratePoint<TPointType>(1.0, 0.0, 0.0),
         GeneratePoint<TPointType>(0.0, 1.0, 0.0),
         GeneratePoint<TPointType>(0.0, 0.0, 1.0)
-    ));
+        ));
     }
 
     /// Tests
@@ -81,29 +81,29 @@ namespace Testing
     * Checks if the number of edges is correct.
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3EdgesNumber, KratosCoreFastSuite) {
-    auto geom = GenerateRightTriangle3D3<NodeType>();
+        auto geom = GenerateRightTriangle3D3<NodeType>();
 
-    KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 3);
+        KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 3);
     }
 
     /** Checks if the number of faces is correct.
     * Checks if the number of faces is correct.
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3FacesNumber, KratosCoreFastSuite) {
-    auto geom = GenerateRightTriangle3D3<NodeType>();
+        auto geom = GenerateRightTriangle3D3<NodeType>();
 
-    // Charlie: I will let this to 3 but probably 'FacesNumber' needs to be documented to state
-    // that for planar geometries it also return the number of edges.
-    KRATOS_CHECK_EQUAL(geom->FacesNumber(), 3);
+        // Charlie: I will let this to 3 but probably 'FacesNumber' needs to be documented to state
+        // that for planar geometries it also return the number of edges.
+        KRATOS_CHECK_EQUAL(geom->FacesNumber(), 3);
     }
 
     /** Checks if the area of the triangle is calculated correctly.
     * Checks if the area of the triangle is calculated correctly.
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Area, KratosCoreFastSuite) {
-    auto geom = GenerateRightTriangle3D3<NodeType>();
+        auto geom = GenerateRightTriangle3D3<NodeType>();
 
-    KRATOS_CHECK_NEAR(geom->Area(), 0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->Area(), 0.5, TOLERANCE);
     }
 
     /** Checks if the volume of the triangle is calculated correctly.
@@ -111,54 +111,54 @@ namespace Testing
     * For triangle 2D3 'volume()' call defaults to 'area()'
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Volume, KratosCoreFastSuite) {
-    auto geom = GenerateRightTriangle3D3<NodeType>();
+        auto geom = GenerateRightTriangle3D3<NodeType>();
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Volume(), "Calling base class 'Volume' method instead of derived class one.");
     }
 
     /** Checks if the minimum edge length is calculated correctly.
     * Checks if the minimum edge length is calculated correctly.
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3MinEdgeLength, KratosCoreFastSuite) {
-    auto geom = GenerateRightTriangle3D3<NodeType>();
+        auto geom = GenerateRightTriangle3D3<NodeType>();
 
-    KRATOS_CHECK_NEAR(geom->MinEdgeLength(), 1.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->MinEdgeLength(), 1.0, TOLERANCE);
     }
 
     /** Checks if the maximum edge length is calculated correctly.
     * Checks if the maximum edge length is calculated correctly.
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3MaxEdgeLength, KratosCoreFastSuite) {
-    auto geom = GenerateRightTriangle3D3<NodeType>();
+        auto geom = GenerateRightTriangle3D3<NodeType>();
 
-    KRATOS_CHECK_NEAR(geom->MaxEdgeLength(), 1.414213, TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->MaxEdgeLength(), 1.414213, TOLERANCE);
     }
 
     /** Checks if the average edge length is calculated correctly.
     * Checks if the average edge length is calculated correctly.
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AverageEdgeLength, KratosCoreFastSuite) {
-    auto geom = GenerateRightTriangle3D3<NodeType>();
+        auto geom = GenerateRightTriangle3D3<NodeType>();
 
-    KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 1.138071, TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 1.138071, TOLERANCE);
     }
 
     /** Checks if the circumradius is calculated correctly.
     * Checks if the circumradius is calculated correctly.
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Circumradius, KratosCoreFastSuite) {
-    auto geom = GenerateRightTriangle3D3<NodeType>();
+        auto geom = GenerateRightTriangle3D3<NodeType>();
 
-    KRATOS_CHECK_NEAR(geom->Circumradius(), 0.707107, TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->Circumradius(), 0.707107, TOLERANCE);
     }
 
     /** Checks if the inradius is calculated correctly.
     * Checks if the inradius is calculated correctly.
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3Inradius, KratosCoreFastSuite) {
-    auto geom = GenerateRightTriangle3D3<NodeType>();
+        auto geom = GenerateRightTriangle3D3<NodeType>();
 
-    KRATOS_CHECK_NEAR(geom->Inradius(), 0.292893, TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->Inradius(), 0.292893, TOLERANCE);
     }
 
     /** Checks the inside test for a given point respect to the triangle
@@ -170,20 +170,20 @@ namespace Testing
     * A Point over an edge of the triangle: Expected result TRUE
     */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IsInside, KratosCoreFastSuite) {
-    auto geom = GenerateRightTriangle3D3<NodeType>();
+        auto geom = GenerateRightTriangle3D3<NodeType>();
 
-    Point PointInside(0.33, 0.33, 0.0);
-    Point PointOutside(0.66, 0.66, 0.0);
-    Point PointInVertex(0.0, 0.0, 0.0);
-    Point PointInEdge(0.5, 0.5, 0.0);
+        Point PointInside(0.33, 0.33, 0.0);
+        Point PointOutside(0.66, 0.66, 0.0);
+        Point PointInVertex(0.0, 0.0, 0.0);
+        Point PointInEdge(0.5, 0.5, 0.0);
 
-    Point LocalCoords;
+        Point LocalCoords;
 
-    // It appears that the function checks whether the PROJECTION of the point is inside the geometry.
-    KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
-    KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-    KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
-    KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+        // It appears that the function checks whether the PROJECTION of the point is inside the geometry.
+        KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
+        KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+        KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+        KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
     }
 
     /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
@@ -267,8 +267,8 @@ namespace Testing
     }
 
     /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
-        * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
-        */
+    * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+    */
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3DeterminantOfJacobianIndex1, KratosCoreFastSuite) {
         auto geom = GenerateRightTriangle3D3<NodeType>();
         const double ExpectedJacobian = 1.0;
@@ -502,6 +502,126 @@ namespace Testing
         Point point_1( 0.4, 0.5, 0.6);
         Point point_2( 1.0, 1.0, 1.0);
         KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
+    }
+
+    /**
+    * Test an overlaping non-cubic box and triangle (intersects a triangle edge) HasIntersection
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneX, KratosCoreFastSuite) {
+        Triangle3D3<Point > triangle_1(
+            GeneratePoint<NodeType >(0.55, -0.25, 0.25),
+            GeneratePoint<NodeType >(0.50, -0.25, 0.75),
+            GeneratePoint<NodeType >(0.50,  0.25, 0.25)
+        );
+
+        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<NodeType>(2.0, 1.0, 1.0);
+
+        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneY, KratosCoreFastSuite) {
+        Triangle3D3<Point > triangle_1(
+            GeneratePoint<NodeType >(-0.25, 0.50, 0.25),
+            GeneratePoint<NodeType >(-0.25, 0.55, 0.75),
+            GeneratePoint<NodeType >( 0.25, 0.50, 0.25)
+        );
+
+        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<NodeType>(2.0, 1.0, 1.0);
+
+        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongXPlaneZ, KratosCoreFastSuite) {
+        Triangle3D3<Point > triangle_1(
+            GeneratePoint<NodeType >(-0.25, 0.25, 0.50),
+            GeneratePoint<NodeType >(-0.25, 0.75, 0.50),
+            GeneratePoint<NodeType >( 0.25, 0.25, 0.55)
+        );
+
+        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<NodeType>(2.0, 1.0, 1.0);
+
+        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneX, KratosCoreFastSuite) {
+        Triangle3D3<Point > triangle_1(
+            GeneratePoint<NodeType >(0.55, -0.25, 0.25),
+            GeneratePoint<NodeType >(0.50, -0.25, 0.75),
+            GeneratePoint<NodeType >(0.50,  0.25, 0.25)
+        );
+
+        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<NodeType>(1.0, 2.0, 1.0);
+
+        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneY, KratosCoreFastSuite) {
+        Triangle3D3<Point > triangle_1(
+            GeneratePoint<NodeType >(-0.25, 0.50, 0.25),
+            GeneratePoint<NodeType >(-0.25, 0.55, 0.75),
+            GeneratePoint<NodeType >( 0.25, 0.50, 0.25)
+        );
+
+        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<NodeType>(1.0, 2.0, 1.0);
+
+        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongYPlaneZ, KratosCoreFastSuite) {
+        Triangle3D3<Point > triangle_1(
+            GeneratePoint<NodeType >(-0.25, 0.25, 0.50),
+            GeneratePoint<NodeType >(-0.25, 0.75, 0.50),
+            GeneratePoint<NodeType >( 0.25, 0.25, 0.55)
+        );
+
+        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<NodeType>(1.0, 2.0, 1.0);
+
+        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneX, KratosCoreFastSuite) {
+        Triangle3D3<Point > triangle_1(
+            GeneratePoint<NodeType >(0.55, -0.25, 0.25),
+            GeneratePoint<NodeType >(0.50, -0.25, 0.75),
+            GeneratePoint<NodeType >(0.50,  0.25, 0.25)
+        );
+
+        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<NodeType>(1.0, 1.0, 2.0);
+
+        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneY, KratosCoreFastSuite) {
+        Triangle3D3<Point > triangle_1(
+            GeneratePoint<NodeType >(-0.25, 0.50, 0.25),
+            GeneratePoint<NodeType >(-0.25, 0.55, 0.75),
+            GeneratePoint<NodeType >( 0.25, 0.50, 0.25)
+        );
+
+        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<NodeType>(1.0, 1.0, 2.0);
+
+        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3AABoxIntersectionNonEquilaterElongZPlaneZ, KratosCoreFastSuite) {
+        Triangle3D3<Point > triangle_1(
+            GeneratePoint<NodeType >(-0.25, 0.25, 0.50),
+            GeneratePoint<NodeType >(-0.25, 0.75, 0.50),
+            GeneratePoint<NodeType >( 0.25, 0.25, 0.55)
+        );
+
+        auto aabb_min = GeneratePoint<NodeType>(0.0, 0.0, 0.0);
+        auto aabb_max = GeneratePoint<NodeType>(1.0, 1.0, 2.0);
+
+        KRATOS_CHECK(triangle_1.HasIntersection(*aabb_min, *aabb_max));
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ShapeFunctionsValues, KratosCoreFastSuite) {

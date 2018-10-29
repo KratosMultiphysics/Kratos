@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -42,11 +42,9 @@
 
 namespace Kratos
 {
-
 namespace Python
 {
-
-using namespace pybind11;
+namespace py = pybind11;
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
 //typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
 
@@ -244,31 +242,31 @@ void SetValue(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorTyp
 
 void  AddBasicOperations(pybind11::module& m)
 {
-
-    class_< Epetra_MpiComm > (m,"Epetra_MpiComm")
-    .def(init< Epetra_MpiComm& >())
+    py::class_< Epetra_MpiComm > (m,"Epetra_MpiComm")
+    .def(py::init< Epetra_MpiComm& >())
     .def("MyPID",&Epetra_MpiComm::MyPID)
     .def("NumProc",&Epetra_MpiComm::NumProc)
     ;
 
     //NOTE: deliberatly avoiding defining a Pointer handler, to make it incompatible with the Kratos. all uses should pass through the AuxiliaryMatrixWrapper
-    class_< Epetra_FECrsMatrix  > (m,"Epetra_FECrsMatrix")
-    .def(init< Epetra_FECrsMatrix& >())
+    py::class_< Epetra_FECrsMatrix  > (m,"Epetra_FECrsMatrix")
+    .def(py::init< Epetra_FECrsMatrix& >())
     .def("__str__", PrintObject<Epetra_FECrsMatrix>)
     ;
 
     //NOTE: deliberatly avoiding defining a Pointer handler, to make it incompatible with the Kratos. all uses should pass through the AuxiliaryVectorWrapper
-    class_< Epetra_FEVector > (m,"Epetra_FEVector").def(init< Epetra_FEVector& >())
+    py::class_< Epetra_FEVector > (m,"Epetra_FEVector")
+    .def(py::init< Epetra_FEVector& >())
     .def("SetValue", SetValue)
     .def("__str__", PrintObject<Epetra_FEVector>)
     ;
 
-    class_< AuxiliaryMatrixWrapper > (m,"TrilinosMatrixPointer")//.def(init< TrilinosSparseSpaceType::MatrixPointerType > ())
-    .def("GetReference", GetMatRef, return_value_policy::reference_internal)
+    py::class_< AuxiliaryMatrixWrapper > (m,"TrilinosMatrixPointer")//.def(py::init< TrilinosSparseSpaceType::MatrixPointerType > ())
+    .def("GetReference", GetMatRef, py::return_value_policy::reference_internal)
     ;
 
-    class_< AuxiliaryVectorWrapper > (m,"TrilinosVectorPointer")//.def(init< TrilinosSparseSpaceType::VectorPointerType > ())
-    .def("GetReference", GetVecRef, return_value_policy::reference_internal)
+    py::class_< AuxiliaryVectorWrapper > (m,"TrilinosVectorPointer")//.def(py::init< TrilinosSparseSpaceType::VectorPointerType > ())
+    .def("GetReference", GetVecRef, py::return_value_policy::reference_internal)
     ;
 
     //typedef SolvingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBaseSolvingStrategyType;
@@ -279,8 +277,8 @@ void  AddBasicOperations(pybind11::module& m)
     //********************************************************************
 
 
-    class_< TrilinosSparseSpaceType> (m,"TrilinosSparseSpace")
-    .def(init<>())
+    py::class_< TrilinosSparseSpaceType> (m,"TrilinosSparseSpace")
+    .def(py::init<>())
     .def("ClearMatrix", ClearMatrix)
     .def("ClearVector", ClearVector)
 //     .def("ResizeMatrix", ResizeMatrix)
@@ -292,7 +290,7 @@ void  AddBasicOperations(pybind11::module& m)
     .def("Dot", Dot)
     //the matrix-vector multiplication
     .def("Mult", Mult)
-    // 		 .def("TransposeMult", TransposeMult)
+    //          .def("TransposeMult", TransposeMult)
     .def("Size", Size)
     .def("Size1", Size1)
     .def("Size2", Size2)
@@ -304,26 +302,22 @@ void  AddBasicOperations(pybind11::module& m)
     .def("SetValue", SetValue)
     ;
 
-
     m.def("CreateCommunicator", CreateCommunicator);
     m.def("ErrorCleaner", ErrorCleaner);
 
     //********************************************************************
     //********************************************************************
-    class_< Teuchos::ParameterList > (m,"ParameterList").def(init<>())
+    py::class_< Teuchos::ParameterList > (m,"ParameterList").def(py::init<>())
     .def("set", SetDoubleValue)
     .def("set", SetIntValue)
     .def("set", SetCharValue)
     .def("setboolvalue", SetBoolValue)
     .def("SetSublistIntValue", SetSublistIntValue)
-	.def("SetSublistDoubleValue", SetSublistDoubleValue)
-	.def("SetSublistCharValue", SetSublistCharValue)
-	.def("SetSublistBoolValue", SetSublistBoolValue)
+    .def("SetSublistDoubleValue", SetSublistDoubleValue)
+    .def("SetSublistCharValue", SetSublistCharValue)
+    .def("SetSublistBoolValue", SetSublistBoolValue)
 //     .def(self_ns::str(self))
     ;
-
-
-
 }
 
 
