@@ -768,7 +768,7 @@ namespace Kratos
       int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
 
       if(number_properties<0)
-        KRATOS_ERROR<<" number of properties is "<<number_propreties<<std::endl;
+        KRATOS_ERROR<<" number of properties is "<<number_properties<<std::endl;
 
       Properties::Pointer properties = rModelPart.GetParentModelPart()->GetMesh().pGetProperties(number_properties-1);
       ModelPart::ElementsContainerType::iterator elements_begin  = rModelPart.ElementsBegin();
