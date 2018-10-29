@@ -86,6 +86,8 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     typedef ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     /// Definition of the classes from the base class
+    typedef typename BaseType::SizeType SizeType;
+    typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::TSchemeType TSchemeType;
     typedef typename BaseType::TDataType TDataType;
     typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -100,15 +102,16 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
+    typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
+    typedef typename BaseType::DofsVectorType DofsVectorType;
+    typedef typename BaseType::CompressedMatrixType CompressedMatrixType;
 
     /// MPC definitions
     typedef MasterSlaveConstraint MasterSlaveConstraintType;
     typedef typename MasterSlaveConstraint::Pointer MasterSlaveConstraintPointerType;
     typedef Internals::AuxiliaryGlobalMasterSlaveConstraint AuxiliaryGlobalMasterSlaveConstraintType;
     typedef Internals::GlobalMasterSlaveRelationContainerType GlobalMasterSlaveRelationContainerType;
-    typedef std::vector<IndexType> EquationIdVectorType;
     typedef std::vector<IndexType> VectorIndexType;
-    typedef std::vector<Dof<double>::Pointer> DofsVectorType;
     typedef Vector VectorType;
     typedef Internals::ConstraintImposer<TSparseSpace, TDenseSpace, TLinearSolver> ConstraintImposerType;
 
@@ -163,19 +166,20 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
      * of dofs or as the number of unrestrained ones
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
-     * @param A The LHS matrix
-     * @param b The RHS vector
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
      */
     void Build(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& b) override
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb
+        ) override
     {
         if(mGlobalMasterSlaveConstraints.size() > 0)
-            BuildWithConstraints(pScheme, rModelPart, A, b);
+            BuildWithConstraints(pScheme, rModelPart, rA, rb);
         else
-            BaseType::Build(pScheme, rModelPart, A, b);
+            BaseType::Build(pScheme, rModelPart, rA, rb);
     }
 
 
@@ -395,7 +399,7 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
 #pragma omp parallel for schedule(guided, 512) firstprivate(n_constraints, constraints_begin)
         for (int k = 0; k < n_constraints; ++k) {
             auto it = constraints_begin + k;
-            it->InitializeSolutionStep(r_process_info); // Here each constraint constructs and stores its T and C matrices. Also its equation ids.
+            it->InitializeSolutionStep(r_process_info); // Here each constraint constructs and stores its T and C matrices. Also its equation slave_ids.
         }
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints failed to initialize solution step.")
@@ -533,254 +537,405 @@ protected:
         KRATOS_CATCH("")
     }
 
-    /*
-    * This function is exactly same as the ConstructMatrixStructure() function in base class except that the function
-    * has the call to ApplyConstraints function call once the element and conditions compute their equation ids
+    /**
+     * @brief This function is exactly same as the ConstructMatrixStructure() function in base class except that the function
+     * @details Has the call to ApplyConstraints function call once the element and conditions compute their equation ids
+     * @todo Move this method to a common class with block builder and solver with constraints
     */
     virtual void ConstructMatrixStructureWithConstraints(
         typename TSchemeType::Pointer pScheme,
-        TSystemMatrixType& A,
-        ModelPart& rModelPart)
+        TSystemMatrixType& rA,
+        ModelPart& rModelPart
+        )
     {
-        //filling with zero the matrix (creating the structure)
+        // Filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
-        ConstraintImposerType constraint_imposer(mGlobalMasterSlaveConstraints);
 
-        const std::size_t equation_size = BaseType::mEquationSystemSize;
+        const SizeType equation_size = BaseType::mEquationSystemSize;
 
-#ifdef USE_GOOGLE_HASH
-        std::vector<google::dense_hash_set<std::size_t>> indices(equation_size);
-        const std::size_t empty_key = 2 * equation_size + 10;
-#else
-        std::vector<std::unordered_set<std::size_t>> indices(equation_size);
-#endif
+    #ifdef USE_GOOGLE_HASH
+        std::vector<google::dense_hash_set<IndexType>> indices(equation_size);
+        const SizeType empty_key = 2 * equation_size + 10;
+    #else
+        std::vector<std::unordered_set<IndexType>> indices(equation_size);
+    #endif
 
-#pragma omp parallel for firstprivate(equation_size)
-        for (int iii = 0; iii < static_cast<int>(equation_size); iii++)
-        {
-#ifdef USE_GOOGLE_HASH
-            indices[iii].set_empty_key(empty_key);
-#else
-            indices[iii].reserve(40);
-#endif
+        #pragma omp parallel for firstprivate(equation_size)
+        for (int index = 0; index < static_cast<int>(equation_size); ++index) {
+        #ifdef USE_GOOGLE_HASH
+            indices[index].set_empty_key(empty_key);
+        #else
+            indices[index].reserve(40);
+        #endif
         }
 
-        Element::EquationIdVectorType ids(3, 0);
+        // The process info
+        auto r_process_info = rModelPart.GetProcessInfo();
+
+        /// Definition of the eqautio id vector type
+        EquationIdVectorType ids(3, 0);
 
         const int nelements = static_cast<int>(rModelPart.Elements().size());
-#pragma omp parallel for firstprivate(nelements, ids, constraint_imposer)
-        for (int iii = 0; iii < nelements; iii++)
-        {
-            typename ElementsContainerType::iterator i_element = rModelPart.Elements().begin() + iii;
-            pScheme->EquationId(*(i_element.base()), ids, rModelPart.GetProcessInfo());
-            constraint_imposer.template ApplyConstraints<Element>(*i_element, ids, rModelPart.GetProcessInfo());
-            for (std::size_t i = 0; i < ids.size(); i++)
-            {
-#ifdef _OPENMP
+        #pragma omp parallel for firstprivate(nelements, ids)
+        for (int i_elem = 0; i_elem < nelements; ++i_elem) {
+            auto it_elem = rModelPart.Elements().begin() + i_elem;
+            pScheme->EquationId(*(it_elem.base()), ids, r_process_info);
+            for (IndexType i = 0; i < ids.size(); i++) {
+            #ifdef _OPENMP
                 omp_set_lock(&BaseType::mLockArray[ids[i]]);
-#endif
-                auto& row_indices = indices[ids[i]];
+            #endif
+                auto &row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
 
-#ifdef _OPENMP
+            #ifdef _OPENMP
                 omp_unset_lock(&BaseType::mLockArray[ids[i]]);
-#endif
+            #endif
             }
         }
 
         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-#pragma omp parallel for firstprivate(nconditions, ids, constraint_imposer)
-        for (int iii = 0; iii < nconditions; iii++)
-        {
-            typename ConditionsArrayType::iterator i_condition = rModelPart.Conditions().begin() + iii;
-            pScheme->Condition_EquationId(*(i_condition.base()), ids, rModelPart.GetProcessInfo());
-            constraint_imposer.template ApplyConstraints<Condition>(*i_condition, ids, rModelPart.GetProcessInfo());
-            for (std::size_t i = 0; i < ids.size(); i++)
-            {
-#ifdef _OPENMP
+        #pragma omp parallel for firstprivate(nconditions, ids)
+        for (int i_cond = 0; i_cond < nconditions; i_cond++) {
+            auto it_cond = rModelPart.Conditions().begin() + i_cond;
+            pScheme->Condition_EquationId(*(it_cond.base()), ids, r_process_info);
+            for (IndexType i = 0; i < ids.size(); i++) {
+            #ifdef _OPENMP
                 omp_set_lock(&BaseType::mLockArray[ids[i]]);
-#endif
-                auto& row_indices = indices[ids[i]];
+            #endif
+                auto &row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
-#ifdef _OPENMP
+            #ifdef _OPENMP
                 omp_unset_lock(&BaseType::mLockArray[ids[i]]);
-#endif
+            #endif
             }
         }
 
-        Element::EquationIdVectorType aux_ids(3, 0);
+        EquationIdVectorType aux_ids(3, 0);
 
         const int nconstraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-#pragma omp parallel for firstprivate(nconstraints, ids, aux_ids, constraint_imposer)
-        for (int iii = 0; iii < nconstraints; iii++)
-        {
-            auto i_constraint = rModelPart.MasterSlaveConstraints().begin() + iii;
-            i_constraint->EquationIdVector(ids, aux_ids, rModelPart.GetProcessInfo());
-            for (std::size_t i = 0; i < ids.size(); i++)
-            {
-#ifdef _OPENMP
+        #pragma omp parallel for firstprivate(nconstraints, ids, aux_ids)
+        for (int i_const = 0; i_const < nconstraints; i_const++) {
+            auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+            it_const->EquationIdVector(ids, aux_ids, r_process_info);
+            for (IndexType i = 0; i < ids.size(); ++i) {
+            #ifdef _OPENMP
                 omp_set_lock(&BaseType::mLockArray[ids[i]]);
-#endif
-                auto& row_indices = indices[ids[i]];
+            #endif
+                auto &row_indices = indices[ids[i]];
                 row_indices.insert(ids.begin(), ids.end());
-#ifdef _OPENMP
+            #ifdef _OPENMP
                 omp_unset_lock(&BaseType::mLockArray[ids[i]]);
-#endif
+            #endif
             }
-            for (std::size_t i = 0; i < aux_ids.size(); i++)
-            {
-#ifdef _OPENMP
+            for (std::size_t i = 0; i < aux_ids.size(); ++i) {
+            #ifdef _OPENMP
                 omp_set_lock(&BaseType::mLockArray[aux_ids[i]]);
-#endif
-                auto& row_indices = indices[aux_ids[i]];
+            #endif
+                auto &row_indices = indices[aux_ids[i]];
                 row_indices.insert(aux_ids.begin(), aux_ids.end());
-#ifdef _OPENMP
+            #ifdef _OPENMP
                 omp_unset_lock(&BaseType::mLockArray[aux_ids[i]]);
-#endif
+            #endif
             }
         }
 
-        //count the row sizes
-        unsigned int nnz = 0;
-        for (unsigned int i = 0; i < indices.size(); i++)
+        // Count the row sizes
+        SizeType nnz = 0;
+        for (IndexType i = 0; i < indices.size(); ++i)
             nnz += indices[i].size();
 
-        A = boost::numeric::ublas::compressed_matrix<double>(indices.size(), indices.size(), nnz);
+        rA = CompressedMatrixType(indices.size(), indices.size(), nnz);
 
-        double *Avalues = A.value_data().begin();
-        std::size_t *Arow_indices = A.index1_data().begin();
-        std::size_t *Acol_indices = A.index2_data().begin();
+        double *Avalues = rA.value_data().begin();
+        IndexType *Arow_indices = rA.index1_data().begin();
+        IndexType *Acol_indices = rA.index2_data().begin();
 
-        //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+        // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Arow_indices[0] = 0;
-        for (int i = 0; i < static_cast<int>(A.size1()); i++)
+        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
             Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
 
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(A.size1()); i++) {
-            const unsigned int row_begin = Arow_indices[i];
-            const unsigned int row_end = Arow_indices[i + 1];
-            unsigned int k = row_begin;
+        for (int i = 0; i < static_cast<int>(rA.size1()); ++i) {
+            const IndexType row_begin = Arow_indices[i];
+            const IndexType row_end = Arow_indices[i + 1];
+            IndexType k = row_begin;
             for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
                 Acol_indices[k] = *it;
                 Avalues[k] = 0.0;
-                ++k;
+                k++;
             }
 
             indices[i].clear(); //deallocating the memory
 
-            std::sort(&Acol_indices[row_begin],& Acol_indices[row_end]);
+            std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
         }
 
-        A.set_filled(indices.size() + 1, nnz);
+        rA.set_filled(indices.size() + 1, nnz);
 
         Timer::Stop("MatrixStructure");
     }
 
     /*
-    * This function is exactly same as the Build() function in base class except that the function
-    * has the call to ApplyConstraints function call once the LHS or RHS are computed by elements and conditions
+    * This function is exactly same as the ConstructMatrixStructure() function in base class except that the function
+    * has the call to ApplyConstraints function call once the element and conditions compute their equation slave_ids
     */
-    void BuildWithConstraints(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& b)
+    virtual void ConstructRelationMatrixStructure(
+        TSystemMatrixType& rT,
+        ModelPart& rModelPart
+        )
     {
-        KRATOS_TRY
+        // Filling with zero the matrix (creating the structure)
+        Timer::Start("RelationMatrixStructure");
 
-        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-        ConstraintImposerType constraint_imposer(mGlobalMasterSlaveConstraints);
+        const SizeType equation_size = BaseType::mEquationSystemSize;
+        const SizeType slave_equation_size = mSlaveDofsSystemSize;
 
-        // Getting the elements from the model
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
+    #ifdef USE_GOOGLE_HASH
+        std::vector<google::dense_hash_set<IndexType>> master_indices(equation_size);
+        std::vector<google::dense_hash_set<IndexType>> slave_indices(slave_equation_size);
+        const SizeType empty_key = 2 * equation_size + 10;
+    #else
+        std::vector<std::unordered_set<IndexType>> master_indices(equation_size);
+        std::vector<std::unordered_set<IndexType>> slave_indices(slave_equation_size);
+    #endif
 
-        // Getting the array of the conditions
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        const auto el_begin = rModelPart.ElementsBegin();
-        const auto cond_begin = rModelPart.ConditionsBegin();
-
-        //contributions to the system
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
-
-        // assemble all elements
-        double start_build = OpenMPUtils::GetCurrentTime();
-
-        #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, constraint_imposer)
+        #pragma omp parallel for firstprivate(equation_size)
+        for (int iii = 0; iii < static_cast<int>(equation_size); iii++)
         {
-            #pragma omp for schedule(guided, 512) nowait
-            for (int k = 0; k < nelements; ++k) {
-                auto it = el_begin + k;
+        #ifdef USE_GOOGLE_HASH
+            master_indices[iii].set_empty_key(empty_key);
+        #else
+            master_indices[iii].reserve(40);
+        #endif
+        }
 
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    element_is_active = (it)->Is(ACTIVE);
+        #pragma omp parallel for firstprivate(slave_equation_size)
+        for (int iii = 0; iii < static_cast<int>(slave_equation_size); iii++)
+        {
+        #ifdef USE_GOOGLE_HASH
+            slave_indices[iii].set_empty_key(empty_key);
+        #else
+            slave_indices[iii].reserve(40);
+        #endif
+        }
 
-                if (element_is_active)
-                {
-                    //calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    constraint_imposer.template ApplyConstraints<Element>(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+        EquationIdVectorType slave_ids(3, 0), master_ids(3, 0);
 
-                    // Assemble the elemental contribution
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mLockArray);
-                #else
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-                #endif
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
-                }
+        const int nconstraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+        #pragma omp parallel for firstprivate(nconstraints, slave_ids, master_ids)
+        for (int i_constraint = 0; i_constraint < nconstraints; ++i_constraint) {
+            auto it_constraint = rModelPart.MasterSlaveConstraints().begin() + i_constraint;
+            it_constraint->EquationIdVector(slave_ids, master_ids, rModelPart.GetProcessInfo());
+            for (IndexType i = 0; i < slave_ids.size(); ++i)
+            {
+            #ifdef _OPENMP
+                omp_set_lock(&BaseType::mLockArray[slave_ids[i]]);
+            #endif
+                auto& row_indices = master_indices[slave_ids[i]];
+                row_indices.insert(slave_ids.begin(), slave_ids.end());
+            #ifdef _OPENMP
+                omp_unset_lock(&BaseType::mLockArray[slave_ids[i]]);
+            #endif
             }
-
-
-            #pragma omp for schedule(guided, 512)
-            for (int k = 0; k < nconditions; ++k) {
-                auto it = cond_begin + k;
-
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool condition_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    condition_is_active = (it)->Is(ACTIVE);
-
-                if (condition_is_active) {
-                    // Calculate elemental contribution
-                    pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                    constraint_imposer.template ApplyConstraints<Condition>(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    // Assemble the elemental contribution
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mLockArray);
-                #else
-                    this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
-                #endif
-
-                    // Clean local elemental memory
-                    pScheme->CleanMemory(*(it.base()));
-                }
+            for (IndexType i = 0; i < master_ids.size(); ++i) {
+            #ifdef _OPENMP
+                omp_set_lock(&BaseType::mLockArray[master_ids[i]]);
+            #endif
+                auto& row_indices = slave_indices[master_ids[i]];
+                row_indices.insert(master_ids.begin(), master_ids.end());
+            #ifdef _OPENMP
+                omp_unset_lock(&BaseType::mLockArray[master_ids[i]]);
+            #endif
             }
         }
 
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
+        // Count the row sizes
+        SizeType nnz = 0;
+        for (IndexType i = 0; i < master_indices.size(); ++i)
+            nnz += master_indices[i].size();
 
-        //for (int i = 0; i < A_size; i++)
-        //    omp_destroy_lock(&lock_array[i]);
+        rT = CompressedMatrixType(master_indices.size(), slave_indices.size(), nnz);
+
+        double *Avalues = rT.value_data().begin();
+        SizeType *Arow_indices = rT.index1_data().begin();
+        SizeType *Acol_indices = rT.index2_data().begin();
+
+        // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+        Arow_indices[0] = 0;
+        for (IndexType i = 0; i < rT.size1(); i++)
+            Arow_indices[i + 1] = Arow_indices[i] + master_indices[i].size();
+
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(rT.size1()); i++) {
+            const IndexType row_begin = Arow_indices[i];
+            const IndexType row_end = Arow_indices[i + 1];
+            IndexType k = row_begin;
+            for (auto it = master_indices[i].begin(); it != master_indices[i].end(); ++it) {
+                Acol_indices[k] = *it;
+                Avalues[k] = 0.0;
+                ++k;
+            }
+
+            master_indices[i].clear(); //deallocating the memory
+
+            std::sort(&Acol_indices[row_begin],& Acol_indices[row_end]);
+        }
+
+        rT.set_filled(master_indices.size() + 1, nnz);
+
+        Timer::Stop("RelationMatrixStructure");
+    }
+
+    /**
+     * @brief This function is exactly same as the Build() function in base class except that the function
+     * @details It has the call to ApplyConstraints function call once the LHS or RHS are computed by elements and conditions
+     */
+    void BuildWithConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb
+        )
+    {
+        KRATOS_TRY
+
+        // We build the original system
+        BaseType::Build(pScheme, rModelPart, rA, rb);
+
+        // We build the global T matrix
+
+//         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+//         ConstraintImposerType constraint_imposer(mGlobalMasterSlaveConstraints);
+//
+//         // Getting the elements from the model
+//         const int nelements = static_cast<int>(rModelPart.Elements().size());
+//
+//         // Getting the array of the conditions
+//         const int nconditions = static_cast<int>(rModelPart.Conditions().size());
+//
+//         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+//         const auto el_begin = rModelPart.ElementsBegin();
+//         const auto cond_begin = rModelPart.ConditionsBegin();
+//
+//         //contributions to the system
+//         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+//         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+//
+//         // Vector containing the localization in the system of the different terms
+//         EquationIdVectorType equation_id;
+//
+//         // Assemble all elements
+//         const double start_build = OpenMPUtils::GetCurrentTime();
+//
+//         #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, equation_id, constraint_imposer)
+//         {
+//             #pragma omp for schedule(guided, 512) nowait
+//             for (int k = 0; k < nelements; ++k) {
+//                 auto it = el_begin + k;
+//
+//                 //detect if the element is active or not. If the user did not make any choice the element
+//                 //is active by default
+//                 bool element_is_active = true;
+//                 if ((it)->IsDefined(ACTIVE))
+//                     element_is_active = (it)->Is(ACTIVE);
+//
+//                 if (element_is_active)
+//                 {
+//                     //calculate elemental contribution
+//                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
+//                     constraint_imposer.template ApplyConstraints<Element>(*it, LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
+//
+//                     // Assemble the elemental contribution
+//                 #ifdef USE_LOCKS_IN_ASSEMBLY
+//                     this->Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id, BaseType::mLockArray);
+//                 #else
+//                     this->Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id);
+//                 #endif
+//                     // Clean local elemental memory
+//                     pScheme->CleanMemory(*(it.base()));
+//                 }
+//             }
+//
+//
+//             #pragma omp for schedule(guided, 512)
+//             for (int k = 0; k < nconditions; ++k) {
+//                 auto it = cond_begin + k;
+//
+//                 //detect if the element is active or not. If the user did not make any choice the element
+//                 //is active by default
+//                 bool condition_is_active = true;
+//                 if ((it)->IsDefined(ACTIVE))
+//                     condition_is_active = (it)->Is(ACTIVE);
+//
+//                 if (condition_is_active) {
+//                     // Calculate elemental contribution
+//                     pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
+//                     constraint_imposer.template ApplyConstraints<Condition>(*it, LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
+//
+//                     // Assemble the elemental contribution
+//                 #ifdef USE_LOCKS_IN_ASSEMBLY
+//                     this->Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id, BaseType::mLockArray);
+//                 #else
+//                     this->Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id);
+//                 #endif
+//
+//                     // Clean local elemental memory
+//                     pScheme->CleanMemory(*(it.base()));
+//                 }
+//             }
+//         }
+
+//         const double stop_build = OpenMPUtils::GetCurrentTime();
+//         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
+
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief This method resize and initializes the system of euqations
+     * @details Additionally what is done in the base class the constraints are initialized
+     * @param pA The pointer to the LHS matrix
+     * @param pDx The pointer to the vector of Unknowns
+     * @param pb The pointer to the RHS vector
+     * @param rModelPart The model part to be computed
+     */
+    void ResizeAndInitializeVectors(
+        typename TSchemeType::Pointer pScheme,
+        TSystemMatrixPointerType& pA,
+        TSystemVectorPointerType& pDx,
+        TSystemVectorPointerType& pb,
+        ModelPart& rModelPart
+        ) override
+    {
+        // We resize the basic system
+        BaseType::ResizeAndInitializeVectors(pScheme, pA, pDx, pb, rModelPart);
+
+        // Now we resize the constraint system
+        if(mGlobalMasterSlaveConstraints.size() > 0) {
+            if (mpTMatrix == NULL) // If the pointer is not initialized initialize it to an empty matrix
+            {
+                TSystemMatrixPointerType pNewT = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
+                mpTMatrix.swap(pNewT);
+            }
+
+            TSystemMatrixType& rTMatrix = *mpTMatrix;
+
+            // Resizing the system vectors and matrix
+            if (rTMatrix.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) { // If the matrix is not initialized
+                rTMatrix.resize(BaseType::mEquationSystemSize, mSlaveDofsSystemSize, false);
+                ConstructRelationMatrixStructure(rTMatrix, rModelPart);
+            } else {
+                if (rTMatrix.size1() != BaseType::mEquationSystemSize || rTMatrix.size2() != mSlaveDofsSystemSize) {
+                    KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
+                    rTMatrix.resize(BaseType::mEquationSystemSize, mSlaveDofsSystemSize, true);
+                    ConstructRelationMatrixStructure(rTMatrix, rModelPart);
+                }
+            }
+        }
+    }
 
     ///@}
     ///@name Protected  Access
@@ -796,7 +951,7 @@ protected:
 
     ///@}
 
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -804,8 +959,10 @@ protected:
     ///@name Member Variables
     ///@{
 
-    // This is the set of condenced global constraints.
-    GlobalMasterSlaveRelationContainerType mGlobalMasterSlaveConstraints; //This can be changed to more efficient implementation later on.
+    // This is the set of condensed global constraints.
+    SizeType mSlaveDofsSystemSize = 0;        /// The number of master DoF defined. These are the total number of degrees of freedom to be used
+    TSystemMatrixPointerType mpTMatrix = NULL; /// This is matrix containing the global relation for the constraints
+    GlobalMasterSlaveRelationContainerType mGlobalMasterSlaveConstraints; /// This can be changed to more efficient implementation later on. // TODO: Maybe to remove later
 
     ///@}
     ///@name Private Operators
@@ -888,8 +1045,8 @@ protected:
 
             global_constraint = mGlobalMasterSlaveConstraints.find(slave_equation_id);
             for (auto master_equation_id : master_equation_ids) {
-                    global_constraint->second->AddMaster(master_equation_id, relation_matrix(slave_count, master_count));
-                    master_count++;
+                global_constraint->second->AddMaster(master_equation_id, relation_matrix(slave_count, master_count));
+                master_count++;
             }
             slave_count++;
         }
