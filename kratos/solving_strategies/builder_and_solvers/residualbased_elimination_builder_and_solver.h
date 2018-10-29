@@ -193,8 +193,8 @@ public:
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     //assemble the elemental contribution
-#ifdef _OPENMP
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+#ifdef USE_LOCKS_IN_ASSEMBLY
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mLockArray);
 #else
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
@@ -221,8 +221,8 @@ public:
                     //calculate elemental contribution
                     pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-#ifdef _OPENMP
-                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mlock_array);
+#ifdef USE_LOCKS_IN_ASSEMBLY
+                    Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, mLockArray);
 #else
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
 #endif
@@ -729,16 +729,16 @@ public:
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished setting up the dofs" << std::endl;
 
 #ifdef _OPENMP
-        if (mlock_array.size() != 0)
+        if (mLockArray.size() != 0)
         {
-            for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
-                omp_destroy_lock(&mlock_array[i]);
+            for (int i = 0; i < static_cast<int>(mLockArray.size()); i++)
+                omp_destroy_lock(&mLockArray[i]);
         }
 
-        mlock_array.resize(BaseType::mDofSet.size());
+        mLockArray.resize(BaseType::mDofSet.size());
 
-        for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
-            omp_init_lock(&mlock_array[i]);
+        for (int i = 0; i < static_cast<int>(mLockArray.size()); i++)
+            omp_init_lock(&mLockArray[i]);
 #endif
 
         // If reactions are to be calculated, we check if all the dofs have reactions defined
@@ -980,6 +980,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+#ifdef _OPENMP
+   std::vector<omp_lock_t> mLockArray;
+#endif
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -994,7 +998,7 @@ protected:
         const LocalSystemMatrixType& LHS_Contribution,
         const LocalSystemVectorType& RHS_Contribution,
         const Element::EquationIdVectorType& EquationId
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
         ,std::vector< omp_lock_t >& lock_array
 #endif
     )
@@ -1007,7 +1011,7 @@ protected:
 
             if (i_global < BaseType::mEquationSystemSize)
             {
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_set_lock(&lock_array[i_global]);
 #endif
                 b[i_global] += RHS_Contribution(i_local);
@@ -1019,7 +1023,7 @@ protected:
                         A(i_global, j_global) += LHS_Contribution(i_local, j_local);
                     }
                 }
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_unset_lock(&lock_array[i_global]);
 #endif
 
@@ -1080,7 +1084,7 @@ protected:
             if (ids[i] < BaseType::mEquationSystemSize)
             {
 #ifdef _OPENMP
-                                    omp_set_lock(&mlock_array[ids[i]]);
+                                    omp_set_lock(&mLockArray[ids[i]]);
 #endif
                auto& row_indices = indices[ids[i]];
                for (auto it = ids.begin(); it != ids.end(); it++)
@@ -1089,7 +1093,7 @@ protected:
                      row_indices.insert(*it);
                }
 #ifdef _OPENMP
-               omp_unset_lock(&mlock_array[ids[i]]);
+               omp_unset_lock(&mLockArray[ids[i]]);
 #endif
             }
          }
@@ -1106,7 +1110,7 @@ protected:
             if (ids[i] < BaseType::mEquationSystemSize)
             {
 #ifdef _OPENMP
-               omp_set_lock(&mlock_array[ids[i]]);
+               omp_set_lock(&mLockArray[ids[i]]);
 #endif
                auto& row_indices = indices[ids[i]];
                for (auto it = ids.begin(); it != ids.end(); it++)
@@ -1115,7 +1119,7 @@ protected:
                      row_indices.insert(*it);
                }
 #ifdef _OPENMP
-               omp_unset_lock(&mlock_array[ids[i]]);
+               omp_unset_lock(&mLockArray[ids[i]]);
 #endif
             }
          }
@@ -1305,9 +1309,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-#ifdef _OPENMP
-   std::vector< omp_lock_t > mlock_array;
-#endif
+
     ///@}
     ///@name Private Operators
     ///@{
