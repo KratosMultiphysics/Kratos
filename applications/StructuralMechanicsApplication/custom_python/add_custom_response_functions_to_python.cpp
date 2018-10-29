@@ -31,68 +31,64 @@
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
 
 
-namespace Kratos
-{
-namespace Python
-{
-
-using namespace pybind11;
+namespace Kratos {
+namespace Python {
 
 void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
 
     // Response Functions
-    class_<StrainEnergyResponseFunctionUtility, StrainEnergyResponseFunctionUtility::Pointer >
-      (m, "StrainEnergyResponseFunctionUtility")
-      .def(init<ModelPart&, Parameters>())
-      .def("Initialize", &StrainEnergyResponseFunctionUtility::Initialize)
-      .def("CalculateValue", &StrainEnergyResponseFunctionUtility::CalculateValue)
-      .def("CalculateGradient", &StrainEnergyResponseFunctionUtility::CalculateGradient);
+    py::class_<StrainEnergyResponseFunctionUtility, StrainEnergyResponseFunctionUtility::Pointer >
+        (m, "StrainEnergyResponseFunctionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &StrainEnergyResponseFunctionUtility::Initialize)
+        .def("CalculateValue", &StrainEnergyResponseFunctionUtility::CalculateValue)
+        .def("CalculateGradient", &StrainEnergyResponseFunctionUtility::CalculateGradient);
 
-    class_<MassResponseFunctionUtility, MassResponseFunctionUtility::Pointer >
-      (m, "MassResponseFunctionUtility")
-      .def(init<ModelPart&, Parameters>())
-      .def("Initialize", &MassResponseFunctionUtility::Initialize)
-      .def("CalculateValue", &MassResponseFunctionUtility::CalculateValue)
-      .def("CalculateGradient", &MassResponseFunctionUtility::CalculateGradient);
+    py::class_<MassResponseFunctionUtility, MassResponseFunctionUtility::Pointer >
+        (m, "MassResponseFunctionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &MassResponseFunctionUtility::Initialize)
+        .def("CalculateValue", &MassResponseFunctionUtility::CalculateValue)
+        .def("CalculateGradient", &MassResponseFunctionUtility::CalculateGradient);
 
-    class_<EigenfrequencyResponseFunctionUtility, EigenfrequencyResponseFunctionUtility::Pointer >
-      (m, "EigenfrequencyResponseFunctionUtility")
-      .def(init<ModelPart&, Parameters>())
-      .def("Initialize", &EigenfrequencyResponseFunctionUtility::Initialize)
-      .def("CalculateValue", &EigenfrequencyResponseFunctionUtility::CalculateValue)
-      .def("CalculateGradient", &EigenfrequencyResponseFunctionUtility::CalculateGradient);
+    py::class_<EigenfrequencyResponseFunctionUtility, EigenfrequencyResponseFunctionUtility::Pointer >
+        (m, "EigenfrequencyResponseFunctionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &EigenfrequencyResponseFunctionUtility::Initialize)
+        .def("CalculateValue", &EigenfrequencyResponseFunctionUtility::CalculateValue)
+        .def("CalculateGradient", &EigenfrequencyResponseFunctionUtility::CalculateGradient);
 
     // Processes
-    class_<ReplaceElementsAndConditionsForAdjointProblemProcess, ReplaceElementsAndConditionsForAdjointProblemProcess::Pointer , Process>
-      (m, "ReplaceElementsAndConditionsForAdjointProblemProcess")
-      .def(init<ModelPart&>());
+    py::class_<ReplaceElementsAndConditionsForAdjointProblemProcess, ReplaceElementsAndConditionsForAdjointProblemProcess::Pointer , Process>
+        (m, "ReplaceElementsAndConditionsForAdjointProblemProcess")
+        .def(py::init<ModelPart&>());
 
     // Response Functions
-    class_<AdjointStructuralResponseFunction, AdjointStructuralResponseFunction::Pointer>
-      (m, "AdjointStructuralResponseFunction")
-      .def(init<ModelPart&, Parameters>())
-      .def("Initialize", &AdjointStructuralResponseFunction::Initialize)
-      .def("InitializeSolutionStep", &AdjointStructuralResponseFunction::InitializeSolutionStep)
-      .def("FinalizeSolutionStep", &AdjointStructuralResponseFunction::FinalizeSolutionStep)
-      .def("CalculateValue", &AdjointStructuralResponseFunction::CalculateValue)
-      .def("UpdateSensitivities", &AdjointStructuralResponseFunction::UpdateSensitivities);
+    py::class_<AdjointStructuralResponseFunction, AdjointStructuralResponseFunction::Pointer>
+        (m, "AdjointStructuralResponseFunction")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &AdjointStructuralResponseFunction::Initialize)
+        .def("InitializeSolutionStep", &AdjointStructuralResponseFunction::InitializeSolutionStep)
+        .def("FinalizeSolutionStep", &AdjointStructuralResponseFunction::FinalizeSolutionStep)
+        .def("CalculateValue", &AdjointStructuralResponseFunction::CalculateValue)
+        .def("UpdateSensitivities", &AdjointStructuralResponseFunction::UpdateSensitivities);
 
-    class_<AdjointLocalStressResponseFunction, AdjointLocalStressResponseFunction::Pointer, AdjointStructuralResponseFunction>
-      (m, "AdjointLocalStressResponseFunction")
-      .def(init<ModelPart&, Parameters>());
+    py::class_<AdjointLocalStressResponseFunction, AdjointLocalStressResponseFunction::Pointer, AdjointStructuralResponseFunction>
+        (m, "AdjointLocalStressResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
 
-    class_<AdjointNodalDisplacementResponseFunction, AdjointNodalDisplacementResponseFunction::Pointer, AdjointStructuralResponseFunction>
-      (m, "AdjointNodalDisplacementResponseFunction")
-      .def(init<ModelPart&, Parameters>());
+    py::class_<AdjointNodalDisplacementResponseFunction, AdjointNodalDisplacementResponseFunction::Pointer, AdjointStructuralResponseFunction>
+        (m, "AdjointNodalDisplacementResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
 
-    class_<AdjointLinearStrainEnergyResponseFunction, AdjointLinearStrainEnergyResponseFunction::Pointer, AdjointStructuralResponseFunction>
-      (m, "AdjointLinearStrainEnergyResponseFunction")
-      .def(init<ModelPart&, Parameters>());
+    py::class_<AdjointLinearStrainEnergyResponseFunction, AdjointLinearStrainEnergyResponseFunction::Pointer, AdjointStructuralResponseFunction>
+        (m, "AdjointLinearStrainEnergyResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
 
 }
 
 }  // namespace Python.
-
 } // Namespace Kratos
 

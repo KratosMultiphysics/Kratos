@@ -348,7 +348,6 @@ public:
      */
     virtual double GetResidualNorm()
     {
-        KRATOS_ERROR << "You are calling to the base class method GetResidualNorm, please define in you derived class the method" << std::endl;
         return 0.0;
     }
 
@@ -388,6 +387,28 @@ public:
         return 0;
 
         KRATOS_CATCH("")
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "SolvingStrategy";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << Info();
     }
 
     ///@}

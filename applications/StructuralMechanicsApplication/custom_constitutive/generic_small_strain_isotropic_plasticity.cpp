@@ -112,9 +112,12 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         array_1d<double, VoigtSize> g_flux(VoigtSize, 0.0); // DG/DS
         array_1d<double, VoigtSize> plastic_strain_increment(VoigtSize, 0.0);
 
-        TConstLawIntegratorType::CalculatePlasticParameters(predictive_stress_vector, r_strain_vector,
-                                                        uniaxial_stress, r_threshold, plastic_denominator, f_flux, g_flux, r_plastic_dissipation,
-                                                        plastic_strain_increment, r_constitutive_matrix, rValues, characteristic_length);
+        TConstLawIntegratorType::CalculatePlasticParameters(
+            predictive_stress_vector, r_strain_vector, uniaxial_stress,
+            r_threshold, plastic_denominator, f_flux, g_flux,
+            r_plastic_dissipation, plastic_strain_increment,
+            r_constitutive_matrix, rValues, characteristic_length,
+            r_plastic_strain);
 
         const double F = uniaxial_stress - r_threshold;
 
@@ -131,10 +134,12 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
         } else { // Plastic case
             // while loop backward euler
             /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
-            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, r_strain_vector,
-                                                        uniaxial_stress, r_threshold, plastic_denominator, f_flux, g_flux,
-                                                        r_plastic_dissipation, plastic_strain_increment, r_constitutive_matrix, r_plastic_strain,
-                                                        rValues, characteristic_length);
+            TConstLawIntegratorType::IntegrateStressVector(
+                predictive_stress_vector, r_strain_vector, uniaxial_stress,
+                r_threshold, plastic_denominator, f_flux, g_flux,
+                r_plastic_dissipation, plastic_strain_increment,
+                r_constitutive_matrix, r_plastic_strain, rValues,
+                characteristic_length);
             noalias(integrated_stress_vector) = predictive_stress_vector;
 
             this->SetNonConvPlasticDissipation(r_plastic_dissipation);
@@ -367,9 +372,19 @@ template <class TConstLawIntegratorType>
 double& GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
     const Variable<double>& rThisVariable,
-    double& rValue)
+    double& rValue
+    )
 {
-    return this->GetValue(rThisVariable, rValue);
+    if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
+        const Vector& r_stress_vector = rParameterValues.GetStressVector();
+        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(r_stress_vector, mUniaxialStress, mPlasticStrain, 0.0, rParameterValues, rValue);
+
+        return rValue;
+    } else {
+        return this->GetValue(rThisVariable, rValue);
+    }
+
+    return rValue;
 }
 
 /***********************************************************************************/
