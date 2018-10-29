@@ -57,6 +57,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<CalculateMeshVelocityUtility>(m,"CalculateMeshVelocityUtility")
         .def(py::init<ModelPart&, Parameters>())
         .def("CalculateMeshVelocities",&CalculateMeshVelocityUtility::CalculateMeshVelocities)
+        .def_static("GetMinimumBufferSize",&CalculateMeshVelocityUtility::GetMinimumBufferSize)
         ;
 }
 

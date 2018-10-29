@@ -17,6 +17,7 @@
 
 
 // System includes
+#include<map>
 
 
 // External includes
@@ -64,6 +65,20 @@ public:
     /// Pointer definition of CalculateMeshVelocityUtility
     KRATOS_CLASS_POINTER_DEFINITION(CalculateMeshVelocityUtility);
 
+    typedef std::size_t SizeType;
+
+    enum IntegrationMethod{
+        bdf1,
+        bdf2,
+        bdf3,
+        bdf4,
+        bdf5,
+        bdf6,
+        generalized_alpha,
+        newmark,
+        bossak
+    };
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -80,6 +95,11 @@ public:
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    CalculateMeshVelocityUtility& operator=(CalculateMeshVelocityUtility const& rOther) = delete;
+
+    /// Copy constructor.
+    CalculateMeshVelocityUtility(CalculateMeshVelocityUtility const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -87,6 +107,7 @@ public:
 
     void CalculateMeshVelocities();
 
+    static SizeType GetMinimumBufferSize(const std::string& rIntegrationMethod);
 
     ///@}
     ///@name Access
@@ -167,6 +188,11 @@ private:
 
     ModelPart& mrModelPart;
 
+    IntegrationMethod mIntegrationMethod;
+
+    double mAlphaM;
+    double mAlphaF;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -176,6 +202,9 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CalculateMeshVelocitiesBDF(const double DeltaTime);
+
+    void CalculateMeshVelocitiesGeneralizedAlpha(const double DeltaTime);
 
     ///@}
     ///@name Private  Access
@@ -190,12 +219,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    // CalculateMeshVelocityUtility& operator=(CalculateMeshVelocityUtility const& rOther);
-
-    /// Copy constructor.
-    // CalculateMeshVelocityUtility(CalculateMeshVelocityUtility const& rOther);
 
 
     ///@}
