@@ -183,14 +183,14 @@ private:
 	///@}
 	///@name Member Variables
 	///@{
-        const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;
-        const CompressiblePotentialFlowElement<3,4> mCompressiblePotentialFlowElement3D4N;
-        const CompressiblePotentialWallCondition<2,2> mCompressiblePotentialWallCondition2D2N;
-        const CompressiblePotentialWallCondition<3,3> mCompressiblePotentialWallCondition3D3N;
 		const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
         const IncompressiblePotentialFlowElement<3,4> mIncompressiblePotentialFlowElement3D4N;
-        const IncompressiblePotentialWallCondition<2,2> mIncompressiblePotentialWallCondition2D2N;
+        const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;
+        const CompressiblePotentialFlowElement<3,4> mCompressiblePotentialFlowElement3D4N;
+		const IncompressiblePotentialWallCondition<2,2> mIncompressiblePotentialWallCondition2D2N;
         const IncompressiblePotentialWallCondition<3,3> mIncompressiblePotentialWallCondition3D3N;
+        const CompressiblePotentialWallCondition<2,2> mCompressiblePotentialWallCondition2D2N;
+        const CompressiblePotentialWallCondition<3,3> mCompressiblePotentialWallCondition3D3N;
 
 
 	///@}
