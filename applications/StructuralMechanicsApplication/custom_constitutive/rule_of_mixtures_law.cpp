@@ -848,7 +848,7 @@ bool RuleOfMixturesLaw::ValidateInput(const Properties& rMaterialProperties)
     bool valid_input = true;
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-        Properties& r_prop = rMaterialProperties.GetSubProperty(i + 1);
+        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i);
         if (p_law->ValidateInput(r_prop)) {
             valid_input = false;
             break;
@@ -915,7 +915,7 @@ void RuleOfMixturesLaw::InitializeMaterial(
 
     // We create the inner constitutive laws
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = rMaterialProperties.GetSubProperty(i + 1);
+        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i);
 
         ConstitutiveLaw::Pointer p_inner_law = (r_prop)[CONSTITUTIVE_LAW]->Clone();
         p_inner_law->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
@@ -935,7 +935,7 @@ void RuleOfMixturesLaw::InitializeSolutionStep(
 {
     // We perform the InitializeSolutionStep in each layer
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = rMaterialProperties.GetSubProperty(i + 1);
+        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         p_law->InitializeSolutionStep(r_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
@@ -954,7 +954,7 @@ void RuleOfMixturesLaw::FinalizeSolutionStep(
 {
     // We perform the FinalizeSolutionStep in each layer
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = rMaterialProperties.GetSubProperty(i + 1);
+        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         p_law->FinalizeSolutionStep(r_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
@@ -973,7 +973,7 @@ void RuleOfMixturesLaw::InitializeNonLinearIteration(
 {
     // We perform the InitializeNonLinearIteration in each layer
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = rMaterialProperties.GetSubProperty(i + 1);
+        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         p_law->InitializeNonLinearIteration(r_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
@@ -992,7 +992,7 @@ void RuleOfMixturesLaw::FinalizeNonLinearIteration(
 {
     // We perform the FinalizeNonLinearIteration in each layer
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = rMaterialProperties.GetSubProperty(i + 1);
+        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         p_law->FinalizeNonLinearIteration(r_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
@@ -1066,7 +1066,7 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
         Matrix constitutive_matrix = ZeroMatrix(voigt_size, voigt_size);
         for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-            Properties& r_prop = r_material_properties.GetSubProperty(i + 1);
+            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
             const double factor = mCombinationFactors[i];
 
@@ -1083,7 +1083,7 @@ void  RuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameter
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         Vector stress_vector = ZeroVector(voigt_size);
         for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-            Properties& r_prop = r_material_properties.GetSubProperty(i + 1);
+            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
             const double factor = mCombinationFactors[i];
 
@@ -1153,7 +1153,7 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
         Matrix constitutive_matrix = ZeroMatrix(voigt_size, voigt_size);
         for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-            Properties& r_prop = r_material_properties.GetSubProperty(i + 1);
+            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
             const double factor = mCombinationFactors[i];
 
@@ -1170,7 +1170,7 @@ void RuleOfMixturesLaw::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Par
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         Vector stress_vector = ZeroVector(voigt_size);
         for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-            Properties& r_prop = r_material_properties.GetSubProperty(i + 1);
+            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
             const double factor = mCombinationFactors[i];
 
@@ -1366,7 +1366,7 @@ void RuleOfMixturesLaw::ResetMaterial(
 {
     // We perform the reset in each layer
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = rMaterialProperties.GetSubProperty(i + 1);
+        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         p_law->ResetMaterial(r_prop, rElementGeometry, rShapeFunctionsValues);
@@ -1399,7 +1399,7 @@ int RuleOfMixturesLaw::Check(
 
     // We perform the check in each layer
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = rMaterialProperties.GetSubProperty(i + 1);
+        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
 
         aux_out += p_law->Check(r_prop, rElementGeometry, rCurrentProcessInfo);
