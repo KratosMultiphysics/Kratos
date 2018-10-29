@@ -16,9 +16,9 @@ KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logg
 from analysis_stage import AnalysisStage
 
 # Import pycompss
-#from pycompss.api.task import task
-#from pycompss.api.api import compss_wait_on
-#from pycompss.api.parameter import *
+from pycompss.api.task import task
+from pycompss.api.api import compss_wait_on
+from pycompss.api.parameter import *
 
 # Import Continuation Multilevel Monte Carlo library
 import cmlmc as mlmc
@@ -103,15 +103,23 @@ class MultilevelMonteCarloAnalysis(AnalysisStage):
 #         raise Exception('Please provide "normal_distribution" or "beta_distribution" in the .json file; at the moment only "normal_distribution" and "beta_distribution" are implemented')
 #     return sample
 
+
+
+'''
+function generating the random sample
+here the sample has a beta distribution with parameters alpha = 2.0 and beta = 6.0
+'''
 def GenerateBetaSample(alpha,beta):
     number_samples = 1
     sample = np.random.beta(alpha,beta,number_samples)
     return sample
 
 
+'''
+function evaluating the QoI of the problem: int_{domain} TEMPERATURE(x,y) dx dy
+right now we are using the midpoint rule to evaluate the integral: improve!
+'''
 def EvaluateQuantityOfInterest(simulation):
-    '''here we evaluate the QoI of the problem: int_{domain} SOLUTION(x,y) dx dy
-    actually we use the midpoint rule to evaluate the integral: improve!'''
     KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
     Q = 0.0
     for node in simulation._GetSolver().main_model_part.Nodes:
@@ -120,272 +128,47 @@ def EvaluateQuantityOfInterest(simulation):
     return Q
 
 
-# def Nf_law(lev):
-#     '''function that gives as output a list containing the mesh discretization parameter
-#     we consider the number of elements of a uniform grid on the same domain to be this parameter
-#     refinement strategy:
-#     uniform mesh on level "lev" with h_lev=(1/N0)*2^(-lev)
-#     i.e. level = 0, h_{lev=0} = 0.25
-#          level = 1, h_{lev=1} = 0.2/2 = 0.125
-#          level = 2, h_{lev=2} = 0.2/4 = 0.0625
-#          ...'''
-#     # I wrote the following:
-#     N0 = 4.
-#     M  = 2.
-#     NFF = (N0*np.power(M,lev))
-#     Nf2 = 2*NFF**2
-#     # Nobile wrote the following:
-#     # N0 = 5.
-#     # M  = 2.
-#     # NFF = (N0*np.power(M,lev))
-#     # Nf2 = NFF**2
-#     '''NFF is the number of elements on a boundary line
-#     Nf2 is the number of triangular elements in the square domain (approximately, if mesh non uniform)'''
-#     return Nf2
-
-
-# def update_onepass_M(sample, old_mean, old_M2, nsam):
-#     '''update mean and second moment values
-#     M_{2,n} = sum_{i=1}^{n} (x_i - mean(x)_n)^2
-#     M_{2,n} = M_{2,n-1} + (x_n - mean(x)_{n-1}) * (x_n - mean(x)_{n})
-#     s_n^2 = M_{2,n} / (n-1)'''
-#     delta = np.subtract(sample, old_mean)
-#     if nsam == 1:
-#         new_mean = sample
-#         new_M2 = np.zeros(np.size(sample))
-#         new_M2 = np.asscalar(new_M2)
-#         '''do so to have a list of scalars, and not a list of arrays of one element'''
-#     else:
-#         new_mean = old_mean + np.divide(delta,nsam)
-#         new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
-
-#     return new_mean, new_M2
-
-
-# def compute_sample_variance_from_M2(M2,nsam):
-#     sample_variance = np.divide(M2,np.subtract(nsam,1))
-#     return sample_variance
-
-
-# def EstimateBayesianVariance(mean,variance,settings_ML,ratesLS,nDoF,nsam,level_local):
-#     k0 = settings_ML[0]
-#     k1 = settings_ML[1]
-#     Calfa = ratesLS[0]
-#     alfa  = ratesLS[1]
-#     Cbeta = ratesLS[2]
-#     beta  = ratesLS[3]
-
-#     '''use local variables, in order to not modify the global variables'''
-#     mean_local = mean[:]
-#     variance_local = variance[:]
-#     nsam_local = nsam[:]
-#     if len(mean_local) < (level_local+1):
-#         for i in range (0,(level_local+1)-len(mean_local)):
-#             mean_local.append(0.0)
-#     if len(variance_local) < (level_local+1):
-#         for i in range (0,(level_local+1)-len(variance_local)):
-#             variance_local.append(0.0)
-#     if len(nsam_local) < (level_local+1):
-#         for i in range (0,(level_local+1)-len(nsam_local)):
-#             nsam_local.append(0)
-
-#     BayesianVariance = []
-#     for level in range (0, (level_local+1)):
-#         mu = Calfa*nDoF[level]**(-alfa)
-#         lam = (1/Cbeta)*nDoF[level]**(beta)
-#         G1_l = 0.5 + np.multiply(k1,lam) + np.divide(nsam_local[level],2.0)
-#         G2_l = k1 + (nsam_local[level]-1)*0.5*variance_local[level] + k0*nsam_local[level]*((mean_local[level]-mu)**2)/(2.0*(k0+nsam_local[level]))
-#         BayesianVariance.append(np.divide(G2_l,G1_l-0.5))
-#     return BayesianVariance
-
-
-# def compute_iE_cmlmc(settings_ML):
-#     tolF = settings_ML[5]
-#     tol0 = settings_ML[4]
-#     r2 = settings_ML[3]
-#     r1 = settings_ML[2]
-#     iE_cmlmc = np.floor((-np.log(tolF)+np.log(r2)+np.log(tol0))/(np.log(r1)))
-#     return iE_cmlmc
-
-
-# def compute_tolerance_i(settings_ML,iE,iter_def):
-#     "compute tolerance for iteration i, using (24) of [PNL16]"
-#     r1 = settings_ML[2]
-#     r2 = settings_ML[3]
-#     tolF = settings_ML[5]
-#     if iter_def <= iE:
-#         tol = (r1**(iE-iter_def) * r2**(-1))*tolF
-#     else:
-#         tol = (r2**(iE-iter_def) * r2**(-1))*tolF
-#     return tol
-
-
-# def compute_ratesLS(bias_ratesLS,variance_ratesLS,cost_ML_ratesLS,ndof_ratesLS):
-#     bias_ratesLS = np.abs(bias_ratesLS)
-
-#     '''##################### MEAN - alpha ########################################
-#     NUMPY: linear fit
-#     why not considered also M_{L=0}?'''
-#     pa = np.polyfit(np.log2(ndof_ratesLS[1::]),np.log2(bias_ratesLS[1::]),1) # Nobile does not use level = 0
-#     alpha   = -pa[0]
-#     C1      = 2**pa[1]
-
-#     '''##################### VAR - beta ##########################################
-#     NUMPY: linear fit
-#     why not considered also M_{L=0}?'''
-#     pb          = np.polyfit(np.log2(ndof_ratesLS[1::]),np.log2(variance_ratesLS[1::]),1) # Nobile does not use level = 0
-#     beta        = -pb[0]
-#     C2          = 2**pb[1]
-
-#     '''################# COST - gamma ############################################ 
-#     NUMPY: linear fit'''
-#     pg          = np.polyfit(np.log2(ndof_ratesLS),np.log2(cost_ML_ratesLS),1)
-#     gamma       = pg[0]
-#     C3          = 2**pg[1]
-
-#     paramLS=[C1,alpha,C2,beta,C3,gamma]
-#     return paramLS
-
-
-# def theta_model(ratesLS,toll,nDoF):
-#     Calpha = ratesLS[0]
-#     alpha = ratesLS[1]
-#     theta_i = 1.0 - (Calpha * (nDoF)**(-alpha))/toll
-#     return theta_i
-
-
-# def compute_levels(tol,nsam,ratesLS,ndof_all,BayesianVariance,mean,variance,settings_ML,Lmax,Lmin):
-#     '''observe I have already computed ndof_all for all the possible levels, i.e. up to Lmax'''
-#     Wmin   = 1e10
-#     Lopt_local = Lmin
-#     nsam_local = nsam
-#     Cgamma = ratesLS[4]
-#     gamma  = ratesLS[5]
-#     Calpha = ratesLS[0]
-#     alpha = ratesLS[1]
-#     Cphi = settings_ML[6]
-
-#     if len(BayesianVariance) < (Lmax+1):
-#         BayesianVariance = EstimateBayesianVariance(mean,variance,settings_ML,ratesLS,ndof_all,nsam_local,Lmax)
-#     '''now both ndof_all and BayesianVariance have length = Lmax + 1'''
-#     model_cost = np.multiply(Cgamma,np.power(ndof_all,gamma))
-#     '''also model_cost has length = Lmax + 1'''
-                                                              
-    
-#     for lev in range(Lmin, Lmax+1):
-#         '''as we see in the deriverable, it is not mandatory to increase the number of levels,
-#         and we may continue using the number of levels of the previous iteration, i.e. Lmin
-#         consider theta_i = 1.0 - (calpha*(M_L**(-alpha)))/tol_i'''
-#         theta_i = 1.0 - (Calpha * (ndof_all[lev])**(-alpha))/tol # I do not call the def "theta_model",
-#                                                                  # because I cannot use a task inside a task
-#         if (theta_i > 0.0) and (theta_i < 1.0):
-#             '''update the cost in future: for the levels we know use cost_ML
-#                                           for the levels we do not know use "cgamma*Ml**gamma"'''
-#             coeff2 = np.sum(np.sqrt(np.multiply(model_cost[0:lev+1],BayesianVariance[0:lev+1])))
-#             coeff2 = coeff2**2.0
-#             coeff1 = (Cphi/(theta_i*tol))**2.0 # formula in case QoI is scalar, if QoI use the formula described in [PNL16]
-            
-#         else:
-#             raise Exception ("The splitting parameter theta_i assumed a value outside the range (0,1)")
-
-#         Wtot = coeff1 * coeff2
-#         # print("print level and correspondent cost",lev,Wtot)
-#         if Wtot < Wmin:
-#             Wmin = Wtot
-#             Lopt_local = lev
-    
-#     if Lopt_local > Lmin:
-#         Lopt_local = Lmin + 1
-#         '''i.e. I add one level per time!!!
-#         note that the number of levels start from 0, not from 1,
-#         so we have a difference of one between the number of levels
-#         and the length of the arrays
-#         (e.g. difference_value, ndof_all or number_sample)'''
-#     BayesianVariance = BayesianVariance[0:Lopt_local+1]
-#     '''need to leave Lopt, and so the new BayesianVariance value,
-#     because I need this value in compute number of samples'''
-    
-#     return Lopt_local, BayesianVariance, Lmin
-
-
-# def compute_number_samples(L_opt,BayesianVariance,ratesLS,theta,tol,nDoF,nsam,settings_ML):
-#     minNadd = np.multiply(np.ones(L_opt+1),6.)
-#     Cgamma = ratesLS[4]
-#     gamma  = ratesLS[5]
-#     Cphi = settings_ML[6]
-#     ndof_local = nDoF[0:L_opt+1]
-
-#     coeff1 = (Cphi/(theta*tol))**2.0
-#     model_cost = np.multiply(Cgamma,np.power(ndof_local,gamma))
-
-#     coeff2 = np.sqrt(np.divide(BayesianVariance,model_cost))
-#     coeff3 = np.sum(np.sqrt(np.multiply(model_cost,BayesianVariance)))
-       
-#     opt_number_samples = np.multiply(coeff1*coeff3,coeff2)
-    
-#     for i in range (0,len(opt_number_samples)):
-#         opt_number_samples[i] = np.ceil(opt_number_samples[i])
-#         opt_number_samples[i] = opt_number_samples[i].astype(int)
-
-#     if len(nsam) < len(opt_number_samples):
-#         for i in range (0,len(opt_number_samples)-len(nsam)):
-#             nsam.append(0)
-#     previous_number_samples = nsam[:]
-
-#     dNsam = []
-#     for l in range(0,L_opt+1):
-#         dNsam.append(opt_number_samples[l] - nsam[l])
-#         if dNsam[l] <= 0.:
-#             dNsam[l] = 0.
-#             opt_number_samples[l] = nsam[l]
-#             '''i.e. here I set that if NlOPT[l] is smaller than the previous
-#             number of samples, I keep the previous number of samples'''
-  
-#         if (dNsam[l] > 0.) and (dNsam[l] < minNadd[l]):
-#             dNsam[l] = minNadd[l]
-#             opt_number_samples[l] = nsam[l] + dNsam[l]
-#             '''i.e. the minimum addition of samples is given by the array minNadd
-#             so if the new number of samples would be smaller than the old
-#             number of samples, I set to have an addition of minNadd[l] samples'''
-        
-#         nsam[l] = opt_number_samples[l]
-#     for i in range (0,len(dNsam)):
-#         dNsam[i] = int(dNsam[i])
-#         # dNsam[i] = dNsam[i].astype(int)
-#         nsam[i] = int(nsam[i])
-#         # nsam[i] = nsam[i].astype(int)
-
-#     print("new number of samples = ",nsam,"difference with previous iteration = ",dNsam,"old number samples = ",previous_number_samples)
-#     '''note that I do not decrease the number of samples wrt previous MLMC iterations!!'''
-#     return nsam,dNsam,previous_number_samples
-
-
-# def compute_mean_mlmc_QoI(mean_array):
-#     mean_mlmc = np.sum(mean_array)
-#     return mean_mlmc
-
-
-#@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN, returns=2)
+'''
+function executing the problem
+input:
+        model_part_file_name : path of the model part file (still to implement how to import in efficient way in a loop where I have different model part files and different ProjectParameters files, thus for now read model part name from the ProjectParameters.json file)
+        parameter_file_name  : path of the Project Parameters file
+        sample               : stochastic random variable
+output:
+        QoI                  : Quantity of Interest
+'''
+# @task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN, returns=1)
+@task(parameter_file_name=FILE_IN, returns=1)
 def execution_task(parameter_file_name, sample):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters # in case there are more parameters file, we rename them
     model = KratosMultiphysics.Model()
+    # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     simulation = MultilevelMonteCarloAnalysis(model,local_parameters,sample)
     simulation.Run()
-    QoI =  EvaluateQuantityOfInterest(simulation)
+    QoI = EvaluateQuantityOfInterest(simulation)
     return QoI
 
 #@task(returns=2)
-def mean_task(*args):
-    sum_val = 0
-    amount_elems = 0
-    for i in range(int(len(args) / 2)):
-        sum_val = sum_val + (args[2 * i] * args[2 * i + 1])
-        amount_elems = amount_elems + args[2 * i]
-    return amount_elems, sum_val / amount_elems
+# def mean_task(*args):
+#     sum_val = 0
+#     amount_elems = 0
+#     for i in range(int(len(args) / 2)):
+#         sum_val = sum_val + (args[2 * i] * args[2 * i + 1])
+#         amount_elems = amount_elems + args[2 * i]
+#     return amount_elems, sum_val / amount_elems
     
-#@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=1)
+
+'''
+function executing the problem for sample = 1.0
+input:
+        model_part_file_name  : path of the model part file
+        parameter_file_name   : path of the Project Parameters file
+output:
+        ExactExpectedValueQoI : Quantity of Interest for sample = 1.0
+'''
+@task(model_part_file_name=FILE_IN, parameter_file_name=FILE_IN,returns=1)
 def exact_execution_task(model_part_file_name, parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -399,7 +182,15 @@ def exact_execution_task(model_part_file_name, parameter_file_name):
     # return simulation,ExactExpectedValueQoI
     return ExactExpectedValueQoI
 
-#@task(returns=1)
+'''
+function computing the relative error between the Multilevel Monte Carlo expected value and the exact expected value
+input :
+        AveragedMeanQoI       : Multilevel Monte Carlo expected value
+        ExactExpectedValueQoI : exact expected value
+output :
+        relative_error        : relative error
+'''
+@task(returns=1)
 def compare_mean(AveragedMeanQoI,ExactExpectedValueQoI):
     relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
     return relative_error
@@ -422,6 +213,9 @@ if __name__ == '__main__':
     # else: # using default name
     #     parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level0/ProjectParameters.json"
 
+    '''
+    set the ProjectParameters.json path in the parameter_file_name list
+    '''
     parameter_file_name =[]
     parameter_file_name.append("/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level0/ProjectParameters.json")
     with open(parameter_file_name[0],'r') as parameter_file:
@@ -446,7 +240,10 @@ if __name__ == '__main__':
     L_max = len(parameter_file_name) - 1
     print("Maximum number of levels = ",L_max)
 
-    '''evaluate the exact expected value of Q (sample = 1.0)'''
+    '''
+    evaluate the exact expected value of Q (sample = 1.0)
+    need to change both local_parameters_LEVEL and parameter_file_name[LEVEL] to compute for level LEVEL
+    '''
     ExactExpectedValueQoI = exact_execution_task(local_parameters_1["solver_settings"]["model_import_settings"]["input_filename"].GetString() + ".mdpa", parameter_file_name[1])
     # KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
     # error = 0.0
@@ -461,7 +258,7 @@ if __name__ == '__main__':
     # print("\n L2 relative error = ", error/L2norm_analyticalsolution,"\n")
 
     '''define setting parameters of the ML simulation'''
-    settings_ML_simulation = [0.1, 0.1, 1.25, 1.15, 0.25, 0.1, 1.0]
+    settings_ML_simulation = [0.1, 0.1, 1.25, 1.15, 0.25, 0.1, 1.0, 10, 2]
     k0     = 0.1        # Certainty Parameter 0 rates
     k1     = 0.1        # Certainty Parameter 1 rates
     r1     = 1.25       # Cost increase first iterations C-MLMC
@@ -469,23 +266,28 @@ if __name__ == '__main__':
     tol0   = 0.25       # Tolerance iter 0
     tolF   = 0.1        # Tolerance final
     cphi   = 1.0        # Confidence on tolerance
-    # N0     = 25       # Number of samples for iter 0
-    # L0     = 2        # Number of levels for iter 0
+    N0     = 25       # Number of samples for iter 0
+    L0     = 2        # Number of levels for iter 0
 
     ## Read the number of cycles of the Monte Carlo algorithm from the .json file
     # instances = []
     # instances.append(local_parameters_0["problem_data"]["number_samples"].GetInt())
     # instances.append(local_parameters_1["problem_data"]["number_samples"].GetInt())
     # instances.append(local_parameters_2["problem_data"]["number_samples"].GetInt())
-    instances = [6,6,6] # set here to handle in a simple way
+    # '''set number of samples for the screening phase'''
+    # number_samples = [6,6,6] # set here to handle in a simple way
 
     difference_QoI = [] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
     time_ML = []        # list containing the time to compute the level=l simulations
-    number_samples = instances # list containing number of samples for each evel
-    L_screening = len(number_samples) - 1
-    '''number of levels exploited in the screening phase
-    i.e. L_screening = 3 - 1 = 2
-    recall the levels start from zero, so I need to add "-1"'''
+    # L_screening = len(number_samples) - 1
+    # '''number of levels exploited in the screening phase
+    # i.e. L_screening = 3 - 1 = 2
+    # recall the levels start from zero, so I need to add "-1"'''
+
+    L_screening = settings_ML_simulation[8]
+    number_samples = []
+    for lev in range(0,L_screening+1):
+        number_samples.append(settings_ML_simulation[7])
 
     if (L_screening+1) > len(difference_QoI):
         for i in range (0,(L_screening+1)-len(difference_QoI)):
@@ -655,7 +457,7 @@ if __name__ == '__main__':
                     difference_QoI[level] = np.append(difference_QoI[level],run_results[-1] - run_results[-2])
                     time_ML[level] = np.append(time_ML[level],time_MLi)
 
-        print("iteration",iter_MLMC,"Y_l",difference_QoI)
+        # print("iteration",iter_MLMC,"Y_l",difference_QoI)
         # print("iteration",iter_MLMC,"time ML",time_ML)
     
         '''compute mean, second moment, sample variance for Y_l'''

@@ -50,11 +50,13 @@ def update_onepass_M(sample, old_mean, old_M2, nsam):
         new_mean = sample
         new_M2 = np.zeros(np.size(sample))
         new_M2 = np.asscalar(new_M2)
+        new_sample_variance = np.zeros(np.size(sample))
+        new_sample_variance = np.asscalar(new_sample_variance)
         '''do so to have a list of scalars, and not a list of arrays of one element'''
     else:
         new_mean = old_mean + np.divide(delta,nsam)
         new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
-    new_sample_variance = compute_sample_variance_from_M2(new_M2,nsam)
+        new_sample_variance = compute_sample_variance_from_M2(new_M2,nsam)
     return new_mean, new_M2, new_sample_variance
 
 def compute_sample_variance_from_M2(M2,nsam):
