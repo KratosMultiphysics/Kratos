@@ -289,9 +289,12 @@ class InitialInputProcess(KratosMultiphysics.Process):
 
     def __init__(self, model_part, hdf5_file_factory, settings):
         KratosMultiphysics.Process.__init__(self)
-        default_settings = KratosMultiphysics.Parameters(r"""{
-            "file_name": ""
-        }""")
+        default_settings = KratosMultiphysics.Parameters("""
+            {
+                "time_tag_precision": 4,
+                "file_name": "%s"
+            }
+            """ % model_part.Name)
         settings.ValidateAndAssignDefaults(default_settings)
         file_name_string = settings["file_name"].GetString()
         if file_name_string == "":
