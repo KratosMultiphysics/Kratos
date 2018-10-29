@@ -77,8 +77,6 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         
         self.linear_solver = linear_solver_factory.ConstructSolver(linear_solver_settings)
 
-        
-    
     def Execute(self):
         print("Executing Initialize Geometry")
         self.InitializeSkinModelPart()
@@ -98,14 +96,9 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         angle=math.radians(-self.geometry_parameter)
         origin=[0.25+self.initial_point[0],0+self.initial_point[1]] #to be defined from skin model part
         RotateModelPart(origin,angle,self.skin_model_part)
-        # for node in self.skin_model_part.Nodes:
-        #     node.X = ox+math.cos(angle)*(node.X - ox)-math.sin(angle)*(node.Y - oy)
-        #     node.Y = oy+math.sin(angle)*(node.X - ox)+math.cos(angle)*(node.Y - oy)
         for node in self.skin_model_part.Nodes:
             node.X=node.X+1e-5
             node.Y=node.Y+1e-5
-        KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part).Execute()
-        KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.LEVEL_SET_DISTANCE, self.main_model_part.Nodes)
 
     def CalculateDistance(self):
         KratosMultiphysics.CalculateDistanceToSkinProcess2D(self.main_model_part, self.skin_model_part).Execute()
