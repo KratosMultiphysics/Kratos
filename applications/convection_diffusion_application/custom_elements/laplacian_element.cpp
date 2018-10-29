@@ -85,7 +85,7 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
     Vector heat_flux_local(number_of_points);
     for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
     {
-        heat_flux_local[node_element] = GetGeometry()[node_element].FastGetSolutionStepValue(HEAT_FLUX) * N_gausspoint(0,node_element);
+        heat_flux_local[node_element] = GetGeometry()[node_element].FastGetSolutionStepValue(HEAT_FLUX);
     }
 
     GetGeometry().Jacobian(J0);
@@ -97,19 +97,17 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
         //calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(J0[PointNumber],InvJ0,DetJ0);
         
-
         //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[PointNumber],InvJ0);
         
         const double IntToReferenceWeight = integration_points[PointNumber].Weight() * DetJ0;
         noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(DN_DX, trans(DN_DX)); //
-        
+
         // Calculating the local RHS
         auto N = row(N_gausspoint,PointNumber); //these are the N which correspond to the gauss point "PointNumber"
         qgauss = inner_prod(N, heat_flux_local);
-        noalias(rRightHandSideVector) += qgauss*N;
-
-        // noalias(rRightHandSideVector) += heat_flux_local * IntToReferenceWeight;
+        
+        noalias(rRightHandSideVector) += IntToReferenceWeight*qgauss*N;
     }
 
 
