@@ -90,12 +90,10 @@ class VertexMorphingMethod:
         model_part.AddNodalSolutionStepVariable(MESH_CHANGE)
         model_part.AddNodalSolutionStepVariable(NORMAL)
         model_part.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
-        model_part.AddNodalSolutionStepVariable(SCALAR_VARIABLE)
-        model_part.AddNodalSolutionStepVariable(SCALAR_VARIABLE_MAPPED)
-        model_part.AddNodalSolutionStepVariable(VECTOR_VARIABLE)
-        model_part.AddNodalSolutionStepVariable(VECTOR_VARIABLE_MAPPED)
 
         # For bead optimization
+        model_part.AddNodalSolutionStepVariable(ALPHA)
+        model_part.AddNodalSolutionStepVariable(ALPHA_MAPPED)
         model_part.AddNodalSolutionStepVariable(DF1DALPHA)
         model_part.AddNodalSolutionStepVariable(DF1DALPHA_MAPPED)
         model_part.AddNodalSolutionStepVariable(DPDALPHA)

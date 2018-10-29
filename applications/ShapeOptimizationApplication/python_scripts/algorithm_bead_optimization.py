@@ -33,11 +33,12 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             "name"                        : "bead_optimization",
             "bead_height"                 : 1.0,
             "bead_direction_mode"         : 2,
+            "filter_penalty_term"         : false,
             "penalty_factor"              : 1000.0,
             "gradient_ratio"              : 0.1,
             "max_outer_iterations"        : 300,
-            "max_inner_iterations"        : 50,
-            "min_inner_iterations"        : 1,
+            "max_inner_iterations"        : 30,
+            "min_inner_iterations"        : 3,
             "inner_iteration_tolerance"   : 1e-3,
             "outer_iteration_tolerance"   : 1e-3,
             "line_search" : {
@@ -84,29 +85,31 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         self.outer_iteration_tolerance = self.algorithm_settings["outer_iteration_tolerance"].GetDouble()
         self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
 
-        self.alpha0 = {}
         self.lower_bounds = {}
         self.upper_bounds = {}
         if self.direction_mode == 1:
             for node in self.design_surface.Nodes:
-                self.alpha0[node.Id] = 0.5
+                node.SetSolutionStepValue(ALPHA,0.5)
+                node.SetSolutionStepValue(ALPHA_MAPPED,0.5)
                 self.lower_bounds[node.Id] = 0.0
                 self.upper_bounds[node.Id] = 1.0
         elif self.direction_mode == -1:
             for node in self.design_surface.Nodes:
-                self.alpha0[node.Id] = -0.5
+                node.SetSolutionStepValue(ALPHA,-0.5)
+                node.SetSolutionStepValue(ALPHA_MAPPED,-0.5)
                 self.lower_bounds[node.Id] = -1.0
                 self.upper_bounds[node.Id] = 0.0
         elif self.direction_mode == 2:
             for node in self.design_surface.Nodes:
-                self.alpha0[node.Id] = 0.0001
+                node.SetSolutionStepValue(ALPHA,0.0)
+                node.SetSolutionStepValue(ALPHA_MAPPED,0.0)
                 self.lower_bounds[node.Id] = -1.0
                 self.upper_bounds[node.Id] = 1.0
         else:
             raise RuntimeError("Specified bead direction mode not supported!")
 
         self.lambda0 = 0.0
-        self.penalty_scaling_0 = 1
+        self.penalty_scaling_0 = 1.0
 
         self.model_part_controller.InitializeMeshController()
         self.mapper.Initialize()
@@ -118,15 +121,12 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         timer = Timer()
         timer.StartTimer()
 
-        alpha = self.alpha0
         current_lambda = self.lambda0
         penalty_scaling = self.penalty_scaling_0
         overall_iteration = 0
         is_design_converged = False
         previos_L = None
 
-
-        # Compute normals once in the beginning
         self.model_part_controller.ComputeUnitSurfaceNormals()
 
         for outer_iteration in range(1,self.max_outer_iterations+1):
@@ -140,6 +140,18 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 print(">=======================================================================================\n")
 
                 # Initialize new shape
+                self.model_part_controller.DampNodalVariableIfSpecified(ALPHA_MAPPED)
+
+                for node in self.design_surface.Nodes:
+                    normal = node.GetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)
+
+                    previos_shape_change = node.GetSolutionStepValue(SHAPE_CHANGE)
+                    new_shape_change = node.GetSolutionStepValue(ALPHA_MAPPED) * normal * self.bead_height
+                    shape_update = new_shape_change-previos_shape_change
+
+                    node.SetSolutionStepValue(SHAPE_CHANGE, new_shape_change)
+                    node.SetSolutionStepValue(SHAPE_UPDATE, shape_update)
+
                 self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
                 self.model_part_controller.SetReferenceMeshToMesh()
 
@@ -154,117 +166,95 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 objGradientDict = self.communicator.getStandardizedGradient(self.only_obj["identifier"].GetString())
                 WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, DF1DX)
 
+                self.model_part_controller.DampNodalVariableIfSpecified(DF1DX)
+
                 # Compute sensitivities w.r.t. scalar design variable alpha
-                dF1dalpha = {}
                 for node in self.design_surface.Nodes:
                     raw_gradient = node.GetSolutionStepValue(DF1DX)
                     normal = node.GetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)
 
                     dF1dalpha_i = self.bead_height*(raw_gradient[0]*normal[0] + raw_gradient[1]*normal[1] + raw_gradient[2]*normal[2])
-
-                    dF1dalpha[node.Id] = dF1dalpha_i
                     node.SetSolutionStepValue(DF1DALPHA, dF1dalpha_i)
 
-                # Map gradient using temporarily an auxiliary variable
+                # Map gradient of objective
                 self.mapper.InverseMap(DF1DALPHA, DF1DALPHA_MAPPED)
 
-                dF1dalpha_mapped = {}
-                for node in self.design_surface.Nodes:
-                    dF1dalpha_mapped[node.Id] = node.GetSolutionStepValue(DF1DALPHA_MAPPED)
-
                 # Compute penalization term
-                penalty_gradient = {}
                 penalty_value = 0.0
                 if self.direction_mode == 1:
                     for node in self.design_surface.Nodes:
-                        alpha_i = alpha[node.Id]
-                        penalty_value = penalty_value + alpha_i-alpha_i**2
-                        penalty_gradient_i = 1-2*alpha_i
+                        alpha_i = node.GetSolutionStepValue(ALPHA)
+                        penalty_value = penalty_value + penalty_scaling*(alpha_i-alpha_i**2)
 
-                        penalty_gradient[node.Id] = penalty_gradient_i
+                        penalty_gradient_i = penalty_scaling*(1-2*alpha_i)
                         node.SetSolutionStepValue(DPDALPHA, penalty_gradient_i)
 
                 elif self.direction_mode == -1:
                     for node in self.design_surface.Nodes:
-                        alpha_i = alpha[node.Id]
-                        penalty_value = penalty_value + -alpha_i-alpha_i**2
-                        penalty_gradient_i = -1-2*alpha_i
+                        alpha_i = node.GetSolutionStepValue(ALPHA)
+                        penalty_value = penalty_value + penalty_scaling*(-alpha_i-alpha_i**2)
 
-                        penalty_gradient[node.Id] = penalty_gradient_i
+                        penalty_gradient_i = penalty_scaling*(-1-2*alpha_i)
                         node.SetSolutionStepValue(DPDALPHA, penalty_gradient_i)
 
                 elif self.direction_mode == 2:
                     for node in self.design_surface.Nodes:
-                        alpha_i = alpha[node.Id]
-                        penalty_value = penalty_value + -alpha_i**2+1
-                        penalty_gradient_i = -2*alpha_i
+                        alpha_i = node.GetSolutionStepValue(ALPHA)
+                        penalty_value = penalty_value + penalty_scaling*(-alpha_i**2+1)
 
-                        penalty_gradient[node.Id] = penalty_gradient_i
+                        penalty_gradient_i = penalty_scaling*(-2*alpha_i)
                         node.SetSolutionStepValue(DPDALPHA, penalty_gradient_i)
 
                 # Compute Lagrange value
-                L = objective_value + current_lambda*penalty_scaling*penalty_value + self.penalty_factor*(penalty_scaling*penalty_value)**2
+                L = objective_value + current_lambda*penalty_value + self.penalty_factor*(penalty_value)**2
                 if inner_iteration == 1:
                     dL_relative = 0.0
                 else:
                     dL_relative = L/previos_L-1
 
                 # Compute gradient of Lagrange function
-                dLdalpha = {}
-                for node in self.design_surface.Nodes:
-                    dLdalpha_i = dF1dalpha_mapped[node.Id] + current_lambda*penalty_scaling*penalty_gradient[node.Id]
+                if self.algorithm_settings["filter_penalty_term"].GetBool():
+                    self.mapper.InverseMap(DPDALPHA, DPDALPHA_MAPPED)
 
-                    dLdalpha[node.Id] = dLdalpha_i
-                    node.SetSolutionStepValue(DLDALPHA, dLdalpha_i)
+                    for node in self.design_surface.Nodes:
+                        dLdalpha_i = node.GetSolutionStepValue(DF1DALPHA_MAPPED) + current_lambda*node.GetSolutionStepValue(DPDALPHA_MAPPED)
+                        node.SetSolutionStepValue(DLDALPHA, dLdalpha_i)
+                else:
+                    for node in self.design_surface.Nodes:
+                        dLdalpha_i = node.GetSolutionStepValue(DF1DALPHA_MAPPED) + current_lambda*node.GetSolutionStepValue(DPDALPHA)
+                        node.SetSolutionStepValue(DLDALPHA, dLdalpha_i)
 
                 # Normalization using infinity norm
-                dLdalpha_for_normalization = copy.deepcopy(dLdalpha)
-                dLdalpha_for_normalization.update({key: value**2 for key, value in dLdalpha_for_normalization.items()})
-
+                dLdalpha_for_normalization = {}
                 for node in self.design_surface.Nodes:
-                    if alpha[node.Id]==self.lower_bounds[node.Id] or alpha[node.Id]==self.upper_bounds[node.Id]:
+                    nodal_alpha = node.GetSolutionStepValue(ALPHA)
+                    if nodal_alpha==self.lower_bounds[node.Id] or nodal_alpha==self.upper_bounds[node.Id]:
                         dLdalpha_for_normalization[node.Id] = 0.0
+                    else:
+                        dLdalpha_for_normalization[node.Id] = node.GetSolutionStepValue(DLDALPHA)**2
 
                 max_value = math.sqrt(max(dLdalpha_for_normalization.values()))
-                if max_value != 0:
-                    dLdalpha.update({key: value/max_value for key, value in dLdalpha.items()})
+                if max_value == 0:
+                    max_value = 1
 
                 # Compute updated design variable
-                alpha_new = {}
                 for node in self.design_surface.Nodes:
-                    dalpha = -self.step_size*dLdalpha[node.Id]
-                    alpha_new[node.Id] = alpha[node.Id] + dalpha
+                    dalpha = -self.step_size*node.GetSolutionStepValue(DLDALPHA)/max_value
+                    alpha_new = node.GetSolutionStepValue(ALPHA) + dalpha
 
-                # Enforce bounds
-                for node in self.design_surface.Nodes:
-                    alpha_new[node.Id] = max(alpha_new[node.Id], self.lower_bounds[node.Id])
-                    alpha_new[node.Id] = min(alpha_new[node.Id], self.upper_bounds[node.Id])
+                    # Enforce bounds
+                    alpha_new = max(alpha_new, self.lower_bounds[node.Id])
+                    alpha_new = min(alpha_new, self.upper_bounds[node.Id])
 
-                # Map design variables using temporarily an auxiliary variable
-                WriteDictionaryDataOnNodalVariable(alpha_new, self.design_surface, SCALAR_VARIABLE)
-                self.mapper.Map(SCALAR_VARIABLE, SCALAR_VARIABLE_MAPPED)
+                    node.SetSolutionStepValue(ALPHA,alpha_new)
 
-                # Compute actual shape update
-                norm_inf_mapped_dalpha = 0.0
-                for node in self.design_surface.Nodes:
-                    normal = node.GetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)
-                    original_alpha = node.GetSolutionStepValue(SCALAR_VARIABLE)
-                    mapped_alpha = node.GetSolutionStepValue(SCALAR_VARIABLE_MAPPED)
+                    alpha_new_vectorized = alpha_new * node.GetSolutionStepValue(NORMALIZED_SURFACE_NORMAL)
+                    node.SetSolutionStepValue(CONTROL_POINT_CHANGE,alpha_new_vectorized)
 
-                    norm_inf_mapped_dalpha = max(norm_inf_mapped_dalpha,mapped_alpha**2)
+                # Map design variables
+                self.mapper.Map(ALPHA, ALPHA_MAPPED)
 
-                    vectorized_alpha = original_alpha * normal
-                    shape_change = mapped_alpha * normal * self.bead_height
-
-                    previos_shape_change = node.GetSolutionStepValue(SHAPE_CHANGE)
-                    shape_update = shape_change-previos_shape_change
-
-                    node.SetSolutionStepValue(CONTROL_POINT_CHANGE, vectorized_alpha)
-                    node.SetSolutionStepValue(SHAPE_CHANGE, shape_change)
-                    node.SetSolutionStepValue(SHAPE_UPDATE, shape_update)
-                norm_inf_mapped_dalpha = math.sqrt(norm_inf_mapped_dalpha)
-
-                # Log current optimization step
+                # Log current optimization step and store values for next iteration
                 additional_values_to_log = {}
                 additional_values_to_log["step_size"] = self.algorithm_settings["line_search"]["step_size"].GetDouble()
                 additional_values_to_log["outer_iteration"] = outer_iteration
@@ -278,46 +268,57 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
                 self.data_logger.LogCurrentValues(overall_iteration, additional_values_to_log)
                 self.data_logger.LogCurrentDesign(overall_iteration)
 
-                # Iterate
-                alpha = alpha_new
                 previos_L = L
 
-                # Convergence check in inner loop
+                # Convergence check of inner loop
                 if inner_iteration >= self.min_inner_iterations:
                     if abs(dL_relative) < self.inner_iteration_tolerance:
                         break
 
-                if norm_inf_mapped_dalpha == 0.0 or penalty_value == 0.0:
+                if penalty_value == 0.0:
                     is_design_converged = True
                     break
 
                 print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
                 print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
-            # Update lambda
-            current_lambda = current_lambda + self.penalty_factor*penalty_scaling*penalty_value
-
             # Compute scaling factor for penalty term
             if outer_iteration==1:
                 norm_term_1 = 0.0
                 norm_term_2 = 0.0
 
-                for node in self.design_surface.Nodes:
-                    temp_value = dF1dalpha_mapped[node.Id]
-                    norm_term_1 = norm_term_1+temp_value**2
-                    temp_value = current_lambda*penalty_gradient[node.Id]
+                if self.algorithm_settings["filter_penalty_term"].GetBool():
+                    for node in self.design_surface.Nodes:
+                        temp_value = node.GetSolutionStepValue(DF1DALPHA_MAPPED)
+                        norm_term_1 = norm_term_1+temp_value**2
 
-                    norm_term_2 = norm_term_2+temp_value**2
+                        temp_value = node.GetSolutionStepValue(DPDALPHA_MAPPED)
+                        norm_term_2 = norm_term_2+temp_value**2
+                else:
+                    for node in self.design_surface.Nodes:
+                        temp_value = node.GetSolutionStepValue(DF1DALPHA_MAPPED)
+                        norm_term_1 = norm_term_1+temp_value**2
+
+                        temp_value = node.GetSolutionStepValue(DPDALPHA)
+                        norm_term_2 = norm_term_2+temp_value**2
+
                 norm_term_1 = math.sqrt(norm_term_1)
                 norm_term_2 = math.sqrt(norm_term_2)
 
                 penalty_scaling = self.gradient_ratio*norm_term_1/norm_term_2
 
+                # Update lambda
+                current_lambda = current_lambda + self.penalty_factor*penalty_scaling*penalty_value
+
+            else:
+                # Update lambda
+                current_lambda = current_lambda + self.penalty_factor*penalty_value
+
             print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
             print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
             # Check convergence of outer loop
-            if overall_iteration == self.max_outer_iterations:
+            if outer_iteration == self.max_outer_iterations:
                 print("\n> Maximal iterations of optimization problem reached!")
                 break
 

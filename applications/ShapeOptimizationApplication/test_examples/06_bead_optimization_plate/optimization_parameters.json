@@ -9,7 +9,15 @@
             },
             "design_surface_sub_model_part_name" : "design_surface",
             "damping" : {
-                "apply_damping" : false
+                "apply_damping" : false,
+                "damping_regions" : [{
+                    "sub_model_part_name"   : "constraint_points",
+                    "damp_X"                : true,
+                    "damp_Y"                : true,
+                    "damp_Z"                : true,
+                    "damping_function_type" : "cosine",
+                    "damping_radius"        : 0.15
+                }]
             },
             "mesh_motion" : {
                 "apply_mesh_solver" : false
@@ -41,9 +49,11 @@
             "name"                        : "bead_optimization",
             "bead_height"                 : 0.025,
             "bead_direction_mode"         : 2,
+            "filter_penalty_term"         : false,
             "gradient_ratio"              : 0.1,
-            "max_outer_iterations"        : 200,
-            "max_inner_iterations"        : 50,
+            "penalty_factor"              : 3000.0,
+            "max_outer_iterations"        : 100,
+            "max_inner_iterations"        : 30,
             "min_inner_iterations"        : 3,
             "inner_iteration_tolerance"   : 1e-3,
             "outer_iteration_tolerance"   : 1e-1,
@@ -60,7 +70,11 @@
             "design_output_mode"      : "WriteDesignSurface",
             "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
                                           "DF1DX",
-                                          "DF1DX_MAPPED",
+                                          "DF1DALPHA",
+                                          "DF1DALPHA_MAPPED",
+                                          "DPDALPHA",
+                                          "ALPHA",
+                                          "ALPHA_MAPPED",
                                           "CONTROL_POINT_CHANGE",
                                           "SHAPE_UPDATE",
                                           "SHAPE_CHANGE" ],
