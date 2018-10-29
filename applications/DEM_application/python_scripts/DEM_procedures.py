@@ -1394,19 +1394,8 @@ class DEMIo(object):
         #self.b_box_maxZ = self.DEM_parameters["BoundingBoxMaxZ"].GetDouble()
 
         self.continuum_element_types = ["SphericContPartDEMElement3D", "CylinderContPartDEMElement2D", "IceContPartDEMElement3D"]
-
-        one_level_up_path = os.path.join(self.post_path, "..")
-        self.multifiles = (
-            MultifileList(one_level_up_path, self.DEM_parameters["problem_name"].GetString(), 1, "outer"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 1, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 2, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 5, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 10, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 20, "inner"),
-            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 50, "inner"),
-        )
-
-        self.SetMultifileLists(self.multifiles)
+        
+        self.OpenMultiFileLists()
 
         #Analytic
         if not "PostNormalImpactVelocity" in self.DEM_parameters.keys():
@@ -1442,6 +1431,20 @@ class DEMIo(object):
             self.SeaSurfaceX4 = self.sea_settings["PostVirtualSeaSurfaceX4"].GetDouble()
             self.SeaSurfaceY4 = self.sea_settings["PostVirtualSeaSurfaceY4"].GetDouble()
 
+    def OpenMultiFileLists(self):
+        one_level_up_path = os.path.join(self.post_path, "..")
+        self.multifiles = (
+            #MultifileList(one_level_up_path, self.DEM_parameters["problem_name"].GetString(), 1, "outer"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 1, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 2, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 5, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 10, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 20, "inner"),
+            MultifileList(self.post_path, self.DEM_parameters["problem_name"].GetString(), 50, "inner"),
+        )
+        self.SetMultifileLists(self.multifiles)
+        
+        
     def KRATOSprint(self, message):
         Logger.Print(message,label="DEM")
         Logger.Flush()
