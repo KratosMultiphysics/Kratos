@@ -11,19 +11,19 @@ import filecmp
 import os
 import math
 
-def Factory(settings, Model):
+def Factory(settings, current_model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return CompareTwoFilesCheckProcess(Model, settings["Parameters"])
+    return CompareTwoFilesCheckProcess(settings["Parameters"])
 
 class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
-
-    def __init__(self, model, params):
-        """This process compares files that are written during a simulation
-        against reference files.
-        Please see the "ExecuteFinalize" functions for details about the
-        available file-formats
-        """
+    """This process compares files that are written during a simulation
+    against reference files.
+    Please see the "ExecuteFinalize" functions for details about the
+    available file-formats
+    """
+    def __init__(self, params):
+        KratosMultiphysics.Process.__init__(self)
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {

@@ -205,7 +205,8 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         }
         """)
-        self.model_part = KratosMultiphysics.ModelPart(settings["model_part_name"].GetString())
+        self.model = KratosMultiphysics.Model()
+        self.model_part = self.model.CreateModelPart(settings["model_part_name"].GetString())
         self.echo_level = settings["echo_level"].GetInt()
 
         #read nodes

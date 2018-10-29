@@ -45,7 +45,6 @@
 "ConfinementPressure"              : 0.0,
 "LoadingVelocityTop"               : 0.0,
 "LoadingVelocityBot"               : 0.0,
-"StressStrainOption"               : true,
 "MeshType"                         : "Current",
 "MeshPath"                         : "0",
 "SpecimenLength"                   : 0.30,
@@ -58,7 +57,6 @@
 "GraphExportFreq"                  : 1e-5,
 "VelTrapGraphExportFreq"           : 1e0,
 "OutputTimeStep"                   : 1e-3,
-"Granulometry"                     : false,
 "PostDisplacement"                 : true,
 "PostVelocity"                     : true,
 "PostElasticForces"                : false,
@@ -70,8 +68,6 @@
 "PostNonDimensionalVolumeWear"     : false,
 "PostNodalArea"                    : false,
 "PostStressStrainOption"           : false,
-"PostTemperature"                  : false,
-"PostHeatFlux"                     : false,
 "PostSkinSphere"                   : false,
 "PostPoissonRatio"                 : false,
 "PostRHS"                          : false,
@@ -92,6 +88,7 @@
 "PostBoundingBox"                  : false,
 "PostPressure"                     : false,
 "PostRollingResistanceMoment"      : false,
+"post_vtk_option"                  : false,
 "virtual_sea_surface_settings"     : {
 "print_sea_surface"                : false
 },

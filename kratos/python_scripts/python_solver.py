@@ -135,11 +135,11 @@ class PythonSolver(object):
         """This function imports the ModelPart
         """
         self.print_on_rank_zero("::[PythonSolver]::", "Reading model part.")
-        problem_path = os.getcwd()
-        input_filename = model_part_import_settings["input_filename"].GetString()
         input_type = model_part_import_settings["input_type"].GetString()
 
         if (input_type == "mdpa"):
+            problem_path = os.getcwd()
+            input_filename = model_part_import_settings["input_filename"].GetString()
             import_flags = KratosMultiphysics.ModelPartIO.READ
             if model_part_import_settings.Has("ignore_variables_not_in_solution_step_data"):
                 if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
