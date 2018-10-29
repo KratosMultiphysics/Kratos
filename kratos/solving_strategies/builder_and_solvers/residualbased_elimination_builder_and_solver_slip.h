@@ -303,7 +303,7 @@ public:
 
                     }
 
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 #else
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
@@ -848,7 +848,7 @@ protected:
                     EquationId[i] = geom[i].GetDof(rLocalVar, pos).EquationId();
 
                 //assemble the elemental contribution
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
 #else
                 this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
@@ -896,7 +896,7 @@ protected:
                 }
 
                 //assemble the elemental contribution
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
 #else
                 this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
