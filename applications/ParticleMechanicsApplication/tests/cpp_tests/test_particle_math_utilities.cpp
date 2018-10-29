@@ -134,10 +134,6 @@ namespace Testing
         return matrix;
     }
 
-    void OutputResults(const auto results)
-    {
-        std::cout << std::scientific << results << std::endl;
-    }
 
     /**
     * Check whether the computation of eigenvalues and eigenvectors are performed correctly
