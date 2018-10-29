@@ -547,9 +547,11 @@ void RigidBodySegregatedVElement::GetTimeIntegrationParameters(double& rP0,doubl
   KRATOS_TRY
 
   double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-  rP0 = rCurrentProcessInfo[NEWMARK_GAMMA] / DeltaTime *rCurrentProcessInfo[NEWMARK_BETA];
-  rP1 = (1.0/ ( DeltaTime * DeltaTime * rCurrentProcessInfo[NEWMARK_BETA] ));
-  rP2 = ( DeltaTime * rCurrentProcessInfo[NEWMARK_GAMMA] );
+  rP0 = 1.0;
+  // rP1 = (1.0/ ( DeltaTime * rCurrentProcessInfo[NEWMARK_BETA] ));
+  // rP2 = ( rCurrentProcessInfo[NEWMARK_GAMMA] );
+  rP1 = ( rCurrentProcessInfo[NEWMARK_GAMMA] / ( DeltaTime * rCurrentProcessInfo[NEWMARK_BETA] ));
+  rP2 = 1.0;
 
   KRATOS_CATCH("")
 }

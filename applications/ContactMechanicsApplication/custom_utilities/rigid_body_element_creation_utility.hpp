@@ -165,7 +165,7 @@ public:
       // create node for the rigid body center of gravity:
       unsigned int LastNodeId  = rMainModelPart.Nodes().back().Id() + 1;
 
-      std::cout<<" Node Id "<<LastNodeId<<std::endl;
+      //std::cout<<" Node Id "<<LastNodeId<<std::endl;
 
       NodeType::Pointer NodeCenterOfGravity;
       this->CreateNode( NodeCenterOfGravity, rMainModelPart, CenterOfGravity, LastNodeId, BodyIsFixed);
@@ -244,7 +244,7 @@ public:
           pRigidBodyElement->Set(ACTIVE,true);
           rMainModelPart.GetSubModelPart(i_mp->Name()).AddElement(pRigidBodyElement);
           rMainModelPart.GetSubModelPart(i_mp->Name()).AddNode(NodeCenterOfGravity);
-          std::cout<<rMainModelPart.GetSubModelPart(i_mp->Name())<<std::endl;
+          //std::cout<<rMainModelPart<<std::endl;
         }
       }
 

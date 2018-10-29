@@ -180,7 +180,7 @@ class RemoveNodesMesherProcess
 
 
       if(any_node_removed){
-        std::cout<<" error "<<any_node_removed_on_error<<" distance "<<any_node_removed_on_distance<<" conv_cond "<<any_convex_condition_removed<<" cond "<< any_condition_removed<<std::endl;
+        std::cout<<" Removed Nodes: ( error "<<any_node_removed_on_error<<" distance "<<any_node_removed_on_distance<<" conv_cond "<<any_convex_condition_removed<<" cond "<< any_condition_removed<<")"<<std::endl;
         this->CleanRemovedNodes(mrModelPart);
       }
 

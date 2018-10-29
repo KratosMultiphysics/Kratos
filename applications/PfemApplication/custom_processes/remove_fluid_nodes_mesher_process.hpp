@@ -214,7 +214,7 @@ class RemoveFluidNodesMesherProcess
 
         if (n_points_in_radius>1)
         {
-          //std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
+          std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
           if ( in->IsNot(BOUNDARY) )
           {
             if( this->mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE) ){
@@ -228,7 +228,7 @@ class RemoveFluidNodesMesherProcess
                   in->Set(TO_ERASE);
                   any_node_removed = true;
                   ++inside_nodes_removed;
-                  //std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
+                  std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
                 }
               }
             }
@@ -284,7 +284,7 @@ class RemoveFluidNodesMesherProcess
     if( this->mEchoLevel > 0 ){
       std::cout<<"boundary_nodes_removed "<<boundary_nodes_removed<<std::endl;
       std::cout<<"inside_nodes_removed "<<inside_nodes_removed<<std::endl;
-      std::cout<<"critical_nodes_removec "<<critical_nodes_removed<<std::endl;
+      std::cout<<"critical_nodes_removed "<<critical_nodes_removed<<std::endl;
     }
 
     //Build boundary after removing boundary nodes due distance criterion
@@ -653,7 +653,7 @@ class RemoveFluidNodesMesherProcess
     {
       ModelPart::NodesContainerType::iterator it_begin = LayerNodes.begin();
 
-	  unsigned int inside_nodes_removed_accum = 0;
+      unsigned int inside_nodes_removed_accum = 0;
       #pragma omp parallel for reduction(+:inside_nodes_removed_accum,erased_nodes)
       for (int i = 0; i < nnodes; ++i)
       {

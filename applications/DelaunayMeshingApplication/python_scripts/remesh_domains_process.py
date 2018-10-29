@@ -156,7 +156,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         if(self.echo_level>1):
             print("")
             print(self.main_model_part)
-            
+
         self.model_manager.ExecuteFinalize()
 
         self.counter += 1
@@ -200,8 +200,8 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
     #
     def GetVariables(self):
-
-        nodal_variables = ['NORMAL', 'NODAL_H', 'SHRINK_FACTOR']
+        import domain_utilities
+        nodal_variables = domain_utilities.DomainUtilities().GetVariables()
         nodal_variables = nodal_variables + ['DETERMINANT_F'] # variables smoothing
         nodal_variables = nodal_variables + ['MEAN_ERROR'] # removing nodes
 

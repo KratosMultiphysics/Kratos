@@ -370,6 +370,8 @@ class Solution(object):
                 for process in assign_materials_processes:
                     process.Execute()
 
+                self.model.CleanModel()
+
         elif os.path.isfile("materials.py"):  # legacy
 
             import constitutive_law_python_utility as constitutive_law_utils
@@ -377,6 +379,8 @@ class Solution(object):
             constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.main_model_part, self.process_info[KratosMultiphysics.SPACE_DIMENSION])
 
             constitutive_law.Initialize()
+
+            self.model.CleanModel()
 
             print("::[-----Material------]:: Reading file: materials.py ")
 

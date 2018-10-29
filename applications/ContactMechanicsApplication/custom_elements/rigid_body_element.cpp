@@ -525,7 +525,7 @@ void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideV
     //substract because is added as a component of the InertiaRHS and is substracted again later in the scheme
     BeamMathUtilsType::SubstractVector( GravityLoad, rRightHandSideVector, 0 );
 
-    // std::cout<<" Rigid Element Gravity "<<GravityLoad<<std::endl;
+    // std::cout<<" Rigid Element Gravity x Mass"<<GravityLoad<<std::endl;
     // std::cout<<" Rigid Body External Force : "<<rRightHandSideVector<<std::endl;
 
     KRATOS_CATCH("")
@@ -661,6 +661,8 @@ void RigidBodyElement::CalculateSecondDerivativesContributions(MatrixType& rLeft
       noalias(rRightHandSideVector) = ZeroVector( dofs_size ); //resetting RHS
     }
 
+    // std::cout<<" RIGID BODY RHS "<<rRightHandSideVector<<std::endl;
+    // std::cout<<" RIGID BODY LHS "<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH("")
 }
@@ -780,11 +782,12 @@ void RigidBodyElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
 void RigidBodyElement::CalculateAndAddRHS(VectorType& rRightHandSideVector,
                                           ElementVariables& rVariables)
 {
+  // add inertia RHS
+  this->CalculateAndAddInertiaRHS(rRightHandSideVector, rVariables);
+
   // calculate and add external forces
   this->CalculateAndAddExternalForces(rRightHandSideVector, rVariables);
 
-  // add inertia RHS
-  this->CalculateAndAddInertiaRHS(rRightHandSideVector, rVariables);
 }
 
 //************************************************************************************
@@ -928,7 +931,7 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     //block 1 of the mass matrix
     MatrixType m11(dimension,dimension);
     noalias(m11) = IdentityMatrix(dimension);
-    m11 *= (1.0-AlphaM) * Newmark0 * rVariables.RigidBody.Mass;
+    m11 *= (1.0-AlphaM) * Newmark1 * rVariables.RigidBody.Mass;
 
     //block 2 of the mass matrix
     MatrixType m22(3,3);
@@ -1158,14 +1161,14 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
     BeamMathUtilsType::AddVector(LinearInertialForceVector, TotalInertialForceVector, 0);
 
     if(dimension == 2)
-      TotalInertialForceVector[dofs_size-1] = AngularInertialForceVector[2];
+      TotalInertialForceVector[dofs_size-1] += AngularInertialForceVector[2];
     else
       BeamMathUtilsType::AddVector(AngularInertialForceVector, TotalInertialForceVector, 3);
 
 
     BeamMathUtilsType::AddVector(TotalInertialForceVector, rRightHandSideVector, 0);
 
-    // std::cout<<" Rigid Body: rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+    //std::cout<<" Rigid Body: rRightHandSideVector "<<rRightHandSideVector<<std::endl;
 
     KRATOS_CATCH("")
 }
@@ -1280,7 +1283,6 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
      ArrayType&  Displacement        = rCenterOfGravity->FastGetSolutionStepValue(DISPLACEMENT);
      ArrayType&  Rotation            = rCenterOfGravity->FastGetSolutionStepValue(ROTATION);
      ArrayType&  StepRotation        = rCenterOfGravity->FastGetSolutionStepValue(STEP_ROTATION);
-     ArrayType&  DeltaRotation       = rCenterOfGravity->FastGetSolutionStepValue(DELTA_ROTATION);
 
      ArrayType&  Velocity            = rCenterOfGravity->FastGetSolutionStepValue(VELOCITY);
      ArrayType&  Acceleration        = rCenterOfGravity->FastGetSolutionStepValue(ACCELERATION);
@@ -1289,7 +1291,8 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
 
      std::cout<<" [ MasterElement "<<this->Id()<<" ]"<<std::endl;
      std::cout<<" [ Nodes_size "<<mpNodes->size()<<" ]"<<std::endl;
-     std::cout<<" [ Rotation:"<<Rotation<<",StepRotation:"<<StepRotation<<",DeltaRotation:"<<DeltaRotation<<"]"<<std::endl;
+     std::cout<<" [ Fixed DisplacementY DOF: "<<this->GetGeometry()[0].IsFixed(DISPLACEMENT_Y)<<"]"<<std::endl;
+     std::cout<<" [ Rotation:"<<Rotation<<",StepRotation:"<<StepRotation<<"]"<<std::endl;
      std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<",DeltaDisplacement"<<Displacement-rCenterOfGravity->FastGetSolutionStepValue(DISPLACEMENT,1)<<"]"<<std::endl;
      std::cout<<" [ AngularVelocity:"<<AngularVelocity<<",AngularAcceleration:"<<AngularAcceleration<<"]"<<std::endl;
 
@@ -1312,7 +1315,6 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
        noalias((i)->FastGetSolutionStepValue(DISPLACEMENT)) = ( (Center + Displacement) + Radius ) - (i)->GetInitialPosition();
        noalias((i)->FastGetSolutionStepValue(ROTATION)) = Rotation;
        noalias((i)->FastGetSolutionStepValue(STEP_ROTATION)) = StepRotation;
-       noalias((i)->FastGetSolutionStepValue(DELTA_ROTATION)) = DeltaRotation;
        noalias((i)->FastGetSolutionStepValue(ANGULAR_VELOCITY)) = AngularVelocity;
        noalias((i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION)) = AngularAcceleration;
        noalias((i)->FastGetSolutionStepValue(VELOCITY)) = Velocity;

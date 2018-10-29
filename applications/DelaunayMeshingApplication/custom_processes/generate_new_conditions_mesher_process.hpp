@@ -197,7 +197,10 @@ namespace Kratos
 
       //properties to be used in the generation
       int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
-      Properties::Pointer properties = rModelPart.GetParentModelPart()->pGetProperties(number_properties-1);
+      if(number_properties<0)
+        KRATOS_ERROR<<" number of properties is "<<number_propreties<<std::endl;
+
+      Properties::Pointer properties = rModelPart.GetParentModelPart()->GetMesh().pGetProperties(number_properties-1);
 
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 

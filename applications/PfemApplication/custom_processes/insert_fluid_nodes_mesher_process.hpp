@@ -675,7 +675,8 @@ class InsertFluidNodesMesherProcess
 
       //to control the inserted nodes
       // pnode->Set(MODIFIED);
-      //std::cout<<" Insert new node "<<pnode->Id()<<std::endl;
+      std::cout<<" Insert new node "<<pnode->Id()<<"["<<x<<","<<y<<","<<z<<"]"<<std::endl;
+
 
       pnode->Set(NEW_ENTITY,true); //not boundary
       list_of_new_nodes.push_back( pnode );

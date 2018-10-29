@@ -351,12 +351,7 @@ class SettleModelStructureProcess
     //now set new conditions
     rModelPart.Conditions().swap(PreservedConditions);
 
-    //Sort
-    rModelPart.Nodes().Sort();
-    rModelPart.Elements().Sort();
-    rModelPart.Conditions().Sort();
-
-    //Unique
+    //Unique (sort included)
     rModelPart.Nodes().Unique();
     rModelPart.Elements().Unique();
     rModelPart.Conditions().Unique();
@@ -924,13 +919,7 @@ class SettleModelStructureProcess
 
     }
 
-
-    //Sort
-    rComputingModelPart.Nodes().Sort();
-    // rComputingModelPart.Elements().Sort();
-    // rComputingModelPart.Conditions().Sort();
-
-    //Unique
+    // Unique (sort included)
     rComputingModelPart.Nodes().Unique();
     // rComputingModelPart.Elements().Unique();
     // rComputingModelPart.Conditions().Unique();

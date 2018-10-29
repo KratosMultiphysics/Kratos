@@ -224,10 +224,14 @@ namespace Kratos
 
         if(mEchoLevel > 1){
           std::cout<<" Masters::Condition ("<<i_cond->Id()<<")";
-          if(i_cond->GetValue(MASTER_NODES).size()!=0)
-            std::cout<<" ME="<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id();
-          if(i_cond->GetValue(MASTER_NODES).size()!=0)
-            std::cout<<" MN= "<<i_cond->GetValue(MASTER_NODES)[0].Id();
+          if(i_cond->GetValue(MASTER_NODES).size()!=0){
+            if(!i_cond->GetValue(MASTER_ELEMENTS)(0).expired())
+              std::cout<<" ME="<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id();
+          }
+          if(i_cond->GetValue(MASTER_NODES).size()!=0){
+            if(!i_cond->GetValue(MASTER_NODES)(0).expired())
+              std::cout<<" MN= "<<i_cond->GetValue(MASTER_NODES)[0].Id();
+          }
           std::cout<<std::endl;
         }
 
@@ -266,90 +270,24 @@ namespace Kratos
 
             for(WeakPointerVector< Element >::iterator ie = rE1.begin(); ie!=rE1.end(); ++ie)
             {
-              for(WeakPointerVector< Element >::iterator ne = rE2.begin(); ne!=rE2.end(); ++ne)
-              {
-                if(ne->Id() == ie->Id() && !found){
-                  WeakPointerVector< Element > MasterElements;
-                  MasterElements.push_back(Element::WeakPointer( *(ie.base()) ) );
-                  if( mEchoLevel >= 1 ){
-                    if(i_cond->GetValue(MASTER_ELEMENTS).size()){
-                      if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
-                        std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
-                    }
-                    else{
-                      std::cout<<" First Assignment of Master Elements "<<i_cond->Id()<<std::endl;
-                    }
-                  }
-                  i_cond->SetValue(MASTER_ELEMENTS,MasterElements);
+              if( !(ie.base())->expired() ){
 
-                  Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
-
-                  //get matrix nodes in faces
-                  rElementGeometry.NodesInFaces(lpofa);
-                  rElementGeometry.NumberNodesInFaces(lnofa);
-
-                  int node = 0;
-                  for (unsigned int iface=0; iface<rElementGeometry.size(); ++iface)
-                  {
-                    MesherUtilities MesherUtils;
-                    found = MesherUtils.FindCondition(rConditionGeometry,rElementGeometry,lpofa,lnofa,iface);
-
-                    if(found){
-                      node=iface;
-                      break;
-                    }
-                  }
-
-                  if(found){
-                    WeakPointerVector< Node<3> > MasterNodes;
-                    MasterNodes.push_back( Node<3>::WeakPointer( rElementGeometry(lpofa(0,node)) ) );
-                    if( mEchoLevel >= 1 ){
-                      if(i_cond->GetValue(MASTER_NODES).size()){
-                        if(i_cond->GetValue(MASTER_NODES)[0].Id() != MasterNodes[0].Id())
-                          std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ("<<i_cond->GetValue(MASTER_NODES)[0].Id()<<" != "<<MasterNodes[0].Id()<<")"<<std::endl;
-                      }
-                      else{
-                        std::cout<<" First Assignment of Master Nodes "<<i_cond->Id()<<std::endl;
-                      }
-                    }
-                    i_cond->SetValue(MASTER_NODES,MasterNodes);
-                  }
-                  else{
-                    std::cout<<" MASTER_NODE not FOUND : something is wrong "<<std::endl;
-                  }
-                }
-              }
-            }
-          }
-          if(size == 3){
-
-            WeakPointerVector<Element >& rE1 = rConditionGeometry[0].GetValue(NEIGHBOUR_ELEMENTS);
-            WeakPointerVector<Element >& rE2 = rConditionGeometry[1].GetValue(NEIGHBOUR_ELEMENTS);
-            WeakPointerVector<Element >& rE3 = rConditionGeometry[2].GetValue(NEIGHBOUR_ELEMENTS);
-
-            if( rE1.size() == 0 || rE2.size() == 0 || rE3.size() == 0 )
-              std::cout<<" NO SIZE in NEIGHBOUR_ELEMENTS "<<std::endl;
-
-            for(WeakPointerVector< Element >::iterator ie = rE1.begin(); ie!=rE1.end(); ++ie)
-            {
-              for(WeakPointerVector< Element >::iterator je = rE2.begin(); je!=rE2.end(); ++je)
-              {
-
-                if(je->Id() == ie->Id() && !found)
+                for(WeakPointerVector< Element >::iterator ne = rE2.begin(); ne!=rE2.end(); ++ne)
                 {
+                  if(!(ne.base())->expired() ){
 
-                  for(WeakPointerVector< Element >::iterator ke = rE3.begin(); ke!=rE3.end(); ++ke)
-                  {
-
-                    if(ke->Id() == ie->Id() && !found)
-                    {
-
+                    if(ne->Id() == ie->Id() && !found){
                       WeakPointerVector< Element > MasterElements;
                       MasterElements.push_back(Element::WeakPointer( *(ie.base()) ) );
                       if( mEchoLevel >= 1 ){
                         if(i_cond->GetValue(MASTER_ELEMENTS).size()){
-                          if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
-                            std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
+                          if(!i_cond->GetValue(MASTER_ELEMENTS)(0).expired()){
+                            if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
+                              std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
+                          }
+                          else{
+                            std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements (expired != "<<MasterElements[0].Id()<<")"<<std::endl;
+                          }
                         }
                         else{
                           std::cout<<" First Assignment of Master Elements "<<i_cond->Id()<<std::endl;
@@ -380,8 +318,13 @@ namespace Kratos
                         MasterNodes.push_back( Node<3>::WeakPointer( rElementGeometry(lpofa(0,node)) ) );
                         if( mEchoLevel >= 1 ){
                           if(i_cond->GetValue(MASTER_NODES).size()){
-                            if(i_cond->GetValue(MASTER_NODES)[0].Id() != MasterNodes[0].Id())
-                              std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ("<<i_cond->GetValue(MASTER_NODES)[0].Id()<<" != "<<MasterNodes[0].Id()<<")"<<std::endl;
+                            if(!i_cond->GetValue(MASTER_NODES)(0).expired()){
+                              if(i_cond->GetValue(MASTER_NODES)[0].Id() != MasterNodes[0].Id())
+                                std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ("<<i_cond->GetValue(MASTER_NODES)[0].Id()<<" != "<<MasterNodes[0].Id()<<")"<<std::endl;
+                            }
+                            else{
+                              std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ( expired != "<<MasterNodes[0].Id()<<")"<<std::endl;
+                            }
                           }
                           else{
                             std::cout<<" First Assignment of Master Nodes "<<i_cond->Id()<<std::endl;
@@ -398,6 +341,96 @@ namespace Kratos
               }
             }
           }
+          if(size == 3){
+
+            WeakPointerVector<Element >& rE1 = rConditionGeometry[0].GetValue(NEIGHBOUR_ELEMENTS);
+            WeakPointerVector<Element >& rE2 = rConditionGeometry[1].GetValue(NEIGHBOUR_ELEMENTS);
+            WeakPointerVector<Element >& rE3 = rConditionGeometry[2].GetValue(NEIGHBOUR_ELEMENTS);
+
+            if( rE1.size() == 0 || rE2.size() == 0 || rE3.size() == 0 )
+              std::cout<<" NO SIZE in NEIGHBOUR_ELEMENTS "<<std::endl;
+
+            for(WeakPointerVector< Element >::iterator ie = rE1.begin(); ie!=rE1.end(); ++ie)
+            {
+              if( !(ie.base())->expired() ){
+                for(WeakPointerVector< Element >::iterator je = rE2.begin(); je!=rE2.end(); ++je)
+                {
+                  if(!(je.base())->expired() ){
+                    if(je->Id() == ie->Id() && !found)
+                    {
+                      for(WeakPointerVector< Element >::iterator ke = rE3.begin(); ke!=rE3.end(); ++ke)
+                      {
+                        if(!(ke.base())->expired() ){
+                          if(ke->Id() == ie->Id() && !found)
+                          {
+
+                            WeakPointerVector< Element > MasterElements;
+                            MasterElements.push_back(Element::WeakPointer( *(ie.base()) ) );
+                            if( mEchoLevel >= 1 ){
+                              if(i_cond->GetValue(MASTER_ELEMENTS).size()){
+                                if(!i_cond->GetValue(MASTER_ELEMENTS)(0).expired()){
+                                  if(i_cond->GetValue(MASTER_ELEMENTS)[0].Id() != MasterElements[0].Id())
+                                    std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ("<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id()<<" != "<<MasterElements[0].Id()<<")"<<std::endl;
+                                }
+                                else{
+                                  std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master elements ( expired != "<<MasterElements[0].Id()<<")"<<std::endl;
+                                }
+                              }
+                              else{
+                                std::cout<<" First Assignment of Master Elements "<<i_cond->Id()<<std::endl;
+                              }
+                            }
+                            i_cond->SetValue(MASTER_ELEMENTS,MasterElements);
+
+                            Geometry< Node<3> >& rElementGeometry = ie->GetGeometry();
+
+                            //get matrix nodes in faces
+                            rElementGeometry.NodesInFaces(lpofa);
+                            rElementGeometry.NumberNodesInFaces(lnofa);
+
+                            int node = 0;
+                            for (unsigned int iface=0; iface<rElementGeometry.size(); ++iface)
+                            {
+                              MesherUtilities MesherUtils;
+                              found = MesherUtils.FindCondition(rConditionGeometry,rElementGeometry,lpofa,lnofa,iface);
+
+                              if(found){
+                                node=iface;
+                                break;
+                              }
+                            }
+
+                            if(found){
+                              WeakPointerVector< Node<3> > MasterNodes;
+                              MasterNodes.push_back( Node<3>::WeakPointer( rElementGeometry(lpofa(0,node)) ) );
+                              if( mEchoLevel >= 1 ){
+                                if(i_cond->GetValue(MASTER_NODES).size()){
+                                  if(!i_cond->GetValue(MASTER_NODES)(0).expired()){
+                                    if(i_cond->GetValue(MASTER_NODES)[0].Id() != MasterNodes[0].Id())
+                                      std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ("<<i_cond->GetValue(MASTER_NODES)[0].Id()<<" != "<<MasterNodes[0].Id()<<")"<<std::endl;
+                                  }
+                                  else{
+                                    std::cout<<"Condition "<<i_cond->Id()<<" WARNING: master nodes ( expired != "<<MasterNodes[0].Id()<<")"<<std::endl;
+                                  }
+                                }
+                                else{
+                                  std::cout<<" First Assignment of Master Nodes "<<i_cond->Id()<<std::endl;
+                                }
+                              }
+                              i_cond->SetValue(MASTER_NODES,MasterNodes);
+                            }
+                            else{
+                              std::cout<<" MASTER_NODE not FOUND : something is wrong "<<std::endl;
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
 
           total_conditions++;
         }
@@ -406,11 +439,14 @@ namespace Kratos
 
         if(mEchoLevel > 1){
           std::cout<<" SearchResult::Condition ("<<i_cond->Id()<<")";
-          if(i_cond->GetValue(MASTER_NODES).size()!=0)
-            std::cout<<" ME="<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id();
-          if(i_cond->GetValue(MASTER_NODES).size()!=0)
-            std::cout<<" MN= "<<i_cond->GetValue(MASTER_NODES)[0].Id();
-          std::cout<<std::endl;
+          if(i_cond->GetValue(MASTER_NODES).size()!=0){
+            if(!i_cond->GetValue(MASTER_ELEMENTS)(0).expired())
+              std::cout<<" ME="<<i_cond->GetValue(MASTER_ELEMENTS)[0].Id();
+          }
+          if(i_cond->GetValue(MASTER_NODES).size()!=0){
+            if(!i_cond->GetValue(MASTER_NODES)(0).expired())
+              std::cout<<" MN= "<<i_cond->GetValue(MASTER_NODES)[0].Id();
+          }
         }
 
         if(found)
@@ -730,9 +766,11 @@ namespace Kratos
 
       //properties to be used in the generation
       int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
-      Properties::Pointer properties = rModelPart.GetParentModelPart()->pGetProperties(number_properties-1);
 
+      if(number_properties<0)
+        KRATOS_ERROR<<" number of properties is "<<number_propreties<<std::endl;
 
+      Properties::Pointer properties = rModelPart.GetParentModelPart()->GetMesh().pGetProperties(number_properties-1);
       ModelPart::ElementsContainerType::iterator elements_begin  = rModelPart.ElementsBegin();
       ModelPart::ElementsContainerType::iterator elements_end    = rModelPart.ElementsEnd();
 
@@ -915,7 +953,6 @@ namespace Kratos
 
     //**************************************************************************
     //**************************************************************************
-
 
     bool FindConditionID(ModelPart& rModelPart, Geometry< Node<3> >& rConditionGeometry)
     {

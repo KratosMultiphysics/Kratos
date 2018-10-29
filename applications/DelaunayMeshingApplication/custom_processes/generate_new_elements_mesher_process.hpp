@@ -145,14 +145,16 @@ namespace Kratos
 
 
       //properties to be used in the generation
-      int number_properties = mrModelPart.GetParentModelPart()->NumberOfProperties();
-      Properties::Pointer properties = mrModelPart.GetParentModelPart()->GetMesh().pGetProperties(number_properties-1);
       ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
-
       ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
 
+      // int number_properties = mrModelPart.GetParentModelPart()->NumberOfProperties();
+      // if(number_properties<0)
+      //   KRATOS_ERROR<<" number of properties is "<<number_propreties<<std::endl;
+      // Properties::Pointer properties = mrModelPart.GetParentModelPart()->GetMesh().pGetProperties(number_properties-1);
       // properties->PrintData(std::cout);
       // std::cout<<std::endl;
+
 
       MeshDataTransferUtilities DataTransferUtilities;
 
