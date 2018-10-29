@@ -397,13 +397,6 @@ public:
             n(1,0)=1;
 
             Matrix test=prod(data.DN_DX,n);
-            // for(unsigned int i=0;i<test.size1();i++){
-            //     for(unsigned int j=0;j<test.size2();j++){
-            //         std::cout<<test(i,j)<<", ";
-            //     }
-            //     std::cout<<std::endl;
-            // }
-            // std::cout<<std::endl;
             for(unsigned int i=0; i<nsubdivisions; ++i)
             {
                 if(PartitionsSign[i] > 0){

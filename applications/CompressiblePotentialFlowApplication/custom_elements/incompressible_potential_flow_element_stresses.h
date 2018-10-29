@@ -411,36 +411,31 @@ public:
             Matrix test=prod(data.DN_DX,n);
             // double penalty = rCurrentProcessInfo[INITIAL_PENALTY];
             double n_parameter=2.0;
-            // for(unsigned int i=0;i<test.size1();i++){
-            //     for(unsigned int j=0;j<test.size2();j++){
-            //         std::cout<<test(i,j)<<", ";
-            //     }
-            //     std::cout<<std::endl;
-            // }
-            // std::cout<<std::endl;
+          
             lhs_sigma_sigma(0,0)=n_parameter*data.vol;
             for(unsigned int i=0; i<nsubdivisions; ++i)
             {
                 if(PartitionsSign[i] > 0){
                     ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data); //K++                    
                     noalias(lhs_penalty_positive) += Volumes[i] * prod(test,trans(test));
-                    noalias(lhs_plus_sigma) += 0.5/n_parameter*Volumes[i]*data.DN_DX;
-                    noalias(lhs_sigma_plus) += 0.5/n_parameter*Volumes[i]*trans(data.DN_DX);
+                    noalias(lhs_plus_sigma) += 1/n_parameter*Volumes[i]*data.DN_DX;
+                    noalias(lhs_sigma_plus) += 1/n_parameter*Volumes[i]*trans(data.DN_DX);
                 }
                 else{
                     ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data); //K--
                     noalias(lhs_penalty_negative) += Volumes[i] * prod(test,trans(test));
-                    noalias(lhs_minus_sigma) += 0.5/n_parameter*Volumes[i]*data.DN_DX;
-                    noalias(lhs_sigma_minus) += 0.5/n_parameter*Volumes[i]*trans(data.DN_DX);
+                    noalias(lhs_minus_sigma) += 1/n_parameter*Volumes[i]*data.DN_DX;
+                    noalias(lhs_sigma_minus) += 1/n_parameter*Volumes[i]*trans(data.DN_DX);
                 }
                 
                 
             }
+            
             // lhs_plus_plus_sigma = 0.5 / n_parameter * prod(DN_DX_positive,trans(DN_DX_positive));
             // lhs_plus_minus_sigma = 0.5 / n_parameter * prod(DN_DX_positive,trans(DN_DX_negative));
             // lhs_minus_minus_sigma = 0.5 / n_parameter * prod(DN_DX_negative,trans(DN_DX_negative));
             // lhs_minus_plus_sigma = 0.5 / n_parameter * prod(DN_DX_negative,trans(DN_DX_positive));
-            // std::cout <<(1.0-1.0/n_parameter)<<std::endl;
+           
             if(kutta_element)
             {
                 for(unsigned int i=0; i<NumNodes; ++i)
@@ -856,8 +851,8 @@ protected:
         ComputeVelocityLowerWakeElement(lower_wake_velocity);
         const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
 
-        if (std::abs(vupnorm - vlownorm) > 0.1)
-            std::cout << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() << std::endl;
+        // if (std::abs(vupnorm - vlownorm) > 0.1)
+            // std::cout << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() << std::endl;
     }
 
     double ComputePressure(const ProcessInfo& rCurrentProcessInfo)
