@@ -11,7 +11,7 @@ class ProcessHandler(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
 
-        self.Model = Model
+        self.model = Model
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -46,7 +46,6 @@ class ProcessHandler(KratosMultiphysics.Process):
             except AttributeError:
                 # the process does not have GetVariables()
                 pass
-
         return nodal_variables
 
     #
@@ -164,7 +163,7 @@ class ProcessHandler(KratosMultiphysics.Process):
 
         kratos_module = __import__(process["kratos_module"].GetString())
         python_module = __import__(process["python_module"].GetString())
-        return(python_module.Factory(process, self.Model))
+        return(python_module.Factory(process, self.model))
 
 
     #
