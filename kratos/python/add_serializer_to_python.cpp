@@ -45,7 +45,7 @@ namespace Kratos
 
             std::string GetStringRepresentation() {
                 return ((std::stringstream*)(this->pGetBuffer()))->str();
-             }
+            }
 
             virtual ~StreamSerializer(){}
 
@@ -107,15 +107,15 @@ void  AddSerializerToPython(pybind11::module& m)
     .def(py::init<std::string const&, Serializer::TraceType>())
     .def("__getstate__", [](StreamSerializer &self) { //METHOD NEEDED FOR PICKLE
         /* Return a tuple that fully encodes the state of the object */
-        return py::make_tuple(py::bytes(self.GetStringRepresentation()));
+        return py::make_tuple(py::bytes(self.GetStringRepresentation()),self.GetTraceType());
     })
     .def("__setstate__", [](StreamSerializer &self, py::tuple t) { //METHOD NEEDED FOR PICKLE
-        if (t.size() != 1)
+        if (t.size() != 2)
             throw std::runtime_error("Invalid state!");
 
         /* Invoke the in-place constructor. Note that this is needed even
            when the object just has a trivial default constructor */
-        new (&self) StreamSerializer(t[0].cast<std::string>());
+        new (&self) StreamSerializer(t[0].cast<std::string>(), t[1].cast<Serializer::TraceType>());
     })
     ;
 

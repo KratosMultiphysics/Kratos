@@ -187,6 +187,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    TraceType GetTraceType(){return mTrace;}
+    
     template<class TDataType>
     static void* Create()
     {
