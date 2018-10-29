@@ -342,14 +342,15 @@ public:
                     positive_side_sh_func_gradients,
                     positive_side_weights,
                     GeometryData::GI_GAUSS_3);
+                this->ComputeDensity(density,derivative,velocity,rCurrentProcessInfo);
                 for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-                    MatrixType aux_matrix;
                     bounded_matrix<double,NumNodes,Dim> DN_DX;
                     DN_DX=positive_side_sh_func_gradients(i_gauss);
-                    //reading properties and conditions
-                    aux_matrix=(prod(DN_DX,trans(DN_DX)))*positive_side_weights(i_gauss);  // Bt D B
+                    DNV=prod(DN_DX, velocity);
 
-                    noalias(rLeftHandSideMatrix) += aux_matrix;                 
+                    noalias(rLeftHandSideMatrix) += density*(prod(DN_DX,trans(DN_DX)))*positive_side_weights(i_gauss); 
+                    noalias(rLeftHandSideMatrix) += derivative*outer_prod(DNV, trans(DNV))*positive_side_weights(i_gauss);     
+                    noalias(rLaplacianMatrix) += density*prod(DN_DX, trans(DN_DX))*positive_side_weights(i_gauss);
                 }
 
                 noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
@@ -366,7 +367,7 @@ public:
                         noalias(rLaplacianMatrix) += data.vol*density*prod(data.DN_DX, trans(data.DN_DX));
 
                         noalias(rRightHandSideVector) = -prod(rLaplacianMatrix, data.phis); 
-                }
+                }               
             }        
            
         }
@@ -660,7 +661,7 @@ public:
 
             if(active && !this->Is(MARKER))//normal element
             {
-                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
                 const double gamma = rCurrentProcessInfo[LAMBDA];
                 const double a = rCurrentProcessInfo[SOUND_VELOCITY];
 
@@ -697,7 +698,7 @@ public:
             }
             else if(this->Is(MARKER) && active==true)//wake element
             {
-                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
                 const double gamma = rCurrentProcessInfo[LAMBDA];
                 const double a = rCurrentProcessInfo[SOUND_VELOCITY];
 
@@ -753,7 +754,7 @@ public:
 
             if(active && !this->Is(MARKER))//normal element
             {
-                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
                 //const double densityinfinity = rCurrentProcessInfo[DENSITY];
                 const double densityinfinity = GetProperties().GetValue(DENSITY);
                 const double gamma = rCurrentProcessInfo[LAMBDA];
@@ -783,7 +784,7 @@ public:
             }
             else if(this->Is(MARKER) && active==true)//wake element
             {
-                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+                const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
                 //const double densityinfinity = rCurrentProcessInfo[DENSITY];
                 const double densityinfinity = GetProperties().GetValue(DENSITY);
                 const double gamma = rCurrentProcessInfo[LAMBDA];
@@ -858,7 +859,7 @@ public:
                     data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
                 }
 
-                array_1d<double,Dim> vaux = prod(trans(data.DN_DX), data.phis);
+                array_1d<double,Dim> vaux = -prod(trans(data.DN_DX), data.phis);
                 
                 for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
             }
@@ -881,7 +882,7 @@ public:
                         data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
                 }
 
-                array_1d<double,Dim> vaux = prod(trans(data.DN_DX), data.phis);
+                array_1d<double,Dim> vaux = -prod(trans(data.DN_DX), data.phis);
                 double vupnorm = inner_prod(vaux,vaux);
 
                 //taking only negative part
@@ -1058,7 +1059,7 @@ protected:
         //This function computes density, velocity and the derivative of the density w.r.t. the square of the local velocity
         //for a split element
 
-        const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
+        const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
         //const double densityinfinity = rCurrentProcessInfo[DENSITY];
         const double densityinfinity = GetProperties().GetValue(DENSITY);
         const double gamma = rCurrentProcessInfo[LAMBDA];
@@ -1112,7 +1113,6 @@ protected:
         //This function computes density, velocity and the derivative of the density w.r.t. the square of the local velocity
         //for a normal element
         
-        // const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY];
         const array_1d<double,3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
         //const double densityinfinity = rCurrentProcessInfo[DENSITY];
         const double densityinfinity = GetProperties().GetValue(DENSITY);
@@ -1149,10 +1149,6 @@ protected:
         }
 
         const double base = 1 + (gamma -1)*vinfinity_norm2*(1-v_norm2/vinfinity_norm2)/(2*a*a);
-        // std::cout<<data.phis<<std::endl;
-        // std::cout<<vinfinity_norm2<<std::endl;
-        // std::cout<<base<<std::endl;
-        // std::cout<<base<<std::endl;
         if(base > 0)
         {
             density = densityinfinity*pow(base,1/(gamma -1));
@@ -1166,13 +1162,7 @@ protected:
             std::cout << "base =" << base << std::endl;
             density = densityinfinity*0.00001;
             derivative = -densityinfinity*pow(densityinfinity*0.00001,(2 - gamma)/(gamma -1))/(2*a*a); 
-        }
-
-        // if(base < 0)
-        //     KRATOS_THROW_ERROR( std::invalid_argument, "element with density below zero ", this->Id() )
-
-        // density = densityinfinity*pow(base,1/(gamma -1));
-        // derivative = -densityinfinity*pow(base,(2 - gamma)/(gamma -1))/(2*a*a);        
+        }     
     }
 
 
@@ -1197,37 +1187,8 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
 
-        // if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
-            // calculate shape functions
-            GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);    
-            noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
-            
-        // }
-        // else if (this->Is(BOUNDARY)){
-        //     array_1d<double,NumNodes> elemental_distance;
-        //     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-        //         elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
-      
-        //     const Vector& r_elemental_distances=elemental_distance;
-        //     Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
-        //     Matrix positive_side_sh_func;
-        //     ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
-        //     Vector positive_side_weights;
-        //     triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
-        //         positive_side_sh_func,
-        //         positive_side_sh_func_gradients,
-        //         positive_side_weights,
-        //         GeometryData::GI_GAUSS_3);
-        //     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-        //         array_1d<double,Dim> aux_matrix;
-        //         bounded_matrix<double,NumNodes,Dim> DN_DX;
-        //         DN_DX=positive_side_sh_func_gradients(i_gauss);            
-            
-        //         aux_matrix=-prod(trans(DN_DX),data.phis)*positive_side_weights(i_gauss);  // Bt D B
-
-        //         noalias(velocity) += aux_matrix;         
-        //     }
-        // }
+        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);    
+        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
     }
 
     void ComputeVelocityUpperWakeElement(array_1d<double,Dim>& velocity)
@@ -1244,40 +1205,10 @@ protected:
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
             else
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-        }
-        
-        // if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
-        //     // calculate shape functions
-            
-            GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+        }         
+        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-            noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
-        // }
-        // else if (this->Is(BOUNDARY)){
-        //     array_1d<double,NumNodes> elemental_distance;
-        //     for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-        //         elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
-      
-        //     const Vector& r_elemental_distances=elemental_distance;
-        //     Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
-        //     Matrix positive_side_sh_func;
-        //     ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
-        //     Vector positive_side_weights;
-        //     triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
-        //         positive_side_sh_func,
-        //         positive_side_sh_func_gradients,
-        //         positive_side_weights,
-        //         GeometryData::GI_GAUSS_2);
-        //     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-        //         array_1d<double,Dim> aux_matrix;
-        //         bounded_matrix<double,NumNodes,Dim> DN_DX;
-        //         DN_DX=positive_side_sh_func_gradients(i_gauss);            
-            
-        //         aux_matrix=-prod(trans(DN_DX),data.phis)*positive_side_weights(i_gauss);  // Bt D B
-
-        //         noalias(velocity) += aux_matrix;         
-        //     }
-        // }
+        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
     }
 
     void ComputeVelocityLowerWakeElement(array_1d<double,Dim>& velocity)
@@ -1295,39 +1226,11 @@ protected:
             else
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
         }
+        // calculate shape functions
+        
+        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-        if(this->Is(FLUID) || this->IsNotDefined(FLUID)){
-            // calculate shape functions
-            
-            GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-            noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
-        }
-        else if (this->Is(BOUNDARY)){
-            array_1d<double,NumNodes> elemental_distance;
-            for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
-      
-            const Vector& r_elemental_distances=elemental_distance;
-            Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
-            Matrix positive_side_sh_func;
-            ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
-            Vector positive_side_weights;
-            triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
-                positive_side_sh_func,
-                positive_side_sh_func_gradients,
-                positive_side_weights,
-                GeometryData::GI_GAUSS_3);
-            for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-                array_1d<double,Dim> aux_matrix;
-                bounded_matrix<double,NumNodes,Dim> DN_DX;
-                DN_DX=positive_side_sh_func_gradients(i_gauss);            
-            
-                aux_matrix=-prod(trans(DN_DX),data.phis)*positive_side_weights(i_gauss);  // Bt D B
-
-                noalias(velocity) += aux_matrix;         
-            }
-        }
+        noalias(velocity) = -prod(trans(data.DN_DX), data.phis);
     }
 
     void CheckWakeCondition()
