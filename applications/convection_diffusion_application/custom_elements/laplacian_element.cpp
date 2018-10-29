@@ -90,7 +90,6 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
 
     GetGeometry().Jacobian(J0);
     double DetJ0;
-    double qgauss;
     
     for(unsigned int PointNumber = 0; PointNumber<integration_points.size(); PointNumber++)
     {
@@ -104,6 +103,7 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
         noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(DN_DX, trans(DN_DX)); //
 
         // Calculating the local RHS
+        double qgauss;
         auto N = row(N_gausspoint,PointNumber); //these are the N which correspond to the gauss point "PointNumber"
         qgauss = inner_prod(N, heat_flux_local);
         
