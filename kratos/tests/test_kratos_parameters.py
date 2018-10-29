@@ -616,18 +616,48 @@ class TestParameters(KratosUnittest.TestCase):
         tmp = Parameters(defaults)
         check = tmp.WriteJsonString()
 
-        file_name = "parameters_serialization"
+        #file_name = "parameters_serialization"
         serializer_flag = SerializerTraceType.SERIALIZER_NO_TRACE
-        Serializer(file_name, serializer_flag).Save("ParametersSerialization",tmp)
+        serializer = Serializer(serializer_flag)
+        serializer.Save("ParametersSerialization",tmp)
+        #print("-----------------------")
+        print(serializer.Print())
+        print("\n")
+        #print("-----------------------")
+        serialized_data = serializer.GetStringRepresentation()
         tmp = 0
+        serializer = 0 #
+
+        #print("*********************")
+        #print(serialized_data.GetData())
+
+        # ######## herserialized_data pickle through kratos
+        try:
+            import cickle as pickle  # Use cPickle on Python 2.7
+        except ImportError:
+            import pickle
+
+        #pickle dataserialized_data
+        pickled_data = pickle.dumps(serialized_data, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
+        serialized_data = 0 #wiping old data
+
+        # #unpickle data - note that here i override "serialized_data"
+        serialized_data = pickle.loads(pickled_data)
+        # print("*********************")
+        # print(serialized_data.GetData())
 
         loaded_parameters = Parameters()
-        Serializer(file_name, serializer_flag).Load("ParametersSerialization",loaded_parameters)
-
+        other_serializer = Serializer(serializer_flag)
+        other_serializer.FillBuffer(serialized_data)
+        #print("-----------------------")
+        print(other_serializer.Print())
+        #print("-----------------------")
+        other_serializer.Load("ParametersSerialization",loaded_parameters)
+        
         self.assertEqual(check, loaded_parameters.WriteJsonString())
 
-        import os
-        os.remove('parameters_serialization.rest')
+        # import os
+        # os.remove('parameters_serialization.rest')
 
         
 
