@@ -30,7 +30,7 @@ namespace Kratos
 {
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 template< class TContainerType, class TVariableType >
 bool HasHelperFunction(TContainerType& el, const TVariableType& rVar)
@@ -105,7 +105,7 @@ NodeType::Pointer GetNodeFromElement( Element& dummy, unsigned int index )
     return( dummy.GetGeometry().pGetPoint(index) );
 }
 
-list GetNodesFromElement( Element& dummy )
+py::list GetNodesFromElement( Element& dummy )
 {
     pybind11::list nodes_list;
     for( unsigned int i=0; i<dummy.GetGeometry().size(); i++ )
@@ -129,7 +129,7 @@ void ConditionCalculateLocalSystemStandard( Condition& dummy,
 }
 
 
-list GetNodesFromCondition( Condition& dummy )
+py::list GetNodesFromCondition( Condition& dummy )
 {
     pybind11::list nodes_list;
     for( unsigned int i=0; i<dummy.GetGeometry().size(); i++ )
@@ -139,7 +139,7 @@ list GetNodesFromCondition( Condition& dummy )
     return( nodes_list );
 }
 
-list GetIntegrationPointsFromElement( Element& dummy )
+py::list GetIntegrationPointsFromElement( Element& dummy )
 {
     pybind11::list integration_points_list;
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
@@ -282,7 +282,7 @@ void SetValuesOnIntegrationPointsArray1d( TObject& dummy, const Variable< array_
     std::vector< array_1d<double,3> > values( integration_points.size() );
     for( unsigned int i=0; i<integration_points.size(); i++ )
     {
-        if(isinstance<array_1d<double,3> >(values_list[i]))
+        if(py::isinstance<array_1d<double,3> >(values_list[i]))
             values[i] = (values_list[i]).cast<array_1d<double,3> >();
         else
             KRATOS_ERROR << "expecting a list of array_1d<double,3> ";
@@ -318,7 +318,7 @@ void SetValuesOnIntegrationPointsVector( TObject& dummy,
     std::vector<Vector> values( integration_points.size() );
     for( unsigned int i=0; i<integration_points.size(); i++ )
     {
-        if(isinstance<Vector>(values_list[i]))
+        if(py::isinstance<Vector>(values_list[i]))
             values[i] = (values_list[i]).cast<Vector>();
         else
             KRATOS_ERROR << "expecting a list of vectors";
@@ -362,7 +362,7 @@ void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable
     std::vector<ConstitutiveLaw::Pointer> values( integration_points.size() );
     for( unsigned int i=0; i<integration_points.size(); i++ )
     {
-        if(isinstance<ConstitutiveLaw::Pointer>(values_list[i]))
+        if(py::isinstance<ConstitutiveLaw::Pointer>(values_list[i]))
             values[i] = (values_list[i]).cast<ConstitutiveLaw::Pointer>();
         else
             KRATOS_ERROR << "expecting a list of ConstitutiveLaw::Pointer";
@@ -419,11 +419,11 @@ void  AddMeshToPython(pybind11::module& m)
 //             typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 //             typedef MeshType::NodeType NodeType;
 
-    //     class_<Dof, Dof::Pointer>("Dof", init<int, const Dof::VariableType&,  optional<const Dof::VariableType&, const Dof::VariableType&, const Dof::VariableType&> >())
-    //.def("GetVariable", &Dof::GetVariable, return_value_policy::reference_internal)
-    //.def("GetReaction", &Dof::GetReaction, return_value_policy::reference_internal)
-    //.def("GetTimeDerivative", &Dof::GetTimeDerivative, return_value_policy::reference_internal)
-    //.def("GetSecondTimeDerivative", &Dof::GetSecondTimeDerivative, return_value_policy::reference_internal)
+    //     py::class_<Dof, Dof::Pointer>("Dof", init<int, const Dof::VariableType&,  optional<const Dof::VariableType&, const Dof::VariableType&, const Dof::VariableType&> >())
+    //.def("GetVariable", &Dof::GetVariable, py::return_value_policy::reference_internal)
+    //.def("GetReaction", &Dof::GetReaction, py::return_value_policy::reference_internal)
+    //.def("GetTimeDerivative", &Dof::GetTimeDerivative, py::return_value_policy::reference_internal)
+    //.def("GetSecondTimeDerivative", &Dof::GetSecondTimeDerivative, py::return_value_policy::reference_internal)
     //.def("NodeIndex", &Dof::NodeIndex)
     //.def_property("EquationId", &Dof::EquationId, &Dof::SetEquationId)
     //.def("Fix", &Dof::FixDof)
@@ -434,12 +434,12 @@ void  AddMeshToPython(pybind11::module& m)
     //.def(self_ns::str(self))
     //      ;
 
-    class_<GeometricalObject, GeometricalObject::Pointer, GeometricalObject::BaseType/*, Flags*/  >(m,"GeometricalObject")
-    .def(init<Kratos::GeometricalObject::IndexType>())
+    py::class_<GeometricalObject, GeometricalObject::Pointer, GeometricalObject::BaseType/*, Flags*/  >(m,"GeometricalObject")
+    .def(py::init<Kratos::GeometricalObject::IndexType>())
     ;
 
-    class_<Element, Element::Pointer, Element::BaseType, Flags  >(m,"Element")
-    .def(init<Kratos::Element::IndexType>())
+    py::class_<Element, Element::Pointer, Element::BaseType, Flags  >(m,"Element")
+    .def(py::init<Kratos::Element::IndexType>())
     .def_property("Properties", GetPropertiesFromElement, SetPropertiesFromElement)
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
@@ -566,8 +566,8 @@ void  AddMeshToPython(pybind11::module& m)
     PointerVectorSetPythonInterface<MeshType::ElementsContainerType>().CreateInterface(m,"ElementsArray")
     ;
 
-    class_<Condition, Condition::Pointer, Condition::BaseType, Flags  >(m,"Condition")
-    .def(init<Kratos::Condition::IndexType>())
+    py::class_<Condition, Condition::Pointer, Condition::BaseType, Flags  >(m,"Condition")
+    .def(py::init<Kratos::Condition::IndexType>())
     .def_property("Properties", GetPropertiesFromCondition, SetPropertiesFromCondition)
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
@@ -673,15 +673,15 @@ void  AddMeshToPython(pybind11::module& m)
     PointerVectorSetPythonInterface<MeshType::ConditionsContainerType>().CreateInterface(m,"ConditionsArray")
     ;
 
-    class_<MeshType, MeshType::Pointer, DataValueContainer, Flags >(m,"Mesh")
+    py::class_<MeshType, MeshType::Pointer, DataValueContainer, Flags >(m,"Mesh")
     .def_property("Nodes", &MeshType::pNodes,&MeshType::SetNodes)
-    .def("NodesArray", &MeshType::NodesArray, return_value_policy::reference_internal)
+    .def("NodesArray", &MeshType::NodesArray, py::return_value_policy::reference_internal)
     .def_property("Elements", &MeshType::pElements,&MeshType::SetElements)
-    .def("ElementsArray", &MeshType::ElementsArray, return_value_policy::reference_internal)
+    .def("ElementsArray", &MeshType::ElementsArray, py::return_value_policy::reference_internal)
     .def_property("Conditions", &MeshType::pConditions,&MeshType::SetConditions)
-    .def("ConditionsArray", &MeshType::ConditionsArray, return_value_policy::reference_internal)
+    .def("ConditionsArray", &MeshType::ConditionsArray, py::return_value_policy::reference_internal)
     .def_property("Properties", &MeshType::pProperties,&MeshType::SetProperties)
-    .def("PropertiesArray", &MeshType::PropertiesArray, return_value_policy::reference_internal)
+    .def("PropertiesArray", &MeshType::PropertiesArray, py::return_value_policy::reference_internal)
     .def("HasNode", &MeshType::HasNode)
     .def("HasProperties", &MeshType::HasProperties)
     .def("HasElement", &MeshType::HasElement)

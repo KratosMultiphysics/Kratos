@@ -22,7 +22,7 @@
 
 namespace Kratos {
 namespace Python {
-using namespace pybind11;
+namespace py = pybind11;
 
 void RegisterToPythonApplicationVariables(std::string ApplicationName)
 {
@@ -40,8 +40,8 @@ void RegisterToPythonApplicationVariables(std::string ApplicationName)
 
 
 void AddKratosApplicationToPython(pybind11::module& m) {
-    class_<KratosApplication, KratosApplication::Pointer>(m,"KratosApplication")
-        .def(init<std::string>())
+    py::class_<KratosApplication, KratosApplication::Pointer>(m,"KratosApplication")
+        .def(py::init<std::string>())
         .def("Register", [](KratosApplication& self){
             std::cout << "*************************************" << std::endl;
             std::cout << "application name = " << self.Name() << std::endl;
