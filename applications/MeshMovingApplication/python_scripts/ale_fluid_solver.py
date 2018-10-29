@@ -66,6 +66,7 @@ class ALEFluidSolver(PythonSolver):
         # to be done before creating the mesh-solver, as it removes some parameters
         self.mesh_vel_comp_settings = self._GetMeshVelocityComputationSettings(solver_settings, mesh_motion_solver_settings)
 
+        # TODO set calculation of MESH-VEL to false => will be removed in next PR
         self.mesh_motion_solver = python_solvers_wrapper_mesh_motion.CreateSolverByParameters(
             model, mesh_motion_solver_settings, parallelism)
 
@@ -83,6 +84,7 @@ class ALEFluidSolver(PythonSolver):
     def AddVariables(self):
         self.mesh_motion_solver.AddVariables()
         self.fluid_solver.AddVariables()
+        # Adding Variables used for computation of Mesh-Velocity
         main_model_part = self.model[self.settings["model_part_name"].GetString()]
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_ACCELERATION)
