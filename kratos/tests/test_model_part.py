@@ -228,7 +228,9 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfProperties(), 0)
         self.assertEqual(model_part.NumberOfProperties(0), 0)
 
+        self.assertEqual(model_part.HasProperties(1), False)
         model_part.AddProperties(Properties(1))
+        self.assertEqual(model_part.HasProperties(1), True)
 
         self.assertEqual(model_part.NumberOfProperties(), 1)
         self.assertEqual(model_part.GetProperties()[1].Id, 1)
