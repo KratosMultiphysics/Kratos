@@ -11,6 +11,7 @@ Logger.Print("Running under OpenMP........", label="DEM")
 import DEM_procedures
 import DEM_material_test_script
 import KratosMultiphysics.StructuralMechanicsApplication as Structural
+import KratosMultiphysics.DemStructuresCouplingApplication as DemFem
 
 class Algorithm(object):
 
@@ -18,7 +19,7 @@ class Algorithm(object):
         self.model = Kratos.Model()
 
         import dem_main_script_ready_for_coupling_with_fem
-        self.dem_solution = dem_main_script_ready_for_coupling_with_fem.Solution()
+        self.dem_solution = dem_main_script_ready_for_coupling_with_fem.Solution(self.model)
 
         import structural_mechanics_analysis
         structural_parameters_file_name = "ProjectParameters.json"
@@ -37,6 +38,47 @@ class Algorithm(object):
         self.dem_solution.Initialize()
         self.structural_solution.Initialize()
 
+        self._DetectStructuresSkin()
+        self._TransferStructuresSkinToDem()
+
+    def _DetectStructuresSkin(self):
+
+        skin_detection_parameters = Kratos.Parameters("""
+        {
+            "name_auxiliar_model_part"              : "DetectedByProcessSkinModelPart",
+            "name_auxiliar_condition"               : "Condition",
+            "list_model_parts_to_assign_conditions" : []
+        }
+        """)
+
+        computing_model_part = self.structural_solution._GetSolver().GetComputingModelPart()
+        if (computing_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] == 2):
+            self.structure_skin_detector = Kratos.SkinDetectionProcess2D(computing_model_part, skin_detection_parameters)
+        elif (computing_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] == 3):
+            self.structure_skin_detector = Kratos.SkinDetectionProcess3D(computing_model_part, skin_detection_parameters)
+        else:
+            print("No dimensions detected for the structures problem. Exiting.")
+            sys.exit()
+
+        self.structure_skin_detector.Execute()
+
+        print(str(computing_model_part.GetSubModelPart("DetectedByProcessSkinModelPart").NumberOfConditions(0)))
+
+    def _TransferStructuresSkinToDem(self):
+        skin_mp = self.structural_solution._GetSolver().GetComputingModelPart().GetSubModelPart("DetectedByProcessSkinModelPart")
+        dem_walls_mp = self.dem_solution.rigid_face_model_part
+        props = Kratos.Properties(0)
+        props[Dem.WALL_FRICTION] = 0.5773502691896257
+        props[Dem.WALL_COHESION] = 0.0
+        props[Dem.COMPUTE_WEAR] = False
+        props[Dem.SEVERITY_OF_WEAR] = 0.001
+        props[Dem.IMPACT_WEAR_SEVERITY] = 0.001
+        props[Dem.BRINELL_HARDNESS] = 200.0
+        props[Kratos.YOUNG_MODULUS] = 1e20
+        props[Kratos.POISSON_RATIO] = 0.25
+        dem_walls_mp.AddProperties(props)
+        DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(skin_mp, dem_walls_mp, props)
+
     def RunSolutionLoop(self):
         self.dem_solution.step = 0
         self.dem_solution.time = 0.0
@@ -44,10 +86,10 @@ class Algorithm(object):
         self.time_dem   = 0.0
 
         while self.structural_solution.time < self.structural_solution.end_time:
-            self.structural_solution.time = self.structural_solution.solver.AdvanceInTime(self.structural_solution.time)
+            self.structural_solution.time = self.structural_solution._GetSolver().AdvanceInTime(self.structural_solution.time)
             self.structural_solution.InitializeSolutionStep()
-            self.structural_solution.solver.Predict()
-            self.structural_solution.solver.SolveSolutionStep()
+            self.structural_solution._GetSolver().Predict()
+            self.structural_solution._GetSolver().SolveSolutionStep()
             self.structural_solution.FinalizeSolutionStep()
             self.structural_solution.OutputSolutionStep()
             time_final_DEM_substepping = self.structural_solution.time
@@ -80,7 +122,7 @@ class Algorithm(object):
 
                 #### PRINTING GRAPHS ####
                 os.chdir(self.dem_solution.graphs_path)
-                self.dem_solution.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.dem_solution.time)
+                self.dem_solution.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.dem_solution.time, self.dem_solution.graphs_path)
 
                 self.dem_solution.materialTest.MeasureForcesAndPressure()
                 self.dem_solution.materialTest.PrintGraph(self.dem_solution.time)
@@ -93,7 +135,7 @@ class Algorithm(object):
                 self.dem_solution.BeforePrintingOperations(self.dem_solution.time)
 
                 #### GiD IO ##########################################
-                if self.dem_solution.IsTimeToPrintPostProcess():
+                if self.dem_solution.IsTimeToPrintPostProcess(self.dem_solution.time):
                     self.dem_solution.PrintResultsForGid(self.dem_solution.time)
                     self.dem_solution.time_old_print = self.dem_solution.time
 

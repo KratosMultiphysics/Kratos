@@ -10,8 +10,8 @@ BaseAlgorithm = main_script.Solution
 
 class Solution(BaseAlgorithm):
 
-    def __init__(self):
-        super(Solution, self).__init__()
+    def __init__(self, model):
+        super(Solution, self).__init__(model)
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
         os.chdir(self.main_path)
@@ -54,4 +54,5 @@ class Solution(BaseAlgorithm):
         self.all_model_parts.ComputeMaxIds()
 
 if __name__ == "__main__":
-    Solution().Run()
+    model = Model()
+    Solution(model).Run()

@@ -1,5 +1,8 @@
-// Last Modified by: Salva Latorre
-//
+/*
+ * Author: Miguel Angel Celigueta
+ *
+ *  maceli@cimne.upc.edu
+ */
 
 #if !defined (KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_H_INCLUDED)
 #define KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_H_INCLUDED
