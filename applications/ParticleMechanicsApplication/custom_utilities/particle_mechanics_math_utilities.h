@@ -63,6 +63,130 @@ public:
 
     /**
      * @}
+     */
+    /**
+     * calculates the QR Factorization of given square matrix A=QR.
+     * The Factorization is performed using the householder algorithm
+     * @param A the given square matrix the factorization is to be calculated.
+     * @param Q the result matrix Q
+     * @param R the result matrix R
+     */
+    static inline void QRFactorization(const MatrixType& A, MatrixType& Q, MatrixType& R)
+    {
+
+        if(A.size1()!= A.size2())
+            KRATOS_ERROR<<" GIVEN MATRIX IS NOT A SQUARE MATRIX: QRFactorization calculation"<<std::endl;
+
+        //QR Factorization with Householder-Algo
+        unsigned int dim= A.size1();
+
+        Vector y(dim);
+
+        Vector w(dim);
+
+        R.resize(dim,dim,false);
+
+        noalias(R)=ZeroMatrix(dim,dim);
+
+        Q.resize(dim,dim,false);
+
+        noalias(Q)=ZeroMatrix(dim,dim);
+
+        Matrix Help(A.size1(),A.size2());
+	    noalias(Help) = A;
+
+        Matrix unity(dim,dim);
+	    noalias(unity) = ZeroMatrix(dim,dim);
+
+        for(unsigned int j=0; j<dim; j++)
+            unity(j,j)=1.0;
+
+        std::vector<Matrix> HelpQ(dim-1);
+
+        std::vector<Matrix> HelpR(dim-1);
+
+        for(unsigned int i=0; i< dim-1; i++)
+        {
+            HelpQ[i].resize(dim,dim,false);
+            HelpR[i].resize(dim,dim,false);
+            noalias(HelpQ[i])= unity;
+            noalias(HelpR[i])= ZeroMatrix(dim,dim);
+        }
+
+        for(unsigned int iteration=0; iteration< dim-1; iteration++)
+        {
+            //Vector y
+            for(unsigned int i=iteration; i<dim; i++)
+                y(i)= Help(i,iteration);
+
+
+            //Helpvalue l
+            double normy=0.0;
+
+            for(unsigned int i=iteration; i<dim; i++)
+                normy += y(i)*y(i);
+
+            normy= std::sqrt(normy);
+
+            double l= std::sqrt((normy*(normy+std::abs(y(iteration))))/2);
+
+            double k=0.0;
+
+            if(y[iteration] !=0)
+                k= - y(iteration)/std::abs(y(iteration))*normy;
+            else
+                k= -normy;
+
+            for(unsigned int i=iteration; i<dim; i++)
+            {
+                double e=0;
+
+                if(i==iteration)
+                    e=1;
+
+                w(i)= 1/(2*l)*(y(i)-k*e);
+            }
+
+            for(unsigned int i=iteration; i<dim; i++)
+                for(unsigned int j=iteration; j<dim; j++)
+                    HelpQ[iteration](i,j)= unity(i,j)- 2*w(i)*w(j);
+
+
+            for(unsigned int i=iteration; i<dim; i++)
+                for(unsigned int j=iteration; j<dim; j++)
+                    for(unsigned int k=iteration; k<dim; k++)
+                        HelpR[iteration](i,j)+= HelpQ[iteration](i,k)*Help(k,j);
+
+            Help= HelpR[iteration];
+
+        }
+
+        //Assembling R
+        for(unsigned int k=0; k<dim-1; k++)
+        {
+            for(unsigned int i=k; i<dim; i++)
+                for(unsigned int j=k; j<dim; j++)
+                    R(i,j) =HelpR[k](i,j);
+
+        }
+
+
+        for(unsigned int k=1; k<dim-1; k++)
+        {
+            for(unsigned int i=0; i<dim; i++)
+                for(unsigned int j=0; j<dim; j++)
+                    for(unsigned int l=0; l<dim; l++)
+                        Q(i,j)+= HelpQ[(k-1)](i,l)*HelpQ[k](l,j);
+            noalias(HelpQ[k])=Q;
+        }
+        if(dim-1==1)
+            noalias(Q)=HelpQ[0];
+
+    }
+
+
+    /**
+     * @}
       */
     /**
      * calculates Eigenvalues of given square matrix A.
@@ -74,9 +198,9 @@ public:
      * WARNING only valid for 2*2 and 3*3 Matrices yet
      */
 
-    static inline Vector EigenValues(const Matrix& A, double tolerance, double zero)
+    static inline Vector EigenValues(const Matrix& A, double tolerance = 1e-9, double zero = 1e-9)
     {
-        int dim= A.size1();
+        unsigned int dim= A.size1();
 
         Matrix Convergence(2,dim);
 	    noalias(Convergence) = ZeroMatrix(2,dim);
@@ -107,7 +231,7 @@ public:
         {
             double shift= HelpA((dim-1),(dim-1));
 
-            for(int i=0; i<dim; i++)
+            for(unsigned int i=0; i<dim; i++)
             {
                 HelpA(i,i) = HelpA(i,i)- shift;
             }
@@ -116,12 +240,12 @@ public:
 
             HelpA= ZeroMatrix(dim, dim);
 
-            for(int i=0; i<dim; i++)
+            for(unsigned int i=0; i<dim; i++)
             {
                 HelpA(i,i) += shift;
-                for(int j=0; j< dim; j++)
+                for(unsigned int j=0; j< dim; j++)
                 {
-                    for(int k=0; k< dim; k++)
+                    for(unsigned int k=0; k< dim; k++)
                     {
                         HelpA(i,j) += HelpR(i,k)*HelpQ(k,j);
                     }
@@ -132,7 +256,7 @@ public:
 
             abs = 0.0;
 
-            for(int i=0; i<dim; i++)
+            for(unsigned int i=0; i<dim; i++)
             {
                 Convergence(0,i)=Convergence(1,i);
                 Convergence(1,i)=HelpA(i,i);
@@ -154,7 +278,7 @@ public:
         }
 
 
-        for(int i=0; i<dim; i++)
+        for(unsigned int i=0; i<dim; i++)
         {
             Result(i)= HelpA(i,i);
 
@@ -165,18 +289,19 @@ public:
         return Result;
     }
 
+
     /**
      * @}
      */
     /**
-     * calculates the eigenvectiors using a direct method.
+     * calculates the Eigenvalues using a direct method.
      * @param A the given square matrix the eigenvalues are to be calculated.
      * WARNING only valid symmetric 3*3 Matrices
      */
     static inline Vector EigenValuesDirectMethod(const Matrix& A)
     {
         // Given a real symmetric 3x3 matrix A, compute the eigenvalues
-        int dim= A.size1();
+        unsigned int dim= A.size1();
         Vector Result(dim);
 	    noalias(Result) = ZeroVector(dim);
 
@@ -230,148 +355,28 @@ public:
      * @}
      */
     /**
-     * calculates the QR Factorization of given square matrix A=QR.
-     * The Factorization is performed using the householder algorithm
-     * @param A the given square matrix the factorization is to be calculated.
-     * @param Q the result matrix Q
-     * @param R the result matrix R
-     */
-    static inline void QRFactorization(const MatrixType& A, MatrixType& Q, MatrixType& R)
-    {
-
-        //QR Factorization with Householder-Algo
-        int dim= A.size1();
-
-        Vector y(dim);
-
-        Vector w(dim);
-
-        R.resize(dim,dim,false);
-
-        noalias(R)=ZeroMatrix(dim,dim);
-
-        Q.resize(dim,dim,false);
-
-        noalias(Q)=ZeroMatrix(dim,dim);
-
-        Matrix Help(A.size1(),A.size2());
-	    noalias(Help) = A;
-
-        Matrix unity(dim,dim);
-	    noalias(unity) = ZeroMatrix(dim,dim);
-
-        for(int j=0; j<dim; j++)
-            unity(j,j)=1.0;
-
-        std::vector<Matrix> HelpQ(dim-1);
-
-        std::vector<Matrix> HelpR(dim-1);
-
-        for(int i=0; i< dim-1; i++)
-        {
-            HelpQ[i].resize(dim,dim,false);
-            HelpR[i].resize(dim,dim,false);
-            noalias(HelpQ[i])= unity;
-            noalias(HelpR[i])= ZeroMatrix(dim,dim);
-        }
-
-        for(int iteration=0; iteration< dim-1; iteration++)
-        {
-            //Vector y
-            for(int i=iteration; i<dim; i++)
-                y(i)= Help(i,iteration);
-
-
-            //Helpvalue l
-            double normy=0.0;
-
-            for(int i=iteration; i<dim; i++)
-                normy += y(i)*y(i);
-
-            normy= std::sqrt(normy);
-
-            double l= std::sqrt((normy*(normy+std::abs(y(iteration))))/2);
-
-            double k=0.0;
-
-            if(y[iteration] !=0)
-                k= - y(iteration)/std::abs(y(iteration))*normy;
-            else
-                k= -normy;
-
-            for(int i=iteration; i<dim; i++)
-            {
-                double e=0;
-
-                if(i==iteration)
-                    e=1;
-
-                w(i)= 1/(2*l)*(y(i)-k*e);
-            }
-
-            for(int i=iteration; i<dim; i++)
-                for(int j=iteration; j<dim; j++)
-                    HelpQ[iteration](i,j)= unity(i,j)- 2*w(i)*w(j);
-
-
-            for(int i=iteration; i<dim; i++)
-                for(int j=iteration; j<dim; j++)
-                    for(int k=iteration; k<dim; k++)
-                        HelpR[iteration](i,j)+= HelpQ[iteration](i,k)*Help(k,j);
-
-            Help= HelpR[iteration];
-
-        }
-
-        //Assembling R
-        for(int k=0; k<dim-1; k++)
-        {
-            for(int i=k; i<dim; i++)
-                for(int j=k; j<dim; j++)
-                    R(i,j) =HelpR[k](i,j);
-
-        }
-
-
-        for(int k=1; k<dim-1; k++)
-        {
-            for(int i=0; i<dim; i++)
-                for(int j=0; j<dim; j++)
-                    for(int l=0; l<dim; l++)
-                        Q(i,j)+= HelpQ[(k-1)](i,l)*HelpQ[k](l,j);
-            noalias(HelpQ[k])=Q;
-        }
-        if(dim-1==1)
-            noalias(Q)=HelpQ[0];
-
-    }
-
-
-    /**
-     * @}
-     */
-    /**
-     * calculates the eigenvectors and eigenvalues of given symmetric matrix A.
+     * calculates the Eigenvectors and Eigenvalues of given symmetric matrix A.
      * The eigenvectors and eigenvalues are calculated using the iterative
      * Gauss-Seidel-method
      * @param A the given symmetric matrix where the eigenvectors have to be calculated.
      * @param vectors where the eigenvectors will be stored
-     * @param lambda wher the eigenvalues will be stored
+     * @param lambda where the eigenvalues will be stored
      * @param zero_tolerance the largest value considered to be zero
      * @param max_iterations allowed
      */
-
-
     static inline void EigenVectors(const MatrixType& A,
 				    MatrixType& vectors,
 				    VectorType& lambda,
 				    double zero_tolerance =1e-9,
-				    int max_iterations = 10)
+				    unsigned int max_iterations = 10)
     {
+        if(A.size1()!=3 || A.size2()!=3)
+            KRATOS_ERROR<<" GIVEN MATRIX IS NOT 3x3: Eigenvectors calculation"<<std::endl;
+
         Matrix Help= A;
 
-        for(int i=0; i<3; i++)
-            for(int j=0; j<3; j++)
+        for(unsigned int i=0; i<3; i++)
+            for(unsigned int j=0; j<3; j++)
                 Help(i,j)= Help(i,j);
 
 
@@ -396,7 +401,7 @@ public:
         Matrix Rotation(Help.size1(),Help.size2());
 
 
-        for(int iterations=0; iterations<max_iterations; iterations++)
+        for(unsigned int iterations=0; iterations<max_iterations; iterations++)
         {
 
             is_converged= true;
@@ -519,356 +524,14 @@ public:
      * @}
       */
     /**
-     * calculates Eigenvectors and the EigenValues of given square matrix A(3x3)
-     * The QR Algorithm with shifts is used
-     * @param A the given symmetric 3x3 real matrix
-     * @param V matrix to store the eigenvectors in rows
-     * @param d matrix to store the eigenvalues
+     * calculates hypothenusa of a triangle
+     * @param x first length
+     * @param y second length
      */
-
-    static inline void EigenVectors3x3(const Matrix& A, Matrix&V, Vector& d)
-    {
-
-        if(A.size1()!=3 || A.size2()!=3)
-            KRATOS_ERROR<<" GIVEN MATRIX IS NOT 3x3  eigenvectors calculation "<<std::endl;
-
-        Vector e(3);
-        noalias(e) = ZeroVector(3);
-        noalias(V) = ZeroMatrix(3,3);
-
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                V(i,j) = A(i,j);
-            }
-        }
-
-        for (int j = 0; j < 3; j++) {
-            d[j] = V(2,j);
-        }
-
-        for (int i = 2; i > 0; i--) {
-
-            // Scale to avoid under/overflow.
-            double scale = 0.0;
-            double h = 0.0;
-            for (int k = 0; k < i; k++) {
-                scale = scale + std::abs(d[k]);
-            }
-            if (scale == 0.0) {
-                e[i] = d[i-1];
-                for (int j = 0; j < i; j++) {
-                    d[j] = V(i-1,j);
-                    V(i,j) = 0.0;
-                    V(j,i) = 0.0;
-                }
-            }
-            else {
-                for (int k = 0; k < i; k++) {
-                    d[k] /= scale;
-                    h += d[k] * d[k];
-                }
-                double f = d[i-1];
-                double g = std::sqrt(h);
-                if (f > 0) {
-                    g = -g;
-                }
-                e[i] = scale * g;
-                h = h - f * g;
-                d[i-1] = f - g;
-                for (int j = 0; j < i; j++) {
-                    e[j] = 0.0;
-                }
-
-                // Apply similarity transformation to remaining columns.
-
-                for (int j = 0; j < i; j++) {
-                    f = d[j];
-                    V(j,i) = f;
-                    g = e[j] + V(j,j) * f;
-                    for (int k = j+1; k <= i-1; k++) {
-                        g += V(k,j) * d[k];
-                        e[k] += V(k,j) * f;
-                    }
-                    e[j] = g;
-                }
-                f = 0.0;
-                for (int j = 0; j < i; j++) {
-                    e[j] /= h;
-                    f += e[j] * d[j];
-                }
-                double hh = f / (h + h);
-                for (int j = 0; j < i; j++) {
-                    e[j] -= hh * d[j];
-                }
-                for (int j = 0; j < i; j++) {
-                    f = d[j];
-                    g = e[j];
-                    for (int k = j; k <= i-1; k++) {
-                    V(k,j) -= (f * e[k] + g * d[k]);
-                    }
-                    d[j] = V(i-1,j);
-                    V(i,j) = 0.0;
-                }
-            }
-
-            d[i] = h;
-        }
-
-        // Accumulate transformations.
-
-        for (int i = 0; i < 2; i++) {
-            V(2,i) = V(i,i);
-            V(i,i) = 1.0;
-            double h = d[i+1];
-            if (h != 0.0) {
-                for (int k = 0; k <= i; k++) {
-                    d[k] = V(k,i+1) / h;
-                }
-                for (int j = 0; j <= i; j++) {
-                    double g = 0.0;
-                    for (int k = 0; k <= i; k++) {
-                        g += V(k,i+1) * V(k,j);
-                    }
-                    for (int k = 0; k <= i; k++) {
-                        V(k,j) -= g * d[k];
-                    }
-                }
-            }
-            for (int k = 0; k <= i; k++) {
-                V(k,i+1) = 0.0;
-            }
-        }
-        for (int j = 0; j < 3; j++) {
-            d[j] = V(2,j);
-            V(2,j) = 0.0;
-        }
-        V(2,2) = 1.0;
-        e[0] = 0.0;
-
-        // *******************//
-
-        // Symmetric tridiagonal QL algorithm.
-
-        for (int i = 1; i < 3; i++) {
-            e[i-1] = e[i];
-        }
-        e[2] = 0.0;
-
-        double f = 0.0;
-        double tst1 = 0.0;
-        double eps = std::pow(2.0,-52.0);
-
-        for (int l = 0; l < 3; l++) {
-        // Find small subdiagonal element
-
-            tst1 = FIND_MAX(tst1,std::abs(d[l]) + std::abs(e[l]));
-            int m = l;
-            while (m < 3) {
-                if (std::abs(e[m]) <= eps*tst1) {
-                    break;
-                }
-                m++;
-            }
-
-            // If m == l, d[l] is an eigenvalue,
-            // otherwise, iterate.
-
-            if (m > l) {
-                int iter = 0;
-                do {
-                    iter = iter + 1;  // (Could check iteration count here.)
-
-                    // Compute implicit shift
-
-                    double g = d[l];
-                    double p = (d[l+1] - g) / (2.0 * e[l]);
-                    double r = hypot2(p,1.0);
-                    if (p < 0) {
-                        r = -r;
-                    }
-                    d[l] = e[l] / (p + r);
-                    d[l+1] = e[l] * (p + r);
-                    double dl1 = d[l+1];
-                    double h = g - d[l];
-                    for (int i = l+2; i < 3; i++) {
-                        d[i] -= h;
-                    }
-                    f = f + h;
-
-                    // Implicit QL transformation.
-
-                    p = d[m];
-                    double c = 1.0;
-                    double c2 = c;
-                    double c3 = c;
-                    double el1 = e[l+1];
-                    double s = 0.0;
-                    double s2 = 0.0;
-                    for (int i = m-1; i >= l; i--) {
-                        c3 = c2;
-                        c2 = c;
-                        s2 = s;
-                        g = c * e[i];
-                        h = c * p;
-                        r = hypot2(p,e[i]);
-                        e[i+1] = s * r;
-                        s = e[i] / r;
-                        c = p / r;
-                        p = c * d[i] - s * g;
-                        d[i+1] = h + s * (c * g + s * d[i]);
-
-                        // Accumulate transformation.
-
-                        for (int k = 0; k < 3; k++) {
-                            h = V(k,i+1);
-                            V(k,i+1) = s * V(k,i) + c * h;
-                            V(k,i) = c * V(k,i) - s * h;
-                        }
-                    }
-                    p = -s * s2 * c3 * el1 * e[l] / dl1;
-                    e[l] = s * p;
-                    d[l] = c * p;
-
-                    // Check for convergence.
-
-                } while (std::abs(e[l]) > eps*tst1);
-            }
-            d[l] = d[l] + f;
-            e[l] = 0.0;
-        }
-
-        // Sort eigenvalues and corresponding vectors.
-
-        for (int i = 0; i < 2; i++) {
-	        int k = i;
-	        double p = d[i];
-	        for (int j = i+1; j < 3; j++) {
-                if (d[j] < p) {
-                    k = j;
-                    p = d[j];
-                }
-            }
-            if (k != i) {
-                d[k] = d[i];
-                d[i] = p;
-                for (int j = 0; j < 3; j++) {
-                    p = V(j,i);
-                    V(j,i) = V(j,k);
-                    V(j,k) = p;
-                }
-            }
-        }
-
-        V = trans(V);
-
-        // *******************//
-
-    }
-
-
-    static double hypot2(double x, double y) {
+    static double hypot2(const double x, const double y) {
       return std::sqrt(x*x+y*y);
     }
 
-    /**
-     * @}
-     */
-    /**
-     * calculates the eigenvectors and eigenvalues of given matrix A.
-     * The eigenvectors and eigenvalues are calculated using the iterative
-     * JACOBI-method
-     * @param A the given matrix the eigenvectors are to be calculated.
-     * :WARNING: Matrix A will be overwritten
-     * @param V the result matrix (will be overwritten with the eigenvectors)
-     * @param error_tolerance the desired accuracy for the convergence check
-     * @param zero_tolerance the largest value considered to be zero
-     */
-    static inline void EigenVectors( MatrixType& A,
-                                     MatrixType& V,
-                                     TDataType& error_tolerance,
-                                     TDataType zero_tolerance)
-    {
-        //initial error
-        TDataType error = 1.0;
-        int n = A.size2();
-
-        //setting V to identity matrix
-        if( V.size1() != n )
-            V.resize(n,n,false);
-        noalias(V) = IdentityMatrix(n);
-
-        //calculation loop (as long as there is no convergence)
-        //WARNING: iteration never exceeds
-        while( error > error_tolerance )
-        {
-            for( int i=0; i<n; i++ )
-            {
-                for( int j=i+1; j<n; j++ )
-                {
-                    double theta = 0.0;
-                    if( MathUtilsType::Abs( A(i,j) ) >= zero_tolerance )
-                    {
-                        if( MathUtilsType::Abs( A(i,i)-A(j,j) ) > 0.0 )
-                        {
-                            theta = 0.5*atan(2*A(i,j)/(A(i,i)-A(j,j)));
-                        }
-                        else theta = 0.25 * Globals::Pi;
-                    }
-                    MatrixType T(n,n);
-		            noalias(T) = IdentityMatrix( n );
-
-                    T(i,i) = cos(theta);
-                    T(i,j) = -sin(theta);
-                    T(j,i) = -T(i,j);
-                    T(j,j) = T(i,i);
-
-                    A = Mult( A, T );
-                    MatrixType TT = Transpose(T);
-                    A = Mult( TT, A );
-                    V = Mult( V, T );
-                }
-            }
-            double sTot = 0.0;
-            double sDiag = 0.0;
-            for( unsigned int i=0; i<A.size1(); i++ )
-            {
-                for( unsigned int j=0; j<A.size2(); j++ )
-                {
-                    sTot += MathUtilsType::Abs(A(i,j));
-                }
-                sDiag+= MathUtilsType::Abs(A(i,i));
-            }
-            error=(sTot-sDiag)/sDiag;
-        }
-
-        //sorting eigenvalues
-        int maxIndex = 0;
-        TDataType maxEv = A(0,0);
-        for( unsigned int i=0; i<A.size1(); i++ )
-        {
-            for( unsigned int j=i; j<A.size1(); j++ )
-            {
-                //searching current maximum
-                if( A(j,j) > maxEv )
-                {
-                    maxIndex = j;
-                    maxEv = A(j,j);
-                }
-                //swapping eigenvalue matrix
-                TDataType dummy = A(i,i);
-                A(i,i) = A(maxIndex,maxIndex);
-                A(maxIndex,maxIndex) = dummy;
-                //swapping eigenvector matrix
-                for( unsigned int k=0; k<A.size2(); k++ )
-                {
-                    dummy = V(k,i);
-                    V(k,i) = V(k,maxIndex);
-                    V(k,maxIndex) = dummy;
-                }
-            }
-
-        }
-    }//EigenVectors
 
     /**
      * creates identity matrix.
@@ -886,14 +549,18 @@ public:
         return A;
     }//IdentityMatrix
 
+
     /**
      * Adds two matrices. first argument is overwritten by sum of both
      * Matrices are assumed to be of same dimension (no check on boundaries is made!)
      * @param A first matrix argument (overwritten by solution)
      * @param B second matrix argument
      */
-    static inline void Add( MatrixType& A, MatrixType& B )
+    static inline void Add( MatrixType& A, const MatrixType& B )
     {
+        if(A.size1()!= B.size1() || A.size2()!= B.size2()  )
+            KRATOS_ERROR<<" GIVEN MATRICES ARE NOT THE SAME SIZE: Add calculation"<<std::endl;
+
         for( unsigned int i=0; i<A.size1(); i++ )
         {
             for( unsigned int j=0; j<A.size2(); j++ )
@@ -903,15 +570,19 @@ public:
         }
     }
 
+
     /**
      * multiplies two matrices. Performs operation \f$ C = A B \f$
      * @param A matrix A
      * @param B matrix B
      * @return matrix \f$ C = A B \f$
      */
-    static inline MatrixType Mult( MatrixType& A,
-                                   MatrixType& B)
+    static inline MatrixType Mult( const MatrixType& A,
+                                   const MatrixType& B)
     {
+        if(A.size2()!= B.size1())
+            KRATOS_ERROR<<" GIVEN MATRIX NUMBER OF COLUMN AND ROW ARE NOT THE SAME SIZE: Mult calculation"<<std::endl;
+
         MatrixType C(A.size1(),B.size2());
         for( unsigned int i=0; i<A.size1(); i++ )
         {
@@ -926,10 +597,11 @@ public:
         return C;
     }//Mult
 
+
     /**
      * multiplies a matrix by a scalar
      */
-    static inline void Mult( MatrixType& M, TDataType a )
+    static inline void Mult( MatrixType& M, const TDataType a )
     {
         for( unsigned int i=0; i<M.size1(); i++ )
         {
@@ -940,16 +612,18 @@ public:
         }
     }
 
+
     /**
      * multiplies a vector by a scalar
      */
-    static inline void Mult( VectorType& v, TDataType a )
+    static inline void Mult( VectorType& v, const TDataType a )
     {
         for( unsigned int i=0; i<v.size(); i++ )
         {
             v(i) = v(i)*a;
         }
     }//Mult
+
 
     /**
      * transposes matrix A. Matrix A is not overwritten!
@@ -970,6 +644,7 @@ public:
         return AT;
     }//Transpose
 
+
     /**
      * normalises a vector. Vector is scaled by \f$ V_{norm} = \frac{V}{|V|} \f$
      */
@@ -977,6 +652,50 @@ public:
     {
         Mult( v, 1.0/(MathUtilsType::Norm( v )) );
     }
+
+
+    /**
+    * Builds the Inverse of Matrix input
+    * @param input the given Matrix
+    * @param inverse inverse of the given Matrix
+    */
+    static int InvertMatrix( const MatrixType& input, MatrixType& inverse )
+    {
+    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+        Matrix A(input);
+        AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
+        int singular = lu_factorization.determinant();
+        inverse = lu_factorization.inverse();
+        return singular;
+    #else
+        typedef permutation_matrix<std::size_t> pmatrix;
+        Matrix A(input);
+        pmatrix pm(A.size1());
+        int singular = lu_factorize(A,pm);
+        inverse.assign( IdentityMatrix(A.size1()));
+        lu_substitute(A, pm, inverse);
+        return singular;
+    #endif // ifdef KRATOS_USE_AMATRIX
+    }
+
+
+    /**
+    * Builds the norm of a gibven second order tensor
+    * @param Tensor the given second order tensor
+    * @return the norm of the given tensor
+    */
+    static double NormTensor(Matrix& Tensor)
+    {
+        double result=0.0;
+        for(unsigned int i=0; i< Tensor.size1(); i++)
+            for(unsigned int j=0; j< Tensor.size2(); j++)
+                result+= Tensor(i,j)*Tensor(i,j);
+
+        result= std::sqrt(result);
+
+        return result;
+    }
+
 
     /**
      * converts a strain vector into a matrix. Strains are assumed to be stored
@@ -1022,6 +741,7 @@ public:
         KRATOS_CATCH( "" )
     }
 
+
     static inline Vector TensorToStrainVector( const Matrix& Tensor )
     {
         KRATOS_TRY
@@ -1055,47 +775,6 @@ public:
 
 
     /**
-    * Builds the Inverse of Matrix input
-    * @param input the given Matrix
-    * @param inverse inverse of the given Matrix
-    */
-    static int InvertMatrix( const MatrixType& input, MatrixType& inverse )
-    {
-    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        Matrix A(input);
-        AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
-        int singular = lu_factorization.determinant();
-        inverse = lu_factorization.inverse();
-        return singular;
-    #else
-        typedef permutation_matrix<std::size_t> pmatrix;
-        Matrix A(input);
-        pmatrix pm(A.size1());
-        int singular = lu_factorize(A,pm);
-        inverse.assign( IdentityMatrix(A.size1()));
-        lu_substitute(A, pm, inverse);
-        return singular;
-    #endif // ifdef KRATOS_USE_AMATRIX
-    }
-
-    /**
-    * Builds the norm of a gibven second order tensor
-    * @param Tensor the given second order tensor
-    * @return the norm of the given tensor
-    */
-    static double NormTensor(Matrix& Tensor)
-    {
-        double result=0.0;
-        for(unsigned int i=0; i< Tensor.size1(); i++)
-            for(unsigned int j=0; j< Tensor.size2(); j++)
-                result+= Tensor(i,j)*Tensor(i,j);
-
-        result= std::sqrt(result);
-
-        return result;
-    }
-
-    /**
     * Transforms a given 6*1 Vector to a corresponing symmetric Tensor of second order (3*3)
     * @param Vector the given vector
     * @param Tensor the symmetric second order tensor
@@ -1126,6 +805,7 @@ public:
 
     }
 
+
     /**
     * Transforms a given symmetric Tensor of second order (3*3) to a corresponing 6*1 Vector
     * @param Tensor the given symmetric second order tensor
@@ -1134,7 +814,7 @@ public:
     static void TensorToVector( const Matrix& Tensor, Vector& Vector)
     {
         //if(Vector.size()!= 6)
-        unsigned int  dim  =  Tensor.size1();
+        unsigned int dim = Tensor.size1();
         if (dim==3)
         {
             Vector.resize(6,false);
@@ -1155,16 +835,11 @@ public:
 
     }
 
+
     static inline void TensorToMatrix(Fourth_Order_Tensor& Tensor,Matrix& Matrix)
     {
-
-
-        // Simetrias seguras
-        //  Cijkl = Cjilk;
-        //  Cijkl = Cklji;
         if (Tensor[0].size()== 3)
         {
-            // Tensor de cuarto orden cuyos componentes correspondes a una matriz de 3x3
             if(Matrix.size1()!=6 || Matrix.size2()!=6)
                 Matrix.resize(6,6,false);
             Matrix(0,0) = Tensor[0][0](0,0);
@@ -1227,6 +902,7 @@ public:
 
     }
 
+
     /**
     * Transforms a given 6*6 Matrix to a corresponing 4th order tensor
     * @param Tensor the given Matrix
@@ -1277,6 +953,8 @@ public:
 
 
     }
+
+
     /**
     * Transforms a given 6*6 Matrix to a corresponing 4th order tensor
     * @param Tensor the given Matrix
@@ -1322,6 +1000,8 @@ public:
 
 
     }
+
+
     /**
     * Transforms a given 4th order tensor to a corresponing 6*6 Matrix
     * @param Tensor the given Tensor
@@ -1396,6 +1076,7 @@ public:
 
     }
 
+
     /**
      * Transforms a given 4th order tensor to a corresponing 6*6 Matrix
      * @param Tensor the given Tensor
@@ -1449,61 +1130,7 @@ public:
         Matrix(5,5) = 2.0*Tensor[60];
 
     }
-    /**
-    * Generates the fourth order deviatoric unity tensor
-    * @param Unity the deviatoric unity (will be overwritten)
-    */
-    static void DeviatoricUnity(std::vector<std::vector<Matrix> >& Unity)
-    {
-        Unity.resize(3);
 
-        Matrix kronecker(3,3);
-        noalias(kronecker)=ZeroMatrix(3,3);
-        for(unsigned int i=0; i<3; i++)
-        {
-            kronecker(i,i)=1;
-        }
-
-        for(unsigned int i=0; i<3; i++)
-        {
-            Unity[i].resize(3);
-            for(unsigned int j=0; j<3; j++)
-            {
-                Unity[i][j].resize(3,3,false);
-                noalias(Unity[i][j])= ZeroMatrix(3,3);
-
-                for(unsigned int k=0; k<3; k++)
-                {
-                    for(unsigned int l=0; l<3; l++)
-                    {
-                        Unity[i][j](k,l)=kronecker(i,k)*kronecker(j,l)
-                                         -1.0/3.0*kronecker(i,j)*kronecker(k,l);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Generates the fourth order deviatoric unity tensor
-     * @param Unity the deviatoric unity (will be overwritten)
-     */
-    static void DeviatoricUnity(array_1d<double,81>& Unity)
-    {
-        Matrix kronecker(3,3);
-        noalias(kronecker)=ZeroMatrix(3,3);
-        for(unsigned int i=0; i<3; i++)
-        {
-            kronecker(i,i)=1;
-        }
-
-        for(unsigned int i=0; i<3; i++)
-            for(unsigned int j=0; j<3; j++)
-                for(unsigned int k=0; k<3; k++)
-                    for(unsigned int l=0; l<3; l++)
-                        Unity[27*i+9*j+3*k+l]=kronecker(i,k)*kronecker(j,l)
-                                              -1.0/3.0*kronecker(i,j)*kronecker(k,l);
-    }
 
 private:
 };// class ParticleMechanicsMathUtilities
