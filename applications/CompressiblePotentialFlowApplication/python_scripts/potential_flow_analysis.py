@@ -11,6 +11,7 @@ class PotentialFlowAnalysis(AnalysisStage):
         def __init__(self,model,parameters):
             super(PotentialFlowAnalysis,self).__init__(model,parameters)
             boundary_processes=self.project_parameters["processes"]["boundary_conditions_process_list"]
+            case=self.project_parameters["solver_settings"]["problem_type"].GetString()
             defined=False         
             for i in range(0,boundary_processes.size()):
                 python_module=boundary_processes[i]["python_module"].GetString()
@@ -18,7 +19,7 @@ class PotentialFlowAnalysis(AnalysisStage):
                     defined=True
                     geometry_parameter=boundary_processes[i]["Parameters"]["geometry_parameter"].GetDouble()
                     skin_model_part_name=boundary_processes[i]["Parameters"]["skin_model_part_name"].GetString()
-                    self.problem_name=self.project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+"_"+skin_model_part_name+"_"+str(geometry_parameter)
+                    self.problem_name=case+"_"+self.project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()+"_"+skin_model_part_name+"_"+str(geometry_parameter)
                 if python_module == "compute_lift_level_set_process": 
                     self.project_parameters["processes"]["boundary_conditions_process_list"][i]["Parameters"].AddEmptyValue("problem_name")   
                     self.project_parameters["processes"]["boundary_conditions_process_list"][i]["Parameters"]["problem_name"].SetString(self.problem_name)
@@ -26,7 +27,7 @@ class PotentialFlowAnalysis(AnalysisStage):
                     self.project_parameters["processes"]["boundary_conditions_process_list"][i]["Parameters"].AddEmptyValue("geometry_parameter")   
                     self.project_parameters["processes"]["boundary_conditions_process_list"][i]["Parameters"]["geometry_parameter"].SetDouble(geometry_parameter)
                 if not defined and python_module == "compute_lift_process":
-                    self.problem_name=self.project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
+                    self.problem_name=case+"_"+self.project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
                     self.project_parameters["processes"]["boundary_conditions_process_list"][i]["Parameters"].AddEmptyValue("problem_name")   
                     self.project_parameters["processes"]["boundary_conditions_process_list"][i]["Parameters"]["problem_name"].SetString(self.problem_name)
        

@@ -17,7 +17,7 @@ class LaplacianSolver(PythonSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name"        : "model",                   
-             "domain_size"            : 2,
+            "domain_size"            : 2,
             "solver_type": "potential_flow_solver",
             "problem_type"	         : "incompressible",
             "echo_level": 1,
@@ -102,16 +102,33 @@ class LaplacianSolver(PythonSolver):
     def Initialize(self):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
-            self.main_model_part, 
-            time_scheme, 
-            self.linear_solver,
-            builder_and_solver,
-            self.settings["compute_reactions"].GetBool(), 
-            self.settings["reform_dofs_at_each_step"].GetBool(), 
-            self.settings["calculate_solution_norm"].GetBool(), 
-            move_mesh_flag)
+
+        if self.settings["problem_type"].GetString() == "incompressible":
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+            self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
+                self.main_model_part, 
+                time_scheme, 
+                self.linear_solver,
+                builder_and_solver,
+                self.settings["compute_reactions"].GetBool(), 
+                self.settings["reform_dofs_at_each_step"].GetBool(), 
+                self.settings["calculate_solution_norm"].GetBool(), 
+                move_mesh_flag)
+        else:
+            conv_criteria = KratosMultiphysics.ResidualCriteria(
+                self.settings["relative_tolerance"].GetDouble(), 
+                self.settings["absolute_tolerance"].GetDouble())
+            max_iterations = self.settings["maximum_iterations"].GetInt()
+                    
+            self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
+                self.main_model_part, 
+                time_scheme, 
+                self.linear_solver,
+                conv_criteria,
+                max_iterations,
+                self.settings["compute_reactions"].GetBool(), 
+                self.settings["reform_dofs_at_each_step"].GetBool(), 
+                move_mesh_flag)
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Check()
@@ -208,8 +225,7 @@ class LaplacianSolver(PythonSolver):
 
 
     def SolveSolutionStep(self):
-        print(self.main_model_part)
-        (self.solver).SolveSolutionStep()   
+        (self.solver).SolveSolutionStep() 
 
     def FinalizeSolutionStep(self):        
         self.solver.FinalizeSolutionStep()
