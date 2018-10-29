@@ -21,6 +21,7 @@
 #include "python/add_serializer_to_python.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "containers/model.h"
 
 namespace Kratos
 {
@@ -57,6 +58,8 @@ void  AddSerializerToPython(pybind11::module& m)
     .def("Save",SerializerSave<ModelPart>)
     .def("Load",SerializerLoad<Parameters>)
     .def("Save",SerializerSave<Parameters>)
+    .def("Load",SerializerLoad<Model>)
+    .def("Save",SerializerSave<Model>)
     .def("Print", SerializerPrint)
     ;
 
